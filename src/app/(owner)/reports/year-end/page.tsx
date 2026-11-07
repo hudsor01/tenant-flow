@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useId, useState } from "react";
 import { YearEndReportSection } from "#components/reports/sections/year-end-report-section";
 import { yearEndUnavailableReason } from "#components/reports/sections/year-end-report-section-utils";
+import { UNAVAILABLE_OUTLINE_BUTTON_CLASSES } from "#components/shared/unavailable-outline-button";
 import { Button } from "#components/ui/button";
 import {
 	Select,
@@ -18,6 +19,7 @@ import { useYearEndSummary } from "#hooks/api/use-reports";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { CSV_MIME_TYPE } from "#lib/reports/csv";
 import { downloadBlob } from "#lib/reports/download-blob";
+import { cn } from "#lib/utils";
 import { buildYearEndCsv } from "./year-end-csv";
 
 function buildYearOptions(): number[] {
@@ -144,7 +146,10 @@ export default function YearEndReportsPage() {
 					<Button
 						variant="outline"
 						size="sm"
-						className="gap-1.5 min-h-11 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+						className={cn(
+							"gap-1.5 min-h-11",
+							UNAVAILABLE_OUTLINE_BUTTON_CLASSES,
+						)}
 						onClick={
 							pdfBlocked
 								? undefined

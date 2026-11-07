@@ -11,6 +11,7 @@ import {
 	TrendingUp,
 } from "lucide-react";
 import { useId, useState } from "react";
+import { UNAVAILABLE_OUTLINE_BUTTON_CLASSES } from "#components/shared/unavailable-outline-button";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Button } from "#components/ui/button";
 import {
@@ -24,6 +25,7 @@ import { Skeleton } from "#components/ui/skeleton";
 import { useTaxDocuments } from "#hooks/api/use-expense-mutations";
 import { useDownloadTaxDocumentPdf } from "#hooks/api/use-report-mutations";
 import { createLogger } from "#lib/frontend-logger";
+import { cn } from "#lib/utils";
 import { formatCurrency } from "#lib/utils/currency";
 import {
 	DEDUCTIBILITY_NOTE,
@@ -109,7 +111,8 @@ export default function TaxDocumentsPage() {
 
 	// aria-disabled, not disabled, keeps the tab stop so the reason stays
 	// reachable (as the statements' ReportExportButton does); the click is
-	// ignored while it is set, and while a PDF is generating.
+	// ignored, and the outline hover cancelled, while it is set, and while a
+	// PDF is generating.
 	const pdfUnavailableReason = ledgerUnavailable
 		? "The rent ledger totals the tax documents are built on aren't available yet."
 		: !hasData
@@ -152,7 +155,10 @@ export default function TaxDocumentsPage() {
 						<Button
 							variant="outline"
 							size="sm"
-							className="gap-1.5 min-h-11 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+							className={cn(
+								"gap-1.5 min-h-11",
+								UNAVAILABLE_OUTLINE_BUTTON_CLASSES,
+							)}
 							onClick={
 								pdfBlocked
 									? undefined

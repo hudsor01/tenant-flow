@@ -1,5 +1,6 @@
 import { Download } from "lucide-react";
 import { useId } from "react";
+import { UNAVAILABLE_OUTLINE_BUTTON_CLASSES } from "#components/shared/unavailable-outline-button";
 import { Button } from "#components/ui/button";
 
 interface ReportExportButtonProps {
@@ -11,7 +12,8 @@ interface ReportExportButtonProps {
 /**
  * The CSV Export control of a report header (cash flow, income statement,
  * balance sheet). aria-disabled, not disabled, keeps the tab stop so the
- * reason stays reachable; the click is ignored while it is set.
+ * reason stays reachable; while it is set the click is ignored and the
+ * outline hover cancelled (UNAVAILABLE_OUTLINE_BUTTON_CLASSES).
  */
 export function ReportExportButton({
 	onExport,
@@ -26,7 +28,7 @@ export function ReportExportButton({
 				onClick={unavailable ? undefined : onExport}
 				aria-disabled={unavailable || undefined}
 				aria-describedby={unavailable ? reasonId : undefined}
-				className="aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+				className={UNAVAILABLE_OUTLINE_BUTTON_CLASSES}
 			>
 				<Download aria-hidden="true" />
 				Export

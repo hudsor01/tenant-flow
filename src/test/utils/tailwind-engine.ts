@@ -23,6 +23,10 @@
  *   - `loadTailwindEngine({ css })`: the same pipeline for ANY stylesheet text,
  *     so a guard can be fed the pre-fix baseline
  *     (`git show 754c91802:src/app/globals.css`) to prove it fails there.
+ *   - `compileCandidates(candidates, css?)`: the CSS the compiler emits for
+ *     exactly those classes (the real stylesheet by default), nesting lowered
+ *     as Lightning CSS lowers it for a browser, in compiled order: a guard that
+ *     resolves a cascade reads the rules the build ships.
  *   - `fixtureCss()` / `loadFixtureEngine()`: an isolated stylesheet that opts
  *     out of source detection, so a negative control compiles a few lines
  *     without scanning the repository or inheriting the project theme.
@@ -50,7 +54,11 @@
 
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { __unstable__loadDesignSystem, compile } from "@tailwindcss/node";
+import {
+	__unstable__loadDesignSystem,
+	compile,
+	optimize,
+} from "@tailwindcss/node";
 import type { SourceEntry } from "@tailwindcss/oxide";
 import { Scanner } from "@tailwindcss/oxide";
 import type { Root } from "postcss";
@@ -170,4 +178,16 @@ export function fixtureCss(body: string): string {
 
 export function loadFixtureEngine(body: string): Promise<TailwindEngine> {
 	return loadTailwindEngine({ css: fixtureCss(body) });
+}
+
+export async function compileCandidates(
+	candidates: readonly string[],
+	css: string = readFileSync(GLOBALS_CSS_PATH, "utf8"),
+): Promise<string> {
+	const compiler = await compile(css, {
+		base: TAILWIND_BASE,
+		from: GLOBALS_CSS_PATH,
+		onDependency: () => undefined,
+	});
+	return optimize(compiler.build([...candidates]), { minify: false }).code;
 }

@@ -25,13 +25,17 @@
  * conditional of strings, or, for an identifier, from the wrapper's caller or
  * the parameter's default; unset means `default`. The caller's class strings
  * are the unconditional strings of its `className` (a string, a template's
- * text, `cn()`/`clsx()` arguments, a `buttonVariants({ … })` call's classes),
- * once alone and once with each conditional string added (a `cond && "…"`
- * operand, a conditional's branch, an object key), so every string a caller
- * can hand Button is measured beside the variant. Under `asChild` the child
- * element's own classes are recorded apart: Radix Slot appends them unmerged.
+ * text, `cn()`/`clsx()` arguments, a `buttonVariants({ … })` call's classes,
+ * a module-scope `const` of a string, in the file or imported from another
+ * source), once alone and once with each conditional string added (a
+ * `cond && "…"` operand, a conditional's branch, an object key), so every
+ * string a caller can hand Button is measured beside the variant. Under
+ * `asChild` the child element's own classes are recorded apart: Radix Slot
+ * appends them unmerged. A site records whether it sets `aria-disabled` (any
+ * value but a literal false), which leaves its pointer states live.
  */
 
+import { posix } from "node:path";
 import { parseSync } from "rolldown/utils";
 import { buttonVariants } from "#components/ui/button";
 import { cn } from "#lib/utils";
@@ -52,6 +56,11 @@ export interface ButtonSite {
 	wrapperClasses: string;
 	/** A literal `disabled` (here or in the wrapper): no pointer state can match. */
 	disabled: boolean;
+	/**
+	 * An `aria-disabled` attribute (here or in the wrapper) other than a
+	 * literal false: the control can be off while its pointer states match.
+	 */
+	ariaDisabled: boolean;
 	/**
 	 * Under `asChild`, the child element's name and its own classes (every
 	 * string, conditional ones included), which Radix Slot appends to Button's
@@ -184,7 +193,16 @@ function propertyName(property: Node): string {
 	return "";
 }
 
-function classParts(expression: Node, conditional = false): ClassParts {
+/** The string a module-scope `const` holds, by name, or null. */
+type ConstantLookup = (name: string) => string | null;
+
+const NO_CONSTANTS: ConstantLookup = () => null;
+
+function classParts(
+	expression: Node,
+	conditional = false,
+	lookup: ConstantLookup = NO_CONSTANTS,
+): ClassParts {
 	const out: ClassParts = { always: [], optional: [], forwards: false };
 	const add = (text: string, isConditional: boolean) => {
 		if (text.trim() === "") return;
@@ -200,15 +218,18 @@ function classParts(expression: Node, conditional = false): ClassParts {
 		add(text, conditional);
 		if (expression.type === "TemplateLiteral") {
 			for (const e of (expression.expressions as Node[]) ?? []) {
-				merge(classParts(e, true));
+				merge(classParts(e, true, lookup));
 			}
 		}
 		return out;
 	}
 	switch (expression.type) {
-		case "Identifier":
+		case "Identifier": {
 			out.forwards = expression.name === "className";
+			const constant = lookup(String(expression.name));
+			if (constant !== null) add(constant, conditional);
 			return out;
+		}
 		case "CallExpression": {
 			const callee = expression.callee as Node;
 			const args = (expression.arguments as Node[]) ?? [];
@@ -227,22 +248,22 @@ function classParts(expression: Node, conditional = false): ClassParts {
 				add(buttonClasses(read("variant"), read("size")), conditional);
 				return out;
 			}
-			for (const arg of args) merge(classParts(arg, conditional));
+			for (const arg of args) merge(classParts(arg, conditional, lookup));
 			return out;
 		}
 		case "LogicalExpression":
 			if (expression.operator !== "&&") {
-				merge(classParts(expression.left as Node, true));
+				merge(classParts(expression.left as Node, true, lookup));
 			}
-			merge(classParts(expression.right as Node, true));
+			merge(classParts(expression.right as Node, true, lookup));
 			return out;
 		case "ConditionalExpression":
-			merge(classParts(expression.consequent as Node, true));
-			merge(classParts(expression.alternate as Node, true));
+			merge(classParts(expression.consequent as Node, true, lookup));
+			merge(classParts(expression.alternate as Node, true, lookup));
 			return out;
 		case "ArrayExpression":
 			for (const e of (expression.elements as Node[]) ?? []) {
-				if (isNode(e)) merge(classParts(e, conditional));
+				if (isNode(e)) merge(classParts(e, conditional, lookup));
 			}
 			return out;
 		case "ObjectExpression":
@@ -253,7 +274,7 @@ function classParts(expression: Node, conditional = false): ClassParts {
 		case "TSAsExpression":
 		case "TSSatisfiesExpression":
 		case "ParenthesizedExpression":
-			return classParts(expression.expression as Node, conditional);
+			return classParts(expression.expression as Node, conditional, lookup);
 		default:
 			return out;
 	}
@@ -300,6 +321,7 @@ interface Wrapper {
 	size: string[] | { name: string };
 	base: string[];
 	disabled: boolean;
+	ariaDisabled: boolean;
 	/** Each destructured parameter's string default. */
 	defaults: Map<string, string>;
 }
@@ -370,10 +392,24 @@ function isSet(opening: Node, name: string): boolean {
 
 const NO_CLASS: Node = { type: "Literal", value: "", start: 0, end: 0 };
 
-function classNameParts(opening: Node): ClassParts {
+function classNameParts(
+	opening: Node,
+	lookup: ConstantLookup = NO_CONSTANTS,
+): ClassParts {
 	return classParts(
 		attributeExpression(attribute(opening, "className")) ?? NO_CLASS,
+		false,
+		lookup,
 	);
+}
+
+/** An `aria-disabled` attribute other than a literal false. */
+function isAriaDisabled(opening: Node): boolean {
+	const value = attribute(opening, "aria-disabled");
+	if (value === undefined) return false;
+	if (value === null) return true;
+	const e = attributeExpression(value);
+	return !(e?.type === "Literal" && (e.value === false || e.value === "false"));
 }
 
 function propValues(opening: Node, name: string): string[] | { name: string } {
@@ -399,18 +435,126 @@ function resolveProp(
 }
 
 /** The first element child of a `<Button asChild>`, with its classes. */
-function slotChild(element: Node | undefined): ButtonSite["child"] {
+function slotChild(
+	element: Node | undefined,
+	lookup: ConstantLookup,
+): ButtonSite["child"] {
 	if (!element || element.type !== "JSXElement") return null;
 	for (const c of (element.children as Node[]) ?? []) {
 		if (c.type !== "JSXElement") continue;
 		const opening = c.openingElement as Node;
-		const parts = classNameParts(opening);
+		const parts = classNameParts(opening, lookup);
 		return {
 			element: jsxName(opening.name),
 			className: [...parts.always, ...parts.optional].join(" "),
 		};
 	}
 	return null;
+}
+
+/** A file's module-scope `const` names bound to a string, in source order. */
+function stringConstants(tree: Node): Map<string, string> {
+	const out = new Map<string, string>();
+	for (const statement of (tree.body as Node[]) ?? []) {
+		const declaration =
+			statement.type === "ExportNamedDeclaration"
+				? statement.declaration
+				: statement;
+		if (!isNode(declaration) || declaration.type !== "VariableDeclaration") {
+			continue;
+		}
+		if (declaration.kind !== "const") continue;
+		for (const d of (declaration.declarations as Node[]) ?? []) {
+			const id = d.id;
+			const init = d.init;
+			if (!isNode(id) || id.type !== "Identifier" || !isNode(init)) continue;
+			if (
+				init.type === "TemplateLiteral" &&
+				((init.expressions as Node[]) ?? []).length > 0
+			) {
+				continue;
+			}
+			const text = stringOf(init);
+			if (text !== null) out.set(String(id.name), text);
+		}
+	}
+	return out;
+}
+
+/** A file's named imports: local name to the module and the imported name. */
+function namedImports(
+	tree: Node,
+): Map<string, { from: string; imported: string }> {
+	const out = new Map<string, { from: string; imported: string }>();
+	for (const statement of (tree.body as Node[]) ?? []) {
+		if (statement.type !== "ImportDeclaration") continue;
+		const from = (statement.source as Node | undefined)?.value;
+		if (typeof from !== "string") continue;
+		for (const specifier of (statement.specifiers as Node[]) ?? []) {
+			if (specifier.type !== "ImportSpecifier") continue;
+			const local = specifier.local as Node;
+			const imported = specifier.imported as Node;
+			const importedName =
+				imported.type === "Identifier"
+					? String(imported.name)
+					: String(imported.value);
+			out.set(String(local.name), { from, imported: importedName });
+		}
+	}
+	return out;
+}
+
+/** A `#name/…` alias (`src/name/…`) or a relative specifier, as a source. */
+function resolveSource(
+	specifier: string,
+	from: string,
+	sources: ReadonlyMap<string, string>,
+): string | null {
+	const alias = /^#([a-z]+)\/(.+)$/.exec(specifier);
+	const base = alias
+		? `src/${alias[1]}/${alias[2]}`
+		: specifier.startsWith(".")
+			? posix.join(posix.dirname(from), specifier)
+			: null;
+	if (base === null) return null;
+	return (
+		[base, `${base}.ts`, `${base}.tsx`].find((path) => sources.has(path)) ??
+		null
+	);
+}
+
+/**
+ * The string constants a file's class expressions can name: its own, then
+ * those it imports by name from another source.
+ */
+function constantLookup(
+	path: string,
+	sources: ReadonlyMap<string, string>,
+	trees: ReadonlyMap<string, Node>,
+	parsed: Map<string, Node>,
+): ConstantLookup {
+	const treeOf = (file: string): Node | null => {
+		const known = trees.get(file) ?? parsed.get(file);
+		if (known) return known;
+		const text = sources.get(file);
+		if (text === undefined || !/\.tsx?$/.test(file)) return null;
+		const tree = parse(file, text);
+		parsed.set(file, tree);
+		return tree;
+	};
+	const own = treeOf(path);
+	if (!own) return NO_CONSTANTS;
+	const local = stringConstants(own);
+	const imports = namedImports(own);
+	return (name) => {
+		const mine = local.get(name);
+		if (mine !== undefined) return mine;
+		const imported = imports.get(name);
+		if (!imported) return null;
+		const target = resolveSource(imported.from, path, sources);
+		const tree = target === null ? null : treeOf(target);
+		return tree ? (stringConstants(tree).get(imported.imported) ?? null) : null;
+	};
 }
 
 /**
@@ -428,6 +572,15 @@ export function buttonSites(
 	}
 	const lineOf = (path: string, index: number) =>
 		(sources.get(path) ?? "").slice(0, index).split("\n").length;
+	const lookups = new Map<string, ConstantLookup>();
+	const constantTrees = new Map<string, Node>();
+	const lookupFor = (path: string): ConstantLookup => {
+		const known = lookups.get(path);
+		if (known) return known;
+		const lookup = constantLookup(path, sources, trees, constantTrees);
+		lookups.set(path, lookup);
+		return lookup;
+	};
 	const wrappers = new Map<string, Wrapper[]>();
 	const sites: ButtonSite[] = [];
 	const push = (
@@ -450,6 +603,8 @@ export function buttonSites(
 					classNames: alternatives(parts),
 					wrapperClasses: wrapper ? wrapper.base.join(" ") : "",
 					disabled: isSet(opening, "disabled") || (wrapper?.disabled ?? false),
+					ariaDisabled:
+						isAriaDisabled(opening) || (wrapper?.ariaDisabled ?? false),
 					child,
 				});
 			}
@@ -459,7 +614,7 @@ export function buttonSites(
 		visit(tree, [], (node, parents) => {
 			if (node.type !== "JSXOpeningElement") return;
 			if (jsxName(node.name) !== "Button") return;
-			const parts = classNameParts(node);
+			const parts = classNameParts(node, lookupFor(path));
 			const component = enclosingComponent(parents);
 			const { names, defaults } = component
 				? parameterDefaults(component.params)
@@ -474,7 +629,9 @@ export function buttonSites(
 				},
 				parts,
 				undefined,
-				isSet(node, "asChild") ? slotChild(parents.at(-1)) : null,
+				isSet(node, "asChild")
+					? slotChild(parents.at(-1), lookupFor(path))
+					: null,
 			);
 			if (!parts.forwards || !component || !names.has("className")) return;
 			if (!/^[A-Z]/.test(component.name)) return;
@@ -490,6 +647,7 @@ export function buttonSites(
 				size: propValues(node, "size"),
 				base: parts.always,
 				disabled: isSet(node, "disabled"),
+				ariaDisabled: isAriaDisabled(node),
 				defaults,
 			});
 			wrappers.set(component.name, known);
@@ -500,7 +658,7 @@ export function buttonSites(
 			if (node.type !== "JSXOpeningElement") return;
 			const name = jsxName(node.name);
 			for (const wrapper of wrappers.get(name) ?? []) {
-				const caller = classNameParts(node);
+				const caller = classNameParts(node, lookupFor(path));
 				push(
 					path,
 					node,

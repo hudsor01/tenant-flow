@@ -2,6 +2,7 @@
 
 import { Download, FileText } from "lucide-react";
 import { useId } from "react";
+import { UNAVAILABLE_OUTLINE_BUTTON_CLASSES } from "#components/shared/unavailable-outline-button";
 import { Button } from "#components/ui/button";
 import {
 	Card,
@@ -19,6 +20,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "#components/ui/table";
+import { cn } from "#lib/utils";
 import { formatCurrency } from "#lib/utils/currency";
 import type { YearEndSummary } from "#types/reports";
 import {
@@ -125,7 +127,10 @@ export function YearEndReportSection({
 						aria-describedby={
 							csvUnavailableReason !== null ? csvReasonId : undefined
 						}
-						className="gap-1.5 min-h-11 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+						className={cn(
+							"gap-1.5 min-h-11",
+							UNAVAILABLE_OUTLINE_BUTTON_CLASSES,
+						)}
 					>
 						<Download className="size-4" />
 						{isExportingYearEnd ? "Exporting..." : "Download CSV"}
