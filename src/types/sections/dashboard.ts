@@ -42,7 +42,6 @@ export interface PropertyPerformanceItem {
 	address: string;
 	totalUnits: number;
 	occupiedUnits: number;
-	occupancyRate: number;
 	monthlyRevenue: number;
 	openMaintenance: number;
 }

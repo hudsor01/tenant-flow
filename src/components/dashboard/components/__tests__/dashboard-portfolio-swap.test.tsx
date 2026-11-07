@@ -64,7 +64,6 @@ const PROPERTIES: PropertyPerformanceItem[] = [
 		address: "1 Maple Ave",
 		totalUnits: 10,
 		occupiedUnits: 10,
-		occupancyRate: 100,
 		monthlyRevenue: 12000,
 		openMaintenance: 0,
 	},
@@ -74,7 +73,6 @@ const PROPERTIES: PropertyPerformanceItem[] = [
 		address: "2 Birch St",
 		totalUnits: 8,
 		occupiedUnits: 4,
-		occupancyRate: 50,
 		monthlyRevenue: 6000,
 		openMaintenance: 2,
 	},
@@ -459,19 +457,17 @@ const TRANSFORM_PROPERTIES: PropertyPerformanceItem[] = [
 		address: "100 Full Ave",
 		totalUnits: 4,
 		occupiedUnits: 4,
-		occupancyRate: 100,
 		monthlyRevenue: 8000,
 		openMaintenance: 0,
 	},
 	{
-		// 5 of 6 units (85%: the old "Expiring" band) -> "Partly vacant";
-		// units "5/6".
+		// 5 of 6 units (83%, in the old "Expiring" band of 80% or more) ->
+		// "Partly vacant"; units "5/6".
 		id: "expiring-partial",
 		name: "Expiring Partial",
 		address: "85 Boundary Rd",
 		totalUnits: 6,
 		occupiedUnits: 5,
-		occupancyRate: 85,
 		monthlyRevenue: 5000,
 		openMaintenance: 0,
 	},
@@ -482,7 +478,6 @@ const TRANSFORM_PROPERTIES: PropertyPerformanceItem[] = [
 		address: "0 Empty St",
 		totalUnits: 4,
 		occupiedUnits: 0,
-		occupancyRate: 0,
 		monthlyRevenue: 0,
 		openMaintenance: 0,
 	},

@@ -67,7 +67,6 @@ function DashboardContent() {
 			address: prop.address_line1,
 			totalUnits: prop.totalUnits,
 			occupiedUnits: prop.occupiedUnits,
-			occupancyRate: prop.occupancyRate,
 			monthlyRevenue: prop.monthlyRevenue,
 			openMaintenance: prop.open_maintenance ?? 0,
 		}));
