@@ -14,7 +14,7 @@
 import { screen } from "@testing-library/react";
 import { expect } from "vitest";
 
-export function visibleText(el: HTMLElement): string {
+function visibleText(el: HTMLElement): string {
 	const clone = el.cloneNode(true) as HTMLElement;
 	for (const hidden of clone.querySelectorAll(".sr-only")) hidden.remove();
 	return (clone.textContent ?? "").replace(/\s+/g, " ").trim();

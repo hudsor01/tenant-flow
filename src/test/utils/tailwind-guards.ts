@@ -254,7 +254,7 @@ export function checkNonInlineThemeVarRefs(css: string): GuardResult {
  * theme variable name sits in this scanned file as a literal. Nothing else may
  * join this set.
  */
-export const MODE_INDEPENDENT_TOKENS: ReadonlySet<string> = new Set(
+const MODE_INDEPENDENT_TOKENS: ReadonlySet<string> = new Set(
 	["white", "black", "chart-1", "chart-2", "chart-3", "chart-4", "chart-5"].map(
 		(name) => `--color-${name}`,
 	),
@@ -964,10 +964,10 @@ export function checkInlineColorTokenStructure(css: string): GuardResult {
 }
 
 /** The vendored shadcn directory, relative to the repository root. G8 skips it (W5 owns those files, PLAN.md decision 6). */
-export const VENDORED_UI_RELATIVE_DIR = "src/components/ui";
+const VENDORED_UI_RELATIVE_DIR = "src/components/ui";
 
 /** The root font size the canonicalizer assumes when it maps a px value to a spacing-scale step. */
-export const CANONICAL_ROOT_FONT_SIZE_PX = 16;
+const CANONICAL_ROOT_FONT_SIZE_PX = 16;
 
 /**
  * G8 scope (D-25): the project scan sources plus one negated entry for the
