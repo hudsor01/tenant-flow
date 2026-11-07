@@ -93,7 +93,11 @@ const YEAR = 2024;
 
 type RpcAnswers = Record<string, { data: unknown; error: unknown }>;
 
-/** The owner's deleted property ids both sides read (key `properties`). */
+/**
+ * The owner's deleted property ids, which both sides read: the key their
+ * reads are recorded under, and the name a failed read must carry in the
+ * export's load result (the module keeps its own copy private).
+ */
 const DELETED_READ = "properties";
 
 function richAnswers(): RpcAnswers {

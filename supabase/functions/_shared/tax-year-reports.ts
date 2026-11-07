@@ -74,7 +74,7 @@ const PROPERTY_PAGE_SIZE = 1000;
  * page, its CSV, the tax-preparation and property portfolio exports, and this
  * module's year-end table.
  */
-export const PROPERTY_STATUS_REPORT_LABELS: Readonly<Record<string, string>> = {
+const PROPERTY_STATUS_REPORT_LABELS: Readonly<Record<string, string>> = {
 	inactive: "deleted",
 };
 
@@ -261,7 +261,7 @@ export const TAX_YEAR_REPORT_TYPES: readonly string[] = [
 ];
 
 /** Every RPC a tax-year report may read, with the arguments its page passes. */
-export function taxYearRpcCalls(
+function taxYearRpcCalls(
 	userId: string,
 	year: number,
 ): Readonly<Record<SourceKey, RpcCall>> {
@@ -307,7 +307,7 @@ export type TaxYearLoad =
 	| { readonly ok: false; readonly rpc: string; readonly error: unknown };
 
 /** The read a failed deleted-property load names, beside the RPCs'. */
-export const DELETED_PROPERTIES_READ = "properties";
+const DELETED_PROPERTIES_READ = "properties";
 
 /**
  * Call the report's RPCs, and for the year-end report read the owner's

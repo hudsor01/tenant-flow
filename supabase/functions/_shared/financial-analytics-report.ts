@@ -163,7 +163,7 @@ const SOURCE_KEYS: readonly SourceKey[] = [
 ];
 
 /** The four RPCs and their arguments, exactly as the page calls them. */
-export function financialAnalyticsRpcCalls(
+function financialAnalyticsRpcCalls(
 	userId: string,
 ): Readonly<Record<SourceKey, RpcCall>> {
 	return {
