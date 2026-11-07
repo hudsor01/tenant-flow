@@ -53,8 +53,10 @@ function TrendArrow({ direction }: { direction: "up" | "down" | "stable" }) {
 	return <Minus aria-hidden="true" className="inline-block size-3" />;
 }
 
-// Reduced motion (03-UI-SPEC § 5.4): the ticker starts at the value, so the
-// first paint already shows the figure rather than counting up from 0.
+// Reduced motion (03-UI-SPEC § 5.4): the ticker starts at the value, and
+// useReducedMotion reads the preference on the first render, so the tile's
+// first commit already shows the figure rather than "$0" (66.2-39 fix round 4,
+// G16).
 // NumberTicker formats it either way (thousands separators, the currency
 // symbol in its own span outside the digits' tracking-wider), so the "$" keeps
 // the stat's letter-spacing with motion on or off (VD-71).

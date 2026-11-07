@@ -90,7 +90,7 @@ describe("NumberTicker", () => {
 
 	it("snaps to the final value immediately under prefers-reduced-motion (D-04)", () => {
 		// matchMedia is not in jsdom by default; stub it to report reduced-motion
-		// as matching BEFORE render so useReducedMotion() seeds true after its effect.
+		// as matching BEFORE render so useReducedMotion() reads true on the first render.
 		// No timer advance: the snap happens when the effect commits, no rAF scheduled.
 		vi.stubGlobal("matchMedia", (query: string) => ({
 			matches: query.includes("prefers-reduced-motion"),
