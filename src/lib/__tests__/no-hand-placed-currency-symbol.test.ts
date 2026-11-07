@@ -7,7 +7,7 @@
  * `formatCurrency` (Intl's currency style, "-$250") or `NumberTicker` with
  * `currency`, which formats every frame the same way.
  *
- * The scan flags, in every tracked `.ts`/`.tsx` file under `src/`:
+ * The scan flags, in every tracked non-test `.ts`/`.tsx` file under `src/`:
  *   - JSX text "$" followed, across whitespace and newlines, by an expression
  *     container (`${value}`, `$\n{value}`);
  *   - a "$" element right before a `<NumberTicker` (`<span>$</span><NumberTicker`);
