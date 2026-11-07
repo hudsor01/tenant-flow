@@ -12,6 +12,7 @@
  */
 import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { expectAvailable, expectUnavailable } from "#test/utils/availability";
 import { render } from "#test/utils/test-render";
 import type { YearEndResult } from "#types/reports";
 
@@ -52,12 +53,9 @@ describe("the year-end downloads", () => {
 		const { csv, pdf } = renderYear({ status: "ledger-unavailable" });
 		const reason =
 			"The rent ledger totals the year-end report is built on aren't available yet.";
-		for (const button of [csv, pdf]) {
-			expect(button).not.toBeDisabled();
-			expect(button).toHaveAttribute("aria-disabled", "true");
-			expect(button).toHaveAccessibleDescription(reason);
-			fireEvent.click(button);
-		}
+		expectUnavailable(csv, { reason });
+		expectUnavailable(pdf, { reason, handler: downloadPdfMock });
+		fireEvent.click(csv);
 		expect(downloadPdfMock).not.toHaveBeenCalled();
 	});
 
@@ -73,14 +71,13 @@ describe("the year-end downloads", () => {
 				expenseByCategory: [],
 			},
 		});
-		expect(pdf).toHaveAttribute("aria-disabled", "true");
-		expect(pdf).toHaveAccessibleDescription(
-			`No rent received or expenses recorded for ${YEAR}.`,
-		);
-		fireEvent.click(pdf);
+		expectUnavailable(pdf, {
+			reason: `No rent received or expenses recorded for ${YEAR}.`,
+			handler: downloadPdfMock,
+		});
 		expect(downloadPdfMock).not.toHaveBeenCalled();
 		// The CSV of an empty year still downloads.
-		expect(csv).not.toHaveAttribute("aria-disabled");
+		expectAvailable(csv);
 		expect(csv).not.toHaveAttribute("aria-describedby");
 	});
 
@@ -97,10 +94,10 @@ describe("the year-end downloads", () => {
 			},
 		});
 		for (const button of [csv, pdf]) {
-			expect(button).not.toHaveAttribute("aria-disabled");
+			expectAvailable(button);
 			expect(button).not.toHaveAttribute("aria-describedby");
 		}
-		fireEvent.click(pdf);
+		expectAvailable(pdf, downloadPdfMock);
 		expect(downloadPdfMock).toHaveBeenCalledWith(YEAR);
 	});
 });

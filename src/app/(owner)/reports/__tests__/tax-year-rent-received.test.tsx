@@ -9,8 +9,9 @@
  * summary was missing. They now say "Rent Received", and say the ledger
  * totals are unavailable, with no $0, when the server cannot report them yet.
  */
-import { fireEvent, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { expectAvailable, expectUnavailable } from "#test/utils/availability";
 import { computeParagraphCascade } from "#test/utils/base-rule-cascade";
 import { loadProjectDesignSystem } from "#test/utils/tailwind-engine";
 import { render } from "#test/utils/test-render";
@@ -218,7 +219,11 @@ describe("the tax documents", () => {
 
 	// A $1,500 receipt dated 2024-12-20 reversed on 2025-01-05, nothing else in
 	// 2025: the year's rent received is -1500, and the year-end page shows it.
+	// Its PDF is available: `toBeEnabled()` read only the native `disabled`,
+	// which Download PDF never sets (cycle 3, G13), so it held whatever the
+	// unavailable reason said.
 	it("show a tax year whose rent received is negative, with its PDF (cycle 2, F21)", () => {
+		downloadPdfMock.mockReset();
 		taxDocuments({
 			status: "ready",
 			documents: {
@@ -234,9 +239,12 @@ describe("the tax documents", () => {
 		});
 		expect(screen.queryByText(/^No data for/)).not.toBeInTheDocument();
 		expect(screen.getAllByText("-$1,500.00")).toHaveLength(2);
-		expect(
-			screen.getByRole("button", { name: "Download PDF of the tax documents" }),
-		).toBeEnabled();
+		const button = screen.getByRole("button", {
+			name: "Download PDF of the tax documents",
+		});
+		expectAvailable(button, downloadPdfMock);
+		expect(button).not.toHaveAttribute("aria-describedby");
+		expect(downloadPdfMock).toHaveBeenCalledWith(new Date().getFullYear());
 	});
 
 	// Download PDF keeps its tab stop and says why it is off, as the
@@ -246,15 +254,14 @@ describe("the tax documents", () => {
 		taxDocuments({ status: "ledger-unavailable" });
 		expect(screen.getByText("Ledger totals unavailable")).toBeInTheDocument();
 		expect(screen.queryByText("$0.00")).not.toBeInTheDocument();
-		const button = screen.getByRole("button", {
-			name: "Download PDF of the tax documents",
-		});
-		expect(button).not.toBeDisabled();
-		expect(button).toHaveAttribute("aria-disabled", "true");
-		expect(button).toHaveAccessibleDescription(
-			"The rent ledger totals the tax documents are built on aren't available yet.",
+		expectUnavailable(
+			screen.getByRole("button", { name: "Download PDF of the tax documents" }),
+			{
+				reason:
+					"The rent ledger totals the tax documents are built on aren't available yet.",
+				handler: downloadPdfMock,
+			},
 		);
-		fireEvent.click(button);
 		expect(downloadPdfMock).not.toHaveBeenCalled();
 	});
 
@@ -273,14 +280,13 @@ describe("the tax documents", () => {
 				expenseCategories: [],
 			},
 		});
-		const button = screen.getByRole("button", {
-			name: "Download PDF of the tax documents",
-		});
-		expect(button).toHaveAttribute("aria-disabled", "true");
-		expect(button).toHaveAccessibleDescription(
-			`No rent received or expenses recorded for tax year ${new Date().getFullYear()}.`,
+		expectUnavailable(
+			screen.getByRole("button", { name: "Download PDF of the tax documents" }),
+			{
+				reason: `No rent received or expenses recorded for tax year ${new Date().getFullYear()}.`,
+				handler: downloadPdfMock,
+			},
 		);
-		fireEvent.click(button);
 		expect(downloadPdfMock).not.toHaveBeenCalled();
 	});
 
@@ -302,9 +308,8 @@ describe("the tax documents", () => {
 		const button = screen.getByRole("button", {
 			name: "Download PDF of the tax documents",
 		});
-		expect(button).not.toHaveAttribute("aria-disabled");
+		expectAvailable(button, downloadPdfMock);
 		expect(button).not.toHaveAttribute("aria-describedby");
-		fireEvent.click(button);
 		expect(downloadPdfMock).toHaveBeenCalledWith(new Date().getFullYear());
 	});
 });

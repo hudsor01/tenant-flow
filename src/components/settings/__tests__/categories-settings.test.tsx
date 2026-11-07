@@ -5,6 +5,7 @@ import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TooltipProvider } from "#components/ui/tooltip";
 import { mutationKeys } from "#hooks/api/mutation-keys";
+import { expectAvailable, expectUnavailable } from "#test/utils/availability";
 import { computeListCascade } from "#test/utils/base-rule-cascade";
 import { CategoriesSettings } from "../categories-settings";
 
@@ -266,8 +267,7 @@ describe("CategoriesSettings", () => {
 			const button = screen.getByRole("button", {
 				name: `Delete ${category.label}`,
 			});
-			expect(button).toHaveAttribute("aria-disabled", "true");
-			expect(button).not.toBeDisabled();
+			expectUnavailable(button);
 			// Inside the row's actions group, itself a child of the row: no
 			// wrapper element between the group and the button.
 			const group = button.parentElement;
@@ -305,16 +305,25 @@ describe("CategoriesSettings", () => {
 		expect(screen.queryByRole("alertdialog")).toBeNull();
 	});
 
-	it("enables the delete button on custom categories", () => {
+	// A custom category's delete is available, not aria-disabled as a default
+	// one's is (`toBeEnabled()` read only the native state), and opens the
+	// confirmation.
+	it("enables the delete button on custom categories", async () => {
+		const user = userEvent.setup();
 		mockUseDocumentCategories.mockReturnValue({
 			categories: WITH_CUSTOM,
 			isLoading: false,
 			isError: false,
 		});
 		renderSettings();
+		const button = screen.getByRole("button", { name: /delete warranty/i });
+		expectAvailable(button);
+		await user.click(button);
 		expect(
-			screen.getByRole("button", { name: /delete warranty/i }),
-		).toBeEnabled();
+			await screen.findByRole("dialog", {
+				name: "Delete \u201cWarranty\u201d",
+			}),
+		).toBeInTheDocument();
 	});
 
 	it("opens the create dialog and submits with auto-derived slug", async () => {

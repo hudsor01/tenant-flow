@@ -47,6 +47,7 @@ import {
 	type RentalApplicationRow,
 } from "#hooks/api/query-keys/application-keys";
 import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
+import { expectAvailable } from "#test/utils/availability";
 import { computeListCascade } from "#test/utils/base-rule-cascade";
 import { ApplicationDetail } from "../application-detail";
 
@@ -691,7 +692,7 @@ describe("ApplicationDetail — declining captures a reason before it commits", 
 		// The control genuinely becomes usable. Without this the assertion above
 		// would pass against a permanently inert button.
 		await waitFor(() => {
-			expect(confirmButton()).toBeEnabled();
+			expectAvailable(confirmButton());
 		});
 	});
 
@@ -706,7 +707,7 @@ describe("ApplicationDetail — declining captures a reason before it commits", 
 			await screen.findByRole("option", { name: "Applicant withdrew" }),
 		);
 		await waitFor(() => {
-			expect(confirmButton()).toBeEnabled();
+			expectAvailable(confirmButton());
 		});
 		await user.click(confirmButton());
 
@@ -892,7 +893,7 @@ describe("ApplicationDetail — every write invalidates what it changed", () => 
 
 		await user.type(screen.getByLabelText("Private notes"), " Left a message.");
 		await waitFor(() => {
-			expect(screen.getByRole("button", { name: "Save notes" })).toBeEnabled();
+			expectAvailable(screen.getByRole("button", { name: "Save notes" }));
 		});
 		await user.click(screen.getByRole("button", { name: "Save notes" }));
 
@@ -1042,7 +1043,7 @@ describe("ApplicationDetail — the owner's private notes", () => {
 		await user.type(field, " Left a message.");
 
 		await waitFor(() => {
-			expect(save).toBeEnabled();
+			expectAvailable(save);
 		});
 		await user.click(save);
 
