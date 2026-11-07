@@ -50,12 +50,23 @@ describe("RentAdjustment change value", () => {
 	// A sign only above or below zero, as the statements' zero figures print
 	// (66.2-39 fix round 3, the F16 shape): a change under half a cent read
 	// "+$0.00" or "-$0.00".
+	// The color is the printed change's too (cycle 3, G19): it keyed on the
+	// unrounded change, so 999.996 printed "$0.00 (0.0%)" in the destructive
+	// color and 1000.004 the same text in the success color. A zero change is
+	// colored as an increase, as the statements color a zero net figure.
 	it.each([
-		["1100", "+$100.00 (10.0%)"],
-		["900", "-$100.00 (-10.0%)"],
-		["1000.004", "$0.00 (0.0%)"],
-		["999.996", "$0.00 (0.0%)"],
-	])("prints the change to %s as %s", (newRent, text) => {
-		expect(renderAdjustment(newRent).textContent).toBe(text);
+		["1100", "+$100.00 (10.0%)", "text-success-text"],
+		["900", "-$100.00 (-10.0%)", "text-destructive-text"],
+		["1000.004", "$0.00 (0.0%)", "text-success-text"],
+		["999.996", "$0.00 (0.0%)", "text-success-text"],
+	])("prints the change to %s as %s in %s", (newRent, text, color) => {
+		const value = renderAdjustment(newRent);
+		expect(value.textContent).toBe(text);
+		expect(value).toHaveClass(color);
+		expect(value).not.toHaveClass(
+			color === "text-success-text"
+				? "text-destructive-text"
+				: "text-success-text",
+		);
 	});
 });

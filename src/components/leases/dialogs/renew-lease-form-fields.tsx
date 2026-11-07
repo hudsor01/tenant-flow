@@ -130,7 +130,9 @@ export function RentAdjustment({
 	// The change as it prints, to the cent: a "+" only above zero (and
 	// formatCurrency's "-" only below), so a change under half a cent reads
 	// "$0.00 (0.0%)", never "+$0.00" or "-$0.00" (-0 folded), as the
-	// statements' zero figures do. The percent is the printed change's.
+	// statements' zero figures do. The percent and the color are the printed
+	// change's: a decrease is destructive, and zero an increase's success, as
+	// the statements color a zero net figure.
 	const changeCents = Math.round(rentIncreaseAmount * 100);
 	const shownChange = changeCents === 0 ? 0 : changeCents / 100;
 	const rentIncreasePercent =
@@ -218,7 +220,7 @@ export function RentAdjustment({
 								<div className="flex justify-between pt-1 mt-1 border-t border-border">
 									<span className="text-muted-foreground">Change:</span>
 									<span
-										className={`font-semibold ${rentIncreaseAmount >= 0 ? "text-success-text" : "text-destructive-text"}`}
+										className={`font-semibold ${shownChange < 0 ? "text-destructive-text" : "text-success-text"}`}
 									>
 										{shownChange > 0 ? "+" : ""}
 										{formatCurrency(shownChange)} (
