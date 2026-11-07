@@ -329,7 +329,6 @@ const TEST_SEAMS: readonly Seam[] = [
 
 /** Exports another fix-round-4 part removes or makes private. */
 const PENDING = `
-src/components/ui/animated-trend-indicator.tsx AnimatedTrendIndicator
 src/test/utils/state-fill-pairs.ts themeColor
 `;
 
