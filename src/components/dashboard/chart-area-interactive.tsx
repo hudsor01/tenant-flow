@@ -88,6 +88,10 @@ export function ChartAreaInteractive({
 	const totalExpenses =
 		chartData?.reduce((sum, item) => sum + item.expenses, 0) || 0;
 	const netProfit = totalRevenue - totalExpenses;
+	// Scheduled Net prints whole dollars, which formatCurrency rounds half away
+	// from zero, so its color and arrow read the dollars it prints: a net
+	// within half a dollar of zero is "$0", -0 folded, colored as a gain.
+	const shownNet = Math.sign(netProfit) * Math.round(Math.abs(netProfit)) + 0;
 	const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
 
 	return (
@@ -186,15 +190,15 @@ export function ChartAreaInteractive({
 					<p
 						className={cn(
 							"mb-0 flex items-center gap-1 typography-large",
-							netProfit >= 0 ? "text-success-text" : "text-warning-text",
+							shownNet >= 0 ? "text-success-text" : "text-warning-text",
 						)}
 					>
-						{netProfit >= 0 ? (
+						{shownNet >= 0 ? (
 							<TrendingUp className="size-4" />
 						) : (
 							<TrendingDown className="size-4" />
 						)}
-						{formatCurrency(netProfit, WHOLE_DOLLARS)}
+						{formatCurrency(shownNet, WHOLE_DOLLARS)}
 					</p>
 				</div>
 				<div className="space-y-1">

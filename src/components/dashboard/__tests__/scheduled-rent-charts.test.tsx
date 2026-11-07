@@ -73,6 +73,40 @@ describe("the scheduled rent and expenses chart", () => {
 		}
 	});
 
+	// fcfbdacbd printed the net with its sign in whole dollars while its color
+	// and arrow kept the unrounded sign: $2,000 of rent against $2,000.40 of
+	// expenses read "-$0" in the warning color (cycle 3, the I2 sweep). The
+	// printed dollars decide all three; half a dollar rounds away from zero,
+	// as formatCurrency rounds.
+	it.each([
+		[2000.4, "$0", "text-success-text", "lucide-trending-up"],
+		[1999.6, "$0", "text-success-text", "lucide-trending-up"],
+		[2000.5, "-$1", "text-warning-text", "lucide-trending-down"],
+	])(
+		"prints and colors a net of 2000 less %s as %s",
+		(expenses, text, color, arrow) => {
+			chartState.current = {
+				data: [
+					{
+						date: "2026-10",
+						revenue: 2000,
+						collected: 1500,
+						expenses,
+						profit: 2000 - expenses,
+					},
+				],
+				isLoading: false,
+				error: null,
+			};
+			render(<ChartAreaInteractive />);
+			const figure = screen.getByText("Scheduled Net")
+				.nextElementSibling as HTMLElement;
+			expect(figure.textContent).toBe(text);
+			expect(figure).toHaveClass(color);
+			expect(figure.querySelector("svg")).toHaveClass(arrow);
+		},
+	);
+
 	it("names its series and totals scheduled", () => {
 		render(<ChartAreaInteractive />);
 		expect(screen.getByText("Scheduled Rent & Expenses")).toBeInTheDocument();
