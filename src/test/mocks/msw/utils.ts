@@ -27,6 +27,18 @@ export function postgrestList<T>(data: T[], count?: number): HttpResponse {
 }
 
 /**
+ * Whether the request asks for one row, as `.single()` does (its Accept
+ * header): PostgREST then answers with the object, not an array.
+ * (`.maybeSingle()` asks for the array and picks the row itself.)
+ */
+export function wantsOneRow(request: Request): boolean {
+	return (
+		request.headers.get("Accept")?.includes("application/vnd.pgrst.object") ??
+		false
+	);
+}
+
+/**
  * Create a PostgREST-style single-row response.
  */
 export function postgrestSingle<T>(data: T): HttpResponse {

@@ -228,12 +228,13 @@ export const DEFAULT_MAINTENANCE_REQUEST: MaintenanceListRow = {
 	...MAINTENANCE_REQUEST_COLUMNS,
 	propertyName: "Test Property",
 	unitNumber: "Apt 101",
-	tenantName: null,
+	tenantName: "John Doe",
 };
 
 /**
  * The same request as PostgREST returns it for the list's select: its own
- * columns and the unit, property and tenant embeds the list maps from.
+ * columns and the unit, property and tenant embeds `mapMaintenanceListRow`
+ * maps to `DEFAULT_MAINTENANCE_REQUEST`.
  */
 export const MAINTENANCE_LIST_POSTGREST_ROW = {
 	...MAINTENANCE_REQUEST_COLUMNS,
@@ -245,5 +246,18 @@ export const MAINTENANCE_LIST_POSTGREST_ROW = {
 	tenant: { name: null, first_name: "John", last_name: "Doe" },
 };
 
-/** The request's own columns, as a create or update `.select()` returns them. */
+/**
+ * The same request as the detail's select returns it, which an update's
+ * `.select()` also returns: the list's embeds, the tenant with email and phone.
+ */
+export const MAINTENANCE_DETAIL_POSTGREST_ROW = {
+	...MAINTENANCE_LIST_POSTGREST_ROW,
+	tenant: {
+		...MAINTENANCE_LIST_POSTGREST_ROW.tenant,
+		email: "john.doe@example.com",
+		phone: "555-0100",
+	},
+};
+
+/** The request's own columns, as a create's `.select()` returns them. */
 export const MAINTENANCE_REQUEST_POSTGREST_ROW = MAINTENANCE_REQUEST_COLUMNS;
