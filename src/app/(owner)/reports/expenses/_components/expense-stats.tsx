@@ -15,8 +15,8 @@ import type { ExpenseYearOverYear } from "#types/analytics";
 // There is no "Maintenance" tile: get_expense_summary's categories are vendor
 // names, and every expense is on a maintenance request
 // (expenses.maintenance_request_id is NOT NULL), so all of it is maintenance
-// spend and the tile could only restate Total Expenses (it looked for a
-// category named "maintenance", which no vendor is, and read $0).
+// spend and the tile could only restate Total Expenses (it read the category
+// named exactly "maintenance": a vendor of that name's spend, else $0).
 interface ExpenseStatsProps {
 	totalExpenses: number;
 	monthlyAvg: number;

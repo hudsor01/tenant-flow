@@ -10,9 +10,10 @@ interface ExpenseCategoryBreakdownProps {
 /**
  * The year to date's expenses by vendor, each vendor named as entered. The
  * chips ran each name through a first-letter capitalizer ("acme plumbing"
- * read "Acme plumbing") and a style map keyed on category names no vendor has
- * (maintenance, utilities, insurance, taxes, management), so every chip took
- * the map's default; that default is the one style here.
+ * read "Acme plumbing") and a style map keyed on maintenance, utilities,
+ * insurance, taxes, management and other: a vendor named exactly like a key
+ * took that key's style, and every other vendor the map's default, which is
+ * the one style here.
  */
 export function ExpenseCategoryBreakdown({
 	categories,
