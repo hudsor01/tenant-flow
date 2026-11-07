@@ -238,6 +238,9 @@ describe("Tour keeps every step inside the viewport", () => {
 		expect(step.className).toContain("max-h-(--tour-available-height)");
 		expect(step.className).toContain("max-w-(--tour-available-width)");
 		expect(step.className).toContain("flex-col");
+		// Below 48rem the close button is a 44px box (the touch floor): the
+		// content starts under it and its 4px focus ring (16 + 44 + 4).
+		expect(step.className).toContain("max-md:pt-16");
 		const header = headerElement();
 		expect(header.className).toContain("min-h-0");
 		expect(header.className).toContain("overflow-y-auto");
@@ -270,6 +273,10 @@ describe("Tour keeps every step inside the viewport", () => {
 			observer.fire();
 		});
 		expect(header).toHaveAttribute("tabindex", "0");
+		// From 48rem up the close button sits in the header's top-right corner:
+		// a scrolling header keeps clear of it.
+		expect(header).toHaveAttribute("data-scrollable");
+		expect(header.className).toContain("md:data-scrollable:pr-6");
 
 		Object.defineProperty(header, "clientHeight", {
 			configurable: true,
@@ -279,6 +286,7 @@ describe("Tour keeps every step inside the viewport", () => {
 			observer.fire();
 		});
 		expect(header).not.toHaveAttribute("tabindex");
+		expect(header).not.toHaveAttribute("data-scrollable");
 		expect(screen.getByRole("button", { name: "Skip tour" })).toBeVisible();
 	});
 });

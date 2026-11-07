@@ -1302,10 +1302,15 @@ function TourStep(props: TourStepProps) {
 				onPointerDownCapture={onPointerDownCapture}
 				onFocusCapture={onFocusCapture}
 				onBlurCapture={onBlurCapture}
-				// 66.2-39 divergence from DiceUI: max-h/max-w read the size step's
-				// variables (above).
+				// 66.2-39 divergences from DiceUI: max-h/max-w read the size step's
+				// variables (above). Below 48rem every button takes the 44px touch
+				// floor (globals.css, D-08), so TourClose (absolute, top-4 right-4)
+				// is a 44px box over the content's first 44px, where it covered the
+				// first line of the description (and, at 320, the title);
+				// max-md:pt-16 (16 + 44 + its 4px focus ring) starts the content
+				// below the button and its ring.
 				className={cn(
-					"fixed z-50 flex max-h-(--tour-available-height) w-80 max-w-(--tour-available-width) flex-col gap-4 rounded-lg border bg-popover p-4 text-popover-foreground shadow-md outline-none",
+					"fixed z-50 flex max-h-(--tour-available-height) w-80 max-w-(--tour-available-width) flex-col gap-4 rounded-lg border bg-popover p-4 text-popover-foreground shadow-md outline-none max-md:pt-16",
 					className,
 				)}
 				style={{
@@ -1491,7 +1496,10 @@ function TourHeader(props: DivProps) {
 	// part that gives way when the step is capped at the viewport
 	// (--tour-available-height). It shrinks (min-h-0) and scrolls, so the
 	// footer keeps its size. While it scrolls it takes a tab stop (and the
-	// base *:focus-visible ring), so a keyboard can scroll it too (WCAG 2.1.1).
+	// base *:focus-visible ring), so a keyboard can scroll it too (WCAG 2.1.1),
+	// and from 48rem up, where TourClose is a 16px box in its top-right corner
+	// rather than above it (max-md:pt-16 on the step), it keeps 24px clear on
+	// the right so scrolled text never runs under the close button.
 	const [headerNode, setHeaderNode] = useState<HTMLElement | null>(null);
 	const composedRef = useComposedRefs(ref, setHeaderNode);
 	const scrollable = useOverflowsVertically(headerNode);
@@ -1503,10 +1511,11 @@ function TourHeader(props: DivProps) {
 			data-slot="tour-header"
 			dir={context.dir}
 			tabIndex={scrollable ? 0 : undefined}
+			data-scrollable={scrollable ? "" : undefined}
 			{...headerProps}
 			ref={composedRef}
 			className={cn(
-				"flex min-h-0 flex-col gap-1.5 overflow-y-auto text-center sm:text-left",
+				"flex min-h-0 flex-col gap-1.5 overflow-y-auto text-center sm:text-left md:data-scrollable:pr-6",
 				className,
 			)}
 		/>
