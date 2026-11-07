@@ -2,6 +2,7 @@
  * Financial Statements and Tax Documents Type Definitions
  */
 
+import type { ExpenseCategorySummary } from "./analytics";
 import type { Database } from "./supabase";
 
 /**
@@ -100,7 +101,8 @@ export interface TaxDocumentsData {
 		totalExpenses: number;
 		netIncome: number;
 	};
-	expenseCategories: TaxExpenseCategory[];
+	/** Each vendor's expenses for the tax year. */
+	expenseCategories: ExpenseCategorySummary[];
 }
 
 /**
@@ -111,13 +113,6 @@ export interface TaxDocumentsData {
 export type TaxDocumentsResult =
 	| { readonly status: "ready"; readonly documents: TaxDocumentsData }
 	| { readonly status: "ledger-unavailable" };
-
-/** One vendor's expenses for the tax year (get_expense_summary's categories). */
-export interface TaxExpenseCategory {
-	category: string;
-	amount: number;
-	percentage: number;
-}
 
 export interface TaxDocumentsQuery {
 	taxYear: number;

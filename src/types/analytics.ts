@@ -199,6 +199,13 @@ export interface NetOperatingIncomeByProperty {
 	noi: number;
 }
 
+/**
+ * One of get_expense_summary's `categories`: a period's expenses by vendor
+ * (the expenses page's year to date, the tax documents' tax year). A
+ * "category" is the vendor's name as the owner entered it, or NO_VENDOR_LABEL
+ * for the expenses with none (the mappers name them, expenseVendorLabel); the
+ * data model has no expense category of its own.
+ */
 export interface ExpenseCategorySummary {
 	category: string;
 	amount: number;
