@@ -311,7 +311,12 @@ const QUERY_CACHE_KEY = "tenantflow-query-cache";
 // `tenantPhone`, and leaseQueries.detail carries `tenant` and `unit` (with
 // the unit's `property`) in place of its raw `tenants` and `units` embeds.
 // A v6 entry would carry the old shapes until the refetch landed.
-const QUERY_CACHE_BUSTER = "tenantflow-cache-v7";
+// v8: fix round 4 dropped what the ledger-unavailable results carried that
+// no page read: financialTaxQueries.taxDocuments' taxYear,
+// financialQueries.balanceSheet's asOfDate, .cashFlow's and .incomeStatement's
+// period, and reportAnalyticsQueries.yearEnd's year. A v7 entry would carry
+// them until the refetch landed.
+const QUERY_CACHE_BUSTER = "tenantflow-cache-v8";
 const QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24; // 24 hours
 
 declare global {

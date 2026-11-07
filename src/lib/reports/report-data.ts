@@ -915,7 +915,7 @@ async function buildTaxPreparation(
 	end: string,
 ): Promise<ReportData> {
 	const year = reportTaxYear(end);
-	const fallback: YearEndResult = { status: "ledger-unavailable", year };
+	const fallback: YearEndResult = { status: "ledger-unavailable" };
 	const yearEndResult = await safeFetch(
 		queryClient,
 		reportAnalyticsQueries.yearEnd(year),

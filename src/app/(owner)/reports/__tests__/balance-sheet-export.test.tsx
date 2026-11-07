@@ -279,14 +279,12 @@ describe("the balance sheet file holds the figures on screen", () => {
 });
 
 describe("when the server returns no rent-ledger totals", () => {
-	function unavailable(asOfDate: string): BalanceSheetResult {
-		return { status: "ledger-unavailable", asOfDate };
-	}
+	const UNAVAILABLE: BalanceSheetResult = { status: "ledger-unavailable" };
 
 	it("says the ledger totals are unavailable instead of showing $0 figures", () => {
 		useBalanceSheetMock.mockImplementation((asOfDate: string) => ({
 			...queryState()(asOfDate),
-			data: unavailable(asOfDate),
+			data: UNAVAILABLE,
 		}));
 		render(<BalanceSheetPage />);
 		expect(screen.getByText("Ledger totals unavailable")).toBeInTheDocument();
@@ -300,7 +298,7 @@ describe("when the server returns no rent-ledger totals", () => {
 	it("keeps Export unavailable and says why", () => {
 		useBalanceSheetMock.mockImplementation((asOfDate: string) => ({
 			...queryState()(asOfDate),
-			data: unavailable(asOfDate),
+			data: UNAVAILABLE,
 		}));
 		render(<BalanceSheetPage />);
 		const button = screen.getByRole("button", { name: "Export" });
@@ -316,7 +314,7 @@ describe("when the server returns no rent-ledger totals", () => {
 		const refetch = vi.fn();
 		useBalanceSheetMock.mockImplementation((asOfDate: string) => ({
 			...queryState({ refetch })(asOfDate),
-			data: unavailable(asOfDate),
+			data: UNAVAILABLE,
 		}));
 		render(<BalanceSheetPage />);
 		fireEvent.click(screen.getByRole("button", { name: "Try Again" }));

@@ -276,14 +276,7 @@ describe("useIncomeStatement", () => {
 		await waitFor(() => {
 			expect(result.current.isSuccess).toBe(true);
 		});
-		expect(result.current.data).toEqual({
-			status: "ledger-unavailable",
-			period: {
-				start_date: "2026-02-01",
-				end_date: "2026-03-31",
-				label: "2026-02-01 to 2026-03-31",
-			},
-		});
+		expect(result.current.data).toEqual({ status: "ledger-unavailable" });
 	});
 
 	it("fails when no one is signed in, rather than drawing a $0 statement", async () => {
@@ -578,10 +571,7 @@ describe("useBalanceSheet", () => {
 			expensesBefore: { total_amount: 0 },
 		});
 		const query = await load();
-		expect(query.data).toEqual({
-			status: "ledger-unavailable",
-			asOfDate: "2026-03-31",
-		});
+		expect(query.data).toEqual({ status: "ledger-unavailable" });
 	});
 
 	it("does not balance a sheet whose ledger figures do not partition", async () => {
@@ -750,10 +740,7 @@ describe("useTaxDocuments", () => {
 		await waitFor(() => {
 			expect(result.current.isSuccess).toBe(true);
 		});
-		expect(result.current.data).toEqual({
-			status: "ledger-unavailable",
-			taxYear: 2024,
-		});
+		expect(result.current.data).toEqual({ status: "ledger-unavailable" });
 	});
 
 	it("fails when no one is signed in, rather than drawing $0 documents", async () => {

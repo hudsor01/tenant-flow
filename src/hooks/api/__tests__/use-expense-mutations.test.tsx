@@ -157,10 +157,7 @@ describe("useTaxDocuments default year", () => {
 
 		await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-		expect(result.current.data).toEqual({
-			status: "ledger-unavailable",
-			taxYear: 2021,
-		});
+		expect(result.current.data).toEqual({ status: "ledger-unavailable" });
 		expect(mockRpc).toHaveBeenCalledWith("get_billing_insights", {
 			owner_id_param: "user-1",
 			end_date_param: "2021-12-31",

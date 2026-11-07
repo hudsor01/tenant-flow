@@ -49,10 +49,7 @@ function renderYear(result: YearEndResult) {
 
 describe("the year-end downloads", () => {
 	it("say the ledger totals are unavailable, keeping their tab stops", () => {
-		const { csv, pdf } = renderYear({
-			status: "ledger-unavailable",
-			year: YEAR,
-		});
+		const { csv, pdf } = renderYear({ status: "ledger-unavailable" });
 		const reason =
 			"The rent ledger totals the year-end report is built on aren't available yet.";
 		for (const button of [csv, pdf]) {

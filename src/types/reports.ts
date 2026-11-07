@@ -132,4 +132,4 @@ export interface YearEndSummary {
  */
 export type YearEndResult =
 	| { readonly status: "ready"; readonly summary: YearEndSummary }
-	| { readonly status: "ledger-unavailable"; readonly year: number };
+	| { readonly status: "ledger-unavailable" };

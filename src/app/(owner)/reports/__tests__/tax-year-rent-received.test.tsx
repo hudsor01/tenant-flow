@@ -243,7 +243,7 @@ describe("the tax documents", () => {
 	// statements' Export does (cycle 2, F22, OD-12).
 	it("say the ledger totals are unavailable, and say why there is no PDF", () => {
 		downloadPdfMock.mockReset();
-		taxDocuments({ status: "ledger-unavailable", taxYear: 2025 });
+		taxDocuments({ status: "ledger-unavailable" });
 		expect(screen.getByText("Ledger totals unavailable")).toBeInTheDocument();
 		expect(screen.queryByText("$0.00")).not.toBeInTheDocument();
 		const button = screen.getByRole("button", {

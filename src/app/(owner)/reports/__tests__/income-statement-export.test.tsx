@@ -249,14 +249,7 @@ describe("income statement Export", () => {
 		// get_billing_insights' body before 20261102055449: no ledger keys.
 		useIncomeStatementMock.mockReturnValue(
 			queryState({
-				data: {
-					status: "ledger-unavailable",
-					period: {
-						start_date: "2026-11-01",
-						end_date: "2026-11-30",
-						label: "2026-11-01 to 2026-11-30",
-					},
-				},
+				data: { status: "ledger-unavailable" },
 			}),
 		);
 		render(<IncomeStatementPage />);

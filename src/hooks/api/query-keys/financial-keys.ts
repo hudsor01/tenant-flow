@@ -533,7 +533,7 @@ export const financialQueries = {
 				const atEnd = mapLedgerCharges(end);
 				const atStart = mapLedgerCharges(before);
 				if (atEnd === null || atStart === null) {
-					return { status: "ledger-unavailable", period };
+					return { status: "ledger-unavailable" };
 				}
 				return {
 					status: "ready",
@@ -563,7 +563,7 @@ export const financialQueries = {
 				const atEnd = mapLedgerPosition(end);
 				const atStart = mapLedgerPosition(before);
 				if (atEnd === null || atStart === null) {
-					return { status: "ledger-unavailable", period };
+					return { status: "ledger-unavailable" };
 				}
 				return {
 					status: "ready",
@@ -623,7 +623,7 @@ export const financialQueries = {
 				const asOf = mapLedgerPosition(asOfResult.data);
 				const atYearStart = mapLedgerPosition(priorYearResult.data);
 				if (asOf === null || atYearStart === null) {
-					return { status: "ledger-unavailable", asOfDate };
+					return { status: "ledger-unavailable" };
 				}
 				return {
 					status: "ready",

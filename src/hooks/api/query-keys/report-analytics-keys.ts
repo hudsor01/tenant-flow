@@ -298,7 +298,7 @@ export const reportAnalyticsQueries = {
 					deleted.data ?? undefined,
 				);
 				if (rentReceived === null || properties.status !== "ready") {
-					return { status: "ledger-unavailable", year };
+					return { status: "ledger-unavailable" };
 				}
 				const expenseSummary = expenseResult.data as Record<
 					string,

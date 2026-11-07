@@ -110,7 +110,7 @@ export interface TaxDocumentsData {
  */
 export type TaxDocumentsResult =
 	| { readonly status: "ready"; readonly documents: TaxDocumentsData }
-	| { readonly status: "ledger-unavailable"; readonly taxYear: number };
+	| { readonly status: "ledger-unavailable" };
 
 /** One vendor's expenses for the tax year (get_expense_summary's categories). */
 export interface TaxExpenseCategory {
@@ -186,7 +186,7 @@ export interface BalanceSheetData {
  */
 export type BalanceSheetResult =
 	| { readonly status: "ready"; readonly sheet: BalanceSheetData }
-	| { readonly status: "ledger-unavailable"; readonly asOfDate: string };
+	| { readonly status: "ledger-unavailable" };
 
 /**
  * The cash flow on a rent-ledger basis (financialQueries.cashFlow): rent
@@ -222,10 +222,7 @@ export interface CashFlowData {
  */
 export type CashFlowResult =
 	| { readonly status: "ready"; readonly report: CashFlowData }
-	| {
-			readonly status: "ledger-unavailable";
-			readonly period: CashFlowData["period"];
-	  };
+	| { readonly status: "ledger-unavailable" };
 
 /**
  * The income statement on a rent-ledger basis (financialQueries.
@@ -269,10 +266,7 @@ export interface IncomeStatementData {
  */
 export type IncomeStatementResult =
 	| { readonly status: "ready"; readonly statement: IncomeStatementData }
-	| {
-			readonly status: "ledger-unavailable";
-			readonly period: IncomeStatementData["period"];
-	  };
+	| { readonly status: "ledger-unavailable" };
 
 export interface FinancialPropertyPerformance {
 	property_id: string;

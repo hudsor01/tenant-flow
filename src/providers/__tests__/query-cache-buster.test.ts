@@ -16,8 +16,9 @@
  * `propertyName`, `unitNumber` and `tenantName` their embedded unit, property
  * and tenant give, maintenanceQueries.detail the same and the tenant's
  * `tenantEmail` and `tenantPhone`, and leaseQueries.detail its `tenant` and
- * `unit` in place of the raw `tenants` and `units` embeds (fix round 3, v7).
- * An entry persisted under an older buster would be read back by the new
+ * `unit` in place of the raw `tenants` and `units` embeds (fix round 3, v7);
+ * the ledger-unavailable results lost the tax year, as-of date, period and
+ * year no page read (fix round 4, v8). An entry persisted under an older buster would be read back by the new
  * pages as neither shape and drawn as an empty or $0 report until the refetch
  * landed. The buster is module-private, so this reads the source.
  */
@@ -31,7 +32,7 @@ const SOURCE = readFileSync(
 );
 
 describe("QUERY_CACHE_BUSTER", () => {
-	it("is past v1 to v6, whose entries have the old shapes", () => {
+	it("is past v1 to v7, whose entries have the old shapes", () => {
 		const buster = /const QUERY_CACHE_BUSTER = "([^"]+)";/.exec(SOURCE)?.[1];
 		expect(buster).toBeDefined();
 		expect(buster).not.toBe("tenantflow-cache-v1");
@@ -40,6 +41,7 @@ describe("QUERY_CACHE_BUSTER", () => {
 		expect(buster).not.toBe("tenantflow-cache-v4");
 		expect(buster).not.toBe("tenantflow-cache-v5");
 		expect(buster).not.toBe("tenantflow-cache-v6");
-		expect(buster).toBe("tenantflow-cache-v7");
+		expect(buster).not.toBe("tenantflow-cache-v7");
+		expect(buster).toBe("tenantflow-cache-v8");
 	});
 });

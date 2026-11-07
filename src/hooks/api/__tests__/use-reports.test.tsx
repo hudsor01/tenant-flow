@@ -479,10 +479,7 @@ describe("useYearEndSummary", () => {
 			await waitFor(() => {
 				expect(result.current.isSuccess).toBe(true);
 			});
-			expect(result.current.data).toEqual({
-				status: "ledger-unavailable",
-				year: 2024,
-			});
+			expect(result.current.data).toEqual({ status: "ledger-unavailable" });
 		},
 	);
 });

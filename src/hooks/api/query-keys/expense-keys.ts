@@ -32,7 +32,7 @@ export const financialTaxQueries = {
 				if (expenseResult.error)
 					handlePostgrestError(expenseResult.error, "tax documents expenses");
 				if (rentReceived === null) {
-					return { status: "ledger-unavailable", taxYear: year };
+					return { status: "ledger-unavailable" };
 				}
 
 				const totalIncome = rentReceived;
