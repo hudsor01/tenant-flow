@@ -53,17 +53,39 @@
 --      newlines, the md5 must be SOURCE's. A chain-only function left over is a
 --      row the listing does not have, so it fails this too.
 --
--- A NO-OP ON PRODUCTION. Before anything runs, the block checks its constants:
--- the listing they spell has SOURCE's md5, each body's md5 is its listing
--- row's, and no function to drop is in the listing. Every CREATE, REVOKE and
--- DROP then runs only behind a guard that the catalog differs from that listing
--- (a body's md5, an ACL's text, a chain-only function existing), so on a
--- catalog equal to the listing none runs. Production's catalog was equal to it
--- on 2026-11-02; if it has moved since, step 4 raises and nothing changes.
+-- A NO-OP ON PRODUCTION AS READ ON 2026-11-02. Before step 1 the block checks
+-- two of its constants: the listing they spell has SOURCE's md5, and no
+-- function to drop is in the listing. Step 1 checks the third as it reaches
+-- each body: its md5 must be its listing row's, or the block raises (after the
+-- bodies before it ran; the raise rolls them back with the rest). Every
+-- CREATE, REVOKE and DROP runs only behind a guard that the catalog differs
+-- from that listing (a body's md5, an ACL's text, a chain-only function
+-- existing), so on a catalog equal to the listing none runs. Production's
+-- catalog was equal to it on 2026-11-02.
 -- On the replay, applying this file a second time ran no CREATE, REVOKE or
 -- DROP: on the replayed catalog, and again with production's two other
 -- differences put in (pg_stat_monitor's 14 functions installed in public, and
 -- the 7 `<default>` ACLs set to NULL).
+--
+-- IF PRODUCTION HAS MOVED SINCE, THIS FILE DOES NOT STOP FOR ALL OF IT.
+-- Steps 1-3 put back what they reach, with a NOTICE and no error:
+--   - in the 36 functions step 1 embeds, a changed definition (the body,
+--     volatility, SECURITY DEFINER flag or anything else pg_get_functiondef
+--     prints) or a dropped function: created again from the 2026-11-02 text
+--     (a CREATE OR REPLACE that cannot apply, over a changed return type or
+--     parameter name, raises instead);
+--   - in the 149 functions, an EXECUTE grant to a role the listing's ACL
+--     lacks: revoked;
+--   - a chain-only function created again: dropped (one that something
+--     depends on raises instead).
+-- So a production hotfix to one of the 36 bodies, or a grant added to a listed
+-- function, after 2026-11-02 would be reverted with only a NOTICE. Step 4
+-- raises, and nothing changes, for any difference steps 1-3 leave: a public
+-- function the listing lacks; in the 113 functions step 1 does not embed, a
+-- changed definition or a dropped function; in any of the 149, a grant the
+-- listing has and the catalog lacks, or the same grants in another order.
+-- Step 4 reads no extension's functions (it takes the 14 pg_stat_monitor rows
+-- as written). The stop is the read-only check BEFORE APPLYING, below.
 --
 -- SOURCE. Production, read only, 2026-11-02, under search_path
 -- "$user", public, extensions (under public alone, match_blog_rag_chunks'
@@ -85,10 +107,16 @@
 -- 20261102230101. Those files then replace 9 of the functions listed here and
 -- add 3.
 --
+-- BEFORE APPLYING IT ON PRODUCTION, the SOURCE query (read only) must return
+-- the listing: all 163 rows, md5 30d50a870d65915c47d23e10908562d1. If it does
+-- not, stop. This check is the stop, not step 4: on a catalog that has moved,
+-- the file puts back what steps 1-3 reach and raises only for the rest.
+--
 -- AFTER APPLYING IT ON PRODUCTION, and before the next file, the SOURCE query
 -- (read only) must return the listing again, md5
 -- 30d50a870d65915c47d23e10908562d1: every function's pg_get_functiondef
--- unchanged. Step 4 asserts this inside the apply.
+-- unchanged. Step 4 asserts this inside the apply for every function but the
+-- 14 pg_stat_monitor members, which it takes as written.
 
 do $recon$
 declare
