@@ -87,8 +87,10 @@ describe("the property portfolio report", () => {
 			"Expenses",
 			"Net Income",
 		]);
+		// To the cent, so the row ties: $2,750.50 - $200.25 = $2,550.25 (whole
+		// dollars wrote $2,751 - $200 = $2,550).
 		expect(table.table?.rows).toEqual([
-			["Alpha Court", "50.0%", "$2,751", "$200", "$2,550"],
+			["Alpha Court", "50.0%", "$2,750.50", "$200.25", "$2,550.25"],
 		]);
 		expect(report.sections.map((s) => s.heading)).toEqual([
 			"Portfolio Summary",

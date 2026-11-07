@@ -634,10 +634,15 @@ async function buildFinancialPerformance(
 	};
 }
 
+/**
+ * To the cent, as the property screens print them: rent received is the
+ * ledger's receipts, so whole-dollar rounding of each figure would write a row
+ * whose net income is not its rent received less its expenses.
+ */
 function propertyPerformanceRows(
 	properties: PropertyReport,
 ): Array<Array<string | number>> {
-	const money = (n: number | null) => (n === null ? UNAVAILABLE : fmtMoney(n));
+	const money = (n: number | null) => (n === null ? UNAVAILABLE : fmtCents(n));
 	return properties.byProperty.map((p) => [
 		p.propertyName,
 		fmtPct(p.occupancyRate),
