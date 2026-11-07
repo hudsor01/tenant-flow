@@ -1,2281 +1,2812 @@
 {
-	"changedSrc": 684,
-	"added": [
-		{
-			"key": "2xl:flex",
-			"files": [
-				"src/components/properties/__tests__/property-name-column.test.tsx",
-				"src/components/properties/property-table-types.ts"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "@4xl/dashboard:col-span-1",
-			"files": [
-				"src/components/dashboard/components/__tests__/occupancy-donut-chart.test.tsx",
-				"src/components/dashboard/components/occupancy-donut-chart.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "@4xl/dashboard:col-span-2",
-			"files": [
-				"src/components/dashboard/components/__tests__/revenue-area-chart.test.tsx",
-				"src/components/dashboard/components/revenue-area-chart.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "@4xl/dashboard:col-span-3",
-			"files": [
-				"src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "@4xl/dashboard:grid-cols-4",
-			"files": [
-				"src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx",
-				"src/components/dashboard/dashboard.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "@container/chart-card",
-			"files": [
-				"src/components/dashboard/chart-area-interactive.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "@container/dashboard",
-			"files": [
-				"src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx",
-				"src/components/dashboard/dashboard.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "@container/kpi-bento",
-			"files": [
-				"src/components/dashboard/components/__tests__/kpi-bento-row.test.tsx",
-				"src/components/dashboard/components/kpi-bento-row.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "[&_.recharts-surface:focus-visible]:-outline-offset-2",
-			"files": [
-				"src/components/ui/__tests__/chart.test.tsx",
-				"src/components/ui/chart.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "[&_.recharts-surface:focus-visible]:outline-2",
-			"files": [
-				"src/components/ui/__tests__/chart.test.tsx",
-				"src/components/ui/chart.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "[&_.recharts-surface:focus-visible]:outline-ring",
-			"files": [
-				"src/components/ui/__tests__/chart.test.tsx",
-				"src/components/ui/chart.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "[&_.recharts-surface:focus-visible]:outline-solid",
-			"files": [
-				"src/components/ui/__tests__/chart.test.tsx",
-				"src/components/ui/chart.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "[a&]:hover:bg-destructive-text",
-			"files": [
-				"src/components/ui/badge.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "[a&]:hover:bg-primary-text",
-			"files": [
-				"src/components/ui/badge.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "[a&]:hover:bg-success/12",
-			"files": [
-				"src/components/ui/badge.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "[a]:hover:bg-accent/25",
-			"files": [
-				"src/components/ui/item.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "aria-disabled:cursor-not-allowed",
-			"files": [
-				"src/app/(owner)/reports/report-export-button.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-black/75",
-			"files": [
-				"src/app/__tests__/tailwind-theme-integrity.test.ts",
-				"src/components/properties/sections/property-images-create-section.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "bg-destructive-text",
-			"files": [
-				"src/app/(owner)/properties/units/page.tsx",
-				"src/app/(owner)/reports/cash-flow/cash-flow-breakdown.tsx",
-				"src/app/(owner)/reports/income-statement/income-statement-page-breakdowns.tsx",
-				"src/components/ui/badge.tsx",
-				"src/components/ui/button.tsx"
-			],
-			"fileCount": 6
-		},
-		{
-			"key": "bg-info-text",
-			"files": [
-				"src/app/resources/security-deposit-reference-card/page.tsx",
-				"src/components/properties/property-table-row.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "bg-primary-text",
-			"files": [
-				"src/app/(owner)/properties/units/page.tsx",
-				"src/components/dashboard/components/__tests__/occupancy-donut-chart.test.tsx",
-				"src/components/dashboard/components/occupancy-donut-chart.tsx",
-				"src/components/ui/badge.tsx",
-				"src/components/ui/button.tsx"
-			],
-			"fileCount": 6
-		},
-		{
-			"key": "bg-success-text",
-			"files": [
-				"src/app/(owner)/properties/units/page.tsx",
-				"src/app/(owner)/reports/cash-flow/cash-flow-breakdown.tsx",
-				"src/app/(owner)/reports/income-statement/income-statement-page-breakdowns.tsx",
-				"src/app/__tests__/design-token-drift.test.ts",
-				"src/app/resources/security-deposit-reference-card/page.tsx"
-			],
-			"fileCount": 11
-		},
-		{
-			"key": "bg-warning-text",
-			"files": [
-				"src/app/__tests__/design-token-drift.test.ts",
-				"src/components/properties/property-table-row.tsx",
-				"src/components/ui/progress.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "bg-warning/5",
-			"files": [
-				"src/components/leases/detail/lease-terms-tab.tsx",
-				"src/components/settings/account-data-section.tsx",
-				"src/components/settings/gdpr-data-actions.tsx",
-				"src/components/settings/sections/subscription-cancel-section.tsx"
-			],
-			"fileCount": 4
-		},
-		{
-			"key": "blur-none",
-			"files": [
-				"src/app/blog/[slug]/blog-post-page.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "border-info/30",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "border-muted-foreground",
-			"files": [
-				"src/app/resources/security-deposit-reference-card/page.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "border-primary-foreground",
-			"files": [
-				"src/components/auth/__tests__/update-password-form.test.tsx",
-				"src/components/auth/update-password-form.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "bottom-2/5",
-			"files": [
-				"src/components/landing/feature-backgrounds.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "content-start",
-			"files": [
-				"src/app/(owner)/analytics/__tests__/stat-rows-one-height.test.tsx",
-				"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
-				"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
-				"src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
-				"src/app/(owner)/reports/expenses/_components/expense-stats.tsx"
-			],
-			"fileCount": 6
-		},
-		{
-			"key": "dark:[a&]:hover:bg-destructive/90",
-			"files": [
-				"src/components/ui/badge.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:[a&]:hover:bg-primary/90",
-			"files": [
-				"src/components/ui/badge.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:border-primary-foreground/50",
-			"files": [
-				"src/app/__tests__/primary-cta-band-contrast.test.tsx",
-				"src/app/faq/page.tsx",
-				"src/app/help/page.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "dark:data-[state=on]:hover:bg-primary/90",
-			"files": [
-				"src/components/ui/toggle.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:hover:bg-destructive/90",
-			"files": [
-				"src/components/settings/account-data-section.tsx",
-				"src/components/settings/gdpr-data-actions.tsx",
-				"src/components/ui/__tests__/naming-conventions.test.tsx",
-				"src/components/ui/button.tsx"
-			],
-			"fileCount": 4
-		},
-		{
-			"key": "dark:hover:bg-primary-foreground",
-			"files": [
-				"src/app/__tests__/primary-cta-band-contrast.test.tsx",
-				"src/app/faq/page.tsx",
-				"src/app/help/page.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "dark:hover:bg-primary/90",
-			"files": [
-				"src/app/(owner)/analytics/financial/page.tsx",
-				"src/app/(owner)/analytics/property-performance/page.tsx",
-				"src/app/(owner)/dashboard/components/dashboard-empty-state.tsx",
-				"src/app/(owner)/dashboard/page.tsx",
-				"src/app/(owner)/leases/page.tsx"
-			],
-			"fileCount": 20
-		},
-		{
-			"key": "dark:hover:bg-transparent",
-			"files": [
-				"src/components/settings/category-row.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:hover:text-foreground",
-			"files": [
-				"src/components/ui/button.tsx",
-				"src/components/ui/calendar.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "data-[selected=true]:[&_svg:not([class*='text-'])]:text-accent-foreground",
-			"files": [
-				"src/components/ui/command.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-[state=completed]:bg-success-text",
-			"files": [
-				"src/components/bulk-import/bulk-import-stepper.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-[state=completed]:bg-success/10",
-			"files": [
-				"src/components/bulk-import/bulk-import-stepper.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-[state=completed]:text-success-text",
-			"files": [
-				"src/components/bulk-import/bulk-import-stepper.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-[state=on]:hover:bg-primary-text",
-			"files": [
-				"src/app/__tests__/state-fill-contrast.test.ts",
-				"src/components/ui/toggle.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "data-[state=open]:bg-muted",
-			"files": [
-				"src/components/data-table/data-table-column-header.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-dragging:bg-accent/25",
-			"files": [
-				"src/components/ui/file-upload/file-upload-dropzone.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-dragging:bg-primary/10",
-			"files": [
-				"src/components/bulk-import/__tests__/bulk-import-upload-step.test.tsx",
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "data-dragging:border-primary",
-			"files": [
-				"src/components/bulk-import/__tests__/bulk-import-upload-step.test.tsx",
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "data-dragging:scale-[1.01]",
-			"files": [
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-dragging:shadow-lg",
-			"files": [
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-dragging:shadow-primary/10",
-			"files": [
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "focus:[&_svg:not([class*='text-'])]:text-accent-foreground",
-			"files": [
-				"src/app/__tests__/state-fill-contrast.test.ts",
-				"src/components/ui/dropdown-menu.tsx",
-				"src/components/ui/select.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "focus:bg-muted",
-			"files": [
-				"src/components/shared/multi-select-chips.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "focus:text-primary-text",
-			"files": [
-				"src/components/auth/update-password-form.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-data-dragging:animate-bounce",
-			"files": [
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-data-dragging:animate-pulse",
-			"files": [
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-data-dragging:bg-primary/20",
-			"files": [
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-data-dragging:scale-110",
-			"files": [
-				"src/components/bulk-import/__tests__/bulk-import-upload-step.test.tsx",
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "h-1/2",
-			"files": [
-				"src/components/sections/hero-dashboard-mockup.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "h-2/5",
-			"files": [
-				"src/components/sections/hero-dashboard-mockup.tsx",
-				"src/components/shared/chart-loading-skeleton.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "h-3/4",
-			"files": [
-				"src/components/sections/hero-dashboard-mockup.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "h-3/5",
-			"files": [
-				"src/components/sections/hero-dashboard-mockup.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "h-4/5",
-			"files": [
-				"src/components/landing/feature-backgrounds.tsx",
-				"src/components/shared/chart-loading-skeleton.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "h-lh",
-			"files": [
-				"src/components/analytics/owner-payment-summary.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "hover:bg-accent/25",
-			"files": [
-				"src/components/ui/file-upload/file-upload-dropzone.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "hover:bg-destructive-text",
-			"files": [
-				"src/components/settings/account-data-section.tsx",
-				"src/components/settings/gdpr-data-actions.tsx",
-				"src/components/ui/__tests__/alert-dialog.test.tsx",
-				"src/components/ui/__tests__/naming-conventions.test.tsx",
-				"src/components/ui/button.tsx"
-			],
-			"fileCount": 5
-		},
-		{
-			"key": "hover:bg-primary-text",
-			"files": [
-				"src/app/(owner)/analytics/financial/page.tsx",
-				"src/app/(owner)/analytics/property-performance/page.tsx",
-				"src/app/(owner)/dashboard/components/dashboard-empty-state.tsx",
-				"src/app/(owner)/dashboard/page.tsx",
-				"src/app/(owner)/leases/page.tsx"
-			],
-			"fileCount": 20
-		},
-		{
-			"key": "hover:text-primary-text/80",
-			"files": [
-				"src/app/blog/[slug]/blog-post-page.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "lg:@xl/chart-card:grid-cols-4",
-			"files": [
-				"src/components/dashboard/chart-area-interactive.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "lg:min-h-0",
-			"files": [
-				"src/app/(owner)/analytics/__tests__/stat-rows-one-height.test.tsx",
-				"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
-				"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
-				"src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
-				"src/components/properties/property-stats-section.tsx"
-			],
-			"fileCount": 6
-		},
-		{
-			"key": "lg:min-w-40",
-			"files": [
-				"src/components/properties/__tests__/property-name-column.test.tsx",
-				"src/components/properties/property-table-types.ts"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "lg:pb-(--dock-clearance)",
-			"files": [
-				"src/components/shell/__tests__/app-shell.test.tsx",
-				"src/components/shell/app-shell.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "max-sm:sr-only",
-			"files": [
-				"src/components/leases/wizard/lease-creation-wizard-header.tsx",
-				"src/components/ui/global-sync-indicator.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "min-h-10",
-			"files": [
-				"src/app/(owner)/analytics/__tests__/stat-rows-one-height.test.tsx",
-				"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
-				"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
-				"src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
-				"src/components/properties/property-stats-section.tsx"
-			],
-			"fileCount": 6
-		},
-		{
-			"key": "min-w-48",
-			"files": [
-				"src/components/properties/property-table-types.ts"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "min-w-56",
-			"files": [
-				"src/components/properties/__tests__/property-name-column.test.tsx",
-				"src/components/properties/property-table-types.ts"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "min-w-min",
-			"files": [
-				"src/components/properties/__tests__/property-name-column.test.tsx",
-				"src/components/properties/property-table-types.ts",
-				"src/components/properties/property-table.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "mr-0.5",
-			"files": [
-				"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
-				"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
-				"src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "normal-case",
-			"files": [
-				"src/app/(owner)/properties/units/components/unit-actions.tsx",
-				"src/components/__tests__/owner-text-as-entered.test.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "outline-solid",
-			"files": [
-				"src/components/ui/chart.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "ring-foreground/5",
-			"files": [
-				"src/components/tenants/tenant-detail-sheet.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "sm:flex-nowrap",
-			"files": [
-				"src/app/(owner)/reports/balance-sheet/page.tsx",
-				"src/app/(owner)/reports/cash-flow/cash-flow-header.tsx",
-				"src/app/(owner)/reports/income-statement/income-statement-page-header.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "sm:max-w-[95vw]",
-			"files": [
-				"src/components/properties/__tests__/image-lightbox.test.tsx",
-				"src/components/properties/image-lightbox.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "w-3/5",
-			"files": [
-				"src/components/shared/blog-empty-state.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "wrap-break-word",
-			"files": [
-				"src/app/(owner)/reports/tax-documents/page.tsx"
-			],
-			"fileCount": 1
-		}
-	],
-	"removed": [
-		{
-			"key": "-bottom-1",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "-inset-0.5",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "-left-1",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "@4xl/kpi-bento:gap-6",
-			"files": [
-				"src/components/dashboard/components/kpi-bento-row.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "[a&]:hover:bg-destructive/90",
-			"files": [
-				"src/components/ui/badge.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "[a&]:hover:bg-primary/90",
-			"files": [
-				"src/components/ui/badge.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "[a&]:hover:bg-success/15",
-			"files": [
-				"src/components/ui/badge.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-(--color-chart-5)",
-			"files": [
-				"src/components/dashboard/components/occupancy-donut-chart.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-amber-100",
-			"files": [
-				"src/components/leases/detail/lease-detail-utils.ts",
-				"src/components/properties/property-table-row.tsx",
-				"src/components/properties/property-units-table-config.ts",
-				"src/components/settings/billing-settings.tsx",
-				"src/components/settings/sections/two-factor-section.tsx"
-			],
-			"fileCount": 5
-		},
-		{
-			"key": "bg-amber-50",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx",
-				"src/components/settings/sections/two-factor-section.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "bg-amber-50/50",
-			"files": [
-				"src/components/leases/detail/lease-terms-tab.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-amber-500",
-			"files": [
-				"src/components/properties/property-table-row.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-amber-500/5",
-			"files": [
-				"src/components/settings/account-data-section.tsx",
-				"src/components/settings/gdpr-data-actions.tsx",
-				"src/components/settings/sections/subscription-cancel-section.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "bg-blue-100",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/app/(owner)/reports/tax-documents/page.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts",
-				"src/components/properties/property-table-row.tsx",
-				"src/components/properties/property-units-table-config.ts"
-			],
-			"fileCount": 6
-		},
-		{
-			"key": "bg-blue-50",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-blue-500",
-			"files": [
-				"src/components/properties/property-table-row.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-chart-1",
-			"files": [
-				"src/app/(owner)/properties/units/page.tsx",
-				"src/app/__tests__/tailwind-theme-integrity.test.ts"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "bg-chart-2",
-			"files": [
-				"src/components/dashboard/components/occupancy-donut-chart.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-chart-3",
-			"files": [
-				"src/app/(owner)/analytics/overview/page.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-chart-4",
-			"files": [
-				"src/app/(owner)/properties/units/page.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-chart-5",
-			"files": [
-				"src/app/(owner)/analytics/overview/page.tsx",
-				"src/app/(owner)/properties/units/page.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "bg-emerald-100",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/app/(owner)/reports/tax-documents/page.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts",
-				"src/components/properties/property-table-row.tsx",
-				"src/components/tenants/tenant-grid.tsx"
-			],
-			"fileCount": 5
-		},
-		{
-			"key": "bg-emerald-50",
-			"files": [
-				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
-				"src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "bg-emerald-500",
-			"files": [
-				"src/app/(owner)/reports/cash-flow/cash-flow-breakdown.tsx",
-				"src/app/(owner)/reports/income-statement/income-statement-page-breakdowns.tsx",
-				"src/components/properties/property-table-row.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "bg-emerald-500/10",
-			"files": [
-				"src/components/properties/property-stats-section.tsx",
-				"src/components/settings/billing-settings.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "bg-green-100",
-			"files": [
-				"src/components/properties/property-units-table-config.ts"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-green-500/10",
-			"files": [
-				"src/components/maintenance/detail/maintenance-utils.ts",
-				"src/components/maintenance/detail/timeline-card.tsx",
-				"src/components/maintenance/table/columns.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "bg-indigo-50",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-info",
-			"files": [
-				"src/app/resources/security-deposit-reference-card/page.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-orange-100",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts",
-				"src/components/maintenance/cards/maintenance-card.tsx",
-				"src/components/maintenance/table/columns.tsx"
-			],
-			"fileCount": 4
-		},
-		{
-			"key": "bg-orange-500/10",
-			"files": [
-				"src/components/maintenance/detail/maintenance-utils.ts",
-				"src/components/maintenance/kanban/maintenance-kanban.client.tsx",
-				"src/components/maintenance/table/columns.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "bg-primary/3",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-primary/60",
-			"files": [
-				"src/components/sections/stats-showcase.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-purple-100",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/components/properties/property-units-table-config.ts"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "bg-red-100",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts",
-				"src/components/settings/billing-settings.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "bg-red-50",
-			"files": [
-				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
-				"src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx",
-				"src/components/billing/subscription-status-banner.tsx",
-				"src/components/settings/sections/subscription-cancel-section.tsx"
-			],
-			"fileCount": 4
-		},
-		{
-			"key": "bg-red-500",
-			"files": [
-				"src/app/(owner)/reports/cash-flow/cash-flow-breakdown.tsx",
-				"src/app/(owner)/reports/income-statement/income-statement-page-breakdowns.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "bg-rose-100",
-			"files": [
-				"src/app/(owner)/reports/tax-documents/page.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-secondary/20",
-			"files": [
-				"src/components/ui/progress.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bg-stone-100",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "bg-success",
-			"files": [
-				"src/app/resources/security-deposit-reference-card/page.tsx",
-				"src/components/leases/__tests__/lease-signature-status.test.tsx",
-				"src/components/leases/lease-signature-status.tsx",
-				"src/components/sections/hero-section.tsx",
-				"src/components/ui/__tests__/progress.test.tsx"
-			],
-			"fileCount": 6
-		},
-		{
-			"key": "bg-warning",
-			"files": [
-				"src/components/ui/progress.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "border-amber-200",
-			"files": [
-				"src/components/leases/detail/lease-terms-tab.tsx",
-				"src/components/settings/sections/two-factor-section.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "border-amber-300",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx",
-				"src/components/reports/sections/year-end-report-section.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "border-amber-500/30",
-			"files": [
-				"src/components/settings/account-data-section.tsx",
-				"src/components/settings/gdpr-data-actions.tsx",
-				"src/components/settings/sections/subscription-cancel-section.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "border-blue-300",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "border-emerald-200",
-			"files": [
-				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "border-indigo-300",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "border-orange-500",
-			"files": [
-				"src/components/leases/detail/lease-header.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "border-red-200",
-			"files": [
-				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "border-red-300",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx",
-				"src/components/settings/sections/subscription-cancel-section.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "bottom-3",
-			"files": [
-				"src/components/sections/stats-showcase.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "bottom-[40%]",
-			"files": [
-				"src/components/landing/feature-backgrounds.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:bg-amber-500/20",
-			"files": [
-				"src/components/properties/property-table-row.tsx",
-				"src/components/properties/property-units-table-config.ts"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:bg-amber-900/10",
-			"files": [
-				"src/components/leases/detail/lease-terms-tab.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:bg-amber-900/30",
-			"files": [
-				"src/components/leases/detail/lease-detail-utils.ts",
-				"src/components/settings/billing-settings.tsx",
-				"src/components/settings/sections/two-factor-section.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "dark:bg-amber-950/30",
-			"files": [
-				"src/components/settings/sections/two-factor-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:bg-amber-950/50",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:bg-blue-500/20",
-			"files": [
-				"src/components/properties/property-table-row.tsx",
-				"src/components/properties/property-units-table-config.ts"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:bg-blue-900/30",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/app/(owner)/reports/tax-documents/page.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts",
-				"src/components/settings/billing-settings.tsx"
-			],
-			"fileCount": 4
-		},
-		{
-			"key": "dark:bg-blue-950/50",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:bg-emerald-500/20",
-			"files": [
-				"src/components/properties/property-table-row.tsx",
-				"src/components/settings/billing-settings.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:bg-emerald-900/30",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/app/(owner)/reports/tax-documents/page.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts",
-				"src/components/tenants/tenant-grid.tsx"
-			],
-			"fileCount": 4
-		},
-		{
-			"key": "dark:bg-emerald-950/30",
-			"files": [
-				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
-				"src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:bg-green-500/20",
-			"files": [
-				"src/components/properties/property-units-table-config.ts"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:bg-indigo-950/50",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:bg-orange-500/20",
-			"files": [
-				"src/components/maintenance/cards/maintenance-card.tsx",
-				"src/components/maintenance/table/columns.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:bg-orange-900/30",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:bg-purple-500/20",
-			"files": [
-				"src/components/properties/property-units-table-config.ts"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:bg-purple-900/30",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:bg-red-900/30",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts",
-				"src/components/settings/billing-settings.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "dark:bg-red-950/30",
-			"files": [
-				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
-				"src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:bg-red-950/50",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx",
-				"src/components/settings/sections/subscription-cancel-section.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:bg-rose-900/30",
-			"files": [
-				"src/app/(owner)/reports/tax-documents/page.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:bg-stone-800",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:border-amber-700",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:border-amber-800",
-			"files": [
-				"src/components/leases/detail/lease-terms-tab.tsx",
-				"src/components/settings/sections/two-factor-section.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:border-blue-700",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:border-emerald-800",
-			"files": [
-				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:border-indigo-700",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:border-red-700",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx",
-				"src/components/settings/sections/subscription-cancel-section.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:border-red-800",
-			"files": [
-				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:hover:text-accent-foreground",
-			"files": [
-				"src/components/ui/calendar.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:hover:text-amber-100",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:hover:text-blue-100",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:hover:text-indigo-100",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:hover:text-red-100",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:text-amber-200",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx",
-				"src/components/leases/detail/lease-terms-tab.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:text-amber-300",
-			"files": [
-				"src/components/leases/detail/lease-terms-tab.tsx",
-				"src/components/settings/billing-settings.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:text-amber-400",
-			"files": [
-				"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts",
-				"src/components/properties/property-table-row.tsx",
-				"src/components/properties/property-units-table-config.ts",
-				"src/components/tenants/tenant-stats.tsx"
-			],
-			"fileCount": 5
-		},
-		{
-			"key": "dark:text-blue-200",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:text-blue-300",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/components/settings/billing-settings.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:text-blue-400",
-			"files": [
-				"src/components/properties/property-table-row.tsx",
-				"src/components/properties/property-units-table-config.ts"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:text-emerald-300",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/components/settings/billing-settings.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:text-emerald-400",
-			"files": [
-				"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
-				"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
-				"src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
-				"src/app/(owner)/reports/balance-sheet/page.tsx",
-				"src/app/(owner)/reports/cash-flow/cash-flow-stats.tsx"
-			],
-			"fileCount": 11
-		},
-		{
-			"key": "dark:text-green-400",
-			"files": [
-				"src/components/maintenance/detail/maintenance-utils.ts",
-				"src/components/maintenance/table/columns.tsx",
-				"src/components/properties/property-units-table-config.ts"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "dark:text-indigo-200",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:text-orange-300",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:text-orange-400",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts",
-				"src/components/leases/detail/lease-details-tab.tsx",
-				"src/components/leases/detail/lease-header.tsx",
-				"src/components/maintenance/cards/maintenance-card.tsx"
-			],
-			"fileCount": 8
-		},
-		{
-			"key": "dark:text-purple-300",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:text-purple-400",
-			"files": [
-				"src/components/properties/property-units-table-config.ts"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:text-red-200",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx",
-				"src/components/settings/sections/subscription-cancel-section.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:text-red-300",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/components/settings/billing-settings.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "dark:text-red-400",
-			"files": [
-				"src/app/(owner)/reports/balance-sheet/page.tsx",
-				"src/app/(owner)/reports/cash-flow/cash-flow-stats.tsx",
-				"src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
-				"src/app/(owner)/reports/income-statement/income-statement-page-stats.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts"
-			],
-			"fileCount": 5
-		},
-		{
-			"key": "dark:text-stone-300",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "dark:text-stone-400",
-			"files": [
-				"src/components/leases/detail/lease-detail-utils.ts"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-[state=completed]:bg-success",
-			"files": [
-				"src/components/bulk-import/bulk-import-stepper.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-[state=completed]:text-success-foreground",
-			"files": [
-				"src/components/bulk-import/bulk-import-stepper.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-[state=on]:hover:bg-primary/90",
-			"files": [
-				"src/components/ui/toggle.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-drag-over:bg-primary/10",
-			"files": [
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-drag-over:border-primary",
-			"files": [
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-drag-over:scale-[1.01]",
-			"files": [
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-drag-over:shadow-lg",
-			"files": [
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-drag-over:shadow-primary/10",
-			"files": [
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "data-dragging:bg-accent/30",
-			"files": [
-				"src/components/ui/file-upload/file-upload-dropzone.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "focus:text-primary",
-			"files": [
-				"src/components/auth/update-password-form.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "from-primary/4",
-			"files": [
-				"src/components/sections/stats-showcase.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "from-primary/8",
-			"files": [
-				"src/components/sections/stats-showcase.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-data-drag-over:animate-bounce",
-			"files": [
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-data-drag-over:animate-pulse",
-			"files": [
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-data-drag-over:bg-primary/20",
-			"files": [
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-data-drag-over:scale-110",
-			"files": [
-				"src/components/bulk-import/bulk-import-upload-step.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-hover/feature:bg-primary/20",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-hover/feature:opacity-100",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-hover/feature:scale-105",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-hover/feature:scale-110",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-hover/feature:scale-125",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-hover/feature:scale-150",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-hover/feature:shadow-lg",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-hover/feature:shadow-primary/25",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-hover/feature:text-foreground/80",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-hover/feature:text-primary",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-hover:bg-emerald-500/20",
-			"files": [
-				"src/components/properties/property-stats-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-hover:bg-primary/20",
-			"files": [
-				"src/app/(owner)/leases/leases-stat-cards.tsx",
-				"src/components/properties/property-stats-section.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "group-hover:opacity-40",
-			"files": [
-				"src/components/sections/how-it-works.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-hover:scale-125",
-			"files": [
-				"src/components/sections/stats-showcase.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-hover:scale-150",
-			"files": [
-				"src/components/sections/stats-showcase.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "group-hover:text-foreground/80",
-			"files": [
-				"src/components/sections/stats-showcase.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "h-[40%]",
-			"files": [
-				"src/components/sections/hero-dashboard-mockup.tsx",
-				"src/components/shared/chart-loading-skeleton.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "h-[50%]",
-			"files": [
-				"src/components/sections/hero-dashboard-mockup.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "h-[60%]",
-			"files": [
-				"src/components/sections/hero-dashboard-mockup.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "h-[75%]",
-			"files": [
-				"src/components/sections/hero-dashboard-mockup.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "h-[80%]",
-			"files": [
-				"src/components/landing/feature-backgrounds.tsx",
-				"src/components/shared/chart-loading-skeleton.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "hover:-translate-y-0.5",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "hover:bg-accent/30",
-			"files": [
-				"src/components/ui/file-upload/file-upload-dropzone.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "hover:bg-card/40",
-			"files": [
-				"src/components/sections/premium-cta.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "hover:bg-card/95",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "hover:bg-destructive/90",
-			"files": [
-				"src/components/settings/account-data-section.tsx",
-				"src/components/settings/gdpr-data-actions.tsx",
-				"src/components/ui/__tests__/alert-dialog.test.tsx",
-				"src/components/ui/__tests__/naming-conventions.test.tsx",
-				"src/components/ui/button.tsx"
-			],
-			"fileCount": 5
-		},
-		{
-			"key": "hover:bg-muted/70",
-			"files": [
-				"src/components/profiles/owner/security-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "hover:bg-primary/90",
-			"files": [
-				"src/app/(owner)/analytics/financial/page.tsx",
-				"src/app/(owner)/analytics/property-performance/page.tsx",
-				"src/app/(owner)/dashboard/components/dashboard-empty-state.tsx",
-				"src/app/(owner)/dashboard/page.tsx",
-				"src/app/(owner)/leases/page.tsx"
-			],
-			"fileCount": 20
-		},
-		{
-			"key": "hover:bg-success",
-			"files": [
-				"src/components/leases/lease-signature-status.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "hover:border-primary/15",
-			"files": [
-				"src/components/sections/features-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "hover:border-primary/20",
-			"files": [
-				"src/app/about/page.tsx",
-				"src/components/sections/hero-dashboard-mockup.tsx",
-				"src/components/sections/how-it-works.tsx",
-				"src/components/sections/testimonials-section.tsx"
-			],
-			"fileCount": 4
-		},
-		{
-			"key": "hover:text-amber-900",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "hover:text-blue-900",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "hover:text-indigo-900",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "hover:text-primary/80",
-			"files": [
-				"src/app/blog/[slug]/blog-post-page.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "hover:text-red-900",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "lg:pb-28",
-			"files": [
-				"src/components/shell/__tests__/app-shell.test.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "max-w-37.5",
-			"files": [
-				"src/components/shell/app-shell-header.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "sm:max-w-none",
-			"files": [
-				"src/components/shell/app-shell-header.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "text-(--color-accent-main)",
-			"files": [
-				"src/components/ui/__tests__/loading-spinner.test.tsx",
-				"src/components/ui/loading-spinner.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "text-amber-500",
-			"files": [
-				"src/components/leases/wizard/details-step.tsx",
-				"src/components/leases/wizard/review-step.tsx",
-				"src/components/reports/sections/year-end-report-section.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "text-amber-600",
-			"files": [
-				"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts",
-				"src/components/reports/sections/year-end-report-section.tsx",
-				"src/components/settings/account-data-section.tsx",
-				"src/components/settings/gdpr-data-actions.tsx"
-			],
-			"fileCount": 9
-		},
-		{
-			"key": "text-amber-700",
-			"files": [
-				"src/components/leases/detail/lease-detail-utils.ts",
-				"src/components/leases/detail/lease-terms-tab.tsx",
-				"src/components/properties/property-table-row.tsx",
-				"src/components/properties/property-units-table-config.ts",
-				"src/components/settings/account-data-section.tsx"
-			],
-			"fileCount": 8
-		},
-		{
-			"key": "text-amber-800",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx",
-				"src/components/leases/detail/lease-terms-tab.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "text-blue-600",
-			"files": [
-				"src/app/(owner)/reports/tax-documents/page.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "text-blue-700",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/components/properties/property-table-row.tsx",
-				"src/components/properties/property-units-table-config.ts",
-				"src/components/settings/billing-settings.tsx"
-			],
-			"fileCount": 4
-		},
-		{
-			"key": "text-blue-800",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "text-chart-1",
-			"files": [
-				"src/app/(owner)/properties/units/page.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "text-chart-5",
-			"files": [
-				"src/app/(owner)/properties/units/page.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "text-emerald-500",
-			"files": [
-				"src/components/profiles/owner/personal-info-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "text-emerald-600",
-			"files": [
-				"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
-				"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
-				"src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
-				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
-				"src/app/(owner)/reports/balance-sheet/page.tsx"
-			],
-			"fileCount": 21
-		},
-		{
-			"key": "text-emerald-700",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts",
-				"src/components/properties/property-table-row.tsx",
-				"src/components/settings/billing-settings.tsx",
-				"src/components/tenants/tenant-grid.tsx"
-			],
-			"fileCount": 5
-		},
-		{
-			"key": "text-green-400",
-			"files": [
-				"src/components/properties/sections/property-images-create-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "text-green-500",
-			"files": [
-				"src/components/leases/wizard/review-step.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "text-green-600",
-			"files": [
-				"src/components/leases/wizard/review-step.tsx",
-				"src/components/maintenance/detail/maintenance-utils.ts",
-				"src/components/maintenance/detail/timeline-card.tsx",
-				"src/components/maintenance/table/columns.tsx"
-			],
-			"fileCount": 4
-		},
-		{
-			"key": "text-green-700",
-			"files": [
-				"src/components/properties/property-units-table-config.ts"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "text-indigo-800",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "text-muted-foreground/75",
-			"files": [
-				"src/components/auth/google-button.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "text-orange-600",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
-				"src/components/leases/detail/lease-details-tab.tsx",
-				"src/components/leases/detail/lease-header.tsx",
-				"src/components/maintenance/detail/maintenance-utils.ts",
-				"src/components/maintenance/kanban/maintenance-kanban.client.tsx"
-			],
-			"fileCount": 6
-		},
-		{
-			"key": "text-orange-700",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts",
-				"src/components/maintenance/cards/maintenance-card.tsx",
-				"src/components/maintenance/table/columns.tsx"
-			],
-			"fileCount": 4
-		},
-		{
-			"key": "text-primary-foreground/90",
-			"files": [
-				"src/app/faq/page.tsx",
-				"src/app/help/page.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "text-purple-700",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/components/properties/property-units-table-config.ts"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "text-red-400",
-			"files": [
-				"src/components/properties/sections/property-images-create-section.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "text-red-500",
-			"files": [
-				"src/components/reports/sections/year-end-report-section.tsx",
-				"src/lib/utils.ts"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "text-red-600",
-			"files": [
-				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
-				"src/app/(owner)/reports/balance-sheet/balance-section.tsx",
-				"src/app/(owner)/reports/balance-sheet/page.tsx",
-				"src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx",
-				"src/app/(owner)/reports/cash-flow/cash-flow-balance-summary.tsx"
-			],
-			"fileCount": 12
-		},
-		{
-			"key": "text-red-700",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-				"src/components/leases/detail/lease-detail-utils.ts",
-				"src/components/settings/billing-settings.tsx"
-			],
-			"fileCount": 3
-		},
-		{
-			"key": "text-red-800",
-			"files": [
-				"src/components/billing/subscription-status-banner.tsx",
-				"src/components/settings/sections/subscription-cancel-section.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "text-rose-600",
-			"files": [
-				"src/app/(owner)/reports/tax-documents/page.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "text-stone-500",
-			"files": [
-				"src/components/leases/detail/lease-detail-utils.ts"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "text-stone-600",
-			"files": [
-				"src/components/leases/detail/lease-detail-utils.ts"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "text-stone-700",
-			"files": [
-				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "to-accent/4",
-			"files": [
-				"src/components/sections/stats-showcase.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "to-accent/8",
-			"files": [
-				"src/components/sections/stats-showcase.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "top-3",
-			"files": [
-				"src/components/sections/stats-showcase.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "w-1.5",
-			"files": [
-				"src/components/sections/features-section.tsx",
-				"src/components/sections/stats-showcase.tsx"
-			],
-			"fileCount": 2
-		},
-		{
-			"key": "w-[60%]",
-			"files": [
-				"src/components/shared/blog-empty-state.tsx"
-			],
-			"fileCount": 1
-		},
-		{
-			"key": "xl:grid-cols-5",
-			"files": [
-				"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx"
-			],
-			"fileCount": 1
-		}
-	],
-	"changed": [
-		{
-			"key": "showcase-card",
-			"utility": "src/app/globals.css",
-			"commits": [
-				"ed7db2d48 fix(66.2-39): take hover affordances off elements that are not controls"
-			]
-		},
-		{
-			"key": "testimonial-card",
-			"utility": "src/app/globals.css",
-			"commits": [
-				"ed7db2d48 fix(66.2-39): take hover affordances off elements that are not controls"
-			]
-		}
-	],
-	"unattributed": [],
-	"cp4Followup": [
-		{
-			"side": "added",
-			"key": "bottom-(--dock-offset)",
-			"source": "CP-4 follow-up (G38..MAIN_MERGE^1)",
-			"files": [
-				"src/components/shell/__tests__/quick-actions-dock-css.test.ts",
-				"src/components/shell/__tests__/quick-actions-dock.test.tsx",
-				"src/components/shell/quick-actions-dock.tsx"
-			]
-		},
-		{
-			"side": "added",
-			"key": "h-(--dock-height)",
-			"source": "CP-4 follow-up (G38..MAIN_MERGE^1)",
-			"files": [
-				"src/components/shell/__tests__/quick-actions-dock-css.test.ts",
-				"src/components/shell/quick-actions-dock.tsx"
-			]
-		},
-		{
-			"side": "removed",
-			"key": "@container",
-			"source": "CP-4 follow-up (G38..MAIN_MERGE^1)",
-			"files": [
-				"src/components/dashboard/components/kpi-bento-row.tsx"
-			]
-		},
-		{
-			"side": "removed",
-			"key": "lg:col-span-3",
-			"source": "CP-4 follow-up (G38..MAIN_MERGE^1)",
-			"files": [
-				"src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx"
-			]
-		}
-	]
+  "changedSrc": 684,
+  "added": [
+    {
+      "key": "2xl:flex",
+      "files": [
+        "src/components/properties/__tests__/property-name-column.test.tsx",
+        "src/components/properties/property-table-types.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "@4xl/dashboard:col-span-1",
+      "files": [
+        "src/components/dashboard/components/__tests__/occupancy-donut-chart.test.tsx",
+        "src/components/dashboard/components/occupancy-donut-chart.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "@4xl/dashboard:col-span-2",
+      "files": [
+        "src/components/dashboard/components/__tests__/revenue-area-chart.test.tsx",
+        "src/components/dashboard/components/revenue-area-chart.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "@4xl/dashboard:col-span-3",
+      "files": [
+        "src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "@4xl/dashboard:grid-cols-4",
+      "files": [
+        "src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx",
+        "src/components/dashboard/dashboard.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "@container/chart-card",
+      "files": [
+        "src/components/dashboard/chart-area-interactive.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "@container/dashboard",
+      "files": [
+        "src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx",
+        "src/components/dashboard/dashboard.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "@container/kpi-bento",
+      "files": [
+        "src/components/dashboard/components/__tests__/kpi-bento-row.test.tsx",
+        "src/components/dashboard/components/kpi-bento-row.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "[&_.recharts-surface:focus-visible]:-outline-offset-2",
+      "files": [
+        "src/components/ui/__tests__/chart.test.tsx",
+        "src/components/ui/chart.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "[&_.recharts-surface:focus-visible]:outline-2",
+      "files": [
+        "src/components/ui/__tests__/chart.test.tsx",
+        "src/components/ui/chart.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "[&_.recharts-surface:focus-visible]:outline-ring",
+      "files": [
+        "src/components/ui/__tests__/chart.test.tsx",
+        "src/components/ui/chart.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "[&_.recharts-surface:focus-visible]:outline-solid",
+      "files": [
+        "src/components/ui/__tests__/chart.test.tsx",
+        "src/components/ui/chart.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "[a&]:hover:bg-destructive-text",
+      "files": [
+        "src/components/ui/badge.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "[a&]:hover:bg-primary-text",
+      "files": [
+        "src/components/ui/badge.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "[a&]:hover:bg-success/12",
+      "files": [
+        "src/components/ui/badge.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "[a]:hover:bg-accent/25",
+      "files": [
+        "src/components/ui/item.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "aria-disabled:cursor-not-allowed",
+      "files": [
+        "src/app/(owner)/reports/report-export-button.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-black/75",
+      "files": [
+        "src/app/__tests__/tailwind-theme-integrity.test.ts",
+        "src/components/properties/sections/property-images-create-section.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "bg-destructive-text",
+      "files": [
+        "src/app/(owner)/properties/units/page.tsx",
+        "src/app/(owner)/reports/cash-flow/cash-flow-breakdown.tsx",
+        "src/app/(owner)/reports/income-statement/income-statement-page-breakdowns.tsx",
+        "src/components/ui/badge.tsx",
+        "src/components/ui/button.tsx"
+      ],
+      "fileCount": 6
+    },
+    {
+      "key": "bg-info-text",
+      "files": [
+        "src/app/resources/security-deposit-reference-card/page.tsx",
+        "src/components/properties/property-table-row.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "bg-primary-text",
+      "files": [
+        "src/app/(owner)/properties/units/page.tsx",
+        "src/components/dashboard/components/__tests__/occupancy-donut-chart.test.tsx",
+        "src/components/dashboard/components/occupancy-donut-chart.tsx",
+        "src/components/ui/badge.tsx",
+        "src/components/ui/button.tsx"
+      ],
+      "fileCount": 6
+    },
+    {
+      "key": "bg-success-text",
+      "files": [
+        "src/app/(owner)/properties/units/page.tsx",
+        "src/app/(owner)/reports/cash-flow/cash-flow-breakdown.tsx",
+        "src/app/(owner)/reports/income-statement/income-statement-page-breakdowns.tsx",
+        "src/app/__tests__/design-token-drift.test.ts",
+        "src/app/resources/security-deposit-reference-card/page.tsx"
+      ],
+      "fileCount": 11
+    },
+    {
+      "key": "bg-warning-text",
+      "files": [
+        "src/app/__tests__/design-token-drift.test.ts",
+        "src/components/properties/property-table-row.tsx",
+        "src/components/ui/progress.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "bg-warning/5",
+      "files": [
+        "src/components/leases/detail/lease-terms-tab.tsx",
+        "src/components/settings/account-data-section.tsx",
+        "src/components/settings/gdpr-data-actions.tsx",
+        "src/components/settings/sections/subscription-cancel-section.tsx"
+      ],
+      "fileCount": 4
+    },
+    {
+      "key": "blur-none",
+      "files": [
+        "src/app/blog/[slug]/blog-post-page.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "border-info/30",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "border-muted-foreground",
+      "files": [
+        "src/app/resources/security-deposit-reference-card/page.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "border-primary-foreground",
+      "files": [
+        "src/components/auth/__tests__/update-password-form.test.tsx",
+        "src/components/auth/update-password-form.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "bottom-2/5",
+      "files": [
+        "src/components/landing/feature-backgrounds.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "content-start",
+      "files": [
+        "src/app/(owner)/analytics/__tests__/stat-rows-one-height.test.tsx",
+        "src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
+        "src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+        "src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
+        "src/app/(owner)/reports/expenses/_components/expense-stats.tsx"
+      ],
+      "fileCount": 6
+    },
+    {
+      "key": "dark:[a&]:hover:bg-destructive/90",
+      "files": [
+        "src/components/ui/badge.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:[a&]:hover:bg-primary/90",
+      "files": [
+        "src/components/ui/badge.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:border-primary-foreground/50",
+      "files": [
+        "src/app/__tests__/primary-cta-band-contrast.test.tsx",
+        "src/app/faq/page.tsx",
+        "src/app/help/page.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "dark:data-[state=on]:hover:bg-primary/90",
+      "files": [
+        "src/components/ui/toggle.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:hover:bg-destructive/90",
+      "files": [
+        "src/components/settings/account-data-section.tsx",
+        "src/components/settings/gdpr-data-actions.tsx",
+        "src/components/ui/__tests__/naming-conventions.test.tsx",
+        "src/components/ui/button.tsx"
+      ],
+      "fileCount": 4
+    },
+    {
+      "key": "dark:hover:bg-primary-foreground",
+      "files": [
+        "src/app/__tests__/primary-cta-band-contrast.test.tsx",
+        "src/app/faq/page.tsx",
+        "src/app/help/page.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "dark:hover:bg-primary/90",
+      "files": [
+        "src/app/(owner)/analytics/financial/page.tsx",
+        "src/app/(owner)/analytics/property-performance/page.tsx",
+        "src/app/(owner)/dashboard/components/dashboard-empty-state.tsx",
+        "src/app/(owner)/dashboard/page.tsx",
+        "src/app/(owner)/leases/page.tsx"
+      ],
+      "fileCount": 20
+    },
+    {
+      "key": "dark:hover:bg-transparent",
+      "files": [
+        "src/components/settings/category-row.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:hover:text-foreground",
+      "files": [
+        "src/components/ui/button.tsx",
+        "src/components/ui/calendar.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "data-[selected=true]:[&_svg:not([class*='text-'])]:text-accent-foreground",
+      "files": [
+        "src/components/ui/command.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-[state=completed]:bg-success-text",
+      "files": [
+        "src/components/bulk-import/bulk-import-stepper.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-[state=completed]:bg-success/10",
+      "files": [
+        "src/components/bulk-import/bulk-import-stepper.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-[state=completed]:text-success-text",
+      "files": [
+        "src/components/bulk-import/bulk-import-stepper.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-[state=on]:hover:bg-primary-text",
+      "files": [
+        "src/app/__tests__/state-fill-contrast.test.ts",
+        "src/components/ui/toggle.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "data-[state=open]:bg-muted",
+      "files": [
+        "src/components/data-table/data-table-column-header.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-dragging:bg-accent/25",
+      "files": [
+        "src/components/ui/file-upload/file-upload-dropzone.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-dragging:bg-primary/10",
+      "files": [
+        "src/components/bulk-import/__tests__/bulk-import-upload-step.test.tsx",
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "data-dragging:border-primary",
+      "files": [
+        "src/components/bulk-import/__tests__/bulk-import-upload-step.test.tsx",
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "data-dragging:scale-[1.01]",
+      "files": [
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-dragging:shadow-lg",
+      "files": [
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-dragging:shadow-primary/10",
+      "files": [
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "focus:[&_svg:not([class*='text-'])]:text-accent-foreground",
+      "files": [
+        "src/app/__tests__/state-fill-contrast.test.ts",
+        "src/components/ui/dropdown-menu.tsx",
+        "src/components/ui/select.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "focus:bg-muted",
+      "files": [
+        "src/components/shared/multi-select-chips.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "focus:text-primary-text",
+      "files": [
+        "src/components/auth/update-password-form.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-data-dragging:animate-bounce",
+      "files": [
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-data-dragging:animate-pulse",
+      "files": [
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-data-dragging:bg-primary/20",
+      "files": [
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-data-dragging:scale-110",
+      "files": [
+        "src/components/bulk-import/__tests__/bulk-import-upload-step.test.tsx",
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "h-1/2",
+      "files": [
+        "src/components/sections/hero-dashboard-mockup.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "h-2/5",
+      "files": [
+        "src/components/sections/hero-dashboard-mockup.tsx",
+        "src/components/shared/chart-loading-skeleton.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "h-3/4",
+      "files": [
+        "src/components/sections/hero-dashboard-mockup.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "h-3/5",
+      "files": [
+        "src/components/sections/hero-dashboard-mockup.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "h-4/5",
+      "files": [
+        "src/components/landing/feature-backgrounds.tsx",
+        "src/components/shared/chart-loading-skeleton.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "h-lh",
+      "files": [
+        "src/components/analytics/owner-payment-summary.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "hover:bg-accent/25",
+      "files": [
+        "src/components/ui/file-upload/file-upload-dropzone.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "hover:bg-destructive-text",
+      "files": [
+        "src/components/settings/account-data-section.tsx",
+        "src/components/settings/gdpr-data-actions.tsx",
+        "src/components/ui/__tests__/alert-dialog.test.tsx",
+        "src/components/ui/__tests__/naming-conventions.test.tsx",
+        "src/components/ui/button.tsx"
+      ],
+      "fileCount": 5
+    },
+    {
+      "key": "hover:bg-primary-text",
+      "files": [
+        "src/app/(owner)/analytics/financial/page.tsx",
+        "src/app/(owner)/analytics/property-performance/page.tsx",
+        "src/app/(owner)/dashboard/components/dashboard-empty-state.tsx",
+        "src/app/(owner)/dashboard/page.tsx",
+        "src/app/(owner)/leases/page.tsx"
+      ],
+      "fileCount": 20
+    },
+    {
+      "key": "hover:text-primary-text/80",
+      "files": [
+        "src/app/blog/[slug]/blog-post-page.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "lg:@xl/chart-card:grid-cols-4",
+      "files": [
+        "src/components/dashboard/chart-area-interactive.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "lg:min-h-0",
+      "files": [
+        "src/app/(owner)/analytics/__tests__/stat-rows-one-height.test.tsx",
+        "src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
+        "src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+        "src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
+        "src/components/properties/property-stats-section.tsx"
+      ],
+      "fileCount": 6
+    },
+    {
+      "key": "lg:min-w-40",
+      "files": [
+        "src/components/properties/__tests__/property-name-column.test.tsx",
+        "src/components/properties/property-table-types.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "lg:pb-(--dock-clearance)",
+      "files": [
+        "src/components/shell/__tests__/app-shell.test.tsx",
+        "src/components/shell/app-shell.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "max-sm:sr-only",
+      "files": [
+        "src/components/leases/wizard/lease-creation-wizard-header.tsx",
+        "src/components/ui/global-sync-indicator.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "min-h-10",
+      "files": [
+        "src/app/(owner)/analytics/__tests__/stat-rows-one-height.test.tsx",
+        "src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
+        "src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+        "src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
+        "src/components/properties/property-stats-section.tsx"
+      ],
+      "fileCount": 6
+    },
+    {
+      "key": "min-w-48",
+      "files": [
+        "src/components/properties/property-table-types.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "min-w-56",
+      "files": [
+        "src/components/properties/__tests__/property-name-column.test.tsx",
+        "src/components/properties/property-table-types.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "min-w-min",
+      "files": [
+        "src/components/properties/__tests__/property-name-column.test.tsx",
+        "src/components/properties/property-table-types.ts",
+        "src/components/properties/property-table.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "mr-0.5",
+      "files": [
+        "src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
+        "src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+        "src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "normal-case",
+      "files": [
+        "src/app/(owner)/properties/units/components/unit-actions.tsx",
+        "src/components/__tests__/owner-text-as-entered.test.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "outline-solid",
+      "files": [
+        "src/components/ui/chart.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "ring-foreground/5",
+      "files": [
+        "src/components/tenants/tenant-detail-sheet.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "sm:flex-nowrap",
+      "files": [
+        "src/app/(owner)/reports/balance-sheet/page.tsx",
+        "src/app/(owner)/reports/cash-flow/cash-flow-header.tsx",
+        "src/app/(owner)/reports/income-statement/income-statement-page-header.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "sm:max-w-[95vw]",
+      "files": [
+        "src/components/properties/__tests__/image-lightbox.test.tsx",
+        "src/components/properties/image-lightbox.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "w-3/5",
+      "files": [
+        "src/components/shared/blog-empty-state.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "wrap-break-word",
+      "files": [
+        "src/app/(owner)/reports/tax-documents/page.tsx"
+      ],
+      "fileCount": 1
+    }
+  ],
+  "removed": [
+    {
+      "key": "-bottom-1",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "-inset-0.5",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "-left-1",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "@4xl/kpi-bento:gap-6",
+      "files": [
+        "src/components/dashboard/components/kpi-bento-row.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "[a&]:hover:bg-destructive/90",
+      "files": [
+        "src/components/ui/badge.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "[a&]:hover:bg-primary/90",
+      "files": [
+        "src/components/ui/badge.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "[a&]:hover:bg-success/15",
+      "files": [
+        "src/components/ui/badge.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-(--color-chart-5)",
+      "files": [
+        "src/components/dashboard/components/occupancy-donut-chart.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-amber-100",
+      "files": [
+        "src/components/leases/detail/lease-detail-utils.ts",
+        "src/components/properties/property-table-row.tsx",
+        "src/components/properties/property-units-table-config.ts",
+        "src/components/settings/billing-settings.tsx",
+        "src/components/settings/sections/two-factor-section.tsx"
+      ],
+      "fileCount": 5
+    },
+    {
+      "key": "bg-amber-50",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx",
+        "src/components/settings/sections/two-factor-section.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "bg-amber-50/50",
+      "files": [
+        "src/components/leases/detail/lease-terms-tab.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-amber-500",
+      "files": [
+        "src/components/properties/property-table-row.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-amber-500/5",
+      "files": [
+        "src/components/settings/account-data-section.tsx",
+        "src/components/settings/gdpr-data-actions.tsx",
+        "src/components/settings/sections/subscription-cancel-section.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "bg-blue-100",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/app/(owner)/reports/tax-documents/page.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts",
+        "src/components/properties/property-table-row.tsx",
+        "src/components/properties/property-units-table-config.ts"
+      ],
+      "fileCount": 6
+    },
+    {
+      "key": "bg-blue-50",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-blue-500",
+      "files": [
+        "src/components/properties/property-table-row.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-chart-1",
+      "files": [
+        "src/app/(owner)/properties/units/page.tsx",
+        "src/app/__tests__/tailwind-theme-integrity.test.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "bg-chart-2",
+      "files": [
+        "src/components/dashboard/components/occupancy-donut-chart.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-chart-3",
+      "files": [
+        "src/app/(owner)/analytics/overview/page.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-chart-4",
+      "files": [
+        "src/app/(owner)/properties/units/page.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-chart-5",
+      "files": [
+        "src/app/(owner)/analytics/overview/page.tsx",
+        "src/app/(owner)/properties/units/page.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "bg-emerald-100",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/app/(owner)/reports/tax-documents/page.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts",
+        "src/components/properties/property-table-row.tsx",
+        "src/components/tenants/tenant-grid.tsx"
+      ],
+      "fileCount": 5
+    },
+    {
+      "key": "bg-emerald-50",
+      "files": [
+        "src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
+        "src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "bg-emerald-500",
+      "files": [
+        "src/app/(owner)/reports/cash-flow/cash-flow-breakdown.tsx",
+        "src/app/(owner)/reports/income-statement/income-statement-page-breakdowns.tsx",
+        "src/components/properties/property-table-row.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "bg-emerald-500/10",
+      "files": [
+        "src/components/properties/property-stats-section.tsx",
+        "src/components/settings/billing-settings.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "bg-green-100",
+      "files": [
+        "src/components/properties/property-units-table-config.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-green-500/10",
+      "files": [
+        "src/components/maintenance/detail/maintenance-utils.ts",
+        "src/components/maintenance/detail/timeline-card.tsx",
+        "src/components/maintenance/table/columns.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "bg-indigo-50",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-info",
+      "files": [
+        "src/app/resources/security-deposit-reference-card/page.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-orange-100",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts",
+        "src/components/maintenance/cards/maintenance-card.tsx",
+        "src/components/maintenance/table/columns.tsx"
+      ],
+      "fileCount": 4
+    },
+    {
+      "key": "bg-orange-500/10",
+      "files": [
+        "src/components/maintenance/detail/maintenance-utils.ts",
+        "src/components/maintenance/kanban/maintenance-kanban.client.tsx",
+        "src/components/maintenance/table/columns.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "bg-primary/3",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-primary/60",
+      "files": [
+        "src/components/sections/stats-showcase.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-purple-100",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/components/properties/property-units-table-config.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "bg-red-100",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts",
+        "src/components/settings/billing-settings.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "bg-red-50",
+      "files": [
+        "src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
+        "src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx",
+        "src/components/billing/subscription-status-banner.tsx",
+        "src/components/settings/sections/subscription-cancel-section.tsx"
+      ],
+      "fileCount": 4
+    },
+    {
+      "key": "bg-red-500",
+      "files": [
+        "src/app/(owner)/reports/cash-flow/cash-flow-breakdown.tsx",
+        "src/app/(owner)/reports/income-statement/income-statement-page-breakdowns.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "bg-rose-100",
+      "files": [
+        "src/app/(owner)/reports/tax-documents/page.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-secondary/20",
+      "files": [
+        "src/components/ui/progress.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bg-stone-100",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "bg-success",
+      "files": [
+        "src/app/resources/security-deposit-reference-card/page.tsx",
+        "src/components/leases/__tests__/lease-signature-status.test.tsx",
+        "src/components/leases/lease-signature-status.tsx",
+        "src/components/sections/hero-section.tsx",
+        "src/components/ui/__tests__/progress.test.tsx"
+      ],
+      "fileCount": 6
+    },
+    {
+      "key": "bg-warning",
+      "files": [
+        "src/components/ui/progress.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "border-amber-200",
+      "files": [
+        "src/components/leases/detail/lease-terms-tab.tsx",
+        "src/components/settings/sections/two-factor-section.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "border-amber-300",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx",
+        "src/components/reports/sections/year-end-report-section.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "border-amber-500/30",
+      "files": [
+        "src/components/settings/account-data-section.tsx",
+        "src/components/settings/gdpr-data-actions.tsx",
+        "src/components/settings/sections/subscription-cancel-section.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "border-blue-300",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "border-emerald-200",
+      "files": [
+        "src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "border-indigo-300",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "border-orange-500",
+      "files": [
+        "src/components/leases/detail/lease-header.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "border-red-200",
+      "files": [
+        "src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "border-red-300",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx",
+        "src/components/settings/sections/subscription-cancel-section.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "bottom-3",
+      "files": [
+        "src/components/sections/stats-showcase.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "bottom-[40%]",
+      "files": [
+        "src/components/landing/feature-backgrounds.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:bg-amber-500/20",
+      "files": [
+        "src/components/properties/property-table-row.tsx",
+        "src/components/properties/property-units-table-config.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:bg-amber-900/10",
+      "files": [
+        "src/components/leases/detail/lease-terms-tab.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:bg-amber-900/30",
+      "files": [
+        "src/components/leases/detail/lease-detail-utils.ts",
+        "src/components/settings/billing-settings.tsx",
+        "src/components/settings/sections/two-factor-section.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "dark:bg-amber-950/30",
+      "files": [
+        "src/components/settings/sections/two-factor-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:bg-amber-950/50",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:bg-blue-500/20",
+      "files": [
+        "src/components/properties/property-table-row.tsx",
+        "src/components/properties/property-units-table-config.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:bg-blue-900/30",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/app/(owner)/reports/tax-documents/page.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts",
+        "src/components/settings/billing-settings.tsx"
+      ],
+      "fileCount": 4
+    },
+    {
+      "key": "dark:bg-blue-950/50",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:bg-emerald-500/20",
+      "files": [
+        "src/components/properties/property-table-row.tsx",
+        "src/components/settings/billing-settings.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:bg-emerald-900/30",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/app/(owner)/reports/tax-documents/page.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts",
+        "src/components/tenants/tenant-grid.tsx"
+      ],
+      "fileCount": 4
+    },
+    {
+      "key": "dark:bg-emerald-950/30",
+      "files": [
+        "src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
+        "src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:bg-green-500/20",
+      "files": [
+        "src/components/properties/property-units-table-config.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:bg-indigo-950/50",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:bg-orange-500/20",
+      "files": [
+        "src/components/maintenance/cards/maintenance-card.tsx",
+        "src/components/maintenance/table/columns.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:bg-orange-900/30",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:bg-purple-500/20",
+      "files": [
+        "src/components/properties/property-units-table-config.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:bg-purple-900/30",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:bg-red-900/30",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts",
+        "src/components/settings/billing-settings.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "dark:bg-red-950/30",
+      "files": [
+        "src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
+        "src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:bg-red-950/50",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx",
+        "src/components/settings/sections/subscription-cancel-section.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:bg-rose-900/30",
+      "files": [
+        "src/app/(owner)/reports/tax-documents/page.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:bg-stone-800",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:border-amber-700",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:border-amber-800",
+      "files": [
+        "src/components/leases/detail/lease-terms-tab.tsx",
+        "src/components/settings/sections/two-factor-section.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:border-blue-700",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:border-emerald-800",
+      "files": [
+        "src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:border-indigo-700",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:border-red-700",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx",
+        "src/components/settings/sections/subscription-cancel-section.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:border-red-800",
+      "files": [
+        "src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:hover:text-accent-foreground",
+      "files": [
+        "src/components/ui/calendar.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:hover:text-amber-100",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:hover:text-blue-100",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:hover:text-indigo-100",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:hover:text-red-100",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:text-amber-200",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx",
+        "src/components/leases/detail/lease-terms-tab.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:text-amber-300",
+      "files": [
+        "src/components/leases/detail/lease-terms-tab.tsx",
+        "src/components/settings/billing-settings.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:text-amber-400",
+      "files": [
+        "src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts",
+        "src/components/properties/property-table-row.tsx",
+        "src/components/properties/property-units-table-config.ts",
+        "src/components/tenants/tenant-stats.tsx"
+      ],
+      "fileCount": 5
+    },
+    {
+      "key": "dark:text-blue-200",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:text-blue-300",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/components/settings/billing-settings.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:text-blue-400",
+      "files": [
+        "src/components/properties/property-table-row.tsx",
+        "src/components/properties/property-units-table-config.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:text-emerald-300",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/components/settings/billing-settings.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:text-emerald-400",
+      "files": [
+        "src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
+        "src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+        "src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
+        "src/app/(owner)/reports/balance-sheet/page.tsx",
+        "src/app/(owner)/reports/cash-flow/cash-flow-stats.tsx"
+      ],
+      "fileCount": 11
+    },
+    {
+      "key": "dark:text-green-400",
+      "files": [
+        "src/components/maintenance/detail/maintenance-utils.ts",
+        "src/components/maintenance/table/columns.tsx",
+        "src/components/properties/property-units-table-config.ts"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "dark:text-indigo-200",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:text-orange-300",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:text-orange-400",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts",
+        "src/components/leases/detail/lease-details-tab.tsx",
+        "src/components/leases/detail/lease-header.tsx",
+        "src/components/maintenance/cards/maintenance-card.tsx"
+      ],
+      "fileCount": 8
+    },
+    {
+      "key": "dark:text-purple-300",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:text-purple-400",
+      "files": [
+        "src/components/properties/property-units-table-config.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:text-red-200",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx",
+        "src/components/settings/sections/subscription-cancel-section.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:text-red-300",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/components/settings/billing-settings.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "dark:text-red-400",
+      "files": [
+        "src/app/(owner)/reports/balance-sheet/page.tsx",
+        "src/app/(owner)/reports/cash-flow/cash-flow-stats.tsx",
+        "src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
+        "src/app/(owner)/reports/income-statement/income-statement-page-stats.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts"
+      ],
+      "fileCount": 5
+    },
+    {
+      "key": "dark:text-stone-300",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "dark:text-stone-400",
+      "files": [
+        "src/components/leases/detail/lease-detail-utils.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-[state=completed]:bg-success",
+      "files": [
+        "src/components/bulk-import/bulk-import-stepper.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-[state=completed]:text-success-foreground",
+      "files": [
+        "src/components/bulk-import/bulk-import-stepper.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-[state=on]:hover:bg-primary/90",
+      "files": [
+        "src/components/ui/toggle.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-drag-over:bg-primary/10",
+      "files": [
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-drag-over:border-primary",
+      "files": [
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-drag-over:scale-[1.01]",
+      "files": [
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-drag-over:shadow-lg",
+      "files": [
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-drag-over:shadow-primary/10",
+      "files": [
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "data-dragging:bg-accent/30",
+      "files": [
+        "src/components/ui/file-upload/file-upload-dropzone.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "focus:text-primary",
+      "files": [
+        "src/components/auth/update-password-form.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "from-primary/4",
+      "files": [
+        "src/components/sections/stats-showcase.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "from-primary/8",
+      "files": [
+        "src/components/sections/stats-showcase.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-data-drag-over:animate-bounce",
+      "files": [
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-data-drag-over:animate-pulse",
+      "files": [
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-data-drag-over:bg-primary/20",
+      "files": [
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-data-drag-over:scale-110",
+      "files": [
+        "src/components/bulk-import/bulk-import-upload-step.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-hover/feature:bg-primary/20",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-hover/feature:opacity-100",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-hover/feature:scale-105",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-hover/feature:scale-110",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-hover/feature:scale-125",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-hover/feature:scale-150",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-hover/feature:shadow-lg",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-hover/feature:shadow-primary/25",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-hover/feature:text-foreground/80",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-hover/feature:text-primary",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-hover:bg-emerald-500/20",
+      "files": [
+        "src/components/properties/property-stats-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-hover:bg-primary/20",
+      "files": [
+        "src/app/(owner)/leases/leases-stat-cards.tsx",
+        "src/components/properties/property-stats-section.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "group-hover:opacity-40",
+      "files": [
+        "src/components/sections/how-it-works.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-hover:scale-125",
+      "files": [
+        "src/components/sections/stats-showcase.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-hover:scale-150",
+      "files": [
+        "src/components/sections/stats-showcase.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "group-hover:text-foreground/80",
+      "files": [
+        "src/components/sections/stats-showcase.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "h-[40%]",
+      "files": [
+        "src/components/sections/hero-dashboard-mockup.tsx",
+        "src/components/shared/chart-loading-skeleton.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "h-[50%]",
+      "files": [
+        "src/components/sections/hero-dashboard-mockup.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "h-[60%]",
+      "files": [
+        "src/components/sections/hero-dashboard-mockup.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "h-[75%]",
+      "files": [
+        "src/components/sections/hero-dashboard-mockup.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "h-[80%]",
+      "files": [
+        "src/components/landing/feature-backgrounds.tsx",
+        "src/components/shared/chart-loading-skeleton.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "hover:-translate-y-0.5",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "hover:bg-accent/30",
+      "files": [
+        "src/components/ui/file-upload/file-upload-dropzone.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "hover:bg-card/40",
+      "files": [
+        "src/components/sections/premium-cta.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "hover:bg-card/95",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "hover:bg-destructive/90",
+      "files": [
+        "src/components/settings/account-data-section.tsx",
+        "src/components/settings/gdpr-data-actions.tsx",
+        "src/components/ui/__tests__/alert-dialog.test.tsx",
+        "src/components/ui/__tests__/naming-conventions.test.tsx",
+        "src/components/ui/button.tsx"
+      ],
+      "fileCount": 5
+    },
+    {
+      "key": "hover:bg-muted/70",
+      "files": [
+        "src/components/profiles/owner/security-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "hover:bg-primary/90",
+      "files": [
+        "src/app/(owner)/analytics/financial/page.tsx",
+        "src/app/(owner)/analytics/property-performance/page.tsx",
+        "src/app/(owner)/dashboard/components/dashboard-empty-state.tsx",
+        "src/app/(owner)/dashboard/page.tsx",
+        "src/app/(owner)/leases/page.tsx"
+      ],
+      "fileCount": 20
+    },
+    {
+      "key": "hover:bg-success",
+      "files": [
+        "src/components/leases/lease-signature-status.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "hover:border-primary/15",
+      "files": [
+        "src/components/sections/features-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "hover:border-primary/20",
+      "files": [
+        "src/app/about/page.tsx",
+        "src/components/sections/hero-dashboard-mockup.tsx",
+        "src/components/sections/how-it-works.tsx",
+        "src/components/sections/testimonials-section.tsx"
+      ],
+      "fileCount": 4
+    },
+    {
+      "key": "hover:text-amber-900",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "hover:text-blue-900",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "hover:text-indigo-900",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "hover:text-primary/80",
+      "files": [
+        "src/app/blog/[slug]/blog-post-page.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "hover:text-red-900",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "lg:pb-28",
+      "files": [
+        "src/components/shell/__tests__/app-shell.test.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "max-w-37.5",
+      "files": [
+        "src/components/shell/app-shell-header.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "sm:max-w-none",
+      "files": [
+        "src/components/shell/app-shell-header.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "text-(--color-accent-main)",
+      "files": [
+        "src/components/ui/__tests__/loading-spinner.test.tsx",
+        "src/components/ui/loading-spinner.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "text-amber-500",
+      "files": [
+        "src/components/leases/wizard/details-step.tsx",
+        "src/components/leases/wizard/review-step.tsx",
+        "src/components/reports/sections/year-end-report-section.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "text-amber-600",
+      "files": [
+        "src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts",
+        "src/components/reports/sections/year-end-report-section.tsx",
+        "src/components/settings/account-data-section.tsx",
+        "src/components/settings/gdpr-data-actions.tsx"
+      ],
+      "fileCount": 9
+    },
+    {
+      "key": "text-amber-700",
+      "files": [
+        "src/components/leases/detail/lease-detail-utils.ts",
+        "src/components/leases/detail/lease-terms-tab.tsx",
+        "src/components/properties/property-table-row.tsx",
+        "src/components/properties/property-units-table-config.ts",
+        "src/components/settings/account-data-section.tsx"
+      ],
+      "fileCount": 8
+    },
+    {
+      "key": "text-amber-800",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx",
+        "src/components/leases/detail/lease-terms-tab.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "text-blue-600",
+      "files": [
+        "src/app/(owner)/reports/tax-documents/page.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "text-blue-700",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/components/properties/property-table-row.tsx",
+        "src/components/properties/property-units-table-config.ts",
+        "src/components/settings/billing-settings.tsx"
+      ],
+      "fileCount": 4
+    },
+    {
+      "key": "text-blue-800",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "text-chart-1",
+      "files": [
+        "src/app/(owner)/properties/units/page.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "text-chart-5",
+      "files": [
+        "src/app/(owner)/properties/units/page.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "text-emerald-500",
+      "files": [
+        "src/components/profiles/owner/personal-info-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "text-emerald-600",
+      "files": [
+        "src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
+        "src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+        "src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
+        "src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
+        "src/app/(owner)/reports/balance-sheet/page.tsx"
+      ],
+      "fileCount": 21
+    },
+    {
+      "key": "text-emerald-700",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts",
+        "src/components/properties/property-table-row.tsx",
+        "src/components/settings/billing-settings.tsx",
+        "src/components/tenants/tenant-grid.tsx"
+      ],
+      "fileCount": 5
+    },
+    {
+      "key": "text-green-400",
+      "files": [
+        "src/components/properties/sections/property-images-create-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "text-green-500",
+      "files": [
+        "src/components/leases/wizard/review-step.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "text-green-600",
+      "files": [
+        "src/components/leases/wizard/review-step.tsx",
+        "src/components/maintenance/detail/maintenance-utils.ts",
+        "src/components/maintenance/detail/timeline-card.tsx",
+        "src/components/maintenance/table/columns.tsx"
+      ],
+      "fileCount": 4
+    },
+    {
+      "key": "text-green-700",
+      "files": [
+        "src/components/properties/property-units-table-config.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "text-indigo-800",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "text-muted-foreground/75",
+      "files": [
+        "src/components/auth/google-button.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "text-orange-600",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
+        "src/components/leases/detail/lease-details-tab.tsx",
+        "src/components/leases/detail/lease-header.tsx",
+        "src/components/maintenance/detail/maintenance-utils.ts",
+        "src/components/maintenance/kanban/maintenance-kanban.client.tsx"
+      ],
+      "fileCount": 6
+    },
+    {
+      "key": "text-orange-700",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts",
+        "src/components/maintenance/cards/maintenance-card.tsx",
+        "src/components/maintenance/table/columns.tsx"
+      ],
+      "fileCount": 4
+    },
+    {
+      "key": "text-primary-foreground/90",
+      "files": [
+        "src/app/faq/page.tsx",
+        "src/app/help/page.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "text-purple-700",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/components/properties/property-units-table-config.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "text-red-400",
+      "files": [
+        "src/components/properties/sections/property-images-create-section.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "text-red-500",
+      "files": [
+        "src/components/reports/sections/year-end-report-section.tsx",
+        "src/lib/utils.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "text-red-600",
+      "files": [
+        "src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
+        "src/app/(owner)/reports/balance-sheet/balance-section.tsx",
+        "src/app/(owner)/reports/balance-sheet/page.tsx",
+        "src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx",
+        "src/app/(owner)/reports/cash-flow/cash-flow-balance-summary.tsx"
+      ],
+      "fileCount": 12
+    },
+    {
+      "key": "text-red-700",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+        "src/components/leases/detail/lease-detail-utils.ts",
+        "src/components/settings/billing-settings.tsx"
+      ],
+      "fileCount": 3
+    },
+    {
+      "key": "text-red-800",
+      "files": [
+        "src/components/billing/subscription-status-banner.tsx",
+        "src/components/settings/sections/subscription-cancel-section.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "text-rose-600",
+      "files": [
+        "src/app/(owner)/reports/tax-documents/page.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "text-stone-500",
+      "files": [
+        "src/components/leases/detail/lease-detail-utils.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "text-stone-600",
+      "files": [
+        "src/components/leases/detail/lease-detail-utils.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "text-stone-700",
+      "files": [
+        "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "to-accent/4",
+      "files": [
+        "src/components/sections/stats-showcase.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "to-accent/8",
+      "files": [
+        "src/components/sections/stats-showcase.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "top-3",
+      "files": [
+        "src/components/sections/stats-showcase.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "w-1.5",
+      "files": [
+        "src/components/sections/features-section.tsx",
+        "src/components/sections/stats-showcase.tsx"
+      ],
+      "fileCount": 2
+    },
+    {
+      "key": "w-[60%]",
+      "files": [
+        "src/components/shared/blog-empty-state.tsx"
+      ],
+      "fileCount": 1
+    },
+    {
+      "key": "xl:grid-cols-5",
+      "files": [
+        "src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx"
+      ],
+      "fileCount": 1
+    }
+  ],
+  "changed": [
+    {
+      "key": "showcase-card",
+      "utility": "src/app/globals.css",
+      "commits": [
+        "ed7db2d48 fix(66.2-39): take hover affordances off elements that are not controls"
+      ]
+    },
+    {
+      "key": "testimonial-card",
+      "utility": "src/app/globals.css",
+      "commits": [
+        "ed7db2d48 fix(66.2-39): take hover affordances off elements that are not controls"
+      ]
+    }
+  ],
+  "unattributed": [],
+  "cp4Followup": [
+    {
+      "side": "added",
+      "key": "bottom-(--dock-offset)",
+      "source": "CP-4 follow-up (G38..MAIN_MERGE^1)",
+      "files": [
+        "src/components/shell/__tests__/quick-actions-dock-css.test.ts",
+        "src/components/shell/__tests__/quick-actions-dock.test.tsx",
+        "src/components/shell/quick-actions-dock.tsx"
+      ]
+    },
+    {
+      "side": "added",
+      "key": "h-(--dock-height)",
+      "source": "CP-4 follow-up (G38..MAIN_MERGE^1)",
+      "files": [
+        "src/components/shell/__tests__/quick-actions-dock-css.test.ts",
+        "src/components/shell/quick-actions-dock.tsx"
+      ]
+    },
+    {
+      "side": "removed",
+      "key": "@container",
+      "source": "CP-4 follow-up (G38..MAIN_MERGE^1)",
+      "files": [
+        "src/components/dashboard/components/kpi-bento-row.tsx"
+      ]
+    },
+    {
+      "side": "removed",
+      "key": "lg:col-span-3",
+      "source": "CP-4 follow-up (G38..MAIN_MERGE^1)",
+      "files": [
+        "src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx"
+      ]
+    }
+  ],
+  "fixRound3": {
+    "base": "36972318f (code state f8de0175e)",
+    "head": "b7f25511b",
+    "added": [
+      {
+        "key": "[&_.recharts-cartesian-axis-tick-value]:fill-muted-foreground",
+        "files": [
+          "src/components/ui/chart.tsx"
+        ],
+        "commits": [
+          "61df5a44d fix(66.2-39): paint chart axis labels through the class recharts 3 gives them"
+        ],
+        "vd": [
+          "VD-143",
+          "VD-52"
+        ]
+      },
+      {
+        "key": "[&_.recharts-sector:not([stroke^='var('])]:stroke-transparent",
+        "files": [
+          "src/components/ui/chart.tsx"
+        ],
+        "commits": [
+          "7ba8647d4 fix(66.2-39): let a Pie's token stroke survive ChartContainer's sector rule"
+        ],
+        "vd": [
+          "VD-53"
+        ]
+      },
+      {
+        "key": "basis-28",
+        "files": [
+          "src/components/settings/category-row.tsx"
+        ],
+        "commits": [
+          "bb06157dc fix(66.2-39): reflow the document categories tab at 320px"
+        ],
+        "vd": [
+          "VD-148"
+        ]
+      },
+      {
+        "key": "basis-56",
+        "files": [
+          "src/components/settings/categories-settings.tsx"
+        ],
+        "commits": [
+          "bb06157dc fix(66.2-39): reflow the document categories tab at 320px"
+        ],
+        "vd": [
+          "VD-148"
+        ]
+      },
+      {
+        "key": "dark:border-border",
+        "files": [
+          "src/components/auth/google-button.tsx",
+          "src/components/pricing/pricing-card-standard.tsx"
+        ],
+        "commits": [
+          "7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+        ],
+        "vd": [
+          "VD-134"
+        ]
+      },
+      {
+        "key": "dark:border-border/50",
+        "files": [
+          "src/components/sections/premium-cta.tsx"
+        ],
+        "commits": [
+          "7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+        ],
+        "vd": [
+          "VD-134"
+        ]
+      },
+      {
+        "key": "dark:border-destructive/20",
+        "files": [
+          "src/components/settings/sections/subscription-cancel-section.tsx"
+        ],
+        "commits": [
+          "7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+        ],
+        "vd": [
+          "VD-134"
+        ]
+      },
+      {
+        "key": "dark:border-destructive/30",
+        "files": [
+          "src/components/leases/download-signed-lease-button.tsx"
+        ],
+        "commits": [
+          "7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+        ],
+        "vd": [
+          "VD-134"
+        ]
+      },
+      {
+        "key": "dark:border-muted-foreground/30",
+        "files": [
+          "src/app/resources/page.tsx",
+          "src/components/landing/final-cta-section.tsx",
+          "src/components/landing/hero-section.tsx"
+        ],
+        "commits": [
+          "7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+        ],
+        "vd": [
+          "VD-134"
+        ]
+      },
+      {
+        "key": "dark:border-success/20",
+        "files": [
+          "src/components/leases/sign-lease-button.tsx"
+        ],
+        "commits": [
+          "7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+        ],
+        "vd": [
+          "VD-134"
+        ]
+      },
+      {
+        "key": "dark:hover:bg-black/70",
+        "files": [
+          "src/components/properties/image-lightbox.tsx"
+        ],
+        "commits": [
+          "7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+        ],
+        "vd": [
+          "VD-134"
+        ]
+      },
+      {
+        "key": "dark:hover:bg-destructive/10",
+        "files": [
+          "src/components/inspections/inspection-room-card.tsx",
+          "src/components/maintenance/table/columns.tsx",
+          "src/components/maintenance/vendors-page.client.tsx",
+          "src/components/properties/property-action-bar.tsx",
+          "src/components/properties/property-table-row.tsx",
+          "src/components/tenants/tenant-table-row.tsx"
+        ],
+        "commits": [
+          "7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+        ],
+        "vd": [
+          "VD-134"
+        ]
+      },
+      {
+        "key": "dark:hover:bg-destructive/20",
+        "files": [
+          "src/app/(owner)/properties/property-details.client.tsx",
+          "src/components/documents/document-row.tsx",
+          "src/components/leases/download-signed-lease-button.tsx",
+          "src/components/maintenance/detail/maintenance-details.client.tsx",
+          "src/components/maintenance/detail/photos-card.tsx",
+          "src/components/settings/sections/subscription-cancel-section.tsx"
+        ],
+        "commits": [
+          "7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+        ],
+        "vd": [
+          "VD-134"
+        ]
+      },
+      {
+        "key": "dark:hover:bg-muted/50",
+        "files": [
+          "src/app/(owner)/properties/units/components/unit-actions.tsx",
+          "src/components/bulk-import/bulk-import-stepper.tsx",
+          "src/components/pricing/pricing-comparison-table.tsx"
+        ],
+        "commits": [
+          "7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+        ],
+        "vd": [
+          "VD-134"
+        ]
+      },
+      {
+        "key": "dark:hover:bg-primary/5",
+        "files": [
+          "src/app/resources/page.tsx",
+          "src/components/bulk-import/bulk-import-upload-step.tsx",
+          "src/components/landing/final-cta-section.tsx",
+          "src/components/landing/hero-section.tsx",
+          "src/components/pricing/pricing-card-standard.tsx",
+          "src/components/sections/premium-cta.tsx"
+        ],
+        "commits": [
+          "7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+        ],
+        "vd": [
+          "VD-134"
+        ]
+      },
+      {
+        "key": "dark:hover:text-destructive-text",
+        "files": [
+          "src/app/(owner)/properties/property-details.client.tsx",
+          "src/components/documents/document-row.tsx",
+          "src/components/inspections/inspection-room-card.tsx",
+          "src/components/leases/download-signed-lease-button.tsx",
+          "src/components/maintenance/detail/maintenance-details.client.tsx",
+          "src/components/maintenance/detail/photos-card.tsx",
+          "src/components/maintenance/table/columns.tsx",
+          "src/components/maintenance/vendors-page.client.tsx",
+          "src/components/properties/property-action-bar.tsx",
+          "src/components/properties/property-table-row.tsx",
+          "src/components/settings/sections/subscription-cancel-section.tsx",
+          "src/components/tenants/tenant-table-row.tsx"
+        ],
+        "commits": [
+          "7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+        ],
+        "vd": [
+          "VD-134"
+        ]
+      },
+      {
+        "key": "dark:hover:text-muted-foreground",
+        "files": [
+          "src/components/settings/category-row.tsx",
+          "src/components/shell/app-shell-header.tsx"
+        ],
+        "commits": [
+          "7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+        ],
+        "vd": [
+          "VD-134"
+        ]
+      },
+      {
+        "key": "dark:hover:text-primary-text",
+        "files": [
+          "src/app/faq/page.tsx",
+          "src/app/help/page.tsx",
+          "src/components/pricing/pricing-card-standard.tsx"
+        ],
+        "commits": [
+          "7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+        ],
+        "vd": [
+          "VD-134"
+        ]
+      },
+      {
+        "key": "dark:hover:text-white",
+        "files": [
+          "src/components/properties/image-lightbox.tsx"
+        ],
+        "commits": [
+          "7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+        ],
+        "vd": [
+          "VD-134"
+        ]
+      },
+      {
+        "key": "focus-visible:border-primary-foreground",
+        "files": [
+          "src/app/faq/page.tsx",
+          "src/app/help/page.tsx"
+        ],
+        "commits": [
+          "a2258d857 fix(66.2-39): draw the faq and help CTA focus rings in primary-foreground"
+        ],
+        "vd": [
+          "VD-135"
+        ]
+      },
+      {
+        "key": "focus-visible:ring-primary-foreground/80",
+        "files": [
+          "src/app/faq/page.tsx",
+          "src/app/help/page.tsx"
+        ],
+        "commits": [
+          "a2258d857 fix(66.2-39): draw the faq and help CTA focus rings in primary-foreground"
+        ],
+        "vd": [
+          "VD-135"
+        ]
+      },
+      {
+        "key": "grid-cols-[repeat(auto-fit,minmax(min(20rem,100%),1fr))]",
+        "files": [
+          "src/app/(owner)/loading.tsx"
+        ],
+        "commits": [
+          "958cce22c fix(66.2-39): keep the owner loading stat grid inside a 320px row"
+        ],
+        "vd": [
+          "VD-12",
+          "VD-61"
+        ]
+      },
+      {
+        "key": "hover:text-white",
+        "files": [
+          "src/components/properties/image-lightbox.tsx"
+        ],
+        "commits": [
+          "7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+        ],
+        "vd": [
+          "VD-134"
+        ]
+      },
+      {
+        "key": "max-h-(--tour-available-height)",
+        "files": [
+          "src/components/ui/tour.tsx"
+        ],
+        "commits": [
+          "5ab6b39e3 fix(66.2-39): keep every onboarding tour step inside the viewport"
+        ],
+        "vd": [
+          "VD-151",
+          "VD-120"
+        ]
+      },
+      {
+        "key": "max-md:pt-16",
+        "files": [
+          "src/components/ui/tour.tsx"
+        ],
+        "commits": [
+          "b7f25511b fix(66.2-39): start the tour step's content below its close button"
+        ],
+        "vd": [
+          "VD-151"
+        ]
+      },
+      {
+        "key": "max-w-(--tour-available-width)",
+        "files": [
+          "src/components/ui/tour.tsx"
+        ],
+        "commits": [
+          "5ab6b39e3 fix(66.2-39): keep every onboarding tour step inside the viewport"
+        ],
+        "vd": [
+          "VD-151",
+          "VD-120"
+        ]
+      },
+      {
+        "key": "md:data-scrollable:pr-6",
+        "files": [
+          "src/components/ui/tour.tsx"
+        ],
+        "commits": [
+          "b7f25511b fix(66.2-39): start the tour step's content below its close button"
+        ],
+        "vd": [
+          "VD-151"
+        ]
+      },
+      {
+        "key": "wrap-anywhere",
+        "files": [
+          "src/components/settings/category-row.tsx"
+        ],
+        "commits": [
+          "bb06157dc fix(66.2-39): reflow the document categories tab at 320px"
+        ],
+        "vd": [
+          "VD-148"
+        ]
+      }
+    ],
+    "removed": [
+      {
+        "key": "[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground",
+        "files": [
+          "src/components/ui/chart.tsx"
+        ],
+        "commits": [
+          "61df5a44d fix(66.2-39): paint chart axis labels through the class recharts 3 gives them"
+        ],
+        "vd": [
+          "VD-143",
+          "VD-52"
+        ]
+      },
+      {
+        "key": "[&_.recharts-sector[stroke]]:stroke-transparent",
+        "files": [
+          "src/components/ui/chart.tsx"
+        ],
+        "commits": [
+          "7ba8647d4 fix(66.2-39): let a Pie's token stroke survive ChartContainer's sector rule"
+        ],
+        "vd": [
+          "VD-53"
+        ]
+      },
+      {
+        "key": "[a]:hover:bg-accent/50",
+        "files": [
+          "src/app/(owner)/documents/recent-documents-panel.tsx"
+        ],
+        "commits": [
+          "57c06b9fc docs(66.2-39): cite the documents and applications comments by symbol, not line"
+        ],
+        "vd": [
+          "comment-only"
+        ]
+      },
+      {
+        "key": "grid-cols-[repeat(auto-fit,minmax(20rem,1fr))]",
+        "files": [
+          "src/app/(owner)/loading.tsx"
+        ],
+        "commits": [
+          "958cce22c fix(66.2-39): keep the owner loading stat grid inside a 320px row"
+        ],
+        "vd": [
+          "VD-12",
+          "VD-61"
+        ]
+      },
+      {
+        "key": "group-hover:blur-2xl",
+        "files": [
+          "src/app/auth/confirm-email/confirm-email-states.tsx",
+          "src/app/auth/update-password/page.tsx"
+        ],
+        "commits": [
+          "7d4e9abf9 fix(66.2-39): count group-hover effects whose group is not a control"
+        ],
+        "vd": [
+          "VD-69"
+        ]
+      },
+      {
+        "key": "md:flex",
+        "files": [
+          "src/components/properties/property-table-types.ts"
+        ],
+        "commits": [
+          "d52c53b10 fix(66.2-39): correct the feature comments this PR's changes made false"
+        ],
+        "vd": [
+          "comment-only"
+        ]
+      },
+      {
+        "key": "space-y-0.5",
+        "files": [
+          "src/components/shared/multi-select-chips.tsx"
+        ],
+        "commits": [
+          "7cb8c5d9d fix(66.2-39): cancel the base list rules on every list in this pr's files"
+        ],
+        "vd": [
+          "VD-149"
+        ]
+      }
+    ],
+    "reversedFixRound1": [
+      {
+        "side": "added",
+        "key": "hover:bg-card/40",
+        "reverses": "a fix-round-1 or CP-4 removed key",
+        "commits": [
+          "b3605eb72 fix(66.2-39): give the premium CTA's cancellation link tile a hover again"
+        ],
+        "vd": [
+          "VD-136"
+        ]
+      },
+      {
+        "side": "removed",
+        "key": "hover:text-primary-text/80",
+        "reverses": "a fix-round-1 or CP-4 added key",
+        "commits": [
+          "f9aa2dd8c fix(66.2-39): keep the blog cross-links' hover label at full strength"
+        ],
+        "vd": [
+          "VD-59"
+        ]
+      }
+    ],
+    "compiledCss": {
+      "old": {
+        "tree": "36972318f (code state f8de0175e), audit.mjs on the old state in this worktree, this session",
+        "sha256": "de12912060d9f1892b0c130aa3ed3b4e6ca1f7f81dda0b86f4f137a575f274d0"
+      },
+      "new": {
+        "tree": "b7f25511b",
+        "sha256": "bbf1a69aff432f0d4042a73c9843e5b383620462a39dbd7ee7c4a1b3224a1c0b"
+      },
+      "differingTopLevelBlocks": [
+        "@layer base",
+        "@layer utilities"
+      ],
+      "utilities": "the candidate keys above (fixRound3.added / removed)",
+      "nonUtilityHunks": [
+        {
+          "rule": "a:not([role=\"button\"]):not(.button):not([class*=\"button\"])",
+          "becomes": "...:not([data-slot=\"button\"])",
+          "commit": "9a7092a7f fix(66.2-39): pass Button-styled links by in the base anchor rules",
+          "vd": [
+            "VD-66"
+          ],
+          "decision": "OD-3 (owner): the base anchor rules narrowed in place, D-B"
+        },
+        {
+          "rule": "a:not([role=\"button\"]):not(.button):not([class*=\"button\"]):hover",
+          "becomes": "...:not([data-slot=\"button\"]):hover",
+          "commit": "9a7092a7f fix(66.2-39): pass Button-styled links by in the base anchor rules",
+          "vd": [
+            "VD-66"
+          ],
+          "decision": "OD-3 (owner)"
+        }
+      ],
+      "unclassified": 0
+    }
+  }
 }

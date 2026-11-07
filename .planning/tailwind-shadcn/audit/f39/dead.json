@@ -3,25 +3,25 @@
   {
    "name": "--color-success-foreground",
    "value": "var(--success-foreground)",
-   "line": 515,
+   "line": 524,
    "mode": "inline"
   },
   {
    "name": "--color-chart-2",
    "value": "var(--chart-2)",
-   "line": 526,
+   "line": 535,
    "mode": "inline"
   },
   {
    "name": "--color-chart-3",
    "value": "var(--chart-3)",
-   "line": 527,
+   "line": 536,
    "mode": "inline"
   },
   {
    "name": "--color-chart-5",
    "value": "var(--chart-5)",
-   "line": 529,
+   "line": 538,
    "mode": "inline"
   }
  ],

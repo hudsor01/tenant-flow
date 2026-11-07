@@ -1,6 +1,8 @@
 {
+  "tree": "b7f25511b (codeStateSha)",
+  "registryFetchedAt": "2026-11-06 (fresh new-york-v4 fetch, registry-fetch.mjs --allow-missing)",
   "label": "f39",
-  "generatedAt": "2026-11-03T04:36:54.741Z",
+  "generatedAt": "2026-11-07T03:36:12.560Z",
   "files": [
     {
       "file": "src/components/ui/accordion.tsx",
@@ -9,7 +11,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 3,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__accordion.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__accordion.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -22,7 +24,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 10,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__alert-dialog.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__alert-dialog.tsx.diff",
       "missingExports": [
         "AlertDialogMedia",
         "AlertDialogOverlay",
@@ -41,7 +43,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 3,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__alert.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__alert.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -67,7 +69,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 6,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__avatar.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__avatar.tsx.diff",
       "missingExports": [
         "AvatarBadge",
         "AvatarGroup",
@@ -88,7 +90,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 10,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__badge.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__badge.tsx.diff",
       "missingExports": [
         "badgeVariants"
       ],
@@ -142,7 +144,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 8,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__breadcrumb.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__breadcrumb.tsx.diff",
       "missingExports": [
         "BreadcrumbEllipsis"
       ],
@@ -150,7 +152,7 @@
         "breadcrumb-ellipsis"
       ],
       "registered": true,
-      "divergenceCount": 6
+      "divergenceCount": 7
     },
     {
       "file": "src/components/ui/button-group.tsx",
@@ -159,7 +161,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 2,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__button-group.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__button-group.tsx.diff",
       "missingExports": [
         "ButtonGroupSeparator",
         "ButtonGroupText",
@@ -178,7 +180,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 6,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__button.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__button.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -191,7 +193,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 21,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__calendar.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__calendar.tsx.diff",
       "missingExports": [
         "CalendarDayButton"
       ],
@@ -219,7 +221,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 5,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__card.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__card.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -245,7 +247,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 17,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__chart.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__chart.tsx.diff",
       "missingExports": [
         "ChartLegend",
         "ChartLegendContent",
@@ -255,7 +257,7 @@
       ],
       "missingDataSlots": [],
       "registered": true,
-      "divergenceCount": 7
+      "divergenceCount": 9
     },
     {
       "file": "src/components/ui/checkbox.tsx",
@@ -264,7 +266,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 2,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__checkbox.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__checkbox.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -277,7 +279,7 @@
       "registryStatus": 200,
       "status": "in-sync",
       "normalizedDiffHunks": 0,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__collapsible.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__collapsible.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": false,
@@ -290,7 +292,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 41,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__combobox.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__combobox.tsx.diff",
       "missingExports": [
         "ComboboxChip",
         "ComboboxChips",
@@ -329,7 +331,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 8,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__command.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__command.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -355,7 +357,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 12,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__dialog.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__dialog.tsx.diff",
       "missingExports": [
         "DialogOverlay",
         "DialogPortal"
@@ -371,7 +373,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 9,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__dropdown-menu.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__dropdown-menu.tsx.diff",
       "missingExports": [
         "DropdownMenuGroup",
         "DropdownMenuPortal",
@@ -415,7 +417,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 5,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__empty.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__empty.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [
         "empty-icon"
@@ -430,7 +432,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 17,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__field.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__field.tsx.diff",
       "missingExports": [
         "FieldContent",
         "FieldLegend",
@@ -585,7 +587,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 8,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__input-group.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__input-group.tsx.diff",
       "missingExports": [
         "InputGroupButton",
         "InputGroupText",
@@ -602,7 +604,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 2,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__input-otp.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__input-otp.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -615,7 +617,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 2,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__input.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__input.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -628,7 +630,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 10,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__item.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__item.tsx.diff",
       "missingExports": [
         "ItemFooter",
         "ItemHeader"
@@ -647,7 +649,7 @@
       "registryStatus": 200,
       "status": "in-sync",
       "normalizedDiffHunks": 0,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__label.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__label.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": false,
@@ -686,7 +688,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 2,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__popover.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__popover.tsx.diff",
       "missingExports": [
         "PopoverAnchor",
         "PopoverDescription",
@@ -709,7 +711,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 5,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__progress.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__progress.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -735,7 +737,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 8,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__select.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__select.tsx.diff",
       "missingExports": [
         "SelectGroup",
         "SelectLabel",
@@ -758,7 +760,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 1,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__separator.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__separator.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -771,7 +773,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 13,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__sheet.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__sheet.tsx.diff",
       "missingExports": [
         "SheetClose"
       ],
@@ -788,7 +790,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 40,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__sidebar.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__sidebar.tsx.diff",
       "missingExports": [
         "SidebarGroupAction",
         "SidebarGroupContent",
@@ -819,7 +821,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 2,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__skeleton.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__skeleton.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -832,7 +834,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 1,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__slider.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__slider.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -845,7 +847,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 3,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__sonner.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__sonner.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -988,7 +990,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 5,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__switch.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__switch.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -1001,7 +1003,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 5,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__table.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__table.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -1014,7 +1016,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 8,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__tabs.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__tabs.tsx.diff",
       "missingExports": [
         "tabsListVariants"
       ],
@@ -1029,7 +1031,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 1,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__textarea.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__textarea.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -1042,7 +1044,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 9,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__toggle-group.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__toggle-group.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": true,
@@ -1055,7 +1057,7 @@
       "registryStatus": 200,
       "status": "divergent",
       "normalizedDiffHunks": 4,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__toggle.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__toggle.tsx.diff",
       "missingExports": [
         "Toggle"
       ],
@@ -1072,7 +1074,7 @@
       "registryStatus": 200,
       "status": "in-sync",
       "normalizedDiffHunks": 0,
-      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf/vinv-scratch/src__components__ui__tooltip.tsx.diff",
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/rf3b/vi-scratch/src__components__ui__tooltip.tsx.diff",
       "missingExports": [],
       "missingDataSlots": [],
       "registered": false,

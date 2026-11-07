@@ -1,0 +1,1803 @@
+{
+	"command": "git diff --name-status --no-renames f8de0175e b7f25511b -- . ':(exclude).planning'",
+	"base": "f8de0175e3e2c76e1429956ab4f3d5c675a0789f",
+	"head": "b7f25511b600b9cf1edd50bc56c41de55e02f29a",
+	"note": "36972318f (the previous FROZEN head) holds f8de0175e's code; fix round 3 is f8de0175e..852158ab4 outside .planning/",
+	"total": 355,
+	"byStatus": {
+		"M": 318,
+		"A": 37
+	},
+	"byClass": {
+		"workflow": 1,
+		"unit-test": 123,
+		"replay-script": 3,
+		"sweep-script": 1,
+		"script": 1,
+		"application": 181,
+		"vendored-ui": 5,
+		"test-helper": 11,
+		"edge-vitest-guard": 5,
+		"edge-function-source": 6,
+		"edge-deno-test": 3,
+		"migration": 4,
+		"e2e": 11
+	},
+	"paths": [
+		{
+			"status": "M",
+			"path": ".github/workflows/migration-replay.yml",
+			"class": "workflow"
+		},
+		{
+			"status": "M",
+			"path": "scripts/assert-migration-replay.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "scripts/migration-replay-assertions.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "scripts/migration-replay-assertions.ts",
+			"class": "replay-script"
+		},
+		{
+			"status": "M",
+			"path": "scripts/migration-replay-owner-figures.sql",
+			"class": "replay-script"
+		},
+		{
+			"status": "M",
+			"path": "scripts/migration-replay-property-performance.sql",
+			"class": "replay-script"
+		},
+		{
+			"status": "M",
+			"path": "scripts/mutation-sweep.sh",
+			"class": "sweep-script"
+		},
+		{
+			"status": "M",
+			"path": "scripts/mutation-sweep.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "scripts/rag-index-blog-corpus.ts",
+			"class": "script"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(admin)/admin/blog/blog-review-client.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/analytics/__tests__/always-empty-sections.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/app/(owner)/analytics/__tests__/analytics-chart-keys.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/app/(owner)/analytics/__tests__/analytics-money-charts.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/analytics/__tests__/stat-rows-one-height.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/analytics/financial/_components/__tests__/financial-overview-stats.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/analytics/financial/financial-charts.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/analytics/financial/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/analytics/financial/revenue-expense-chart.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/analytics/overview/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/analytics/property-performance/__tests__/rent-received.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/analytics/property-performance/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/analytics/property-performance/property-charts.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/billing/plans/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/documents/__tests__/documents-hub.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/documents/__tests__/recent-documents-panel.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/documents/document-hub-tile.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/documents/lease-template/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/documents/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/documents/recent-documents-panel.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/documents/templates/components/maintenance-request-template.client.tsx",
+			"class": "application"
+		},
+		{
+			"status": "A",
+			"path": "src/app/(owner)/documents/templates/components/maintenance-request-template.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/documents/templates/components/property-inspection-template.client.tsx",
+			"class": "application"
+		},
+		{
+			"status": "A",
+			"path": "src/app/(owner)/leases/__tests__/leases-page.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/leases/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/loading.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/properties/property-details.client.tsx",
+			"class": "application"
+		},
+		{
+			"status": "A",
+			"path": "src/app/(owner)/properties/units/__tests__/units-property-name.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/properties/units/columns.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/properties/units/components/unit-actions.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/properties/units/components/unit-detail-dialogs.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/properties/units/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/__tests__/balance-sheet-csv.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/__tests__/balance-sheet-export.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/__tests__/cash-flow-csv.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/__tests__/cash-flow-export.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/__tests__/income-statement-csv.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/__tests__/income-statement-export.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/__tests__/no-1099-section.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/app/(owner)/reports/__tests__/report-tile-spacing.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/__tests__/reports-hub-purity.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/__tests__/statement-basis-note.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/__tests__/tax-year-rent-received.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/app/(owner)/reports/__tests__/year-end-downloads.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/balance-sheet/balance-sheet-csv.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/balance-sheet/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/cash-flow/cash-flow-balance-summary.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/cash-flow/cash-flow-breakdown.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/cash-flow/cash-flow-csv.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/cash-flow/cash-flow-header.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/cash-flow/cash-flow-view.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/expenses/__tests__/expenses-csv.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/expenses/expenses-csv.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/expenses/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/generate/components/__tests__/report-period.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/generate/components/report-card-grid.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/generate/components/report-types.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/income-statement/income-statement-csv.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/income-statement/income-statement-date-range.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/income-statement/income-statement-page-header.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/income-statement/income-statement-page-net-summary.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/income-statement/income-statement-view.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/income-statement/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/ledger-totals-unavailable.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/reports-summary-strip.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/statement-basis-note.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/tax-documents/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/year-end/__tests__/year-end-csv.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/reports/year-end/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/tenants/components/tenant-details.client.tsx",
+			"class": "application"
+		},
+		{
+			"status": "A",
+			"path": "src/app/(owner)/units/__tests__/units-page-error.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/(owner)/units/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/__tests__/design-token-drift.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/__tests__/primary-cta-band-contrast.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/__tests__/scheduled-rent-not-revenue.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/__tests__/state-fill-contrast.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/auth/confirm-email/confirm-email-states.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/auth/update-password/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/blog/[slug]/blog-post-page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/blog/[slug]/page.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/app/compare/[competitor]/compare-sections.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/compare/[competitor]/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/faq/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/globals.css",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/help/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/pricing/cancel/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/resources/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/app/search/page.tsx",
+			"class": "application"
+		},
+		{
+			"status": "A",
+			"path": "src/components/__tests__/billing-auth-lists-base-rules.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/components/__tests__/card-padding-v4.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/components/__tests__/group-markers.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/components/__tests__/heading-block-paragraph-margin.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/__tests__/ids-not-shown-as-text.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/components/__tests__/list-base-rule-neutralized.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/__tests__/no-hover-on-static-elements.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/__tests__/no-nested-interactive.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/analytics/__tests__/lease-profitability-table.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/analytics/__tests__/maintenance-insights-costs.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/components/analytics/__tests__/maintenance-insights-status.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/analytics/lease-insights-section.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/analytics/lease-profitability-table.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/analytics/maintenance-charts.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/analytics/maintenance-insights-section.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/analytics/property-insights-section.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/applications/__tests__/application-detail.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/applications/__tests__/application-link-panel.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/applications/__tests__/application-queue.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/applications/application-detail.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/applications/application-link-panel.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/applications/application-queue.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/auth/change-password-dialog.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/auth/google-button.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/auth/password-strength.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/billing/plan-card.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/billing/subscription-status-banner.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/billing/upgrade-dialog.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/bulk-import/__tests__/bulk-import-result-error-list.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/bulk-import/bulk-import-result-error-list.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/bulk-import/bulk-import-stepper.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/bulk-import/bulk-import-upload-step.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/dashboard/__tests__/scheduled-rent-charts.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/dashboard/chart-area-interactive.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/dashboard/components/__tests__/dashboard-portfolio-swap.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/dashboard/components/__tests__/kpi-bento-row.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/dashboard/components/__tests__/occupancy-donut-chart.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/dashboard/components/__tests__/portfolio-columns.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/dashboard/components/__tests__/revenue-area-chart.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/dashboard/components/kpi-bento-row.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/dashboard/components/kpi-helpers.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/dashboard/components/occupancy-donut-chart.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/dashboard/components/portfolio-data-table-toolbar.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/dashboard/components/portfolio-data-table.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/dashboard/components/portfolio-preset-menu.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/dashboard/components/revenue-area-chart.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/dashboard/expiring-leases-widget.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/data-table/__tests__/data-table-column-header.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/components/data-table/__tests__/view-options-labels.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/documents/__tests__/documents-section.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/documents/document-row.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/documents/documents-section.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/documents/documents-vault.client.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/faq-accordion.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/inspections/inspection-list.client.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/inspections/inspection-room-card.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/landing/final-cta-section.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/landing/hero-section.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/landing/results-proof-section.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/layout/navbar/__tests__/navbar-desktop-nav.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/__tests__/lease-details.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/components/leases/__tests__/lease-edit-unit-preselect.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/__tests__/lease-form.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/__tests__/lease-status-labels.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/components/leases/detail/__tests__/lease-card-padding.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/components/leases/detail/__tests__/lease-details-embeds.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/components/leases/detail/__tests__/lease-details-heading.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/detail/__tests__/lease-header-heading.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/detail/lease-details-tab.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/detail/lease-details.client.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/detail/lease-header.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/dialogs/__tests__/renew-lease-form-fields.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/dialogs/renew-lease-form-fields.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/download-signed-lease-button.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/lease-form-property-unit-fields.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/lease-form-tenant-date-fields.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/lease-form.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/lease-signature-status.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/sign-lease-button.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/table/__tests__/leases-export.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/table/__tests__/leases-table.a11y.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/table/leases-table.tsx",
+			"class": "application"
+		},
+		{
+			"status": "A",
+			"path": "src/components/leases/wizard/__tests__/lease-creation-wizard-card.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/leases/wizard/lease-creation-wizard.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/ledger/ledger-balance-strip.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/maintenance/__tests__/maintenance-card.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/maintenance/__tests__/maintenance-form.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/components/maintenance/__tests__/maintenance-list-names.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/maintenance/cards/maintenance-card.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/maintenance/cards/maintenance-sortable-card.tsx",
+			"class": "application"
+		},
+		{
+			"status": "A",
+			"path": "src/components/maintenance/detail/__tests__/maintenance-details-location.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/components/maintenance/detail/__tests__/maintenance-header-boxes.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/maintenance/detail/__tests__/maintenance-spend.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/maintenance/detail/maintenance-details.client.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/maintenance/detail/maintenance-header-card.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/maintenance/detail/photos-card.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/maintenance/kanban/maintenance-kanban.client.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/maintenance/maintenance-view-tabs.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/maintenance/maintenance-view.client.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/maintenance/table/columns.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/maintenance/table/maintenance-table.client.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/maintenance/vendors-page.client.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/pricing/pricing-card-standard.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/pricing/pricing-comparison-table.tsx",
+			"class": "application"
+		},
+		{
+			"status": "A",
+			"path": "src/components/profiles/owner/__tests__/profile-card.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/profiles/owner/profile-card.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/properties/__tests__/property-name-column.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/properties/image-lightbox.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/properties/properties-filters.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/properties/property-action-bar.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/properties/property-performance-section.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/properties/property-table-row.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/properties/property-table-types.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/properties/types.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/reports/sections/year-end-report-section-utils.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/reports/sections/year-end-report-section.tsx",
+			"class": "application"
+		},
+		{
+			"status": "A",
+			"path": "src/components/sections/__tests__/premium-cta.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/sections/hero-dashboard-mockup.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/sections/how-it-works.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/sections/logo-cloud.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/sections/premium-cta.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/sections/testimonials-section.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/settings/__tests__/categories-settings.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/settings/categories-settings.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/settings/category-row.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/settings/download-account-data.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/settings/notification-settings.tsx",
+			"class": "application"
+		},
+		{
+			"status": "A",
+			"path": "src/components/settings/sections/__tests__/billing-history-section.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/settings/sections/billing-history-section.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/settings/sections/subscription-cancel-section.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/settings/sections/subscription-cancel-section.tsx",
+			"class": "application"
+		},
+		{
+			"status": "A",
+			"path": "src/components/shared/chart-series.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/shared/multi-select-chips.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/shell/__tests__/quick-actions-dock-css.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/shell/app-shell-header.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/tenants/__tests__/application-prefill-notice.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/tenants/__tests__/tenant-exports.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/tenants/__tests__/tenant-grid.a11y.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/tenants/application-prefill-notice.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/tenants/tenant-quick-actions.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/tenants/tenant-table-row.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/tenants/tenants-csv.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/tenants/tenants.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/tours/__tests__/owner-onboarding-tour.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/tours/owner-onboarding-tour.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/components/ui/__tests__/alert-dialog.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/components/ui/__tests__/button-caller-states.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/components/ui/__tests__/button-link-base-rule.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/components/ui/__tests__/chart-recharts-classes.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/ui/__tests__/chart.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/ui/__tests__/global-sync-indicator.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/ui/__tests__/responsive-design.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/components/ui/__tests__/tour-viewport-fit.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/components/ui/breadcrumb.tsx",
+			"class": "vendored-ui"
+		},
+		{
+			"status": "M",
+			"path": "src/components/ui/chart.tsx",
+			"class": "vendored-ui"
+		},
+		{
+			"status": "M",
+			"path": "src/components/ui/global-sync-indicator.tsx",
+			"class": "vendored-ui"
+		},
+		{
+			"status": "M",
+			"path": "src/components/ui/sidebar.tsx",
+			"class": "vendored-ui"
+		},
+		{
+			"status": "M",
+			"path": "src/components/ui/tour.tsx",
+			"class": "vendored-ui"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/__tests__/analytics-overview-page-data.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/__tests__/data-layer-callers.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/hooks/api/__tests__/rent-ledger-invalidation.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/__tests__/use-financials.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/__tests__/use-properties.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/__tests__/use-report-mutations.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/__tests__/use-reports.test.tsx",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/mutation-keys.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/query-keys/analytics-keys.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/query-keys/analytics-mappers.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/query-keys/analytics-mappers.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/query-keys/blog-keys.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/query-keys/financial-keys.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/query-keys/lease-keys.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/query-keys/maintenance-keys.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/query-keys/maintenance-mappers.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/query-keys/maintenance-mappers.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/query-keys/maintenance-select-columns.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/query-keys/property-keys.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/query-keys/property-performance-mappers.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/query-keys/property-performance-mappers.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/query-keys/report-analytics-keys.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/query-keys/report-keys.ts",
+			"class": "application"
+		},
+		{
+			"status": "A",
+			"path": "src/hooks/api/query-keys/unit-keys.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/query-keys/unit-keys.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/use-analytics.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/use-lease-mutations.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/use-maintenance.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/use-rent-ledger.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/hooks/api/use-report-mutations.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/lib/__tests__/csp-header.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/lib/__tests__/mutation-error-handler.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/lib/__tests__/no-deprecated-library-api.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/lib/mutation-error-handler.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/lib/reports/__tests__/generate-excel.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/lib/reports/__tests__/report-basis-note.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/lib/reports/__tests__/report-data-ledger-period.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "src/lib/reports/__tests__/report-data-notes.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/lib/reports/__tests__/report-data-rent-received.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/lib/reports/__tests__/report-data.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/lib/reports/generate-excel.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/lib/reports/generate-pdf.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/lib/reports/report-data.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/lib/reports/statement-basis.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/lib/reports/statement-labels.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/providers/__tests__/query-cache-buster.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/providers/query-provider.tsx",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/test/mocks/deleted-properties.ts",
+			"class": "test-helper"
+		},
+		{
+			"status": "M",
+			"path": "src/test/mocks/msw/handlers/maintenance.ts",
+			"class": "test-helper"
+		},
+		{
+			"status": "M",
+			"path": "src/test/mocks/recharts.tsx",
+			"class": "test-helper"
+		},
+		{
+			"status": "M",
+			"path": "src/test/utils/base-rule-cascade.ts",
+			"class": "test-helper"
+		},
+		{
+			"status": "A",
+			"path": "src/test/utils/button-sites.ts",
+			"class": "test-helper"
+		},
+		{
+			"status": "M",
+			"path": "src/test/utils/oklch-contrast.ts",
+			"class": "test-helper"
+		},
+		{
+			"status": "M",
+			"path": "src/test/utils/state-fill-pairs.ts",
+			"class": "test-helper"
+		},
+		{
+			"status": "M",
+			"path": "src/test/utils/tailwind-engine.ts",
+			"class": "test-helper"
+		},
+		{
+			"status": "M",
+			"path": "src/test/utils/tailwind-guards.ts",
+			"class": "test-helper"
+		},
+		{
+			"status": "M",
+			"path": "src/test/utils/test-data.ts",
+			"class": "test-helper"
+		},
+		{
+			"status": "M",
+			"path": "src/test/utils/vivid-text-elements.ts",
+			"class": "test-helper"
+		},
+		{
+			"status": "A",
+			"path": "src/types/__tests__/api-contracts-exports-imported.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "src/types/analytics-page-data.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/types/analytics.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/types/api-contracts.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/types/core.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/types/financial-statements.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/types/reports.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/types/sections/maintenance.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "src/types/sections/tenants.ts",
+			"class": "application"
+		},
+		{
+			"status": "M",
+			"path": "supabase/functions/__tests__/financial-analytics-report.test.ts",
+			"class": "edge-vitest-guard"
+		},
+		{
+			"status": "M",
+			"path": "supabase/functions/__tests__/premium-report-gate.test.ts",
+			"class": "edge-vitest-guard"
+		},
+		{
+			"status": "M",
+			"path": "supabase/functions/__tests__/rate-limit.test.ts",
+			"class": "edge-vitest-guard"
+		},
+		{
+			"status": "M",
+			"path": "supabase/functions/__tests__/report-format.test.ts",
+			"class": "edge-vitest-guard"
+		},
+		{
+			"status": "M",
+			"path": "supabase/functions/__tests__/tax-year-reports.test.ts",
+			"class": "edge-vitest-guard"
+		},
+		{
+			"status": "M",
+			"path": "supabase/functions/_shared/financial-analytics-report.ts",
+			"class": "edge-function-source"
+		},
+		{
+			"status": "M",
+			"path": "supabase/functions/_shared/report-html.ts",
+			"class": "edge-function-source"
+		},
+		{
+			"status": "M",
+			"path": "supabase/functions/_shared/tax-year-reports.ts",
+			"class": "edge-function-source"
+		},
+		{
+			"status": "M",
+			"path": "supabase/functions/_shared/timing-safe.ts",
+			"class": "edge-function-source"
+		},
+		{
+			"status": "M",
+			"path": "supabase/functions/export-report/index.ts",
+			"class": "edge-function-source"
+		},
+		{
+			"status": "M",
+			"path": "supabase/functions/generate-pdf/index.ts",
+			"class": "edge-function-source"
+		},
+		{
+			"status": "M",
+			"path": "supabase/functions/tests/export-report-test.ts",
+			"class": "edge-deno-test"
+		},
+		{
+			"status": "M",
+			"path": "supabase/functions/tests/generate-pdf-test.ts",
+			"class": "edge-deno-test"
+		},
+		{
+			"status": "M",
+			"path": "supabase/functions/tests/lease-signature-metering-test.ts",
+			"class": "edge-deno-test"
+		},
+		{
+			"status": "M",
+			"path": "supabase/migrations/20261102184501_dashboard_trends_from_leases.sql",
+			"class": "migration"
+		},
+		{
+			"status": "M",
+			"path": "supabase/migrations/20261102184502_expense_summary_year_over_year.sql",
+			"class": "migration"
+		},
+		{
+			"status": "M",
+			"path": "supabase/migrations/20261102184504_financial_overview_drop_dead_keys.sql",
+			"class": "migration"
+		},
+		{
+			"status": "M",
+			"path": "supabase/migrations/20261102200501_occupancy_trends_exclude_soft_deleted.sql",
+			"class": "migration"
+		},
+		{
+			"status": "M",
+			"path": "tests/e2e/lib/__tests__/e2e-support-exports-have-callers.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "A",
+			"path": "tests/e2e/lib/__tests__/reflow-newest-record.test.ts",
+			"class": "unit-test"
+		},
+		{
+			"status": "M",
+			"path": "tests/e2e/lib/authed-dashboard.ts",
+			"class": "e2e"
+		},
+		{
+			"status": "M",
+			"path": "tests/e2e/lib/measure.ts",
+			"class": "e2e"
+		},
+		{
+			"status": "M",
+			"path": "tests/e2e/lib/reflow.ts",
+			"class": "e2e"
+		},
+		{
+			"status": "M",
+			"path": "tests/e2e/lib/sheet-ready.ts",
+			"class": "e2e"
+		},
+		{
+			"status": "M",
+			"path": "tests/e2e/tests/documents-hub.spec.ts",
+			"class": "e2e"
+		},
+		{
+			"status": "M",
+			"path": "tests/e2e/tests/owner-reflow-320.spec.ts",
+			"class": "e2e"
+		},
+		{
+			"status": "M",
+			"path": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+			"class": "e2e"
+		},
+		{
+			"status": "M",
+			"path": "tests/e2e/tests/owner/applications.spec.ts",
+			"class": "e2e"
+		},
+		{
+			"status": "M",
+			"path": "tests/e2e/tests/public/apply-token.spec.ts",
+			"class": "e2e"
+		},
+		{
+			"status": "M",
+			"path": "tests/e2e/tests/public/seo-smoke.spec.ts",
+			"class": "e2e"
+		},
+		{
+			"status": "M",
+			"path": "tests/e2e/tests/reports-hub.spec.ts",
+			"class": "e2e"
+		}
+	]
+}

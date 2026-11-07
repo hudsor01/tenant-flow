@@ -2,8 +2,8 @@
 	{
 		"set": "owner",
 		"capture": "analytics_overview-dark-1280.png",
-		"changedPixels": 559239,
-		"size": "1280x1577->1280x1467",
+		"changedPixels": 476580,
+		"size": "1280x1467->1280x1395",
 		"markers": {
 			"VD-27": 1,
 			"VD-28": 1,
@@ -12,27 +12,26 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-61",
+			"VD-52",
+			"VD-53",
 			"VD-64",
-			"VD-65",
-			"VD-71",
-			"VD-74",
-			"VD-79",
-			"VD-92",
-			"VD-110",
 			"VD-114",
-			"VD-117",
-			"VD-120"
+			"VD-134",
+			"VD-137",
+			"VD-142",
+			"VD-143"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,216 1280x1361; HEAD repeat identical in this box; DOM fingerprint owner/analytics_overview-dark-1280: 148 class-token changes (145 not hover/focus-only, e.g. +**:data-[slot=stat-description]:col-span-2, +**:data-[slot=stat-indicator]:col-start-2, +**:data-[slot=stat-indicator]:row-span-2, +**:data-[slot=stat-indicator]:row-start-1, +**:data-[slot=stat-indicator]:self-start, +**:data-[slot=stat-label]:col-span-1); 13 text/label changes, e.g. div: 'Revenue vs Expenses'|| -> 'Scheduled Rent & Expenses'||; div: 'Financial performance over the selected period'|| -> 'Each month's scheduled rent (n; div: '100.0 % ROI'|| -> '100.0 % scheduled margin'||; 19 elements removed, 54 added; 25 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,199 1280x1268; DOM fingerprint owner/analytics_overview-dark-1280: 17 class-token changes; 0 text changes; elements -0/+9; 2 computed-colour changes; every class-token and text change occurs in fix round 3's src diff (`pt-3` is chart.tsx's legend row, which now renders: VD-114)"
 	},
 	{
 		"set": "owner",
 		"capture": "analytics_overview-dark-390.png",
-		"changedPixels": 276544,
-		"size": "390x2487->390x2657",
+		"changedPixels": 299101,
+		"size": "390x2657->390x2577",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -41,27 +40,26 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-61",
+			"VD-52",
+			"VD-53",
 			"VD-64",
-			"VD-65",
-			"VD-71",
-			"VD-74",
-			"VD-79",
-			"VD-92",
-			"VD-110",
 			"VD-114",
-			"VD-117",
-			"VD-120"
+			"VD-134",
+			"VD-137",
+			"VD-142",
+			"VD-143"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,22 390x2635; HEAD repeat identical in this box; DOM fingerprint owner/analytics_overview-dark-390: 147 class-token changes (145 not hover/focus-only, e.g. +**:data-[slot=stat-description]:col-span-2, +**:data-[slot=stat-indicator]:col-start-2, +**:data-[slot=stat-indicator]:row-span-2, +**:data-[slot=stat-indicator]:row-start-1, +**:data-[slot=stat-indicator]:self-start, +**:data-[slot=stat-label]:col-span-1); 14 text/label changes, e.g. div: 'Revenue vs Expenses'|| -> 'Scheduled Rent & Expenses'||; div: 'Financial performance over the selected period'|| -> 'Each month's scheduled rent (n; div: '100.0 % ROI'|| -> '100.0 % scheduled margin'||; 16 elements removed, 51 added; 26 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,176 390x2481; DOM fingerprint owner/analytics_overview-dark-390: 17 class-token changes; 0 text changes; elements -0/+9; 2 computed-colour changes; every class-token and text change occurs in fix round 3's src diff (`pt-3` is chart.tsx's legend row, which now renders: VD-114)"
 	},
 	{
 		"set": "owner",
 		"capture": "analytics_overview-light-1280.png",
-		"changedPixels": 670248,
-		"size": "1280x1577->1280x1467",
+		"changedPixels": 629328,
+		"size": "1280x1467->1280x1395",
 		"markers": {
 			"VD-27": 1,
 			"VD-28": 1,
@@ -70,27 +68,26 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-61",
+			"VD-52",
+			"VD-53",
 			"VD-64",
-			"VD-65",
-			"VD-71",
-			"VD-74",
-			"VD-79",
-			"VD-92",
-			"VD-110",
 			"VD-114",
-			"VD-117",
-			"VD-120"
+			"VD-134",
+			"VD-137",
+			"VD-142",
+			"VD-143"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,216 1280x1361; HEAD repeat identical in this box; DOM fingerprint owner/analytics_overview-light-1280: 148 class-token changes (145 not hover/focus-only, e.g. +**:data-[slot=stat-description]:col-span-2, +**:data-[slot=stat-indicator]:col-start-2, +**:data-[slot=stat-indicator]:row-span-2, +**:data-[slot=stat-indicator]:row-start-1, +**:data-[slot=stat-indicator]:self-start, +**:data-[slot=stat-label]:col-span-1); 13 text/label changes, e.g. div: 'Revenue vs Expenses'|| -> 'Scheduled Rent & Expenses'||; div: 'Financial performance over the selected period'|| -> 'Each month's scheduled rent (n; div: '100.0 % ROI'|| -> '100.0 % scheduled margin'||; 19 elements removed, 54 added; 25 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,199 1280x1268; DOM fingerprint owner/analytics_overview-light-1280: 17 class-token changes; 0 text changes; elements -0/+9; 2 computed-colour changes; every class-token and text change occurs in fix round 3's src diff (`pt-3` is chart.tsx's legend row, which now renders: VD-114)"
 	},
 	{
 		"set": "owner",
 		"capture": "analytics_overview-light-390.png",
-		"changedPixels": 341880,
-		"size": "390x2487->390x2657",
+		"changedPixels": 379885,
+		"size": "390x2657->390x2577",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -99,21 +96,20 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-61",
+			"VD-52",
+			"VD-53",
 			"VD-64",
-			"VD-65",
-			"VD-71",
-			"VD-74",
-			"VD-79",
-			"VD-92",
-			"VD-110",
 			"VD-114",
-			"VD-117",
-			"VD-120"
+			"VD-134",
+			"VD-137",
+			"VD-142",
+			"VD-143"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,22 390x2635; HEAD repeat identical in this box; DOM fingerprint owner/analytics_overview-light-390: 147 class-token changes (145 not hover/focus-only, e.g. +**:data-[slot=stat-description]:col-span-2, +**:data-[slot=stat-indicator]:col-start-2, +**:data-[slot=stat-indicator]:row-span-2, +**:data-[slot=stat-indicator]:row-start-1, +**:data-[slot=stat-indicator]:self-start, +**:data-[slot=stat-label]:col-span-1); 14 text/label changes, e.g. div: 'Revenue vs Expenses'|| -> 'Scheduled Rent & Expenses'||; div: 'Financial performance over the selected period'|| -> 'Each month's scheduled rent (n; div: '100.0 % ROI'|| -> '100.0 % scheduled margin'||; 16 elements removed, 51 added; 26 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,176 390x2481; DOM fingerprint owner/analytics_overview-light-390: 17 class-token changes; 0 text changes; elements -0/+9; 2 computed-colour changes; every class-token and text change occurs in fix round 3's src diff (`pt-3` is chart.tsx's legend row, which now renders: VD-114)"
 	},
 	{
 		"set": "owner",
@@ -128,6 +124,8 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -135,7 +133,7 @@
 	{
 		"set": "owner",
 		"capture": "applications-dark-320.png",
-		"changedPixels": 1035,
+		"changedPixels": 0,
 		"size": "320x3233->320x3233",
 		"markers": {
 			"VD-27": 0,
@@ -145,16 +143,16 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
-		"class": "intended",
-		"vd": [
-			"VD-61"
-		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 150,12 152x32; HEAD repeat identical in this box; DOM fingerprint owner/applications-dark-320: 15 class-token changes (10 not hover/focus-only, e.g. +gap-2, +gap-3, +min-w-0, +shrink-0, +size-4, +truncate); 2 elements removed, 2 added"
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "identical",
+		"vd": [],
+		"evidence": ""
 	},
 	{
 		"set": "owner",
 		"capture": "applications-dark-375.png",
-		"changedPixels": 339,
+		"changedPixels": 0,
 		"size": "375x3161->375x3161",
 		"markers": {
 			"VD-27": 0,
@@ -164,16 +162,16 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
-		"class": "intended",
-		"vd": [
-			"VD-61"
-		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 201,22 54x12; HEAD repeat identical in this box; DOM fingerprint owner/applications-dark-375: 15 class-token changes (10 not hover/focus-only, e.g. +gap-2, +gap-3, +min-w-0, +shrink-0, +size-4, +truncate); 2 elements removed, 2 added"
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "identical",
+		"vd": [],
+		"evidence": ""
 	},
 	{
 		"set": "owner",
 		"capture": "applications-dark-390.png",
-		"changedPixels": 339,
+		"changedPixels": 0,
 		"size": "390x3141->390x3141",
 		"markers": {
 			"VD-27": 0,
@@ -183,11 +181,11 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
-		"class": "intended",
-		"vd": [
-			"VD-61"
-		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 216,22 54x12; HEAD repeat identical in this box; DOM fingerprint owner/applications-dark-390: 15 class-token changes (10 not hover/focus-only, e.g. +gap-2, +gap-3, +min-w-0, +shrink-0, +size-4, +truncate); 2 elements removed, 2 added"
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "identical",
+		"vd": [],
+		"evidence": ""
 	},
 	{
 		"set": "owner",
@@ -202,6 +200,8 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -209,7 +209,7 @@
 	{
 		"set": "owner",
 		"capture": "applications-light-320.png",
-		"changedPixels": 1030,
+		"changedPixels": 0,
 		"size": "320x3233->320x3233",
 		"markers": {
 			"VD-27": 0,
@@ -219,16 +219,16 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
-		"class": "intended",
-		"vd": [
-			"VD-61"
-		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 150,12 152x32; HEAD repeat identical in this box; DOM fingerprint owner/applications-light-320: 15 class-token changes (10 not hover/focus-only, e.g. +gap-2, +gap-3, +min-w-0, +shrink-0, +size-4, +truncate); 2 elements removed, 2 added"
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "identical",
+		"vd": [],
+		"evidence": ""
 	},
 	{
 		"set": "owner",
 		"capture": "applications-light-375.png",
-		"changedPixels": 341,
+		"changedPixels": 0,
 		"size": "375x3161->375x3161",
 		"markers": {
 			"VD-27": 0,
@@ -238,16 +238,16 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
-		"class": "intended",
-		"vd": [
-			"VD-61"
-		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 201,22 54x12; HEAD repeat identical in this box; DOM fingerprint owner/applications-light-375: 15 class-token changes (10 not hover/focus-only, e.g. +gap-2, +gap-3, +min-w-0, +shrink-0, +size-4, +truncate); 2 elements removed, 2 added"
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "identical",
+		"vd": [],
+		"evidence": ""
 	},
 	{
 		"set": "owner",
 		"capture": "applications-light-390.png",
-		"changedPixels": 341,
+		"changedPixels": 0,
 		"size": "390x3141->390x3141",
 		"markers": {
 			"VD-27": 0,
@@ -257,17 +257,17 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
-		"class": "intended",
-		"vd": [
-			"VD-61"
-		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 216,22 54x12; HEAD repeat identical in this box; DOM fingerprint owner/applications-light-390: 15 class-token changes (10 not hover/focus-only, e.g. +gap-2, +gap-3, +min-w-0, +shrink-0, +size-4, +truncate); 2 elements removed, 2 added"
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "identical",
+		"vd": [],
+		"evidence": ""
 	},
 	{
 		"set": "owner",
 		"capture": "dashboard-dark-1280.png",
-		"changedPixels": 675024,
-		"size": "1280x3038->1280x3062",
+		"changedPixels": 34486,
+		"size": "1280x3062->1280x3062",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 1,
@@ -276,23 +276,25 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,165 1280x2897; HEAD repeat identical in this box; DOM fingerprint owner/dashboard-dark-1280: 27 class-token changes (21 not hover/focus-only, e.g. +[&_.recharts-surface:focus-visible]:-outline-offset-2, +[&_.recharts-surface:focus-visible]:outline-2, +[&_.recharts-surface:focus-visible]:outline-ring, +[&_.recharts-surface:focus-visible]:outline-solid, +bg-primary-text, +bg-success-text); 36 text/label changes, e.g. div: ''|Revenue trend over the last 30 days, cur|img -> ''|Scheduled rent trend over the l; div: 'Revenue'|| -> 'Scheduled Rent'||; div: ''|Active leases: 5.| -> ''|Active leases: 5.|group; 33 elements removed, 21 added; 29 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 305,192 683x2235; DOM fingerprint owner/dashboard-dark-1280: 13 class-token changes; 0 text changes; elements -1/+5; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "dashboard-dark-390.png",
-		"changedPixels": 293374,
-		"size": "390x6867->390x6919",
+		"changedPixels": 387694,
+		"size": "390x6919->390x6691",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -301,23 +303,25 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,22 390x6897; HEAD repeat identical in this box; DOM fingerprint owner/dashboard-dark-390: 27 class-token changes (19 not hover/focus-only, e.g. +[&_.recharts-surface:focus-visible]:-outline-offset-2, +[&_.recharts-surface:focus-visible]:outline-2, +[&_.recharts-surface:focus-visible]:outline-ring, +[&_.recharts-surface:focus-visible]:outline-solid, +bg-primary-text, +bg-success-text); 36 text/label changes, e.g. div: ''|Revenue trend over the last 30 days, cur|img -> ''|Scheduled rent trend over the l; div: 'Revenue'|| -> 'Scheduled Rent'||; div: ''|Active leases: 5.| -> ''|Active leases: 5.|group; 49 elements removed, 20 added; 24 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,142 390x6777; DOM fingerprint owner/dashboard-dark-390: 13 class-token changes; 0 text changes; elements -1/+5; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "dashboard-light-1280.png",
-		"changedPixels": 715710,
-		"size": "1280x3038->1280x3062",
+		"changedPixels": 34576,
+		"size": "1280x3062->1280x3062",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 1,
@@ -326,23 +330,25 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,165 1280x2897; HEAD repeat identical in this box; DOM fingerprint owner/dashboard-light-1280: 27 class-token changes (21 not hover/focus-only, e.g. +[&_.recharts-surface:focus-visible]:-outline-offset-2, +[&_.recharts-surface:focus-visible]:outline-2, +[&_.recharts-surface:focus-visible]:outline-ring, +[&_.recharts-surface:focus-visible]:outline-solid, +bg-primary-text, +bg-success-text); 36 text/label changes, e.g. div: ''|Revenue trend over the last 30 days, cur|img -> ''|Scheduled rent trend over the l; div: 'Revenue'|| -> 'Scheduled Rent'||; div: ''|Active leases: 5.| -> ''|Active leases: 5.|group; 33 elements removed, 21 added; 29 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 305,192 683x2235; DOM fingerprint owner/dashboard-light-1280: 13 class-token changes; 0 text changes; elements -1/+5; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "dashboard-light-390.png",
-		"changedPixels": 323029,
-		"size": "390x6867->390x6919",
+		"changedPixels": 439146,
+		"size": "390x6919->390x6691",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -351,17 +357,19 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,22 390x6897; HEAD repeat identical in this box; DOM fingerprint owner/dashboard-light-390: 27 class-token changes (19 not hover/focus-only, e.g. +[&_.recharts-surface:focus-visible]:-outline-offset-2, +[&_.recharts-surface:focus-visible]:outline-2, +[&_.recharts-surface:focus-visible]:outline-ring, +[&_.recharts-surface:focus-visible]:outline-solid, +bg-primary-text, +bg-success-text); 36 text/label changes, e.g. div: ''|Revenue trend over the last 30 days, cur|img -> ''|Scheduled rent trend over the l; div: 'Revenue'|| -> 'Scheduled Rent'||; div: ''|Active leases: 5.| -> ''|Active leases: 5.|group; 49 elements removed, 20 added; 24 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,142 390x6777; DOM fingerprint owner/dashboard-light-390: 13 class-token changes; 0 text changes; elements -1/+5; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
@@ -376,6 +384,8 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -383,7 +393,7 @@
 	{
 		"set": "owner",
 		"capture": "documents-dark-390.png",
-		"changedPixels": 339,
+		"changedPixels": 0,
 		"size": "390x1881->390x1881",
 		"markers": {
 			"VD-27": 0,
@@ -393,11 +403,11 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
-		"class": "intended",
-		"vd": [
-			"VD-61"
-		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 216,22 54x12; HEAD repeat identical in this box; DOM fingerprint owner/documents-dark-390: 17 class-token changes (11 not hover/focus-only, e.g. +gap-2, +gap-3, +grid-cols-1, +min-w-0, +shrink-0, +size-4); 2 elements removed, 2 added"
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "identical",
+		"vd": [],
+		"evidence": ""
 	},
 	{
 		"set": "owner",
@@ -412,6 +422,8 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -419,7 +431,7 @@
 	{
 		"set": "owner",
 		"capture": "documents-light-390.png",
-		"changedPixels": 341,
+		"changedPixels": 0,
 		"size": "390x1881->390x1881",
 		"markers": {
 			"VD-27": 0,
@@ -429,17 +441,17 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
-		"class": "intended",
-		"vd": [
-			"VD-61"
-		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 216,22 54x12; HEAD repeat identical in this box; DOM fingerprint owner/documents-light-390: 17 class-token changes (11 not hover/focus-only, e.g. +gap-2, +gap-3, +grid-cols-1, +min-w-0, +shrink-0, +size-4); 2 elements removed, 2 added"
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "identical",
+		"vd": [],
+		"evidence": ""
 	},
 	{
 		"set": "owner",
 		"capture": "documents_lease-template-dark-1280.png",
-		"changedPixels": 0,
-		"size": "1280x6156->1280x6156",
+		"changedPixels": 1272936,
+		"size": "1280x6156->1280x6104",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 1,
@@ -448,15 +460,21 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
-		"class": "identical",
-		"vd": [],
-		"evidence": ""
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "intended",
+		"vd": [
+			"VD-134",
+			"VD-137",
+			"VD-149"
+		],
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,300 1280x5856; DOM fingerprint owner/documents_lease-template-dark-1280: 9 class-token changes; 0 text changes; elements -0/+1; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "documents_lease-template-dark-390.png",
-		"changedPixels": 1464795,
-		"size": "390x10609->390x11286",
+		"changedPixels": 1134993,
+		"size": "390x11286->390x11174",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -465,17 +483,21 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-61"
+			"VD-134",
+			"VD-137",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,12 390x11274; HEAD repeat identical in this box; DOM fingerprint owner/documents_lease-template-dark-390: 28 class-token changes (24 not hover/focus-only, e.g. +flex-wrap, +gap-1, +gap-3, +gap-6, +grid, +grid-cols-1); 1 text/label changes, e.g. button: ''||combobox -> ''|California (state)|combobox; 2 elements removed, 2 added"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,381 390x10905; DOM fingerprint owner/documents_lease-template-dark-390: 9 class-token changes; 0 text changes; elements -0/+1; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "documents_lease-template-light-1280.png",
-		"changedPixels": 0,
-		"size": "1280x6156->1280x6156",
+		"changedPixels": 1437269,
+		"size": "1280x6156->1280x6104",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 1,
@@ -484,15 +506,21 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
-		"class": "identical",
-		"vd": [],
-		"evidence": ""
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "intended",
+		"vd": [
+			"VD-134",
+			"VD-137",
+			"VD-149"
+		],
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,300 1280x5856; DOM fingerprint owner/documents_lease-template-light-1280: 9 class-token changes; 0 text changes; elements -0/+1; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "documents_lease-template-light-390.png",
-		"changedPixels": 1484571,
-		"size": "390x10609->390x11286",
+		"changedPixels": 1111330,
+		"size": "390x11286->390x11174",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -501,17 +529,21 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-61"
+			"VD-134",
+			"VD-137",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,12 390x11274; HEAD repeat identical in this box; DOM fingerprint owner/documents_lease-template-light-390: 28 class-token changes (24 not hover/focus-only, e.g. +flex-wrap, +gap-1, +gap-3, +gap-6, +grid, +grid-cols-1); 1 text/label changes, e.g. button: ''||combobox -> ''|California (state)|combobox; 2 elements removed, 2 added"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,381 390x10905; DOM fingerprint owner/documents_lease-template-light-390: 9 class-token changes; 0 text changes; elements -0/+1; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "leases-dark-1280.png",
-		"changedPixels": 9638,
-		"size": "1280x1147->1280x1147",
+		"changedPixels": 226153,
+		"size": "1280x1147->1280x1131",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 1,
@@ -520,22 +552,21 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-51",
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-106",
-			"VD-111"
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 951,233 179x641; HEAD repeat identical in this box; DOM fingerprint owner/leases-dark-1280: 43 class-token changes (32 not hover/focus-only, e.g. +bg-muted, +bg-success/10, +bg-warning/10, +flex, +flex-col, +gap-2); 1 text/label changes, e.g. p: 'Pending'|| -> 'Pending Signature'||; 2 elements removed, 2 added"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,120 1280x1027; DOM fingerprint owner/leases-dark-1280: 6 class-token changes; 0 text changes; elements -0/+1; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "leases-dark-390.png",
-		"changedPixels": 97024,
-		"size": "390x1462->390x1482",
+		"changedPixels": 119434,
+		"size": "390x1482->390x1466",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -544,22 +575,21 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-51",
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-106",
-			"VD-111"
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,22 390x1460; HEAD repeat identical in this box; DOM fingerprint owner/leases-dark-390: 37 class-token changes (26 not hover/focus-only, e.g. +bg-success/10, +bg-warning/10, +flex, +flex-col, +gap-2, +gap-3); 1 text/label changes, e.g. p: 'Pending'|| -> 'Pending Signature'||; 2 elements removed, 2 added"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,165 390x1317; DOM fingerprint owner/leases-dark-390: 6 class-token changes; 0 text changes; elements -0/+1; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "leases-light-1280.png",
-		"changedPixels": 9655,
-		"size": "1280x1147->1280x1147",
+		"changedPixels": 257777,
+		"size": "1280x1147->1280x1131",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 1,
@@ -568,22 +598,21 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-51",
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-106",
-			"VD-111"
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 951,233 179x641; HEAD repeat identical in this box; DOM fingerprint owner/leases-light-1280: 43 class-token changes (32 not hover/focus-only, e.g. +bg-muted, +bg-success/10, +bg-warning/10, +flex, +flex-col, +gap-2); 1 text/label changes, e.g. p: 'Pending'|| -> 'Pending Signature'||; 2 elements removed, 2 added"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,120 1280x1027; DOM fingerprint owner/leases-light-1280: 6 class-token changes; 0 text changes; elements -0/+1; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "leases-light-390.png",
-		"changedPixels": 111477,
-		"size": "390x1462->390x1482",
+		"changedPixels": 128022,
+		"size": "390x1482->390x1466",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -592,16 +621,15 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-51",
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-106",
-			"VD-111"
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,22 390x1460; HEAD repeat identical in this box; DOM fingerprint owner/leases-light-390: 37 class-token changes (26 not hover/focus-only, e.g. +bg-success/10, +bg-warning/10, +flex, +flex-col, +gap-2, +gap-3); 1 text/label changes, e.g. p: 'Pending'|| -> 'Pending Signature'||; 2 elements removed, 2 added"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,165 390x1317; DOM fingerprint owner/leases-light-390: 6 class-token changes; 0 text changes; elements -0/+1; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
@@ -616,6 +644,8 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -623,7 +653,7 @@
 	{
 		"set": "owner",
 		"capture": "maintenance-dark-390.png",
-		"changedPixels": 339,
+		"changedPixels": 0,
 		"size": "390x844->390x844",
 		"markers": {
 			"VD-27": 0,
@@ -633,11 +663,11 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
-		"class": "intended",
-		"vd": [
-			"VD-61"
-		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 216,22 54x12; HEAD repeat identical in this box; DOM fingerprint owner/maintenance-dark-390: 14 class-token changes (10 not hover/focus-only, e.g. +gap-2, +gap-3, +min-w-0, +shrink-0, +size-4, +truncate); 2 elements removed, 2 added"
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "identical",
+		"vd": [],
+		"evidence": ""
 	},
 	{
 		"set": "owner",
@@ -652,6 +682,8 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -659,7 +691,7 @@
 	{
 		"set": "owner",
 		"capture": "maintenance-light-390.png",
-		"changedPixels": 341,
+		"changedPixels": 0,
 		"size": "390x844->390x844",
 		"markers": {
 			"VD-27": 0,
@@ -669,17 +701,17 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
-		"class": "intended",
-		"vd": [
-			"VD-61"
-		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 216,22 54x12; HEAD repeat identical in this box; DOM fingerprint owner/maintenance-light-390: 14 class-token changes (10 not hover/focus-only, e.g. +gap-2, +gap-3, +min-w-0, +shrink-0, +size-4, +truncate); 2 elements removed, 2 added"
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "identical",
+		"vd": [],
+		"evidence": ""
 	},
 	{
 		"set": "owner",
 		"capture": "properties-dark-1280.png",
-		"changedPixels": 59827,
-		"size": "1280x1324->1280x1324",
+		"changedPixels": 244505,
+		"size": "1280x1324->1280x1308",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 1,
@@ -688,22 +720,22 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 333,377 842x699; HEAD repeat identical in this box; DOM fingerprint owner/properties-dark-1280: 31 class-token changes (20 not hover/focus-only, e.g. +bg-primary/10, +bg-success/10, +gap-2, +gap-3, +grid-cols-1, +lg:min-h-0); 24 text/label changes, e.g. p: 'Revenue'|| -> 'Occupied Rent'||; p: 'Revenue'|| -> 'Occupied Rent'||; p: 'Revenue'|| -> 'Occupied Rent'||; 4 elements removed, 6 added; 50 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,220 1280x1104; DOM fingerprint owner/properties-dark-1280: 6 class-token changes; 0 text changes; elements -0/+1; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "properties-dark-390.png",
-		"changedPixels": 113653,
-		"size": "390x1785->390x1805",
+		"changedPixels": 118158,
+		"size": "390x1805->390x1789",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -712,22 +744,22 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,22 390x1783; HEAD repeat identical in this box; DOM fingerprint owner/properties-dark-390: 31 class-token changes (20 not hover/focus-only, e.g. +bg-primary/10, +bg-success/10, +gap-2, +gap-3, +grid-cols-1, +lg:min-h-0); 24 text/label changes, e.g. p: 'Revenue'|| -> 'Occupied Rent'||; p: 'Revenue'|| -> 'Occupied Rent'||; p: 'Revenue'|| -> 'Occupied Rent'||; 4 elements removed, 6 added; 50 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,257 390x1548; DOM fingerprint owner/properties-dark-390: 6 class-token changes; 0 text changes; elements -0/+1; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "properties-light-1280.png",
-		"changedPixels": 58718,
-		"size": "1280x1324->1280x1324",
+		"changedPixels": 270514,
+		"size": "1280x1324->1280x1308",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 1,
@@ -736,22 +768,22 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 333,377 838x699; HEAD repeat identical in this box; DOM fingerprint owner/properties-light-1280: 31 class-token changes (20 not hover/focus-only, e.g. +bg-primary/10, +bg-success/10, +gap-2, +gap-3, +grid-cols-1, +lg:min-h-0); 24 text/label changes, e.g. p: 'Revenue'|| -> 'Occupied Rent'||; p: 'Revenue'|| -> 'Occupied Rent'||; p: 'Revenue'|| -> 'Occupied Rent'||; 4 elements removed, 6 added; 50 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,220 1280x1104; DOM fingerprint owner/properties-light-1280: 6 class-token changes; 0 text changes; elements -0/+1; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "properties-light-390.png",
-		"changedPixels": 122802,
-		"size": "390x1785->390x1805",
+		"changedPixels": 122672,
+		"size": "390x1805->390x1789",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -760,22 +792,22 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,22 390x1783; HEAD repeat identical in this box; DOM fingerprint owner/properties-light-390: 31 class-token changes (20 not hover/focus-only, e.g. +bg-primary/10, +bg-success/10, +gap-2, +gap-3, +grid-cols-1, +lg:min-h-0); 24 text/label changes, e.g. p: 'Revenue'|| -> 'Occupied Rent'||; p: 'Revenue'|| -> 'Occupied Rent'||; p: 'Revenue'|| -> 'Occupied Rent'||; 4 elements removed, 6 added; 50 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,257 390x1548; DOM fingerprint owner/properties-light-390: 6 class-token changes; 0 text changes; elements -0/+1; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "reports_cash-flow-dark-1280.png",
-		"changedPixels": 648832,
-		"size": "1280x1166->1280x800",
+		"changedPixels": 70021,
+		"size": "1280x800->1280x800",
 		"markers": {
 			"VD-27": 1,
 			"VD-28": 1,
@@ -784,20 +816,22 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,112 1280x1054; HEAD repeat identical in this box; DOM fingerprint owner/reports_cash-flow-dark-1280: 105 class-token changes (86 not hover/focus-only, e.g. +[&_svg:not([class*='size-'])]:size-4, +[&_svg:not([class*='size-'])]:size-6, +[&_svg]:pointer-events-none, +[&_svg]:shrink-0, +bg-background, +bg-card); 2 text/label changes, e.g. button: ''||combobox -> ''|2026 (year)|combobox; button: ''||combobox -> ''|Monthly (period)|combobox; 86 elements removed, 6 added; 14 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 224,199 1056x460; DOM fingerprint owner/reports_cash-flow-dark-1280: 6 class-token changes; 0 text changes; elements -0/+1; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "reports_cash-flow-dark-390.png",
-		"changedPixels": 579798,
-		"size": "390x2132->390x855",
+		"changedPixels": 53326,
+		"size": "390x855->390x844",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -806,20 +840,22 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,22 390x2110; HEAD repeat identical in this box; DOM fingerprint owner/reports_cash-flow-dark-390: 104 class-token changes (86 not hover/focus-only, e.g. +[&_svg:not([class*='size-'])]:size-4, +[&_svg:not([class*='size-'])]:size-6, +[&_svg]:pointer-events-none, +[&_svg]:shrink-0, +bg-background, +bg-card); 2 text/label changes, e.g. button: ''||combobox -> ''|2026 (year)|combobox; button: ''||combobox -> ''|Monthly (period)|combobox; 86 elements removed, 6 added; 14 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,168 390x687; DOM fingerprint owner/reports_cash-flow-dark-390: 6 class-token changes; 0 text changes; elements -0/+1; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "reports_cash-flow-light-1280.png",
-		"changedPixels": 795536,
-		"size": "1280x1166->1280x800",
+		"changedPixels": 103014,
+		"size": "1280x800->1280x800",
 		"markers": {
 			"VD-27": 1,
 			"VD-28": 1,
@@ -828,20 +864,22 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,112 1280x1054; HEAD repeat identical in this box; DOM fingerprint owner/reports_cash-flow-light-1280: 105 class-token changes (86 not hover/focus-only, e.g. +[&_svg:not([class*='size-'])]:size-4, +[&_svg:not([class*='size-'])]:size-6, +[&_svg]:pointer-events-none, +[&_svg]:shrink-0, +bg-background, +bg-card); 2 text/label changes, e.g. button: ''||combobox -> ''|2026 (year)|combobox; button: ''||combobox -> ''|Monthly (period)|combobox; 86 elements removed, 6 added; 14 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 224,199 1056x487; DOM fingerprint owner/reports_cash-flow-light-1280: 6 class-token changes; 0 text changes; elements -0/+1; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "reports_cash-flow-light-390.png",
-		"changedPixels": 625424,
-		"size": "390x2132->390x855",
+		"changedPixels": 58151,
+		"size": "390x855->390x844",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -850,20 +888,22 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,22 390x2110; HEAD repeat identical in this box; DOM fingerprint owner/reports_cash-flow-light-390: 104 class-token changes (86 not hover/focus-only, e.g. +[&_svg:not([class*='size-'])]:size-4, +[&_svg:not([class*='size-'])]:size-6, +[&_svg]:pointer-events-none, +[&_svg]:shrink-0, +bg-background, +bg-card); 2 text/label changes, e.g. button: ''||combobox -> ''|2026 (year)|combobox; button: ''||combobox -> ''|Monthly (period)|combobox; 86 elements removed, 6 added; 14 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,168 390x687; DOM fingerprint owner/reports_cash-flow-light-390: 6 class-token changes; 0 text changes; elements -0/+1; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "settings-dark-1280.png",
-		"changedPixels": 186609,
-		"size": "1280x1589->1280x1629",
+		"changedPixels": 0,
+		"size": "1280x1629->1280x1629",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 1,
@@ -872,17 +912,16 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
-		"class": "intended",
-		"vd": [
-			"VD-46",
-			"VD-61"
-		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,1178 1280x451; HEAD repeat identical in this box; DOM fingerprint owner/settings-dark-1280: 49 class-token changes (25 not hover/focus-only, e.g. +bg-transparent, +border, +border-input, +dark:bg-input/30, +gap-2, +gap-3); 2 elements removed, 2 added; 2 computed-colour changes"
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "identical",
+		"vd": [],
+		"evidence": ""
 	},
 	{
 		"set": "owner",
 		"capture": "settings-dark-390.png",
-		"changedPixels": 36562,
+		"changedPixels": 0,
 		"size": "390x2122->390x2122",
 		"markers": {
 			"VD-27": 0,
@@ -892,18 +931,17 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
-		"class": "intended",
-		"vd": [
-			"VD-46",
-			"VD-61"
-		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 57,22 276x1730; HEAD repeat identical in this box; DOM fingerprint owner/settings-dark-390: 49 class-token changes (25 not hover/focus-only, e.g. +bg-transparent, +border, +border-input, +dark:bg-input/30, +gap-2, +gap-3); 2 elements removed, 2 added; 2 computed-colour changes"
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "identical",
+		"vd": [],
+		"evidence": ""
 	},
 	{
 		"set": "owner",
 		"capture": "settings-light-1280.png",
-		"changedPixels": 208578,
-		"size": "1280x1589->1280x1629",
+		"changedPixels": 0,
+		"size": "1280x1629->1280x1629",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 1,
@@ -912,17 +950,16 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
-		"class": "intended",
-		"vd": [
-			"VD-46",
-			"VD-61"
-		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,1178 1280x451; HEAD repeat identical in this box; DOM fingerprint owner/settings-light-1280: 49 class-token changes (25 not hover/focus-only, e.g. +bg-transparent, +border, +border-input, +dark:bg-input/30, +gap-2, +gap-3); 2 elements removed, 2 added; 2 computed-colour changes"
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "identical",
+		"vd": [],
+		"evidence": ""
 	},
 	{
 		"set": "owner",
 		"capture": "settings-light-390.png",
-		"changedPixels": 5501,
+		"changedPixels": 0,
 		"size": "390x2122->390x2122",
 		"markers": {
 			"VD-27": 0,
@@ -932,18 +969,17 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
-		"class": "intended",
-		"vd": [
-			"VD-46",
-			"VD-61"
-		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 57,22 276x1731; HEAD repeat identical in this box; DOM fingerprint owner/settings-light-390: 49 class-token changes (25 not hover/focus-only, e.g. +bg-transparent, +border, +border-input, +dark:bg-input/30, +gap-2, +gap-3); 2 elements removed, 2 added; 2 computed-colour changes"
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "identical",
+		"vd": [],
+		"evidence": ""
 	},
 	{
 		"set": "owner",
 		"capture": "tenants-dark-1280.png",
-		"changedPixels": 7608,
-		"size": "1280x1110->1280x1110",
+		"changedPixels": 241615,
+		"size": "1280x1110->1280x1094",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 1,
@@ -952,23 +988,23 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-51",
-			"VD-60",
-			"VD-61",
 			"VD-62",
-			"VD-106",
-			"VD-111",
-			"VD-117"
+			"VD-66",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 510,233 449x246; HEAD repeat identical in this box; DOM fingerprint owner/tenants-dark-1280: 81 class-token changes (59 not hover/focus-only, e.g. +[&_svg:not([class*='size-'])]:size-4, +[&_svg]:pointer-events-none, +[&_svg]:shrink-0, +content-start, +flex, +flex-wrap); 1 text/label changes, e.g. option: 'Pending'|| -> 'Pending Signature'||; 11 elements removed, 13 added; 34 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,120 1280x990; DOM fingerprint owner/tenants-dark-1280: 11 class-token changes; 0 text changes; elements -0/+1; 8 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "tenants-dark-390.png",
-		"changedPixels": 159803,
-		"size": "390x1427->390x1519",
+		"changedPixels": 124573,
+		"size": "390x1519->390x1503",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -977,23 +1013,23 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-51",
-			"VD-60",
-			"VD-61",
 			"VD-62",
-			"VD-106",
-			"VD-111",
-			"VD-117"
+			"VD-66",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,22 390x1497; HEAD repeat identical in this box; DOM fingerprint owner/tenants-dark-390: 81 class-token changes (59 not hover/focus-only, e.g. +[&_svg:not([class*='size-'])]:size-4, +[&_svg]:pointer-events-none, +[&_svg]:shrink-0, +content-start, +flex, +flex-wrap); 1 text/label changes, e.g. option: 'Pending'|| -> 'Pending Signature'||; 11 elements removed, 13 added; 34 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,165 390x1354; DOM fingerprint owner/tenants-dark-390: 11 class-token changes; 0 text changes; elements -0/+1; 8 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "tenants-light-1280.png",
-		"changedPixels": 7617,
-		"size": "1280x1110->1280x1110",
+		"changedPixels": 273394,
+		"size": "1280x1110->1280x1094",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 1,
@@ -1002,23 +1038,23 @@
 			"VD-35": 1,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-51",
-			"VD-60",
-			"VD-61",
 			"VD-62",
-			"VD-106",
-			"VD-111",
-			"VD-117"
+			"VD-66",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 510,233 449x246; HEAD repeat identical in this box; DOM fingerprint owner/tenants-light-1280: 81 class-token changes (59 not hover/focus-only, e.g. +[&_svg:not([class*='size-'])]:size-4, +[&_svg]:pointer-events-none, +[&_svg]:shrink-0, +content-start, +flex, +flex-wrap); 1 text/label changes, e.g. option: 'Pending'|| -> 'Pending Signature'||; 11 elements removed, 13 added; 34 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,120 1280x990; DOM fingerprint owner/tenants-light-1280: 11 class-token changes; 0 text changes; elements -0/+1; 8 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "owner",
 		"capture": "tenants-light-390.png",
-		"changedPixels": 220793,
-		"size": "390x1427->390x1519",
+		"changedPixels": 131611,
+		"size": "390x1519->390x1503",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1027,23 +1063,23 @@
 			"VD-35": 0,
 			"VD-37": 1
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-51",
-			"VD-60",
-			"VD-61",
 			"VD-62",
-			"VD-106",
-			"VD-111",
-			"VD-117"
+			"VD-66",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,22 390x1497; HEAD repeat identical in this box; DOM fingerprint owner/tenants-light-390: 81 class-token changes (59 not hover/focus-only, e.g. +[&_svg:not([class*='size-'])]:size-4, +[&_svg]:pointer-events-none, +[&_svg]:shrink-0, +content-start, +flex, +flex-wrap); 1 text/label changes, e.g. option: 'Pending'|| -> 'Pending Signature'||; 11 elements removed, 13 added; 34 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,165 390x1354; DOM fingerprint owner/tenants-light-390: 11 class-token changes; 0 text changes; elements -0/+1; 8 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "auth_confirm-email-dark-1280.png",
-		"changedPixels": 0,
-		"size": "1280x1062->1280x1062",
+		"changedPixels": 774897,
+		"size": "1280x1062->1280x950",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1052,15 +1088,20 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
-		"class": "identical",
-		"vd": [],
-		"evidence": ""
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "intended",
+		"vd": [
+			"VD-69",
+			"VD-149"
+		],
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,0 1280x1062; DOM fingerprint public/auth_confirm-email-dark-1280: 12 class-token changes; 0 text changes; elements -0/+0; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "auth_confirm-email-dark-390.png",
-		"changedPixels": 0,
-		"size": "390x1219->390x1219",
+		"changedPixels": 175316,
+		"size": "390x1219->390x1107",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1069,15 +1110,20 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
-		"class": "identical",
-		"vd": [],
-		"evidence": ""
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "intended",
+		"vd": [
+			"VD-69",
+			"VD-149"
+		],
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,391 390x828; DOM fingerprint public/auth_confirm-email-dark-390: 12 class-token changes; 0 text changes; elements -0/+0; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "auth_confirm-email-light-1280.png",
-		"changedPixels": 0,
-		"size": "1280x1062->1280x1062",
+		"changedPixels": 729275,
+		"size": "1280x1062->1280x950",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1086,15 +1132,20 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
-		"class": "identical",
-		"vd": [],
-		"evidence": ""
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "intended",
+		"vd": [
+			"VD-69",
+			"VD-149"
+		],
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,0 1280x1062; DOM fingerprint public/auth_confirm-email-light-1280: 12 class-token changes; 0 text changes; elements -0/+0; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "auth_confirm-email-light-390.png",
-		"changedPixels": 0,
-		"size": "390x1219->390x1219",
+		"changedPixels": 139093,
+		"size": "390x1219->390x1107",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1103,14 +1154,19 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
-		"class": "identical",
-		"vd": [],
-		"evidence": ""
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "intended",
+		"vd": [
+			"VD-69",
+			"VD-149"
+		],
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,391 390x828; DOM fingerprint public/auth_confirm-email-light-390: 12 class-token changes; 0 text changes; elements -0/+0; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "auth_update-password-dark-1280.png",
-		"changedPixels": 0,
+		"changedPixels": 631,
 		"size": "1280x800->1280x800",
 		"markers": {
 			"VD-27": 0,
@@ -1120,14 +1176,19 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
-		"class": "identical",
-		"vd": [],
-		"evidence": ""
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "intended",
+		"vd": [
+			"VD-66",
+			"VD-69"
+		],
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 1012,517 123x14; DOM fingerprint public/auth_update-password-dark-1280: 4 class-token changes; 0 text changes; elements -0/+0; 4 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "auth_update-password-dark-390.png",
-		"changedPixels": 0,
+		"changedPixels": 599,
 		"size": "390x844->390x844",
 		"markers": {
 			"VD-27": 0,
@@ -1137,14 +1198,19 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
-		"class": "identical",
-		"vd": [],
-		"evidence": ""
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "intended",
+		"vd": [
+			"VD-66",
+			"VD-69"
+		],
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 133,601 123x14; DOM fingerprint public/auth_update-password-dark-390: 4 class-token changes; 0 text changes; elements -0/+0; 4 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "auth_update-password-light-1280.png",
-		"changedPixels": 0,
+		"changedPixels": 636,
 		"size": "1280x800->1280x800",
 		"markers": {
 			"VD-27": 0,
@@ -1154,14 +1220,19 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
-		"class": "identical",
-		"vd": [],
-		"evidence": ""
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "intended",
+		"vd": [
+			"VD-66",
+			"VD-69"
+		],
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 1012,517 123x14; DOM fingerprint public/auth_update-password-light-1280: 4 class-token changes; 0 text changes; elements -0/+0; 4 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "auth_update-password-light-390.png",
-		"changedPixels": 0,
+		"changedPixels": 609,
 		"size": "390x844->390x844",
 		"markers": {
 			"VD-27": 0,
@@ -1171,15 +1242,20 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
-		"class": "identical",
-		"vd": [],
-		"evidence": ""
+		"baseline": "36972318f",
+		"head": "b7f25511b",
+		"class": "intended",
+		"vd": [
+			"VD-66",
+			"VD-69"
+		],
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 133,601 123x14; DOM fingerprint public/auth_update-password-light-390: 4 class-token changes; 0 text changes; elements -0/+0; 4 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280.png",
-		"changedPixels": 708307,
-		"size": "1280x11887->1280x11943",
+		"changedPixels": 2650626,
+		"size": "1280x11943->1280x11887",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1188,18 +1264,20 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-59",
-			"VD-61"
+			"VD-149",
+			"VD-150"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,8971 1280x2972; HEAD repeat identical in this box; DOM fingerprint public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280: 12 class-token changes (9 not hover/focus-only, e.g. +blur-none, +grid-cols-1, +overflow-x-auto, -blur-0, -flex, -flex-col); 0 elements removed, 1 added"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,132 1280x11811; DOM fingerprint public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280: 8 class-token changes; 0 text changes; elements -0/+0; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390.png",
-		"changedPixels": 480855,
-		"size": "390x20952->390x21008",
+		"changedPixels": 1964046,
+		"size": "390x21008->390x20948",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1208,18 +1286,20 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-59",
-			"VD-61"
+			"VD-149",
+			"VD-150"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,15870 390x5138; HEAD repeat identical in this box; DOM fingerprint public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390: 12 class-token changes (9 not hover/focus-only, e.g. +blur-none, +grid-cols-1, +overflow-x-auto, -blur-0, -flex, -flex-col); 0 elements removed, 1 added"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,132 390x20876; DOM fingerprint public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390: 8 class-token changes; 0 text changes; elements -0/+0; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280.png",
-		"changedPixels": 799484,
-		"size": "1280x11887->1280x11943",
+		"changedPixels": 2747840,
+		"size": "1280x11943->1280x11887",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1228,18 +1308,20 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-59",
-			"VD-61"
+			"VD-149",
+			"VD-150"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,8971 1280x2972; HEAD repeat identical in this box; DOM fingerprint public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280: 12 class-token changes (9 not hover/focus-only, e.g. +blur-none, +grid-cols-1, +overflow-x-auto, -blur-0, -flex, -flex-col); 0 elements removed, 1 added"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,132 1280x11811; DOM fingerprint public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280: 8 class-token changes; 0 text changes; elements -0/+0; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390.png",
-		"changedPixels": 500864,
-		"size": "390x20952->390x21008",
+		"changedPixels": 1966383,
+		"size": "390x21008->390x20948",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1248,12 +1330,14 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-59",
-			"VD-61"
+			"VD-149",
+			"VD-150"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,778 390x20230; HEAD repeat identical in this box; DOM fingerprint public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390: 12 class-token changes (9 not hover/focus-only, e.g. +blur-none, +grid-cols-1, +overflow-x-auto, -blur-0, -flex, -flex-col); 0 elements removed, 1 added"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,132 390x20876; DOM fingerprint public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390: 8 class-token changes; 0 text changes; elements -0/+0; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
@@ -1268,6 +1352,8 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -1285,6 +1371,8 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -1302,6 +1390,8 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -1319,6 +1409,8 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -1326,8 +1418,8 @@
 	{
 		"set": "public",
 		"capture": "faq-dark-1280.png",
-		"changedPixels": 10798,
-		"size": "1280x3654->1280x3654",
+		"changedPixels": 754504,
+		"size": "1280x3654->1280x3638",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1336,20 +1428,23 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-56",
-			"VD-60",
-			"VD-64",
-			"VD-69"
+			"VD-66",
+			"VD-134",
+			"VD-135",
+			"VD-140"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 281,215 941x2981; HEAD repeat identical in this box; DOM fingerprint public/faq-dark-1280: 34 class-token changes (19 not hover/focus-only, e.g. +bg-transparent, +dark:bg-transparent, +dark:border-primary-foreground/50, +h-1/2, +h-2/5, +h-3/4); 4 elements removed, 4 added; 2 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,196 1280x3458; DOM fingerprint public/faq-dark-1280: 8 class-token changes; 0 text changes; elements -0/+0; 1 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "faq-dark-390.png",
-		"changedPixels": 432272,
-		"size": "390x4889->390x4861",
+		"changedPixels": 381680,
+		"size": "390x4861->390x4845",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1358,20 +1453,23 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-56",
-			"VD-60",
-			"VD-64",
-			"VD-69"
+			"VD-66",
+			"VD-134",
+			"VD-135",
+			"VD-140"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,783 390x4106; HEAD repeat identical in this box; DOM fingerprint public/faq-dark-390: 34 class-token changes (19 not hover/focus-only, e.g. +bg-transparent, +dark:bg-transparent, +dark:border-primary-foreground/50, +h-1/2, +h-2/5, +h-3/4); 4 elements removed, 4 added; 2 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,501 390x4360; DOM fingerprint public/faq-dark-390: 8 class-token changes; 0 text changes; elements -0/+0; 1 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "faq-light-1280.png",
-		"changedPixels": 10966,
-		"size": "1280x3654->1280x3654",
+		"changedPixels": 810947,
+		"size": "1280x3654->1280x3638",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1380,20 +1478,23 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-56",
-			"VD-60",
-			"VD-64",
-			"VD-69"
+			"VD-66",
+			"VD-134",
+			"VD-135",
+			"VD-140"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 281,215 941x2981; HEAD repeat identical in this box; DOM fingerprint public/faq-light-1280: 34 class-token changes (19 not hover/focus-only, e.g. +bg-transparent, +dark:bg-transparent, +dark:border-primary-foreground/50, +h-1/2, +h-2/5, +h-3/4); 4 elements removed, 4 added; 2 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,196 1280x3458; DOM fingerprint public/faq-light-1280: 8 class-token changes; 0 text changes; elements -0/+0; 1 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "faq-light-390.png",
-		"changedPixels": 454309,
-		"size": "390x4889->390x4861",
+		"changedPixels": 416155,
+		"size": "390x4861->390x4845",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1402,19 +1503,22 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-56",
-			"VD-60",
-			"VD-64",
-			"VD-69"
+			"VD-66",
+			"VD-134",
+			"VD-135",
+			"VD-140"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 0,783 390x4106; HEAD repeat identical in this box; DOM fingerprint public/faq-light-390: 34 class-token changes (19 not hover/focus-only, e.g. +bg-transparent, +dark:bg-transparent, +dark:border-primary-foreground/50, +h-1/2, +h-2/5, +h-3/4); 4 elements removed, 4 added; 2 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,501 390x4360; DOM fingerprint public/faq-light-390: 8 class-token changes; 0 text changes; elements -0/+0; 1 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "help-dark-1280.png",
-		"changedPixels": 14044,
+		"changedPixels": 1534,
 		"size": "1280x2730->1280x2730",
 		"markers": {
 			"VD-27": 0,
@@ -1424,17 +1528,21 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-56",
-			"VD-59"
+			"VD-66",
+			"VD-134",
+			"VD-135"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 239,2145 803x127; HEAD repeat identical in this box; DOM fingerprint public/help-dark-1280: 18 class-token changes (10 not hover/focus-only, e.g. +bg-transparent, +dark:bg-transparent, +dark:border-primary-foreground/50, +grid-cols-1, +text-primary-foreground, -bg-background)"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 672,494 542x616; DOM fingerprint public/help-dark-1280: 6 class-token changes; 0 text changes; elements -0/+0; 3 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "help-dark-390.png",
-		"changedPixels": 21690,
+		"changedPixels": 1501,
 		"size": "390x4040->390x4040",
 		"markers": {
 			"VD-27": 0,
@@ -1444,17 +1552,21 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-56",
-			"VD-59"
+			"VD-66",
+			"VD-134",
+			"VD-135"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 24,3096 342x242; HEAD repeat identical in this box; DOM fingerprint public/help-dark-390: 18 class-token changes (10 not hover/focus-only, e.g. +bg-transparent, +dark:bg-transparent, +dark:border-primary-foreground/50, +grid-cols-1, +text-primary-foreground, -bg-background)"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 58,641 274x811; DOM fingerprint public/help-dark-390: 6 class-token changes; 0 text changes; elements -0/+0; 3 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "help-light-1280.png",
-		"changedPixels": 14323,
+		"changedPixels": 1563,
 		"size": "1280x2730->1280x2730",
 		"markers": {
 			"VD-27": 0,
@@ -1464,17 +1576,21 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-56",
-			"VD-59"
+			"VD-66",
+			"VD-134",
+			"VD-135"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 239,2145 803x127; HEAD repeat identical in this box; DOM fingerprint public/help-light-1280: 18 class-token changes (10 not hover/focus-only, e.g. +bg-transparent, +dark:bg-transparent, +dark:border-primary-foreground/50, +grid-cols-1, +text-primary-foreground, -bg-background)"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 672,494 542x616; DOM fingerprint public/help-light-1280: 6 class-token changes; 0 text changes; elements -0/+0; 3 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "help-light-390.png",
-		"changedPixels": 21910,
+		"changedPixels": 1530,
 		"size": "390x4040->390x4040",
 		"markers": {
 			"VD-27": 0,
@@ -1484,12 +1600,16 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-56",
-			"VD-59"
+			"VD-66",
+			"VD-134",
+			"VD-135"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 24,3096 342x242; HEAD repeat identical in this box; DOM fingerprint public/help-light-390: 18 class-token changes (10 not hover/focus-only, e.g. +bg-transparent, +dark:bg-transparent, +dark:border-primary-foreground/50, +grid-cols-1, +text-primary-foreground, -bg-background)"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 58,641 274x811; DOM fingerprint public/help-light-390: 6 class-token changes; 0 text changes; elements -0/+0; 3 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
@@ -1504,6 +1624,8 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -1521,6 +1643,8 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -1538,6 +1662,8 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -1555,6 +1681,8 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -1562,7 +1690,7 @@
 	{
 		"set": "public",
 		"capture": "pricing-dark-1280.png",
-		"changedPixels": 114,
+		"changedPixels": 536,
 		"size": "1280x4051->1280x4051",
 		"markers": {
 			"VD-27": 0,
@@ -1572,18 +1700,19 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69"
+			"VD-66",
+			"VD-134"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 498,1490 551x11; HEAD repeat identical in this box; DOM fingerprint public/pricing-dark-1280: 17 class-token changes (4 not hover/focus-only, e.g. +grid-cols-1, +text-success-text, -marketing-page, -text-success); 2 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 410,3351 86x12; DOM fingerprint public/pricing-dark-1280: 8 class-token changes; 0 text changes; elements -0/+0; 1 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "pricing-dark-390.png",
-		"changedPixels": 57,
+		"changedPixels": 527,
 		"size": "390x7008->390x7008",
 		"markers": {
 			"VD-27": 0,
@@ -1593,18 +1722,19 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69"
+			"VD-66",
+			"VD-134"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 279,2744 16x11; HEAD repeat identical in this box; DOM fingerprint public/pricing-dark-390: 17 class-token changes (4 not hover/focus-only, e.g. +grid-cols-1, +text-success-text, -marketing-page, -text-success); 2 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 152,5629 86x12; DOM fingerprint public/pricing-dark-390: 8 class-token changes; 0 text changes; elements -0/+0; 1 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "pricing-light-1280.png",
-		"changedPixels": 114,
+		"changedPixels": 547,
 		"size": "1280x4051->1280x4051",
 		"markers": {
 			"VD-27": 0,
@@ -1614,18 +1744,19 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69"
+			"VD-66",
+			"VD-134"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 498,1490 551x11; HEAD repeat identical in this box; DOM fingerprint public/pricing-light-1280: 17 class-token changes (4 not hover/focus-only, e.g. +grid-cols-1, +text-success-text, -marketing-page, -text-success); 2 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 410,3351 86x12; DOM fingerprint public/pricing-light-1280: 8 class-token changes; 0 text changes; elements -0/+0; 1 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "pricing-light-390.png",
-		"changedPixels": 57,
+		"changedPixels": 535,
 		"size": "390x7008->390x7008",
 		"markers": {
 			"VD-27": 0,
@@ -1635,13 +1766,14 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69"
+			"VD-66",
+			"VD-134"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 279,2744 16x11; HEAD repeat identical in this box; DOM fingerprint public/pricing-light-390: 17 class-token changes (4 not hover/focus-only, e.g. +grid-cols-1, +text-success-text, -marketing-page, -text-success); 2 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 152,5629 86x12; DOM fingerprint public/pricing-light-390: 8 class-token changes; 0 text changes; elements -0/+0; 1 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
@@ -1656,6 +1788,8 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -1673,6 +1807,8 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -1690,6 +1826,8 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -1707,6 +1845,8 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "identical",
 		"vd": [],
 		"evidence": ""
@@ -1714,8 +1854,8 @@
 	{
 		"set": "public",
 		"capture": "root-dark-1280.png",
-		"changedPixels": 46809,
-		"size": "1280x6029->1280x6029",
+		"changedPixels": 1189821,
+		"size": "1280x6029->1280x5997",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1724,20 +1864,24 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-64",
-			"VD-69"
+			"VD-66",
+			"VD-69",
+			"VD-134",
+			"VD-136",
+			"VD-140",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 77,215 1145x4793; HEAD repeat identical in this box; DOM fingerprint public/root-dark-1280: 137 class-token changes (105 not hover/focus-only, e.g. +backdrop-blur-sm, +bg-card, +bg-card/20, +bg-card/50, +bg-info/10, +bg-primary/10); 57 elements removed, 1 added; 6 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,196 1280x5833; DOM fingerprint public/root-dark-1280: 17 class-token changes; 0 text changes; elements -0/+0; 3 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "root-dark-390.png",
-		"changedPixels": 19169,
-		"size": "390x9757->390x9757",
+		"changedPixels": 526038,
+		"size": "390x9757->390x9741",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1746,20 +1890,24 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-64",
-			"VD-69"
+			"VD-66",
+			"VD-69",
+			"VD-134",
+			"VD-136",
+			"VD-140",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 29,2844 307x5193; HEAD repeat identical in this box; DOM fingerprint public/root-dark-390: 137 class-token changes (105 not hover/focus-only, e.g. +backdrop-blur-sm, +bg-card, +bg-card/20, +bg-card/50, +bg-info/10, +bg-primary/10); 57 elements removed, 1 added; 6 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,495 390x9262; DOM fingerprint public/root-dark-390: 17 class-token changes; 0 text changes; elements -0/+0; 3 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "root-light-1280.png",
-		"changedPixels": 46512,
-		"size": "1280x6029->1280x6029",
+		"changedPixels": 1250788,
+		"size": "1280x6029->1280x5997",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1768,20 +1916,24 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-64",
-			"VD-69"
+			"VD-66",
+			"VD-69",
+			"VD-134",
+			"VD-136",
+			"VD-140",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 77,215 1145x4793; HEAD repeat identical in this box; DOM fingerprint public/root-light-1280: 137 class-token changes (105 not hover/focus-only, e.g. +backdrop-blur-sm, +bg-card, +bg-card/20, +bg-card/50, +bg-info/10, +bg-primary/10); 57 elements removed, 1 added; 6 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,196 1280x5833; DOM fingerprint public/root-light-1280: 17 class-token changes; 0 text changes; elements -0/+0; 3 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "root-light-390.png",
-		"changedPixels": 18975,
-		"size": "390x9757->390x9757",
+		"changedPixels": 520598,
+		"size": "390x9757->390x9741",
 		"markers": {
 			"VD-27": 0,
 			"VD-28": 0,
@@ -1790,19 +1942,23 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-64",
-			"VD-69"
+			"VD-66",
+			"VD-69",
+			"VD-134",
+			"VD-136",
+			"VD-140",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 29,2844 307x5193; HEAD repeat identical in this box; DOM fingerprint public/root-light-390: 137 class-token changes (105 not hover/focus-only, e.g. +backdrop-blur-sm, +bg-card, +bg-card/20, +bg-card/50, +bg-info/10, +bg-primary/10); 57 elements removed, 1 added; 6 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 0,495 390x9262; DOM fingerprint public/root-light-390: 17 class-token changes; 0 text changes; elements -0/+0; 3 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "signup-dark-1280.png",
-		"changedPixels": 114,
+		"changedPixels": 536,
 		"size": "1280x4051->1280x4051",
 		"markers": {
 			"VD-27": 0,
@@ -1812,18 +1968,19 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69"
+			"VD-66",
+			"VD-134"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 498,1490 551x11; HEAD repeat identical in this box; DOM fingerprint public/signup-dark-1280: 17 class-token changes (4 not hover/focus-only, e.g. +grid-cols-1, +text-success-text, -marketing-page, -text-success); 2 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 410,3351 86x12; DOM fingerprint public/signup-dark-1280: 8 class-token changes; 0 text changes; elements -0/+0; 1 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "signup-dark-390.png",
-		"changedPixels": 57,
+		"changedPixels": 527,
 		"size": "390x7008->390x7008",
 		"markers": {
 			"VD-27": 0,
@@ -1833,18 +1990,19 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69"
+			"VD-66",
+			"VD-134"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 279,2744 16x11; HEAD repeat identical in this box; DOM fingerprint public/signup-dark-390: 17 class-token changes (4 not hover/focus-only, e.g. +grid-cols-1, +text-success-text, -marketing-page, -text-success); 2 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 152,5629 86x12; DOM fingerprint public/signup-dark-390: 8 class-token changes; 0 text changes; elements -0/+0; 1 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "signup-light-1280.png",
-		"changedPixels": 114,
+		"changedPixels": 547,
 		"size": "1280x4051->1280x4051",
 		"markers": {
 			"VD-27": 0,
@@ -1854,18 +2012,19 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69"
+			"VD-66",
+			"VD-134"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 498,1490 551x11; HEAD repeat identical in this box; DOM fingerprint public/signup-light-1280: 17 class-token changes (4 not hover/focus-only, e.g. +grid-cols-1, +text-success-text, -marketing-page, -text-success); 2 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 410,3351 86x12; DOM fingerprint public/signup-light-1280: 8 class-token changes; 0 text changes; elements -0/+0; 1 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "public",
 		"capture": "signup-light-390.png",
-		"changedPixels": 57,
+		"changedPixels": 535,
 		"size": "390x7008->390x7008",
 		"markers": {
 			"VD-27": 0,
@@ -1875,1078 +2034,1181 @@
 			"VD-35": 0,
 			"VD-37": 0
 		},
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69"
+			"VD-66",
+			"VD-134"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD, bbox 279,2744 16x11; HEAD repeat identical in this box; DOM fingerprint public/signup-light-390: 17 class-token changes (4 not hover/focus-only, e.g. +grid-cols-1, +text-success-text, -marketing-page, -text-success); 2 computed-colour changes"
+		"evidence": "same-session 36972318f -> b7f25511b, bbox 152,5629 86x12; DOM fingerprint public/signup-light-390: 8 class-token changes; 0 text changes; elements -0/+0; 1 computed-colour changes; every class-token and text change occurs in fix round 3's src diff"
 	},
 	{
 		"set": "sidebar",
 		"capture": "closed-dark-375.png",
-		"changedPixels": 3499,
+		"changedPixels": 274,
 		"size": "375x812->375x812",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 57,22 198x633 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 210,142 18x31: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "closed-dark-900.png",
-		"changedPixels": 4692,
+		"changedPixels": 1207,
 		"size": "900x800->900x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 57,149 738x472 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 75,172 89x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "closed-light-375.png",
-		"changedPixels": 3508,
+		"changedPixels": 273,
 		"size": "375x812->375x812",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 57,22 198x633 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 210,142 18x31: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "closed-light-900.png",
-		"changedPixels": 4699,
+		"changedPixels": 1149,
 		"size": "900x800->900x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 57,149 738x472 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 75,172 89x579: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "collapsed-dark-1024.png",
-		"changedPixels": 11701,
+		"changedPixels": 2184,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 73,169 819x631 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 91,192 620x608: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "collapsed-dark-1280.png",
-		"changedPixels": 17795,
+		"changedPixels": 3568,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 73,169 798x631 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 91,192 813x608: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "collapsed-light-1024.png",
-		"changedPixels": 11360,
+		"changedPixels": 2530,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 73,169 819x631 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 91,192 620x608: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "collapsed-light-1280.png",
-		"changedPixels": 17533,
+		"changedPixels": 3488,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 73,169 798x631 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 91,192 813x608: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "current-row-dark-1024.png",
-		"changedPixels": 1365,
+		"changedPixels": 93734,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/properties",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /properties, bbox 809,377 125x120 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
+		"evidence": "same-session 36972318f -> b7f25511b on /properties, bbox 312,220 624x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "current-row-dark-1280.png",
-		"changedPixels": 2085,
+		"changedPixels": 118218,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/properties",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /properties, bbox 1001,377 174x120 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
+		"evidence": "same-session 36972318f -> b7f25511b on /properties, bbox 312,220 880x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "current-row-hover-dark-1024.png",
-		"changedPixels": 1365,
+		"changedPixels": 93734,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/properties",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /properties, bbox 809,377 125x120 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
+		"evidence": "same-session 36972318f -> b7f25511b on /properties, bbox 312,220 624x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "current-row-hover-dark-1280.png",
-		"changedPixels": 2085,
+		"changedPixels": 118218,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/properties",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /properties, bbox 1001,377 174x120 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
+		"evidence": "same-session 36972318f -> b7f25511b on /properties, bbox 312,220 880x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "current-row-hover-light-1024.png",
-		"changedPixels": 896,
+		"changedPixels": 87001,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/properties",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /properties, bbox 809,377 122x110 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
+		"evidence": "same-session 36972318f -> b7f25511b on /properties, bbox 312,220 624x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "current-row-hover-light-1280.png",
-		"changedPixels": 896,
+		"changedPixels": 111342,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/properties",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /properties, bbox 1001,377 161x110 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
+		"evidence": "same-session 36972318f -> b7f25511b on /properties, bbox 312,220 880x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "current-row-light-1024.png",
-		"changedPixels": 896,
+		"changedPixels": 87001,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/properties",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /properties, bbox 809,377 122x110 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
+		"evidence": "same-session 36972318f -> b7f25511b on /properties, bbox 312,220 624x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "current-row-light-1280.png",
-		"changedPixels": 896,
+		"changedPixels": 111342,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/properties",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /properties, bbox 1001,377 161x110 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
+		"evidence": "same-session 36972318f -> b7f25511b on /properties, bbox 312,220 880x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "palette-over-sheet-dark-375.png",
-		"changedPixels": 2696,
+		"changedPixels": 266,
 		"size": "375x812->375x812",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 288,184 87x628 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 288,599 87x67: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "palette-over-sheet-dark-900.png",
-		"changedPixels": 12729,
+		"changedPixels": 2738,
 		"size": "900x800->900x800",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 288,96 612x704 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 288,180 612x443: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "palette-over-sheet-light-375.png",
-		"changedPixels": 4037,
+		"changedPixels": 267,
 		"size": "375x812->375x812",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-59",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 42,184 333x628 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 288,600 87x66: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "palette-over-sheet-light-900.png",
-		"changedPixels": 13546,
+		"changedPixels": 2794,
 		"size": "900x800->900x800",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-59",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 235,96 665x704 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 288,180 612x443: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "rail-expanded-dark-1024.png",
-		"changedPixels": 170854,
+		"changedPixels": 1207,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 272,157 704x643 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 307,184 89x600: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "rail-expanded-dark-1280.png",
-		"changedPixels": 172655,
+		"changedPixels": 2390,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 272,165 960x635 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 315,192 640x608: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "rail-expanded-light-1024.png",
-		"changedPixels": 171365,
+		"changedPixels": 1149,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 271,157 706x643 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 307,184 89x599: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "rail-expanded-light-1280.png",
-		"changedPixels": 175263,
+		"changedPixels": 2600,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 271,165 962x635 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 315,192 640x608: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "rail-hover-dark-1024.png",
-		"changedPixels": 170854,
+		"changedPixels": 1207,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 272,157 704x643 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 307,184 89x600: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "rail-hover-dark-1280.png",
-		"changedPixels": 172655,
+		"changedPixels": 2390,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 272,165 960x635 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 315,192 640x608: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "rail-hover-light-1024.png",
-		"changedPixels": 171365,
+		"changedPixels": 1149,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 271,157 706x643 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 307,184 89x599: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "rail-hover-light-1280.png",
-		"changedPixels": 175263,
+		"changedPixels": 2600,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 271,165 962x635 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 315,192 640x608: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "reports-default-dark-1024.png",
-		"changedPixels": 144359,
+		"changedPixels": 56922,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 224,112 800x688 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 224,199 800x460: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "reports-default-dark-1280.png",
-		"changedPixels": 180352,
+		"changedPixels": 70021,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 224,112 1056x688 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 224,199 1056x460: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "reports-default-light-1024.png",
-		"changedPixels": 247412,
+		"changedPixels": 81970,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 224,112 800x688 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 224,199 800x487: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "reports-default-light-1280.png",
-		"changedPixels": 327056,
+		"changedPixels": 103014,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 224,112 1056x688 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 224,199 1056x487: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "reports-open-dark-1024.png",
-		"changedPixels": 144359,
+		"changedPixels": 56922,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 224,112 800x688 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 224,199 800x460: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "reports-open-dark-1280.png",
-		"changedPixels": 180352,
+		"changedPixels": 70021,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 224,112 1056x688 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 224,199 1056x460: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "reports-open-light-1024.png",
-		"changedPixels": 247412,
+		"changedPixels": 81970,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 224,112 800x688 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 224,199 800x487: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "reports-open-light-1280.png",
-		"changedPixels": 327056,
+		"changedPixels": 103014,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 224,112 1056x688 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 224,199 1056x487: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "row-focus-dark-1024.png",
-		"changedPixels": 1365,
+		"changedPixels": 93734,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/properties",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /properties, bbox 809,377 125x120 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
+		"evidence": "same-session 36972318f -> b7f25511b on /properties, bbox 312,220 624x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "row-focus-dark-1280.png",
-		"changedPixels": 2085,
+		"changedPixels": 118218,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/properties",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /properties, bbox 1001,377 174x120 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
+		"evidence": "same-session 36972318f -> b7f25511b on /properties, bbox 312,220 880x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "row-focus-light-1024.png",
-		"changedPixels": 896,
+		"changedPixels": 87001,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/properties",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /properties, bbox 809,377 122x110 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
+		"evidence": "same-session 36972318f -> b7f25511b on /properties, bbox 312,220 624x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "row-focus-light-1280.png",
-		"changedPixels": 896,
+		"changedPixels": 111342,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/properties",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /properties, bbox 1001,377 161x110 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
+		"evidence": "same-session 36972318f -> b7f25511b on /properties, bbox 312,220 880x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "row-hover-dark-1024.png",
-		"changedPixels": 1365,
+		"changedPixels": 93734,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/properties",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /properties, bbox 809,377 125x120 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
+		"evidence": "same-session 36972318f -> b7f25511b on /properties, bbox 312,220 624x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "row-hover-dark-1280.png",
-		"changedPixels": 2085,
+		"changedPixels": 118218,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/properties",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /properties, bbox 1001,377 174x120 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
+		"evidence": "same-session 36972318f -> b7f25511b on /properties, bbox 312,220 880x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "row-hover-light-1024.png",
-		"changedPixels": 896,
+		"changedPixels": 87001,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/properties",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /properties, bbox 809,377 122x110 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
+		"evidence": "same-session 36972318f -> b7f25511b on /properties, bbox 312,220 624x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "row-hover-light-1280.png",
-		"changedPixels": 896,
+		"changedPixels": 111342,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/properties",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-60",
-			"VD-61",
-			"VD-69",
-			"VD-105",
-			"VD-117",
-			"VD-120"
+			"VD-133",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /properties, bbox 1001,377 161x110 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
+		"evidence": "same-session 36972318f -> b7f25511b on /properties, bbox 312,220 880x580: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/properties)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "sheet-open-default-dark-375.png",
-		"changedPixels": 10772,
+		"changedPixels": 3385,
 		"size": "375x812->375x812",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 288,184 87x628 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 288,288 87x378: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "sheet-open-default-dark-900.png",
-		"changedPixels": 103367,
+		"changedPixels": 48300,
 		"size": "900x800->900x800",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 288,96 612x704 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 288,180 612x443: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "sheet-open-default-light-375.png",
-		"changedPixels": 10586,
+		"changedPixels": 2017,
 		"size": "375x812->375x812",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 288,184 87x628 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 288,288 87x378: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "sheet-open-default-light-900.png",
-		"changedPixels": 163669,
+		"changedPixels": 28634,
 		"size": "900x800->900x800",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 288,96 612x704 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 288,180 612x443: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "sheet-open-reports-dark-375.png",
-		"changedPixels": 10772,
+		"changedPixels": 3385,
 		"size": "375x812->375x812",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 288,184 87x628 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 288,288 87x378: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "sheet-open-reports-dark-900.png",
-		"changedPixels": 103367,
+		"changedPixels": 48300,
 		"size": "900x800->900x800",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 288,96 612x704 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 288,180 612x443: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "sheet-open-reports-light-375.png",
-		"changedPixels": 10586,
+		"changedPixels": 2017,
 		"size": "375x812->375x812",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 288,184 87x628 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 288,288 87x378: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "sheet-open-reports-light-900.png",
-		"changedPixels": 163669,
+		"changedPixels": 28634,
 		"size": "900x800->900x800",
 		"markers": null,
 		"route": "/reports/cash-flow",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
-			"VD-54",
-			"VD-57",
-			"VD-61",
-			"VD-89"
+			"VD-132",
+			"VD-134",
+			"VD-137",
+			"VD-142"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /reports/cash-flow, bbox 288,96 612x704 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
+		"evidence": "same-session 36972318f -> b7f25511b on /reports/cash-flow, bbox 288,180 612x443: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the page's own owner-set capture carries the DOM fingerprint (owner/reports_cash-flow)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "tour-step5-dark-1024.png",
-		"changedPixels": 3833,
+		"changedPixels": 1628,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-120",
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149",
+			"VD-151"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 297,230 404x570 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 324,557 621x243: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the tour step placed by the fixed primitive (VD-151; step copy VD-120); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "tour-step5-dark-1280.png",
-		"changedPixels": 13940,
+		"changedPixels": 4043,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-120",
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149",
+			"VD-151"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 297,230 658x570 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 324,301 664x285: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the tour step placed by the fixed primitive (VD-151; step copy VD-120); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "tour-step5-dark-375.png",
-		"changedPixels": 6258,
+		"changedPixels": 44291,
 		"size": "375x812->375x812",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-120",
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149",
+			"VD-151"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 107,22 161x790 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 0,66 336x746: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the tour step placed by the fixed primitive (VD-151; step copy VD-120); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "tour-step5-dark-900.png",
-		"changedPixels": 5202,
+		"changedPixels": 18095,
 		"size": "900x800->900x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-120",
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149",
+			"VD-151"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 372,737 156x63 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 0,66 829x734: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the tour step placed by the fixed primitive (VD-151; step copy VD-120); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "tour-step5-light-1024.png",
-		"changedPixels": 3863,
+		"changedPixels": 597,
 		"size": "1024x800->1024x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-120",
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149",
+			"VD-151"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 297,99 404x701 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 325,558 620x242: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the tour step placed by the fixed primitive (VD-151; step copy VD-120); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "tour-step5-light-1280.png",
-		"changedPixels": 13892,
+		"changedPixels": 3294,
 		"size": "1280x800->1280x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-120",
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149",
+			"VD-151"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 297,230 658x570 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 325,301 663x285: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the tour step placed by the fixed primitive (VD-151; step copy VD-120); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "tour-step5-light-375.png",
-		"changedPixels": 6254,
+		"changedPixels": 44931,
 		"size": "375x812->375x812",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-120",
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149",
+			"VD-151"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 108,22 160x790 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 0,66 336x746: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the tour step placed by the fixed primitive (VD-151; step copy VD-120); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	},
 	{
 		"set": "sidebar",
 		"capture": "tour-step5-light-900.png",
-		"changedPixels": 5205,
+		"changedPixels": 16896,
 		"size": "900x800->900x800",
 		"markers": null,
 		"route": "/dashboard",
+		"baseline": "36972318f",
+		"head": "b7f25511b",
 		"class": "intended",
 		"vd": [
 			"VD-53",
-			"VD-61",
 			"VD-71",
-			"VD-97",
 			"VD-114",
-			"VD-118",
-			"VD-127"
+			"VD-120",
+			"VD-134",
+			"VD-137",
+			"VD-143",
+			"VD-149",
+			"VD-151"
 		],
-		"evidence": "same-session 4476e6450 -> HEAD on /dashboard, bbox 372,737 156x63 (the page content the shell frames; the sidebar column itself is unchanged); HEAD repeat identical; the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
+		"evidence": "same-session 36972318f -> b7f25511b on /dashboard, bbox 0,66 829x734: the page content the shell frames and the header (trigger twin VD-134, sync status VD-137); the tour step placed by the fixed primitive (VD-151; step copy VD-120); the page's own owner-set capture carries the DOM fingerprint (owner/dashboard)"
 	}
 ]

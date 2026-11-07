@@ -9,6 +9,8 @@
 //   node .planning/tailwind-shadcn/audit/f39-checks.mjs --lint-body <md> --decisions <json>
 //   node .planning/tailwind-shadcn/audit/f39-checks.mjs --fix-round-1 <f39-dir> --out <file>
 //   node .planning/tailwind-shadcn/audit/f39-checks.mjs --fix-round-2 <f39-dir> --out <file>
+//   node .planning/tailwind-shadcn/audit/f39-checks.mjs --fix-round-3 <f39-dir> --out <file>
+//   node .planning/tailwind-shadcn/audit/f39-checks.mjs --escape-scan <rev>
 //
 // Output: { mode, checks: [{ cp, choice, name, pass, expected, measured }], failedCps, failed }.
 // Exit 1 when failed > 0; under --expect-fail, exit 0 only when exactly the listed CPs fail.
@@ -17,10 +19,13 @@
 // regression of any of it fails this checker: the four T-1 contract tokens that are allowed to be
 // dead and nothing else (M8), the light-only tokens in use (M6), the two light token deltas, the
 // two changed utilities, every guard test the fix round added (present and passing in the f39 unit
-// summary), every UI-SPEC VD row VD-01..VD-129 and VD-19b mapped to passing evidence, the
-// migration replay (357 files, every gate exit 0), the mutation sweep (179 rows, 0 vacuous, 0 not
-// applied), the Edge deploy list (exactly the functions whose bundle differs), the screenshot
-// classification and the component-probe differences against the 4476e6450 same-session run. Inputs: the f39 JSON files named in readFixRoundContext, the UI-SPEC, git ls-files.
+// summary), every UI-SPEC VD row VD-01..VD-151 and VD-19b mapped to passing evidence (fix round 3
+// added VD-130..VD-151), the migration replay (357 files, every gate exit 0), the mutation sweep
+// (185 rows after fix round 3, 0 vacuous, 0 not applied), the Edge deploy list (exactly the
+// functions whose bundle differs), the screenshot classification and the component-probe
+// differences against the previous FROZEN head's same-session run (4476e6450 at the re-freeze
+// after fix round 1, 36972318f at the one after fix round 3). Inputs: the f39 JSON files named in
+// readFixRoundContext, the UI-SPEC, git ls-files.
 //
 // --fix-round-2 (the re-freeze after CI failed on bc54b045a and f8de0175e) checks what fix round 2
 // must keep: the regexp-source helper's test, every module that imports the helper (the set must
@@ -29,12 +34,27 @@
 // workflow (8 shards, fail-fast false, the shard and matrix size handed to each job), the sweep
 // result unsharded and per shard (rows summing to every row, the listing a disjoint cover), the
 // CodeQL-clean state as far as a local scan can decide it (every escape-style `.replace` in a
-// tracked JS/TS file escapes every regex metacharacter, no single-metacharacter escape, escape
-// helpers under the test roots live only in the shared helper and main's reclaim-finalize.ts, and
-// neither old ReDoS form is back), the scope of the code diff since b628eb9f1 (no application
-// path) and the build identity that carries the screenshot, probe and CSP evidence forward.
-// Inputs: the f39 JSON files named in readFixRound2Context, the sweep workflow, git ls-files and
-// every tracked JS/TS file on disk.
+// tracked JS/TS file escapes every regex metacharacter, no single-metacharacter escape, and, since
+// the re-freeze after fix round 3, no string-pattern escape, `.replace("<one character>", "\\…")`
+// or `.replaceAll(…)`, whose result reaches `new RegExp`; escape helpers under the test roots live
+// only in the shared helper and main's reclaim-finalize.ts, and neither old ReDoS form is back),
+// the scope of fix round 2's own code diff (b628eb9f1..f8de0175e: no application path; fix round
+// 3's diff is --fix-round-3's) and the build identity that carried the screenshot, probe and CSP
+// evidence forward at that re-freeze. Inputs: the f39 JSON files named in readFixRound2Context,
+// the sweep workflow, git ls-files and every tracked JS/TS file on disk.
+//
+// --fix-round-3 (the re-freeze after perfect-PR cycle 2 and fix round 3, a full re-run) checks
+// what fix round 3 must keep: every guard test its parts added or widened (present, passing, with
+// each recorded title and the code marker of its widening), that each re-measured evidence file
+// was measured on the code state b7f25511b (the sweep, replay, Deno and bundle evidence on 852158ab4
+// only while their inputs are unchanged since), the mutation sweep at 185 rows
+// (shards 24 and 23 x 7), the migration replay at 357 files, the Deno checks (17 functions) and
+// in-process test counts, the Edge redeploy list (the four functions whose bundle differs, and the
+// PR body's deploy command naming exactly them), rule parity's fix-round-3 keys each with its
+// commit and VD row, the screenshot and probe baselines (36972318f), the PR body's fix-round-3
+// section and VD-130..VD-151 table, and the code diff since f8de0175e matching
+// f39/fix-round-3-paths.json. Inputs: the f39 JSON files named in readFixRound3Context, the
+// UI-SPEC, the PR body, git and the guard test sources on disk.
 //
 // Each CP is checked for its recorded decision (`choice` default or fallback; `options` holds the
 // owner's option ids). Source checks read files at HEAD; the CP-3 fallback also compares the
@@ -625,6 +645,7 @@ function selfTest() {
 	passed += lintSelfTest(failures);
 	passed += fixRoundSelfTest(failures);
 	passed += fixRound2SelfTest(failures);
+	passed += fixRound3SelfTest(failures);
 	if (failures.length > 0) {
 		for (const x of failures) console.error(`self-test FAIL: ${x}`);
 		process.exit(1);
@@ -763,9 +784,13 @@ const FR_TOKEN_DELTAS = { "light accent-foreground": [27, 33, 30, 1], "light des
 // The utilities present in FINAL and here whose CSS changed: VD-69 (ed7db2d48, hover parts removed).
 const FR_UTILITY_CHANGED = ["showcase-card", "testimonial-card"];
 const FR_EXPECTED_MIGRATIONS = 357;
-const FR_EXPECTED_SWEEP_ROWS = 179;
+// 179 rows at the re-freeze after fix round 1; fix round 3 added 6 (Part 1: F138's four, the row
+// pinning 'terminated' in the occupancy model, the row for the CLI's owner-figures dispatch).
+const FR_EXPECTED_SWEEP_ROWS = 185;
 const FR_REPLAY_GATES = ["applied", "no-network", "seed", "test-cast", "billing-insights", "property-performance", "owner-figures", "blog-banlist"];
-const FR_VD_IDS = [...Array.from({ length: 129 }, (_, i) => `VD-${String(i + 1).padStart(2, "0")}`), "VD-19b"];
+// VD-01..VD-129 (fix round 1) and VD-130..VD-151 (fix round 3; VD-151 is Part 6d), plus VD-19b.
+const FR_VD_LAST = 151;
+const FR_VD_IDS = [...Array.from({ length: FR_VD_LAST }, (_, i) => `VD-${String(i + 1).padStart(2, "0")}`), "VD-19b"];
 // VD rows that change nothing themselves and record measurements only, so their Proof cell cites a
 // session measurement and no test or committed record: VD-115 (part P's surfaces measured
 // unchanged), VD-124 and VD-129 (before-measurements parts P and Q could not take). The set of
@@ -884,6 +909,11 @@ function frVdEvidence(ctx) {
 		for (const s of ctx.screens ?? []) {
 			if (s.class === "intended" && Array.isArray(s.vd) && s.vd.includes(id)) ev.push({ kind: "screenshot", ref: `${s.set}/${s.capture}`, pass: true });
 		}
+		// Fix round 1's classification (4476e6450 -> 4433ca833), kept when a later round re-classifies
+		// against its own previous head: a row whose surface a later round left alone keeps it.
+		for (const s of ctx.screensRound1 ?? []) {
+			if (s.class === "intended" && Array.isArray(s.vd) && s.vd.includes(id)) ev.push({ kind: "screenshot (fix round 1)", ref: `${s.set}/${s.capture}`, pass: true });
+		}
 		direct.set(id, ev);
 		// "as VD-n" at the start of the cell or of a clause shares that row's proof; "Chrome as VD-n"
 		// only names the measurement method, so it shares nothing.
@@ -942,7 +972,7 @@ function fixRoundChecks(ctx) {
 	}
 	const vd = frVdEvidence(ctx);
 	const ids = vd.map((r) => r.id);
-	add("vd-ids", "UI-SPEC VD rows are exactly VD-01..VD-129 and VD-19b, once each", sortedJson(ids) === sortedJson(FR_VD_IDS), FR_VD_IDS.length, { count: ids.length, missing: FR_VD_IDS.filter((x) => !ids.includes(x)), extra: ids.filter((x, i) => !FR_VD_IDS.includes(x) || ids.indexOf(x) !== i) });
+	add("vd-ids", `UI-SPEC VD rows are exactly VD-01..VD-${FR_VD_LAST} and VD-19b, once each`, sortedJson(ids) === sortedJson(FR_VD_IDS), FR_VD_IDS.length,{ count: ids.length, missing: FR_VD_IDS.filter((x) => !ids.includes(x)), extra: ids.filter((x, i) => !FR_VD_IDS.includes(x) || ids.indexOf(x) !== i) });
 	for (const r of vd) add(`vd:${r.id}`, `${r.id} mapped to passing evidence`, r.pass, "no failing and at least one passing evidence", r.evidence.map((e) => `${e.kind}${e.via ? ` (via ${e.via})` : ""}: ${e.ref} ${e.pass === true ? "pass" : e.pass === false ? "FAIL" : "informational"}`));
 	const uncommitted = vd.filter((r) => !r.committed).map((r) => r.id);
 	add("vd-measurement-only", "rows with no committed evidence equal the measurement-only list", sortedJson(uncommitted) === sortedJson(FR_MEASUREMENT_ONLY_ROWS), [...FR_MEASUREMENT_ONLY_ROWS].sort(), [...uncommitted].sort());
@@ -959,7 +989,7 @@ function fixRoundChecks(ctx) {
 	add("screens", "every f39 capture is identical, noise, data-drift or intended under a VD row, with evidence", sc.length > 0 && badScreens.length === 0, "0 unclassified", { captures: sc.length, bad: badScreens.map((s) => `${s.set}/${s.capture}`) });
 	const pd = ctx.probesDiff?.diffs ?? [];
 	const badProbes = pd.filter((x) => x.kind !== "measured" || x.class !== "intended" || !(typeof x.ref === "string" && x.ref.length > 0) || !(x.vd ?? []).every((v) => FR_VD_IDS.includes(v)));
-	add("probes", "every measured component-probe difference from the 4476e6450 same-session run is intended, with its commit and VD row or finding", Array.isArray(ctx.probesDiff?.diffs) && badProbes.length === 0, "0 unattributed", { diffs: pd.length, bad: badProbes.map((x) => `${x.id} ${x.field}`) });
+	add("probes", `every measured component-probe difference from the ${ctx.probesDiff?.baseline ?? "previous FROZEN"} same-session run is intended, with its commit and VD row or finding`,Array.isArray(ctx.probesDiff?.diffs) && badProbes.length === 0, "0 unattributed", { diffs: pd.length, bad: badProbes.map((x) => `${x.id} ${x.field}`) });
 	const failedGroups = [...new Set(c.checks.filter((k) => !k.pass).map((k) => k.group))];
 	return { mode: "fix-round-1", checks: c.checks, vd, failedGroups, failed: c.checks.filter((k) => !k.pass).length };
 }
@@ -986,6 +1016,7 @@ function readFixRoundContext(dir) {
 		sweep: j("sweep-f39.json"),
 		edge: j("edge-bundles-f39.json"),
 		screens: j("screens-diff-f39.json"),
+		screensRound1: j("screens-diff-fix-round-1.json"),
 		probesDiff: j("probes-diff-f39.json"),
 		spec: readFileSync(join(ROOT, ".planning/phases/66.2-tailwind-v4-and-shadcn-ui-canonical-remediation/66.2-UI-SPEC.md"), "utf8"),
 		repoFiles: git(["ls-files"]).split("\n").filter(Boolean),
@@ -1063,7 +1094,7 @@ const FR_MUTATIONS = [
 	}],
 	["a VD row dropped from the spec and another added", "vd-ids", (f) => {
 		f.spec = f.spec.split("\n").filter((l) => !l.startsWith("| VD-50 |")).join("\n");
-		f.spec = `${f.spec}\n| VD-130 | 39 | s | b | src | \`vd-proof.test.ts\` | — |`;
+		f.spec = `${f.spec}\n| VD-${FR_VD_LAST + 1} | 39 | s | b | src | \`vd-proof.test.ts\` | — |`;
 	}],
 	["a row loses its only committed evidence", ["vd:VD-80", "vd-measurement-only"], (f) => {
 		f.spec = f.spec.replace("| VD-80 | 39 | s | b | src | `vd-proof.test.ts` |", "| VD-80 | 39 | s | b | src | Chrome `q/probe/m.json` |");
@@ -1113,9 +1144,12 @@ function fixRoundSelfTest(failures) {
 // Fix round 2 answers CI on bc54b045a and f8de0175e. 74f8bd9f1 sends every name a test guard puts
 // into a pattern through one helper (CodeQL js/incomplete-sanitization at three sites) and ends the
 // JSX-comment ReDoS (js/redos); f8de0175e shards the mutation sweep across an 8-job matrix (the one
-// job hit timeout-minutes 45 at row 155 of 179). The code diff since FR2_BASE holds tests, test
-// helpers, E2E specs and helpers, the sweep script and its workflow, and nothing the app builds.
+// job hit timeout-minutes 45 at row 155 of 179). The code diff FR2_BASE..FR2_CODE_STATE holds
+// tests, test helpers, E2E specs and helpers, the sweep script and its workflow, and nothing the
+// app builds. FR2_CODE_STATE is fixed: fix round 3 (FR2_CODE_STATE..b7f25511b) changed application
+// code on purpose and is checked by --fix-round-3, so this scope check reads round 2's own range.
 const FR2_BASE = "b628eb9f1b0c68e8d2d48cfd6660921b0660fef5";
+const FR2_CODE_STATE = "f8de0175e3e2c76e1429956ab4f3d5c675a0789f";
 const FR2_MAIN = "d9c7329f0fa500a597e87e7ac02d5a4fb0cf2f2d";
 const FR2_DIFF_PATHS = 42;
 const FR2_HELPER = "src/test/utils/regexp-source.ts";
@@ -1137,13 +1171,17 @@ const FR2_HELPER_TEST = {
 };
 // Every module importing the helper at the code state (its own test aside), with the unit test
 // files that run it; a test file runs itself. The importer set must EQUAL this list, so a guard that
-// drops the helper for a local escape fails here as well as in the escape scan.
+// drops the helper for a local escape fails here as well as in the escape scan. Fix round 3's
+// 852158ab4 added group-markers.test.ts and ids-not-shown-as-text.test.tsx (each had a partial
+// escape of its own: a first-occurrence "/" and a "$"-only class).
 const FR2_HELPER_USERS = [
 	...[
 		"scripts/reclaim-finalize.test.ts",
 		"src/app/__tests__/design-token-drift.test.ts",
 		"src/app/__tests__/global-error-fonts.test.tsx",
 		"src/app/__tests__/marketing-home.test.tsx",
+		"src/components/__tests__/group-markers.test.ts",
+		"src/components/__tests__/ids-not-shown-as-text.test.tsx",
 		"src/components/__tests__/no-nested-interactive.test.tsx",
 		"src/components/documents/__tests__/documents-section.test.tsx",
 		"src/components/layout/navbar/__tests__/navbar-desktop-nav.test.tsx",
@@ -1219,6 +1257,8 @@ function fr2PathClass(path) {
 }
 
 const FR2_WS = new Set([" ", "\t", "\n", "\r"]);
+// The replace calls the escape scan reads, assembled from parts so this file holds no scannable call.
+const FR2_REPLACE_CALLS = [[".rep", "lace("].join(""), [".rep", "laceAll("].join("")];
 
 // The raw text of the string literal opening at text[open] (a quote), or null when unterminated.
 function fr2Literal(text, open) {
@@ -1236,58 +1276,186 @@ function fr2Literal(text, open) {
 	return null;
 }
 
-// Every escape-style replace call in `text`: a regex literal as the first argument and a string
-// whose text starts with an escaped backslash as the second. A one-class pattern with the
-// whole-match replacement is a class escape, complete when its class holds every metacharacter; a
-// single escaped metacharacter other than the backslash (the `.` and `$` forms CodeQL flagged) is
-// partial. A backslash-only escape is the first step of string-literal escaping, not a regex escape.
+// Every escape-style replace call in `text`, `.replace(` and `.replaceAll(` alike:
+// - a regex literal as the first argument and a string whose text starts with an escaped backslash
+//   as the second. A one-class pattern with the whole-match replacement is a class escape, complete
+//   when its class holds every metacharacter; a single escaped metacharacter other than the
+//   backslash (the `.` and `$` forms CodeQL flagged) is partial. A backslash-only escape is the
+//   first step of string-literal escaping, not a regex escape.
+// - (the re-freeze after fix round 3) a string literal of one character as the first argument and
+//   a replacement that starts with a backslash: a string-pattern escape. `.replace` with a string
+//   replaces only the first occurrence and `.replaceAll` only that one character, so it is always
+//   partial; it counts when its result reaches `new RegExp` (fr2StringEscapeSites), which a
+//   PostgREST or CSV quote escape never does.
 // A linear scan: indexOf and single passes, no backtracking pattern.
 function fr2EscapeSites(text) {
 	const sites = [];
-	const call = [".rep", "lace("].join("");
-	for (let i = text.indexOf(call); i !== -1; i = text.indexOf(call, i + call.length)) {
-		let k = i + call.length;
-		while (FR2_WS.has(text[k])) k++;
-		if (text[k] !== "/") continue;
-		let body = "";
-		let inClass = false;
-		for (k++; k < text.length && text[k] !== "\n"; k++) {
-			const ch = text[k];
-			if (ch === "\\") {
-				body += ch + (text[k + 1] ?? "");
-				k++;
-				continue;
+	for (const call of FR2_REPLACE_CALLS) {
+		for (let i = text.indexOf(call); i !== -1; i = text.indexOf(call, i + call.length)) {
+			let k = i + call.length;
+			while (FR2_WS.has(text[k])) k++;
+			if (text[k] !== "/") continue;
+			let body = "";
+			let inClass = false;
+			for (k++; k < text.length && text[k] !== "\n"; k++) {
+				const ch = text[k];
+				if (ch === "\\") {
+					body += ch + (text[k + 1] ?? "");
+					k++;
+					continue;
+				}
+				if (!inClass && ch === "/") break;
+				if (ch === "[") inClass = true;
+				else if (ch === "]") inClass = false;
+				body += ch;
 			}
-			if (!inClass && ch === "/") break;
-			if (ch === "[") inClass = true;
-			else if (ch === "]") inClass = false;
-			body += ch;
-		}
-		if (text[k] !== "/") continue;
-		for (k++; k < text.length && text[k] >= "a" && text[k] <= "z"; k++);
-		while (FR2_WS.has(text[k])) k++;
-		if (text[k] !== ",") continue;
-		for (k++; FR2_WS.has(text[k]); k++);
-		if (text[k] !== '"' && text[k] !== "'" && text[k] !== "`") continue;
-		const replacement = fr2Literal(text, k);
-		if (replacement === null || !replacement.startsWith("\\\\")) continue;
-		const line = text.slice(0, i).split("\n").length;
-		if (body.length > 2 && body.startsWith("[") && body.endsWith("]") && replacement === "\\\\$&") {
-			const chars = new Set();
-			const inner = body.slice(1, -1);
-			for (let c = 0; c < inner.length; c++) {
-				if (inner[c] === "\\") {
-					chars.add(inner[c + 1]);
-					c++;
-				} else chars.add(inner[c]);
+			if (text[k] !== "/") continue;
+			for (k++; k < text.length && text[k] >= "a" && text[k] <= "z"; k++);
+			while (FR2_WS.has(text[k])) k++;
+			if (text[k] !== ",") continue;
+			for (k++; FR2_WS.has(text[k]); k++);
+			if (text[k] !== '"' && text[k] !== "'" && text[k] !== "`") continue;
+			const replacement = fr2Literal(text, k);
+			if (replacement === null || !replacement.startsWith("\\\\")) continue;
+			const line = text.slice(0, i).split("\n").length;
+			if (body.length > 2 && body.startsWith("[") && body.endsWith("]") && replacement === "\\\\$&") {
+				const chars = new Set();
+				const inner = body.slice(1, -1);
+				for (let c = 0; c < inner.length; c++) {
+					if (inner[c] === "\\") {
+						chars.add(inner[c + 1]);
+						c++;
+					} else chars.add(inner[c]);
+				}
+				const missing = [...FR2_METACHARS].filter((m) => !chars.has(m)).join("");
+				sites.push({ line, kind: "class", body, complete: missing === "", missing });
+			} else if (body.length === 2 && body[0] === "\\" && body[1] !== "\\" && FR2_METACHARS.includes(body[1])) {
+				sites.push({ line, kind: "single", body, complete: false, missing: FR2_METACHARS.replace(body[1], "") });
 			}
-			const missing = [...FR2_METACHARS].filter((m) => !chars.has(m)).join("");
-			sites.push({ line, kind: "class", body, complete: missing === "", missing });
-		} else if (body.length === 2 && body[0] === "\\" && body[1] !== "\\" && FR2_METACHARS.includes(body[1])) {
-			sites.push({ line, kind: "single", body, complete: false, missing: FR2_METACHARS.replace(body[1], "") });
 		}
 	}
-	return sites;
+	for (const s of fr2StringEscapeSites(text)) if (s.reachesRegExp) sites.push(s);
+	return sites.sort((a, b) => a.line - b.line);
+}
+
+// The value of a string literal's raw text when it is one character: `x`, or a one-character escape
+// (`\\` is a backslash, `\/` a slash, `\$` a dollar). Anything longer is null.
+function fr2OneChar(raw) {
+	if (raw.length === 1 && raw !== "\\") return raw;
+	if (raw.length === 2 && raw[0] === "\\") return raw[1];
+	return null;
+}
+
+// The index just past the string literal opening at text[k] (a ' or "), stopping at a newline so a
+// quote inside a regex literal cannot run the scan away.
+function fr2SkipString(text, k) {
+	const quote = text[k];
+	for (k++; k < text.length; k++) {
+		if (text[k] === "\\") k++;
+		else if (text[k] === quote || text[k] === "\n") return k;
+	}
+	return k;
+}
+
+// The index of the backtick closing the template literal opening at text[k]; `${…}` is code again.
+function fr2SkipTemplate(text, k) {
+	for (k++; k < text.length; k++) {
+		if (text[k] === "\\") k++;
+		else if (text[k] === "`") return k;
+		else if (text[k] === "$" && text[k + 1] === "{") k = fr2SkipCode(text, k + 2, "}");
+	}
+	return k;
+}
+
+// The index of the `close` (")" or "}") that ends the code starting at text[k] at depth 0, skipping
+// strings, templates and comments.
+function fr2SkipCode(text, k, close) {
+	const open = close === ")" ? "(" : "{";
+	let depth = 0;
+	for (; k < text.length; k++) {
+		const ch = text[k];
+		if (ch === '"' || ch === "'") k = fr2SkipString(text, k);
+		else if (ch === "`") k = fr2SkipTemplate(text, k);
+		else if (ch === "/" && text[k + 1] === "/") k = text.indexOf("\n", k) === -1 ? text.length : text.indexOf("\n", k);
+		else if (ch === "/" && text[k + 1] === "*") k = text.indexOf("*/", k + 2) === -1 ? text.length : text.indexOf("*/", k + 2) + 1;
+		else if (ch === open) depth++;
+		else if (ch === close) {
+			if (depth === 0) return k;
+			depth--;
+		}
+	}
+	return k;
+}
+
+// The [start, end) span of each `new RegExp(` call's arguments.
+function fr2RegExpSpans(text) {
+	const spans = [];
+	const needle = ["new Reg", "Exp("].join("");
+	for (let i = text.indexOf(needle); i !== -1; i = text.indexOf(needle, i + needle.length)) {
+		const start = i + needle.length;
+		spans.push([start, fr2SkipCode(text, start, ")")]);
+	}
+	return spans;
+}
+
+const FR2_IDENT_START = /[A-Za-z_$]/;
+const FR2_IDENT = /[\w$]/;
+
+// Whether `name` occurs in `text` as a whole identifier (not after a `.`, not inside a longer name).
+function fr2HasIdentifier(text, name) {
+	for (let i = text.indexOf(name); i !== -1; i = text.indexOf(name, i + 1)) {
+		const before = text[i - 1] ?? "";
+		const after = text[i + name.length] ?? "";
+		if (!FR2_IDENT.test(before) && before !== "." && !FR2_IDENT.test(after)) return true;
+	}
+	return false;
+}
+
+// The name the call at `index` is bound to: the declared name when its line declares one
+// (`const n = …`, `const esc = (s) => …`), or the enclosing function's name when the line returns
+// it (`function esc(s) {` / `const esc = (s) => {` on an earlier line). Null when neither.
+function fr2BoundName(text, index) {
+	const lineStart = text.lastIndexOf("\n", index - 1) + 1;
+	const head = text.slice(lineStart, index).trimStart();
+	const decl = /^(?:export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=/.exec(head);
+	if (decl) return decl[1];
+	if (!/^return\b/.test(head)) return null;
+	let name = null;
+	for (const m of text.slice(0, lineStart).matchAll(/\bfunction\s+([A-Za-z_$][\w$]*)\s*\(|\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:\(|function\b)/g)) name = m[1] ?? m[2];
+	return name;
+}
+
+// Every string-pattern escape-style replace: `.replace("<c>", "\…")` / `.replaceAll("<c>", "\…")`
+// with one character c, and whether its result reaches `new RegExp`: the call sits inside a
+// `new RegExp(` argument list, or the name it is bound to (fr2BoundName) is read there.
+function fr2StringEscapeSites(text) {
+	const out = [];
+	let spans = null;
+	for (const call of FR2_REPLACE_CALLS) {
+		for (let i = text.indexOf(call); i !== -1; i = text.indexOf(call, i + call.length)) {
+			let k = i + call.length;
+			while (FR2_WS.has(text[k])) k++;
+			if (text[k] !== '"' && text[k] !== "'" && text[k] !== "`") continue;
+			const patternRaw = fr2Literal(text, k);
+			if (patternRaw === null) continue;
+			const c = fr2OneChar(patternRaw);
+			if (c === null) continue;
+			k += patternRaw.length + 2;
+			while (FR2_WS.has(text[k])) k++;
+			if (text[k] !== ",") continue;
+			for (k++; FR2_WS.has(text[k]); k++);
+			if (text[k] !== '"' && text[k] !== "'" && text[k] !== "`") continue;
+			const replacement = fr2Literal(text, k);
+			if (replacement === null || !replacement.startsWith("\\\\")) continue;
+			spans ??= fr2RegExpSpans(text);
+			const inside = spans.some(([a, b]) => i >= a && i < b);
+			const name = inside ? null : fr2BoundName(text, i);
+			const viaName = name !== null && spans.some(([a, b]) => fr2HasIdentifier(text.slice(a, b), name));
+			const line = text.slice(0, i).split("\n").length;
+			out.push({ line, kind: "string", body: `${call}${JSON.stringify(c)})`, complete: false, missing: [...FR2_METACHARS].filter((m) => m !== c).join(""), reachesRegExp: inside || viaName, via: inside ? "inside new RegExp" : viaName ? `through ${name}` : null });
+		}
+	}
+	return out;
 }
 
 function fr2UnitFile(ctx, path) {
@@ -1341,7 +1509,8 @@ function fixRound2Checks(ctx) {
 	const sites = [];
 	for (const [path, text] of Object.entries(ctx.sources ?? {})) for (const s of fr2EscapeSites(text)) sites.push({ path, ...s });
 	const partial = sites.filter((s) => !s.complete);
-	add("fr2-escape-complete", "every escape-style replace in a tracked JS/TS file escapes every regex metacharacter", Object.keys(ctx.sources ?? {}).length > 0 && partial.length === 0, "0 partial", { sites: sites.length, partial: partial.map((s) => `${s.path}:${s.line} ${s.kind} ${s.body} (missing ${s.missing})`) });
+	const stringSites = Object.entries(ctx.sources ?? {}).flatMap(([path, text]) => fr2StringEscapeSites(text).map((s) => ({ path, ...s })));
+	add("fr2-escape-complete", "every escape-style replace in a tracked JS/TS file escapes every regex metacharacter, and no string-pattern escape reaches new RegExp", Object.keys(ctx.sources ?? {}).length > 0 && partial.length === 0, "0 partial", { sites: sites.length, partial: partial.map((s) => `${s.path}:${s.line} ${s.kind} ${s.body} (missing ${s.missing})${s.via ? `, ${s.via}` : ""}`), stringPatternEscapes: { reachingRegExp: stringSites.filter((s) => s.reachesRegExp).length, notReaching: stringSites.filter((s) => !s.reachesRegExp).map((s) => `${s.path}:${s.line} ${s.body}`) } });
 	const outside = sites.filter((s) => FR2_TEST_ROOTS.some((r) => s.path.startsWith(r)) && !FR2_ESCAPE_HOMES.includes(s.path));
 	const mainDrift = FR2_MAIN_COPIES.filter((p) => ctx.sources?.[p] !== ctx.mainSources?.[p]);
 	add("fr2-escape-homes", "escape helpers under src/, scripts/, tests/ and supabase/functions/__tests__/ live only in the shared helper and main's reclaim-finalize.ts", outside.length === 0 && mainDrift.length === 0, FR2_ESCAPE_HOMES, { elsewhere: outside.map((s) => `${s.path}:${s.line}`), differsFromMain: mainDrift });
@@ -1352,7 +1521,7 @@ function fixRound2Checks(ctx) {
 	const app = diff.filter((p) => fr2PathClass(p) === "application");
 	const recorded = (ctx.paths?.paths ?? []).map((p) => `${p.path}\t${p.class}`);
 	const derived = diff.map((p) => `${p}\t${fr2PathClass(p)}`);
-	add("fr2-scope", `the code diff since ${FR2_BASE.slice(0, 9)} holds ${FR2_DIFF_PATHS} paths, none of them application code, and matches f39/fix-round-2-paths.json`, diff.length === FR2_DIFF_PATHS && app.length === 0 && sortedJson(recorded) === sortedJson(derived), { paths: FR2_DIFF_PATHS, application: 0 }, { paths: diff.length, application: app, recordedMatches: sortedJson(recorded) === sortedJson(derived) });
+	add("fr2-scope", `fix round 2's code diff ${FR2_BASE.slice(0, 9)}..${FR2_CODE_STATE.slice(0, 9)} holds ${FR2_DIFF_PATHS} paths, none of them application code, and matches f39/fix-round-2-paths.json`, diff.length === FR2_DIFF_PATHS && app.length === 0 && sortedJson(recorded) === sortedJson(derived), { paths: FR2_DIFF_PATHS, application: 0 }, { paths: diff.length, application: app, recordedMatches: sortedJson(recorded) === sortedJson(derived) });
 	const bi = ctx.buildIdentity ?? {};
 	const css = Object.values(bi.compiledCss ?? {});
 	const builds = Array.isArray(bi.builds) ? bi.builds : [];
@@ -1377,7 +1546,6 @@ function readFixRound2Context(dir) {
 	const viaAlias = ["from \"#test/utils/", "regexp-source\""].join("");
 	const viaSibling = ["from \"./", "regexp-source\""].join("");
 	const importsHelper = (path, text) => text.includes(viaAlias) || (path.startsWith("src/test/utils/") && text.includes(viaSibling));
-	const codeState = git(["log", "-1", "--format=%H", "--", ".", ":(exclude).planning"]).trim();
 	const yaml = createRequire(join(ROOT, "package.json"))("yaml");
 	const sweepText = readFileSync(join(ROOT, "scripts/mutation-sweep.sh"), "utf8");
 	return {
@@ -1392,13 +1560,20 @@ function readFixRound2Context(dir) {
 		helperImporters: Object.entries(sources)
 			.filter(([p, t]) => p !== FR2_HELPER && importsHelper(p, t))
 			.map(([p]) => p),
-		diffPaths: git(["diff", "--name-only", FR2_BASE, codeState, "--", ".", ":(exclude).planning"]).split("\n").filter(Boolean),
+		diffPaths: git(["diff", "--name-only", FR2_BASE, FR2_CODE_STATE, "--", ".", ":(exclude).planning"]).split("\n").filter(Boolean),
 		exists: (rel) => existsSync(join(ROOT, rel)),
 	};
 }
 
 // Builds call text for the fixtures without this file holding a scannable call.
 const FR2_CALL = [".rep", "lace("].join("");
+const FR2_CALL_ALL = [".rep", "laceAll("].join("");
+const FR2_NEW_REGEXP = ["new Reg", "Exp("].join("");
+// Fixture texts for the string-pattern form (the re-freeze after fix round 3). The first is
+// group-markers.test.ts's site at ec7353b2d: a first-occurrence "/" escape inside new RegExp.
+const FR2_STRING_IN_REGEXP = `const re = ${FR2_NEW_REGEXP}\`group-[\\\\w-]+\${name${FR2_CALL}"/", "\\\\/")}:\`);\n`;
+const FR2_STRING_THROUGH_NAME = `const n = s${FR2_CALL_ALL}".", "\\\\.");\nconst re = ${FR2_NEW_REGEXP}n);\n`;
+const FR2_STRING_THROUGH_FUNCTION = `function esc(s) {\n\treturn s${FR2_CALL}"$", "\\\\$");\n}\nconst re = ${FR2_NEW_REGEXP}\`^\${esc(x)}\`);\n`;
 
 function fixRound2Fixture() {
 	const pass = (path, titles = []) => ({ name: path, status: "passed", numTests: titles.length + 1, numPassed: titles.length + 1, tests: [...titles.map((title) => ({ title, status: "passed" })), { title: `${path} other`, status: "passed" }] });
@@ -1437,7 +1612,7 @@ function fixRound2Fixture() {
 		paths: { paths: diffPaths.map((path) => ({ path, class: fr2PathClass(path) })) },
 		workflow: { jobs: { sweep: { "timeout-minutes": FR2_SHARD_TIMEOUT_MINUTES, strategy: { "fail-fast": false, matrix: { shard: [1, 2, 3, 4, 5, 6, 7, 8] } }, env: { SWEEP_SHARD: "${{ matrix.shard }}", SWEEP_SHARDS: "${{ strategy.job-total }}" }, steps: [{ run: "bun install --frozen-lockfile" }, { run: "bash scripts/mutation-sweep.sh" }] } } },
 		sweepRows: 179,
-		sources: { [FR2_HELPER]: complete, "scripts/reclaim-finalize.ts": complete, ".planning/x/tool.mjs": complete, "src/lib/sanitize.ts": `s${FR2_CALL}/\\\\/g, "\\\\\\\\");\n` },
+		sources: { [FR2_HELPER]: complete, "scripts/reclaim-finalize.ts": complete, ".planning/x/tool.mjs": complete, "src/lib/sanitize.ts": `s${FR2_CALL}/\\\\/g, "\\\\\\\\");\n`, "src/lib/csv-quote.ts": `v${FR2_CALL_ALL}'"', '\\\\"');\nconst re = ${FR2_NEW_REGEXP}v${FR2_CALL}"a", "b"));\n` },
 		mainSources: { "scripts/reclaim-finalize.ts": complete },
 		helperImporters: [FR2_HELPER_TEST.path, ...FR2_HELPER_USERS.map((u) => u.path)],
 		diffPaths,
@@ -1492,6 +1667,21 @@ const FR2_MUTATIONS = [
 	["main's copy edited", "fr2-escape-homes", (f) => {
 		f.sources["scripts/reclaim-finalize.ts"] += "// edited\n";
 	}],
+	["a regex-literal escape through replaceAll", ["fr2-escape-complete", "fr2-escape-homes"], (f) => {
+		f.sources["src/lib/__tests__/ra.test.ts"] = `n${FR2_CALL_ALL}/\\$/g, "\\\\$");\n`;
+	}],
+	["a first-occurrence string escape inside new RegExp (group-markers at ec7353b2d)", ["fr2-escape-complete", "fr2-escape-homes"], (f) => {
+		f.sources["src/components/__tests__/gm.test.ts"] = FR2_STRING_IN_REGEXP;
+	}],
+	["a replaceAll string escape bound to a name new RegExp reads", ["fr2-escape-complete", "fr2-escape-homes"], (f) => {
+		f.sources["src/lib/__tests__/sn.test.ts"] = FR2_STRING_THROUGH_NAME;
+	}],
+	["a string escape returned by a function new RegExp calls", ["fr2-escape-complete", "fr2-escape-homes"], (f) => {
+		f.sources["scripts/sf.test.ts"] = FR2_STRING_THROUGH_FUNCTION;
+	}],
+	["a string escape into new RegExp outside the test roots", "fr2-escape-complete", (f) => {
+		f.sources[".planning/x/tool2.mjs"] = FR2_STRING_IN_REGEXP;
+	}],
 	["the nested comment run is back", "fr2-old-redos", (f) => {
 		f.sources["src/components/__tests__/n.test.tsx"] = `const GAP = String.raw\`\\s*(?:\\{\\/\\*${FR2_OLD_REDOS[0][1]}\`;\n`;
 	}],
@@ -1520,6 +1710,337 @@ function fixRound2SelfTest(failures) {
 		else failures.push(`fix-round-2 "${name}": failed groups ${JSON.stringify(r.failedGroups)}, expected ${JSON.stringify(want)}`);
 	}
 	return passed;
+}
+
+// ---------- --fix-round-3 ----------
+
+// Fix round 3 answers perfect-PR cycle 2 (139 findings on 36972318f, code state f8de0175e): Parts 1
+// to 8 plus 6b, 6c and 7b, then 852158ab4 (round 3's two guard names through the shared regexp
+// helper) and Part 6d (5ab6b39e3, b7f25511b: the tour step kept inside the viewport, after this
+// re-freeze's second run found step 1's footer off screen at 1280x800). It changed application
+// code, migrations, replay scripts, Edge sources and vendored ui files, so the re-freeze re-ran every
+// step; this mode pins what that run must keep.
+const FR3_PREV_FROZEN = "36972318f30401edad3831ea624b8e281f73c3aa";
+const FR3_BASE = "f8de0175e3e2c76e1429956ab4f3d5c675a0789f";
+const FR3_CODE_STATE = "b7f25511b600b9cf1edd50bc56c41de55e02f29a";
+// The sweep, the replay, the Deno checks and the Edge bundles were measured on 852158ab4; Part 6d
+// changed none of their inputs (FR3_FRESH), so they count as measured on the code state only while
+// `git diff --quiet FR3_MEASURED_EARLIER FR3_CODE_STATE -- <inputs>` holds.
+const FR3_MEASURED_EARLIER = "852158ab4608087800ea3495a1de7a5ceed2715b";
+const FR3_SWEEP_ROWS = 185;
+const FR3_SHARD_ROWS = [24, 23, 23, 23, 23, 23, 23, 23];
+const FR3_MIGRATIONS = 357;
+const FR3_FUNCTIONS = 17;
+// The functions whose `deno bundle` differs between d9c7329f0 and the code state: the redeploy list.
+const FR3_DEPLOY = ["export-report", "generate-pdf", "lease-signature", "n8n-blog-ingest"];
+// The in-process Deno tests (CLAUDE.md's four, Part 4's export-report and generate-pdf) and their
+// counts at the code state.
+const FR3_DENO_TESTS = { "send-lease-reminders-test.ts": 25, "lease-signature-metering-test.ts": 5, "lease-signing-test.ts": 12, "rate-limit-sentry-test.ts": 2, "export-report-test.ts": 16, "generate-pdf-test.ts": 9 };
+const FR3_PR_BODY = ".planning/phases/66.2-tailwind-v4-and-shadcn-ui-canonical-remediation/66.2-PR-BODY.md";
+const FR3_SECTION = "## Fix round 3 (after perfect-PR cycle 2)";
+const FR3_VD_IDS = Array.from({ length: FR_VD_LAST - 129 }, (_, i) => `VD-${130 + i}`);
+// Every guard test fix round 3's parts added or widened (the part reports), with every title it
+// must still carry and, for a widened guard, a code marker of the widening (read from disk).
+const FR3_GUARD_TESTS = [
+	{ path: "src/hooks/api/__tests__/rent-ledger-invalidation.test.tsx", part: "2 (F107)", titles: ["a rent-ledger write invalidates every ledger-fed query recording a receipt", "a rent-ledger write invalidates every ledger-fed query adding a line", "a rent-ledger write invalidates every ledger-fed query reversing an entry", "a rent-ledger write invalidates every ledger-fed query starting tracking, which also refreshes the lease", "the ledger readers the fan-out covers names every module in src/hooks/api that reads the ledger"] },
+	{ path: "src/hooks/api/__tests__/data-layer-callers.test.ts", part: "2 (OD-4, nested members)", titles: ["src/hooks/api has no code without a production caller examines the data layer (the sweep is not vacuous)", "src/hooks/api has no code without a production caller every hook, leaf, key entry and mutation factory is called from production code"], markers: ["const nestedBody = objectBody(text, nestedOpen);"] },
+	{ path: "src/types/__tests__/api-contracts-exports-imported.test.ts", part: "7b", titles: ["src/types/api-contracts.ts exports only what another file imports leaves no export without an importer", "src/types/api-contracts.ts exports only what another file imports flags an export no file imports, and counts alias, relative and multi-line imports"] },
+	{ path: "src/components/__tests__/list-base-rule-neutralized.test.ts", part: "7b", titles: ["every list cancels the base ul, ol and li rules rests on the globals.css rules it guards against", "every list cancels the base ul, ol and li rules leaves no open list outside the deferred and intended files", "every list cancels the base ul, ol and li rules reads both className forms and flags each open value"] },
+	{ path: "src/components/__tests__/billing-auth-lists-base-rules.test.tsx", part: "7b", titles: ["the billing, auth and marketing lists cancel the base list rules the password checklist", "the billing, auth and marketing lists cancel the base list rules the upgrade dialog's gained features and its closing note", "the billing, auth and marketing lists cancel the base list rules an expiring lease's tenant and property lines"] },
+	{ path: "src/components/__tests__/heading-block-paragraph-margin.test.ts", part: "6b (G2h)", titles: ["heading subtitles carry no base paragraph margin rests on the globals.css rule it guards against", "heading subtitles carry no base paragraph margin leaves no bare subtitle in a flex item outside the deferred files", "heading subtitles carry no base paragraph margin finds both shapes and skips a subtitle that declares its margin"] },
+	{ path: "src/components/ui/__tests__/button-caller-states.test.ts", part: "5 (OD-2)", titles: ["a caller's Button colors hold in both themes (66.2-39 F7) flags an untwinned caller class and passes a twinned one (fixtures)", "a caller's Button colors hold in both themes (66.2-39 F7) flags a state color on a Slot child and passes its layout (fixtures)", "a caller's Button colors hold in both themes (66.2-39 F7) leaves a Slot child's own classes free of state colors in shipped src", "a caller's Button colors hold in both themes (66.2-39 F7) leaves no caller class to a variant's dark class in shipped src"] },
+	{ path: "src/app/__tests__/state-fill-contrast.test.ts", part: "5 (merged classes)", titles: ["state fills keep their labels at 4.5:1 (66.2-39 fix round 1, part F) measures every state pair in shipped src", "state fills keep their labels at 4.5:1 (66.2-39 fix round 1, part F) leaves no label under 4.5:1 in any state, either theme", "state fills keep their labels at 4.5:1 (66.2-39 fix round 1, part F) reads the pairs the way the cascade paints them (fixtures)"], markers: ['import { buttonClasses, buttonSites } from "#test/utils/button-sites";'] },
+	{ path: "src/components/ui/__tests__/button-link-base-rule.test.tsx", part: "5 (OD-3)", titles: ["the base anchor rules pass a Button-styled link by the default variant", "the base anchor rules pass a Button-styled link by the ghost variant", "the base anchor rules pass a Button-styled link by the link variant", "the base anchor rules pass a Button-styled link by and still style a plain text link"] },
+	{ path: "src/components/__tests__/no-hover-on-static-elements.test.ts", part: "5 (F56, by driver)", titles: ["hover affordances sit on controls flags a static card and passes a control", "hover affordances sit on controls finds none outside the reviewed controls-by-context", "hover affordances sit on controls keeps every reviewed entry live"], markers: ["const drivers = new Set<Node>();"] },
+	{ path: "src/components/__tests__/group-markers.test.ts", part: "5 (F66)", titles: ["group markers have a consumer (66.2-39 fix round 3, F66) flags a marker nothing reads and passes one something does (fixtures)", "group markers have a consumer (66.2-39 fix round 3, F66) leaves no orphaned marker in the swept files"], markers: ["escapeRegExp(name)"] },
+	{ path: "src/components/ui/__tests__/chart-recharts-classes.test.tsx", part: "6c", titles: ["ChartContainer's recharts rules against recharts 3.10.1 paints every axis tick label with the muted-foreground rule", "ChartContainer's recharts rules against recharts 3.10.1 reaches what each other rule is written for"] },
+	{ path: "src/components/__tests__/ids-not-shown-as-text.test.tsx", part: "6c (names, _id columns, foreign keys)", titles: ["no id is shown as text renders no id as a JSX child, whole or cut", "no id is shown as text collects the names the UI gives an id (the name scan is not vacuous)", "no id is shown as text follows an id through a name into JSX (planted fixture)", "no id is shown as text catches the shapes it names (positive controls)"], markers: ["const FOREIGN_KEY_COLUMNS = [", "escapeRegExp(name)"] },
+	{ path: "src/components/maintenance/__tests__/maintenance-list-names.test.tsx", part: "6c", titles: ["the maintenance page names each request's property and unit prints them on every board card, never the unit's id", "the maintenance page names each request's property and unit prints them in the table's Location column", "the maintenance page names each request's property and unit finds a request by its property's name"] },
+	{ path: "src/components/leases/detail/__tests__/lease-details-embeds.test.tsx", part: "7", titles: ["the lease page reads its tenant and unit from the lease names the 51st tenant and shows the 51st unit on the Details tab", "the lease page reads its tenant and unit from the lease links the 51st unit from the sidebar", "the lease page reads its tenant and unit from the lease selects both embeds and maps them onto the lease"] },
+	{ path: "src/components/leases/__tests__/lease-edit-unit-preselect.test.tsx", part: "7, 7b", titles: ["the lease edit page opens on the lease's property and unit", "the lease edit page names the lease's tenant, property and unit when the capped pickers leave them out"] },
+	{ path: "src/components/__tests__/card-padding-v4.test.tsx", part: "6b (G4)", titles: ["cards pad as the v4 Card does the lease ledger's balance tiles: 16px all round", "cards pad as the v4 Card does the lease details card: the Card's own 24px, nothing added", "cards pad as the v4 Card does the signature status error: 16px above and below its line"] },
+	{ path: "src/components/leases/detail/__tests__/lease-card-padding.test.tsx", part: "6b (G4)", titles: ["the lease page's cards pads each metric tile 16px all round", "the lease page's cards pads the load-error card with the Card's own 24px"] },
+	{ path: "src/app/(owner)/reports/__tests__/report-tile-spacing.test.tsx", part: "5 (Part 3's extras)", titles: ["report tiles hold their declared spacing cash flow's activity tiles", "report tiles hold their declared spacing the tax documents' summary cards and vendor rows", "report tiles hold their declared spacing the year-end summary cards"] },
+	{ path: "src/lib/reports/__tests__/report-data-notes.test.ts", part: "3 (F121, F122)", titles: ["each table says what it lists when empty the period reports", "each fallback's note is under the section its read feeds executive: a failed occupancy read notes Key Metrics, not the rent table", "each fallback's note is under the section its read feeds maintenance: a failed read notes the zeros and each empty table, never 'does not report'"] },
+	{ path: "scripts/mutation-sweep.test.ts", part: "1 (F102, the sweep section guard)", titles: ["the mutation sweep's shards puts each row under its own module's section", "the mutation sweep's shards splits the rows into disjoint, non-empty shards whose union is every row"] },
+	{ path: "scripts/migration-replay-assertions.test.ts", part: "1 (F97, F138, OD-1)", titles: ["the assertions module's exports exports only what a script beside it imports", "assertOwnerFiguresComputed fails when the dashboard's series count only the leases active today", "expectedOwnerFigures draws the 30-day series from T-29 to T and the 6-month one to M0"] },
+	{ path: "tests/e2e/lib/__tests__/e2e-support-exports-have-callers.test.ts", part: "7 (F84, git ls-files)", titles: ["Playwright support modules export only what is imported (66.2-39 fix round 1, part F) leaves no support-module export without an importer", "Playwright support modules export only what is imported (66.2-39 fix round 1, part F) flags an uncalled export and passes every import form"], markers: ['execFileSync("git", ["ls-files", "-z"]'] },
+	{ path: "tests/e2e/lib/__tests__/reflow-newest-record.test.ts", part: "7 (F90)", titles: ["newestRecord returns the newest record's id", "newestRecord says owner A has no record only when the query returned none", "newestRecord fails with the error when the query failed", "newestRecord fails when the response is not a rows array or the row has no id"] },
+	{ path: "src/providers/__tests__/query-cache-buster.test.ts", part: "3 (v7)", titles: ["QUERY_CACHE_BUSTER is past v1 to v6, whose entries have the old shapes"] },
+	{ path: "src/components/ui/__tests__/tour-viewport-fit.test.tsx", part: "6d", titles: ["Tour keeps every step inside the viewport runs offset, flip, shift, size, then arrow", "Tour keeps every step inside the viewport flips by side-axis overflow and shifts on both axes, limited to the target", "Tour keeps every step inside the viewport sizes with the same 16px collision padding as flip and shift", "Tour keeps every step inside the viewport publishes the available space as CSS variables, clamped at 0", "Tour keeps every step inside the viewport caps the step with those variables and lets the header, not the footer, give way", "Tour keeps every step inside the viewport gives the header a tab stop only while it scrolls"] },
+];
+
+// The evidence files this re-freeze re-measured, each with the field that names the tree it was
+// measured on: every one must name the code state (or, for the screenshot and probe diffs, the
+// previous FROZEN head as their same-session baseline and the code state as their head). The
+// third entry, where present, lists the inputs of a step measured on FR3_MEASURED_EARLIER: that
+// measurement counts only while none of those inputs changed since (ctx.carryUnchanged).
+const FR3_CARRY_INPUTS = {
+	"sweep-f39.json": ["scripts", "src/lib", ".github/workflows/mutation-sweep.yml"],
+	"replay-f39.json": ["supabase", "scripts", ".github/workflows/migration-replay.yml"],
+	"deno-f39.json": ["supabase/functions"],
+	"edge-bundles-f39.json": ["supabase/functions"],
+};
+const FR3_FRESH = [
+	["unit-f39-summary.json", (j) => j?.tree],
+	["e2e-f39-summary.json", (j) => j?.tree],
+	["sweep-f39.json", (j) => j?.tree, FR3_CARRY_INPUTS["sweep-f39.json"]],
+	["replay-f39.json", (j) => j?.tree, FR3_CARRY_INPUTS["replay-f39.json"]],
+	["deno-f39.json", (j) => j?.tree, FR3_CARRY_INPUTS["deno-f39.json"]],
+	["edge-bundles-f39.json", (j) => j?.head, FR3_CARRY_INPUTS["edge-bundles-f39.json"]],
+	["csp-f39.json", (j) => j?.tree],
+	["probes-diff-f39.json", (j) => j?.head],
+	["vendored-inventory-f39.json", (j) => j?.tree],
+	["m1-delta.json", (j) => j?.tree],
+];
+
+function fr3Tree(v) {
+	return typeof v === "string" && v.startsWith(FR3_CODE_STATE.slice(0, 9));
+}
+
+function fixRound3Checks(ctx) {
+	const c = createCollector("FR-3", "fix-round-3");
+	const add = (group, name, pass, expected, measured) => {
+		c.add(name, pass, expected, measured);
+		c.checks[c.checks.length - 1].group = group;
+	};
+	for (const g of FR3_GUARD_TESTS) {
+		const f = (ctx.unit?.files ?? []).find((x) => x.name === g.path);
+		const missingTitles = g.titles.filter((t) => !f?.tests?.some((x) => x.title === t && x.status === "passed"));
+		const src = ctx.guardSources?.[g.path] ?? "";
+		const missingMarkers = (g.markers ?? []).filter((m) => !src.includes(m));
+		const ok = Boolean(f) && f.status === "passed" && f.numTests > 0 && f.numPassed === f.numTests && missingTitles.length === 0 && missingMarkers.length === 0;
+		add(`fr3-guard:${g.path}`, `fix round 3 guard ${g.path} (part ${g.part}) present and passing, with its ${g.titles.length} title(s)${g.markers ? " and its widening" : ""}`, ok, "passed", f ? { status: f.status, numTests: f.numTests, numPassed: f.numPassed, missingTitles, missingMarkers } : MISSING);
+	}
+	add("fr3-code-state", `the code state is ${FR3_CODE_STATE.slice(0, 9)} (the last commit outside .planning/)`, ctx.codeState === FR3_CODE_STATE, FR3_CODE_STATE, ctx.codeState ?? MISSING);
+	const carried = (name, v) => Boolean(FR3_CARRY_INPUTS[name]) && typeof v === "string" && v.startsWith(FR3_MEASURED_EARLIER.slice(0, 9)) && ctx.carryUnchanged?.[name] === true;
+	const stale = FR3_FRESH.filter(([name, pick]) => !fr3Tree(pick(ctx.evidence?.[name])) && !carried(name, pick(ctx.evidence?.[name]))).map(([name, pick]) => `${name}: ${pick(ctx.evidence?.[name]) ?? MISSING}${FR3_CARRY_INPUTS[name] ? ` (inputs unchanged since ${FR3_MEASURED_EARLIER.slice(0, 9)}: ${ctx.carryUnchanged?.[name] ?? MISSING})` : ""}`);
+	const screenBaselines = [...new Set((ctx.screens ?? []).map((s) => s.baseline))];
+	const screensFresh = (ctx.screens ?? []).length > 0 && screenBaselines.length === 1 && screenBaselines[0] === FR3_PREV_FROZEN.slice(0, 9) && (ctx.screens ?? []).every((s) => fr3Tree(s.head));
+	const probesFresh = ctx.evidence?.["probes-diff-f39.json"]?.baseline === FR3_PREV_FROZEN.slice(0, 9);
+	add("fr3-fresh", "every evidence file this re-freeze owns was measured on the code state, and the screenshot and probe diffs against a same-session 36972318f", stale.length === 0 && screensFresh && probesFresh, "all on the code state", { stale, screenBaselines, screensFresh, probesBaseline: ctx.evidence?.["probes-diff-f39.json"]?.baseline ?? MISSING });
+	const pdx = ctx.evidence?.["probes-diff-f39.json"] ?? {};
+	const pdDiffs = Array.isArray(pdx.diffs) ? pdx.diffs : [];
+	const pdNoise = Array.isArray(pdx.noise) ? pdx.noise : [];
+	const badDiffs = pdDiffs.filter((x) => x.class !== "intended" || !(typeof x.ref === "string" && x.ref.length > 0) || !Array.isArray(x.vd) || x.vd.length === 0 || !x.vd.every((v) => FR_VD_IDS.includes(v)));
+	// Noise only when the same field varies across same-session repeats of the one tree: the
+	// repeats hold at least two values, the head's among them.
+	const badNoise = pdNoise.filter((x) => x.class !== "noise" || !Array.isArray(x.repeatValues) || new Set(x.repeatValues.map((v) => JSON.stringify(v))).size < 2 || !x.repeatValues.some((v) => JSON.stringify(v) === JSON.stringify(x.head)) || !x.repeatValues.some((v) => JSON.stringify(v) === JSON.stringify(x.old)));
+	add("fr3-probes", "every component-probe difference from 36972318f is intended under a VD row, or noise the same field shows across same-session repeats of the code state", Array.isArray(pdx.diffs) && badDiffs.length === 0 && badNoise.length === 0, "0 unattributed", { diffs: pdDiffs.length, noise: pdNoise.map((x) => `${x.id} ${x.field} ${JSON.stringify(x.old)} -> ${JSON.stringify(x.head)}`), badDiffs: badDiffs.map((x) => `${x.id} ${x.field}`), badNoise: badNoise.map((x) => `${x.id} ${x.field}`) });
+	const sw = ctx.evidence?.["sweep-f39.json"] ?? {};
+	const shards = Array.isArray(sw.shards) ? sw.shards : [];
+	const sweepOk = ctx.sweepRows === FR3_SWEEP_ROWS && sw.rows === FR3_SWEEP_ROWS && sw.caught === FR3_SWEEP_ROWS && sw.vacuous === 0 && sw.notApplied === 0 && sw.restored === true && sortedJson(shards.map((s) => s.rows)) === sortedJson(FR3_SHARD_ROWS) && shards.every((s, i) => s.rows === FR3_SHARD_ROWS[i] && s.caught === s.rows && s.vacuous === 0 && s.notApplied === 0 && s.restored === true) && sw.listing?.rows === FR3_SWEEP_ROWS && sw.listing?.disjoint === true;
+	add("fr3-sweep", `the mutation sweep holds ${FR3_SWEEP_ROWS} rows, every one caught unsharded and in shards of ${FR3_SHARD_ROWS.join(", ")}`, sweepOk, { rows: FR3_SWEEP_ROWS, shards: FR3_SHARD_ROWS }, { scriptRows: ctx.sweepRows ?? MISSING, unsharded: { rows: sw.rows ?? MISSING, caught: sw.caught ?? MISSING, vacuous: sw.vacuous ?? MISSING, notApplied: sw.notApplied ?? MISSING }, shards: shards.map((s) => `${s.rows}/${s.caught}`) });
+	const rp = ctx.evidence?.["replay-f39.json"] ?? {};
+	add("fr3-replay", `the migration replay applies all ${FR3_MIGRATIONS} files from empty on the code state, every gate exit 0`, rp.files === FR3_MIGRATIONS && rp.applied === FR3_MIGRATIONS && ctx.migrationsCount === FR3_MIGRATIONS && FR_REPLAY_GATES.every((g) => rp.gates?.[g] === 0), { files: FR3_MIGRATIONS }, { files: rp.files ?? MISSING, applied: rp.applied ?? MISSING, tree: ctx.migrationsCount ?? MISSING, gates: rp.gates ?? MISSING });
+	const dn = ctx.evidence?.["deno-f39.json"] ?? {};
+	const exits = Object.values(dn.check?.exits ?? {});
+	const testsOk = Object.entries(FR3_DENO_TESTS).every(([t, n]) => dn.tests?.[t]?.passed === n && dn.tests?.[t]?.failed === 0);
+	add("fr3-deno", `deno check is clean on all ${FR3_FUNCTIONS} functions and the in-process Deno tests pass at their counts`, exits.length === FR3_FUNCTIONS && exits.every((x) => x === 0) && testsOk, { functions: FR3_FUNCTIONS, tests: FR3_DENO_TESTS }, { functions: exits.length, nonZero: Object.entries(dn.check?.exits ?? {}).filter(([, x]) => x !== 0).map(([k]) => k), tests: dn.tests ?? MISSING });
+	const ed = ctx.evidence?.["edge-bundles-f39.json"] ?? {};
+	const fns = Array.isArray(ed.functions) ? ed.functions : [];
+	const differing = fns.filter((f) => f.bundle === "different").map((f) => f.fn);
+	const deployCmd = /deploy-edge-functions\.ts ([a-z0-9 -]+?)`/.exec(ctx.prBody ?? "");
+	const bodySlugs = deployCmd ? deployCmd[1].trim().split(/\s+/) : [];
+	add("fr3-edge", "the redeploy list is exactly the four functions whose bundle differs from d9c7329f0 (all 17 bundled), and the PR body's deploy command names exactly them", fns.length === FR3_FUNCTIONS && fns.every((f) => f.baseExit === 0 && f.headExit === 0) && sortedJson(differing) === sortedJson(FR3_DEPLOY) && sortedJson(ed.deploy ?? []) === sortedJson(FR3_DEPLOY) && sortedJson(bodySlugs) === sortedJson(FR3_DEPLOY), FR3_DEPLOY, { bundled: fns.length, differing, deploy: ed.deploy ?? MISSING, prBodyCommand: bodySlugs });
+	const at = ctx.parityAttribution?.fixRound3 ?? {};
+	const keyed = [...(at.added ?? []), ...(at.removed ?? []), ...(at.reversedFixRound1 ?? [])];
+	const badKeys = keyed.filter((r) => !(Array.isArray(r.commits) && r.commits.length > 0 && Array.isArray(r.vd) && r.vd.length > 0 && r.vd.every((v) => v === "comment-only" || FR_VD_IDS.includes(v))));
+	const lists = ctx.parity?.lists ?? {};
+	const parityOk = ctx.parity?.counts?.unclassified === 0 && sortedJson(lists["intended:fix-round-3-added"] ?? []) === sortedJson((at.added ?? []).map((r) => r.key)) && sortedJson(lists["intended:fix-round-3-removed"] ?? []) === sortedJson((at.removed ?? []).map((r) => r.key)) && keyed.length > 0 && badKeys.length === 0 && (ctx.parityAttribution?.unattributed ?? []).length === 0;
+	add("fr3-parity", "rule parity: every key fix round 3 added or removed has its commit and VD row, and the FINAL -> f39 diff classifies exactly those keys as fix round 3's", parityOk, "0 unclassified, 0 unattributed", { unclassified: ctx.parity?.counts?.unclassified ?? MISSING, added: (at.added ?? []).length, removed: (at.removed ?? []).length, reversed: (at.reversedFixRound1 ?? []).length, badKeys: badKeys.map((r) => r.key), unattributed: ctx.parityAttribution?.unattributed ?? MISSING });
+	const body = ctx.prBody ?? "";
+	const sec = body.indexOf(`\n${FR3_SECTION}\n`);
+	const fr2 = body.indexOf("\n## Fix round 2 ");
+	const after = body.indexOf("\n## After merge, in this order\n");
+	const table = [...body.matchAll(/^\| (VD-1[3-5]\d) \| /gm)].map((m) => m[1]);
+	add("fr3-pr-body", `the PR body carries the fix-round-3 section after fix round 2 and before After merge, and its VD table lists VD-130..VD-${FR_VD_LAST} once each`, sec !== -1 && fr2 !== -1 && after !== -1 && fr2 < sec && sec < after && sortedJson(table) === sortedJson(FR3_VD_IDS), { section: FR3_SECTION, vd: "VD-130..VD-150" }, { section: sec, fixRound2: fr2, afterMerge: after, table });
+	const diff = ctx.diffPaths ?? [];
+	const recorded = (ctx.paths?.paths ?? []).map((p) => `${p.status}\t${p.path}`);
+	add("fr3-scope", `fix round 3's code diff ${FR3_BASE.slice(0, 9)}..${FR3_CODE_STATE.slice(0, 9)} equals f39/fix-round-3-paths.json`, diff.length > 0 && sortedJson(recorded) === sortedJson(diff), diff.length, { paths: diff.length, recorded: recorded.length, missing: diff.filter((p) => !recorded.includes(p)).slice(0, 10), extra: recorded.filter((p) => !diff.includes(p)).slice(0, 10) });
+	const failedGroups = [...new Set(c.checks.filter((k) => !k.pass).map((k) => k.group))];
+	return { mode: "fix-round-3", checks: c.checks, failedGroups, failed: c.checks.filter((k) => !k.pass).length };
+}
+
+function readFixRound3Context(dir) {
+	const j = (name) => {
+		const p = join(dir, name);
+		return existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : null;
+	};
+	const git = (args) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+	const sweepText = readFileSync(join(ROOT, "scripts/mutation-sweep.sh"), "utf8");
+	const screens = j("screens-diff-f39.json");
+	return {
+		unit: j("unit-f39-summary.json"),
+		evidence: Object.fromEntries(FR3_FRESH.map(([name]) => [name, j(name)])),
+		screens: Array.isArray(screens) ? screens : [],
+		parity: j("css-parity-candidate-css-final-vs-candidate-css-f39.json"),
+		parityAttribution: j("css-parity-intended-f39-attribution.json"),
+		paths: j("fix-round-3-paths.json"),
+		prBody: existsSync(join(ROOT, FR3_PR_BODY)) ? readFileSync(join(ROOT, FR3_PR_BODY), "utf8") : null,
+		guardSources: Object.fromEntries(FR3_GUARD_TESTS.map((g) => [g.path, existsSync(join(ROOT, g.path)) ? readFileSync(join(ROOT, g.path), "utf8") : ""])),
+		codeState: git(["log", "-1", "--format=%H", "--", ".", ":(exclude).planning"]).trim(),
+		sweepRows: sweepText.split("\n").filter((l) => /^\s*mutate\s/.test(l)).length,
+		migrationsCount: readdirSync(join(ROOT, "supabase/migrations")).filter((f) => f.endsWith(".sql")).length,
+		diffPaths: git(["diff", "--name-status", "--no-renames", FR3_BASE, FR3_CODE_STATE, "--", ".", ":(exclude).planning"]).split("\n").filter(Boolean),
+		carryUnchanged: Object.fromEntries(
+			Object.entries(FR3_CARRY_INPUTS).map(([name, inputs]) => {
+				try {
+					execFileSync("git", ["diff", "--quiet", FR3_MEASURED_EARLIER, FR3_CODE_STATE, "--", ...inputs], { cwd: ROOT, stdio: "ignore" });
+					return [name, true];
+				} catch {
+					return [name, false];
+				}
+			}),
+		),
+	};
+}
+
+function fixRound3Fixture() {
+	const head = `${FR3_CODE_STATE.slice(0, 9)} (codeStateSha)`;
+	const files = FR3_GUARD_TESTS.map((g) => ({ name: g.path, status: "passed", numTests: g.titles.length + 1, numPassed: g.titles.length + 1, tests: [...g.titles.map((title) => ({ title, status: "passed" })), { title: "other", status: "passed" }] }));
+	const evidence = Object.fromEntries(FR3_FRESH.map(([name]) => [name, { tree: head, head }]));
+	evidence["probes-diff-f39.json"].baseline = FR3_PREV_FROZEN.slice(0, 9);
+	evidence["probes-diff-f39.json"].diffs = [{ id: "chart", field: "light.axisFill", old: [102, 102, 102, 1], head: [96, 103, 112, 1], kind: "measured", class: "intended", vd: ["VD-143"], ref: "61df5a44d" }];
+	evidence["probes-diff-f39.json"].noise = [{ id: "toast-loading", field: "light.iconWidth", old: 22, head: 23, class: "noise", repeatValues: [23, 22, 23] }];
+	// The sweep measured on FR3_MEASURED_EARLIER and carried (its inputs unchanged): it passes.
+	evidence["sweep-f39.json"] = { tree: `${FR3_MEASURED_EARLIER.slice(0, 9)} (code state at measurement)`, rows: FR3_SWEEP_ROWS, caught: FR3_SWEEP_ROWS, vacuous: 0, notApplied: 0, restored: true, shards: FR3_SHARD_ROWS.map((rows, i) => ({ shard: i + 1, rows, caught: rows, vacuous: 0, notApplied: 0, restored: true })), listing: { rows: FR3_SWEEP_ROWS, disjoint: true } };
+	evidence["replay-f39.json"] = { tree: head, files: FR3_MIGRATIONS, applied: FR3_MIGRATIONS, gates: Object.fromEntries(FR_REPLAY_GATES.map((g) => [g, 0])) };
+	evidence["deno-f39.json"] = { tree: head, check: { exits: Object.fromEntries(Array.from({ length: FR3_FUNCTIONS }, (_, i) => [`fn${i}`, 0])) }, tests: Object.fromEntries(Object.entries(FR3_DENO_TESTS).map(([t, n]) => [t, { passed: n, failed: 0 }])) };
+	evidence["edge-bundles-f39.json"] = { head, deploy: [...FR3_DEPLOY], functions: Array.from({ length: FR3_FUNCTIONS }, (_, i) => ({ fn: i < FR3_DEPLOY.length ? FR3_DEPLOY[i] : `same${i}`, bundle: i < FR3_DEPLOY.length ? "different" : "identical", baseExit: 0, headExit: 0 })) };
+	const vdTable = FR3_VD_IDS.map((id) => `| ${id} | x | \`c\` |`).join("\n");
+	const prBody = `## Summary\n\n## Fix round 2 (x)\n\n${FR3_SECTION}\n\n${vdTable}\n\n## After merge, in this order\n\n2. **Edge Functions**: \`bun scripts/deploy-edge-functions.ts ${FR3_DEPLOY.join(" ")}\`, then\n`;
+	return {
+		unit: { files },
+		evidence,
+		screens: [{ set: "public", capture: "a.png", class: "identical", baseline: FR3_PREV_FROZEN.slice(0, 9), head }],
+		parity: { counts: { unclassified: 0 }, lists: { "intended:fix-round-3-added": ["a"], "intended:fix-round-3-removed": ["b"] } },
+		parityAttribution: { fixRound3: { added: [{ key: "a", commits: ["c1 x"], vd: ["VD-134"] }], removed: [{ key: "b", commits: ["c2 y"], vd: ["comment-only"] }], reversedFixRound1: [] }, unattributed: [] },
+		paths: { paths: [{ status: "M", path: "src/a.tsx" }, { status: "A", path: "src/b.test.ts" }] },
+		prBody,
+		guardSources: Object.fromEntries(FR3_GUARD_TESTS.map((g) => [g.path, (g.markers ?? []).join("\n")])),
+		codeState: FR3_CODE_STATE,
+		carryUnchanged: Object.fromEntries(Object.keys(FR3_CARRY_INPUTS).map((name) => [name, true])),
+		sweepRows: FR3_SWEEP_ROWS,
+		migrationsCount: FR3_MIGRATIONS,
+		diffPaths: ["M\tsrc/a.tsx", "A\tsrc/b.test.ts"],
+	};
+}
+
+// One mutation per group; each must fail exactly that group (the red proof of each check).
+const FR3_MUTATIONS = [
+	["a guard test fails", `fr3-guard:${FR3_GUARD_TESTS[0].path}`, (f) => {
+		Object.assign(f.unit.files[0], { status: "failed", numPassed: 1 });
+	}],
+	["a guard drops a recorded title", `fr3-guard:${FR3_GUARD_TESTS[20].path}`, (f) => {
+		f.unit.files[20].tests = f.unit.files[20].tests.filter((t) => t.title !== FR3_GUARD_TESTS[20].titles[0]);
+	}],
+	["the nested-member widening is reverted", "fr3-guard:src/hooks/api/__tests__/data-layer-callers.test.ts", (f) => {
+		f.guardSources["src/hooks/api/__tests__/data-layer-callers.test.ts"] = "";
+	}],
+	["the e2e exports guard reads the disk again", "fr3-guard:tests/e2e/lib/__tests__/e2e-support-exports-have-callers.test.ts", (f) => {
+		f.guardSources["tests/e2e/lib/__tests__/e2e-support-exports-have-callers.test.ts"] = "readdirSync(dir)";
+	}],
+	["a guard file is gone", "fr3-guard:tests/e2e/lib/__tests__/reflow-newest-record.test.ts", (f) => {
+		f.unit.files = f.unit.files.filter((x) => x.name !== "tests/e2e/lib/__tests__/reflow-newest-record.test.ts");
+	}],
+	["code changed after the freeze", "fr3-code-state", (f) => {
+		f.codeState = "0".repeat(40);
+	}],
+	["the unit summary is carried from the previous freeze", "fr3-fresh", (f) => {
+		f.evidence["unit-f39-summary.json"].tree = "f8de0175e (codeStateSha)";
+	}],
+	["the sweep carried forward though its inputs changed", "fr3-fresh", (f) => {
+		f.carryUnchanged["sweep-f39.json"] = false;
+	}],
+	["a unit summary carried forward (the suite is never carried)", "fr3-fresh", (f) => {
+		f.evidence["unit-f39-summary.json"].tree = `${FR3_MEASURED_EARLIER.slice(0, 9)} (code state at measurement)`;
+	}],
+	["the screenshots diffed against FINAL", "fr3-fresh", (f) => {
+		f.screens[0].baseline = "final";
+	}],
+	["a probe difference with no VD row", "fr3-probes", (f) => {
+		f.evidence["probes-diff-f39.json"].diffs[0].vd = [];
+	}],
+	["probe noise whose repeats never vary", "fr3-probes", (f) => {
+		f.evidence["probes-diff-f39.json"].noise[0].repeatValues = [23, 23, 23];
+	}],
+	["the sweep back at 179 rows", "fr3-sweep", (f) => {
+		f.sweepRows = 179;
+	}],
+	["a shard lost a row", "fr3-sweep", (f) => {
+		f.evidence["sweep-f39.json"].shards[0].rows = 23;
+		f.evidence["sweep-f39.json"].shards[0].caught = 23;
+	}],
+	["the replay misses a file", "fr3-replay", (f) => {
+		f.evidence["replay-f39.json"].applied = FR3_MIGRATIONS - 1;
+	}],
+	["a function fails deno check", "fr3-deno", (f) => {
+		f.evidence["deno-f39.json"].check.exits.fn3 = 1;
+	}],
+	["an in-process test count drops", "fr3-deno", (f) => {
+		f.evidence["deno-f39.json"].tests["generate-pdf-test.ts"].passed = 8;
+	}],
+	["an identical bundle added to the deploy list", "fr3-edge", (f) => {
+		f.evidence["edge-bundles-f39.json"].deploy.push("same9");
+	}],
+	["the PR body's deploy command drops a slug", "fr3-edge", (f) => {
+		f.prBody = f.prBody.replace(" n8n-blog-ingest`", "`");
+	}],
+	["a fix-round-3 key with no VD row", "fr3-parity", (f) => {
+		f.parityAttribution.fixRound3.added[0].vd = [];
+	}],
+	["an unattributed key", "fr3-parity", (f) => {
+		f.parityAttribution.unattributed.push({ side: "added", key: "z" });
+	}],
+	["the PR body loses VD-150", "fr3-pr-body", (f) => {
+		f.prBody = f.prBody.replace("| VD-150 |", "| VD-15 |");
+	}],
+	["the fix-round-3 section moved after After merge", "fr3-pr-body", (f) => {
+		f.prBody = f.prBody.replace(`${FR3_SECTION}\n`, "").replace("## After merge, in this order\n", `## After merge, in this order\n\n${FR3_SECTION}\n`);
+	}],
+	["a code path missing from the record", "fr3-scope", (f) => {
+		f.diffPaths.push("M\tsrc/c.tsx");
+	}],
+];
+
+function fixRound3SelfTest(failures) {
+	let passed = 0;
+	const clean = fixRound3Checks(fixRound3Fixture());
+	if (clean.failed === 0) passed++;
+	else failures.push(`fix-round-3 clean fixture failed ${JSON.stringify(clean.checks.filter((k) => !k.pass).map((k) => k.name))}`);
+	for (const [name, group, mutate] of FR3_MUTATIONS) {
+		const f = fixRound3Fixture();
+		mutate(f);
+		const r = fixRound3Checks(f);
+		const want = Array.isArray(group) ? group : [group];
+		if (sortedJson(r.failedGroups) === sortedJson(want)) passed++;
+		else failures.push(`fix-round-3 "${name}": failed groups ${JSON.stringify(r.failedGroups)}, expected ${JSON.stringify(want)}`);
+	}
+	return passed;
+}
+
+// --escape-scan <rev>: fr2EscapeSites over every tracked JS/TS file at <rev> (read with git
+// cat-file, the worktree untouched), the red proof of the local CodeQL-clean check on a past tree.
+function escapeScanAt(rev) {
+	const names = execFileSync("git", ["ls-tree", "-r", "--name-only", rev], { cwd: ROOT, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 })
+		.split("\n")
+		.filter((p) => FR2_SOURCE_EXTENSIONS.some((e) => p.endsWith(e)));
+	const buf = execFileSync("git", ["cat-file", "--batch"], { cwd: ROOT, input: names.map((p) => `${rev}:${p}`).join("\n") + "\n", maxBuffer: 512 * 1024 * 1024 });
+	const sites = [];
+	const stringSites = [];
+	let pos = 0;
+	for (const p of names) {
+		const nl = buf.indexOf(10, pos);
+		const size = Number(buf.subarray(pos, nl).toString("utf8").split(" ")[2]);
+		const text = buf.subarray(nl + 1, nl + 1 + size).toString("utf8");
+		pos = nl + 1 + size + 1;
+		for (const s of fr2EscapeSites(text)) sites.push({ path: p, ...s });
+		for (const s of fr2StringEscapeSites(text)) stringSites.push({ path: p, ...s });
+	}
+	const partial = sites.filter((s) => !s.complete).map((s) => `${s.path}:${s.line} ${s.kind} ${s.body}${s.via ? ` (${s.via})` : ""}`);
+	const outside = sites.filter((s) => FR2_TEST_ROOTS.some((r) => s.path.startsWith(r)) && !FR2_ESCAPE_HOMES.includes(s.path)).map((s) => `${s.path}:${s.line}`);
+	return { rev, files: names.length, sites: sites.length, partial, escapeHelpersOutsideHomes: outside, stringPatternEscapes: stringSites.map((s) => `${s.path}:${s.line} ${s.body} ${s.reachesRegExp ? `reaches new RegExp (${s.via})` : "does not reach new RegExp"}`) };
 }
 
 // ---------- CLI ----------
@@ -1566,6 +2087,26 @@ if (fixRound2Dir) {
 	process.exit(result.failed === 0 ? 0 : 1);
 }
 
+const fixRound3Dir = arg("--fix-round-3");
+if (fixRound3Dir) {
+	const out = arg("--out");
+	if (!out) {
+		console.error("usage: f39-checks.mjs --fix-round-3 <f39-dir> --out <file>");
+		process.exit(2);
+	}
+	const result = fixRound3Checks(readFixRound3Context(fixRound3Dir));
+	writeFileSync(out, `${JSON.stringify(result, null, "\t")}\n`);
+	for (const k of result.checks.filter((x) => !x.pass)) console.error(`fix-round-3 FAIL: ${k.name}: ${JSON.stringify(k.measured).slice(0, 400)}`);
+	console.log(`f39-checks (fix-round-3): ${result.checks.length} checks, ${result.failed} failed`);
+	process.exit(result.failed === 0 ? 0 : 1);
+}
+
+const escapeRev = arg("--escape-scan");
+if (escapeRev) {
+	console.log(JSON.stringify(escapeScanAt(escapeRev), null, "\t"));
+	process.exit(0);
+}
+
 const decisionsPath = arg("--decisions");
 const bodyPath = arg("--lint-body");
 if (bodyPath) {
@@ -1584,7 +2125,7 @@ const probesPath = arg("--probes");
 const tokensPath = arg("--tokens");
 const probeOnly = process.argv.includes("--probe-only");
 if (!decisionsPath || !outPath || (probeOnly && !probesPath)) {
-	console.error("usage: f39-checks.mjs --decisions <json> [--probes <json>] [--tokens <json>] --out <file> [--probe-only] [--expect-fail CP-n,...] | --self-test | --lint-body <md> --decisions <json> | --fix-round-1 <f39-dir> --out <file> | --fix-round-2 <f39-dir> --out <file>");
+	console.error("usage: f39-checks.mjs --decisions <json> [--probes <json>] [--tokens <json>] --out <file> [--probe-only] [--expect-fail CP-n,...] | --self-test | --lint-body <md> --decisions <json> | --fix-round-1 <f39-dir> --out <file> | --fix-round-2 <f39-dir> --out <file> | --fix-round-3 <f39-dir> --out <file> | --escape-scan <rev>");
 	process.exit(2);
 }
 const result = run({

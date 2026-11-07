@@ -1,9 +1,9 @@
 {
  "meta": {
   "tailwindVersion": "4.3.3",
-  "scannedFiles": 937,
-  "candidates": 15942,
-  "bundleBytes": 2853840
+  "scannedFiles": 940,
+  "candidates": 16018,
+  "bundleBytes": 2853891
  },
  "results": {
   "otp-setup": {
@@ -4607,7 +4607,7 @@
      "size-4",
      "animate-spin"
     ],
-    "iconWidth": 23
+    "iconWidth": 22
    }
   },
   "quick-actions-dock-centering": {
