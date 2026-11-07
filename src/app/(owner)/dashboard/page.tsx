@@ -68,7 +68,7 @@ function DashboardContent() {
 			totalUnits: prop.totalUnits,
 			occupiedUnits: prop.occupiedUnits,
 			monthlyRevenue: prop.monthlyRevenue,
-			openMaintenance: prop.open_maintenance ?? 0,
+			openMaintenance: prop.open_maintenance,
 		}));
 	})();
 

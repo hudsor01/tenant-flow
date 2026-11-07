@@ -273,13 +273,8 @@ export interface PropertyPerformance {
 	address_line1: string;
 	property_type: string;
 	status: "NO_UNITS" | "vacant" | "FULL" | "PARTIAL";
-	// Optional: only `get_dashboard_data_v2` (via the Phase 2
-	// `perf_open_maintenance` CTE) emits this field. Other RPCs that
-	// construct `PropertyPerformance` (e.g., `get_property_performance_with_trends`)
-	// do not carry maintenance counts; consumers that need the value
-	// MUST apply a `?? 0` fallback at the read seam rather than relying
-	// on construction-site placeholders that fabricate data.
-	open_maintenance?: number;
+	/** The property's open maintenance requests (get_dashboard_data_v2). */
+	open_maintenance: number;
 }
 
 export interface PropertyPerformanceResponse {

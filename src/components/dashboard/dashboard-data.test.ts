@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import type { OwnerDashboardData } from "#hooks/api/use-owner-dashboard";
+import type { PropertyPerformance } from "#types/core";
 import { transformDashboardData } from "./dashboard-data";
 
 /**
@@ -34,6 +35,7 @@ describe("transformDashboardData", () => {
 		address_line1: "1 Test St",
 		property_type: "APARTMENT",
 		status: "PARTIAL" as const,
+		open_maintenance: 0,
 	};
 
 	const basePayload: OwnerDashboardData = {
@@ -87,15 +89,20 @@ describe("transformDashboardData", () => {
 		]);
 	});
 
-	it("falls back to 0 when prop.open_maintenance is undefined (optional field)", () => {
-		// `open_maintenance` is optional on PropertyPerformance; omitting it
-		// from the literal is sufficient to exercise the `?? 0` read seam.
+	it("reads open_maintenance as the fetcher sets it, with no fallback of its own", () => {
+		// fetchOwnerDashboardData is PropertyPerformance's one constructor and
+		// sets the count on every row (0 from a body that omits it), so the type
+		// requires it and no reader supplies a `?? 0` (66.2-39 fix round 4, G66).
+		expectTypeOf<
+			PropertyPerformance["open_maintenance"]
+		>().toEqualTypeOf<number>();
 		const payload: OwnerDashboardData = {
 			...basePayload,
-			propertyPerformance: [baseProperty],
+			propertyPerformance: [{ ...baseProperty, open_maintenance: 0 }],
 		};
-		const result = transformDashboardData(payload);
-		expect(result.portfolioRows[0]?.maintenanceOpen).toBe(0);
+		expect(
+			transformDashboardData(payload).portfolioRows[0]?.maintenanceOpen,
+		).toBe(0);
 	});
 
 	it("forwards timeSeries.monthlyRevenue6mo into the view-model unchanged", () => {

@@ -76,11 +76,7 @@ export function transformDashboardData(
 			units: { occupied: prop.occupiedUnits, total: prop.totalUnits },
 			occupancy: portfolioOccupancy(prop.occupiedUnits, prop.totalUnits),
 			rent: prop.monthlyRevenue,
-			// `open_maintenance` is optional on PropertyPerformance — only the v2
-			// dashboard RPC emits it. `?? 0` is the read-seam fallback; producers
-			// that genuinely have no maintenance data omit the field rather than
-			// fabricating a zero at construction time.
-			maintenanceOpen: prop.open_maintenance ?? 0,
+			maintenanceOpen: prop.open_maintenance,
 		}),
 	);
 

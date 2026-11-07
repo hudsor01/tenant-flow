@@ -73,6 +73,7 @@ function property(
 		address_line1: "1 Main St",
 		property_type: "apartment",
 		status: occupied === total ? "FULL" : "PARTIAL",
+		open_maintenance: 0,
 	};
 }
 
