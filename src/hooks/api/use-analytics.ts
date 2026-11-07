@@ -150,9 +150,9 @@ export const analyticsQueries = {
 	 * The analytics overview's headline figures: it reads only
 	 * `financial.metrics`' scheduled rent and net (get_financial_overview). It
 	 * also fetched get_maintenance_analytics and the occupancy series for a
-	 * maintenance and a lease slice no screen read (the lease slice's fields
-	 * all [] or 0); both went in 66.2-39, and the financial slice's empty
-	 * charts, lease profitability and unread figures in fix round 3.
+	 * maintenance and a lease slice read by no screen; both went in 66.2-39,
+	 * and the financial slice's empty charts, lease profitability and unread
+	 * figures in fix round 3.
 	 */
 	overviewPageData: () =>
 		queryOptions({
