@@ -12,36 +12,37 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
-import { DEFAULT_LEASE } from "#test/utils/test-data";
 import { render } from "#test/utils/test-render";
 
-/** The detail row as PostgREST returns it, with its unit embed. */
-const LEASE_ROW = {
-	...DEFAULT_LEASE,
-	id: "lease-51",
-	unit_id: "unit-51",
-	tenants: null,
-	units: {
-		id: "unit-51",
-		unit_number: "4B",
-		bedrooms: 1,
-		bathrooms: 1,
-		square_feet: null,
-		property_id: "property-1",
-		properties: {
-			name: "Maple Court",
-			address_line1: "1 Maple Ave",
-			city: "Austin",
-			state: "TX",
+vi.mock("#lib/supabase/client", async () => {
+	const { DEFAULT_LEASE } = await import("#test/utils/test-data");
+	/** The detail row as PostgREST returns it, with its unit embed. */
+	const leaseRow = {
+		...DEFAULT_LEASE,
+		id: "lease-51",
+		unit_id: "unit-51",
+		tenants: null,
+		units: {
+			id: "unit-51",
+			unit_number: "4B",
+			bedrooms: 1,
+			bathrooms: 1,
+			square_feet: null,
+			property_id: "property-1",
+			properties: {
+				name: "Maple Court",
+				address_line1: "1 Maple Ave",
+				city: "Austin",
+				state: "TX",
+			},
 		},
-	},
-};
-
-vi.mock("#lib/supabase/client", () => ({
-	createClient: () => ({
-		from: () => createQueryChain({ data: LEASE_ROW, error: null }),
-	}),
-}));
+	};
+	return {
+		createClient: () => ({
+			from: () => createQueryChain({ data: leaseRow, error: null }),
+		}),
+	};
+});
 vi.mock("#hooks/api/use-lease-signature-mutations", () => ({
 	useCancelSignatureRequestMutation: () => ({
 		mutateAsync: vi.fn(),

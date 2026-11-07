@@ -30,11 +30,13 @@ import { MOBILE_MEDIA_QUERY } from "#hooks/use-mobile";
 import { AppShell } from "../app-shell";
 
 // Mock next/navigation
-const mockPathname = vi.fn().mockReturnValue("/dashboard");
-const mockRouter = {
-	push: vi.fn(),
-	back: vi.fn(),
-};
+const { mockPathname, mockRouter } = vi.hoisted(() => ({
+	mockPathname: vi.fn().mockReturnValue("/dashboard"),
+	mockRouter: {
+		push: vi.fn(),
+		back: vi.fn(),
+	},
+}));
 vi.mock("next/navigation", () => ({
 	usePathname: () => mockPathname(),
 	useRouter: () => mockRouter,

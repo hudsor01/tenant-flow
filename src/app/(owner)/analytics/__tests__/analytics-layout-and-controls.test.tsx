@@ -30,19 +30,21 @@ vi.mock("#components/dashboard/chart-area-interactive", () => ({
 	ChartAreaInteractive: () => createElement("div", { "data-testid": "chart" }),
 }));
 
-const PROPERTY_PERFORMANCE = {
-	metrics: {
-		totalProperties: 1,
-		totalUnits: 2,
-		occupiedUnits: 1,
-		averageOccupancy: 50,
-		rentReceived: 1500,
-		rentReceivedWindow: { start_date: "2026-10-03", end_date: "2026-11-02" },
+const { PROPERTY_PERFORMANCE } = vi.hoisted(() => ({
+	PROPERTY_PERFORMANCE: {
+		metrics: {
+			totalProperties: 1,
+			totalUnits: 2,
+			occupiedUnits: 1,
+			averageOccupancy: 50,
+			rentReceived: 1500,
+			rentReceivedWindow: { start_date: "2026-10-03", end_date: "2026-11-02" },
+		},
+		performance: [],
+		units: [],
+		unitStats: [],
 	},
-	performance: [],
-	units: [],
-	unitStats: [],
-};
+}));
 
 vi.mock("#hooks/api/use-analytics", () => ({
 	analyticsQueries: {

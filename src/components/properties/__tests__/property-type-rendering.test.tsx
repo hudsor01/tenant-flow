@@ -19,7 +19,9 @@ import type { ColumnId } from "../property-table-types";
 import { PropertyToolbar } from "../property-toolbar";
 import type { PropertiesProps, PropertyItem } from "../types";
 
-const updateMutateAsync = vi.fn().mockResolvedValue(undefined);
+const { updateMutateAsync } = vi.hoisted(() => ({
+	updateMutateAsync: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock("#hooks/api/use-property-mutations", () => ({
 	useDeletePropertyMutation: () => ({ mutateAsync: vi.fn() }),
 	useUpdatePropertyMutation: () => ({ mutateAsync: updateMutateAsync }),

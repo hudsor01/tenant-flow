@@ -24,9 +24,8 @@ import { escapeRegExp } from "#test/utils/regexp-source";
 import { AppShell } from "../app-shell";
 import { UserProfileMenu } from "../user-profile-menu";
 
-const mockPathname = vi.fn().mockReturnValue("/dashboard");
 vi.mock("next/navigation", () => ({
-	usePathname: () => mockPathname(),
+	usePathname: () => "/dashboard",
 	useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
 }));
 
