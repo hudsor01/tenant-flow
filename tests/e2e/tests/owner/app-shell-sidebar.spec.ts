@@ -1578,16 +1578,21 @@ for (const viewport of SHEET_VIEWPORTS) {
 const TRIGGER_STEP_COPY =
 	"Access Properties, Tenants, Leases, and more from the menu.";
 
+const TOUR_STEP = '[data-slot="tour-step"]';
+
+/** Mirrors `TOUR_STORAGE_KEY` in `src/hooks/api/use-tour-progress.ts`. */
+const TOUR_STORAGE_KEY = "tenantflow:tour-progress";
+
 /**
- * Opens the onboarding tour and advances it to step 5. The `user_tour_progress`
- * route is installed BEFORE `loginAsOwner`: GET answers 200 `[]` (postgrest-js
- * `maybeSingle()` maps an empty array to null, i.e. "not started") and every
- * other method 201 with an empty body ("persisted"), so the tour opens and no
- * production row is written. The localStorage tour key is deliberately unset.
+ * Answers every `user_tour_progress` request locally, as "not started": GET
+ * answers 200 `[]` (postgrest-js `maybeSingle()` maps an empty array to null)
+ * and every other method 201 with an empty body ("persisted"), so the tour
+ * opens and no production row is written. Install it BEFORE `loginAsOwner`.
+ * The counters are live.
  */
-async function openTourAtStep5(
+async function answerTourProgressAsNotStarted(
 	page: Page,
-): Promise<{ step: Locator; traffic: TourProgressTraffic }> {
+): Promise<TourProgressTraffic> {
 	const traffic: TourProgressTraffic = { gets: 0, writes: 0 };
 	await page.route(TOUR_PROGRESS_ROUTE, async (route) => {
 		if (route.request().method() === "GET") {
@@ -1607,6 +1612,15 @@ async function openTourAtStep5(
 			body: "",
 		});
 	});
+	return traffic;
+}
+
+/**
+ * Logs in (the tour route must already be installed), requires the populated
+ * dashboard and waits for the tour's first step. The localStorage tour key is
+ * deliberately unset.
+ */
+async function openTourAtStep1(page: Page): Promise<Locator> {
 	await loginAsOwner(page);
 
 	const populated = page.getByTestId("kpi-bento-row");
@@ -1616,27 +1630,69 @@ async function openTourAtStep5(
 	await expect(populated.or(empty)).toBeVisible({ timeout: 15000 });
 	if (await empty.isVisible()) {
 		throw new Error(
-			"Tour step 5 is unreachable on the empty-state dashboard: steps 2 and 4 have no target there. The dashboard-smoke header records owner A as populated; restore owner A's data.",
+			"Tour steps 2 to 5 are unreachable on the empty-state dashboard: steps 2 and 4 have no target there. The dashboard-smoke header records owner A as populated; restore owner A's data.",
 		);
 	}
 	await waitForHydration(page, TRIGGER);
 
-	const step = page.locator('[data-slot="tour-step"]');
+	const step = page.locator(TOUR_STEP);
 	await expect(step).toBeVisible({ timeout: 20000 });
+	return step;
+}
+
+/**
+ * The placed step and its footer (step counter, Skip, Next) both lie inside
+ * the viewport, so every footer control is on screen for a pointer.
+ */
+async function expectStepOnScreen(
+	step: Locator,
+	viewport: { width: number; height: number },
+): Promise<{ stepBox: Box; footerBox: Box }> {
+	const stepBox = await placedStepBox(step);
+	const footerBox = await boxOf(step.locator('[data-slot="tour-footer"]'));
+	expectInsideViewport(stepBox, viewport, "step");
+	expectInsideViewport(footerBox, viewport, "footer");
+	return { stepBox, footerBox };
+}
+
+/**
+ * Advances the tour from its current step to `lastTitle` with POINTER clicks on
+ * Next, checking at every step that the step and its footer are on screen
+ * first. Playwright's `click()` fails when the button's centre is off screen or
+ * another element receives the pointer there, so the click is the reachability
+ * proof (66.2-39 fix round 3, part 6d: before tour.tsx kept the step inside the
+ * viewport, step 1 put its footer below the fold at 1280x800 and 1280x720, and
+ * steps 1 and 2 sat 106px above the top edge at 375).
+ */
+async function advanceTourByPointer(
+	step: Locator,
+	viewport: { width: number; height: number },
+	lastTitle: string,
+): Promise<void> {
 	const title = step.locator('[data-slot="tour-title"]');
 	for (let click = 0; click < 4; click += 1) {
 		const current = (await title.innerText()).trim();
-		if (current === "Navigate Your Portal") {
+		if (current === lastTitle) {
 			break;
 		}
-		// Keyboard activation, as a keyboard user would: at 1280x720 with the rail
-		// expanded, step 1 places its footer below the fold of the fixed layer,
-		// where a pointer click cannot reach it (deferred-items.md, 66.2-36).
-		await step.getByRole("button", { name: "Next step" }).focus();
-		await page.keyboard.press("Enter");
+		const boxes = await expectStepOnScreen(step, viewport);
+		record(`tour step "${current}" boxes`, boxes);
+		await step.getByRole("button", { name: "Next step" }).click({
+			timeout: 5000,
+		});
 		await expect(title).not.toHaveText(current);
 	}
-	await expect(title).toHaveText("Navigate Your Portal");
+	await expect(title).toHaveText(lastTitle);
+}
+
+/** Opens the onboarding tour and advances it to step 5 by pointer. */
+async function openTourAtStep5(
+	page: Page,
+	viewport: { width: number; height: number },
+): Promise<{ step: Locator; traffic: TourProgressTraffic }> {
+	const traffic = await answerTourProgressAsNotStarted(page);
+	const step = await openTourAtStep1(page);
+	await advanceTourByPointer(step, viewport, "Navigate Your Portal");
 	return { step, traffic };
 }
 
@@ -1667,17 +1723,18 @@ async function placedStepBox(step: Locator): Promise<Box> {
 	return settled.box;
 }
 
-/** The step's box lies inside the viewport (±0.5). */
+/** `box` (named `name` in a failure) lies inside the viewport (±0.5). */
 function expectInsideViewport(
 	box: Box,
 	viewport: { width: number; height: number },
+	name = "step",
 ): void {
-	expect(box.x, "step left edge").toBeGreaterThanOrEqual(-0.5);
-	expect(box.y, "step top edge").toBeGreaterThanOrEqual(-0.5);
-	expect(box.x + box.width, "step right edge").toBeLessThanOrEqual(
+	expect(box.x, `${name} left edge`).toBeGreaterThanOrEqual(-0.5);
+	expect(box.y, `${name} top edge`).toBeGreaterThanOrEqual(-0.5);
+	expect(box.x + box.width, `${name} right edge`).toBeLessThanOrEqual(
 		viewport.width + 0.5,
 	);
-	expect(box.y + box.height, "step bottom edge").toBeLessThanOrEqual(
+	expect(box.y + box.height, `${name} bottom edge`).toBeLessThanOrEqual(
 		viewport.height + 0.5,
 	);
 }
@@ -1711,13 +1768,19 @@ test.describe("tour step 5 targets the trigger when the sidebar is a sheet or co
 			if (testCase.collapsed) {
 				await seedSidebarCookie(page, "false");
 			}
-			const { step, traffic } = await openTourAtStep5(page);
+			const { step, traffic } = await openTourAtStep5(page, testCase.viewport);
 
 			await expect(step).toContainText(TRIGGER_STEP_COPY);
-			const stepBox = await placedStepBox(step);
+			const { stepBox, footerBox } = await expectStepOnScreen(
+				step,
+				testCase.viewport,
+			);
 			const triggerBox = await boxOf(page.locator(TRIGGER));
-			record("tour step and trigger boxes", { stepBox, triggerBox });
-			expectInsideViewport(stepBox, testCase.viewport);
+			record("tour step and trigger boxes", {
+				stepBox,
+				footerBox,
+				triggerBox,
+			});
 			expect(stepBox.y, "step top vs trigger bottom").toBeGreaterThanOrEqual(
 				triggerBox.y + triggerBox.height - 0.5,
 			);
@@ -1736,15 +1799,16 @@ test.describe("tour step 5 targets the trigger when the sidebar is a sheet or co
 	}) => {
 		test.setTimeout(60_000);
 		const errors = collectHydrationErrors(page);
-		const { step, traffic } = await openTourAtStep5(page);
+		const viewport = { width: 1280, height: 720 };
+		await page.setViewportSize(viewport);
+		const { step, traffic } = await openTourAtStep5(page, viewport);
 
 		await expect(step).toContainText("Use the sidebar to access Properties");
-		const stepBox = await placedStepBox(step);
+		const { stepBox, footerBox } = await expectStepOnScreen(step, viewport);
 		const railBox = await boxOf(
 			page.locator(DESKTOP_SIDEBAR).locator('[data-slot="sidebar-container"]'),
 		);
-		record("tour step and rail boxes", { stepBox, railBox });
-		expectInsideViewport(stepBox, { width: 1280, height: 720 });
+		record("tour step and rail boxes", { stepBox, footerBox, railBox });
 		expect(stepBox.x, "step left vs rail right").toBeGreaterThanOrEqual(
 			railBox.x + railBox.width - 0.5,
 		);
@@ -1756,6 +1820,75 @@ test.describe("tour step 5 targets the trigger when the sidebar is a sheet or co
 		record("tour progress traffic", traffic);
 		expect(errors).toEqual([]);
 	});
+});
+
+/**
+ * Every tour step is operable by POINTER at the two laptop heights this file
+ * checks the shell at (66.2-39 fix round 3, part 6d). The step is
+ * `position: fixed`. Before tour.tsx kept it inside the viewport (flip, then
+ * shift on both axes, then the `size` middleware capping it at the space
+ * left), step 1 ("Welcome to TenantFlow", below the dashboard stats) ran past
+ * the viewport bottom: at 1280x800 its Skip and Next sat at y 799-843, and at
+ * 1280x720 the footers of steps 1 to 3 were below the fold, so a mouse or touch
+ * user could neither advance nor skip them (keyboard focus and Enter still
+ * worked). Each test walks steps 1 to 5 with pointer
+ * clicks (step and footer on screen at every step), finishes the tour, reopens
+ * it and skips it from step 1, also by pointer.
+ */
+test.describe("the onboarding tour is operable by pointer at 1280x800 and 1280x720", () => {
+	const viewports = [
+		{ width: 1280, height: 800 },
+		{ width: 1280, height: 720 },
+	] as const;
+
+	for (const viewport of viewports) {
+		test(`${viewport.width}x${viewport.height}: Next through every step, Finish, then Skip from step 1`, async ({
+			page,
+		}) => {
+			test.setTimeout(90_000);
+			const errors = collectHydrationErrors(page);
+			await page.setViewportSize(viewport);
+			const traffic = await answerTourProgressAsNotStarted(page);
+			const step = await openTourAtStep1(page);
+
+			await advanceTourByPointer(step, viewport, "Navigate Your Portal");
+			const last = await expectStepOnScreen(step, viewport);
+			record('tour step "Navigate Your Portal" boxes', last);
+			await step
+				.getByRole("button", { name: "Finish tour" })
+				.click({ timeout: 5000 });
+			await expect(step).toHaveCount(0);
+
+			// Reopen. Finish stored "completed" in the browser-only localStorage
+			// fallback, which getTourProgress reads before the (answered) GET.
+			await page.evaluate(
+				(key) => localStorage.removeItem(key),
+				TOUR_STORAGE_KEY,
+			);
+			await page.reload();
+			await expect(step).toBeVisible({ timeout: 20000 });
+			await expect(step.locator('[data-slot="tour-title"]')).toHaveText(
+				"Welcome to TenantFlow",
+			);
+			const first = await expectStepOnScreen(step, viewport);
+			record("tour step 1 boxes on reopen", first);
+			await step
+				.getByRole("button", { name: "Skip tour" })
+				.click({ timeout: 5000 });
+			await expect(step).toHaveCount(0);
+
+			expect(
+				traffic.gets,
+				"the tour progress GETs were intercepted",
+			).toBeGreaterThanOrEqual(2);
+			expect(
+				traffic.writes,
+				"the tour progress writes were answered locally",
+			).toBeGreaterThanOrEqual(1);
+			record("tour progress traffic", traffic);
+			expect(errors).toEqual([]);
+		});
+	}
 });
 
 /**
