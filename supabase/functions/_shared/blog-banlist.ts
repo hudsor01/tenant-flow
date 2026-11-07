@@ -17,8 +17,10 @@
 
 /**
  * Phrases banned in a post, matched as a substring with case ignored (so
- * "unpaid rent" carries "paid rent"). Mirrors the marketing-copy-landlord-only
- * test's BANNED_PHRASES (lowercase).
+ * "unpaid rent" carries "paid rent"). The blog gate's own list, not a copy of
+ * the marketing-copy-landlord-only test's: it bans "tenant portal" and "rent
+ * tracking", which that test allows. banlist-parity.test.ts holds it to the
+ * generator's and the trigger's copies (above).
  */
 export const BLOG_BANLIST = [
 	"rent collection",
