@@ -172,6 +172,35 @@ export const DEFAULT_LEASE: Lease = {
 };
 
 /**
+ * The same lease as PostgREST returns it for the detail's select: its primary
+ * tenant, and its unit with the unit's property.
+ */
+export const LEASE_DETAIL_POSTGREST_ROW = {
+	...DEFAULT_LEASE,
+	tenants: {
+		id: "tenant-1",
+		name: "Test Tenant",
+		first_name: "Test",
+		last_name: "Tenant",
+		email: "tenant@example.com",
+	},
+	units: {
+		id: "unit-1",
+		unit_number: "Apt 101",
+		bedrooms: 2,
+		bathrooms: 1,
+		square_feet: 850,
+		property_id: "property-1",
+		properties: {
+			name: "Test Property",
+			address_line1: "123 Main St",
+			city: "San Francisco",
+			state: "CA",
+		},
+	},
+};
+
+/**
  * Default Unit - Use with spread operator for overrides
  *
  * @example
@@ -192,6 +221,12 @@ export const DEFAULT_UNIT = {
 	rent_amount: 1500,
 	created_at: "2024-01-01T00:00:00Z",
 	updated_at: "2024-01-01T00:00:00Z",
+};
+
+/** The same unit as PostgREST returns it for the unit list's select: with its property. */
+export const UNIT_LIST_POSTGREST_ROW = {
+	...DEFAULT_UNIT,
+	properties: { name: "Test Property", status: "active" },
 };
 
 /** A maintenance_requests row's own columns, as the list and detail select them. */

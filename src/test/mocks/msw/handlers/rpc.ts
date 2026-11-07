@@ -45,15 +45,6 @@ export const rpcHandlers = [
 		});
 	}),
 
-	// Tenant stats (PERF-03) — counts by tenants.status.
-	http.post(supabaseUrl("/rest/v1/rpc/get_tenant_stats"), () => {
-		return rpcResponse({
-			total: 15,
-			active: 12,
-			inactive: 3,
-		});
-	}),
-
 	// User profile
 	http.post(supabaseUrl("/rest/v1/rpc/get_user_profile"), () => {
 		return rpcResponse({

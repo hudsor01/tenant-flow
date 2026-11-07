@@ -13,7 +13,7 @@ import {
 
 /**
  * Each answer is the row the query or mutation's own select returns, so its
- * mapper accepts it (`src/test/__tests__/msw-maintenance-contract.test.ts`):
+ * mapper accepts it (`src/test/__tests__/msw-handlers-contract.test.ts`):
  * the list and the detail read with GET, a create inserts and selects its own
  * columns, an update selects the detail's columns, and a delete selects none.
  */
