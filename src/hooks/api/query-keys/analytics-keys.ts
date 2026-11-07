@@ -1,32 +1,13 @@
 /**
- * Shared analytics RPC fetchers used across several query factories.
+ * The shared `get_occupancy_trends_optimized` fetcher: the occupancy analytics
+ * query (use-analytics.ts) and the reports' occupancy metrics
+ * (report-analytics-keys.ts) both call it.
  */
 
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { jsonArrayOrEmpty } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
-
-/**
- * Build a `Map<'YYYY-MM', dollars>` from `get_expense_summary.monthly_totals`.
- * `monthly_totals` is the per-month series (a fixed trailing-12-month window);
- * `total_amount` is a period scalar and must NOT be used to key months. Mirrors
- * the canonical `monthly_totals` mapping in
- * `use-owner-dashboard-financial.ts#mapExpenseMonthlyTotals` and
- * `financial-keys.ts#expenseSummary` — validated at the boundary, never
- * `as unknown as` (CLAUDE.md #8).
- */
-export function expenseTotalsByMonth(data: unknown): Map<string, number> {
-	const summary = data as Record<string, unknown> | null;
-	const rows = (summary?.monthly_totals ?? []) as Array<
-		Record<string, unknown>
-	>;
-	const map = new Map<string, number>();
-	for (const row of rows) {
-		map.set(String(row.month ?? ""), Number(row.amount ?? 0));
-	}
-	return map;
-}
 
 /**
  * Shared RPC call for get_occupancy_trends_optimized.
@@ -45,7 +26,7 @@ export async function fetchOccupancyTrends(
 	});
 	if (error) handlePostgrestError(error, "analytics");
 	// get_occupancy_trends_optimized returns a jsonb ARRAY ordered month DESC
-	// (element[0] = latest month), not an object — route it through the same
-	// boundary helper as revenue trends. Empty/null degrades to [].
+	// (element[0] = latest month), not an object: jsonArrayOrEmpty checks it
+	// at the boundary. Empty/null degrades to [].
 	return jsonArrayOrEmpty<Record<string, unknown>>(data);
 }

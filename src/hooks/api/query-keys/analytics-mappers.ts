@@ -32,7 +32,27 @@ import {
 	expenseVendorLabel,
 	propertyReportName,
 } from "../../../../supabase/functions/_shared/tax-year-reports";
-import { expenseTotalsByMonth } from "./analytics-keys";
+
+/**
+ * Build a `Map<'YYYY-MM', dollars>` from `get_expense_summary.monthly_totals`.
+ * `monthly_totals` is the per-month series (a fixed trailing-12-month window);
+ * `total_amount` is a period scalar and must NOT be used to key months. Mirrors
+ * the canonical `monthly_totals` mapping in
+ * `use-owner-dashboard-financial.ts#mapExpenseMonthlyTotals` and
+ * `financial-keys.ts#expenseSummary` — validated at the boundary, never
+ * `as unknown as` (CLAUDE.md #8).
+ */
+function expenseTotalsByMonth(data: unknown): Map<string, number> {
+	const summary = data as Record<string, unknown> | null;
+	const rows = (summary?.monthly_totals ?? []) as Array<
+		Record<string, unknown>
+	>;
+	const map = new Map<string, number>();
+	for (const row of rows) {
+		map.set(String(row.month ?? ""), Number(row.amount ?? 0));
+	}
+	return map;
+}
 
 /** Narrow an unknown RPC return to a plain object, or null. Never throws. */
 function asObject(raw: unknown): Record<string, unknown> | null {
