@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { formatCents, formatCurrency, formatNumber } from "#lib/utils/currency";
 import { formatDate, formatRelativeDate } from "../date";
+import { formatFixed } from "../signed";
 
 describe("date formatters", () => {
 	it("formats dates with short and long styles", () => {
@@ -59,5 +60,16 @@ describe("numeric formatters", () => {
 		expect(
 			formatNumber(15300, { compact: true, maximumFractionDigits: 1 }),
 		).toBe("15.3K");
+	});
+});
+
+describe("formatFixed", () => {
+	it("writes toFixed's digits, a negative that rounds to zero unsigned", () => {
+		expect(formatFixed(62.456, 1)).toBe("62.5");
+		expect(formatFixed(-25, 1)).toBe("-25.0");
+		expect(formatFixed(-0.025, 1)).toBe("0.0");
+		expect(formatFixed(-0.004, 2)).toBe("0.00");
+		expect(formatFixed(-0, 1)).toBe("0.0");
+		expect(formatFixed(-0.06, 1)).toBe("-0.1");
 	});
 });

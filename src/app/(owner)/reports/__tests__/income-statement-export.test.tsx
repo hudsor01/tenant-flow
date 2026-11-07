@@ -208,6 +208,76 @@ describe("income statement Export", () => {
 		);
 	});
 
+	// A share or the margin just below zero printed "-0.0%" on the page, where
+	// the CSV's csvNumber wrote "0.0" (cycle 3, G10): a $2,000.50 expense
+	// against $2,000.00 of rent is a -0.025% margin, and a $1.00 credit against
+	// $5,000.00 of rent a -0.02% share. The page prints every percent cell the
+	// CSV writes, as the CSV writes it.
+	it.each([
+		[
+			"a margin just below zero",
+			{ rent: 2000, credits: 0, expenses: 2000.5, belowZero: "Profit Margin" },
+		],
+		[
+			"a credit's share just below zero",
+			{ rent: 5000, credits: -1, expenses: 0, belowZero: "Credits Issued" },
+		],
+	])(
+		"prints each share and the margin as the CSV writes them: %s",
+		async (_, figures) => {
+			const totalRevenue = figures.rent + figures.credits;
+			const statement: IncomeStatementData = {
+				...data,
+				revenue: {
+					rentalIncome: figures.rent,
+					lateFeesIncome: 0,
+					otherIncome: 0,
+					creditsIssued: figures.credits,
+					totalRevenue,
+				},
+				expenses: { totalExpenses: figures.expenses },
+				netIncome: Math.round((totalRevenue - figures.expenses) * 100) / 100,
+			};
+			useIncomeStatementMock.mockReturnValue(
+				queryState({ data: { status: "ready", statement } }),
+			);
+			render(<IncomeStatementPage />);
+			fireEvent.click(screen.getByRole("button", { name: "Export" }));
+			const text = (await createdBlobs[0]?.text()) ?? "";
+			// The figure rows (the Basis of Presentation rows hold quoted text).
+			const percentRows = text
+				.split("\r\n")
+				.map((line) => line.split(","))
+				.filter(
+					(cells) =>
+						["Totals", "Revenue Breakdown", "Expense Breakdown"].includes(
+							cells[4] ?? "",
+						) && cells[6] !== "",
+				);
+			expect(
+				percentRows.find((cells) => cells[5] === figures.belowZero)?.[6],
+			).toBe("0.0");
+			for (const [, , , , section, item, percent] of percentRows) {
+				if (item === "Profit Margin") {
+					expect(
+						screen.getByText(`${percent}% profit margin`),
+					).toBeInTheDocument();
+					continue;
+				}
+				const card = screen
+					.getByText(section ?? "")
+					.closest("div.bg-card") as HTMLElement;
+				const row = within(card)
+					.getByText(item ?? "")
+					.closest("div.flex.items-center.justify-between");
+				expect(
+					row?.querySelector("span.text-muted-foreground")?.textContent,
+					`${section} ${item}`,
+				).toBe(`${percent}%`);
+			}
+		},
+	);
+
 	// The basis the figures are presented on, under them (66.2-39 part P):
 	// one copy, STATEMENT_BASIS_NOTE, which the CSV writes too.
 	it("states the basis of presentation under its figures", () => {

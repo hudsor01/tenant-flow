@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useIncomeStatement } from "#hooks/api/use-financials";
+import { formatFixed } from "#lib/formatters/signed";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { CSV_MIME_TYPE } from "#lib/reports/csv";
 import { downloadBlob } from "#lib/reports/download-blob";
@@ -106,7 +107,7 @@ export default function IncomeStatementPage() {
 						totalRevenue={view.totalRevenue}
 						totalExpenses={view.totalExpenses}
 						netIncome={view.netIncome}
-						profitMargin={view.profitMargin.toFixed(1)}
+						profitMargin={formatFixed(view.profitMargin, 1)}
 					/>
 
 					<IncomeStatementPageBreakdowns

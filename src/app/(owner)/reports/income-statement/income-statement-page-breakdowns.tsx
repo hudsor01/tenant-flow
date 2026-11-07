@@ -1,5 +1,6 @@
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
+import { formatFixed } from "#lib/formatters/signed";
 import { formatCurrency } from "#lib/utils/currency";
 import type { IncomeStatementLine } from "./income-statement-view";
 
@@ -40,7 +41,7 @@ export function IncomeStatementPageBreakdowns({
 									</div>
 									<div className="flex items-center gap-4">
 										<span className="text-sm text-muted-foreground">
-											{item.share.toFixed(1)}%
+											{formatFixed(item.share, 1)}%
 										</span>
 										<span className="text-sm font-medium text-foreground tabular-nums">
 											{formatCurrency(item.amount)}
@@ -83,7 +84,7 @@ export function IncomeStatementPageBreakdowns({
 									</div>
 									<div className="flex items-center gap-4">
 										<span className="text-sm text-muted-foreground">
-											{item.share.toFixed(1)}%
+											{formatFixed(item.share, 1)}%
 										</span>
 										<span className="text-sm font-medium text-foreground tabular-nums">
 											{formatCurrency(item.amount)}

@@ -14,7 +14,9 @@ import type { IncomeStatementView } from "./income-statement-view";
  * its context. Amounts are dollars with 2 decimals and no symbol, signed as
  * the page shows them (the summary's operating expenses negative, a net loss
  * negative). The percent column holds a breakdown line's share of its section
- * or the profit margin, with 1 decimal, as shown.
+ * or the profit margin, with 1 decimal, as shown: the page prints both
+ * through `formatFixed`, which writes the cell, so a share or a margin just
+ * below zero reads "0.0" in both.
  */
 export const INCOME_STATEMENT_CSV_HEADER = [
 	"Period",

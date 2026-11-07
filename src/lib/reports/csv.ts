@@ -11,6 +11,7 @@
  */
 
 import { formatLocalYmd, parseLocalYmd } from "#lib/formatters/date";
+import { formatFixed } from "#lib/formatters/signed";
 
 export const CSV_MIME_TYPE = "text/csv;charset=utf-8";
 
@@ -26,8 +27,9 @@ const NEEDS_QUOTES = /[",\r\n]/;
 
 /**
  * A number cell with a fixed number of decimals (money: 2), no currency
- * symbol and no grouping separators. Throws on NaN or an infinity rather than
- * writing them into a statement.
+ * symbol and no grouping separators, written by `formatFixed`: a negative
+ * that rounds to zero is unsigned, as the pages print it. Throws on NaN or an
+ * infinity rather than writing them into a statement.
  */
 export function csvNumber(
 	value: number,
@@ -36,11 +38,7 @@ export function csvNumber(
 	if (!Number.isFinite(value)) {
 		throw new RangeError("CSV number cell must be finite");
 	}
-	const text = value.toFixed(fractionDigits);
-	return {
-		kind: "number",
-		text: text.startsWith("-") && Number(text) === 0 ? text.slice(1) : text,
-	};
+	return { kind: "number", text: formatFixed(value, fractionDigits) };
 }
 
 /** Neutralize a formula trigger in a text cell (never applied to numbers). */
