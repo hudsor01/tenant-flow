@@ -104,11 +104,19 @@ const RAW_DB_INTERNALS =
 	/duplicate key value|violates (?:unique|check|foreign key|not-null|exclusion) constraint|null value in column|violates row-level security policy|invalid input syntax|value too long|out of range|permission denied for (?:table|relation|function|schema|sequence|view)|(?:relation|column) "[^"]+" (?:of relation "[^"]+" )?does not exist|function [\w.]+\([^)]*\) does not exist/i;
 
 /**
- * The browser's own text for a fetch that never reached the server (Chrome,
- * Firefox, Safari, and React Native's), never product copy.
+ * The text a fetch that never reached the server carries, never product copy:
+ * the browser's own (Chrome's "Failed to fetch", Firefox's "NetworkError when
+ * attempting to fetch resource.", Safari's "Load failed", React Native's
+ * "Network request failed"). It is matched on the message whatever the
+ * error's class: a direct `fetch` throws a `TypeError` with it, auth-js and
+ * storage-js rethrow it as their own errors (`AuthRetryableFetchError`,
+ * `StorageUnknownError`), the login page rethrows auth's message as an
+ * `Error`, and postgrest-js returns a plain object whose message puts the
+ * error's name first ("TypeError: Failed to fetch", "FetchError: …" for an
+ * error with no name).
  */
 const NETWORK_FAILURE =
-	/^(?:Failed to fetch|NetworkError when attempting to fetch resource\.?|Load failed|Network request failed)$/i;
+	/^(?:(?:TypeError|FetchError): )?(?:Failed to fetch|NetworkError when attempting to fetch resource\.?|Load failed|Network request failed)$/i;
 
 const NETWORK_ERROR_MESSAGE =
 	"Network error. Please check your connection and try again.";
@@ -135,9 +143,7 @@ export function userFacingErrorMessage(
 	if (isApiError(error)) return error.getUserMessage();
 	const message = rawErrorMessage(error);
 	if (message === null || message.trim() === "") return fallback;
-	if (error instanceof TypeError && NETWORK_FAILURE.test(message)) {
-		return NETWORK_ERROR_MESSAGE;
-	}
+	if (NETWORK_FAILURE.test(message)) return NETWORK_ERROR_MESSAGE;
 	const errObj = error as Record<string, unknown> | null;
 	const pgCode = typeof errObj?.code === "string" ? errObj.code : undefined;
 	if (RAW_DB_INTERNALS.test(message) || (!!pgCode && /^PGRST/.test(pgCode))) {

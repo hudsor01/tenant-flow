@@ -25,6 +25,7 @@ vi.mock("@sentry/nextjs", () => ({
 	addBreadcrumb: vi.fn(),
 }));
 
+import { createClient } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import {
 	handleMutationError,
@@ -344,9 +345,99 @@ describe("handleMutationError — leaky SQLSTATE → friendly copy (UIX-04)", ()
 	});
 
 	it("keeps a message with no code verbatim", () => {
-		handleMutationError({ message: "Network request failed" }, "Save record");
+		handleMutationError(
+			{ message: "Choose a unit before saving." },
+			"Save record",
+		);
 		const [title] = lastToastErrorCall();
-		expect(title).toBe("Network request failed");
+		expect(title).toBe("Choose a unit before saving.");
+	});
+});
+
+const NETWORK_COPY =
+	"Network error. Please check your connection and try again.";
+
+/** Chrome's, Firefox's and Safari's text for a fetch that never reached the server. */
+const BROWSER_FETCH_FAILURES = [
+	"Failed to fetch",
+	"NetworkError when attempting to fetch resource.",
+	"Load failed",
+];
+
+/** A real supabase-js client whose every request fails as `fetch` does offline. */
+function offlineClient(failure: unknown) {
+	return createClient("http://localhost:54321", "sb_publishable_mock", {
+		global: {
+			fetch: async () => {
+				throw failure;
+			},
+		},
+		auth: {
+			persistSession: false,
+			autoRefreshToken: false,
+			detectSessionInUrl: false,
+		},
+	});
+}
+
+describe("userFacingErrorMessage — a failed fetch, as each library passes it on (fix round 4, G62)", () => {
+	beforeEach(() => {
+		vi.mocked(toast.error).mockClear();
+	});
+
+	it.each(BROWSER_FETCH_FAILURES)(
+		"shows the network copy for postgrest-js's, auth-js's and storage-js's errors (%s)",
+		async (text) => {
+			const client = offlineClient(new TypeError(text));
+			// postgrest-js: a plain { message: "TypeError: <text>", code: "" }.
+			const { error: rpcError } = await client.rpc("get_lease_stats");
+			expect(rpcError?.message).toBe(`TypeError: ${text}`);
+			expect(userFacingErrorMessage(rpcError)).toBe(NETWORK_COPY);
+			// auth-js: AuthRetryableFetchError(<text>), and the login page's
+			// `new Error(error.message)` of it.
+			const { error: authError } = await client.auth.signInWithPassword({
+				email: "owner@example.com",
+				password: "not-a-real-password",
+			});
+			expect(authError?.name).toBe("AuthRetryableFetchError");
+			expect(userFacingErrorMessage(authError)).toBe(NETWORK_COPY);
+			expect(userFacingErrorMessage(new Error(authError?.message))).toBe(
+				NETWORK_COPY,
+			);
+			// storage-js: StorageUnknownError(<text>).
+			const { error: storageError } = await client.storage
+				.from("tenant-documents")
+				.upload("lease/1/a.txt", new Blob(["a"]));
+			expect(storageError?.name).toBe("StorageUnknownError");
+			expect(userFacingErrorMessage(storageError)).toBe(NETWORK_COPY);
+		},
+	);
+
+	it("shows the network copy for postgrest-js's FetchError prefix (an error with no name)", async () => {
+		const { error } = await offlineClient({ message: "Failed to fetch" }).rpc(
+			"get_lease_stats",
+		);
+		expect(error?.message).toBe("FetchError: Failed to fetch");
+		expect(userFacingErrorMessage(error)).toBe(NETWORK_COPY);
+	});
+
+	it("toasts the network copy for a mutation whose PostgREST call failed offline", async () => {
+		const { error } = await offlineClient(new TypeError("Failed to fetch")).rpc(
+			"get_lease_stats",
+		);
+		handleMutationError(error, "Save lease");
+		expect(lastToastErrorCall()[0]).toBe(NETWORK_COPY);
+	});
+
+	it("keeps other text verbatim: the match is the whole message", () => {
+		expect(
+			userFacingErrorMessage(new Error("Failed to fetch tour progress")),
+		).toBe("Failed to fetch tour progress");
+		expect(
+			userFacingErrorMessage({
+				message: "FetchError: Failed to fetch the lease",
+			}),
+		).toBe("FetchError: Failed to fetch the lease");
 	});
 });
 
@@ -376,9 +467,7 @@ describe("userFacingErrorMessage — the one sanitizer (66.2-39 part I)", () => 
 			"NetworkError when attempting to fetch resource.",
 			"Load failed",
 		]) {
-			expect(userFacingErrorMessage(new TypeError(text))).toBe(
-				"Network error. Please check your connection and try again.",
-			);
+			expect(userFacingErrorMessage(new TypeError(text))).toBe(NETWORK_COPY);
 		}
 	});
 
