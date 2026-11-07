@@ -10,6 +10,10 @@
  * nothing) and against the workflow's real matrix.
  *
  * Spawns the real script: the shard arithmetic lives in bash.
+ *
+ * Also: the job's timeout covers its fullest shard twice over, and neither
+ * file's comments write the row count, which the workflow's did twice
+ * ("179 rows", "at most 23" a shard) after rows were added.
  */
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -55,11 +59,12 @@ function field(value: unknown, key: string): unknown {
 	return Object.entries(value).find(([name]) => name === key)?.[1];
 }
 
-/** The workflow's shard list and the env it hands each matrix job. */
+/** The workflow's shard list, its timeout and the env it hands each job. */
 function workflowMatrix(): {
 	shards: unknown;
 	failFast: unknown;
 	env: unknown;
+	timeoutMinutes: unknown;
 } {
 	const sweep = field(
 		field(parse(readFileSync(WORKFLOW, "utf8")), "jobs"),
@@ -70,11 +75,53 @@ function workflowMatrix(): {
 		shards: field(field(strategy, "matrix"), "shard"),
 		failFast: field(strategy, "fail-fast"),
 		env: field(sweep, "env"),
+		timeoutMinutes: field(sweep, "timeout-minutes"),
 	};
 }
 
 const SCRIPT_ROWS = [...readFileSync(SCRIPT, "utf8").matchAll(/^mutate /gm)]
 	.length;
+
+/**
+ * A row's runtime on a GitHub runner, and a shard's set-up and baseline
+ * before its first row, as the workflow's timeout comment states them (the
+ * rate is the unsharded run's that timed out).
+ */
+const RUNNER_SECONDS_PER_ROW = 17.3;
+const SHARD_SETUP_SECONDS = 30;
+
+/**
+ * Row counts written into a comment go stale the day a row is added: the
+ * workflow said "179 rows" and "at most 23" a shard while the script had 185
+ * rows and a shard of 24. These are the shapes a count takes in prose.
+ */
+const ROW_COUNT_SHAPES: readonly RegExp[] = [
+	/\b\d+\s+rows?\b/gi,
+	/\brows?\s+\d+\b/gi,
+	/\bat most \d+\b/gi,
+	/\b\d+ of \d+\b/g,
+	/\b\d+ x \d/g,
+];
+
+/**
+ * Counts that are history, not a claim about now: each names a run that
+ * happened. Each must still be in its file, so a stale entry fails too.
+ */
+const HISTORICAL_COUNTS: Readonly<Record<string, readonly string[]>> = {
+	".github/workflows/mutation-sweep.yml": [
+		"hit its 45-minute limit at row 155 of 179",
+	],
+	"scripts/mutation-sweep.sh": ["179 rows ran past the old 45-minute limit"],
+};
+
+/** A file's whole-line `#` comments (not the shebang), joined by spaces. */
+function commentText(path: string): string {
+	return readFileSync(join(ROOT, path), "utf8")
+		.split("\n")
+		.filter((line) => /^\s*#/.test(line) && !line.startsWith("#!"))
+		.map((line) => line.replace(/^\s*#+\s?/, "").trim())
+		.join(" ");
+}
 
 /**
  * The module variables each section's rows may mutate. `mutate` prints only
@@ -185,4 +232,37 @@ describe("the mutation sweep's shards", () => {
 		expect(empty.rows).toEqual([]);
 		expect(empty.output).toContain("holds none of the");
 	});
+
+	it("gives the fullest shard a timeout of at least twice its runtime", () => {
+		const { shards, timeoutMinutes } = workflowMatrix();
+		const count = Array.isArray(shards) ? shards.length : 0;
+		expect(count).toBeGreaterThan(1);
+		expect(typeof timeoutMinutes).toBe("number");
+		const fullest = Math.ceil(SCRIPT_ROWS / count);
+		const seconds = fullest * RUNNER_SECONDS_PER_ROW + SHARD_SETUP_SECONDS;
+		expect(
+			2 * seconds,
+			`a shard of ${fullest} rows needs ${seconds} s; add a shard to the matrix`,
+		).toBeLessThanOrEqual(Number(timeoutMinutes) * 60);
+	});
+});
+
+describe("the sweep's comments", () => {
+	it.each(Object.keys(HISTORICAL_COUNTS))(
+		"%s writes no current row count",
+		(path) => {
+			let text = commentText(path);
+			for (const phrase of HISTORICAL_COUNTS[path] ?? []) {
+				expect(text, `historical count "${phrase}"`).toContain(phrase);
+				text = text.split(phrase).join(" ");
+			}
+			const counts = ROW_COUNT_SHAPES.flatMap((shape) =>
+				[...text.matchAll(shape)].map((match) => match[0]),
+			);
+			const current = [...text.matchAll(/\b\d+\b/g)]
+				.map((match) => match[0])
+				.filter((number) => Number(number) === SCRIPT_ROWS);
+			expect([...counts, ...current]).toEqual([]);
+		},
+	);
 });

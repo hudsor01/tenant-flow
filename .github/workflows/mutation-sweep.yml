@@ -12,9 +12,11 @@ name: Mutation Sweep
 #
 # WEEKLY, NOT ON EVERY PULL REQUEST. Each row re-runs the `scripts` and
 # `src/lib/__tests__` suites, about 17 s on a runner (almost all Vitest
-# start-up), so the sweep costs the row count times that: 179 rows are about
-# 52 minutes of runner time. `checks` has to stay fast enough to be a required
-# check; this does not.
+# start-up), so the sweep costs the row count times that in runner time. The
+# count is `grep -c '^mutate ' scripts/mutation-sweep.sh`; these comments do
+# not write it, because it grows (scripts/mutation-sweep.test.ts fails on one
+# that does). `checks` has to stay fast enough to be a required check; this
+# does not.
 #
 # SHARDED, SO A JOB'S RUNTIME DOES NOT GROW WITH THE ROW COUNT. As one job the
 # sweep hit its 45-minute limit at row 155 of 179. The matrix below splits it
@@ -64,10 +66,11 @@ permissions:
 jobs:
   sweep:
     runs-on: ubuntu-latest
-    # One shard: at 179 rows, 8 shards hold at most 23. 23 x 17.3 s (the
-    # per-row rate of the unsharded run that timed out) is 6.6 min, plus about
-    # 30 s for set-up and the baseline: 7 min. 15 allows a runner twice as slow,
-    # or twice the rows per shard, before it trips.
+    # One shard holds ceil(rows / shards) rows, each at about 17.3 s (the
+    # per-row rate of the unsharded run that timed out), after about 30 s of
+    # set-up and baseline. 15 minutes is at least twice that, so a runner twice
+    # as slow still finishes; scripts/mutation-sweep.test.ts fails the day a
+    # row would break that margin, so the matrix gains a shard first.
     timeout-minutes: 15
     strategy:
       fail-fast: false
