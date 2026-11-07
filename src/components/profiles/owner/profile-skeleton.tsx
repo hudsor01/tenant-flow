@@ -8,7 +8,7 @@ export function ProfileSkeleton() {
 				<Skeleton className="h-5 w-64" />
 			</div>
 
-			<div className="grid gap-6 lg:grid-cols-3">
+			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<div className="lg:col-span-1">
 					<div className="rounded-lg border bg-card p-6">
 						<div className="flex flex-col items-center">
@@ -28,7 +28,7 @@ export function ProfileSkeleton() {
 				<div className="space-y-6 lg:col-span-2">
 					<div className="rounded-lg border bg-card p-6">
 						<Skeleton className="h-6 w-48 mb-4" />
-						<div className="grid gap-4 sm:grid-cols-2">
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<Skeleton className="h-12" />
 							<Skeleton className="h-12" />
 							<Skeleton className="h-12" />

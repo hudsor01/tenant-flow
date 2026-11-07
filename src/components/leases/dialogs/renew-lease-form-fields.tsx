@@ -15,21 +15,21 @@ export function CurrentLeaseInfo({
 	endDate,
 }: CurrentLeaseInfoProps) {
 	return (
-		<div className="rounded-lg border border-separator bg-fill-tertiary p-4">
-			<h4 className="text-sm font-semibold text-label-primary mb-2">
+		<div className="rounded-lg border border-border bg-muted p-4">
+			<h4 className="text-sm font-semibold text-foreground mb-2">
 				Current Lease
 			</h4>
-			<div className="space-y-1 text-sm text-label-secondary">
+			<div className="space-y-1 text-sm text-muted-foreground">
 				<div className="flex justify-between">
 					<span>Current Rent:</span>
-					<span className="font-medium text-label-primary">
+					<span className="font-medium text-foreground">
 						{formatCurrency(currentRent)}/mo
 					</span>
 				</div>
 				{endDate && (
 					<div className="flex justify-between">
 						<span>Ends:</span>
-						<span className="font-medium text-label-primary">
+						<span className="font-medium text-foreground">
 							{format(parseISO(endDate), "MMM d, yyyy")}
 						</span>
 					</div>
@@ -56,12 +56,12 @@ export function DateSelector({
 		<div className="space-y-3">
 			<Label
 				htmlFor="end-date"
-				className="text-label-secondary text-xs font-medium uppercase tracking-[0.01em]"
+				className="text-muted-foreground text-xs font-medium uppercase tracking-[0.01em]"
 			>
 				New End Date
 			</Label>
 			<div className="flex items-center gap-4">
-				<Calendar className="size-5 text-label-tertiary shrink-0" />
+				<Calendar className="size-5 text-muted-foreground shrink-0" />
 				<Input
 					id="end-date"
 					type="date"
@@ -127,14 +127,20 @@ export function RentAdjustment({
 }: RentAdjustmentProps) {
 	const newRent = newRentAmount ? Number(newRentAmount) : currentRent;
 	const rentIncreaseAmount = newRent - currentRent;
+	// The change as it prints, to the cent: a "+" only above zero (and
+	// formatCurrency's "-" only below), so a change under half a cent reads
+	// "$0.00 (0.0%)", never "+$0.00" or "-$0.00" (-0 folded), as the
+	// statements' zero figures do. The percent is the printed change's.
+	const changeCents = Math.round(rentIncreaseAmount * 100);
+	const shownChange = changeCents === 0 ? 0 : changeCents / 100;
 	const rentIncreasePercent =
-		currentRent > 0 ? (rentIncreaseAmount / currentRent) * 100 : 0;
+		currentRent > 0 ? (shownChange / currentRent) * 100 : 0;
 
 	if (disabled) {
 		return (
 			<div className="space-y-3">
 				<div className="flex-between">
-					<Label className="text-label-secondary text-xs font-medium uppercase tracking-[0.01em]">
+					<Label className="text-muted-foreground text-xs font-medium uppercase tracking-[0.01em]">
 						Rent Adjustment
 					</Label>
 					<Button
@@ -142,14 +148,14 @@ export function RentAdjustment({
 						variant="outline"
 						size="sm"
 						disabled
-						aria-label="Rent is locked and cannot be adjusted after the lease has been sent for signature or signed"
+						aria-label="Adjust Rent: locked because the lease has been sent for signature or signed"
 					>
 						Adjust Rent
 					</Button>
 				</div>
-				<div className="flex items-start gap-2 rounded-lg bg-fill-tertiary p-3">
+				<div className="flex items-start gap-2 rounded-lg bg-muted p-3">
 					<Info className="size-4 text-accent-main shrink-0 mt-0.5" />
-					<p className="text-xs text-label-secondary">
+					<p className="text-xs text-muted-foreground">
 						Rent cannot be changed after a lease has been sent for signature or
 						signed. You can still extend the end date.
 					</p>
@@ -161,7 +167,7 @@ export function RentAdjustment({
 	return (
 		<div className="space-y-3">
 			<div className="flex-between">
-				<Label className="text-label-secondary text-xs font-medium uppercase tracking-[0.01em]">
+				<Label className="text-muted-foreground text-xs font-medium uppercase tracking-[0.01em]">
 					Rent Adjustment
 				</Label>
 				<Button type="button" variant="outline" size="sm" onClick={onToggle}>
@@ -171,9 +177,9 @@ export function RentAdjustment({
 			{showRentIncrease && (
 				<div className="space-y-3">
 					<div className="flex items-center gap-4">
-						<DollarSign className="size-5 text-label-tertiary shrink-0" />
+						<DollarSign className="size-5 text-muted-foreground shrink-0" />
 						<div className="flex-1 relative">
-							<span className="absolute left-3 top-1/2 translate-y-[-50%] text-sm text-label-tertiary">
+							<span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
 								$
 							</span>
 							<Input
@@ -189,33 +195,33 @@ export function RentAdjustment({
 						</div>
 					</div>
 					{newRentAmount && Number(newRentAmount) !== currentRent && (
-						<div className="rounded-lg bg-fill-tertiary p-3">
+						<div className="rounded-lg bg-muted p-3">
 							<div className="flex items-center gap-2 mb-2">
 								<TrendingUp className="size-4 text-accent-main" />
-								<span className="typography-small text-label-primary">
+								<span className="typography-small text-foreground">
 									Rent Change
 								</span>
 							</div>
 							<div className="space-y-1 text-sm">
 								<div className="flex justify-between">
-									<span className="text-label-secondary">Current:</span>
-									<span className="font-medium text-label-primary">
+									<span className="text-muted-foreground">Current:</span>
+									<span className="font-medium text-foreground">
 										{formatCurrency(currentRent)}/mo
 									</span>
 								</div>
 								<div className="flex justify-between">
-									<span className="text-label-secondary">New:</span>
-									<span className="font-medium text-label-primary">
+									<span className="text-muted-foreground">New:</span>
+									<span className="font-medium text-foreground">
 										{formatCurrency(newRent)}/mo
 									</span>
 								</div>
-								<div className="flex justify-between pt-1 mt-1 border-t border-separator">
-									<span className="text-label-secondary">Change:</span>
+								<div className="flex justify-between pt-1 mt-1 border-t border-border">
+									<span className="text-muted-foreground">Change:</span>
 									<span
-										className={`font-semibold ${rentIncreaseAmount >= 0 ? "text-accent-main" : "text-error-main"}`}
+										className={`font-semibold ${rentIncreaseAmount >= 0 ? "text-success-text" : "text-destructive-text"}`}
 									>
-										{rentIncreaseAmount >= 0 ? "+" : ""}
-										{formatCurrency(rentIncreaseAmount)} (
+										{shownChange > 0 ? "+" : ""}
+										{formatCurrency(shownChange)} (
 										{rentIncreasePercent.toFixed(1)}%)
 									</span>
 								</div>
@@ -225,9 +231,9 @@ export function RentAdjustment({
 				</div>
 			)}
 			{!showRentIncrease && (
-				<div className="flex items-start gap-2 rounded-lg bg-fill-tertiary p-3">
+				<div className="flex items-start gap-2 rounded-lg bg-muted p-3">
 					<Info className="size-4 text-accent-main shrink-0 mt-0.5" />
-					<p className="text-xs text-label-secondary">
+					<p className="text-xs text-muted-foreground">
 						New lease will maintain current rent of{" "}
 						{formatCurrency(currentRent)}/month
 					</p>

@@ -18,8 +18,9 @@ interface PortfolioDataTableToolbarProps<TData> {
 	viewMode: ViewMode;
 	onViewModeChange: (mode: ViewMode) => void;
 	/**
-	 * Status faceted-filter options (DT-04). Defaults to the `status` column's
-	 * `meta.options` (active/expiring/vacant) when not supplied by the caller.
+	 * Occupancy faceted-filter options (DT-04). Defaults to the `occupancy`
+	 * column's `meta.options` (occupied / partly vacant / vacant / no units)
+	 * when not supplied by the caller.
 	 */
 	statusOptions?: Option[];
 }
@@ -32,7 +33,7 @@ interface PortfolioDataTableToolbarProps<TData> {
  *   key. The Property column's name||address `filterFn` (Plan 05-01b) matches
  *   NAME or ADDRESS, so an address-only row survives the search (W-3). There is
  *   NO separate `search`/`q` key — search IS the Property column filter.
- * - `DataTableFacetedFilter` for the multi-select status filter (DT-04).
+ * - `DataTableFacetedFilter` for the multi-select occupancy filter (DT-04).
  * - `DataTableViewOptions` for column visibility (DT-05) — reads `meta.label`.
  * - A `role="radiogroup"` grid/table segmented toggle (DT-07) preserving the
  *   `aria-checked` semantics of the now-removed hand-rolled toolbar.
@@ -45,7 +46,7 @@ export function PortfolioDataTableToolbar<TData>({
 	statusOptions,
 }: PortfolioDataTableToolbarProps<TData>) {
 	const propertyColumn = table.getColumn("property");
-	const statusColumn = table.getColumn("status");
+	const statusColumn = table.getColumn("occupancy");
 	// getFilterValue() is `unknown` and can hydrate as a string[] from the URL,
 	// so normalize rather than asserting `as string` (which would render
 	// "[object Object]"-style garbage for an array value).
@@ -81,7 +82,7 @@ export function PortfolioDataTableToolbar<TData>({
 			{statusColumn && (
 				<DataTableFacetedFilter
 					column={statusColumn}
-					title="Status"
+					title="Occupancy"
 					options={resolvedStatusOptions}
 					multiple
 				/>

@@ -1,0 +1,38 @@
+{
+  "label": "66.2-24",
+  "generatedAt": "2026-10-31T19:12:53.364Z",
+  "files": [
+    {
+      "file": "src/components/ui/tooltip.tsx",
+      "item": "tooltip",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "in-sync",
+      "normalizedDiffHunks": 0,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-24/inv/src__components__ui__tooltip.tsx.diff",
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": false,
+      "divergenceCount": 0
+    },
+    {
+      "file": "src/components/ui/global-sync-indicator.tsx",
+      "item": "global-sync-indicator",
+      "derivativeOf": null,
+      "registryStatus": 404,
+      "status": "non-registry",
+      "normalizedDiffHunks": null,
+      "normalizedDiffPath": null,
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": false,
+      "divergenceCount": 0
+    }
+  ],
+  "counts": {
+    "inSync": 1,
+    "divergent": 0,
+    "nonRegistry": 1
+  },
+  "problems": []
+}

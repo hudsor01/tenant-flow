@@ -35,9 +35,10 @@ import {
 	EmptyTitle,
 } from "#components/ui/empty";
 import { Skeleton } from "#components/ui/skeleton";
-import { unitQueries } from "#hooks/api/query-keys/unit-keys";
+import { type UnitListRow, unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useDeleteUnitMutation } from "#hooks/api/use-unit";
 import { useClientDataTable } from "#hooks/use-client-data-table";
+import { formatCurrency } from "#lib/utils/currency";
 import type { Unit } from "#types/core";
 
 export default function UnitsPage() {
@@ -88,7 +89,7 @@ export default function UnitsPage() {
 		return <Badge variant={variants[status]}>{labels[status]}</Badge>;
 	};
 
-	const columns: ColumnDef<Unit>[] = [
+	const columns: ColumnDef<UnitListRow>[] = [
 		{
 			id: "unit_number",
 			accessorKey: "unit_number",
@@ -104,11 +105,16 @@ export default function UnitsPage() {
 			),
 		},
 		{
+			// Each unit's property by name, from the list's own embed: the column
+			// printed the first eight characters of its id ("Property ID:
+			// 3f2a9c1e..."), and a lookup in the select options (active
+			// properties only) left a deleted property's units with none.
 			accessorKey: "property_id",
 			header: "Property",
+			meta: { label: "Property" },
 			cell: ({ row }) => (
 				<span className="text-muted-foreground">
-					Property ID: {row.original.property_id.substring(0, 8)}...
+					{row.original.propertyName ?? "-"}
 				</span>
 			),
 		},
@@ -155,7 +161,7 @@ export default function UnitsPage() {
 			enableColumnFilter: true,
 			cell: ({ row }) =>
 				row.original.rent_amount
-					? `$${row.original.rent_amount.toLocaleString()}/mo`
+					? `${formatCurrency(row.original.rent_amount, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/mo`
 					: "-",
 		},
 		{
@@ -229,9 +235,7 @@ export default function UnitsPage() {
 					<h2 className="typography-large text-destructive-text">
 						Error Loading Units
 					</h2>
-					<p className="text-muted-foreground">
-						{error instanceof Error ? error.message : "Failed to load units"}
-					</p>
+					<p className="mb-0 text-muted-foreground">Failed to load units</p>
 				</div>
 			</div>
 		);
@@ -264,13 +268,13 @@ export default function UnitsPage() {
 			<div className="flex-between">
 				<div>
 					<h1 className="typography-h1">Units</h1>
-					<p className="text-muted-foreground">
+					<p className="mb-0 text-muted-foreground">
 						Manage your rental units across all properties
 					</p>
 				</div>
-				<Link href="/units/new">
-					<Button>Add Unit</Button>
-				</Link>
+				<Button asChild>
+					<Link href="/units/new">Add Unit</Link>
+				</Button>
 			</div>
 
 			{/* DataTable with Toolbar */}
@@ -310,7 +314,7 @@ export default function UnitsPage() {
 						<AlertDialogAction
 							onClick={handleDeleteConfirm}
 							disabled={deleteUnitMutation.isPending}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							variant="destructive"
 						>
 							{deleteUnitMutation.isPending ? "Deleting..." : "Delete"}
 						</AlertDialogAction>

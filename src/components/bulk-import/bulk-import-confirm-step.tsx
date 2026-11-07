@@ -71,7 +71,7 @@ export function BulkImportConfirmStep({
 							</p>
 						</div>
 						{importProgress && (
-							<span className="typography-h3 text-primary tabular-nums">
+							<span className="typography-h3 text-primary-text tabular-nums">
 								{importProgress.current}/{importProgress.total}
 							</span>
 						)}
@@ -79,6 +79,7 @@ export function BulkImportConfirmStep({
 
 					<div className="space-y-2">
 						<Progress
+							aria-label="Import progress"
 							value={progressPercent}
 							variant="default"
 							size="lg"

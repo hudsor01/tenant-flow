@@ -5,6 +5,7 @@ import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "#components/ui/card";
 import { cn } from "#lib/utils";
+import { formatCurrency } from "#lib/utils/currency";
 
 export interface PlanFeature {
 	name: string;
@@ -80,7 +81,7 @@ export function PlanCard({
 
 			<CardHeader className="pt-8 pb-4">
 				<h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
-				<p className="text-sm text-muted-foreground">{plan.description}</p>
+				<p className="mb-0 text-sm text-muted-foreground">{plan.description}</p>
 			</CardHeader>
 
 			<CardContent className="flex-1">
@@ -93,7 +94,10 @@ export function PlanCard({
 					) : (
 						<div className="flex items-baseline gap-1">
 							<span className="text-4xl font-bold text-foreground">
-								${plan.price}
+								{formatCurrency(plan.price, {
+									minimumFractionDigits: 0,
+									maximumFractionDigits: 0,
+								})}
 							</span>
 							<span className="text-muted-foreground">/mo</span>
 						</div>
@@ -106,7 +110,7 @@ export function PlanCard({
 						{plan.includesPrevious}
 					</p>
 				)}
-				<ul className="space-y-3">
+				<ul className="flex flex-col gap-3 pl-0 mt-0 mb-0 [&>li]:mb-0">
 					{plan.features.map((feature) => (
 						<li
 							key={feature.name}

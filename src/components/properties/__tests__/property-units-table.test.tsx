@@ -122,6 +122,36 @@ describe("PropertyUnitsTable", () => {
 		});
 	});
 
+	// properties.property_type is free text: rows written outside the form hold
+	// "condo" or "single_family", which are the form's single-unit types all
+	// the same (66.2-39 part P). A type outside the set is not single-unit.
+	describe("Single-unit types, whatever their case", () => {
+		it.each([
+			["CONDO", true],
+			["condo", true],
+			["single_family", true],
+			["Townhouse", true],
+			["MULTI_UNIT", false],
+			["duplex", false],
+		])("stored %s shows the single-unit card: %s", (stored, single) => {
+			mockUseQuery.mockReturnValue({
+				data: mockUnits.slice(0, 1),
+				isLoading: false,
+				isError: false,
+			});
+			render(
+				<PropertyUnitsTable
+					propertyId="prop-1"
+					propertyName="Test Property"
+					propertyType={stored}
+				/>,
+				{ wrapper: createWrapper() },
+			);
+			expect(screen.queryByText("Unit Details") !== null).toBe(single);
+			expect(screen.queryByText(/Units \(1\)/) !== null).toBe(!single);
+		});
+	});
+
 	describe("Basic Rendering", () => {
 		it("should render units count in header", () => {
 			render(

@@ -38,7 +38,7 @@ describe("SubscriptionStatusBanner", () => {
 		).not.toBeInTheDocument();
 	});
 
-	it("renders blue info banner when subscription is null (no stripe customer)", () => {
+	it("renders info banner when subscription is null (no stripe customer)", () => {
 		mockUseSubscriptionStatus.mockReturnValue({
 			data: null,
 			isLoading: false,
@@ -51,7 +51,7 @@ describe("SubscriptionStatusBanner", () => {
 		expect(link).toHaveAttribute("href", "/pricing");
 	});
 
-	it("renders blue info banner when subscriptionStatus is null (has stripe customer but no sub)", () => {
+	it("renders info banner when subscriptionStatus is null (has stripe customer but no sub)", () => {
 		mockUseSubscriptionStatus.mockReturnValue({
 			data: {
 				subscriptionStatus: null,
@@ -86,7 +86,7 @@ describe("SubscriptionStatusBanner", () => {
 		expect(container.innerHTML).toBe("");
 	});
 
-	it("renders amber warning banner when status is past_due", () => {
+	it("renders warning banner when status is past_due", () => {
 		mockUseSubscriptionStatus.mockReturnValue({
 			data: {
 				subscriptionStatus: "past_due",
@@ -190,7 +190,7 @@ describe("SubscriptionStatusBanner", () => {
 		expect(link).toHaveAttribute("href", "/billing/plans?source=trial_banner");
 	});
 
-	it("renders red lock banner when status is unpaid", () => {
+	it("renders destructive lock banner when status is unpaid", () => {
 		mockUseSubscriptionStatus.mockReturnValue({
 			data: {
 				subscriptionStatus: "unpaid",
@@ -209,7 +209,7 @@ describe("SubscriptionStatusBanner", () => {
 		expect(link).toHaveAttribute("href", "/billing/plans");
 	});
 
-	it("renders red lock banner when status is canceled", () => {
+	it("renders destructive lock banner when status is canceled", () => {
 		mockUseSubscriptionStatus.mockReturnValue({
 			data: {
 				subscriptionStatus: "canceled",
@@ -228,7 +228,7 @@ describe("SubscriptionStatusBanner", () => {
 		expect(link).toHaveAttribute("href", "/billing/plans");
 	});
 
-	it("renders red lock banner when status is expired (trial lapsed)", () => {
+	it("renders destructive lock banner when status is expired (trial lapsed)", () => {
 		mockUseSubscriptionStatus.mockReturnValue({
 			data: {
 				subscriptionStatus: "expired",

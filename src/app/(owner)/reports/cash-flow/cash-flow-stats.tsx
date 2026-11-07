@@ -8,6 +8,7 @@ import {
 	StatLabel,
 	StatValue,
 } from "#components/ui/stat";
+import { formatCurrency } from "#lib/utils/currency";
 
 interface CashFlowStatsProps {
 	totalInflows: number;
@@ -22,7 +23,7 @@ export function CashFlowStats({
 }: CashFlowStatsProps) {
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-			<BlurFade delay={0.2} inView>
+			<BlurFade delay={0.2}>
 				<Stat className="relative overflow-hidden">
 					<BorderBeam
 						size={100}
@@ -31,12 +32,8 @@ export function CashFlowStats({
 						colorTo="oklch(from var(--color-success) l c h / 0.3)"
 					/>
 					<StatLabel>Total Inflows</StatLabel>
-					<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
-						$
-						{totalInflows.toLocaleString("en-US", {
-							minimumFractionDigits: 2,
-							maximumFractionDigits: 2,
-						})}
+					<StatValue className="flex items-baseline text-success-text">
+						{formatCurrency(totalInflows)}
 					</StatValue>
 					<StatIndicator variant="icon" color="success">
 						<ArrowUpCircle />
@@ -45,15 +42,11 @@ export function CashFlowStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.25} inView>
+			<BlurFade delay={0.25}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Total Outflows</StatLabel>
-					<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
-						$
-						{totalOutflows.toLocaleString("en-US", {
-							minimumFractionDigits: 2,
-							maximumFractionDigits: 2,
-						})}
+					<StatValue className="flex items-baseline text-destructive-text">
+						{formatCurrency(totalOutflows)}
 					</StatValue>
 					<StatIndicator variant="icon" color="destructive">
 						<ArrowDownCircle />
@@ -62,7 +55,7 @@ export function CashFlowStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.3} inView>
+			<BlurFade delay={0.3}>
 				<Stat className="relative overflow-hidden">
 					{netCashFlow > 0 && (
 						<BorderBeam
@@ -74,13 +67,10 @@ export function CashFlowStats({
 					)}
 					<StatLabel>Net Cash Flow</StatLabel>
 					<StatValue
-						className={`flex items-baseline ${netCashFlow >= 0 ? "" : "text-destructive"}`}
+						className={`flex items-baseline ${netCashFlow >= 0 ? "" : "text-destructive-text"}`}
 					>
-						{netCashFlow >= 0 ? "+" : "-"}$
-						{Math.abs(netCashFlow).toLocaleString("en-US", {
-							minimumFractionDigits: 2,
-							maximumFractionDigits: 2,
-						})}
+						{netCashFlow > 0 ? "+" : ""}
+						{formatCurrency(netCashFlow)}
 					</StatValue>
 					<StatIndicator variant="icon" color="primary">
 						<Wallet />

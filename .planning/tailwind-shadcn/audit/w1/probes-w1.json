@@ -1,0 +1,62 @@
+{
+ "meta": {
+  "tailwindVersion": "4.3.3",
+  "scannedFiles": 1556,
+  "candidates": 26458,
+  "bundleBytes": 2744690
+ },
+ "results": {
+  "border-beam-stats": {
+   "light": {
+    "props": {
+     "size": 80,
+     "duration": 10,
+     "colorFrom": "var(--color-primary)",
+     "colorTo": "color-mix(in oklab, var(--color-primary) 30%, transparent)"
+    },
+    "afterBackgroundImage": "linear-gradient(to left, oklch(0.54 0.23 257), oklab(0.54 -0.0517387 -0.224105 / 0.3), rgba(0, 0, 0, 0))",
+    "afterAnimationName": "none",
+    "afterAnimationDuration": "0s",
+    "runningAnimations": 0
+   },
+   "dark": {
+    "props": {
+     "size": 80,
+     "duration": 10,
+     "colorFrom": "var(--color-primary)",
+     "colorTo": "color-mix(in oklab, var(--color-primary) 30%, transparent)"
+    },
+    "afterBackgroundImage": "linear-gradient(to left, oklch(0.72 0.22 259), oklab(0.72 -0.0419779 -0.215958 / 0.3), rgba(0, 0, 0, 0))",
+    "afterAnimationName": "none",
+    "afterAnimationDuration": "0s",
+    "runningAnimations": 0
+   }
+  },
+  "border-beam-grid": {
+   "light": {
+    "props": {
+     "size": 100,
+     "duration": 12,
+     "colorFrom": "color-mix(in oklab, var(--color-primary) 50%, transparent)",
+     "colorTo": "transparent"
+    },
+    "afterBackgroundImage": "linear-gradient(to left, oklab(0.54 -0.0517387 -0.224105 / 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+    "afterAnimationName": "none",
+    "afterAnimationDuration": "0s",
+    "runningAnimations": 0
+   },
+   "dark": {
+    "props": {
+     "size": 100,
+     "duration": 12,
+     "colorFrom": "color-mix(in oklab, var(--color-primary) 50%, transparent)",
+     "colorTo": "transparent"
+    },
+    "afterBackgroundImage": "linear-gradient(to left, oklab(0.72 -0.0419779 -0.215958 / 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+    "afterAnimationName": "none",
+    "afterAnimationDuration": "0s",
+    "runningAnimations": 0
+   }
+  }
+ }
+}

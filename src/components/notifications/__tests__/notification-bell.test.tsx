@@ -88,6 +88,17 @@ describe("NotificationBell (NOTIF-02)", () => {
 		).toBeInTheDocument();
 	});
 
+	// WCAG 2.5.3 (66.2-39 sweep 2): the label must contain the badge text the
+	// user sees, so above 9 it says "9+", not the uncapped count.
+	it("aria-label carries the capped badge text above 9 unread", () => {
+		h.count.current = 15;
+		render(<NotificationBell />);
+		const trigger = screen.getByRole("button", {
+			name: "Notifications, 9+ unread",
+		});
+		expect(trigger).toHaveTextContent("9+");
+	});
+
 	it("aria-label is 'Notifications, {n} unread' when unread > 0", () => {
 		h.count.current = 7;
 		render(<NotificationBell />);

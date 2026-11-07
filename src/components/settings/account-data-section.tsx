@@ -11,8 +11,11 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { downloadAccountData } from "#components/settings/download-account-data";
 import { BlurFade } from "#components/ui/blur-fade";
 import { authKeys } from "#hooks/api/use-auth";
+import { formatCount } from "#lib/formatters/count";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 
 function formatDeletionDate(deletionRequestedAt: string): string {
@@ -54,46 +57,7 @@ export function AccountDataSection() {
 	});
 
 	const exportData = useMutation({
-		mutationFn: async () => {
-			const supabase = createClient();
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-			if (!session?.access_token) throw new Error("Not authenticated");
-
-			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-			const response = await fetch(
-				`${supabaseUrl}/functions/v1/export-user-data`,
-				{
-					method: "GET",
-					headers: { Authorization: `Bearer ${session.access_token}` },
-				},
-			);
-
-			if (!response.ok) {
-				const body = await response.json().catch(() => ({}));
-				throw new Error(
-					((body as Record<string, unknown>).error as string) ||
-						"Export failed",
-				);
-			}
-
-			const blob = await response.blob();
-			const url = URL.createObjectURL(blob);
-			const disposition = response.headers.get("Content-Disposition");
-			const filenameMatch = disposition?.match(/filename="(.+)"/);
-			const filename =
-				filenameMatch?.[1] ??
-				`tenantflow-data-export-${new Date().toISOString().split("T")[0]}.json`;
-
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = filename;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(url);
-		},
+		mutationFn: downloadAccountData,
 		onSuccess: () => toast.success("Data export downloaded successfully"),
 		onError: () => toast.error("Failed to export data. Please try again."),
 	});
@@ -121,7 +85,7 @@ export function AccountDataSection() {
 					"Cannot delete account with pending payments. Please resolve outstanding payments first.",
 				);
 			} else {
-				toast.error(message);
+				toast.error(userFacingErrorMessage(err, "Failed to request deletion"));
 			}
 		},
 	});
@@ -144,9 +108,9 @@ export function AccountDataSection() {
 		deletionStatus.data?.deletion_requested_at !== undefined;
 
 	return (
-		<BlurFade delay={0.1} inView>
+		<BlurFade delay={0.1}>
 			<div className="space-y-6">
-				<div className="mb-6">
+				<div>
 					<h2 className="text-lg font-semibold">My Data</h2>
 					<p className="text-sm text-muted-foreground">
 						Manage your personal data in accordance with GDPR and CCPA rights
@@ -165,7 +129,6 @@ export function AccountDataSection() {
 					<button
 						onClick={() => exportData.mutate()}
 						disabled={exportData.isPending}
-						aria-label="Download my data as JSON"
 						className="inline-flex items-center gap-2 px-4 py-2 min-h-11 text-sm font-medium rounded-lg border bg-background hover:bg-muted transition-colors disabled:opacity-50 disabled:pointer-events-none"
 					>
 						{exportData.isPending ? (
@@ -185,13 +148,13 @@ export function AccountDataSection() {
 
 					{isPending ? (
 						<div className="space-y-4">
-							<div className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
+							<div className="flex items-start gap-3 rounded-lg border border-warning/30 bg-warning/5 p-4">
 								<Clock
-									className="h-5 w-5 text-amber-600 mt-0.5 shrink-0"
+									className="h-5 w-5 text-warning-text mt-0.5 shrink-0"
 									aria-hidden="true"
 								/>
 								<div>
-									<p className="text-sm font-medium text-amber-700">
+									<p className="text-sm font-medium text-warning-text">
 										Account scheduled for deletion
 									</p>
 									<p className="text-sm text-muted-foreground mt-1">
@@ -203,10 +166,12 @@ export function AccountDataSection() {
 										</strong>
 										. You have{" "}
 										<strong>
-											{daysRemaining(
-												deletionStatus.data!.deletion_requested_at!,
-											)}{" "}
-											days
+											{formatCount(
+												daysRemaining(
+													deletionStatus.data!.deletion_requested_at!,
+												),
+												"day",
+											)}
 										</strong>{" "}
 										remaining to cancel.
 									</p>
@@ -215,7 +180,6 @@ export function AccountDataSection() {
 							<button
 								onClick={() => cancelDeletion.mutate()}
 								disabled={cancelDeletion.isPending}
-								aria-label="Cancel account deletion"
 								className="inline-flex items-center gap-2 px-4 py-2 min-h-11 text-sm font-medium rounded-lg border bg-background hover:bg-muted transition-colors disabled:opacity-50 disabled:pointer-events-none"
 							>
 								{cancelDeletion.isPending ? (
@@ -286,7 +250,7 @@ export function AccountDataSection() {
 											disabled={
 												confirmText !== "DELETE" || requestDeletion.isPending
 											}
-											className="inline-flex items-center gap-2 px-4 py-2 min-h-11 text-sm font-medium bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+											className="inline-flex items-center gap-2 px-4 py-2 min-h-11 text-sm font-medium bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive-text dark:hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
 										>
 											{requestDeletion.isPending ? (
 												<Loader2

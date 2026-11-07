@@ -22,7 +22,7 @@ export function TwoFactorSection() {
 
 	return (
 		<>
-			<BlurFade delay={0.25} inView>
+			<BlurFade delay={0.25}>
 				<section className="rounded-lg border bg-card p-6 relative overflow-hidden">
 					<BorderBeam
 						size={80}
@@ -58,10 +58,10 @@ export function TwoFactorSection() {
 							</button>
 						</div>
 					) : (
-						<div className="flex items-center justify-between p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+						<div className="flex items-center justify-between p-4 rounded-lg bg-warning/10 border border-warning/30">
 							<div className="flex items-center gap-3">
-								<div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-									<Shield className="h-5 w-5 text-amber-600" />
+								<div className="w-10 h-10 rounded-full bg-warning/20 flex items-center justify-center">
+									<Shield className="h-5 w-5 text-warning-text" />
 								</div>
 								<div>
 									<p className="text-sm font-medium">2FA is Not Enabled</p>

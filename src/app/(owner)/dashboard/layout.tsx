@@ -3,7 +3,7 @@ import { ownerPageMetadata } from "#lib/seo/owner-page-metadata";
 
 export const metadata = ownerPageMetadata(
 	"Dashboard",
-	"Overview of your property portfolio, revenue, and activity",
+	"Overview of your property portfolio, scheduled rent, and activity",
 );
 
 export default function Layout({ children }: { children: ReactNode }) {

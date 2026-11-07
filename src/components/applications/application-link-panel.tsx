@@ -253,10 +253,8 @@ function ActiveLinkControls({
 			<Input
 				readOnly
 				value={url}
-				// `inputSize="lg"` per §D-1: the UNLAYERED `@media (max-width: 768px)`
-				// block at globals.css:1536 forces `padding: clamp(.75rem, 2vw, 1rem)`
-				// onto every input and outranks any layered utility, so the 44px
-				// default leaves an 18px content box. 48px restores the headroom.
+				// `inputSize="lg"` keeps this 48px link field consistent with the
+				// applicant form's input height.
 				inputSize="lg"
 				// `md:text-xs` IS NOT REDUNDANT WITH `text-xs`. `Input`'s cva base
 				// ends `… text-base … md:text-sm …`, and `tailwind-merge` buckets an
@@ -337,7 +335,8 @@ function LinkRow({
 				/*
 				 * `mb-0`: this `<p>` is a flex item of the row's own `gap-2` box, and a
 				 * flex item establishes an independent formatting context, so the
-				 * unscoped base `p { margin-bottom: 1rem }` at globals.css:499 cannot
+				 * unscoped base `p { margin-bottom: 1rem }` (the `@layer base` `p` rule
+				 * in globals.css) cannot
 				 * collapse out of it — it is added to the row's height on top of the
 				 * gap that already spaces it (§D-3).
 				 */
@@ -496,7 +495,7 @@ function PanelEmpty() {
 			<EmptyHeader>
 				<EmptyTitle>No units yet</EmptyTitle>
 				{/*
-				 * `mb-0`: EmptyDescription is a bare `<p>` (empty.tsx:72) carrying the
+				 * `mb-0`: EmptyDescription (`ui/empty.tsx`) is a bare `<p>` carrying the
 				 * base 1rem bottom margin, and EmptyHeader lays out with `gap-2`, which
 				 * does not cancel margins.
 				 */}
@@ -631,9 +630,10 @@ export function ApplicationLinkPanel() {
 				<>
 					{rows.length > 0 ? (
 						/*
-						 * All four neutralizers are mandatory (§D-3): globals.css:517-524
-						 * declares unscoped `ul, ol { margin: 1rem 0; padding-left: 1.5rem }`
-						 * and `li { margin-bottom: 0.25rem }` inside @layer base, and a
+						 * All four neutralizers are mandatory (§D-3): the `@layer base`
+						 * `ul, ol` / `li` rules in globals.css declare unscoped
+						 * `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
+						 * `li { margin-bottom: 0.25rem }` inside @layer base, and a
 						 * utility beats a base rule by layer order — but only if it is
 						 * written.
 						 *

@@ -19,6 +19,7 @@
 import { z } from "zod";
 import { maintenancePrioritySchema } from "#lib/validation/maintenance";
 import type { MaintenanceRequest } from "#types/core";
+import { propertyReportName } from "../../../../supabase/functions/_shared/tax-year-reports";
 
 // PERSISTED maintenance status set — the FULL live DB CHECK constraint from
 // migration 20260221120000_add_maintenance_status_vendor_statuses.sql (the
@@ -28,12 +29,12 @@ import type { MaintenanceRequest } from "#types/core";
 // This is a module-local schema kept separate from the shared
 // `maintenanceStatusSchema` in #lib/validation/maintenance so the two boundaries
 // stay independent: this one validates PERSISTED rows read back from the DB
-// (list()/detail()/urgent()/overdue()), while the shared schema validates
+// (list()/detail()), while the shared schema validates
 // form/mutation INPUT. Both now enumerate the same 7 values — Phase 27 (MAINT-06)
 // widened the shared schema to include "assigned" and "needs_reassignment"
-// because the kanban drag + detail StatusSelect now let an owner set those
-// vendor-workflow statuses through the general update mutation (in addition to
-// vendorMutations.assign / unassign). Keep this local copy anyway: it decouples
+// because the kanban drag + detail StatusSelect let an owner set those
+// vendor-workflow statuses through the general update mutation. Keep this
+// local copy anyway: it decouples
 // the read-side defensive validation from any future narrowing of the input
 // schema, mirroring plan 02-02's tenant `moved_out` persisted-status precedent.
 const maintenancePersistedStatusSchema = z.enum([
@@ -93,10 +94,10 @@ function requirePersistedPriority(value: unknown): string {
 
 /**
  * Map a `maintenance_requests` PostgREST row to the strictly-typed
- * `MaintenanceRequest`. Accepts a row that may carry an extra `units` (from the
- * list() property_id `units!inner(property_id)` embed) or `vendors` (from the
- * detail() `vendors(...)` embed) key — only the maintenance_requests columns are
- * read, so the embed keys are ignored and never appear on the output.
+ * `MaintenanceRequest`. Accepts a row that may carry embed keys (the list's
+ * `units` and `tenant`, which `mapMaintenanceListRow` reads, or the detail()
+ * `vendors(...)` embed): only the maintenance_requests columns are read, so
+ * the embed keys never appear on the output.
  */
 export function mapMaintenanceRow(raw: unknown): MaintenanceRequest {
 	const row = (raw ?? {}) as Record<string, unknown>;
@@ -115,7 +116,6 @@ export function mapMaintenanceRow(raw: unknown): MaintenanceRequest {
 		requested_by: (row.requested_by as string | null) ?? null,
 		assigned_to: (row.assigned_to as string | null) ?? null,
 		estimated_cost: (row.estimated_cost as number | null) ?? null,
-		actual_cost: (row.actual_cost as number | null) ?? null,
 		scheduled_date: (row.scheduled_date as string | null) ?? null,
 		completed_at: (row.completed_at as string | null) ?? null,
 		inspection_date: (row.inspection_date as string | null) ?? null,
@@ -123,5 +123,125 @@ export function mapMaintenanceRow(raw: unknown): MaintenanceRequest {
 		inspector_id: (row.inspector_id as string | null) ?? null,
 		created_at: (row.created_at as string | null) ?? null,
 		updated_at: (row.updated_at as string | null) ?? null,
+	};
+}
+
+/**
+ * A maintenance request as the list (the board, the table and its search)
+ * shows it: the row and the names of what it is for, from the request's own
+ * embeds (`units(unit_number, property_id, properties(name, status))` and
+ * `tenant:tenant_id(name, first_name, last_name)`). A request is never shown
+ * by its unit's id.
+ */
+export interface MaintenanceListRow extends MaintenanceRequest {
+	/**
+	 * As a report prints it (`propertyReportName`): "Gamma Flats (deleted)"
+	 * for a property the owner deleted; null with no property row.
+	 */
+	propertyName: string | null;
+	/** The unit's number; null when it has none, or with no unit row. */
+	unitNumber: string | null;
+	/** The tenant's name, else first and last; null with neither or no row. */
+	tenantName: string | null;
+}
+
+/**
+ * A maintenance request as its detail page shows it: what the list shows and
+ * how to reach the tenant who has it (the tenant embed's `email` and `phone`).
+ */
+export interface MaintenanceDetailRow extends MaintenanceListRow {
+	tenantEmail: string | null;
+	tenantPhone: string | null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function nullableString(value: unknown, field: string): string | null {
+	if (value === null || value === undefined) return null;
+	if (typeof value !== "string") {
+		throw new Error(
+			`maintenance row: '${field}' is not a string in the PostgREST response`,
+		);
+	}
+	return value;
+}
+
+/**
+ * A to-one embed: its object, or null when no row is visible. The key itself
+ * must be there: an absent one means the select dropped the embed, and every
+ * request would be shown without its names, so it throws instead.
+ */
+function toOneEmbed(
+	row: Record<string, unknown>,
+	key: string,
+): Record<string, unknown> | null {
+	if (!(key in row)) {
+		throw new Error(
+			`maintenance row: embed '${key}' missing from PostgREST response`,
+		);
+	}
+	const value = row[key];
+	if (value === null) return null;
+	if (!isRecord(value)) {
+		throw new Error(
+			`maintenance row: embed '${key}' is not a single row in the PostgREST response`,
+		);
+	}
+	return value;
+}
+
+function tenantDisplayName(tenant: Record<string, unknown>): string | null {
+	const name = nullableString(tenant.name, "tenant.name");
+	if (name) return name;
+	const full = [
+		nullableString(tenant.first_name, "tenant.first_name"),
+		nullableString(tenant.last_name, "tenant.last_name"),
+	]
+		.filter((part): part is string => !!part)
+		.join(" ")
+		.trim();
+	return full === "" ? null : full;
+}
+
+/**
+ * Map a row of the maintenance list: the request's columns through
+ * `mapMaintenanceRow`, then its unit's number, its property's name and its
+ * tenant's name from the embeds.
+ */
+export function mapMaintenanceListRow(raw: unknown): MaintenanceListRow {
+	const row = isRecord(raw) ? raw : {};
+	const unit = toOneEmbed(row, "units");
+	const property = unit === null ? null : toOneEmbed(unit, "properties");
+	const tenant = toOneEmbed(row, "tenant");
+	return {
+		...mapMaintenanceRow(row),
+		propertyName:
+			property === null
+				? null
+				: propertyReportName(
+						requireString(property, "name"),
+						requireString(property, "status"),
+					),
+		unitNumber:
+			unit === null ? null : nullableString(unit.unit_number, "unit_number"),
+		tenantName: tenant === null ? null : tenantDisplayName(tenant),
+	};
+}
+
+/**
+ * Map a request on its detail page: the list's row and the tenant's email and
+ * phone from the tenant embed.
+ */
+export function mapMaintenanceDetailRow(raw: unknown): MaintenanceDetailRow {
+	const row = isRecord(raw) ? raw : {};
+	const tenant = toOneEmbed(row, "tenant");
+	return {
+		...mapMaintenanceListRow(row),
+		tenantEmail:
+			tenant === null ? null : nullableString(tenant.email, "tenant.email"),
+		tenantPhone:
+			tenant === null ? null : nullableString(tenant.phone, "tenant.phone"),
 	};
 }

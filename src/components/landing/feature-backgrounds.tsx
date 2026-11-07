@@ -73,7 +73,7 @@ export function VaultPreview() {
 						{categories.map((category) => (
 							<span
 								key={category.label}
-								className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary"
+								className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary-text"
 							>
 								<category.icon className="size-2.5" />
 								{category.label}
@@ -145,7 +145,7 @@ export function TenantListBackground() {
 				].map((tenant) => (
 					<div key={tenant.name} className="card-standard p-3 flex-between">
 						<div className="flex items-center gap-3">
-							<div className="size-8 rounded-full bg-primary/10 flex-center text-primary text-xs font-medium">
+							<div className="size-8 rounded-full bg-primary/10 flex-center text-primary-text text-xs font-medium">
 								{tenant.name
 									.split(" ")
 									.map((n) => n[0])
@@ -232,7 +232,7 @@ export function MaintenanceBoard() {
 
 export function AnalyticsPreview() {
 	return (
-		<div className="absolute inset-x-0 top-0 bottom-[40%] p-4 overflow-hidden">
+		<div className="absolute inset-x-0 top-0 bottom-2/5 p-4 overflow-hidden">
 			<div className="space-y-3 opacity-70">
 				<div className="card-standard p-3">
 					<div className="flex-between mb-2">
@@ -255,7 +255,7 @@ export function AnalyticsPreview() {
 							"h-[78%]",
 							"h-[72%]",
 							"h-[85%]",
-							"h-[80%]",
+							"h-4/5",
 							"h-[92%]",
 						].map((h, i) => (
 							<div
@@ -290,22 +290,22 @@ export function LeaseDocuments() {
 				{[
 					{
 						name: "Lease Agreement - Unit 2A",
-						status: "Signed",
+						statusLabel: "Signed",
 						date: "Dec 1, 2024",
 					},
 					{
 						name: "Renewal Notice - Unit 3B",
-						status: "Pending",
+						statusLabel: "Pending",
 						date: "Dec 15, 2024",
 					},
 					{
 						name: "Move-in Inspection",
-						status: "Signed",
+						statusLabel: "Signed",
 						date: "Nov 28, 2024",
 					},
 					{
 						name: "Pet Addendum - Unit 1C",
-						status: "Signed",
+						statusLabel: "Signed",
 						date: "Nov 20, 2024",
 					},
 				].map((doc) => (
@@ -324,12 +324,12 @@ export function LeaseDocuments() {
 						<span
 							className={cn(
 								"text-xs px-2 py-0.5 rounded-full",
-								doc.status === "Signed"
+								doc.statusLabel === "Signed"
 									? "bg-success/10 text-success-text"
 									: "bg-warning/10 text-warning-text",
 							)}
 						>
-							{doc.status}
+							{doc.statusLabel}
 						</span>
 					</div>
 				))}

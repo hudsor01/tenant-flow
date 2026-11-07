@@ -110,9 +110,7 @@ export default function TenantsPage() {
 					<h2 className="text-lg font-semibold text-destructive-text mb-2">
 						Error Loading Tenants
 					</h2>
-					<p className="text-muted-foreground">
-						{error instanceof Error ? error.message : "Failed to load tenants"}
-					</p>
+					<p className="text-muted-foreground">Failed to load tenants</p>
 				</div>
 			</div>
 		);
@@ -151,7 +149,7 @@ export default function TenantsPage() {
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={confirmDeleteTenant}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							variant="destructive"
 						>
 							Delete
 						</AlertDialogAction>
@@ -187,7 +185,7 @@ export default function TenantsPage() {
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={confirmBulkDelete}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							variant="destructive"
 						>
 							Delete
 						</AlertDialogAction>

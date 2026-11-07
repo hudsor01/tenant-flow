@@ -45,4 +45,16 @@ describe("OwnerEmergencyContactSection a11y (A11Y-01)", () => {
 		expect(screen.getByLabelText("Phone Number")).toBeInTheDocument();
 		expect(screen.getByLabelText("Phone Number").tagName).toBe("INPUT");
 	});
+
+	// 66.2-39 sweep 1: the fields used a bare `input` class that no stylesheet
+	// defines, so they rendered with no border, padding or height. They are
+	// the shadcn Input primitive now.
+	it("renders each field with the shadcn Input primitive", () => {
+		render(<OwnerEmergencyContactSection />);
+		for (const label of ["Contact Name", "Relationship", "Phone Number"]) {
+			const input = screen.getByLabelText(label);
+			expect(input).toHaveAttribute("data-slot", "input");
+			expect(input.classList).not.toContain("input");
+		}
+	});
 });

@@ -8,10 +8,10 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#components/ui/empty";
+import { type PropertyType, toPropertyType } from "#lib/constants/status-types";
 import { intersectSelection } from "#lib/intersect-selection";
 import type { PropertyStatus } from "#types/core";
 import { propertyBulkImportConfig } from "./bulk-import-config";
-import type { DesignPropertyType } from "./types";
 
 export interface EmptyPropertiesProps {
 	onAddProperty?: (() => void) | undefined;
@@ -53,17 +53,13 @@ export function PropertiesHeader({ onAddProperty }: PropertiesHeaderProps) {
 		<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
 			<div>
 				<h1 className="typography-h1">Properties</h1>
-				<p className="text-sm text-muted-foreground mt-1">
+				<p className="mb-0 text-sm text-muted-foreground mt-1">
 					Manage your property portfolio
 				</p>
 			</div>
-			<div className="flex items-center gap-2">
+			<div className="flex flex-wrap items-center gap-2">
 				<BulkImportDialog config={propertyBulkImportConfig()} />
-				<Button
-					onClick={onAddProperty}
-					className="gap-2 min-h-11"
-					aria-label="Add a new property"
-				>
+				<Button onClick={onAddProperty} className="gap-2 min-h-11">
 					<Plus className="w-4 h-4" />
 					Add Property
 				</Button>
@@ -86,11 +82,7 @@ export function NoResultsFilter({ onClearFilters }: NoResultsFilterProps) {
 				<EmptyDescription>No properties match your filters</EmptyDescription>
 			</EmptyHeader>
 			<div className="flex items-center gap-3 mt-2">
-				<Button
-					variant="link"
-					onClick={onClearFilters}
-					aria-label="Clear all filters"
-				>
+				<Button variant="link" onClick={onClearFilters}>
 					Clear filters
 				</Button>
 			</div>
@@ -103,11 +95,11 @@ export function useBulkHandlers(
 	properties: {
 		id: string;
 		status: PropertyStatus;
-		propertyType: DesignPropertyType;
+		propertyType: string;
 	}[],
 	openBulkEdit: (
 		initialStatus: PropertyStatus,
-		initialType: DesignPropertyType,
+		initialType: PropertyType | null,
 	) => void,
 	deletePropertyMutation: { mutateAsync: (id: string) => Promise<unknown> },
 	clearSelection: () => void,
@@ -116,7 +108,10 @@ export function useBulkHandlers(
 		if (selectedRows.size === 0) return;
 		const firstSelected = properties.find((p) => selectedRows.has(p.id));
 		if (firstSelected) {
-			openBulkEdit(firstSelected.status, firstSelected.propertyType);
+			openBulkEdit(
+				firstSelected.status,
+				toPropertyType(firstSelected.propertyType),
+			);
 		}
 	};
 

@@ -1,0 +1,84 @@
+{
+ "src/components/ui/border-beam.tsx": [
+  "![mask-clip:padding-box,border-box] -> [mask-clip:padding-box,border-box]!",
+  "![mask-composite:intersect] -> mask-intersect!"
+ ],
+ "src/components/ui/command.tsx": [
+  "**:**:**:[&_[cmdk-group-heading]]:text-muted-foreground -> **:**:**:**:[[cmdk-group-heading]]:text-muted-foreground",
+  "**:**:[&_[cmdk-group-heading]]:font-medium -> **:**:**:[[cmdk-group-heading]]:font-medium",
+  "**:**:[&_[cmdk-group-heading]]:px-2 -> **:**:**:[[cmdk-group-heading]]:px-2",
+  "**:[&_[cmdk-group]]:px-2 -> **:**:[[cmdk-group]]:px-2",
+  "**:[&_[cmdk-input]]:h-12 -> **:**:[[cmdk-input]]:h-12",
+  "**:[&_[cmdk-item]]:px-2 -> **:**:[[cmdk-item]]:px-2",
+  "**:[&_[cmdk-item]]:py-3 -> **:**:[[cmdk-item]]:py-3",
+  "[&_[cmdk-group-heading]]:font-medium -> **:[[cmdk-group-heading]]:font-medium",
+  "[&_[cmdk-group-heading]]:px-2 -> **:[[cmdk-group-heading]]:px-2",
+  "[&_[cmdk-group-heading]]:py-1.5 -> **:[[cmdk-group-heading]]:py-1.5",
+  "[&_[cmdk-group-heading]]:text-muted-foreground -> **:[[cmdk-group-heading]]:text-muted-foreground",
+  "[&_[cmdk-group-heading]]:text-xs -> **:[[cmdk-group-heading]]:text-xs"
+ ],
+ "src/components/ui/table.tsx": [
+  "*:[[role=checkbox]]:translate-y-[2px] -> *:[[role=checkbox]]:translate-y-0.5"
+ ],
+ "src/components/ui/field.tsx": [
+  "@md/field-group:[&>*]:w-auto -> @md/field-group:*:w-auto",
+  "@md/field-group:[&>[data-slot=field-label]]:flex-auto -> @md/field-group:*:data-[slot=field-label]:flex-auto",
+  "[&>*]:data-[slot=field]:p-4 -> *:data-[slot=field]:p-4",
+  "[&>*]:w-full -> *:w-full",
+  "[&>[data-slot=field-group]]:gap-4 -> *:data-[slot=field-group]:gap-4",
+  "[&>[data-slot=field-label]]:flex-auto -> *:data-[slot=field-label]:flex-auto",
+  "group-has-[[data-orientation=horizontal]]/field:text-balance -> group-has-data-[orientation=horizontal]/field:text-balance"
+ ],
+ "src/components/ui/select.tsx": [
+  "[&>*]:flex -> *:flex",
+  "[&>*]:gap-2 -> *:gap-2",
+  "[&>*]:items-center -> *:items-center",
+  "[&>*]:line-clamp-1 -> *:line-clamp-1",
+  "data-[disabled]:opacity-50 -> data-disabled:opacity-50",
+  "data-[disabled]:pointer-events-none -> data-disabled:pointer-events-none",
+  "data-[placeholder]:text-muted-foreground -> data-placeholder:text-muted-foreground",
+  "h-[var(--radix-select-trigger-height)] -> h-(--radix-select-trigger-height)",
+  "min-w-[8rem] -> min-w-32",
+  "min-w-[var(--radix-select-trigger-width)] -> min-w-(--radix-select-trigger-width)"
+ ],
+ "src/components/ui/button-group.tsx": [
+  "[&>*]:focus-visible:relative -> *:focus-visible:relative",
+  "[&>*]:focus-visible:z-10 -> *:focus-visible:z-10"
+ ],
+ "src/components/ui/loading-spinner.tsx": [
+  "[animation-duration:var(--duration-1000)] -> animation-duration-(--duration-1000)",
+  "[animation-duration:var(--duration-700)] -> animation-duration-(--duration-700)"
+ ],
+ "src/components/ui/bento-grid.tsx": [
+  "auto-rows-[18rem] -> auto-rows-72",
+  "bg-gradient-to-t -> bg-linear-to-t",
+  "group-hover:bg-primary/[0.03] -> group-hover:bg-primary/3"
+ ],
+ "src/components/ui/slider.tsx": [
+  "data-[disabled]:opacity-50 -> data-disabled:opacity-50"
+ ],
+ "src/components/ui/dropdown-menu.tsx": [
+  "data-[disabled]:opacity-50 -> data-disabled:opacity-50",
+  "data-[disabled]:pointer-events-none -> data-disabled:pointer-events-none",
+  "data-[inset]:pl-8 -> data-inset:pl-8",
+  "data-[variant=destructive]:*:[svg]:!text-destructive -> data-[variant=destructive]:*:[svg]:text-destructive!",
+  "min-w-[8rem] -> min-w-32"
+ ],
+ "src/components/ui/item.tsx": [
+  "group-has-[[data-slot=item-description]]/item:self-start -> group-has-data-[slot=item-description]/item:self-start",
+  "group-has-[[data-slot=item-description]]/item:translate-y-0.5 -> group-has-data-[slot=item-description]/item:translate-y-0.5"
+ ],
+ "src/components/ui/alert.tsx": [
+  "has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] -> has-[>svg]:grid-cols-[--spacing(4)_1fr]"
+ ],
+ "src/components/ui/chart-tooltip.tsx": [
+  "min-w-[8rem] -> min-w-32"
+ ],
+ "src/components/ui/tooltip.tsx": [
+  "origin-[var(--radix-tooltip-content-transform-origin)] -> origin-(--radix-tooltip-content-transform-origin)",
+  "rounded-[2px] -> rounded-xs"
+ ],
+ "src/components/ui/tabs.tsx": [
+  "p-[3px] -> p-0.75"
+ ]
+}

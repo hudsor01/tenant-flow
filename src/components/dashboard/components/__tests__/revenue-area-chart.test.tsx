@@ -18,9 +18,10 @@
  * (`<area-chart>`, `<area>`) wait via `findBy*` or `waitFor`.
  */
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { resetRechartsProbe, setRechartsProbe } from "#test/mocks/recharts";
 import type {
 	MonthlyRevenuePoint,
 	TimeSeriesDataPoint,
@@ -65,15 +66,22 @@ beforeEach(() => {
 	useReducedMotionMock.mockReturnValue(false);
 });
 
+afterEach(() => {
+	resetRechartsProbe();
+});
+
 describe("RevenueAreaChart", () => {
-	it("renders Revenue title + 'Last 30 days' description on initial mount", () => {
+	// Its series is each day's lease rent: scheduled rent, as the financial
+	// analytics page's month charts name it (66.2-39 part P).
+	it("renders the Scheduled Rent title + 'Last 30 days' description on initial mount", () => {
 		render(
 			<RevenueAreaChart
 				monthlyRevenue={daily30d}
 				monthlyRevenue6mo={monthly6mo}
 			/>,
 		);
-		expect(screen.getByText("Revenue")).toBeInTheDocument();
+		expect(screen.getByText("Scheduled Rent")).toBeInTheDocument();
+		expect(screen.queryByText("Revenue")).not.toBeInTheDocument();
 		expect(screen.getByText("Last 30 days")).toBeInTheDocument();
 	});
 
@@ -146,13 +154,13 @@ describe("RevenueAreaChart", () => {
 				monthlyRevenue6mo={empty6mo}
 			/>,
 		);
-		expect(screen.getByText("No revenue data yet")).toBeInTheDocument();
+		expect(screen.getByText("No scheduled rent yet")).toBeInTheDocument();
 		expect(
-			screen.getByText("Add a lease to start tracking revenue"),
+			screen.getByText("Add a lease to see its rent scheduled here"),
 		).toBeInTheDocument();
 		// Toggle still mounted and clickable; flips to 6mo and stays empty.
 		await user.click(screen.getByRole("radio", { name: "6mo" }));
-		expect(screen.getByText("No revenue data yet")).toBeInTheDocument();
+		expect(screen.getByText("No scheduled rent yet")).toBeInTheDocument();
 	});
 
 	it("renders empty-state in 6mo window when 30d has data but 6mo is empty (D-08 edge)", async () => {
@@ -167,11 +175,11 @@ describe("RevenueAreaChart", () => {
 		expect(await screen.findByTestId("area-chart")).toBeInTheDocument();
 		// Flip to 6mo: empty-state shown, chart gone.
 		await user.click(screen.getByRole("radio", { name: "6mo" }));
-		expect(screen.getByText("No revenue data yet")).toBeInTheDocument();
+		expect(screen.getByText("No scheduled rent yet")).toBeInTheDocument();
 		expect(screen.queryByTestId("area-chart")).toBeNull();
 		// Flip back to 30d: chart re-mounts, empty-state gone.
 		await user.click(screen.getByRole("radio", { name: "30d" }));
-		expect(screen.queryByText("No revenue data yet")).toBeNull();
+		expect(screen.queryByText("No scheduled rent yet")).toBeNull();
 		expect(await screen.findByTestId("area-chart")).toBeInTheDocument();
 	});
 
@@ -208,17 +216,54 @@ describe("RevenueAreaChart", () => {
 		const area = await screen.findByTestId("area");
 		expect(area.getAttribute("data-stroke")).toBe("var(--color-chart-1)");
 	});
+
+	// The tooltip's formatter returned recharts' [value, name] pair, which
+	// ChartTooltipContent renders in place of the whole row: "$12,346Scheduled
+	// Rent", no key and no space (66.2-39 fix round 3, F33's sweep).
+	it("names the tooltip's series apart from its whole dollars", async () => {
+		setRechartsProbe({
+			tooltip: {
+				active: true,
+				label: "2026-05-22T00:00:00.000Z",
+				payload: [
+					{
+						dataKey: "value",
+						name: "revenue",
+						value: 12345.67,
+						color: "var(--color-chart-1)",
+						payload: daily30d[0],
+					},
+				],
+			},
+		});
+		render(
+			<RevenueAreaChart
+				monthlyRevenue={daily30d}
+				monthlyRevenue6mo={monthly6mo}
+			/>,
+		);
+		const tooltip = await screen.findByTestId("tooltip");
+		const name = within(tooltip).getByText("Scheduled Rent");
+		expect(name.nextElementSibling?.textContent).toBe("$12,346");
+		expect((await screen.findByTestId("area")).getAttribute("data-name")).toBe(
+			"revenue",
+		);
+	});
 });
 
 describe("RevenueAreaChartSkeleton", () => {
-	it("renders a Card with lg:col-span-2 + h-[300px] skeleton body", async () => {
+	it("renders a Card spanning two dashboard-container columns + h-75 skeleton body", async () => {
 		const { container } = render(<RevenueAreaChartSkeleton />);
 		const card = container.firstElementChild as HTMLElement | null;
 		expect(card).not.toBeNull();
-		expect(card?.className).toContain("lg:col-span-2");
-		// Skeleton body placeholder uses the Tailwind arbitrary-value h-[300px].
+		// The span keys on the `dashboard` container like the trends grid, not on
+		// the viewport (CP-4 follow-up): a viewport span on a one-column grid
+		// would add an implicit second column.
+		expect(card?.className.split(/\s+/)).toContain("@4xl/dashboard:col-span-2");
+		expect(card?.className).not.toContain("lg:col-span");
+		// Skeleton body placeholder uses the scale class h-75 (300px at a 16px root).
 		await waitFor(() => {
-			expect(container.querySelector('[class*="h-[300px]"]')).not.toBeNull();
+			expect(container.querySelector(".h-75")).not.toBeNull();
 		});
 	});
 

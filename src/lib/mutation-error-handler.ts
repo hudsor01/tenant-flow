@@ -18,6 +18,7 @@ import * as Sentry from "@sentry/nextjs";
 import { toast } from "sonner";
 import { createLogger } from "#lib/frontend-logger";
 import { isStoragePlanLimitError } from "#lib/storage-plan-limit";
+import { isApiError } from "#lib/utils/api-error";
 
 const logger = createLogger({ component: "MutationErrorHandler" });
 
@@ -40,10 +41,8 @@ function toError(error: unknown, fallback: string): Error {
 	return obj ? new Error(message, { cause: obj }) : new Error(message);
 }
 
-/**
- * Extract user-friendly error message from various error types
- */
-function extractErrorMessage(error: unknown): string {
+/** The error's own message (an Error, a string, or a `{ message }` object). */
+function rawErrorMessage(error: unknown): string | null {
 	if (error instanceof Error) return error.message;
 	if (typeof error === "string") return error;
 
@@ -51,9 +50,14 @@ function extractErrorMessage(error: unknown): string {
 	const obj = error as Record<string, unknown> | null;
 	const message =
 		obj?.message ?? (obj?.payload as Record<string, unknown>)?.message;
-	if (typeof message === "string") return message;
+	return typeof message === "string" ? message : null;
+}
 
-	return "An unexpected error occurred";
+/**
+ * The error's message for logging (Sentry and the dev console), never shown.
+ */
+function extractErrorMessage(error: unknown): string {
+	return rawErrorMessage(error) ?? "An unexpected error occurred";
 }
 
 /**
@@ -97,7 +101,52 @@ const GENERIC_MUTATION_ERROR = "Something went wrong. Please try again.";
  * PL/pgSQL RAISE codes (P0001/P0002) never match and also pass through verbatim.
  */
 const RAW_DB_INTERNALS =
-	/duplicate key value|violates (?:unique|check|foreign key|not-null|exclusion) constraint|null value in column|violates row-level security policy|invalid input syntax|value too long|out of range/i;
+	/duplicate key value|violates (?:unique|check|foreign key|not-null|exclusion) constraint|null value in column|violates row-level security policy|invalid input syntax|value too long|out of range|permission denied for (?:table|relation|function|schema|sequence|view)|(?:relation|column) "[^"]+" (?:of relation "[^"]+" )?does not exist|function [\w.]+\([^)]*\) does not exist/i;
+
+/**
+ * The browser's own text for a fetch that never reached the server (Chrome,
+ * Firefox, Safari, and React Native's), never product copy.
+ */
+const NETWORK_FAILURE =
+	/^(?:Failed to fetch|NetworkError when attempting to fetch resource\.?|Load failed|Network request failed)$/i;
+
+const NETWORK_ERROR_MESSAGE =
+	"Network error. Please check your connection and try again.";
+
+/**
+ * The text a user may see for `error`, wherever it is shown (a toast, a form,
+ * a row of results). The ONE sanitizer: `handleMutationError` uses it for its
+ * toast, and an inline error display calls it directly instead of reading
+ * `error.message`.
+ *
+ *   - an `ApiError` (a failed Edge Function or API response) shows its
+ *     product copy, `getUserMessage()`, never the HTTP status text;
+ *   - the browser's network failure shows the network copy;
+ *   - a raw Postgres/PostgREST message (`RAW_DB_INTERNALS`, a `PGRST*` code)
+ *     shows the copy for its SQLSTATE, else the generic fallback;
+ *   - any other message (author-written RAISE copy, a client-side validation
+ *     message, Supabase Auth's user-facing text) shows verbatim;
+ *   - no message at all shows `fallback`.
+ */
+export function userFacingErrorMessage(
+	error: unknown,
+	fallback: string = GENERIC_MUTATION_ERROR,
+): string {
+	if (isApiError(error)) return error.getUserMessage();
+	const message = rawErrorMessage(error);
+	if (message === null || message.trim() === "") return fallback;
+	if (error instanceof TypeError && NETWORK_FAILURE.test(message)) {
+		return NETWORK_ERROR_MESSAGE;
+	}
+	const errObj = error as Record<string, unknown> | null;
+	const pgCode = typeof errObj?.code === "string" ? errObj.code : undefined;
+	if (RAW_DB_INTERNALS.test(message) || (!!pgCode && /^PGRST/.test(pgCode))) {
+		return (
+			(pgCode && POSTGRES_ERROR_MESSAGES[pgCode]) || GENERIC_MUTATION_ERROR
+		);
+	}
+	return message;
+}
 
 /**
  * Stable sonner toast id for the storage-quota Upgrade prompt (METER-04 / D-03).
@@ -196,8 +245,10 @@ export function handleMutationError(
 		});
 	}
 
-	// Show user-friendly toast notification
-	const displayMessage = customMessage || message;
+	// The toast's copy: the caller's, else the sanitized message, else the
+	// branch's own copy (`fallback`) when the error carries no message.
+	const displayMessage = (fallback?: string) =>
+		customMessage || userFacingErrorMessage(error, fallback);
 
 	// Plan-limit detection — fired by the BEFORE-INSERT triggers
 	// `enforce_property_plan_limit` / `enforce_unit_plan_limit`. The PG
@@ -208,7 +259,6 @@ export function handleMutationError(
 	// the body and are surfaced through their own per-feature handlers — they
 	// do NOT pass through this function.
 	const errObj = error as Record<string, unknown> | null;
-	const pgCode = typeof errObj?.code === "string" ? errObj.code : undefined;
 	const pgHint = typeof errObj?.hint === "string" ? errObj.hint : undefined;
 	const pgDetails =
 		typeof errObj?.details === "string" ? errObj.details : undefined;
@@ -242,44 +292,37 @@ export function handleMutationError(
 	// Customize toast based on status code
 	if (status === 409) {
 		toast.error("Conflict", {
-			description:
-				displayMessage || "This item already exists or has been modified",
+			description: displayMessage(
+				"This item already exists or has been modified",
+			),
 		});
 	} else if (isPlanLimit) {
 		showPlanLimitUpgradeToast(
-			displayMessage,
+			displayMessage(),
 			upgradeSource,
 			isStorageQuota ? STORAGE_QUOTA_TOAST_ID : undefined,
 		);
 	} else if (status === 403) {
 		toast.error("Access Denied", {
-			description:
-				displayMessage || "You do not have permission to perform this action",
+			description: displayMessage(
+				"You do not have permission to perform this action",
+			),
 		});
 	} else if (status === 404) {
 		toast.error("Not Found", {
-			description: displayMessage || "The requested item could not be found",
+			description: displayMessage("The requested item could not be found"),
 		});
 	} else if (status && status >= 500) {
 		toast.error("Server Error", {
 			description: "Our servers encountered an issue. Please try again later.",
 		});
 	} else {
-		// Caller-supplied copy always wins. Otherwise: only replace the message when
-		// it is a RAW Postgres/PostgREST internal (matches RAW_DB_INTERNALS, or a
-		// PostgREST `PGRST*` code which is never author copy) — using specific copy
-		// for a known SQLSTATE, else the generic fallback. Any other message —
-		// including author-written RAISE EXCEPTION copy carrying a constraint
-		// SQLSTATE like 23514/42501, and P0001/P0002 — surfaces verbatim.
-		const mappedMessage = pgCode ? POSTGRES_ERROR_MESSAGES[pgCode] : undefined;
-		const isPgrstCode = !!pgCode && /^PGRST/.test(pgCode);
-		if (customMessage) {
-			toast.error(customMessage);
-		} else if (RAW_DB_INTERNALS.test(message) || isPgrstCode) {
-			toast.error(mappedMessage ?? GENERIC_MUTATION_ERROR);
-		} else {
-			toast.error(message);
-		}
+		// Caller-supplied copy always wins; otherwise `userFacingErrorMessage`
+		// replaces only a raw internal (an HTTP status text, the browser's
+		// network failure, a RAW Postgres/PostgREST message), so author-written
+		// RAISE EXCEPTION copy carrying a constraint SQLSTATE like 23514/42501,
+		// and P0001/P0002, surfaces verbatim.
+		toast.error(displayMessage());
 	}
 }
 

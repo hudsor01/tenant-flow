@@ -26,7 +26,9 @@ describe("MultiSelectChips", () => {
 				aria-label="Filter by category"
 			/>,
 		);
-		const trigger = screen.getByLabelText("Filter by category");
+		const trigger = screen.getByRole("button", {
+			name: /\(Filter by category\)$/,
+		});
 		expect(trigger).toHaveTextContent("All categories");
 	});
 
@@ -40,9 +42,9 @@ describe("MultiSelectChips", () => {
 				aria-label="Filter by category"
 			/>,
 		);
-		expect(screen.getByLabelText("Filter by category")).toHaveTextContent(
-			"Receipt",
-		);
+		expect(
+			screen.getByRole("button", { name: /\(Filter by category\)$/ }),
+		).toHaveTextContent("Receipt");
 	});
 
 	it("renders the count summary when multiple are selected", () => {
@@ -55,9 +57,9 @@ describe("MultiSelectChips", () => {
 				aria-label="Filter by category"
 			/>,
 		);
-		expect(screen.getByLabelText("Filter by category")).toHaveTextContent(
-			"2 selected",
-		);
+		expect(
+			screen.getByRole("button", { name: /\(Filter by category\)$/ }),
+		).toHaveTextContent("2 selected");
 	});
 
 	it("toggling an option calls onChange with the new array", async () => {
@@ -71,7 +73,9 @@ describe("MultiSelectChips", () => {
 				aria-label="Filter by category"
 			/>,
 		);
-		await user.click(screen.getByLabelText("Filter by category"));
+		await user.click(
+			screen.getByRole("button", { name: /\(Filter by category\)$/ }),
+		);
 		await user.click(screen.getByRole("option", { name: /receipt/i }));
 		expect(onChange).toHaveBeenCalledWith(["lease", "receipt"]);
 	});
@@ -87,7 +91,9 @@ describe("MultiSelectChips", () => {
 				aria-label="Filter by category"
 			/>,
 		);
-		await user.click(screen.getByLabelText("Filter by category"));
+		await user.click(
+			screen.getByRole("button", { name: /\(Filter by category\)$/ }),
+		);
 		await user.click(screen.getByRole("button", { name: /^clear$/i }));
 		expect(onChange).toHaveBeenCalledWith([]);
 	});
@@ -102,7 +108,9 @@ describe("MultiSelectChips", () => {
 				aria-label="Filter by category"
 			/>,
 		);
-		await user.click(screen.getByLabelText("Filter by category"));
+		await user.click(
+			screen.getByRole("button", { name: /\(Filter by category\)$/ }),
+		);
 		expect(screen.getByRole("button", { name: /^clear$/i })).toBeDisabled();
 	});
 
@@ -117,7 +125,9 @@ describe("MultiSelectChips", () => {
 				aria-label="Filter by category"
 			/>,
 		);
-		await user.click(screen.getByLabelText("Filter by category"));
+		await user.click(
+			screen.getByRole("button", { name: /\(Filter by category\)$/ }),
+		);
 		// The popover is open: option list visible.
 		expect(
 			screen.getByRole("option", { name: /^lease$/i }),

@@ -181,7 +181,9 @@ export function FileUploadDropzone(props: FileUploadDropzoneProps) {
 			tabIndex={context.disabled ? undefined : 0}
 			{...dropzoneProps}
 			className={cn(
-				"relative flex select-none flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 outline-none transition-colors hover:bg-accent/30 focus-visible:border-ring/50 data-disabled:pointer-events-none data-dragging:border-primary/30 data-invalid:border-destructive data-dragging:bg-accent/30 data-invalid:ring-destructive/20",
+				// accent/25, not the diceui accent/30: muted-foreground text on the emerald
+				// accent/30 read 4.39:1 (66.2-39 fix round 1, part F; UI-SPEC VD-59).
+				"relative flex select-none flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 outline-none transition-colors hover:bg-accent/25 focus-visible:border-ring/50 data-disabled:pointer-events-none data-dragging:border-primary/30 data-invalid:border-destructive data-dragging:bg-accent/25 data-invalid:ring-destructive/20",
 				className,
 			)}
 			onClick={onClick}

@@ -1,7 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { logger } from "#lib/frontend-logger";
-import { handleMutationError } from "#lib/mutation-error-handler";
+import {
+	handleMutationError,
+	userFacingErrorMessage,
+} from "#lib/mutation-error-handler";
 
 import { leaseQueries } from "./query-keys/lease-keys";
 import { leaseMutations } from "./query-keys/lease-mutation-options";
@@ -20,7 +23,7 @@ import { usageQueries } from "./query-keys/usage-keys";
 function handleSendSignatureError(err: unknown): void {
 	if (err instanceof PaywallError) {
 		toast.error("E-sign limit reached", {
-			description: err.message,
+			description: userFacingErrorMessage(err),
 			action: {
 				label: "Upgrade",
 				onClick: () => {

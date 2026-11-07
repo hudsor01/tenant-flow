@@ -1,8 +1,14 @@
 // Supabase Edge Function: generate-pdf
-// Accepts three request modes:
+// Accepts two request modes:
 //   1. { reportType, year }   — server-side report data fetch + HTML build
+//      (`financial-analytics` prints the /analytics/financial export, the same
+//      document export-report's pdf format prints; `year` is not used for it.
+//      `year-end` and `financial` print the /reports/year-end page and the
+//      /reports/tax-documents page for that year, `_shared/tax-year-reports.ts`.
+//      Any other reportType is a 400.)
 //   2. { html }               — pre-built HTML from caller (no DB fetch)
-//   3. { leaseId }            — fetch lease+property data, build HTML summary
+// (A third mode, { leaseId }, printed a lease summary that no caller requests;
+// such a body is now a Mode 1 request without a reportType, a 400.)
 // Calls the self-hosted StirlingPDF k3s instance and streams the resulting PDF blob.
 // JWT-authenticated — requires a valid Bearer token.
 // Fail-fast: no retry on StirlingPDF errors (matches stripe-webhooks pattern).
@@ -16,8 +22,20 @@ import {
 } from "../_shared/cors.ts";
 import { validateEnv } from "../_shared/env.ts";
 import { captureWebhookError, errorResponse } from "../_shared/errors.ts";
-import { escapeHtml } from "../_shared/escape-html.ts";
+import {
+	buildFinancialAnalyticsTable,
+	FINANCIAL_ANALYTICS_REPORT_TYPE,
+	loadFinancialAnalyticsSources,
+} from "../_shared/financial-analytics-report.ts";
+import { sectionedReportHtml } from "../_shared/report-html.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
+import {
+	buildTaxYearReport,
+	expenseVendorLabel,
+	loadTaxYearSources,
+	propertyReportName,
+	TAX_YEAR_REPORT_TYPES,
+} from "../_shared/tax-year-reports.ts";
 import {
 	checkTierEntitlement,
 	GROWTH_AND_MAX_PLANS,
@@ -25,220 +43,35 @@ import {
 
 // Mirror of export-report PREMIUM_REPORT_TYPES. generate-pdf's Mode 1
 // (structured report data via {reportType, year}) bypasses export-report
-// entirely, so the same gate has to live here. Modes 2 (raw HTML) and 3
-// (lease preview) are not gated — those are per-entity operations already
-// bounded by ownership checks.
+// entirely, so the same gate has to live here. Mode 2 (raw HTML the caller
+// built from data it already holds) is not gated.
 const PREMIUM_REPORT_TYPES: ReadonlySet<string> = new Set([
 	"year-end",
-	"1099",
 	"financial",
-	"income-statement",
-	"cash-flow",
+	"financial-analytics",
 ]);
 
-type ReportRow = Record<string, string | number | null | undefined>;
+/** The Mode 1 report types this function builds; any other is a 400. */
+const REPORT_TYPES: readonly string[] = [
+	FINANCIAL_ANALYTICS_REPORT_TYPE,
+	...TAX_YEAR_REPORT_TYPES,
+];
 
 type RequestBody =
 	| { reportType: string; year: number; filename?: string }
-	| { html: string; filename?: string }
-	| { leaseId: string; filename?: string };
+	| { html: string; filename?: string };
 
-function buildReportHtml(
-	reportType: string,
-	year: number,
-	rows: ReportRow[],
-): string {
-	const title = `${reportType.replace(/-/g, " ").toUpperCase()} REPORT — ${year}`;
-	const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
-
-	const headerCells = headers
-		.map((h) => `<th class="th">${escapeHtml(h)}</th>`)
-		.join("");
-	const tableRows = rows
-		.map(
-			(row) =>
-				`<tr>${headers.map((h) => `<td class="td">${escapeHtml(String(row[h] ?? ""))}</td>`).join("")}</tr>`,
-		)
-		.join("");
-
-	const tableMarkup =
-		rows.length === 0
-			? '<p class="empty">No data available for this report.</p>'
-			: `<table class="table"><thead><tr>${headerCells}</tr></thead><tbody>${tableRows}</tbody></table>`;
-
-	return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>${escapeHtml(title)}</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 32px; color: #222; }
-    h1 { font-size: 20px; margin-bottom: 4px; }
-    .meta { color: #666; margin-bottom: 16px; font-size: 13px; }
-    .table { border-collapse: collapse; width: 100%; font-size: 13px; }
-    .th { border: 1px solid #ccc; padding: 6px 10px; background: #f0f0f0; text-align: left; }
-    .td { border: 1px solid #ccc; padding: 6px 10px; }
-    .empty { color: #666; font-size: 13px; }
-  </style>
-</head>
-<body>
-  <h1>${escapeHtml(title)}</h1>
-  <p class="meta">Generated: ${escapeHtml(new Date().toLocaleDateString())}</p>
-  ${tableMarkup}
-</body>
-</html>`;
+/** Injectable dependencies for `deno test` (mirrors lease-signature). */
+export interface GeneratePdfDeps {
+	createClient?: (url: string, key: string) => SupabaseClient;
+	now?: () => Date;
 }
 
-function coerceCell(value: unknown): string | number | null {
-	if (value === null || value === undefined) return null;
-	if (typeof value === "number" || typeof value === "string") return value;
-	return JSON.stringify(value);
-}
-
-// Mirror of export-report's flattenToRows, coerced to the ReportRow cell shape:
-// object-shaped RPC results -> [{ metric, value }] rows; array results -> rows.
-function flattenToReportRows(data: unknown): ReportRow[] {
-	if (!data || typeof data !== "object") return [];
-	if (Array.isArray(data)) {
-		return (data as Record<string, unknown>[]).map((row) => {
-			const out: ReportRow = {};
-			for (const [key, value] of Object.entries(row)) {
-				out[key] = coerceCell(value);
-			}
-			return out;
-		});
-	}
-	return Object.entries(data as Record<string, unknown>).map(
-		([key, value]) => ({ metric: key, value: coerceCell(value) }),
-	);
-}
-
-// Branch by reportType to the SAME RPCs export-report's CSV path uses so the
-// PDF content matches its CSV counterpart and the report title's year. The
-// date-aware get_financial_overview (BILL-02) receives the requested year's
-// boundaries so the numbers are period-correct.
-async function fetchReportRows(
-	supabase: SupabaseClient,
-	userId: string,
-	reportType: string,
-	year: number,
-): Promise<ReportRow[]> {
-	if (reportType === "year-end" || reportType === "financial") {
-		const { data, error } = await supabase.rpc("get_financial_overview", {
-			p_user_id: userId,
-			p_start_date: `${year}-01-01`,
-			p_end_date: `${year}-12-31`,
-		});
-		if (error) throw new Error(`Failed to fetch report data: ${error.message}`);
-		return flattenToReportRows(data);
-	}
-
-	if (reportType === "1099") {
-		const { data, error } = await supabase.rpc("get_billing_insights", {
-			owner_id_param: userId,
-		});
-		if (error) throw new Error(`Failed to fetch report data: ${error.message}`);
-		return flattenToReportRows(data);
-	}
-
-	if (reportType === "maintenance") {
-		const { data, error } = await supabase.rpc("get_maintenance_analytics", {
-			user_id: userId,
-		});
-		if (error) throw new Error(`Failed to fetch report data: ${error.message}`);
-		return flattenToReportRows(data);
-	}
-
-	const { data, error } = await supabase.rpc("get_revenue_trends_optimized", {
-		p_user_id: userId,
-		p_months: 12,
-	});
-	if (error) throw new Error(`Failed to fetch report data: ${error.message}`);
-	return flattenToReportRows(data);
-}
-
-async function buildLeasePreviewHtml(
-	supabase: SupabaseClient,
-	leaseId: string,
-): Promise<string> {
-	const { data: lease, error } = await supabase
-		.from("leases")
-		.select(`
-      id,
-      lease_status,
-      start_date,
-      end_date,
-      rent_amount,
-      security_deposit,
-      owner_user_id,
-      primary_tenant_id,
-      units ( unit_number, properties ( name, address_line1, city, state, postal_code ) )
-    `)
-		.eq("id", leaseId)
-		.single();
-
-	if (error || !lease) {
-		throw new Error(`Lease not found: ${leaseId}`);
-	}
-
-	// Safely access joined data (PostgREST returns arrays for joined tables)
-	const unit = Array.isArray(lease.units) ? lease.units[0] : lease.units;
-	const property =
-		unit &&
-		(Array.isArray(unit.properties) ? unit.properties[0] : unit.properties);
-	const propertyName = property?.name ?? "Unknown Property";
-	const propertyAddress = property
-		? `${property.address_line1 ?? ""}, ${property.city ?? ""}, ${property.state ?? ""} ${property.postal_code ?? ""}`.trim()
-		: "Address not available";
-	const unitNumber = unit?.unit_number ?? "";
-	const rentAmount =
-		lease.rent_amount != null
-			? `$${Number(lease.rent_amount).toLocaleString()}/month`
-			: "N/A";
-	const deposit =
-		lease.security_deposit != null
-			? `$${Number(lease.security_deposit).toLocaleString()}`
-			: "N/A";
-	const startDate = lease.start_date ?? "N/A";
-	const endDate = lease.end_date ?? "N/A";
-	const status = lease.lease_status ?? "N/A";
-
-	return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Lease Preview</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 32px; color: #222; }
-    h1 { font-size: 20px; margin-bottom: 4px; }
-    .meta { color: #666; font-size: 13px; margin-bottom: 16px; }
-    table { border-collapse: collapse; width: 100%; font-size: 13px; margin-bottom: 16px; }
-    .label { border: 1px solid #ccc; padding: 6px 10px; font-weight: 500; background: #f8f8f8; width: 40%; }
-    .value { border: 1px solid #ccc; padding: 6px 10px; }
-    .note { color: #888; font-size: 11px; }
-  </style>
-</head>
-<body>
-  <h1>Lease Agreement Preview</h1>
-  <p class="meta">Generated: ${escapeHtml(new Date().toLocaleDateString())}</p>
-  <table>
-    <tbody>
-      <tr><td class="label">Property</td><td class="value">${escapeHtml(propertyName)}</td></tr>
-      <tr><td class="label">Address</td><td class="value">${escapeHtml(propertyAddress)}</td></tr>
-      ${unitNumber ? `<tr><td class="label">Unit</td><td class="value">${escapeHtml(unitNumber)}</td></tr>` : ""}
-      <tr><td class="label">Start Date</td><td class="value">${escapeHtml(startDate)}</td></tr>
-      <tr><td class="label">End Date</td><td class="value">${escapeHtml(endDate)}</td></tr>
-      <tr><td class="label">Monthly Rent</td><td class="value">${escapeHtml(rentAmount)}</td></tr>
-      <tr><td class="label">Security Deposit</td><td class="value">${escapeHtml(deposit)}</td></tr>
-      <tr><td class="label">Status</td><td class="value">${escapeHtml(status)}</td></tr>
-    </tbody>
-  </table>
-  <p class="note">This is a preview document. The final signed lease agreement may differ.</p>
-</body>
-</html>`;
-}
-
-Deno.serve(async (req: Request) => {
+/** Core request handler, exported so the Deno test drives it directly. */
+export async function handleRequest(
+	req: Request,
+	deps: GeneratePdfDeps = {},
+): Promise<Response> {
 	const optionsResponse = handleCorsOptions(req);
 	if (optionsResponse) return optionsResponse;
 
@@ -251,7 +84,8 @@ Deno.serve(async (req: Request) => {
 			],
 		});
 
-		const supabase = createAdminClient(
+		const makeClient = deps.createClient ?? createAdminClient;
+		const supabase = makeClient(
 			env["SUPABASE_URL"],
 			env["SUPABASE_SERVICE_ROLE_KEY"],
 		);
@@ -279,40 +113,27 @@ Deno.serve(async (req: Request) => {
 				);
 			}
 			html = body.html;
-		} else if ("leaseId" in body) {
-			// Mode 3: lease PDF preview — fetch lease data and build HTML summary
-			if (!body.leaseId || typeof body.leaseId !== "string") {
+		} else {
+			// Mode 1: structured report data — fetch DB data and build HTML
+			if (
+				!body.reportType ||
+				typeof body.reportType !== "string" ||
+				!Number.isInteger(body.year) ||
+				body.year < 1000 ||
+				body.year > 9999
+			) {
 				return new Response(
-					JSON.stringify({ error: "leaseId must be a non-empty string" }),
+					JSON.stringify({
+						error:
+							"reportType (string) and year (a four-digit integer) are required",
+					}),
 					{ status: 400, headers: getJsonHeaders(req) },
 				);
 			}
-
-			// Verify ownership before generating PDF
-			const { data: leaseOwnership, error: ownershipError } = await supabase
-				.from("leases")
-				.select("owner_user_id")
-				.eq("id", body.leaseId)
-				.maybeSingle();
-
-			if (
-				ownershipError ||
-				!leaseOwnership ||
-				leaseOwnership.owner_user_id !== user.id
-			) {
-				return new Response(JSON.stringify({ error: "Forbidden" }), {
-					status: 403,
-					headers: getJsonHeaders(req),
-				});
-			}
-
-			html = await buildLeasePreviewHtml(supabase, body.leaseId);
-		} else {
-			// Mode 1: structured report data — fetch DB data and build HTML
-			if (!body.reportType || typeof body.year !== "number") {
+			if (!REPORT_TYPES.includes(body.reportType)) {
 				return new Response(
 					JSON.stringify({
-						error: "reportType (string) and year (number) are required",
+						error: `reportType must be one of: ${REPORT_TYPES.join(", ")}`,
 					}),
 					{ status: 400, headers: getJsonHeaders(req) },
 				);
@@ -333,13 +154,66 @@ Deno.serve(async (req: Request) => {
 				if (entitlementBlock) return entitlementBlock;
 			}
 
-			const rows = await fetchReportRows(
-				supabase,
-				user.id,
-				body.reportType,
-				body.year,
-			);
-			html = buildReportHtml(body.reportType, body.year, rows);
+			const today = (deps.now ?? (() => new Date()))()
+				.toISOString()
+				.slice(0, 10);
+			if (body.reportType === FINANCIAL_ANALYTICS_REPORT_TYPE) {
+				const load = await loadFinancialAnalyticsSources(
+					(name, args) => supabase.rpc(name, args),
+					user.id,
+				);
+				if (!load.ok) {
+					return errorResponse(req, 500, load.error, {
+						action: "generate_pdf_rpc",
+						rpc: load.rpc,
+					});
+				}
+				html = sectionedReportHtml(
+					"Financial Analytics",
+					today,
+					buildFinancialAnalyticsTable(
+						load.sources,
+						propertyReportName,
+						expenseVendorLabel,
+					),
+				);
+			} else {
+				const load = await loadTaxYearSources(
+					// A page when the loader asks for one: every property row.
+					(name, args, page) => {
+						const query = supabase.rpc(name, args);
+						if (!page) return query;
+						let ordered = query;
+						for (const column of page.order) ordered = ordered.order(column);
+						return ordered.range(page.from, page.to);
+					},
+					body.reportType,
+					user.id,
+					body.year,
+					// The owner's deleted property ids, scoped by the validated id: the
+					// admin client bypasses RLS, so this filter is the boundary.
+					(page) =>
+						supabase
+							.from("properties")
+							.select("id")
+							.eq("owner_user_id", user.id)
+							.eq("status", "inactive")
+							.order("id")
+							.range(page.from, page.to),
+				);
+				if (!load.ok) {
+					return errorResponse(req, 500, load.error, {
+						action: "generate_pdf_rpc",
+						rpc: load.rpc,
+					});
+				}
+				const report = buildTaxYearReport(
+					body.reportType,
+					load.sources,
+					body.year,
+				);
+				html = sectionedReportHtml(report.title, today, report.table);
+			}
 		}
 
 		const formData = new FormData();
@@ -390,4 +264,12 @@ Deno.serve(async (req: Request) => {
 		}
 		return errorResponse(req, 500, err, { action: "generate_pdf" });
 	}
-});
+}
+
+// The handler registers Deno.serve() as a module side-effect (like every edge fn
+// in this repo). The unit test sets DENO_TEST_NO_SERVE=1 and dynamic-imports this
+// module, driving handleRequest() directly, so no real listener binds during
+// `deno test`. In prod the var is never set, so Deno.serve always runs.
+if (!Deno.env.get("DENO_TEST_NO_SERVE")) {
+	Deno.serve((req: Request) => handleRequest(req));
+}

@@ -5,6 +5,7 @@ import {
 	useDeletePropertyMutation,
 	useUpdatePropertyMutation,
 } from "#hooks/api/use-property-mutations";
+import { toPropertyType } from "#lib/constants/status-types";
 import { intersectSelection } from "#lib/intersect-selection";
 import {
 	type PropertyStatusFilter,
@@ -22,15 +23,7 @@ import { PropertyCard } from "./property-select-card";
 import { PropertyStatsSection } from "./property-stats-section";
 import { PropertyTable } from "./property-table";
 import { PropertyToolbar } from "./property-toolbar";
-import type { DesignPropertyType, PropertiesProps } from "./types";
-
-const PROPERTY_TYPE_TO_API: Record<DesignPropertyType, string> = {
-	single_family: "SINGLE_FAMILY",
-	multi_family: "MULTI_UNIT",
-	apartment: "APARTMENT",
-	condo: "CONDO",
-	townhouse: "TOWNHOUSE",
-};
+import type { PropertiesProps } from "./types";
 
 /**
  * Properties - Main component for managing property portfolio
@@ -100,6 +93,9 @@ export function Properties({
 	const handleBulkEditSubmit = async () => {
 		if (selectedRows.size === 0) return;
 		if (!applyBulkStatus && !applyBulkType) return;
+		// The dialog asks for a type when the first property's is outside the
+		// set; applying "no type" would write nothing the form can read.
+		if (applyBulkType && bulkEditType === null) return;
 		// STATE-05: only target ids still present in the active list — a bulk
 		// edit must never resurrect a just-deleted (inactive) property via a
 		// phantom selection surviving the delete→refetch race.
@@ -110,8 +106,8 @@ export function Properties({
 		if (ids.length === 0) return;
 		const updateData: Record<string, string> = {};
 		if (applyBulkStatus) updateData.status = bulkEditStatus;
-		if (applyBulkType)
-			updateData.property_type = PROPERTY_TYPE_TO_API[bulkEditType] as string;
+		if (applyBulkType && bulkEditType !== null)
+			updateData.property_type = bulkEditType;
 		setIsBulkSaving(true);
 		try {
 			await Promise.allSettled(
@@ -141,7 +137,8 @@ export function Properties({
 			if (statusFilter === "available" && p.availableUnits === 0) return false;
 			if (statusFilter === "maintenance" && p.maintenanceUnits === 0)
 				return false;
-			if (typeFilter !== "all" && p.propertyType !== typeFilter) return false;
+			if (typeFilter !== "all" && toPropertyType(p.propertyType) !== typeFilter)
+				return false;
 			return true;
 		});
 	})();
@@ -177,7 +174,7 @@ export function Properties({
 				/>
 				{viewMode === "grid" && (
 					<div className="p-5 animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-auto max-h-[calc(100vh-340px)]">
-						<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+						<div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 							{filteredProperties.map((property) => (
 								<PropertyCard
 									key={property.id}

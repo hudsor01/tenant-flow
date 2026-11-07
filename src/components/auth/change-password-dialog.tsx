@@ -1,7 +1,7 @@
 "use client";
 
 import { Eye, EyeOff, Lock } from "lucide-react";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { useId, useState } from "react";
 import { Button } from "#components/ui/button";
 import {
@@ -14,6 +14,11 @@ import {
 	DialogTitle,
 } from "#components/ui/dialog";
 import { Field, FieldLabel } from "#components/ui/field";
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput,
+} from "#components/ui/input-group";
 import { useChangePasswordMutation } from "#hooks/api/use-auth-mutations";
 import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import { logger } from "#lib/frontend-logger";
@@ -96,7 +101,7 @@ export function ChangePasswordDialog({
 		return errors;
 	};
 
-	const handleSubmit = async (e: FormEvent) => {
+	const handleSubmit = async (e: SubmitEvent) => {
 		e.preventDefault();
 
 		// Validation
@@ -166,28 +171,27 @@ export function ChangePasswordDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[500px]" intent="edit">
+			<DialogContent className="sm:max-w-125" intent="edit">
 				<DialogHeader>
-					<DialogTitle className="flex items-center gap-[var(--spacing-2)]">
-						<Lock className="size-[var(--spacing-5)]" />
+					<DialogTitle className="flex items-center gap-2">
+						<Lock className="size-5" />
 						Change Password
 					</DialogTitle>
 					<DialogDescription>
 						Enter your current password and choose a new secure password
 					</DialogDescription>
 				</DialogHeader>
-				<form onSubmit={handleSubmit} className="space-y-[var(--spacing-6)]">
+				<form onSubmit={handleSubmit} className="space-y-6">
 					<DialogBody>
 						{/* Current Password */}
 						<Field>
 							<FieldLabel htmlFor={currentPasswordId}>
 								Current Password *
 							</FieldLabel>
-							<div className="relative">
-								<input
+							<InputGroup>
+								<InputGroupInput
 									id={currentPasswordId}
 									type={showPasswords.current ? "text" : "password"}
-									className="input w-full pr-[var(--spacing-10)]"
 									value={formData.currentPassword}
 									onChange={(e) =>
 										handleChange("currentPassword", e.target.value)
@@ -196,59 +200,62 @@ export function ChangePasswordDialog({
 									required
 									autoComplete="current-password"
 								/>
-								<button
-									type="button"
-									onClick={() => togglePasswordVisibility("current")}
-									className="absolute right-[var(--spacing-3)] top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
-									disabled={changePassword.isPending}
-									aria-label={
-										showPasswords.current
-											? "Hide current password"
-											: "Show current password"
-									}
-								>
-									{showPasswords.current ? (
-										<EyeOff className="size-[var(--spacing-4)]" />
-									) : (
-										<Eye className="size-[var(--spacing-4)]" />
-									)}
-								</button>
-							</div>
+								<InputGroupAddon align="inline-end">
+									<button
+										type="button"
+										onClick={() => togglePasswordVisibility("current")}
+										className="text-muted-foreground hover:text-foreground transition-colors"
+										disabled={changePassword.isPending}
+										aria-label={
+											showPasswords.current
+												? "Hide current password"
+												: "Show current password"
+										}
+									>
+										{showPasswords.current ? (
+											<EyeOff className="size-4" />
+										) : (
+											<Eye className="size-4" />
+										)}
+									</button>
+								</InputGroupAddon>
+							</InputGroup>
 						</Field>
 
 						{/* New Password */}
 						<Field>
 							<FieldLabel htmlFor={newPasswordId}>New Password *</FieldLabel>
-							<div className="relative">
-								<input
+							<InputGroup>
+								<InputGroupInput
 									id={newPasswordId}
 									type={showPasswords.new ? "text" : "password"}
-									className="input w-full pr-[var(--spacing-10)]"
 									value={formData.newPassword}
 									onChange={(e) => handleChange("newPassword", e.target.value)}
 									disabled={changePassword.isPending}
 									required
 									autoComplete="new-password"
 								/>
-								<button
-									type="button"
-									onClick={() => togglePasswordVisibility("new")}
-									className="absolute right-[var(--spacing-3)] top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
-									disabled={changePassword.isPending}
-									aria-label={
-										showPasswords.new
-											? "Hide new password"
-											: "Show new password"
-									}
-								>
-									{showPasswords.new ? (
-										<EyeOff className="size-[var(--spacing-4)]" />
-									) : (
-										<Eye className="size-[var(--spacing-4)]" />
-									)}
-								</button>
-							</div>
-							<p className="text-caption mt-[var(--spacing-1)]">
+								<InputGroupAddon align="inline-end">
+									<button
+										type="button"
+										onClick={() => togglePasswordVisibility("new")}
+										className="text-muted-foreground hover:text-foreground transition-colors"
+										disabled={changePassword.isPending}
+										aria-label={
+											showPasswords.new
+												? "Hide new password"
+												: "Show new password"
+										}
+									>
+										{showPasswords.new ? (
+											<EyeOff className="size-4" />
+										) : (
+											<Eye className="size-4" />
+										)}
+									</button>
+								</InputGroupAddon>
+							</InputGroup>
+							<p className="text-caption text-muted-foreground mt-1">
 								Must be at least {VALIDATION_LIMITS.PASSWORD_MIN_LENGTH}{" "}
 								characters with uppercase, lowercase, number, and special
 								character
@@ -260,11 +267,10 @@ export function ChangePasswordDialog({
 							<FieldLabel htmlFor={confirmPasswordId}>
 								Confirm New Password *
 							</FieldLabel>
-							<div className="relative">
-								<input
+							<InputGroup>
+								<InputGroupInput
 									id={confirmPasswordId}
 									type={showPasswords.confirm ? "text" : "password"}
-									className="input w-full pr-[var(--spacing-10)]"
 									value={formData.confirmPassword}
 									onChange={(e) =>
 										handleChange("confirmPassword", e.target.value)
@@ -273,33 +279,35 @@ export function ChangePasswordDialog({
 									required
 									autoComplete="new-password"
 								/>
-								<button
-									type="button"
-									onClick={() => togglePasswordVisibility("confirm")}
-									className="absolute right-[var(--spacing-3)] top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
-									disabled={changePassword.isPending}
-									aria-label={
-										showPasswords.confirm
-											? "Hide confirm password"
-											: "Show confirm password"
-									}
-								>
-									{showPasswords.confirm ? (
-										<EyeOff className="size-[var(--spacing-4)]" />
-									) : (
-										<Eye className="size-[var(--spacing-4)]" />
-									)}
-								</button>
-							</div>
+								<InputGroupAddon align="inline-end">
+									<button
+										type="button"
+										onClick={() => togglePasswordVisibility("confirm")}
+										className="text-muted-foreground hover:text-foreground transition-colors"
+										disabled={changePassword.isPending}
+										aria-label={
+											showPasswords.confirm
+												? "Hide confirm password"
+												: "Show confirm password"
+										}
+									>
+										{showPasswords.confirm ? (
+											<EyeOff className="size-4" />
+										) : (
+											<Eye className="size-4" />
+										)}
+									</button>
+								</InputGroupAddon>
+							</InputGroup>
 						</Field>
 
 						{/* Validation Errors */}
 						{validationErrors.length > 0 && (
-							<div className="rounded-[var(--radius-lg)] border border-destructive/50 bg-destructive/10 p-4">
+							<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
 								<p className="font-semibold text-destructive-text mb-2">
 									Please fix the following errors:
 								</p>
-								<ul className="list-[disc] list-inside space-y-1 text-xs text-destructive-text">
+								<ul className="flex flex-col gap-1 pl-0 mt-0 mb-0 [&>li]:mb-0 list-disc list-inside text-xs text-destructive-text">
 									{validationErrors.map((error) => (
 										<li key={error}>{error}</li>
 									))}

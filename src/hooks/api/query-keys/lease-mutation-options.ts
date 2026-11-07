@@ -45,9 +45,7 @@ async function callLeaseSignatureEdgeFunction(
 	});
 
 	if (!response.ok) {
-		const error = (await response
-			.json()
-			.catch(() => ({ error: response.statusText }))) as {
+		const error = (await response.json().catch(() => ({}))) as {
 			error?: string;
 			upgrade_url?: string;
 		};
@@ -113,21 +111,6 @@ export const leaseMutations = {
 				if (error) handlePostgrestError(error, "leases");
 
 				return updated;
-			},
-		}),
-
-	delete: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.leases.delete,
-			mutationFn: async (id: string): Promise<void> => {
-				const supabase = createClient();
-				// Soft-delete: set lease_status to inactive (financial record retention)
-				const { error } = await supabase
-					.from("leases")
-					.update({ lease_status: "inactive" })
-					.eq("id", id);
-
-				if (error) handlePostgrestError(error, "leases");
 			},
 		}),
 

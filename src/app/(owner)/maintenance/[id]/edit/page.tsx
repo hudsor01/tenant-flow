@@ -40,9 +40,7 @@ export default function MaintenanceEditPage({
 						Error Loading Request
 					</h2>
 					<p className="text-muted-foreground">
-						{error instanceof Error
-							? error.message
-							: "Failed to load maintenance request"}
+						Failed to load maintenance request
 					</p>
 				</div>
 			</div>

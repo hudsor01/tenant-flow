@@ -1,0 +1,32 @@
+{
+  "base": "84f3c58d3870b980b11599c99712255b85dcc867",
+  "mode": "biome-stdin",
+  "files": [
+    {
+      "file": "src/components/ui/card.tsx",
+      "equal": true,
+      "addedSlots": [
+        "card",
+        "card-header",
+        "card-title",
+        "card-description",
+        "card-action",
+        "card-content",
+        "card-footer"
+      ],
+      "unknownSlots": [],
+      "replacementsApplied": 2,
+      "problems": []
+    },
+    {
+      "file": "src/components/ui/button-group.tsx",
+      "equal": true,
+      "addedSlots": [
+        "button-group"
+      ],
+      "unknownSlots": [],
+      "replacementsApplied": 1,
+      "problems": []
+    }
+  ]
+}

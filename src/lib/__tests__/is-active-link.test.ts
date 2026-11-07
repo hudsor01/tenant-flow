@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { isActiveLink } from "#lib/is-active-link";
+import { isActiveLink, navAriaCurrent } from "#lib/is-active-link";
 
 describe("isActiveLink", () => {
 	it("matches exact pathname", () => {
@@ -32,5 +32,23 @@ describe("isActiveLink", () => {
 
 	it("does not match when pathname is unrelated", () => {
 		expect(isActiveLink("/pricing", "/about")).toBe(false);
+	});
+});
+
+describe("navAriaCurrent", () => {
+	it('is "page" only for the exact current page', () => {
+		expect(navAriaCurrent("/compare", "/compare", true)).toBe("page");
+	});
+
+	it('is "true" for an active ancestor section of the current page', () => {
+		expect(navAriaCurrent("/compare", "/compare/yardi", true)).toBe("true");
+		expect(navAriaCurrent("/properties", "/properties/123", true)).toBe("true");
+	});
+
+	it("is absent when the link is not active", () => {
+		expect(navAriaCurrent("/compare", "/pricing", false)).toBeUndefined();
+		// The surface's predicate decides activity; an exact href that the
+		// predicate rejects (Help & Support, outside the owner shell) stays absent.
+		expect(navAriaCurrent("/help", "/help", false)).toBeUndefined();
 	});
 });

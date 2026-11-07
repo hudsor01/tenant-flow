@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown, ChevronsUpDown, ChevronUp } from "lucide-react";
+import { LEASE_STATUS_LABELS } from "#lib/constants/status-types";
 import { cn } from "#lib/utils";
 import type { LeaseStatus } from "#types/core";
 
@@ -29,15 +30,6 @@ export const TENANT_COLUMN_CLASS = {
 	actions: "flex w-28 shrink-0 items-center justify-end",
 } as const;
 
-const STATUS_LABELS: Record<LeaseStatus, string> = {
-	draft: "Draft",
-	pending_signature: "Pending",
-	active: "Active",
-	ended: "Ended",
-	terminated: "Terminated",
-	expired: "Expired",
-};
-
 const STATUS_CHIP: Record<LeaseStatus, string> = {
 	draft: "status-pending",
 	pending_signature: "status-pending",
@@ -62,21 +54,24 @@ export function TenantLeaseStatusBadge({
 }) {
 	if (!status) {
 		return (
-			<span className="text-sm text-muted-foreground" aria-label={ariaLabel}>
-				—
+			<span className="text-sm text-muted-foreground">
+				<span aria-hidden="true">—</span>
+				<span className="sr-only">
+					{ariaLabel ? `${ariaLabel}: none` : "None"}
+				</span>
 			</span>
 		);
 	}
 
 	return (
 		<span
-			aria-label={ariaLabel}
 			className={cn(
 				"inline-flex items-center rounded border px-2 py-0.5 font-medium text-xs",
 				STATUS_CHIP[status],
 			)}
 		>
-			{STATUS_LABELS[status]}
+			{ariaLabel ? <span className="sr-only">{`${ariaLabel}: `}</span> : null}
+			{LEASE_STATUS_LABELS[status]}
 		</span>
 	);
 }
@@ -98,18 +93,19 @@ export function SortableHeader({
 
 	return (
 		<button
+			type="button"
 			onClick={() => onSort(field)}
 			className="flex items-center gap-1 font-medium text-muted-foreground hover:text-foreground transition-colors"
 		>
 			{title}
 			{isActive ? (
 				currentDirection === "asc" ? (
-					<ChevronUp className="h-4 w-4" />
+					<ChevronUp className="h-4 w-4 shrink-0" />
 				) : (
-					<ChevronDown className="h-4 w-4" />
+					<ChevronDown className="h-4 w-4 shrink-0" />
 				)
 			) : (
-				<ChevronsUpDown className="h-4 w-4 opacity-50" />
+				<ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
 			)}
 		</button>
 	);

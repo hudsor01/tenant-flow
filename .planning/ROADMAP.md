@@ -36,6 +36,7 @@ None of the renumbered phases had a directory, plan, summary or PR, so nothing s
 - [x] **Phase 56: Reporting Hub** - Collapse `/financials/*` into one chart-free `/reports` hub (statements + exports) with preserved tier-gating; **all** analytics including `/analytics/financial` stays its own peer section (completed 2026-07-31)
 - [x] **Phase 65: Documents Landing** *(NEXT)* - Make `/documents` a real landing page (vault + lease template builder + printable templates) instead of a bare redirect *(executes immediately after Phase 56)* (completed 2026-08-03)
 - [ ] **Phase 66: Rental Application Intake** - Public `/apply/[token]` intake (no accounts, no SSN, no screening) with owner review queue + convert-to-tenant
+- [x] **Phase 66.2: Tailwind v4 and shadcn/ui canonical remediation** *(INSERTED)* - Fix the live styling defects (magenta secondary, mobile control deformation, unreadable dark-mode surfaces) at the root, then canonicalize tokens, classes and vendored shadcn components, and move the owner shell to the canonical shadcn Sidebar. One PR.
 - [ ] **Phase 67: Tenant Communication Log** - Owner-side comms timeline: logged notes/calls + auto-logged suppression-honoring email from the app
 - [ ] **Phase 68: State-Aware Notice Library** - Counsel-reviewed, state-aware notices on the lease-template rails, saved to the vault with a service date (curated launch states)
 - [ ] **Phase 69: Compliance & Key-Date Tracking** - Track per-property key dates (insurance/license/tax/inspection) with reminders through the shared reminder rail
@@ -242,6 +243,100 @@ Plans:
 - [x] 66.1-04-PLAN.md — Trusted client-IP forwarding, RSC and `getClientIp` in one plan (RATE-03)
 - [ ] 66.1-05-PLAN.md — OWNER-GATED: secrets, five redeploys, and every proof that needs a deployment (RATE-02, RATE-03, RATE-04)
 
+### Phase 66.2: Tailwind v4 and shadcn/ui canonical remediation (INSERTED)
+
+**Goal**: Fix every Tailwind v4 / shadcn/ui defect found by the 2026-10-25 audit at its root, and prove each fix by measurement. Leave the styling layer canonical:
+- the token layer uses the shadcn `:root`/`.dark` + `@theme inline` structure;
+- Tailwind scans only `src/`;
+- first-party classes are canonical by Tailwind's own canonicalizer;
+- vendored shadcn components track the new-york-v4 registry, with intentional customizations preserved;
+- the owner dashboard sidebar is the canonical shadcn Sidebar.
+
+**Depends on**: Phase 66.1 (merged as #967 on 2026-08-22, so the sequential discipline holds). No shared surface with 67-73.
+**Requirements**: UIC-01, UIC-02, UIC-03, UIC-04, UIC-05, UIC-06, UIC-07, UIC-08
+
+**Why this is inserted rather than queued**: two defects are live in production for every visitor.
+- Light-mode `--color-secondary` has chroma 3.51 (a dropped "0.0"), so every secondary Button/Badge renders rgb(255, 0, 255). The `/help` "Start free — no card" CTA is magenta today, and light is the default theme.
+- Below 768px, an unlayered global rule outranks every utility and turns the `/pricing` and `/signup` switches into 44×44 grey discs.
+
+Dark mode is unreadable in places too: the Renew Lease dialog measures 1.01:1 contrast.
+
+**Source package**: `.planning/tailwind-shadcn/`
+- `PLAN.md`: findings B1-B11 / X1-X6, metrics M1-M10 / R1-R5, decisions log, guards G1-G8, verification protocol.
+- `audit/audit.mjs` and `audit/render-check.mjs`: re-measure every metric.
+- `research/shadcn-component-audit.md` and `research/sidebar-migration-design.md`: raw subagent reports, **unverified**.
+
+**Success Criteria** (what must be TRUE):
+  1. Rendered metrics R1-R5 are at target.
+     - Light `bg-secondary` renders the intended pale blue.
+     - `.font-mono` and `<code>` resolve Geist Mono; `<html>` and the global-error page resolve Roboto.
+     - Every render-check surface meets WCAG AA in both themes: text ≥ 4.5:1, icons ≥ 3:1.
+     - At 390px the Switch renders 32×18.4 and buttons keep their own padding, while 44px touch-target minimums hold.
+  2. `cn()` keeps every custom theme key. A custom font size is never dropped next to a text color, custom leading/duration/spacing keys merge, and a guard derives the key list from `globals.css`.
+  3. Guards G1-G8 run in the unit project against the compiled CSS, and the two tautological token tests are gone.
+  4. Audit metrics M1-M10 are at target:
+     - ~914 files scanned (`src/` only);
+     - zero dead theme vars, custom properties, `@utility` rules, keyframes or class selectors;
+     - `dashboard.css` folded into `globals.css` and deleted;
+     - zero `@utility` collisions, zero invalid `oklch()`, zero non-inline theme vars that reference other vars;
+     - zero non-canonical first-party classes.
+  5. The token restructure is value-neutral: the render-check snapshot of every `--color-*` token, in light and dark, is identical before and after. The screenshot matrix is unchanged apart from the intended fixes.
+  6. Every vendored shadcn component is either in sync with new-york-v4 or carries a documented intentional divergence. Every component-audit defect that research confirms is fixed (e.g. 2FA OTP slots, chart gridlines, Cmd+K selectors, Progress `aria-valuenow`).
+  7. The owner shell uses the canonical shadcn Sidebar, with brand `--sidebar-*` tokens and an `lg` breakpoint. It preserves 56 D-07, 56 D-24 and 65 D-08-D-10, exactly one `<main id="main-content">`, label-in-name, and zero axe AA violations in `owner-axe`.
+  8. It ships as ONE PR from `gsd/phase-66.2-tailwind-v4-and-shadcn-ui-canonical-remediation` through the perfect-PR gate.
+
+**Constraints carried in** (import conflict report, approved 2026-10-25):
+- The decimal number is deliberate. An integer 74 would sort after 73, so `phase.complete 74` would stamp v10.0 complete with 67-73 outstanding. Same precedent as 66.1.
+- Locked nav decisions 56 D-07, 56 D-24 and 65 D-08/D-09/D-10 must survive the sidebar migration.
+- No hex literal anywhere in the diff (PROJECT.md Constraints). The chart gridline fix must not restore `[stroke='#ccc']` / `[stroke='#fff']` selectors.
+- Research reproduces or refutes every claim in both raw reports before the planner relies on it.
+- Zero new npm runtime dependencies. The registry's `cn` package is not adopted; imports stay on `#lib/utils`.
+
+**Plans:** 39 plans
+
+Plans:
+- [x] 66.2-01-PLAN.md — Measurement tooling
+- [x] 66.2-02-PLAN.md — Baseline Capture
+- [x] 66.2-03-PLAN.md — Guard Scaffolding
+- [x] 66.2-04-PLAN.md — Light Secondary Fix + Guards G1/G6
+- [x] 66.2-05-PLAN.md — Fonts on html, inline font stacks and guard G2
+- [x] 66.2-06-PLAN.md — B2 touch-target relayer (D-08)
+- [x] 66.2-07-PLAN.md — B4 light-only tokens, B5 dark prose, B6 BorderBeam colors, guard G4
+- [x] 66.2-08-PLAN.md — B8 text-caption / text-muted shadowing removal and guard G3
+- [x] 66.2-09-PLAN.md — B7 tailwind-merge extension and guard G5
+- [x] 66.2-10-PLAN.md — Wave 1 Gate
+- [x] 66.2-11-PLAN.md — D-20 var-reference rewrite (W2)
+- [x] 66.2-12-PLAN.md — Source scoping (B9) and owner loading skeleton (B10)
+- [x] 66.2-13-PLAN.md — W2 default-duplicate and dead-code sweep
+- [x] 66.2-14-PLAN.md — Selector citations, true globals.css comments, C12d and guard G7
+- [x] 66.2-15-PLAN.md — Wave 2 Gate
+- [x] 66.2-16-PLAN.md — W3 token restructure (D-23/D-24)
+- [x] 66.2-17-PLAN.md — Wave 3 Gate
+- [x] 66.2-18-PLAN.md — W4 canonical classes codemod and guard G8
+- [x] 66.2-19-PLAN.md — Wave 4 Gate
+- [x] 66.2-20-PLAN.md — Wave-5 registry re-fetch and data-slot sync
+- [x] 66.2-21-PLAN.md — Wave-5 visible data-slot and sync fixes
+- [x] 66.2-22-PLAN.md — Button v4 contract
+- [x] 66.2-23-PLAN.md — AlertDialog Action/Cancel sync and destructive variant migration
+- [x] 66.2-24-PLAN.md — Tooltip sync and root TooltipProvider
+- [x] 66.2-25-PLAN.md — Chart stroke selectors and public Recharts tooltip types
+- [x] 66.2-26-PLAN.md — Remaining wave-5 sync (dropdown-menu, slider, progress, sonner, mobile-nav)
+- [x] 66.2-27-PLAN.md — BlurFade never-invisible mount entrance (C12c, D-30)
+- [x] 66.2-28-PLAN.md — BorderBeam inline keyframes, GridPattern and badge space fix
+- [x] 66.2-29-PLAN.md — Wave 5 Gate
+- [x] 66.2-30-PLAN.md — Wave 6 Step 0 sidebar evidence
+- [x] 66.2-31-PLAN.md — W6 Foundations (brand sidebar tokens, sidebar_state module, use-mobile)
+- [x] 66.2-32-PLAN.md — W6 vendor sidebar.tsx
+- [x] 66.2-33-PLAN.md — Shell host
+- [x] 66.2-34-PLAN.md — MainNav on the canonical sidebar
+- [x] 66.2-35-PLAN.md — Dock + tour
+- [x] 66.2-36-PLAN.md — E2E spec for the owner Sidebar
+- [x] 66.2-37-PLAN.md — Final Gate (Wave 6 Exit)
+- [x] 66.2-38-PLAN.md — Owner Review Checkpoints CP-1..CP-5
+- [x] 66.2-39-PLAN.md — Final: CP decisions applied, freeze, PR and merge gates
+
+**UI hint**: yes
+
 ### Phase 67: Tenant Communication Log
 **Goal**: Owner has an owner-side communication history on each tenant record — manually logged notes/calls plus email sent from the app that auto-logs — with no two-way tenant messaging surface.
 **Depends on**: Phase 52 (notification write-path) + Phase 53 (Resend delivery rail)
@@ -324,7 +419,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in this order: 52 → 53 → 54 → 55 → 56 → 65 → 66 → 67 → 68 → 69 → 70 → 71 → 72 → 73. Each phase branches only after the previous phase's PR is merged to main. This is now plain ascending order — Phase 65 was split out of Phase 56 on 2026-07-26 and briefly sat out of sequence, which the 2026-08-04 renumber of 57-64 → 66-73 resolved.
+Phases execute in this order: 52 → 53 → 54 → 55 → 56 → 65 → 66 → 66.1 → 66.2 → 67 → 68 → 69 → 70 → 71 → 72 → 73. Each phase branches only after the previous phase's PR is merged to main. This is now plain ascending order — Phase 65 was split out of Phase 56 on 2026-07-26 and briefly sat out of sequence, which the 2026-08-04 renumber of 57-64 → 66-73 resolved. The decimal phases 66.1 and 66.2 were inserted as urgent work; GSD sorts decimals numerically, so ascending order is still execution order.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -335,6 +430,7 @@ Phases execute in this order: 52 → 53 → 54 → 55 → 56 → 65 → 66 → 6
 | 56 | 8/8 | Complete   | 2026-07-31 |
 | 65 | 3/3 | Complete    | 2026-08-04 |
 | 66 | 0/TBD | Not started | - |
+| 66.2 | 39/39 | Complete | 2026-11-05 |
 | 67 | 0/TBD | Not started | - |
 | 68 | 0/TBD | Not started | - |
 | 69 | 0/TBD | Not started | - |

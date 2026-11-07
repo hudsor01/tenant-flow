@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "e22": "passed",
+  "rule": "Same-session controls (3), commit 9055e1c53: a spec failing locally on both the wave tree and a same-session 754c91802 build, while CI owner-axe on main passes it, is pre-existing-local; a spec passing on 754c91802 and failing on the wave tree fails the gate",
+  "preconditions": { "credentials": "test -f .env.local (never opened)", "port3050FreeBeforeStart": true, "build": "NEXT_PUBLIC_APP_URL=http://localhost:3050 SKIP_ENV_VALIDATION=true bun run build: exit 0" },
+  "w1": { "command": "bun .planning/tailwind-shadcn/audit/with-env.mjs bun run test:e2e -- --project=owner-axe --reporter=list --max-failures=0", "server": "this tree's next start -p 3050", "passed": 36, "failed": 1, "skipped": 0, "failedSpecs": ["tests/e2e/tests/owner/dashboard-a11y.e2e.spec.ts:80 has zero WCAG 2.1 A/AA violations"] },
+  "preExistingLocal": [
+    {
+      "spec": "tests/e2e/tests/owner/dashboard-a11y.e2e.spec.ts:80",
+      "axeRule": "color-contrast (serious): the translucent quick-actions dock over the Revenue 30d/6mo toggle (e.g. #edf0f4 on #4e8bde, 3.02) plus a Radix dialog in data-state=closed",
+      "w1": "3/3 failed (--grep 'Dashboard accessibility' --repeat-each=3), and 1/1 in the full run",
+      "basenow754c91802": "3/3 failed, same rule and nodes, same session, :3050 build of 754c91802",
+      "ciMain": "GitHub Actions run 41167766024 (main 779b888c7, 2026-10-31T04:20Z): e2e-smoke smoke+public+owner-axe 136 passed, 1 skipped",
+      "logs": "scratch owner-axe-full.log, owner-axe-dash3.log, owner-axe-basenow.log (not committed: Playwright output from production sign-ins)"
+    }
+  ],
+  "runOfRecord": "CI owner-axe on the PR"
+}

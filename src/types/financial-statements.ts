@@ -61,13 +61,15 @@ export interface IncomeStatementExpenseBreakdown {
 }
 
 /**
- * Cash flow category (inflow or outflow item with percentage)
- * Used across: cash-flow.tsx, types.ts
+ * One line of the cash flow's inflows or outflows (cash-flow-view.ts): its
+ * amount and its share of the section's positive lines, in %. A line below
+ * zero (rent received when a reversal posted in the period outweighs the
+ * receipts) has no share: null.
  */
 export interface CashFlowCategory {
 	category: string;
 	amount: number;
-	percentage: number;
+	percentage: number | null;
 }
 
 /**
@@ -81,49 +83,40 @@ export interface MonthlyCashFlow {
 	netCashFlow: number;
 }
 
+/**
+ * The tax-documents page's figures for a tax year, cash basis: rent received
+ * from the rent ledger, the year's expenses and the difference. TenantFlow does
+ * not determine deductions, taxable income or depreciation, so none is here:
+ * the type carried `totalDeductions` and `netTaxableIncome` (every expense
+ * presented as a deduction), a Schedule E breakdown, depreciation and mortgage
+ * interest written as 0 and an empty property depreciation list, none of them
+ * from any source.
+ */
 export interface TaxDocumentsData {
 	period: { start_date: string; end_date: string; label: string };
 	taxYear: number;
 	totals: {
 		totalIncome: number;
-		totalDeductions: number;
-		netTaxableIncome: number;
-	};
-	incomeBreakdown: {
-		grossRentalIncome: number;
 		totalExpenses: number;
-		netOperatingIncome: number;
-		depreciation: number;
-		mortgageInterest: number;
-		taxableIncome: number;
-	};
-	schedule: {
-		scheduleE: {
-			grossRentalIncome: number;
-			totalExpenses: number;
-			depreciation: number;
-			netIncome: number;
-		};
+		netIncome: number;
 	};
 	expenseCategories: TaxExpenseCategory[];
-	propertyDepreciation: TaxPropertyDepreciation[];
 }
 
+/**
+ * financialTaxQueries.taxDocuments' result. `ledger-unavailable` when the
+ * server returns no rent-ledger totals (get_billing_insights before
+ * 20261102055449), so no $0 is presented as a tax year's gross income.
+ */
+export type TaxDocumentsResult =
+	| { readonly status: "ready"; readonly documents: TaxDocumentsData }
+	| { readonly status: "ledger-unavailable"; readonly taxYear: number };
+
+/** One vendor's expenses for the tax year (get_expense_summary's categories). */
 export interface TaxExpenseCategory {
 	category: string;
 	amount: number;
 	percentage: number;
-	deductible: boolean;
-	notes?: string;
-}
-
-export interface TaxPropertyDepreciation {
-	property_id: string;
-	propertyName: string;
-	propertyValue: number;
-	annualDepreciation: number;
-	accumulatedDepreciation: number;
-	remainingBasis: number;
 }
 
 export interface TaxDocumentsQuery {
@@ -147,32 +140,31 @@ export interface TaxReportGenerationResponse {
 	reportId?: string;
 }
 
+/**
+ * The balance sheet as of `period.end_date`, on a rent-ledger basis
+ * (financialQueries.balanceSheet). `period.start_date` is January 1 of that
+ * date's year, the start of `equity.currentPeriodIncome`.
+ */
 export interface BalanceSheetData {
 	period: { start_date: string; end_date: string; label: string };
+	/**
+	 * Only the lines the data model records. Nothing records a deposit held
+	 * (leases.security_deposit is the amount agreed, not money received), a
+	 * property's value or depreciation, a bill owed, an accrual or a loan, so
+	 * the sheet has no such lines rather than lines that always read $0.
+	 */
 	assets: {
 		currentAssets: {
 			cash: number;
 			accountsReceivable: number;
-			security_deposits: number;
-			total: number;
-		};
-		fixedAssets: {
-			propertyValues: number;
-			accumulatedDepreciation: number;
-			netPropertyValue: number;
 			total: number;
 		};
 		totalAssets: number;
 	};
 	liabilities: {
 		currentLiabilities: {
-			accountsPayable: number;
-			security_depositLiability: number;
-			accruedExpenses: number;
-			total: number;
-		};
-		longTermLiabilities: {
-			mortgagesPayable: number;
+			/** Money received that no charge has used yet, held for tenants. */
+			tenantCreditBalances: number;
 			total: number;
 		};
 		totalLiabilities: number;
@@ -186,24 +178,36 @@ export interface BalanceSheetData {
 	balanceCheck: boolean;
 }
 
+/**
+ * financialQueries.balanceSheet's result. `ledger-unavailable` when the server
+ * returns none of the rent-ledger figures the sheet is built on
+ * (get_billing_insights before 20261102055449): the page says so instead of
+ * presenting $0 as the owner's cash and receivables.
+ */
+export type BalanceSheetResult =
+	| { readonly status: "ready"; readonly sheet: BalanceSheetData }
+	| { readonly status: "ledger-unavailable"; readonly asOfDate: string };
+
+/**
+ * The cash flow on a rent-ledger basis (financialQueries.cashFlow): rent
+ * received in the period in, the period's expenses out, and the expenses paid
+ * as owner funds in, as the balance sheet carries them, so `beginningCash` and
+ * `endingCash` are the balance sheet's Cash the day before the period and on
+ * its last day. Only the flows the data model records: no purchase,
+ * improvement, loan, mortgage payment or distribution is recorded, so there is
+ * no investing section and no such line (each read $0).
+ */
 export interface CashFlowData {
 	period: { start_date: string; end_date: string; label: string };
 	operatingActivities: {
 		rentalPaymentsReceived: number;
-		operatingExpensesPaid: number;
-		maintenancePaid: number;
+		/** The period's expenses (every one is on a maintenance request). */
+		expensesPaid: number;
 		netOperatingCash: number;
 	};
-	investingActivities: {
-		propertyAcquisitions: number;
-		propertyImprovements: number;
-		netInvestingCash: number;
-	};
 	financingActivities: {
-		mortgagePayments: number;
-		loanProceeds: number;
+		/** The same expenses, as the owner's own funds (see the balance sheet). */
 		ownerContributions: number;
-		ownerDistributions: number;
 		netFinancingCash: number;
 	};
 	netCashFlow: number;
@@ -211,34 +215,64 @@ export interface CashFlowData {
 	endingCash: number;
 }
 
+/**
+ * financialQueries.cashFlow's result. `ledger-unavailable` when the server
+ * returns none of the rent-ledger figures the report is built on
+ * (get_billing_insights before 20261102055449).
+ */
+export type CashFlowResult =
+	| { readonly status: "ready"; readonly report: CashFlowData }
+	| {
+			readonly status: "ledger-unavailable";
+			readonly period: CashFlowData["period"];
+	  };
+
+/**
+ * The income statement on a rent-ledger basis (financialQueries.
+ * incomeStatement): revenue is what the ledger charged in the period, by
+ * entry date and net of reversals, split by ledger type; opening balances are
+ * not revenue (the balance sheet carries them in owner capital). There is no
+ * gross profit or operating income (no cost of goods or non-operating item is
+ * recorded, so each would restate net income) and no prior-period comparison
+ * (nothing computes one).
+ */
 export interface IncomeStatementData {
 	period: { start_date: string; end_date: string; label: string };
 	revenue: {
+		/** Rent charged. */
 		rentalIncome: number;
+		/** Late fees charged. */
 		lateFeesIncome: number;
+		/** Manual charges. */
 		otherIncome: number;
+		/** Credits issued: zero or negative. */
+		creditsIssued: number;
 		totalRevenue: number;
 	};
+	/**
+	 * The period's expenses: one line, as the expenses page counts them
+	 * (get_expense_summary). The data model has no expense category (a
+	 * "category" is a vendor name, and every expense is on a maintenance
+	 * request), so there is no split by type to show.
+	 */
 	expenses: {
-		propertyManagement: number;
-		maintenance: number;
-		utilities: number;
-		insurance: number;
-		propertyTax: number;
-		mortgage: number;
-		other: number;
 		totalExpenses: number;
 	};
-	grossProfit: number;
-	operatingIncome: number;
 	netIncome: number;
-	profitMargin: number;
-	previousPeriod?: {
-		netIncome: number;
-		change: number;
-		changePercent: number;
-	};
 }
+
+/**
+ * financialQueries.incomeStatement's result. `ledger-unavailable` when the
+ * server returns none of the rent-ledger figures the statement is built on
+ * (get_billing_insights before 20261102055449): the page says so instead of
+ * presenting $0 as the period's revenue.
+ */
+export type IncomeStatementResult =
+	| { readonly status: "ready"; readonly statement: IncomeStatementData }
+	| {
+			readonly status: "ledger-unavailable";
+			readonly period: IncomeStatementData["period"];
+	  };
 
 export interface FinancialPropertyPerformance {
 	property_id: string;
@@ -333,7 +367,6 @@ export interface DetailedQueryMaintenanceRequest {
 	status: string;
 	created_at: string | null;
 	estimated_cost: number | null;
-	actual_cost: number | null;
 	completed_at: string | null;
 	expenses?: {
 		amount: number;

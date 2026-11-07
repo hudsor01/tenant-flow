@@ -36,8 +36,9 @@ import { ROUTES } from "./constants/routes";
 
 /**
  * SIX hub entries but FIVE tiles. Band 1's vault entry is NOT a tile — it renders
- * as an `<h2>` plus the page's only filled primary Button (`page.tsx:82-120`),
- * with its own `size-12` medallion `<div>`. Asserting six tiles fails.
+ * as an `<h2>` plus the page's only filled primary Button (`VaultBand` in the
+ * documents `page.tsx`), with its own `size-12` medallion `<div>`. Asserting
+ * six tiles fails.
  */
 const BUILD_TILE = "Lease Template Builder";
 const PRINTABLE_TILES = [
@@ -47,13 +48,14 @@ const PRINTABLE_TILES = [
 	"Tenant Notice",
 ];
 
-/** Section landmark ids — `documents-hub-entries.ts:56,62,68`. */
+/** Section landmark ids — the bands' `headingId`s in `DOCUMENTS_HUB_BANDS` (`documents-hub-entries.ts`). */
 const VAULT = "documents-vault";
 const BUILD = "documents-build";
 const PRINTABLES = "documents-printables";
 
 /**
- * Scope every query to the shell's main landmark (`app-shell.tsx:308-309`). The
+ * Scope every query to the shell's single `main#main-content` landmark, rendered
+ * by `AppShell`'s content column (Phase 66.2 D-35 keeps exactly one). The
  * sidebar contains its own "Documents" nav entry, so an unscoped getByRole would
  * happily satisfy itself against navigation chrome.
  */
@@ -69,8 +71,8 @@ function band(page: Page, headingId: string): Locator {
  * A band's medallion, located structurally rather than by class.
  *
  * Every medallion is the parent of that band's FIRST `aria-hidden` glyph — for
- * Band 1 the `size-12` div at `page.tsx:87`, for a tile the `size-10`/`size-8`
- * div at `document-hub-tile.tsx:57-62`. `.first()` matters on tiles: they also
+ * Band 1 the `size-12` div in `VaultBand` (`page.tsx`), for a tile the
+ * `size-10`/`size-8` div in `DocumentHubTile`. `.first()` matters on tiles: they also
  * render a trailing `ArrowRight`, which appears later in DOM order.
  *
  * Deliberately NOT `.size-12` etc. — asserting the rendered WIDTH of a
@@ -121,12 +123,12 @@ test.describe("Documents landing (Phase 65, DOCS-01)", () => {
 		await expect(cta).toHaveAttribute("href", "/documents/vault");
 
 		await expect(
-			band(page, BUILD).getByRole("link", { name: new RegExp(BUILD_TILE) }),
+			band(page, BUILD).getByRole("link", { name: BUILD_TILE }),
 		).toBeVisible();
 
 		for (const title of PRINTABLE_TILES) {
 			await expect(
-				band(page, PRINTABLES).getByRole("link", { name: new RegExp(title) }),
+				band(page, PRINTABLES).getByRole("link", { name: title }),
 			).toBeVisible();
 		}
 

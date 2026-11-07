@@ -169,7 +169,7 @@ function StorageUsageWidget() {
 
 export function UsageSection() {
 	return (
-		<BlurFade delay={0.25} inView>
+		<BlurFade delay={0.25}>
 			<section className="rounded-lg border bg-card p-6">
 				<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
 					Usage

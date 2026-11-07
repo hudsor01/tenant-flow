@@ -1,0 +1,14 @@
+[
+  { "file": "owner-loading-b10/harness-dark-1280.png", "sha256": "d5054754a39f3a86a5a41cf249f69ecfcf937d39d6f5c9008a6e93ac8f41fa87" },
+  { "file": "owner-loading-b10/harness-dark-390.png", "sha256": "27c3ab77bb358aadf54113e0f0760f893e340b80120bcb3a627bd60f6cbad8c3" },
+  { "file": "owner-loading-b10/harness-light-1280.png", "sha256": "244fc6292d28c0adfb50a88f182a349ce63b372e72937e8b24036aca7e8be38d" },
+  { "file": "owner-loading-b10/harness-light-390.png", "sha256": "3de8d00ee026bbd281baecbd1277674de58ca1ef063c949f57ff25f5165b752e" },
+  { "file": "owner-loading-live/live-dark-1280.png", "sha256": "ea915ace18063b4175f310e688225e43f31355bb7eda266d26ec1db3e95b5de6" },
+  { "file": "owner-loading-live/live-dark-390.png", "sha256": "08d3a53b2077f8cf73f28a8e817397e3bec04359e87f117a5888386e5d15209d" },
+  { "file": "owner-loading-live/live-light-1280.png", "sha256": "e66cdec35e2bc54078548813bc2619769895395b1de9139c64205750648a5d9b" },
+  { "file": "owner-loading-live/live-light-390.png", "sha256": "f9f4201f9a1ddf1205cdb836936f51965f8119a6681fcae1693c8a5addde9619" },
+  { "file": "owner-loading-pre/harness-dark-1280.png", "sha256": "e64d608bc601f6823fc1952f96d1b6f296c94ea03c829030ee418f3b49c4475f" },
+  { "file": "owner-loading-pre/harness-dark-390.png", "sha256": "5a83493448f9179c8cc97df1f868f08c697da937eb980adde78c75c9f0e6e4a4" },
+  { "file": "owner-loading-pre/harness-light-1280.png", "sha256": "76642f3427641e8545a6addf238b6c02ab2948e7bb3cf3c4c13f7cb5076e73c2" },
+  { "file": "owner-loading-pre/harness-light-390.png", "sha256": "fd99caf0cdb26ebc58ea32afa665cf60a3908fb9675435ab3f6ff965d6851710" }
+]

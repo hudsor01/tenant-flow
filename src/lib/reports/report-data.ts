@@ -3,20 +3,30 @@
  * into a normalized `ReportData` shape that PDF + Excel writers consume
  * uniformly. One builder per report type.
  *
- * Builders use the imperative `queryClient.fetchQuery()` form so they can run
+ * Builders use the imperative `queryClient.query()` form so they can run
  * inside the `handleGenerateReport` click handler (which is not a React hook
  * context). They reuse the same query factories the existing report pages
  * already consume so cache + dedup are shared.
- *
- * Each `build*` function is kept under the 50-line CLAUDE.md cap by
- * delegating the per-section row literals to `*Rows()` helpers.
  */
 
-import type { FetchQueryOptions, QueryClient } from "@tanstack/react-query";
+import type { QueryClient, QueryExecuteOptions } from "@tanstack/react-query";
+import { buildCashFlowView } from "#app/(owner)/reports/cash-flow/cash-flow-view";
 import type { ReportType } from "#app/(owner)/reports/generate/components/report-types";
+import { buildIncomeStatementView } from "#app/(owner)/reports/income-statement/income-statement-view";
+import {
+	maintenancePriorityLabel,
+	maintenanceStatusLabel,
+} from "#components/maintenance/detail/maintenance-utils";
+import { financialQueries } from "#hooks/api/query-keys/financial-keys";
 import { reportAnalyticsQueries } from "#hooks/api/query-keys/report-analytics-keys";
 import { reportQueries } from "#hooks/api/query-keys/report-keys";
 import { parseLocalYmd } from "#lib/formatters/date";
+import { formatCurrency } from "#lib/utils/currency";
+import type { MaintenanceCostSummary } from "#types/analytics";
+import type {
+	CashFlowResult,
+	IncomeStatementResult,
+} from "#types/financial-statements";
 import type {
 	FinancialReport,
 	MaintenanceReport,
@@ -24,8 +34,17 @@ import type {
 	PropertyReport,
 	RevenueData,
 	TenantReport,
+	YearEndResult,
 	YearEndSummary,
 } from "#types/reports";
+import {
+	DEDUCTIBILITY_NOTE,
+	EXPENSES_BY_VENDOR_SECTION,
+} from "../../../supabase/functions/_shared/tax-year-reports";
+import {
+	STATEMENT_BASIS_HEADING,
+	STATEMENT_BASIS_NOTE,
+} from "./statement-basis";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -37,12 +56,21 @@ export interface ReportRow {
 export interface ReportTable {
 	headers: string[];
 	rows: Array<Array<string | number>>;
+	/**
+	 * What the table says when it has no rows, in its section's own words
+	 * ("No requests to date."), or null when the section's note says why it is
+	 * empty (its read failed, or the server cannot report it yet). The writers
+	 * print it as is: a to-date or last-12-months table never claims a period.
+	 */
+	emptyText: string | null;
 }
 
 export interface ReportSection {
 	heading: string;
 	rows?: ReportRow[];
 	table?: ReportTable;
+	/** Prose under the heading, one paragraph each (the basis of presentation). */
+	paragraphs?: readonly string[];
 	note?: string;
 }
 
@@ -78,7 +106,7 @@ export function isMissingRelationError(err: unknown): boolean {
 }
 
 /**
- * Safe-fetch wrapper around `queryClient.fetchQuery`. Some report RPCs may
+ * Safe-fetch wrapper around `queryClient.query`. Some report RPCs may
  * reference a missing table or view (e.g. a fresh-DB chain replay where a
  * dependent migration hasn't landed yet, or a partially-rolled-back schema).
  * Rather than blocking the entire report on one broken RPC, we narrow the
@@ -88,11 +116,11 @@ export function isMissingRelationError(err: unknown): boolean {
  */
 export async function safeFetch<TData, TQueryKey extends readonly unknown[]>(
 	queryClient: QueryClient,
-	options: FetchQueryOptions<TData, Error, TData, TQueryKey>,
+	options: QueryExecuteOptions<TData, Error, TData, TData, TQueryKey>,
 	fallback: TData,
 ): Promise<{ data: TData; available: boolean }> {
 	try {
-		const data = await queryClient.fetchQuery(options);
+		const data = await queryClient.query(options);
 		return { data, available: true };
 	} catch (err) {
 		if (!isMissingRelationError(err)) {
@@ -111,59 +139,49 @@ export async function safeFetch<TData, TQueryKey extends readonly unknown[]>(
 	}
 }
 
-/** Only include `note` when there's a note to render — `note: undefined` is a
- *  type error under `exactOptionalPropertyTypes: true`. */
+/**
+ * The note for a section of figures whose read fell back (safeFetch), on that
+ * section and no other. Only include `note` when there's a note to render —
+ * `note: undefined` is a type error under `exactOptionalPropertyTypes: true`.
+ */
 function noteIf(available: boolean): { note?: string } {
 	return available ? {} : { note: UNAVAILABLE_NOTE };
 }
 
-const UNAVAILABLE_NOTE =
-	"Some data could not be loaded for this period and is shown as 0 — usually because the report depends on an RPC that's pending a backend cleanup.";
+/** The same for a table: its fallback lists no rows, so nothing shows 0. */
+function tableNoteIf(available: boolean): { note?: string } {
+	return available ? {} : { note: TABLE_UNAVAILABLE_NOTE };
+}
 
-const FINANCIAL_FALLBACK: FinancialReport = {
-	summary: {
-		totalIncome: 0,
-		totalExpenses: 0,
-		netIncome: 0,
-		cashFlow: 0,
-		rentRollOccupancyRate: 0,
-	},
-	monthly: [],
-	expenseBreakdown: [],
-	rentRoll: [],
-};
+/** A section's notes, each it has, as one. */
+function notes(...parts: Array<{ note?: string }>): { note?: string } {
+	const text = parts.flatMap((part) => (part.note ? [part.note] : []));
+	return text.length > 0 ? { note: text.join(" ") } : {};
+}
+
+// No period in either: the lease portfolio and maintenance reports, which use
+// them, have none (they are to date).
+const UNAVAILABLE_NOTE =
+	"Some figures couldn't be loaded and show as 0 here, which may not be their value. Try generating the report again.";
+const TABLE_UNAVAILABLE_NOTE =
+	"This table couldn't be loaded, so it lists nothing here. Try generating the report again.";
+
+const FINANCIAL_FALLBACK: FinancialReport = { expenseBreakdown: [] };
 
 const OCCUPANCY_FALLBACK: OccupancyMetrics = {
 	totalUnits: 0,
 	occupiedUnits: 0,
 	vacantUnits: 0,
 	occupancyRate: 0,
-	byProperty: [],
 };
 
 const PROPERTY_FALLBACK: PropertyReport = {
-	summary: {
-		totalProperties: 0,
-		totalUnits: 0,
-		occupiedUnits: 0,
-		occupancyRate: 0,
-	},
+	summary: { totalProperties: 0 },
 	byProperty: [],
-	occupancyTrend: [],
-	vacancyTrend: [],
 };
 
 const TENANT_FALLBACK: TenantReport = {
-	summary: {
-		totalTenants: 0,
-		activeLeases: 0,
-		leasesExpiringNext90: 0,
-		turnoverRate: 0,
-		onTimePaymentRate: 0,
-	},
-	paymentHistory: [],
-	leaseExpirations: [],
-	turnover: [],
+	summary: { totalTenants: 0, activeLeases: 0, leasesEndingSoon: 0 },
 };
 
 const MAINTENANCE_FALLBACK: MaintenanceReport = {
@@ -171,32 +189,23 @@ const MAINTENANCE_FALLBACK: MaintenanceReport = {
 		totalRequests: 0,
 		openRequests: 0,
 		avgResolutionHours: 0,
-		totalCost: 0,
-		averageCost: 0,
 	},
+	costs: null,
 	byStatus: [],
 	byPriority: [],
-	monthlyCost: [],
-	vendorPerformance: [],
-};
-
-const YEAREND_FALLBACK: YearEndSummary = {
-	year: new Date().getFullYear(),
-	grossRentalIncome: 0,
-	operatingExpenses: 0,
-	netIncome: 0,
-	byProperty: [],
-	expenseByCategory: [],
 };
 
 // ─── Formatters ─────────────────────────────────────────────────────────────
 
 const fmtMoney = (n: number): string =>
-	new Intl.NumberFormat("en-US", {
-		style: "currency",
-		currency: "USD",
+	formatCurrency(Number.isFinite(n) ? n : 0, {
+		minimumFractionDigits: 0,
 		maximumFractionDigits: 0,
-	}).format(Number.isFinite(n) ? n : 0);
+	});
+
+/** Dollars to the cent, as the maintenance insights print a cost. */
+const fmtCents = (n: number): string =>
+	formatCurrency(Number.isFinite(n) ? n : 0);
 
 const fmtPct = (n: number): string =>
 	`${(Number.isFinite(n) ? n : 0).toFixed(1)}%`;
@@ -234,53 +243,127 @@ const baseHeader = (
 	periodEnd: end,
 });
 
-// ─── Per-section row helpers (keep build* under the 50-line cap) ────────────
+/**
+ * The header of a report its RPCs give no period for (the maintenance and
+ * lease portfolio reports: get_maintenance_analytics and get_dashboard_stats
+ * take no dates): it says "To date" and names the day, never the period the
+ * page offered. `asOf` is the day it was generated.
+ */
+const toDateHeader = (
+	title: string,
+	subtitle: string,
+	asOf: string,
+): Pick<
+	ReportData,
+	"title" | "subtitle" | "generatedAt" | "periodStart" | "periodEnd"
+> => ({
+	title,
+	subtitle: `${subtitle} · To date, as of ${fmtDate(asOf)}`,
+	generatedAt: new Date().toISOString(),
+	periodStart: asOf,
+	periodEnd: asOf,
+});
 
 /**
- * D-37: this used to emit two more rows — payment counts read from a mapper
- * that parses snake_case keys off a `get_billing_insights` payload returning
- * only camelCase ones. Zero key overlap, so every lookup was `undefined`, every
- * `?? 0` fired, and both counts were permanently 0 in a customer-facing
- * generated file. `executive-monthly` is NOT in `PREMIUM_REPORT_TYPES`, so that
- * reached every owner who exported, not only paying ones.
- *
- * The rows were DELETED rather than repaired. Fixing the key casing would
- * surface TenantFlow subscription-billing figures under rental-revenue labels —
- * a worse claim than rendering zero (D-33). TenantFlow facilitates no rent
- * payments, so there is no payment-count data to render here at all.
+ * The tax year a report generated over a period ending on `end` covers: the
+ * calendar year of `end` (today, on the generate page). The tax preparation
+ * file is named (report-types.ts) and headed by it.
  */
-function executiveKeyMetricsRows(
-	financial: FinancialReport,
-	occupancy: OccupancyMetrics,
+export function reportTaxYear(end: string): number {
+	return parseLocalYmd(end)?.getFullYear() ?? new Date(end).getUTCFullYear();
+}
+
+/**
+ * The header of the tax preparation report: its figures are the whole tax
+ * year's, so it names the year, never the period the page offered.
+ */
+const taxYearHeader = (
+	title: string,
+	subtitle: string,
+	year: number,
+): Pick<
+	ReportData,
+	"title" | "subtitle" | "generatedAt" | "periodStart" | "periodEnd"
+> => ({
+	title,
+	subtitle: `${subtitle} · Tax year ${year}`,
+	generatedAt: new Date().toISOString(),
+	periodStart: `${year}-01-01`,
+	periodEnd: `${year}-12-31`,
+});
+
+// ─── Per-section row helpers ────────────────────────────────────────────────
+
+/** A dollar figure the server could not compute yet, written as such. */
+const UNAVAILABLE = "Unavailable";
+
+/**
+ * The period's figures from the rent ledger, as the income statement and the
+ * cash flow pages show them for the same period (built by the same view
+ * builders): Total Revenue (charged, net of credits), Total Expenses and Net
+ * Income from the income statement, Net Cash Flow (rent received) from the
+ * cash flow. "Unavailable" for each the ledger cannot report yet
+ * (get_billing_insights before 20261102055449), never $0. Before part N the
+ * executive and financial-performance exports printed the active leases'
+ * scheduled rent times twelve as "Total Income", and scheduled rent less a
+ * twelfth of the expenses as "Cash Flow".
+ */
+function ledgerPeriodRows(
+	income: IncomeStatementResult,
+	cash: CashFlowResult,
 ): ReportRow[] {
+	const statement =
+		income.status === "ready"
+			? buildIncomeStatementView(income.statement)
+			: null;
+	const flow = cash.status === "ready" ? buildCashFlowView(cash.report) : null;
+	const money = (value: number | undefined) =>
+		value === undefined ? UNAVAILABLE : fmtCents(value);
 	return [
-		{ label: "Total Income", value: fmtMoney(financial.summary.totalIncome) },
-		{
-			label: "Total Expenses",
-			value: fmtMoney(financial.summary.totalExpenses),
-		},
-		{ label: "Net Income", value: fmtMoney(financial.summary.netIncome) },
-		{ label: "Cash Flow", value: fmtMoney(financial.summary.cashFlow) },
-		{ label: "Occupancy Rate", value: fmtPct(occupancy.occupancyRate) },
-		{
-			label: "Occupied Units",
-			value: `${fmtNumber(occupancy.occupiedUnits)} of ${fmtNumber(occupancy.totalUnits)}`,
-		},
+		{ label: "Total Revenue", value: money(statement?.totalRevenue) },
+		{ label: "Total Expenses", value: money(statement?.totalExpenses) },
+		{ label: "Net Income", value: money(statement?.netIncome) },
+		{ label: "Net Cash Flow", value: money(flow?.netCashFlow) },
 	];
 }
 
-function financialSummaryRows(financial: FinancialReport): ReportRow[] {
+/** Why a ledger figure reads "Unavailable", when one does. */
+function ledgerNote(
+	income: IncomeStatementResult,
+	cash: CashFlowResult,
+): { note?: string } {
+	return income.status === "ready" && cash.status === "ready"
+		? {}
+		: { note: LEDGER_UNAVAILABLE_NOTE };
+}
+
+/**
+ * The statements' basis of presentation (STATEMENT_BASIS_NOTE), as the last
+ * section of every generated report that carries statement figures: the
+ * executive summary and the financial performance report read the income
+ * statement's revenue, expenses and net income and the cash flow's net cash
+ * flow.
+ */
+const STATEMENT_BASIS_SECTION: ReportSection = {
+	heading: STATEMENT_BASIS_HEADING,
+	paragraphs: STATEMENT_BASIS_NOTE,
+};
+
+/**
+ * Under a section whose income statement and cash flow figures read
+ * "Unavailable": every one of them, Total Expenses included (it comes with the
+ * statement, though expenses are not on the ledger).
+ */
+const LEDGER_UNAVAILABLE_NOTE =
+	"The income statement and the cash flow are built on your rent ledger, whose totals aren't available yet, so none of their figures is shown.";
+
+/** Occupancy today: no RPC reports a past period's occupancy here. */
+function occupancyTodayRows(occupancy: OccupancyMetrics): ReportRow[] {
 	return [
-		{ label: "Total Income", value: fmtMoney(financial.summary.totalIncome) },
+		{ label: "Occupancy Rate (today)", value: fmtPct(occupancy.occupancyRate) },
 		{
-			label: "Total Expenses",
-			value: fmtMoney(financial.summary.totalExpenses),
-		},
-		{ label: "Net Income", value: fmtMoney(financial.summary.netIncome) },
-		{ label: "Cash Flow", value: fmtMoney(financial.summary.cashFlow) },
-		{
-			label: "Rent-Roll Occupancy",
-			value: fmtPct(financial.summary.rentRollOccupancyRate),
+			label: "Occupied Units (today)",
+			value: `${fmtNumber(occupancy.occupiedUnits)} of ${fmtNumber(occupancy.totalUnits)}`,
 		},
 	];
 }
@@ -294,96 +377,117 @@ function propertyPortfolioSummaryRows(
 			label: "Total Properties",
 			value: fmtNumber(properties.summary.totalProperties),
 		},
-		{ label: "Total Units", value: fmtNumber(occupancy.totalUnits) },
-		{ label: "Occupied Units", value: fmtNumber(occupancy.occupiedUnits) },
-		{ label: "Vacant Units", value: fmtNumber(occupancy.vacantUnits) },
-		{ label: "Overall Occupancy", value: fmtPct(occupancy.occupancyRate) },
+		{ label: "Total Units (today)", value: fmtNumber(occupancy.totalUnits) },
+		{
+			label: "Occupied Units (today)",
+			value: fmtNumber(occupancy.occupiedUnits),
+		},
+		{ label: "Vacant Units (today)", value: fmtNumber(occupancy.vacantUnits) },
+		{
+			label: "Overall Occupancy (today)",
+			value: fmtPct(occupancy.occupancyRate),
+		},
 	];
 }
 
+/**
+ * As of today (get_dashboard_stats takes no dates). There is no turnover or
+ * on-time payment rate: no source computes either (they read 0%).
+ */
 function leaseSummaryRows(tenants: TenantReport): ReportRow[] {
 	return [
 		{ label: "Total Tenants", value: fmtNumber(tenants.summary.totalTenants) },
 		{ label: "Active Leases", value: fmtNumber(tenants.summary.activeLeases) },
 		{
-			label: "Expiring (next 90 days)",
-			value: fmtNumber(tenants.summary.leasesExpiringNext90),
-		},
-		{ label: "Turnover Rate", value: fmtPct(tenants.summary.turnoverRate) },
-		{
-			label: "On-Time Payment Rate",
-			value: fmtPct(tenants.summary.onTimePaymentRate),
+			// get_dashboard_stats' expiringSoon: an active lease whose end date is
+			// within 30 days or already past. It said "next 90 days".
+			label: "Active Leases Ending Within 30 Days",
+			value: fmtNumber(tenants.summary.leasesEndingSoon),
 		},
 	];
 }
 
 function maintenanceSummaryRows(maintenance: MaintenanceReport): ReportRow[] {
 	return [
+		// get_maintenance_analytics takes no dates: every figure is to date
+		// (open requests, now), whatever period the page offered.
 		{
-			label: "Total Requests",
+			label: "Total Requests to Date",
 			value: fmtNumber(maintenance.summary.totalRequests),
 		},
 		{
-			label: "Open Requests",
+			label: "Open Requests (now)",
 			value: fmtNumber(maintenance.summary.openRequests),
 		},
 		{
-			label: "Avg Resolution Time",
+			label: "Avg Resolution Time to Date",
 			value: `${maintenance.summary.avgResolutionHours.toFixed(1)} hours`,
 		},
-		{ label: "Total Cost", value: fmtMoney(maintenance.summary.totalCost) },
+		...maintenanceCostRows(maintenance.costs),
+	];
+}
+
+/**
+ * The spend to date the insights tab shows (get_maintenance_analytics,
+ * 20261102184503, through the same mapper), to the cent as the tab prints it:
+ * the expenses on the owner's requests, all time to date. When the server
+ * cannot report it yet, each row says so instead of printing $0.00.
+ */
+function maintenanceCostRows(
+	costs: MaintenanceCostSummary | null,
+): ReportRow[] {
+	return [
 		{
-			label: "Average Cost / Request",
-			value: fmtMoney(maintenance.summary.averageCost),
+			label: "Total Cost to Date",
+			value: costs ? fmtCents(costs.totalCost) : UNAVAILABLE,
+		},
+		{
+			label: "Requests with Costs",
+			value: costs ? fmtNumber(costs.costedRequests) : UNAVAILABLE,
+		},
+		{
+			label: "Average Cost per Request with Costs",
+			value: costs
+				? costs.averageCost === null
+					? "None recorded"
+					: fmtCents(costs.averageCost)
+				: UNAVAILABLE,
 		},
 	];
 }
 
+/**
+ * To the cent, as the year-end page and its CSV print them, so the summary
+ * equals the sum of the By Property table (whole dollars rounded each row
+ * apart and could not).
+ */
 function taxSummaryRows(yearEnd: YearEndSummary): ReportRow[] {
 	return [
 		{ label: "Tax Year", value: String(yearEnd.year) },
 		{
-			label: "Gross Rental Income",
-			value: fmtMoney(yearEnd.grossRentalIncome),
+			label: "Rent Received",
+			value: fmtCents(yearEnd.rentReceived),
 		},
 		{
 			label: "Operating Expenses",
-			value: fmtMoney(yearEnd.operatingExpenses),
+			value: fmtCents(yearEnd.operatingExpenses),
 		},
-		{ label: "Net Income", value: fmtMoney(yearEnd.netIncome) },
+		{ label: "Net Income", value: fmtCents(yearEnd.netIncome) },
 	];
 }
 
 // ─── Builders (one per ReportType) ──────────────────────────────────────────
 
 /**
- * Returns a POSITIONAL tuple. D-37 removed what used to be element index 2 (the
- * payment-analytics fetch), which shifted the monthly-revenue element from
- * index 3 to index 2. TypeScript will not flag a stale four-binding destructure
- * against this three-element tuple in every arrangement, so the destructure in
- * `buildExecutiveMonthly` below must be read against THIS list, in order, on
- * every future change here. A silent mismatch renders the wrong dataset with a
- * green build.
- *
- * Order: [financial, occupancy, monthlyRevenue].
+ * The period's ledger figures: the income statement and the cash flow over
+ * the export's own period (financialQueries, the pages' own queries), so the
+ * file holds what those pages show for it. A failure surfaces.
  */
-async function fetchExecutiveMonthly(
-	qc: QueryClient,
-	start: string,
-	end: string,
-) {
+async function fetchLedgerPeriod(qc: QueryClient, start: string, end: string) {
+	const period = { start_date: start, end_date: end };
 	return Promise.all([
-		safeFetch(
-			qc,
-			reportAnalyticsQueries.financial(start, end),
-			FINANCIAL_FALLBACK,
-		),
-		safeFetch(
-			qc,
-			reportAnalyticsQueries.occupancyMetrics(),
-			OCCUPANCY_FALLBACK,
-		),
-		safeFetch(qc, reportQueries.monthlyRevenue(12), [] as RevenueData[]),
+		qc.query(financialQueries.incomeStatement(period)),
+		qc.query(financialQueries.cashFlow(period)),
 	]);
 }
 
@@ -392,101 +496,75 @@ async function buildExecutiveMonthly(
 	start: string,
 	end: string,
 ): Promise<ReportData> {
-	// Three bindings against the three-element tuple above, in its exact order.
-	const [financial, occupancy, monthly] = await fetchExecutiveMonthly(
-		queryClient,
-		start,
-		end,
-	);
+	const [[income, cash], occupancy, monthly] = await Promise.all([
+		fetchLedgerPeriod(queryClient, start, end),
+		safeFetch(
+			queryClient,
+			reportAnalyticsQueries.occupancyMetrics(),
+			OCCUPANCY_FALLBACK,
+		),
+		safeFetch(
+			queryClient,
+			reportQueries.monthlyRevenue(12),
+			[] as RevenueData[],
+		),
+	]);
 	const monthlyRows: Array<Array<string | number>> = monthly.data.map((m) => [
 		String(m.month),
 		fmtMoney(m.revenue),
 	]);
-	const allAvailable =
-		financial.available && occupancy.available && monthly.available;
 	return {
 		...baseHeader("Executive Monthly Report", "Portfolio summary", start, end),
 		sections: [
 			{
 				heading: "Key Metrics",
-				rows: executiveKeyMetricsRows(financial.data, occupancy.data),
+				rows: [
+					...ledgerPeriodRows(income, cash),
+					...occupancyTodayRows(occupancy.data),
+				],
+				...notes(ledgerNote(income, cash), noteIf(occupancy.available)),
 			},
 			{
-				heading: "Monthly Revenue (last 12 months)",
-				table: { headers: ["Month", "Revenue"], rows: monthlyRows },
-				...noteIf(allAvailable),
+				// get_revenue_trends_optimized sums the month's lease rent_amount:
+				// scheduled rent, not money received, so it is labelled as such.
+				heading: "Scheduled Rent (last 12 months)",
+				table: {
+					headers: ["Month", "Scheduled Rent"],
+					rows: monthlyRows,
+					emptyText: monthly.available
+						? "No scheduled rent in the last 12 months."
+						: null,
+				},
+				...tableNoteIf(monthly.available),
 			},
+			STATEMENT_BASIS_SECTION,
 		],
 	};
 }
 
-function financialMonthlyRows(
-	financial: FinancialReport,
-): Array<Array<string | number>> {
-	return financial.monthly.map((m) => [
-		m.month,
-		fmtMoney(m.income),
-		fmtMoney(m.expenses),
-		fmtMoney(m.net),
-	]);
-}
-
 function financialExpenseRows(
 	financial: FinancialReport,
+	total: number,
 ): Array<Array<string | number>> {
-	const total = financial.summary.totalExpenses;
 	return financial.expenseBreakdown.map((e) => [
 		e.category,
-		fmtMoney(e.amount),
+		fmtCents(e.amount),
 		fmtPct(total > 0 ? (e.amount / total) * 100 : 0),
 	]);
 }
 
-function financialRentRollRows(
-	financial: FinancialReport,
+/**
+ * The income statement's revenue lines for the period, as the page lists
+ * them (Rent Charged, Late Fees Charged, Other Charges, Credits Issued).
+ */
+function revenueLineRows(
+	income: IncomeStatementResult,
 ): Array<Array<string | number>> {
-	return financial.rentRoll.map((r) => [
-		r.propertyName,
-		`${fmtNumber(r.occupiedUnits)}/${fmtNumber(r.unitCount)}`,
-		fmtPct(r.occupancyRate),
-		fmtMoney(r.rentPotential),
+	if (income.status !== "ready") return [];
+	return buildIncomeStatementView(income.statement).revenueItems.map((i) => [
+		i.label,
+		fmtCents(i.amount),
 	]);
-}
-
-function financialPerformanceSections(
-	financial: FinancialReport,
-	available: boolean,
-): ReportSection[] {
-	return [
-		{ heading: "Summary", rows: financialSummaryRows(financial) },
-		{
-			heading: "Monthly Breakdown",
-			table: {
-				headers: ["Month", "Income", "Expenses", "Net"],
-				rows: financialMonthlyRows(financial),
-			},
-		},
-		{
-			heading: "Expense Categories",
-			table: {
-				headers: ["Category", "Amount", "% of Expenses"],
-				rows: financialExpenseRows(financial),
-			},
-		},
-		{
-			heading: "Rent Roll",
-			table: {
-				headers: [
-					"Property",
-					"Units (occ/total)",
-					"Occupancy",
-					"Rent Potential",
-				],
-				rows: financialRentRollRows(financial),
-			},
-			...noteIf(available),
-		},
-	];
 }
 
 async function buildFinancialPerformance(
@@ -494,94 +572,119 @@ async function buildFinancialPerformance(
 	start: string,
 	end: string,
 ): Promise<ReportData> {
-	const financialResult = await safeFetch(
-		queryClient,
-		reportAnalyticsQueries.financial(start, end),
-		FINANCIAL_FALLBACK,
+	const [[income, cash], financialResult, occupancy] = await Promise.all([
+		fetchLedgerPeriod(queryClient, start, end),
+		safeFetch(
+			queryClient,
+			reportAnalyticsQueries.financial(start, end),
+			FINANCIAL_FALLBACK,
+		),
+		safeFetch(
+			queryClient,
+			reportAnalyticsQueries.occupancyMetrics(),
+			OCCUPANCY_FALLBACK,
+		),
+	]);
+	const totalExpenses = financialResult.data.expenseBreakdown.reduce(
+		(sum, e) => sum + e.amount,
+		0,
 	);
 	return {
 		...baseHeader(
 			"Financial Performance Report",
-			"P&L · NOI · Expense breakdown",
+			"Revenue · expenses · net income · cash flow",
 			start,
 			end,
 		),
-		sections: financialPerformanceSections(
-			financialResult.data,
-			financialResult.available,
-		),
+		sections: [
+			{
+				heading: "Summary",
+				rows: [
+					...ledgerPeriodRows(income, cash),
+					{
+						label: "Occupancy Rate (today)",
+						value: fmtPct(occupancy.data.occupancyRate),
+					},
+				],
+				...notes(ledgerNote(income, cash), noteIf(occupancy.available)),
+			},
+			{
+				heading: "Revenue (charged)",
+				table: {
+					headers: ["Line", "Amount"],
+					rows: revenueLineRows(income),
+					emptyText:
+						income.status === "ready" ? "Nothing charged in the period." : null,
+				},
+				...ledgerNote(income, cash),
+			},
+			{
+				heading: "Expenses by Vendor",
+				table: {
+					headers: ["Vendor", "Amount", "% of Expenses"],
+					rows: financialExpenseRows(financialResult.data, totalExpenses),
+					emptyText: financialResult.available
+						? "No expenses in the period."
+						: null,
+				},
+				...tableNoteIf(financialResult.available),
+			},
+			STATEMENT_BASIS_SECTION,
+		],
 	};
 }
 
 function propertyPerformanceRows(
 	properties: PropertyReport,
 ): Array<Array<string | number>> {
+	const money = (n: number | null) => (n === null ? UNAVAILABLE : fmtMoney(n));
 	return properties.byProperty.map((p) => [
 		p.propertyName,
 		fmtPct(p.occupancyRate),
-		fmtNumber(p.vacantUnits),
-		fmtMoney(p.revenue),
-		fmtMoney(p.expenses),
-		fmtMoney(p.netOperatingIncome),
+		money(p.rentReceived),
+		money(p.expenses),
+		money(p.netIncome),
 	]);
 }
 
-function propertyOccupancyTrendRows(
-	properties: PropertyReport,
-): Array<Array<string | number>> {
-	return properties.occupancyTrend.map((t) => [
-		t.month,
-		fmtPct(t.occupancyRate),
-	]);
-}
+/** Each property's three figures read "Unavailable" together. */
+const RENT_RECEIVED_UNAVAILABLE_NOTE =
+	"Rent received, expenses and net income by property aren't available yet: the server's property figures are pending an update.";
 
-function propertyVacancyTrendRows(
-	properties: PropertyReport,
-): Array<Array<string | number>> {
-	return properties.vacancyTrend.map((v) => [
-		v.month,
-		fmtNumber(v.vacantUnits),
-	]);
-}
-
+/**
+ * The portfolio's counts and occupancy today, and each property's rent
+ * received and expenses over the period. There is no vacant-units column or
+ * occupancy and vacancy trend: no source fills them (they read 0 and were
+ * empty tables).
+ */
 function propertyPortfolioSections(
-	properties: PropertyReport,
-	occupancy: OccupancyMetrics,
-	available: boolean,
+	properties: { data: PropertyReport; available: boolean },
+	occupancy: { data: OccupancyMetrics; available: boolean },
 ): ReportSection[] {
 	return [
 		{
+			// Its property count from the properties read, its units from the
+			// occupancy read.
 			heading: "Portfolio Summary",
-			rows: propertyPortfolioSummaryRows(properties, occupancy),
+			rows: propertyPortfolioSummaryRows(properties.data, occupancy.data),
+			...noteIf(properties.available && occupancy.available),
 		},
 		{
 			heading: "Property Performance",
 			table: {
 				headers: [
 					"Property",
-					"Occupancy",
-					"Vacant",
-					"Revenue",
+					"Occupancy (today)",
+					"Rent Received",
 					"Expenses",
-					"NOI",
+					"Net Income",
 				],
-				rows: propertyPerformanceRows(properties),
+				rows: propertyPerformanceRows(properties.data),
+				emptyText: properties.available ? "No properties." : null,
 			},
-		},
-		{
-			heading: "Occupancy Trend",
-			table: {
-				headers: ["Month", "Occupancy Rate"],
-				rows: propertyOccupancyTrendRows(properties),
-			},
-		},
-		{
-			heading: "Vacancy Trend",
-			table: {
-				headers: ["Month", "Vacant Units"],
-				rows: propertyVacancyTrendRows(properties),
-			},
-			...noteIf(available),
+			...(properties.data.byProperty.some((p) => p.rentReceived === null)
+				? { note: RENT_RECEIVED_UNAVAILABLE_NOTE }
+				: tableNoteIf(properties.available)),
 		},
 	];
 }
@@ -606,100 +709,34 @@ async function buildPropertyPortfolio(
 	return {
 		...baseHeader(
 			"Property Portfolio Report",
-			"Property rankings · occupancy · vacancy",
+			"Rent received · expenses · occupancy",
 			start,
 			end,
 		),
-		sections: propertyPortfolioSections(
-			propertiesResult.data,
-			occupancyResult.data,
-			propertiesResult.available && occupancyResult.available,
-		),
+		sections: propertyPortfolioSections(propertiesResult, occupancyResult),
 	};
-}
-
-function leaseExpirationRows(
-	tenants: TenantReport,
-): Array<Array<string | number>> {
-	return tenants.leaseExpirations.map((l) => [
-		l.propertyName,
-		l.unitLabel,
-		fmtDate(l.endDate),
-	]);
-}
-
-function leasePaymentRows(
-	tenants: TenantReport,
-): Array<Array<string | number>> {
-	return tenants.paymentHistory.map((p) => [
-		p.month,
-		fmtNumber(p.paymentsReceived),
-		fmtPct(p.onTimeRate),
-	]);
-}
-
-function leaseTurnoverRows(
-	tenants: TenantReport,
-): Array<Array<string | number>> {
-	return tenants.turnover.map((t) => [
-		t.month,
-		fmtNumber(t.moveIns),
-		fmtNumber(t.moveOuts),
-	]);
-}
-
-function leasePortfolioSections(
-	tenants: TenantReport,
-	available: boolean,
-): ReportSection[] {
-	return [
-		{ heading: "Lease Summary", rows: leaseSummaryRows(tenants) },
-		{
-			heading: "Lease Expirations",
-			table: {
-				headers: ["Property", "Unit", "Lease End Date"],
-				rows: leaseExpirationRows(tenants),
-			},
-		},
-		{
-			heading: "Payment History",
-			table: {
-				headers: ["Month", "Payments Received", "On-Time Rate"],
-				rows: leasePaymentRows(tenants),
-			},
-		},
-		{
-			heading: "Tenant Turnover",
-			table: {
-				headers: ["Month", "Moved In", "Moved Out"],
-				rows: leaseTurnoverRows(tenants),
-			},
-			...noteIf(available),
-		},
-	];
 }
 
 async function buildLeasePortfolio(
 	queryClient: QueryClient,
-	start: string,
+	_start: string,
 	end: string,
 ): Promise<ReportData> {
 	const tenantsResult = await safeFetch(
 		queryClient,
-		reportAnalyticsQueries.tenants(start, end),
+		reportAnalyticsQueries.tenants(),
 		TENANT_FALLBACK,
 	);
 	return {
-		...baseHeader(
-			"Lease Portfolio Report",
-			"Lease analytics · expirations · payment history",
-			start,
-			end,
-		),
-		sections: leasePortfolioSections(
-			tenantsResult.data,
-			tenantsResult.available,
-		),
+		// get_dashboard_stats takes no dates: the report is as of today.
+		...toDateHeader("Lease Portfolio Report", "Tenants and leases", end),
+		sections: [
+			{
+				heading: "Lease Summary",
+				rows: leaseSummaryRows(tenantsResult.data),
+				...noteIf(tenantsResult.available),
+			},
+		],
 	};
 }
 
@@ -708,64 +745,100 @@ function maintenanceOperationsSections(
 	available: boolean,
 ): ReportSection[] {
 	const byStatusRows = maintenance.byStatus.map(
-		(s): Array<string | number> => [s.status, fmtNumber(s.count)],
-	);
-	const byPriorityRows = maintenance.byPriority.map(
-		(p): Array<string | number> => [p.priority, fmtNumber(p.count)],
-	);
-	const monthlyCostRows = maintenance.monthlyCost.map(
-		(m): Array<string | number> => [m.month, fmtMoney(m.cost)],
-	);
-	const vendorRows = maintenance.vendorPerformance.map(
-		(v): Array<string | number> => [
-			v.vendorName,
-			fmtNumber(v.jobs),
-			fmtMoney(v.totalSpend),
+		(s): Array<string | number> => [
+			maintenanceStatusLabel(s.status),
+			fmtNumber(s.count),
 		],
 	);
+	const byPriorityRows = maintenance.byPriority.map(
+		(p): Array<string | number> => [
+			maintenancePriorityLabel(p.priority),
+			fmtNumber(p.count),
+		],
+	);
+	const costs = maintenance.costs;
+	// A failed read has no costs either, and it is the read that failed: the
+	// server-pending note is for a body that does not report them.
+	const pendingCostNote =
+		available && !costs ? { note: MAINTENANCE_COSTS_UNAVAILABLE_NOTE } : {};
+	const costTableNote = available ? pendingCostNote : tableNoteIf(false);
+	const requestsEmpty = available ? "No requests to date." : null;
+	const reported = available && costs !== null;
 	return [
 		{
 			heading: "Operations Summary",
 			rows: maintenanceSummaryRows(maintenance),
+			...notes(noteIf(available), pendingCostNote),
 		},
 		{
-			heading: "By Status",
-			table: { headers: ["Status", "Count"], rows: byStatusRows },
+			heading: "By Status (to date)",
+			table: {
+				headers: ["Status", "Count"],
+				rows: byStatusRows,
+				emptyText: requestsEmpty,
+			},
+			...tableNoteIf(available),
 		},
 		{
-			heading: "By Priority",
-			table: { headers: ["Priority", "Count"], rows: byPriorityRows },
+			heading: "By Priority (to date)",
+			table: {
+				headers: ["Priority", "Count"],
+				rows: byPriorityRows,
+				emptyText: requestsEmpty,
+			},
+			...tableNoteIf(available),
 		},
 		{
-			heading: "Monthly Cost",
-			table: { headers: ["Month", "Cost"], rows: monthlyCostRows },
+			heading: "Monthly Cost (last 12 months)",
+			table: {
+				headers: ["Month", "Cost"],
+				rows: (costs?.monthlyCost ?? []).map(
+					(m): Array<string | number> => [m.month, fmtCents(m.cost)],
+				),
+				emptyText: reported ? "No costs in the last 12 months." : null,
+			},
+			...costTableNote,
 		},
 		{
-			heading: "Vendor Performance",
+			heading: "Vendor Spend to Date",
 			table: {
 				headers: ["Vendor", "Jobs", "Total Spend"],
-				rows: vendorRows,
+				rows: (costs?.vendors ?? []).map(
+					(v): Array<string | number> => [
+						v.vendorName,
+						fmtNumber(v.jobs),
+						fmtCents(v.totalSpend),
+					],
+				),
+				emptyText: reported ? "No vendor spend to date." : null,
 			},
-			...noteIf(available),
+			...costTableNote,
 		},
 	];
 }
 
+const MAINTENANCE_COSTS_UNAVAILABLE_NOTE =
+	"Maintenance costs aren't available yet: the server does not report them, so none is shown.";
+
+/**
+ * get_maintenance_analytics takes no dates (and its signature cannot change
+ * before the post-merge apply), so the report is to date, as the generate
+ * page's card says; it never claims the period the page offered.
+ */
 async function buildMaintenanceOperations(
 	queryClient: QueryClient,
-	start: string,
+	_start: string,
 	end: string,
 ): Promise<ReportData> {
 	const maintenanceResult = await safeFetch(
 		queryClient,
-		reportAnalyticsQueries.maintenance(start, end),
+		reportAnalyticsQueries.maintenance(),
 		MAINTENANCE_FALLBACK,
 	);
 	return {
-		...baseHeader(
+		...toDateHeader(
 			"Maintenance Operations Report",
-			"Response times · costs · urgency",
-			start,
+			"Response times · status · urgency · costs",
 			end,
 		),
 		sections: maintenanceOperationsSections(
@@ -775,62 +848,87 @@ async function buildMaintenanceOperations(
 	};
 }
 
-function taxPreparationSections(
-	yearEnd: YearEndSummary,
-	available: boolean,
-): ReportSection[] {
+/**
+ * The tax-preparation export when the server cannot report the year's rent
+ * received yet: one section that says so, and no figure written as $0.
+ */
+function taxPreparationUnavailableSections(year: number): ReportSection[] {
+	return [
+		{
+			heading: "Annual Summary",
+			rows: [
+				{ label: "Tax Year", value: String(year) },
+				{ label: "Rent Received", value: UNAVAILABLE },
+				{ label: "Net Income", value: UNAVAILABLE },
+			],
+			note: "Rent received comes from your rent ledger, and its totals aren't available yet.",
+		},
+	];
+}
+
+function taxPreparationSections(yearEnd: YearEndSummary): ReportSection[] {
+	// Every property with rent or spend in the year, one deleted since named
+	// as deleted (the label map), to the cent: they sum to the summary.
 	const byPropertyRows = yearEnd.byProperty.map(
 		(p): Array<string | number> => [
 			p.propertyName,
-			fmtMoney(p.income),
-			fmtMoney(p.expenses),
-			fmtMoney(p.netIncome),
+			fmtCents(p.rentReceived),
+			fmtCents(p.expenses),
+			fmtCents(p.netIncome),
 		],
 	);
 	const expenseRows = yearEnd.expenseByCategory.map(
-		(e): Array<string | number> => [e.category, fmtMoney(e.amount)],
+		(e): Array<string | number> => [e.category, fmtCents(e.amount)],
 	);
 	return [
 		{ heading: "Annual Summary", rows: taxSummaryRows(yearEnd) },
 		{
 			heading: "Income by Property (Schedule E support)",
 			table: {
-				headers: ["Property", "Income", "Expenses", "Net Income"],
+				headers: ["Property", "Rent Received", "Expenses", "Net Income"],
 				rows: byPropertyRows,
+				emptyText: `No property received rent or had expenses in ${yearEnd.year}.`,
 			},
 			note: "Consult a CPA before filing — line-item mappings are advisory.",
 		},
 		{
-			heading: "Expense by Category",
-			table: { headers: ["Category", "Amount"], rows: expenseRows },
-			...noteIf(available),
+			heading: EXPENSES_BY_VENDOR_SECTION,
+			table: {
+				headers: ["Vendor", "Amount"],
+				rows: expenseRows,
+				emptyText: `No expenses in ${yearEnd.year}.`,
+			},
+			// TenantFlow does not decide which expenses are deductible.
+			note: DEDUCTIBILITY_NOTE,
 		},
 	];
 }
 
 async function buildTaxPreparation(
 	queryClient: QueryClient,
-	start: string,
+	_start: string,
 	end: string,
 ): Promise<ReportData> {
-	const year =
-		parseLocalYmd(end)?.getFullYear() ?? new Date(end).getUTCFullYear();
+	const year = reportTaxYear(end);
+	const fallback: YearEndResult = { status: "ledger-unavailable", year };
 	const yearEndResult = await safeFetch(
 		queryClient,
 		reportAnalyticsQueries.yearEnd(year),
-		{ ...YEAREND_FALLBACK, year },
+		fallback,
 	);
+	// safeFetch falls back only to the ledger-unavailable result, which writes
+	// the unavailable sections: a ready summary is always a loaded one.
+	const result = yearEndResult.data;
 	return {
-		...baseHeader(
+		...taxYearHeader(
 			`Tax Preparation — ${year}`,
-			"Annual income · expenses · property breakdown",
-			start,
-			end,
+			"Rent received · expenses · property breakdown",
+			year,
 		),
-		sections: taxPreparationSections(
-			yearEndResult.data,
-			yearEndResult.available,
-		),
+		sections:
+			result.status === "ready"
+				? taxPreparationSections(result.summary)
+				: taxPreparationUnavailableSections(year),
 	};
 }
 

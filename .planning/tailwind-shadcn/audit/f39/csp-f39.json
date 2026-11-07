@@ -1,0 +1,84 @@
+{
+  "build": "capture-3062 (b7f25511b, build id _Nnp0e_wFsNWRbPU8NSYu, served on :3062)",
+  "tree": "b7f25511b (codeStateSha)",
+  "method": "66.2-29 Task 3: Playwright Chromium, console errors containing Content Security Policy plus securitypolicyviolation events from an init script",
+  "routes": [
+    {
+      "route": "/login",
+      "status": 200,
+      "nonceCsp": true,
+      "count": 1,
+      "violations": [
+        {
+          "directive": "script-src",
+          "source": "1-g7excfkl0wo.js",
+          "line": 1,
+          "col": 4409
+        }
+      ]
+    },
+    {
+      "route": "/auth/confirm-email",
+      "status": 200,
+      "nonceCsp": true,
+      "count": 0,
+      "violations": []
+    },
+    {
+      "route": "/auth/update-password",
+      "status": 200,
+      "nonceCsp": true,
+      "count": 1,
+      "violations": [
+        {
+          "directive": "script-src",
+          "source": "1-g7excfkl0wo.js",
+          "line": 1,
+          "col": 4409
+        }
+      ]
+    }
+  ],
+  "control": {
+    "tree": "36972318f (its code set in this worktree, same session, served on :3064)",
+    "routes": [
+      {
+        "route": "/login",
+        "count": 1,
+        "violations": [
+          {
+            "directive": "script-src",
+            "source": "1-g7excfkl0wo.js",
+            "line": 1,
+            "col": 4409
+          }
+        ]
+      },
+      {
+        "route": "/auth/confirm-email",
+        "count": 0,
+        "violations": []
+      },
+      {
+        "route": "/auth/update-password",
+        "count": 1,
+        "violations": [
+          {
+            "directive": "script-src",
+            "source": "1-g7excfkl0wo.js",
+            "line": 1,
+            "col": 4409
+          }
+        ]
+      }
+    ]
+  },
+  "controlNote": "both trees report exactly the zod 4 Function(\"\") probe (script-src eval) on /login and /auth/update-password, at .next/static/chunks/1-g7excfkl0wo.js line 1 col 4409, verified in the served chunk",
+  "beyondControl": 0,
+  "ownerManifestCspErrors": 0,
+  "sidebarManifestCspErrors": 0,
+  "ownerCapturesNote": "console errors containing Content Security Policy across every capture of the f39 manifest (92) and the f39-sidebar manifest (60): 0 and 0; the 36972318f same-session manifests: 0 and 0. The other console errors are 184 (92-capture set) and 120 (sidebar set) on both trees, equal",
+  "total": 0,
+  "totalRule": "total = probe events beyond the control (the two zod Function(\"\") events, /login and /auth/update-password) + ownerManifestCspErrors + sidebarManifestCspErrors",
+  "sourceInvariants": "src/proxy.ts, src/components/providers.tsx and src/lib/sidebar-state.ts have no diff since PRE_39; \"sidebar_state\" appears in non-test src only in sidebar-state.ts"
+}

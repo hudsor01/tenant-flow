@@ -78,8 +78,8 @@ export default function AboutPage() {
 			{/* Mission Section */}
 			<section className="section-spacing">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
-					<BlurFade delay={0.2} inView>
-						<div className="grid xl:grid-cols-2 gap-16 items-center">
+					<BlurFade delay={0.2}>
+						<div className="grid grid-cols-1 xl:grid-cols-2 gap-16 items-center">
 							<div className="space-y-6">
 								<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground">
 									Our Mission
@@ -114,7 +114,7 @@ export default function AboutPage() {
 			{/* Values Section */}
 			<section className="section-spacing bg-muted/20">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
-					<BlurFade delay={0.3} inView>
+					<BlurFade delay={0.3}>
 						<div className="text-center mb-16 space-y-4">
 							<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground">
 								Our Values
@@ -222,7 +222,7 @@ export default function AboutPage() {
 			{/* Stats Section */}
 			<section className="section-spacing">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
-					<BlurFade delay={0.5} inView>
+					<BlurFade delay={0.5}>
 						<div className="text-center mb-16 space-y-4">
 							<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground">
 								What ships in the box
@@ -235,12 +235,12 @@ export default function AboutPage() {
 
 						<div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
 							{stats.map((stat, index) => (
-								<BlurFade key={stat.label} delay={0.6 + index * 0.1} inView>
-									<div className="text-center bg-card rounded-2xl p-8 border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
+								<BlurFade key={stat.label} delay={0.6 + index * 0.1}>
+									<div className="text-center bg-card rounded-2xl p-8 border border-border/50">
 										<div className="mb-4 flex justify-center">
 											<stat.Icon className="size-8 text-primary" aria-hidden />
 										</div>
-										<div className="typography-h2 text-primary mb-2">
+										<div className="typography-h2 text-primary-text mb-2">
 											{stat.number}
 										</div>
 										<div className="text-muted-foreground">{stat.label}</div>
@@ -255,7 +255,7 @@ export default function AboutPage() {
 			{/* CTA Section */}
 			<section className="section-spacing bg-muted/20">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
-					<BlurFade delay={1.0} inView>
+					<BlurFade delay={1.0}>
 						<div className="text-center space-y-8">
 							<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight leading-tight text-foreground">
 								Ready to{" "}

@@ -17,13 +17,13 @@ import {
 	AlertDialogTrigger,
 } from "#components/ui/alert-dialog";
 import { BlurFade } from "#components/ui/blur-fade";
-import { Button, buttonVariants } from "#components/ui/button";
+import { Button } from "#components/ui/button";
 import { useSubscriptionStatus } from "#hooks/api/use-billing";
 import {
 	useCancelSubscriptionMutation,
 	useReactivateSubscriptionMutation,
 } from "#hooks/api/use-billing-mutations";
-import { cn } from "#lib/utils";
+import { formatCount } from "#lib/formatters/count";
 
 function formatPlanEndDate(iso: string | null): string {
 	if (!iso) return "your next billing date";
@@ -61,6 +61,7 @@ export function SubscriptionCancelSection() {
 		return (
 			<div
 				className="h-32 rounded-lg border bg-muted animate-pulse"
+				role="status"
 				aria-label="Loading subscription status"
 			/>
 		);
@@ -120,9 +121,9 @@ export function SubscriptionCancelSection() {
 	if (subscriptionStatus === "canceled") {
 		const dataDeleteDate = addDaysFormatted(currentPeriodEnd, 30);
 		return (
-			<BlurFade delay={0.55} inView>
-				<section className="rounded-lg border border-red-300 bg-red-50 p-6 dark:border-red-700 dark:bg-red-950/50">
-					<h3 className="mb-1 text-sm font-medium text-red-800 dark:text-red-200 uppercase tracking-wider flex items-center gap-2">
+			<BlurFade delay={0.55}>
+				<section className="rounded-lg border border-destructive/30 bg-destructive/10 p-6">
+					<h3 className="mb-1 text-sm font-medium text-destructive-text uppercase tracking-wider flex items-center gap-2">
 						<Lock className="h-4 w-4" aria-hidden="true" />
 						Subscription Ended
 					</h3>
@@ -173,25 +174,25 @@ export function SubscriptionCancelSection() {
 			});
 		};
 		return (
-			<BlurFade delay={0.55} inView>
+			<BlurFade delay={0.55}>
 				<section className="rounded-lg border bg-card p-6">
 					<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
 						<Clock className="h-4 w-4" aria-hidden="true" />
 						Subscription
 					</h3>
-					<div className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 mb-4">
+					<div className="flex items-start gap-3 rounded-lg border border-warning/30 bg-warning/5 p-4 mb-4">
 						<Clock
-							className="h-5 w-5 text-amber-600 mt-0.5 shrink-0"
+							className="h-5 w-5 text-warning-text mt-0.5 shrink-0"
 							aria-hidden="true"
 						/>
 						<div>
-							<p className="text-sm font-medium text-amber-700">
+							<p className="mb-0 text-sm font-medium text-warning-text">
 								Subscription ends {endDate}
 							</p>
-							<p className="text-sm text-muted-foreground mt-1">
+							<p className="mt-1 mb-0 text-sm text-muted-foreground">
 								Your plan will end on <strong>{endDate}</strong> (
-								<strong>{daysLeft} days remaining</strong>). You can keep your
-								plan active by reactivating before then.
+								<strong>{formatCount(daysLeft, "day")} remaining</strong>). You
+								can keep your plan active by reactivating before then.
 							</p>
 						</div>
 					</div>
@@ -199,7 +200,6 @@ export function SubscriptionCancelSection() {
 						variant="outline"
 						onClick={onReactivate}
 						disabled={reactivateMutation.isPending}
-						aria-label="Reactivate subscription"
 						className="gap-2"
 					>
 						{reactivateMutation.isPending ? (
@@ -234,7 +234,7 @@ export function SubscriptionCancelSection() {
 	};
 
 	return (
-		<BlurFade delay={0.55} inView>
+		<BlurFade delay={0.55}>
 			<section className="rounded-lg border border-destructive/20 bg-destructive/5 p-6">
 				<h3 className="mb-4 text-sm font-medium text-destructive-text uppercase tracking-wider flex items-center gap-2">
 					<AlertTriangle className="h-4 w-4" aria-hidden="true" />
@@ -252,8 +252,7 @@ export function SubscriptionCancelSection() {
 						<AlertDialogTrigger asChild>
 							<Button
 								variant="outline"
-								aria-label="Cancel my subscription"
-								className="text-destructive-text border-destructive/20 hover:bg-destructive/10"
+								className="text-destructive-text border-destructive/20 hover:bg-destructive/10 hover:text-destructive-text dark:border-destructive/20 dark:hover:bg-destructive/20 dark:hover:text-destructive-text"
 							>
 								Cancel Plan
 							</Button>
@@ -277,11 +276,7 @@ export function SubscriptionCancelSection() {
 										onConfirmCancel();
 									}}
 									disabled={cancelMutation.isPending}
-									aria-label="Confirm subscription cancellation"
-									className={cn(
-										buttonVariants({ variant: "destructive" }),
-										"gap-2",
-									)}
+									variant="destructive"
 								>
 									{cancelMutation.isPending && (
 										<Loader2

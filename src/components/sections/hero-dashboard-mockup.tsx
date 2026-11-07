@@ -32,13 +32,13 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 					<div className="w-12" />
 				</div>
 
-				<div className="p-4 space-y-4 bg-gradient-to-b from-background to-muted/20">
+				<div className="p-4 space-y-4 bg-linear-to-b from-background to-muted/20">
 					<div className="flex-between">
 						<div>
 							<h3 className="text-sm font-semibold text-foreground">
 								Dashboard
 							</h3>
-							<p className="text-xs text-muted-foreground">
+							<p className="mb-0 text-xs text-muted-foreground">
 								Welcome back, Sarah
 							</p>
 						</div>
@@ -47,7 +47,7 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 								<Bell className="size-4 text-muted-foreground" />
 								<div className="absolute -top-1 -right-1 size-2 bg-primary rounded-full animate-pulse" />
 							</div>
-							<div className="size-8 rounded-full bg-primary/10 flex-center text-primary text-xs font-medium">
+							<div className="size-8 rounded-full bg-primary/10 flex-center text-primary-text text-xs font-medium">
 								SC
 							</div>
 						</div>
@@ -99,12 +99,12 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 								{[
 									"h-[35%]",
 									"h-[45%]",
-									"h-[40%]",
+									"h-2/5",
 									"h-[55%]",
-									"h-[50%]",
+									"h-1/2",
 									"h-[65%]",
-									"h-[60%]",
-									"h-[75%]",
+									"h-3/5",
+									"h-3/4",
 									"h-[70%]",
 									"h-[82%]",
 									"h-[78%]",
@@ -151,12 +151,9 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 							<span className="text-xs font-medium text-foreground">
 								Recent Activity
 							</span>
-							<button
-								type="button"
-								className="text-xs text-primary hover:underline flex items-center"
-							>
+							<span className="text-xs text-primary-text flex items-center">
 								View all <ChevronRight className="size-3" />
-							</button>
+							</span>
 						</div>
 						<div className="space-y-2">
 							<ActivityItem
@@ -208,7 +205,7 @@ function StatCard({
 	icon: ReactNode;
 }) {
 	return (
-		<div className="card-standard p-2.5 hover:border-primary/20 transition-colors">
+		<div className="card-standard p-2.5">
 			<div className="flex-between mb-1.5">
 				<div className="icon-container-sm bg-primary/10 text-primary">
 					{icon}
@@ -251,12 +248,9 @@ function QuickAction({
 	};
 
 	return (
-		<button
-			type="button"
-			className="w-full card-standard p-2.5 flex-between hover:border-primary/20 hover:bg-primary/5 transition-all group"
-		>
+		<div className="w-full card-standard p-2.5 flex-between">
 			<div className="flex items-center gap-2">
-				<div className="icon-container-sm bg-primary/10 text-primary group-hover:scale-105 transition-transform">
+				<div className="icon-container-sm bg-primary/10 text-primary">
 					{icon}
 				</div>
 				<span className="text-xs font-medium text-foreground">{label}</span>
@@ -271,9 +265,9 @@ function QuickAction({
 					{badge}
 				</span>
 			) : (
-				<ChevronRight className="size-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
+				<ChevronRight className="size-3.5 text-muted-foreground" />
 			)}
-		</button>
+		</div>
 	);
 }
 
@@ -299,8 +293,8 @@ function ActivityItem({
 	};
 
 	return (
-		<div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-			<div className="size-7 rounded-full bg-primary/10 flex-center text-primary text-xs font-medium">
+		<div className="flex items-center gap-3 p-2 rounded-lg">
+			<div className="size-7 rounded-full bg-primary/10 flex-center text-primary-text text-xs font-medium">
 				{avatar}
 			</div>
 			<div className="flex-1 min-w-0">

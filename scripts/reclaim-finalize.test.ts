@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { escapeRegExp } from "#test/utils/regexp-source";
 import {
 	addLivePublishedSlug,
 	finalizeReclaim,
@@ -287,7 +288,7 @@ describe("real-file round-trip (Task 2 regression net)", () => {
 		);
 		expect(result.testText).toMatch(
 			new RegExp(
-				`new Set\\(\\[[\\s\\S]*?\\n\\t"${REPRESENTATIVE_SLUG}",[\\s\\S]*?\\n\\]\\)`,
+				`new Set\\(\\[[\\s\\S]*?\\n\\t"${escapeRegExp(REPRESENTATIVE_SLUG)}",[\\s\\S]*?\\n\\]\\)`,
 			),
 		);
 

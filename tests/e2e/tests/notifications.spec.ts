@@ -24,7 +24,8 @@ import { loginAsOwner } from "../auth-helpers";
 
 /**
  * The header bell. Its aria-label is "Notifications" at 0 unread and
- * "Notifications, {n} unread" when unread > 0, so an anchored regex matches
+ * "Notifications, {n} unread" when unread > 0 ({n} is the badge text, "9+"
+ * above 9), so an anchored regex matches
  * both without colliding with any "Notifications settings" control.
  */
 function bell(page: Page) {
@@ -98,7 +99,7 @@ test.describe("Notification center smoke (Phase 52)", () => {
 			.toBe(true);
 		const label = previous ?? "";
 
-		const hasUnread = /\d+\s+unread/.test(label);
+		const hasUnread = /\d+\+?\s+unread/.test(label);
 		// Fresh synthetic owner may have 0 unread — nothing to clear, keep stable.
 		test.skip(!hasUnread, "owner has 0 unread — no badge to clear");
 

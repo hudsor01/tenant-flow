@@ -15,9 +15,11 @@ import {
 } from "lucide-react";
 import { Badge } from "#components/ui/badge";
 import { Separator } from "#components/ui/separator";
+import { formatCount } from "#lib/formatters/count";
 import { formatDate, getOrdinalSuffix } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
 import type { LeaseWizardData } from "#lib/validation/lease-wizard.schemas";
+import { utilityLabel } from "./utility-options";
 
 // Format a dollar amount to currency, returning '-' for null/undefined
 const formatAmountOrDash = (amount?: number | null) =>
@@ -127,7 +129,7 @@ export function ReviewStep({
 						<p className="text-sm text-muted-foreground">Grace Period</p>
 						<p className="font-medium">
 							{data.grace_period_days !== undefined
-								? `${data.grace_period_days} days`
+								? formatCount(data.grace_period_days, "day")
 								: "-"}
 						</p>
 					</div>
@@ -199,8 +201,8 @@ export function ReviewStep({
 						<div className="flex flex-wrap gap-1">
 							{data.utilities_included?.length ? (
 								data.utilities_included.map((u) => (
-									<Badge key={u} variant="outline" className="capitalize">
-										{u.replace("_", " ")}
+									<Badge key={u} variant="outline">
+										{utilityLabel(u)}
 									</Badge>
 								))
 							) : (
@@ -215,8 +217,8 @@ export function ReviewStep({
 						<div className="flex flex-wrap gap-1">
 							{data.tenant_responsible_utilities?.length ? (
 								data.tenant_responsible_utilities.map((u) => (
-									<Badge key={u} variant="secondary" className="capitalize">
-										{u.replace("_", " ")}
+									<Badge key={u} variant="secondary">
+										{utilityLabel(u)}
 									</Badge>
 								))
 							) : (
@@ -252,17 +254,15 @@ export function ReviewStep({
 							<CheckCircle2
 								className={`h-4 w-4 ${
 									data.lead_paint_disclosure_acknowledged
-										? "text-green-500"
-										: "text-amber-500"
+										? "text-success-text"
+										: "text-warning-text"
 								}`}
 							/>
 							<h4 className="font-medium">Lead Paint Disclosure</h4>
 						</div>
 						<div className="pl-6">
 							{data.lead_paint_disclosure_acknowledged ? (
-								<Badge variant="outline" className="text-green-600">
-									Disclosure Acknowledged
-								</Badge>
+								<Badge variant="success">Disclosure Acknowledged</Badge>
 							) : (
 								<Badge variant="destructive">Acknowledgment Required</Badge>
 							)}

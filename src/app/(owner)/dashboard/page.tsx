@@ -17,7 +17,6 @@ import {
 } from "#hooks/api/use-dashboard-hooks";
 import { DashboardEmptyState } from "./components/dashboard-empty-state";
 import { DashboardLoadingSkeleton } from "./components/dashboard-loading-skeleton";
-import "../dashboard.css";
 
 /**
  * Dashboard Content - Wires API hooks to Dashboard UI component
@@ -115,7 +114,7 @@ function DashboardContent() {
 					<button
 						type="button"
 						onClick={() => window.location.reload()}
-						className="inline-flex items-center gap-2 px-4 py-2 min-h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
+						className="inline-flex items-center gap-2 px-4 py-2 min-h-11 bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
 					>
 						Refresh Page
 					</button>

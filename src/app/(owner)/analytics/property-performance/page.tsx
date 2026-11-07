@@ -17,19 +17,14 @@ import type {
 	PropertyPerformanceSummary,
 	PropertyUnitDetail,
 	UnitStatisticEntry,
-	VisitorAnalyticsResponse,
 } from "#types/analytics";
 
 const PropertyOccupancyChart = dynamic(
 	() => import("./property-charts").then((mod) => mod.PropertyOccupancyChart),
 	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
 );
-const VisitorAnalyticsChart = dynamic(
-	() => import("./property-charts").then((mod) => mod.VisitorAnalyticsChart),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
-);
 
-import { BarChart3, Building2, Home, TrendingUp, Users } from "lucide-react";
+import { BarChart3, Building2, Home, TrendingUp } from "lucide-react";
 import { ActiveUnitsTable } from "./active-units-table";
 import { PerformanceStatCards } from "./performance-stat-cards";
 import { PortfolioKPIs } from "./portfolio-kpis";
@@ -57,7 +52,7 @@ export default function PropertyPerformancePage() {
 					<button
 						type="button"
 						onClick={() => window.location.reload()}
-						className="inline-flex items-center gap-2 px-4 py-2 min-h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
+						className="inline-flex items-center gap-2 px-4 py-2 min-h-11 bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
 					>
 						Refresh Page
 					</button>
@@ -70,15 +65,6 @@ export default function PropertyPerformancePage() {
 	const performance = (data?.performance ?? []) as PropertyPerformanceEntry[];
 	const units = (data?.units ?? []) as PropertyUnitDetail[];
 	const unitStats = (data?.unitStats ?? []) as UnitStatisticEntry[];
-	const visitorAnalytics = (data?.visitorAnalytics ?? {
-		summary: {
-			totalVisits: 0,
-			totalInquiries: 0,
-			totalConversions: 0,
-			conversionRate: 0,
-		},
-		timeline: [],
-	}) as VisitorAnalyticsResponse;
 
 	const hasData =
 		metrics.totalProperties > 0 ||
@@ -89,16 +75,15 @@ export default function PropertyPerformancePage() {
 	if (!hasData) {
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					<div className="flex flex-col gap-2 mb-6">
 						<h1 className="typography-h1">Property Performance</h1>
-						<p className="text-muted-foreground">
-							Monitor occupancy, revenue, and demand signals across your
-							portfolio.
+						<p className="mb-0 text-muted-foreground">
+							Monitor occupancy, units and rent received across your portfolio.
 						</p>
 					</div>
 				</BlurFade>
-				<BlurFade delay={0.2} inView>
+				<BlurFade delay={0.2}>
 					<Empty className="min-h-96 border rounded-lg">
 						<EmptyHeader>
 							<EmptyMedia variant="icon">
@@ -118,12 +103,11 @@ export default function PropertyPerformancePage() {
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="flex flex-col gap-2 mb-6">
 					<h1 className="typography-h1">Property Performance</h1>
-					<p className="text-muted-foreground">
-						Monitor occupancy, revenue, and demand signals across your
-						portfolio.
+					<p className="mb-0 text-muted-foreground">
+						Monitor occupancy, units and rent received across your portfolio.
 					</p>
 				</div>
 			</BlurFade>
@@ -131,14 +115,14 @@ export default function PropertyPerformancePage() {
 			<PerformanceStatCards metrics={metrics} />
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-				<BlurFade delay={0.6} inView>
-					<div className="lg:col-span-2 bg-card border border-border rounded-lg p-6">
+				<BlurFade delay={0.6} className="lg:col-span-2">
+					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
 								<h3 className="font-medium text-foreground">
-									Occupancy & revenue by property
+									Occupancy & rent received by property
 								</h3>
-								<p className="text-sm text-muted-foreground">
+								<p className="mb-0 text-sm text-muted-foreground">
 									Compare current performance across the portfolio
 								</p>
 							</div>
@@ -147,12 +131,12 @@ export default function PropertyPerformancePage() {
 						<PropertyOccupancyChart data={performance} />
 					</div>
 				</BlurFade>
-				<BlurFade delay={0.7} inView>
+				<BlurFade delay={0.7}>
 					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
 								<h3 className="font-medium text-foreground">Portfolio KPIs</h3>
-								<p className="text-sm text-muted-foreground">
+								<p className="mb-0 text-sm text-muted-foreground">
 									Highlights from unit-level statistics
 								</p>
 							</div>
@@ -163,29 +147,15 @@ export default function PropertyPerformancePage() {
 				</BlurFade>
 			</div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-				<BlurFade delay={0.8} inView>
-					<div className="bg-card border border-border rounded-lg p-6">
-						<div className="flex items-center justify-between mb-6">
-							<div>
-								<h3 className="font-medium text-foreground">
-									Visitor analytics
-								</h3>
-								<p className="text-sm text-muted-foreground">
-									How prospective tenants engage with listings
-								</p>
-							</div>
-							<Users className="w-5 h-5 text-muted-foreground" />
-						</div>
-						<VisitorAnalyticsChart data={visitorAnalytics} />
-					</div>
-				</BlurFade>
-				<BlurFade delay={0.9} inView>
+			{/* Visitor analytics went: no visitor, inquiry or listing view is
+			    tracked anywhere, so the chart could only ever be empty. */}
+			<div className="mb-6">
+				<BlurFade delay={0.8}>
 					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
 								<h3 className="font-medium text-foreground">Top properties</h3>
-								<p className="text-sm text-muted-foreground">
+								<p className="mb-0 text-sm text-muted-foreground">
 									Key metrics for high-performing assets
 								</p>
 							</div>
@@ -196,18 +166,23 @@ export default function PropertyPerformancePage() {
 				</BlurFade>
 			</div>
 
-			<BlurFade delay={1.0} inView>
+			<BlurFade delay={1.0}>
 				<div className="bg-card border border-border rounded-lg p-6">
 					<div className="flex items-center justify-between mb-6">
 						<div>
 							<h3 className="font-medium text-foreground">Active units</h3>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								Recently updated unit information
 							</p>
 						</div>
 						<Home className="w-5 h-5 text-muted-foreground" />
 					</div>
-					<ActiveUnitsTable units={units} />
+					<ActiveUnitsTable
+						units={units}
+						propertyNames={
+							new Map(performance.map((p) => [p.property_id, p.propertyName]))
+						}
+					/>
 				</div>
 			</BlurFade>
 		</div>

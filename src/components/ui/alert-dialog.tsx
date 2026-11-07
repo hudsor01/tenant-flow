@@ -2,7 +2,7 @@
 
 import { AlertDialog as AlertDialogPrimitive } from "radix-ui";
 import type { ComponentProps } from "react";
-import { buttonVariants } from "#components/ui/button";
+import { Button } from "#components/ui/button";
 import { cn } from "#lib/utils";
 
 function AlertDialog({
@@ -111,27 +111,47 @@ function AlertDialogDescription({
 	);
 }
 
+/**
+ * Action and Cancel follow the shadcn new-york-v4 registry: they render through
+ * Button asChild with their own data-slots and take Button's variant and size.
+ * Content, Header and Footer keep the local layout; upstream's Content `size`
+ * prop and its media part are not adopted. Radix Slot appends a className
+ * passed here to Button's classes without merging, so it must not repeat or
+ * contradict a Button variant class.
+ */
 function AlertDialogAction({
 	className,
+	variant = "default",
+	size = "default",
 	...props
-}: ComponentProps<typeof AlertDialogPrimitive.Action>) {
+}: ComponentProps<typeof AlertDialogPrimitive.Action> &
+	Pick<ComponentProps<typeof Button>, "variant" | "size">) {
 	return (
-		<AlertDialogPrimitive.Action
-			className={cn(buttonVariants(), className)}
-			{...props}
-		/>
+		<Button variant={variant} size={size} asChild>
+			<AlertDialogPrimitive.Action
+				data-slot="alert-dialog-action"
+				className={cn(className)}
+				{...props}
+			/>
+		</Button>
 	);
 }
 
 function AlertDialogCancel({
 	className,
+	variant = "outline",
+	size = "default",
 	...props
-}: ComponentProps<typeof AlertDialogPrimitive.Cancel>) {
+}: ComponentProps<typeof AlertDialogPrimitive.Cancel> &
+	Pick<ComponentProps<typeof Button>, "variant" | "size">) {
 	return (
-		<AlertDialogPrimitive.Cancel
-			className={cn(buttonVariants({ variant: "outline" }), className)}
-			{...props}
-		/>
+		<Button variant={variant} size={size} asChild>
+			<AlertDialogPrimitive.Cancel
+				data-slot="alert-dialog-cancel"
+				className={cn(className)}
+				{...props}
+			/>
+		</Button>
 	);
 }
 

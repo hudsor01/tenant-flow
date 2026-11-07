@@ -8,6 +8,7 @@ import {
 	StatLabel,
 	StatValue,
 } from "#components/ui/stat";
+import { formatCurrency } from "#lib/utils/currency";
 
 interface IncomeStatementPageStatsProps {
 	totalRevenue: number;
@@ -24,7 +25,7 @@ export function IncomeStatementPageStats({
 }: IncomeStatementPageStatsProps) {
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-			<BlurFade delay={0.15} inView>
+			<BlurFade delay={0.15}>
 				<Stat className="relative overflow-hidden">
 					<BorderBeam
 						size={100}
@@ -33,27 +34,21 @@ export function IncomeStatementPageStats({
 						colorTo="oklch(from var(--color-success) l c h / 0.3)"
 					/>
 					<StatLabel>Total Revenue</StatLabel>
-					<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
-						{`$${totalRevenue.toLocaleString("en-US", {
-							minimumFractionDigits: 2,
-							maximumFractionDigits: 2,
-						})}`}
+					<StatValue className="flex items-baseline text-success-text">
+						{formatCurrency(totalRevenue)}
 					</StatValue>
 					<StatIndicator variant="icon" color="success">
 						<TrendingUp />
 					</StatIndicator>
-					<StatDescription>all income sources</StatDescription>
+					<StatDescription>charged on your rent ledger</StatDescription>
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.2} inView>
+			<BlurFade delay={0.2}>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Total Expenses</StatLabel>
-					<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
-						{`$${totalExpenses.toLocaleString("en-US", {
-							minimumFractionDigits: 2,
-							maximumFractionDigits: 2,
-						})}`}
+					<StatValue className="flex items-baseline text-destructive-text">
+						{formatCurrency(totalExpenses)}
 					</StatValue>
 					<StatIndicator variant="icon" color="destructive">
 						<TrendingDown />
@@ -62,7 +57,7 @@ export function IncomeStatementPageStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.25} inView>
+			<BlurFade delay={0.25}>
 				<Stat className="relative overflow-hidden">
 					{netIncome > 0 && (
 						<BorderBeam
@@ -74,12 +69,9 @@ export function IncomeStatementPageStats({
 					)}
 					<StatLabel>Net Income</StatLabel>
 					<StatValue
-						className={`flex items-baseline ${netIncome >= 0 ? "" : "text-destructive"}`}
+						className={`flex items-baseline ${netIncome >= 0 ? "" : "text-destructive-text"}`}
 					>
-						{`${netIncome >= 0 ? "" : "-"}$${Math.abs(netIncome).toLocaleString(
-							"en-US",
-							{ minimumFractionDigits: 2, maximumFractionDigits: 2 },
-						)}`}
+						{formatCurrency(netIncome)}
 					</StatValue>
 					<StatIndicator variant="icon" color="primary">
 						<DollarSign />

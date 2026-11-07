@@ -3,8 +3,7 @@
  * Only exports types that are actually used across the codebase.
  */
 
-import type { DashboardActivity } from "./activity";
-import type { Database, Tables, TablesInsert, TablesUpdate } from "./supabase";
+import type { Tables, TablesInsert, TablesUpdate } from "./supabase";
 
 // DB STATUS TYPE EXPORTS - String literal unions matching CHECK constraints
 // These are manually defined to match database CHECK constraints.
@@ -108,7 +107,16 @@ export type Property = Tables<"properties">;
 export type Unit = Tables<"units">;
 export type Tenant = Tables<"tenants">;
 export type Lease = Tables<"leases">;
-export type MaintenanceRequest = Tables<"maintenance_requests">;
+/**
+ * A maintenance request as the app reads it: every column but actual_cost,
+ * which no form, mutation or function writes (spend is the request's expenses,
+ * 66.2-39 part N), so no query selects it and no schema accepts it (part P).
+ * The column stays in the database and in the generated types.
+ */
+export type MaintenanceRequest = Omit<
+	Tables<"maintenance_requests">,
+	"actual_cost"
+>;
 export type ExpenseRecord = Tables<"expenses">;
 
 export type TenantInput = TablesInsert<"tenants">;
@@ -117,30 +125,6 @@ export type TenantUpdate = Partial<TenantInput>;
 // Insert/Update types - only export what's actually used
 export type UserInsert = TablesInsert<"users">;
 export type UserUpdate = TablesUpdate<"users">;
-
-export type LeaseWithExtras = Lease & {
-	version?: number;
-	tenant_id?: string;
-	property_id?: string;
-	status?: string;
-	terms?: string;
-	unit?: {
-		id: string;
-		unit_number: string | null;
-		property_id: string;
-	};
-	tenant?: {
-		id: string;
-		name?: string;
-		email?: string;
-	};
-	property?: {
-		id: string;
-		name: string;
-		address_line1: string;
-	};
-	signed_at?: string | null;
-};
 
 export type MaintenanceRequestWithExtras = MaintenanceRequest & {
 	version?: number;
@@ -168,27 +152,6 @@ export type TenantWithExtras = Tenant & {
 export type MaintenanceCategory = MaintenanceCategoryFromConstants;
 export type PropertyType = PropertyTypeFromConstants;
 export type ActivityEntityType = ActivityEntityTypeFromConstants;
-
-export type UnitRowWithRelations =
-	Database["public"]["Tables"]["units"]["Row"] & {
-		property?: {
-			name: string;
-			address: string;
-		};
-		tenant?: {
-			name: string;
-			email: string;
-			phone?: string;
-		} | null;
-		lease?: {
-			start_date: string;
-			end_date: string | null;
-			rent_amount: number;
-			status: LeaseStatus;
-		} | null;
-		marketValue?: number;
-		lastUpdated?: string;
-	};
 
 // NOTE: Import Tables, TablesInsert, TablesUpdate, Enums directly from './supabase'
 // Do NOT re-export here to avoid circular dependencies
@@ -310,8 +273,6 @@ export interface PropertyPerformance {
 	address_line1: string;
 	property_type: string;
 	status: "NO_UNITS" | "vacant" | "FULL" | "PARTIAL";
-	trend: "up" | "down" | "stable";
-	trendPercentage: number;
 	// Optional: only `get_dashboard_data_v2` (via the Phase 2
 	// `perf_open_maintenance` CTE) emits this field. Other RPCs that
 	// construct `PropertyPerformance` (e.g., `get_property_performance_with_trends`)
@@ -344,28 +305,6 @@ export interface DashboardMetricsResponse {
 	occupancyRate: number;
 	monthlyRevenue: number;
 	maintenanceRequests: number;
-	timestamp: string;
-}
-
-export interface DashboardSummaryResponse {
-	overview: {
-		properties: number;
-		units: number;
-		tenants: number;
-		occupancyRate: number;
-	};
-	revenue: {
-		monthly: number;
-		yearly: number;
-		growth: number;
-	};
-	maintenance: {
-		open: number;
-		inProgress: number;
-		avgResolutionTime: number;
-	};
-	recentActivity: DashboardActivity[];
-	topPerformingProperties: PropertyPerformance[];
 	timestamp: string;
 }
 

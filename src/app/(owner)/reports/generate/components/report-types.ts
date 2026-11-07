@@ -10,7 +10,7 @@ import {
 import { downloadBlob } from "#lib/reports/download-blob";
 import { generateExcelBlob } from "#lib/reports/generate-excel";
 import { generatePdfBlob } from "#lib/reports/generate-pdf";
-import { buildReportData } from "#lib/reports/report-data";
+import { buildReportData, reportTaxYear } from "#lib/reports/report-data";
 
 export type ReportFormat = "pdf" | "excel";
 export type ReportType =
@@ -28,6 +28,15 @@ export interface ReportCard {
 	icon: LucideIcon;
 	formats: ReportFormat[];
 	category: "executive" | "financial" | "operations";
+	/**
+	 * Set when the page's Report Period does not apply to the report, with the
+	 * reason its card shows. `to-date`: its RPCs take no dates, so it is as of
+	 * today, and the file is named and headed to date. `tax-year`: it covers
+	 * the calendar year of the period's end (today), the tax year, and the file
+	 * is named and headed by that year. Neither is named or headed with the
+	 * period.
+	 */
+	coverage?: { kind: "to-date" | "tax-year"; reason: string };
 }
 
 export const reportCards: ReportCard[] = [
@@ -44,7 +53,7 @@ export const reportCards: ReportCard[] = [
 		id: "financial-performance",
 		title: "Financial Performance",
 		description:
-			"Detailed P&L, NOI by property, and expense breakdown with monthly trends",
+			"Rent and fees charged, expenses, net income and cash flow for the period, with the charges by type and the expenses by vendor",
 		icon: TrendingUp,
 		formats: ["pdf", "excel"],
 		category: "financial",
@@ -53,7 +62,7 @@ export const reportCards: ReportCard[] = [
 		id: "property-portfolio",
 		title: "Property Portfolio",
 		description:
-			"Portfolio analysis with property rankings, occupancy metrics, and vacancy analysis",
+			"Each property's rent received, expenses and net income for the period, with occupancy today",
 		icon: Building2,
 		formats: ["pdf", "excel"],
 		category: "operations",
@@ -61,34 +70,47 @@ export const reportCards: ReportCard[] = [
 	{
 		id: "lease-portfolio",
 		title: "Lease Portfolio",
-		description:
-			"Lease analytics including profitability scores, lifecycle trends, and status breakdown",
+		description: "Tenants, active leases and leases ending within 30 days",
 		icon: FileText,
 		formats: ["pdf", "excel"],
 		category: "financial",
+		coverage: {
+			kind: "to-date",
+			reason:
+				"Covers your leases as of today; the report period doesn't apply.",
+		},
 	},
 	{
 		id: "maintenance-operations",
 		title: "Maintenance Operations",
 		description:
-			"Operations metrics with response times, cost breakdown, and urgency analysis",
+			"Requests by status and priority, resolution time, and spend by month and vendor",
 		icon: Wrench,
 		formats: ["pdf", "excel"],
 		category: "operations",
+		coverage: {
+			kind: "to-date",
+			reason: "Covers every request to date; the report period doesn't apply.",
+		},
 	},
 	{
 		id: "tax-preparation",
 		title: "Tax Preparation",
 		description:
-			"Tax-ready report with Schedule E codes and depreciation calculations (Excel only)",
+			"Rent received, expenses and net income for the tax year, by property (Excel only)",
 		icon: FileSpreadsheet,
 		formats: ["excel"],
 		category: "financial",
+		coverage: {
+			kind: "tax-year",
+			reason:
+				"Covers this calendar year, the tax year; the report period doesn't apply.",
+		},
 	},
 ];
 
 // Client-side report generation. Pulls data via the existing
-// reportAnalyticsQueries factories using `queryClient.fetchQuery()` (cache-
+// reportAnalyticsQueries factories using `queryClient.query()` (cache-
 // aware), shapes into a generic `ReportData` payload, renders to PDF
 // (jspdf + jspdf-autotable) or XLSX (sheetjs), and triggers an immediate
 // browser download. No backend or Edge Function dependency — runs entirely
@@ -114,7 +136,16 @@ export const reportsClient = {
 		);
 
 		const stamp = new Date().toISOString().replace(/[:T]/g, "-").split(".")[0];
-		const baseFilename = `${reportType}_${params.start_date}_${params.end_date}_${stamp}`;
+		// Named by what the file covers: to date, the tax year, or the period.
+		const coverage = reportCards.find((card) => card.id === reportType)
+			?.coverage?.kind;
+		const covered =
+			coverage === "to-date"
+				? `to_${params.end_date}`
+				: coverage === "tax-year"
+					? String(reportTaxYear(params.end_date))
+					: `${params.start_date}_${params.end_date}`;
+		const baseFilename = `${reportType}_${covered}_${stamp}`;
 
 		if (params.format === "pdf") {
 			const blob = generatePdfBlob(data);

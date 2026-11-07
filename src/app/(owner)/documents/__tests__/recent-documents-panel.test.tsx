@@ -163,7 +163,8 @@ describe("RecentDocumentsPanel — the shared-cache guarantee (SC-3, D-02)", () 
 	});
 
 	it("resolves to the vault's default unfiltered cache key, spelled out", () => {
-		// `documents-vault.client.tsx:230-239` produces this SAME array in its
+		// `DocumentsVaultClient`'s `documentSearchQueries.list({...})` produces
+		// this SAME array in its
 		// default unfiltered state: all five of its spreads are empty and
 		// `pageParam` is 0, so its params object reduces to `{ page: 0 }` too.
 		// This literal is the concrete form of the "cannot disagree" guarantee —
@@ -199,8 +200,8 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 		mockUseQuery.mockReturnValue(loadingState());
 		const { container } = render(<RecentDocumentsPanel />);
 		// `Skeleton` sets `data-slot="skeleton"` — a stable hook independent of
-		// CSS class drift, and the same selector `documents-vault.test.tsx:232`
-		// uses.
+		// CSS class drift, and the same selector documents-vault.test.tsx's
+		// "renders skeletons during loading" uses.
 		expect(container.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(
 			5,
 		);
@@ -223,16 +224,17 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 		expect(screen.queryByText("No documents yet")).not.toBeInTheDocument();
 	});
 
-	// Perfect-PR cycle 1 (second frozen state). globals.css:517-524 declares
-	// unscoped `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
+	// Perfect-PR cycle 1 (second frozen state). The `@layer base` `ul, ol` /
+	// `li` rules in globals.css declare unscoped
+	// `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
 	// `li { margin-bottom: 0.25rem }` in @layer base. Tailwind v4 preflight resets
 	// only `list-style` for lists and ships no universal margin/padding reset, so
 	// that base rule wins and indents the rows 24px out of alignment with the
 	// panel's own label and footer link. jsdom loads no stylesheet, so this pins
 	// the neutralizing classes rather than a measured offset.
-	// Perfect-PR cycle 2. globals.css:499-502 gives every bare `<p>` a 1rem bottom
-	// margin in @layer base — the third rule from that block to leak into this
-	// panel, after `ul,ol` and `li`. Both of these `<p>`s sit in gap-based
+	// Perfect-PR cycle 2. The `@layer base` `p` rule in globals.css gives every
+	// bare `<p>` a 1rem bottom margin — the third rule from that block to leak
+	// into this panel, after `ul,ol` and `li`. Both of these `<p>`s sit in gap-based
 	// containers (ItemContent's gap-1, Empty's gap-6), and gap does not cancel
 	// margins, so each carried 16px of dead space.
 	//
@@ -305,7 +307,8 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 	});
 
 	// Perfect-PR cycle 1. §I-2 calls for a truncating title, but `truncate` alone
-	// on ItemTitle is INERT: the primitive is `flex w-fit` (item.tsx:118-128), and
+	// on ItemTitle is INERT: the primitive is `flex w-fit` (`ItemTitle` in
+	// item.tsx), and
 	// text-overflow:ellipsis does not apply to a flex container's anonymous text
 	// child, while w-fit sizes the box to its text so overflow:hidden never clips.
 	// The parent ItemContent is `flex flex-1` with no min-width, so the line cannot
@@ -361,7 +364,8 @@ describe("RecentDocumentsPanel — the four states (§I-3)", () => {
 	// Perfect-PR cycle 1 (third frozen state). `document_categories.label` is
 	// mutable for every row including the seeded defaults — update() gates on
 	// ownership only, with no is_default guard — and the vault reads that table
-	// (documents-vault.client.tsx:168). A panel reading the static seed map would
+	// (`DocumentsVaultClient`'s `useDocumentCategories()` call). A panel reading
+	// the static seed map would
 	// show "Insurance · 3 days ago" while the vault filter and the upload Select
 	// showed "Insurance Certificates", in the same session, for the same document.
 	describe("category labels come from the owner's table, not the seed map", () => {

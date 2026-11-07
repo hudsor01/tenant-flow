@@ -9,11 +9,13 @@ import {
 	DialogTitle,
 } from "#components/ui/dialog";
 import { Label } from "#components/ui/label";
-import type { UnitRowWithRelations as UnitRow, UnitStatus } from "#types/core";
+import { formatCount } from "#lib/formatters/count";
+import { formatCurrency } from "#lib/utils/currency";
+import type { Unit, UnitStatus } from "#types/core";
 import { UnitStatusBadge } from "./unit-status-badge";
 
 interface UnitViewDialogProps {
-	unit: UnitRow;
+	unit: Unit;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 }
@@ -33,11 +35,19 @@ export function UnitViewDialog({
 					<div className="grid grid-cols-2 gap-4">
 						<div className="flex items-center gap-2">
 							<BedDouble className="size-4 text-muted-foreground" />
-							<span>{unit.bedrooms} Bedrooms</span>
+							<span>
+								{unit.bedrooms === null
+									? "Bedrooms not recorded"
+									: formatCount(unit.bedrooms, "Bedroom")}
+							</span>
 						</div>
 						<div className="flex items-center gap-2">
 							<ShowerHead className="size-4 text-muted-foreground" />
-							<span>{unit.bathrooms} Bathrooms</span>
+							<span>
+								{unit.bathrooms === null
+									? "Bathrooms not recorded"
+									: formatCount(unit.bathrooms, "Bathroom")}
+							</span>
 						</div>
 						{unit.square_feet && (
 							<div className="flex items-center gap-2">
@@ -47,7 +57,13 @@ export function UnitViewDialog({
 						)}
 						<div className="flex items-center gap-2">
 							<DollarSign className="size-4 text-muted-foreground" />
-							<span>${unit.rent_amount}/month</span>
+							<span>
+								{formatCurrency(unit.rent_amount, {
+									minimumFractionDigits: 0,
+									maximumFractionDigits: 0,
+								})}
+								/month
+							</span>
 						</div>
 					</div>
 					<div>
@@ -63,7 +79,7 @@ export function UnitViewDialog({
 }
 
 interface UnitEditDialogProps {
-	unit: UnitRow;
+	unit: Unit;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 }
@@ -101,7 +117,12 @@ export function UnitEditDialog({
 					</div>
 					<div>
 						<Label>Rent Amount</Label>
-						<p className="mt-1 text-sm">${unit.rent_amount}</p>
+						<p className="mt-1 text-sm">
+							{formatCurrency(unit.rent_amount, {
+								minimumFractionDigits: 0,
+								maximumFractionDigits: 0,
+							})}
+						</p>
 					</div>
 					<div>
 						<Label>Status</Label>

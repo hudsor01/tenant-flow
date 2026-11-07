@@ -12,14 +12,15 @@ import { DocumentsSection } from "#components/documents/documents-section";
 import { LedgerTab } from "#components/ledger/ledger-tab";
 import { Card, CardContent } from "#components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs";
-import { leaseQueries } from "#hooks/api/query-keys/lease-keys";
-import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
+import {
+	type LeaseDetailRow,
+	leaseQueries,
+} from "#hooks/api/query-keys/lease-keys";
 import { useCancelSignatureRequestMutation } from "#hooks/api/use-lease-signature-mutations";
-import { useUnitList } from "#hooks/api/use-unit";
+import { formatCount } from "#lib/formatters/count";
 import { getOrdinalSuffix } from "#lib/formatters/date";
 import { createLogger } from "#lib/frontend-logger";
 import { formatCurrency } from "#lib/utils/currency";
-import type { Lease } from "#types/core";
 import { generateTimelineEvents } from "./lease-detail-utils";
 import { LeaseDetailsSkeleton } from "./lease-details-skeleton";
 import { LeaseDetailsTab } from "./lease-details-tab";
@@ -34,26 +35,12 @@ interface LeaseDetailsProps {
 
 const logger = createLogger({ component: "LeaseDetails" });
 
-/**
- * The detail lease embeds units→properties (leaseQueries.detail select). The
- * base Lease type doesn't model that embed, so narrow it with an optional-field
- * interface (no `any` / `as unknown as`) to read the property street address.
- */
-interface LeaseWithPropertyEmbed {
-	units?: {
-		properties?: {
-			address_line1?: string | null;
-			city?: string | null;
-			state?: string | null;
-		} | null;
-	} | null;
-}
-
-function getPropertyAddress(lease: Lease): string | null {
-	const property = (lease as Lease & LeaseWithPropertyEmbed).units?.properties;
+/** The unit's property's street address, for the rent-increase notice. */
+function propertyAddress(unit: LeaseDetailRow["unit"]): string | null {
+	const property = unit?.property;
 	if (!property) return null;
-	const line1 = property.address_line1?.trim();
-	const cityState = [property.city?.trim(), property.state?.trim()]
+	const line1 = property.address_line1.trim();
+	const cityState = [property.city.trim(), property.state.trim()]
 		.filter(Boolean)
 		.join(", ");
 	const parts = [line1, cityState].filter(Boolean);
@@ -68,14 +55,6 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 		error,
 	} = useQuery(leaseQueries.detail(id));
 	const cancelSignature = useCancelSignatureRequestMutation();
-
-	const { data: tenantsResponse } = useQuery(tenantQueries.list());
-	const { data: units } = useUnitList();
-
-	const tenant = tenantsResponse?.data?.find(
-		(t) => t.id === lease?.primary_tenant_id,
-	);
-	const unit = units?.find((u) => u.id === lease?.unit_id);
 
 	if (isLoading) {
 		return <LeaseDetailsSkeleton />;
@@ -94,13 +73,15 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 			: "Something went wrong while loading this lease. Please refresh and try again.";
 
 		return (
+			// The Card pads itself (py-6, CardContent px-6): a v3 p-6 here doubled
+			// the top and bottom. mb-0: the message is the last child.
 			<Card className="border-destructive/50 bg-destructive/10">
-				<CardContent className="p-6 text-center">
+				<CardContent className="text-center">
 					<AlertTriangle className="mx-auto h-10 w-10 text-destructive mb-3" />
 					<h3 className="text-lg font-semibold text-destructive-text mb-2">
 						Unable to load lease
 					</h3>
-					<p className="text-muted-foreground">{errorMessage}</p>
+					<p className="mb-0 text-muted-foreground">{errorMessage}</p>
 				</CardContent>
 			</Card>
 		);
@@ -111,6 +92,11 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 	};
 
 	const timelineEvents = generateTimelineEvents(lease);
+	// The tenant and the unit come from the lease's own embeds. The tenant and
+	// unit lists hold only the 50 newest non-inactive rows, so a lease on an
+	// owner's 51st tenant or unit, or a deleted one, found neither there: no
+	// tenant, unit card or View Unit link, no Send for Signature on a draft.
+	const { tenant, unit } = lease;
 
 	return (
 		<div className="space-y-6">
@@ -119,61 +105,64 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 				lease={lease}
 				tenant={tenant}
 				unitName={unit?.unit_number ?? null}
-				propertyAddress={getPropertyAddress(lease)}
+				propertyName={unit?.property?.name ?? null}
+				propertyAddress={propertyAddress(unit)}
 				onCancelSignature={handleCancelSignature}
 				isCancelling={cancelSignature.isPending}
 			/>
 
 			{/* Main content grid */}
-			<div className="grid gap-6 lg:grid-cols-3">
+			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				{/* Left column - Main details */}
 				<div className="lg:col-span-2 space-y-6">
-					{/* Key metrics */}
-					<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-						<Card>
-							<CardContent className="p-4">
+					{/* Key metrics: 16px tiles, py-4 on the Card and px-4 on its
+					    content (the v4 Card pads itself; a v3 p-4 here added to
+					    it). mb-0: each figure is its tile's last child. */}
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+						<Card className="py-4">
+							<CardContent className="px-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
 									<DollarSign className="w-4 h-4" />
 									Monthly Rent
 								</div>
-								<p className="text-xl font-semibold tabular-nums">
+								<p className="mb-0 text-xl font-semibold tabular-nums">
 									{formatCurrency(lease.rent_amount)}
 								</p>
 							</CardContent>
 						</Card>
-						<Card>
-							<CardContent className="p-4">
+						<Card className="py-4">
+							<CardContent className="px-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
 									<CreditCard className="w-4 h-4" />
 									Security Deposit
 								</div>
-								<p className="text-xl font-semibold tabular-nums">
+								<p className="mb-0 text-xl font-semibold tabular-nums">
 									{formatCurrency(lease.security_deposit)}
 								</p>
 							</CardContent>
 						</Card>
-						<Card>
-							<CardContent className="p-4">
+						<Card className="py-4">
+							<CardContent className="px-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
 									<CalendarDays className="w-4 h-4" />
 									Payment Day
 								</div>
-								<p className="text-xl font-semibold">
+								<p className="mb-0 text-xl font-semibold">
 									{lease.payment_day
 										? `${lease.payment_day}${getOrdinalSuffix(lease.payment_day)} of month`
 										: "N/A"}
 								</p>
 							</CardContent>
 						</Card>
-						<Card>
-							<CardContent className="p-4">
+						<Card className="py-4">
+							<CardContent className="px-4">
 								<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
 									<Clock className="w-4 h-4" />
 									Grace Period
 								</div>
-								<p className="text-xl font-semibold">
+								<p className="mb-0 text-xl font-semibold">
 									{lease.grace_period_days
-										? `${lease.grace_period_days} days`
+										? formatCount(lease.grace_period_days, "day")
 										: "None"}
 								</p>
 							</CardContent>

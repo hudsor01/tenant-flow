@@ -27,7 +27,7 @@ export function DashboardEmptyState() {
 				<EmptyContent>
 					<Link
 						href="/properties/new"
-						className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
+						className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
 					>
 						<Home className="w-5 h-5" />
 						Add Your First Property

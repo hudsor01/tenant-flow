@@ -32,7 +32,7 @@ export function ResultsProofSection() {
 	return (
 		<section className="section-spacing bg-muted/30">
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
-				<BlurFade delay={0.4} inView>
+				<BlurFade delay={0.4}>
 					<div className="text-center mb-16">
 						<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-6">
 							What ships in the box
@@ -43,10 +43,10 @@ export function ResultsProofSection() {
 						</p>
 					</div>
 
-					<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
 						{stats.map((stat) => (
-							<div key={stat.label} className="text-center group">
-								<div className="icon-container-lg bg-primary/10 text-primary mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+							<div key={stat.label} className="text-center">
+								<div className="icon-container-lg bg-primary/10 text-primary mx-auto mb-4 shadow-lg">
 									<stat.icon className="size-8" />
 								</div>
 								<div className="typography-h1 text-foreground mb-2">

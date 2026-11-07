@@ -15,6 +15,7 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { escapeRegExp } from "#test/utils/regexp-source";
 import { mapDocumentRow } from "./document-keys";
 
 const fullRow = {
@@ -80,7 +81,7 @@ describe("mapDocumentRow", () => {
 			expect(
 				() => mapDocumentRow(broken),
 				`expected throw when ${field} is missing`,
-			).toThrow(new RegExp(`'${field}'`));
+			).toThrow(new RegExp(`'${escapeRegExp(field)}'`));
 		}
 	});
 

@@ -1,0 +1,4614 @@
+{
+ "meta": {
+  "tailwindVersion": "4.3.3",
+  "scannedFiles": 914,
+  "candidates": 15875,
+  "bundleBytes": 2821393
+ },
+ "results": {
+  "otp-setup": {
+   "light": {
+    "slotCount": 6,
+    "dataSlotCount": 10,
+    "slots": [
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     }
+    ]
+   },
+   "dark": {
+    "slotCount": 6,
+    "dataSlotCount": 10,
+    "slots": [
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     }
+    ]
+   }
+  },
+  "otp-mfa": {
+   "light": {
+    "slotCount": 6,
+    "dataSlotCount": 10,
+    "slots": [
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     }
+    ]
+   },
+   "dark": {
+    "slotCount": 6,
+    "dataSlotCount": 10,
+    "slots": [
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     },
+     {
+      "width": 44,
+      "height": 56,
+      "fontSize": "20px",
+      "borderWidths": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "radii": [
+       8,
+       8,
+       8,
+       8
+      ]
+     }
+    ]
+   }
+  },
+  "chart": {
+   "light": {
+    "gridLineCount": 5,
+    "gridStroke": [
+     209,
+     215,
+     221,
+     0.502
+    ],
+    "activeDotStroke": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "activeDotStrokeWidth": "2px",
+    "borderToken": [
+     210,
+     216,
+     222,
+     1
+    ]
+   },
+   "dark": {
+    "gridLineCount": 5,
+    "gridStroke": [
+     42,
+     46,
+     54,
+     0.502
+    ],
+    "activeDotStroke": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "activeDotStrokeWidth": "2px",
+    "borderToken": [
+     41,
+     46,
+     53,
+     1
+    ]
+   }
+  },
+  "command": {
+   "light": {
+    "wrapperHeight": 48,
+    "inputHeight": 48,
+    "inputOverflowsWrapper": false,
+    "inputOverflowPx": 0.5,
+    "wrapperBorderBottomPx": 1
+   },
+   "dark": {
+    "wrapperHeight": 48,
+    "inputHeight": 48,
+    "inputOverflowsWrapper": false,
+    "inputOverflowPx": 0.5,
+    "wrapperBorderBottomPx": 1
+   }
+  },
+  "date-popover": {
+   "light": {
+    "popoverContentDataSlotCount": 1,
+    "popoverBg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "calendarBg": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "popoverRadius": "8px",
+    "cornerPatch": [
+     [
+      249,
+      250,
+      251,
+      255
+     ],
+     [
+      249,
+      250,
+      251,
+      255
+     ],
+     [
+      249,
+      250,
+      251,
+      255
+     ],
+     [
+      249,
+      250,
+      251,
+      255
+     ],
+     [
+      247,
+      248,
+      249,
+      255
+     ],
+     [
+      229,
+      233,
+      236,
+      255
+     ],
+     [
+      221,
+      225,
+      230,
+      255
+     ],
+     [
+      214,
+      219,
+      225,
+      255
+     ],
+     [
+      210,
+      216,
+      222,
+      255
+     ],
+     [
+      210,
+      216,
+      222,
+      255
+     ],
+     [
+      249,
+      250,
+      251,
+      255
+     ],
+     [
+      249,
+      250,
+      251,
+      255
+     ],
+     [
+      248,
+      249,
+      250,
+      255
+     ],
+     [
+      234,
+      237,
+      239,
+      255
+     ],
+     [
+      212,
+      218,
+      223,
+      255
+     ],
+     [
+      235,
+      237,
+      241,
+      255
+     ],
+     [
+      242,
+      244,
+      245,
+      255
+     ],
+     [
+      250,
+      251,
+      251,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      248,
+      249,
+      250,
+      255
+     ],
+     [
+      248,
+      249,
+      250,
+      255
+     ],
+     [
+      234,
+      236,
+      240,
+      255
+     ],
+     [
+      225,
+      229,
+      233,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      248,
+      249,
+      250,
+      255
+     ],
+     [
+      234,
+      237,
+      240,
+      255
+     ],
+     [
+      225,
+      229,
+      233,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      246,
+      247,
+      248,
+      255
+     ],
+     [
+      211,
+      217,
+      223,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      227,
+      231,
+      235,
+      255
+     ],
+     [
+      236,
+      238,
+      241,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      220,
+      224,
+      229,
+      255
+     ],
+     [
+      242,
+      244,
+      245,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      214,
+      219,
+      224,
+      255
+     ],
+     [
+      250,
+      251,
+      251,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      210,
+      216,
+      222,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      210,
+      216,
+      222,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ]
+    ],
+    "cornerPatchMaxDiffVsPlain": 0
+   },
+   "dark": {
+    "popoverContentDataSlotCount": 1,
+    "popoverBg": [
+     3,
+     6,
+     11,
+     1
+    ],
+    "calendarBg": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "popoverRadius": "8px",
+    "cornerPatch": [
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      5,
+      11,
+      18,
+      255
+     ],
+     [
+      22,
+      27,
+      34,
+      255
+     ],
+     [
+      30,
+      35,
+      42,
+      255
+     ],
+     [
+      37,
+      42,
+      49,
+      255
+     ],
+     [
+      41,
+      46,
+      53,
+      255
+     ],
+     [
+      41,
+      46,
+      53,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      17,
+      22,
+      30,
+      255
+     ],
+     [
+      39,
+      44,
+      51,
+      255
+     ],
+     [
+      18,
+      22,
+      28,
+      255
+     ],
+     [
+      13,
+      17,
+      22,
+      255
+     ],
+     [
+      6,
+      9,
+      14,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      16,
+      21,
+      28,
+      255
+     ],
+     [
+      28,
+      33,
+      39,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      16,
+      22,
+      30,
+      255
+     ],
+     [
+      27,
+      32,
+      39,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      5,
+      11,
+      18,
+      255
+     ],
+     [
+      39,
+      44,
+      51,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      22,
+      27,
+      34,
+      255
+     ],
+     [
+      18,
+      22,
+      28,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      30,
+      35,
+      42,
+      255
+     ],
+     [
+      13,
+      17,
+      22,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      37,
+      42,
+      49,
+      255
+     ],
+     [
+      6,
+      9,
+      14,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      41,
+      46,
+      53,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      41,
+      46,
+      53,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ]
+    ],
+    "cornerPatchMaxDiffVsPlain": 0
+   }
+  },
+  "plain-popover": {
+   "light": {
+    "cornerPatch": [
+     [
+      249,
+      250,
+      251,
+      255
+     ],
+     [
+      249,
+      250,
+      251,
+      255
+     ],
+     [
+      249,
+      250,
+      251,
+      255
+     ],
+     [
+      249,
+      250,
+      251,
+      255
+     ],
+     [
+      247,
+      248,
+      249,
+      255
+     ],
+     [
+      229,
+      233,
+      236,
+      255
+     ],
+     [
+      221,
+      225,
+      230,
+      255
+     ],
+     [
+      214,
+      219,
+      225,
+      255
+     ],
+     [
+      210,
+      216,
+      222,
+      255
+     ],
+     [
+      210,
+      216,
+      222,
+      255
+     ],
+     [
+      249,
+      250,
+      251,
+      255
+     ],
+     [
+      249,
+      250,
+      251,
+      255
+     ],
+     [
+      248,
+      249,
+      250,
+      255
+     ],
+     [
+      234,
+      237,
+      239,
+      255
+     ],
+     [
+      212,
+      218,
+      223,
+      255
+     ],
+     [
+      235,
+      237,
+      241,
+      255
+     ],
+     [
+      242,
+      244,
+      245,
+      255
+     ],
+     [
+      250,
+      251,
+      251,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      248,
+      249,
+      250,
+      255
+     ],
+     [
+      248,
+      249,
+      250,
+      255
+     ],
+     [
+      234,
+      236,
+      240,
+      255
+     ],
+     [
+      225,
+      229,
+      233,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      248,
+      249,
+      250,
+      255
+     ],
+     [
+      234,
+      237,
+      240,
+      255
+     ],
+     [
+      225,
+      229,
+      233,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      246,
+      247,
+      248,
+      255
+     ],
+     [
+      211,
+      217,
+      223,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      227,
+      231,
+      235,
+      255
+     ],
+     [
+      236,
+      238,
+      241,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      220,
+      224,
+      229,
+      255
+     ],
+     [
+      242,
+      244,
+      245,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      214,
+      219,
+      224,
+      255
+     ],
+     [
+      250,
+      251,
+      251,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      210,
+      216,
+      222,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      210,
+      216,
+      222,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ],
+     [
+      255,
+      255,
+      255,
+      255
+     ]
+    ]
+   },
+   "dark": {
+    "cornerPatch": [
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      5,
+      11,
+      18,
+      255
+     ],
+     [
+      22,
+      27,
+      34,
+      255
+     ],
+     [
+      30,
+      35,
+      42,
+      255
+     ],
+     [
+      37,
+      42,
+      49,
+      255
+     ],
+     [
+      41,
+      46,
+      53,
+      255
+     ],
+     [
+      41,
+      46,
+      53,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      17,
+      22,
+      30,
+      255
+     ],
+     [
+      39,
+      44,
+      51,
+      255
+     ],
+     [
+      18,
+      22,
+      28,
+      255
+     ],
+     [
+      13,
+      17,
+      22,
+      255
+     ],
+     [
+      6,
+      9,
+      14,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      16,
+      21,
+      28,
+      255
+     ],
+     [
+      28,
+      33,
+      39,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      4,
+      10,
+      17,
+      255
+     ],
+     [
+      16,
+      22,
+      30,
+      255
+     ],
+     [
+      27,
+      32,
+      39,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      5,
+      11,
+      18,
+      255
+     ],
+     [
+      39,
+      44,
+      51,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      22,
+      27,
+      34,
+      255
+     ],
+     [
+      18,
+      22,
+      28,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      30,
+      35,
+      42,
+      255
+     ],
+     [
+      13,
+      17,
+      22,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      37,
+      42,
+      49,
+      255
+     ],
+     [
+      6,
+      9,
+      14,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      41,
+      46,
+      53,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      41,
+      46,
+      53,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ],
+     [
+      3,
+      6,
+      11,
+      255
+     ]
+    ]
+   }
+  },
+  "sheet": {
+   "light": {
+    "contentRole": "dialog",
+    "contentDataSlot": "sheet-content",
+    "overlayDataSlot": "sheet-overlay",
+    "headerDataSlot": "sheet-header",
+    "titleDataSlot": "sheet-title",
+    "descriptionDataSlot": "sheet-description",
+    "footerDataSlot": "sheet-footer",
+    "closeButtonCount": 1,
+    "closeWidth": 44,
+    "closeHeight": 44,
+    "closeAriaLabel": "Close",
+    "closeSrOnlyTextCount": 0
+   },
+   "dark": {
+    "contentRole": "dialog",
+    "contentDataSlot": "sheet-content",
+    "overlayDataSlot": "sheet-overlay",
+    "headerDataSlot": "sheet-header",
+    "titleDataSlot": "sheet-title",
+    "descriptionDataSlot": "sheet-description",
+    "footerDataSlot": "sheet-footer",
+    "closeButtonCount": 1,
+    "closeWidth": 44,
+    "closeHeight": 44,
+    "closeAriaLabel": "Close",
+    "closeSrOnlyTextCount": 0
+   }
+  },
+  "sheet-no-close": {
+   "light": {
+    "contentRole": "dialog",
+    "contentDataSlot": "sheet-content",
+    "overlayDataSlot": "sheet-overlay",
+    "headerDataSlot": "sheet-header",
+    "titleDataSlot": "sheet-title",
+    "descriptionDataSlot": "sheet-description",
+    "footerDataSlot": "sheet-footer",
+    "closeButtonCount": 0,
+    "closeWidth": null,
+    "closeHeight": null,
+    "closeAriaLabel": null,
+    "closeSrOnlyTextCount": null
+   },
+   "dark": {
+    "contentRole": "dialog",
+    "contentDataSlot": "sheet-content",
+    "overlayDataSlot": "sheet-overlay",
+    "headerDataSlot": "sheet-header",
+    "titleDataSlot": "sheet-title",
+    "descriptionDataSlot": "sheet-description",
+    "footerDataSlot": "sheet-footer",
+    "closeButtonCount": 0,
+    "closeWidth": null,
+    "closeHeight": null,
+    "closeAriaLabel": null,
+    "closeSrOnlyTextCount": null
+   }
+  },
+  "sheet-slot-override": {
+   "light": {
+    "contentRole": "dialog",
+    "contentDataSlot": "sidebar",
+    "overlayDataSlot": "sheet-overlay",
+    "headerDataSlot": "sheet-header",
+    "titleDataSlot": "sheet-title",
+    "descriptionDataSlot": "sheet-description",
+    "footerDataSlot": "sheet-footer",
+    "closeButtonCount": 1,
+    "closeWidth": 44,
+    "closeHeight": 44,
+    "closeAriaLabel": "Close",
+    "closeSrOnlyTextCount": 0
+   },
+   "dark": {
+    "contentRole": "dialog",
+    "contentDataSlot": "sidebar",
+    "overlayDataSlot": "sheet-overlay",
+    "headerDataSlot": "sheet-header",
+    "titleDataSlot": "sheet-title",
+    "descriptionDataSlot": "sheet-description",
+    "footerDataSlot": "sheet-footer",
+    "closeButtonCount": 1,
+    "closeWidth": 44,
+    "closeHeight": 44,
+    "closeAriaLabel": "Close",
+    "closeSrOnlyTextCount": 0
+   }
+  },
+  "grid-pattern": {
+   "light": {
+    "svgStroke": "oklab(0.2 -0.00845236 -0.0181262 / 0.25)",
+    "pathStroke": "oklab(0.2 -0.00845236 -0.0181262 / 0.25)",
+    "svgStrokeRgba": [
+     16,
+     24,
+     32,
+     0.251
+    ]
+   },
+   "dark": {
+    "svgStroke": "oklab(0.96 -0.005 -0.00866025 / 0.25)",
+    "pathStroke": "oklab(0.96 -0.005 -0.00866025 / 0.25)",
+    "svgStrokeRgba": [
+     235,
+     243,
+     247,
+     0.251
+    ]
+   }
+  },
+  "border-beam-stats": {
+   "light": {
+    "props": {
+     "size": 80,
+     "duration": 10,
+     "colorFrom": "var(--color-primary)",
+     "colorTo": "color-mix(in oklab, var(--color-primary) 30%, transparent)"
+    },
+    "afterBackgroundImage": "linear-gradient(to left, oklch(0.54 0.23 257), oklab(0.54 -0.0517387 -0.224105 / 0.3), rgba(0, 0, 0, 0))",
+    "afterAnimationName": "border-beam",
+    "afterAnimationDuration": "10s",
+    "runningAnimations": 1
+   },
+   "dark": {
+    "props": {
+     "size": 80,
+     "duration": 10,
+     "colorFrom": "var(--color-primary)",
+     "colorTo": "color-mix(in oklab, var(--color-primary) 30%, transparent)"
+    },
+    "afterBackgroundImage": "linear-gradient(to left, oklch(0.72 0.22 259), oklab(0.72 -0.0419779 -0.215958 / 0.3), rgba(0, 0, 0, 0))",
+    "afterAnimationName": "border-beam",
+    "afterAnimationDuration": "10s",
+    "runningAnimations": 1
+   }
+  },
+  "border-beam-grid": {
+   "light": {
+    "props": {
+     "size": 100,
+     "duration": 12,
+     "colorFrom": "color-mix(in oklab, var(--color-primary) 50%, transparent)",
+     "colorTo": "transparent"
+    },
+    "afterBackgroundImage": "linear-gradient(to left, oklab(0.54 -0.0517387 -0.224105 / 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+    "afterAnimationName": "border-beam",
+    "afterAnimationDuration": "12s",
+    "runningAnimations": 1
+   },
+   "dark": {
+    "props": {
+     "size": 100,
+     "duration": 12,
+     "colorFrom": "color-mix(in oklab, var(--color-primary) 50%, transparent)",
+     "colorTo": "transparent"
+    },
+    "afterBackgroundImage": "linear-gradient(to left, oklab(0.72 -0.0419779 -0.215958 / 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+    "afterAnimationName": "border-beam",
+    "afterAnimationDuration": "12s",
+    "runningAnimations": 1
+   }
+  },
+  "border-beam-reduced-motion": {
+   "light": {
+    "props": {
+     "size": 80,
+     "duration": 10,
+     "colorFrom": "var(--color-primary)",
+     "colorTo": "color-mix(in oklab, var(--color-primary) 30%, transparent)"
+    },
+    "afterBackgroundImage": "linear-gradient(to left, oklch(0.54 0.23 257), oklab(0.54 -0.0517387 -0.224105 / 0.3), rgba(0, 0, 0, 0))",
+    "afterAnimationName": "border-beam",
+    "afterAnimationDuration": "1e-05s",
+    "runningAnimations": 0
+   },
+   "dark": {
+    "props": {
+     "size": 80,
+     "duration": 10,
+     "colorFrom": "var(--color-primary)",
+     "colorTo": "color-mix(in oklab, var(--color-primary) 30%, transparent)"
+    },
+    "afterBackgroundImage": "linear-gradient(to left, oklch(0.72 0.22 259), oklab(0.72 -0.0419779 -0.215958 / 0.3), rgba(0, 0, 0, 0))",
+    "afterAnimationName": "border-beam",
+    "afterAnimationDuration": "1e-05s",
+    "runningAnimations": 0
+   }
+  },
+  "blur-fade-no-js": {
+   "light": {
+    "ssrHtmlHasOpacity0": false,
+    "ssrAriaHidden": null,
+    "opacityAtStart": 0,
+    "opacityAtEnd": 1,
+    "ariaHiddenAtEnd": null,
+    "dataSlot": "blur-fade",
+    "animationNameAtStart": "enter",
+    "animationDuration": "0.5s",
+    "transformAtEnd": "none",
+    "filterAtEnd": "none",
+    "willChangeAtEnd": "auto",
+    "ioConstructions": null
+   },
+   "dark": {
+    "ssrHtmlHasOpacity0": false,
+    "ssrAriaHidden": null,
+    "opacityAtStart": 0,
+    "opacityAtEnd": 1,
+    "ariaHiddenAtEnd": null,
+    "dataSlot": "blur-fade",
+    "animationNameAtStart": "enter",
+    "animationDuration": "0.5s",
+    "transformAtEnd": "none",
+    "filterAtEnd": "none",
+    "willChangeAtEnd": "auto",
+    "ioConstructions": null
+   }
+  },
+  "blur-fade-reduced-motion": {
+   "light": {
+    "ssrHtmlHasOpacity0": false,
+    "ssrAriaHidden": null,
+    "opacityAtStart": 1,
+    "opacityAtEnd": 1,
+    "ariaHiddenAtEnd": null,
+    "dataSlot": "blur-fade",
+    "animationNameAtStart": "none",
+    "animationDuration": "1e-05s",
+    "transformAtEnd": "none",
+    "filterAtEnd": "none",
+    "willChangeAtEnd": "auto",
+    "ioConstructions": null
+   },
+   "dark": {
+    "ssrHtmlHasOpacity0": false,
+    "ssrAriaHidden": null,
+    "opacityAtStart": 1,
+    "opacityAtEnd": 1,
+    "ariaHiddenAtEnd": null,
+    "dataSlot": "blur-fade",
+    "animationNameAtStart": "none",
+    "animationDuration": "1e-05s",
+    "transformAtEnd": "none",
+    "filterAtEnd": "none",
+    "willChangeAtEnd": "auto",
+    "ioConstructions": null
+   }
+  },
+  "blur-fade-io-stub": {
+   "light": {
+    "ssrHtmlHasOpacity0": false,
+    "ssrAriaHidden": null,
+    "opacityAtStart": 0,
+    "opacityAtEnd": 1,
+    "ariaHiddenAtEnd": null,
+    "dataSlot": "blur-fade",
+    "animationNameAtStart": "enter",
+    "animationDuration": "0.5s",
+    "transformAtEnd": "none",
+    "filterAtEnd": "none",
+    "willChangeAtEnd": "auto",
+    "ioConstructions": 0
+   },
+   "dark": {
+    "ssrHtmlHasOpacity0": false,
+    "ssrAriaHidden": null,
+    "opacityAtStart": 0,
+    "opacityAtEnd": 1,
+    "ariaHiddenAtEnd": null,
+    "dataSlot": "blur-fade",
+    "animationNameAtStart": "enter",
+    "animationDuration": "0.5s",
+    "transformAtEnd": "none",
+    "filterAtEnd": "none",
+    "willChangeAtEnd": "auto",
+    "ioConstructions": 0
+   }
+  },
+  "update-password-badge": {
+   "light": {
+    "classes": "mx-auto bg-primary/10 p-3 rounded-full w-fit",
+    "bg": [
+     0,
+     98,
+     235,
+     0.102
+    ]
+   },
+   "dark": {
+    "classes": "mx-auto bg-primary/10 p-3 rounded-full w-fit",
+    "bg": [
+     69,
+     157,
+     255,
+     0.102
+    ]
+   }
+  },
+  "data-table": {
+   "light": {
+    "cellBg": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "headerCellBg": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "hoverRowBg": [
+     229,
+     235,
+     241,
+     0.502
+    ],
+    "selectedRowBg": [
+     229,
+     236,
+     241,
+     1
+    ]
+   },
+   "dark": {
+    "cellBg": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "headerCellBg": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "hoverRowBg": [
+     20,
+     28,
+     36,
+     0.502
+    ],
+    "selectedRowBg": [
+     20,
+     27,
+     36,
+     1
+    ]
+   }
+  },
+  "card-action": {
+   "light": {
+    "cardDataSlots": 7,
+    "columns": [
+     499.8,
+     44.2
+    ],
+    "headerContentWidth": 550,
+    "actionWidth": 44.2,
+    "columnGap": 6
+   },
+   "dark": {
+    "cardDataSlots": 7,
+    "columns": [
+     499.8,
+     44.2
+    ],
+    "headerContentWidth": 550,
+    "actionWidth": 44.2,
+    "columnGap": 6
+   }
+  },
+  "button-group-nested": {
+   "light": {
+    "outerColumnGap": 8,
+    "innerGap": 8
+   },
+   "dark": {
+    "outerColumnGap": 8,
+    "innerGap": 8
+   }
+  },
+  "button": {
+   "light": {
+    "bodyBg": [
+     249,
+     250,
+     251,
+     1
+    ],
+    "variants": {
+     "default": {
+      "dataSlot": "button",
+      "dataVariant": "default",
+      "dataSize": "default",
+      "height": 44,
+      "minHeight": "44px",
+      "flexShrink": "0",
+      "borderTopWidth": 0,
+      "borderColor": [
+       210,
+       216,
+       222,
+       1
+      ],
+      "bg": [
+       0,
+       100,
+       239,
+       1
+      ],
+      "color": [
+       244,
+       249,
+       255,
+       1
+      ],
+      "boxShadowRest": "none",
+      "contrast": 4.88,
+      "focus": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        0,
+        91,
+        209,
+        1
+       ]
+      },
+      "hoverBg": [
+       0,
+       100,
+       239,
+       0.902
+      ]
+     },
+     "destructive": {
+      "dataSlot": "button",
+      "dataVariant": "destructive",
+      "dataSize": "default",
+      "height": 44,
+      "minHeight": "44px",
+      "flexShrink": "0",
+      "borderTopWidth": 0,
+      "borderColor": [
+       210,
+       216,
+       222,
+       1
+      ],
+      "bg": [
+       231,
+       0,
+       30,
+       1
+      ],
+      "color": [
+       251,
+       248,
+       241,
+       1
+      ],
+      "boxShadowRest": "none",
+      "contrast": 4.48,
+      "focus": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.577 0.222045 0.103541 / 0.2) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        0,
+        91,
+        209,
+        1
+       ]
+      },
+      "hoverBg": [
+       231,
+       0,
+       30,
+       0.902
+      ]
+     },
+     "outline": {
+      "dataSlot": "button",
+      "dataVariant": "outline",
+      "dataSize": "default",
+      "height": 44,
+      "minHeight": "44px",
+      "flexShrink": "0",
+      "borderTopWidth": 1,
+      "borderColor": [
+       210,
+       216,
+       222,
+       1
+      ],
+      "bg": [
+       249,
+       250,
+       251,
+       1
+      ],
+      "color": [
+       14,
+       23,
+       31,
+       1
+      ],
+      "boxShadowRest": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+      "contrast": 17.31,
+      "focus": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+       "borderColor": [
+        0,
+        91,
+        209,
+        1
+       ]
+      },
+      "hoverBg": [
+       0,
+       157,
+       91,
+       1
+      ]
+     },
+     "secondary": {
+      "dataSlot": "button",
+      "dataVariant": "secondary",
+      "dataSize": "default",
+      "height": 44,
+      "minHeight": "44px",
+      "flexShrink": "0",
+      "borderTopWidth": 0,
+      "borderColor": [
+       210,
+       216,
+       222,
+       1
+      ],
+      "bg": [
+       222,
+       243,
+       255,
+       1
+      ],
+      "color": [
+       22,
+       22,
+       22,
+       1
+      ],
+      "boxShadowRest": "none",
+      "contrast": 15.83,
+      "focus": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        0,
+        91,
+        209,
+        1
+       ]
+      },
+      "hoverBg": [
+       221,
+       242,
+       255,
+       0.8
+      ]
+     },
+     "ghost": {
+      "dataSlot": "button",
+      "dataVariant": "ghost",
+      "dataSize": "default",
+      "height": 44,
+      "minHeight": "44px",
+      "flexShrink": "0",
+      "borderTopWidth": 0,
+      "borderColor": [
+       210,
+       216,
+       222,
+       1
+      ],
+      "bg": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "color": [
+       14,
+       23,
+       31,
+       1
+      ],
+      "boxShadowRest": "none",
+      "contrast": 17.31,
+      "focus": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        0,
+        91,
+        209,
+        1
+       ]
+      },
+      "hoverBg": [
+       0,
+       157,
+       91,
+       1
+      ]
+     },
+     "link": {
+      "dataSlot": "button",
+      "dataVariant": "link",
+      "dataSize": "default",
+      "height": 44,
+      "minHeight": "44px",
+      "flexShrink": "0",
+      "borderTopWidth": 0,
+      "borderColor": [
+       210,
+       216,
+       222,
+       1
+      ],
+      "bg": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "color": [
+       0,
+       79,
+       196,
+       1
+      ],
+      "boxShadowRest": "none",
+      "contrast": 6.89,
+      "focus": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449901 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        0,
+        91,
+        209,
+        1
+       ]
+      },
+      "hoverBg": [
+       0,
+       0,
+       0,
+       0
+      ]
+     }
+    },
+    "sizes": {
+     "sm": {
+      "height": 44,
+      "width": 56.7,
+      "minHeight": "44px",
+      "minWidth": "auto",
+      "dataSize": "sm"
+     },
+     "lg": {
+      "height": 44,
+      "width": 96.4,
+      "minHeight": "44px",
+      "minWidth": "auto",
+      "dataSize": "lg"
+     },
+     "icon": {
+      "height": 44,
+      "width": 44,
+      "minHeight": "44px",
+      "minWidth": "44px",
+      "dataSize": "icon"
+     }
+    },
+    "invalid": {
+     "borderColor": [
+      231,
+      0,
+      30,
+      1
+     ]
+    },
+    "asChild": {
+     "tag": "A",
+     "dataSlot": "button",
+     "buttonCount": 0
+    },
+    "icons": {
+     "unsized": [
+      16,
+      16
+     ],
+     "size5": [
+      20,
+      20
+     ],
+     "hw5": [
+      16,
+      16
+     ]
+    },
+    "refs": {
+     "border": [
+      210,
+      216,
+      222,
+      1
+     ],
+     "input": [
+      182,
+      191,
+      199,
+      1
+     ],
+     "destructive": [
+      231,
+      0,
+      30,
+      1
+     ],
+     "ring": [
+      0,
+      91,
+      209,
+      1
+     ]
+    }
+   },
+   "dark": {
+    "bodyBg": [
+     4,
+     10,
+     17,
+     1
+    ],
+    "variants": {
+     "default": {
+      "dataSlot": "button",
+      "dataVariant": "default",
+      "dataSize": "default",
+      "height": 44,
+      "minHeight": "44px",
+      "flexShrink": "0",
+      "borderTopWidth": 0,
+      "borderColor": [
+       41,
+       46,
+       53,
+       1
+      ],
+      "bg": [
+       67,
+       159,
+       255,
+       1
+      ],
+      "color": [
+       14,
+       18,
+       22,
+       1
+      ],
+      "boxShadowRest": "none",
+      "contrast": 6.84,
+      "focus": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        67,
+        159,
+        255,
+        1
+       ]
+      },
+      "hoverBg": [
+       68,
+       159,
+       255,
+       0.902
+      ]
+     },
+     "destructive": {
+      "dataSlot": "button",
+      "dataVariant": "destructive",
+      "dataSize": "default",
+      "height": 44,
+      "minHeight": "44px",
+      "flexShrink": "0",
+      "borderTopWidth": 0,
+      "borderColor": [
+       41,
+       46,
+       53,
+       1
+      ],
+      "bg": [
+       200,
+       0,
+       0,
+       0.6
+      ],
+      "color": [
+       246,
+       237,
+       224,
+       1
+      ],
+      "boxShadowRest": "none",
+      "contrast": 9.83,
+      "focus": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 0.209909 0.116354 / 0.4) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        67,
+        159,
+        255,
+        1
+       ]
+      },
+      "hoverBg": [
+       201,
+       0,
+       0,
+       0.902
+      ]
+     },
+     "outline": {
+      "dataSlot": "button",
+      "dataVariant": "outline",
+      "dataSize": "default",
+      "height": 44,
+      "minHeight": "44px",
+      "flexShrink": "0",
+      "borderTopWidth": 1,
+      "borderColor": [
+       42,
+       46,
+       51,
+       1
+      ],
+      "bg": [
+       43,
+       46,
+       50,
+       0.302
+      ],
+      "color": [
+       236,
+       243,
+       248,
+       1
+      ],
+      "boxShadowRest": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+      "contrast": 16.39,
+      "focus": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+       "borderColor": [
+        67,
+        159,
+        255,
+        1
+       ]
+      },
+      "hoverBg": [
+       42,
+       46,
+       52,
+       0.502
+      ]
+     },
+     "secondary": {
+      "dataSlot": "button",
+      "dataVariant": "secondary",
+      "dataSize": "default",
+      "height": 44,
+      "minHeight": "44px",
+      "flexShrink": "0",
+      "borderTopWidth": 0,
+      "borderColor": [
+       41,
+       46,
+       53,
+       1
+      ],
+      "bg": [
+       37,
+       41,
+       46,
+       1
+      ],
+      "color": [
+       217,
+       223,
+       229,
+       1
+      ],
+      "boxShadowRest": "none",
+      "contrast": 10.89,
+      "focus": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        67,
+        159,
+        255,
+        1
+       ]
+      },
+      "hoverBg": [
+       37,
+       41,
+       46,
+       0.8
+      ]
+     },
+     "ghost": {
+      "dataSlot": "button",
+      "dataVariant": "ghost",
+      "dataSize": "default",
+      "height": 44,
+      "minHeight": "44px",
+      "flexShrink": "0",
+      "borderTopWidth": 0,
+      "borderColor": [
+       41,
+       46,
+       53,
+       1
+      ],
+      "bg": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "color": [
+       236,
+       243,
+       248,
+       1
+      ],
+      "boxShadowRest": "none",
+      "contrast": 17.74,
+      "focus": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        67,
+        159,
+        255,
+        1
+       ]
+      },
+      "hoverBg": [
+       0,
+       189,
+       120,
+       0.502
+      ]
+     },
+     "link": {
+      "dataSlot": "button",
+      "dataVariant": "link",
+      "dataSize": "default",
+      "height": 44,
+      "minHeight": "44px",
+      "flexShrink": "0",
+      "borderTopWidth": 0,
+      "borderColor": [
+       41,
+       46,
+       53,
+       1
+      ],
+      "bg": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "color": [
+       124,
+       190,
+       255,
+       1
+      ],
+      "boxShadowRest": "none",
+      "contrast": 10.09,
+      "focus": {
+       "focusVisible": true,
+       "outlineStyle": "none",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "borderColor": [
+        67,
+        159,
+        255,
+        1
+       ]
+      },
+      "hoverBg": [
+       0,
+       0,
+       0,
+       0
+      ]
+     }
+    },
+    "sizes": {
+     "sm": {
+      "height": 44,
+      "width": 56.7,
+      "minHeight": "44px",
+      "minWidth": "auto",
+      "dataSize": "sm"
+     },
+     "lg": {
+      "height": 44,
+      "width": 96.4,
+      "minHeight": "44px",
+      "minWidth": "auto",
+      "dataSize": "lg"
+     },
+     "icon": {
+      "height": 44,
+      "width": 44,
+      "minHeight": "44px",
+      "minWidth": "44px",
+      "dataSize": "icon"
+     }
+    },
+    "invalid": {
+     "borderColor": [
+      201,
+      0,
+      0,
+      1
+     ]
+    },
+    "asChild": {
+     "tag": "A",
+     "dataSlot": "button",
+     "buttonCount": 0
+    },
+    "icons": {
+     "unsized": [
+      16,
+      16
+     ],
+     "size5": [
+      20,
+      20
+     ],
+     "hw5": [
+      16,
+      16
+     ]
+    },
+    "refs": {
+     "border": [
+      41,
+      46,
+      53,
+      1
+     ],
+     "input": [
+      42,
+      46,
+      51,
+      1
+     ],
+     "destructive": [
+      201,
+      0,
+      0,
+      1
+     ],
+     "ring": [
+      67,
+      159,
+      255,
+      1
+     ]
+    }
+   }
+  },
+  "toast-default": {
+   "light": {
+    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+    "toasterInlineNormalBg": "",
+    "toastBg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "toastColor": [
+     14,
+     23,
+     30,
+     1
+    ],
+    "toastBorderColor": [
+     210,
+     216,
+     222,
+     1
+    ],
+    "toastRadius": "8px",
+    "popoverToken": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "popoverFgToken": [
+     14,
+     23,
+     30,
+     1
+    ],
+    "borderToken": [
+     210,
+     216,
+     222,
+     1
+    ],
+    "baseTokens": {
+     "popover": [
+      255,
+      255,
+      255,
+      1
+     ],
+     "popoverForeground": [
+      14,
+      23,
+      30,
+      1
+     ],
+     "border": [
+      210,
+      216,
+      222,
+      1
+     ]
+    },
+    "iconClasses": null,
+    "iconWidth": null
+   },
+   "dark": {
+    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+    "toasterInlineNormalBg": "",
+    "toastBg": [
+     3,
+     6,
+     11,
+     1
+    ],
+    "toastColor": [
+     236,
+     243,
+     248,
+     1
+    ],
+    "toastBorderColor": [
+     41,
+     46,
+     53,
+     1
+    ],
+    "toastRadius": "8px",
+    "popoverToken": [
+     3,
+     6,
+     11,
+     1
+    ],
+    "popoverFgToken": [
+     236,
+     243,
+     248,
+     1
+    ],
+    "borderToken": [
+     41,
+     46,
+     53,
+     1
+    ],
+    "baseTokens": {
+     "popover": [
+      3,
+      6,
+      11,
+      1
+     ],
+     "popoverForeground": [
+      236,
+      243,
+      248,
+      1
+     ],
+     "border": [
+      41,
+      46,
+      53,
+      1
+     ]
+    },
+    "iconClasses": null,
+    "iconWidth": null
+   }
+  },
+  "toast-success": {
+   "light": {
+    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+    "toasterInlineNormalBg": "",
+    "toastBg": [
+     236,
+     253,
+     243,
+     1
+    ],
+    "toastColor": [
+     0,
+     138,
+     46,
+     1
+    ],
+    "toastBorderColor": [
+     191,
+     252,
+     217,
+     1
+    ],
+    "toastRadius": "8px",
+    "popoverToken": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "popoverFgToken": [
+     14,
+     23,
+     30,
+     1
+    ],
+    "borderToken": [
+     210,
+     216,
+     222,
+     1
+    ],
+    "baseTokens": {
+     "popover": [
+      255,
+      255,
+      255,
+      1
+     ],
+     "popoverForeground": [
+      14,
+      23,
+      30,
+      1
+     ],
+     "border": [
+      210,
+      216,
+      222,
+      1
+     ]
+    },
+    "iconClasses": [
+     "lucide",
+     "lucide-circle-check",
+     "lucide-check-circle-2",
+     "size-4"
+    ],
+    "iconWidth": 16
+   },
+   "dark": {
+    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+    "toasterInlineNormalBg": "",
+    "toastBg": [
+     0,
+     31,
+     15,
+     1
+    ],
+    "toastColor": [
+     89,
+     243,
+     166,
+     1
+    ],
+    "toastBorderColor": [
+     0,
+     61,
+     28,
+     1
+    ],
+    "toastRadius": "8px",
+    "popoverToken": [
+     3,
+     6,
+     11,
+     1
+    ],
+    "popoverFgToken": [
+     236,
+     243,
+     248,
+     1
+    ],
+    "borderToken": [
+     41,
+     46,
+     53,
+     1
+    ],
+    "baseTokens": {
+     "popover": [
+      3,
+      6,
+      11,
+      1
+     ],
+     "popoverForeground": [
+      236,
+      243,
+      248,
+      1
+     ],
+     "border": [
+      41,
+      46,
+      53,
+      1
+     ]
+    },
+    "iconClasses": [
+     "lucide",
+     "lucide-circle-check",
+     "lucide-check-circle-2",
+     "size-4"
+    ],
+    "iconWidth": 16
+   }
+  },
+  "toast-error": {
+   "light": {
+    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+    "toasterInlineNormalBg": "",
+    "toastBg": [
+     255,
+     240,
+     240,
+     1
+    ],
+    "toastColor": [
+     230,
+     0,
+     0,
+     1
+    ],
+    "toastBorderColor": [
+     255,
+     224,
+     225,
+     1
+    ],
+    "toastRadius": "8px",
+    "popoverToken": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "popoverFgToken": [
+     14,
+     23,
+     30,
+     1
+    ],
+    "borderToken": [
+     210,
+     216,
+     222,
+     1
+    ],
+    "baseTokens": {
+     "popover": [
+      255,
+      255,
+      255,
+      1
+     ],
+     "popoverForeground": [
+      14,
+      23,
+      30,
+      1
+     ],
+     "border": [
+      210,
+      216,
+      222,
+      1
+     ]
+    },
+    "iconClasses": [
+     "lucide",
+     "lucide-octagon-x",
+     "lucide-x-octagon",
+     "size-4"
+    ],
+    "iconWidth": 16
+   },
+   "dark": {
+    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+    "toasterInlineNormalBg": "",
+    "toastBg": [
+     45,
+     6,
+     7,
+     1
+    ],
+    "toastColor": [
+     255,
+     158,
+     161,
+     1
+    ],
+    "toastBorderColor": [
+     77,
+     4,
+     8,
+     1
+    ],
+    "toastRadius": "8px",
+    "popoverToken": [
+     3,
+     6,
+     11,
+     1
+    ],
+    "popoverFgToken": [
+     236,
+     243,
+     248,
+     1
+    ],
+    "borderToken": [
+     41,
+     46,
+     53,
+     1
+    ],
+    "baseTokens": {
+     "popover": [
+      3,
+      6,
+      11,
+      1
+     ],
+     "popoverForeground": [
+      236,
+      243,
+      248,
+      1
+     ],
+     "border": [
+      41,
+      46,
+      53,
+      1
+     ]
+    },
+    "iconClasses": [
+     "lucide",
+     "lucide-octagon-x",
+     "lucide-x-octagon",
+     "size-4"
+    ],
+    "iconWidth": 16
+   }
+  },
+  "toast-loading": {
+   "light": {
+    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+    "toasterInlineNormalBg": "",
+    "toastBg": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "toastColor": [
+     14,
+     23,
+     30,
+     1
+    ],
+    "toastBorderColor": [
+     210,
+     216,
+     222,
+     1
+    ],
+    "toastRadius": "8px",
+    "popoverToken": [
+     255,
+     255,
+     255,
+     1
+    ],
+    "popoverFgToken": [
+     14,
+     23,
+     30,
+     1
+    ],
+    "borderToken": [
+     210,
+     216,
+     222,
+     1
+    ],
+    "baseTokens": {
+     "popover": [
+      255,
+      255,
+      255,
+      1
+     ],
+     "popoverForeground": [
+      14,
+      23,
+      30,
+      1
+     ],
+     "border": [
+      210,
+      216,
+      222,
+      1
+     ]
+    },
+    "iconClasses": [
+     "lucide",
+     "lucide-loader-circle",
+     "lucide-loader-2",
+     "size-4",
+     "animate-spin"
+    ],
+    "iconWidth": 23
+   },
+   "dark": {
+    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+    "toasterInlineNormalBg": "",
+    "toastBg": [
+     3,
+     6,
+     11,
+     1
+    ],
+    "toastColor": [
+     236,
+     243,
+     248,
+     1
+    ],
+    "toastBorderColor": [
+     41,
+     46,
+     53,
+     1
+    ],
+    "toastRadius": "8px",
+    "popoverToken": [
+     3,
+     6,
+     11,
+     1
+    ],
+    "popoverFgToken": [
+     236,
+     243,
+     248,
+     1
+    ],
+    "borderToken": [
+     41,
+     46,
+     53,
+     1
+    ],
+    "baseTokens": {
+     "popover": [
+      3,
+      6,
+      11,
+      1
+     ],
+     "popoverForeground": [
+      236,
+      243,
+      248,
+      1
+     ],
+     "border": [
+      41,
+      46,
+      53,
+      1
+     ]
+    },
+    "iconClasses": [
+     "lucide",
+     "lucide-loader-circle",
+     "lucide-loader-2",
+     "size-4",
+     "animate-spin"
+    ],
+    "iconWidth": 23
+   }
+  }
+ }
+}

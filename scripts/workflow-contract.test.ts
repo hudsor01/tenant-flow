@@ -24,6 +24,14 @@ import {
 } from "./workflow-contract";
 
 const WORKFLOWS = join(process.cwd(), ".github", "workflows");
+
+/**
+ * A workflow's `push:` trigger, from `on:` to the `pull_request:` key after it.
+ * One alternative per line: a second one for six-space lines matched every
+ * line the four-space one did, so a block of them that ran into anything but
+ * `pull_request:` split 2^n ways.
+ */
+const PUSH_TRIGGER = /on:\n {2}push:\n(?: {4}.*\n)* {2}pull_request:/;
 const temporary: string[] = [];
 
 afterAll(() => {
@@ -243,10 +251,7 @@ describe("mutations the contract must catch", () => {
 		// sides `undefined`, a `.not.toBeNull()` guard on the LISTS passed, and
 		// the lockstep then compared [] to [] and proved nothing.
 		const withoutPush = (body: string) =>
-			body.replace(
-				/on:\n {2}push:\n(?: {4}.*\n| {6}.*\n)* {2}pull_request:/,
-				"on:\n  pull_request:",
-			);
+			body.replace(PUSH_TRIGGER, "on:\n  pull_request:");
 		const dir = fixture({
 			...base(),
 			"ci-cd.yml": withoutPush(REAL),
@@ -386,5 +391,20 @@ describe("the three legal spellings of on:, and both extensions", () => {
 			"a.yaml",
 		]);
 		expect(reportedIn(dir, "only-here").ok).toBe(true);
+	});
+});
+
+describe("the fixture helpers", () => {
+	it("the push-trigger matcher fails in linear time", () => {
+		// 28 nested lines and no `pull_request:` took 16 s under the old pair of
+		// alternatives, compiled. Each input here takes a few milliseconds at
+		// most now. The short block comes first, so the old matcher fails before
+		// the long one.
+		for (const lines of [28, 20_000]) {
+			const body = `on:\n  push:\n${"      - main\n".repeat(lines)}  workflow_dispatch:\n`;
+			const start = performance.now();
+			expect(PUSH_TRIGGER.test(body)).toBe(false);
+			expect(performance.now() - start).toBeLessThan(1000);
+		}
 	});
 });

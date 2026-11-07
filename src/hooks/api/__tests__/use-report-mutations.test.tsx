@@ -2,7 +2,7 @@
  * Report Mutation Hooks Tests
  *
  * Covers the paywall-aware error handler, the exported PDF-from-HTML helper,
- * and the four download mutation hooks that delegate to reportMutations.*.
+ * and the two PDF download mutation hooks that delegate to reportMutations.*.
  */
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -10,6 +10,8 @@ import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
+import { ApiError, ApiErrorCode } from "#lib/utils/api-error";
 
 // Real PaywallError class shared between the mocked module and the assertions,
 // so `instanceof PaywallError` inside the hook resolves to the same constructor.
@@ -53,7 +55,8 @@ vi.mock("sonner", () => ({
 	toast: { error: mockToastError, success: mockToastSuccess },
 }));
 
-vi.mock("#lib/mutation-error-handler", () => ({
+vi.mock("#lib/mutation-error-handler", async (importOriginal) => ({
+	...(await importOriginal<typeof import("#lib/mutation-error-handler")>()),
 	handleMutationError: mockHandleMutationError,
 	handleMutationSuccess: vi.fn(),
 }));
@@ -128,11 +131,12 @@ describe("callGeneratePdfFromHtml", () => {
 		mockGetSession.mockResolvedValue({
 			data: { session: { access_token: "test-token" } },
 		});
-		const fetchMock = vi.fn().mockResolvedValue({
-			ok: true,
-			blob: async () => new Blob(["pdf-bytes"], { type: "application/pdf" }),
-		});
-		globalThis.fetch = fetchMock as unknown as typeof fetch;
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+			new Response(new Blob(["pdf-bytes"], { type: "application/pdf" }), {
+				status: 200,
+			}),
+		);
+		globalThis.fetch = fetchMock;
 		// Mock the real anchor click so the success path's link.click() does not
 		// trigger jsdom's "Not implemented: navigation" on the blob: href.
 		const clickSpy = vi
@@ -159,52 +163,67 @@ describe("callGeneratePdfFromHtml", () => {
 		clickSpy.mockRestore();
 	});
 
-	it("rejects with 'PDF generation failed: <errText>' when fetch is not ok", async () => {
+	it("rejects with the status's ApiError (a 500 is a server error), never the response text", async () => {
 		mockGetSession.mockResolvedValue({
 			data: { session: { access_token: "test-token" } },
 		});
-		globalThis.fetch = vi.fn().mockResolvedValue({
-			ok: false,
-			statusText: "Internal Server Error",
-			text: async () => "edge boom",
-		}) as unknown as typeof fetch;
+		globalThis.fetch = vi.fn<typeof fetch>().mockResolvedValue(
+			new Response("edge boom", {
+				status: 500,
+				statusText: "Internal Server Error",
+			}),
+		);
 
-		await expect(
-			callGeneratePdfFromHtml("<html></html>", "report.pdf"),
-		).rejects.toMatchObject({
-			message: expect.stringContaining("PDF generation failed: edge boom"),
+		const error = await callGeneratePdfFromHtml(
+			"<html></html>",
+			"report.pdf",
+		).catch((e: unknown) => e);
+		expect(error).toBeInstanceOf(ApiError);
+		expect(error).toMatchObject({
+			code: ApiErrorCode.API_SERVER_ERROR,
+			statusCode: 500,
 		});
+		// What a toast would show: the product copy, not the body.
+		expect(userFacingErrorMessage(error)).toBe(
+			"Server error. Please try again later.",
+		);
+		expect(userFacingErrorMessage(error)).not.toContain("edge boom");
 	});
 
-	it("falls back to statusText when reading the error body throws", async () => {
+	it("rejects a 502 with the PDF ApiError, whose copy never carries the status line", async () => {
 		mockGetSession.mockResolvedValue({
 			data: { session: { access_token: "test-token" } },
 		});
-		globalThis.fetch = vi.fn().mockResolvedValue({
-			ok: false,
+		const response = new Response(null, {
+			status: 502,
 			statusText: "Bad Gateway",
-			text: async () => {
-				throw new Error("stream consumed");
-			},
-		}) as unknown as typeof fetch;
-
-		await expect(
-			callGeneratePdfFromHtml("<html></html>", "report.pdf"),
-		).rejects.toMatchObject({
-			message: expect.stringContaining("PDF generation failed: Bad Gateway"),
 		});
+		globalThis.fetch = vi.fn<typeof fetch>().mockResolvedValue(response);
+
+		const error = await callGeneratePdfFromHtml(
+			"<html></html>",
+			"report.pdf",
+		).catch((e: unknown) => e);
+		expect(error).toMatchObject({
+			code: ApiErrorCode.PDF_GENERATION_FAILED,
+			statusCode: 502,
+		});
+		expect(userFacingErrorMessage(error)).toBe(
+			"Failed to generate the PDF. Please try again.",
+		);
+		expect(userFacingErrorMessage(error)).not.toContain("Bad Gateway");
 	});
 
-	it("creates an object URL, clicks an <a download=filename>, and revokes after 100ms", async () => {
+	it("saves through downloadBlob: an <a download=filename> click, revoked after 1s", async () => {
 		vi.useFakeTimers();
 		mockGetSession.mockResolvedValue({
 			data: { session: { access_token: "test-token" } },
 		});
 		const blob = new Blob(["pdf-bytes"], { type: "application/pdf" });
-		globalThis.fetch = vi.fn().mockResolvedValue({
-			ok: true,
-			blob: async () => blob,
-		}) as unknown as typeof fetch;
+		// The same Blob object back, so the assertion below is about identity.
+		const response = new Response(blob, { status: 200 });
+		vi.spyOn(response, "blob").mockResolvedValue(blob);
+		globalThis.fetch = vi.fn<typeof fetch>().mockResolvedValue(response);
 
 		const appendSpy = vi.spyOn(document.body, "appendChild");
 		const removeSpy = vi.spyOn(document.body, "removeChild");
@@ -223,9 +242,11 @@ describe("callGeneratePdfFromHtml", () => {
 		expect(clickSpy).toHaveBeenCalledTimes(1);
 		expect(removeSpy).toHaveBeenCalledWith(appendedNode);
 
-		// Revoke is deferred behind a 100ms timer.
+		// downloadBlob (#lib/reports/download-blob) defers the revoke 1000ms so
+		// the browser has started the download.
+		vi.advanceTimersByTime(999);
 		expect(globalThis.URL.revokeObjectURL).not.toHaveBeenCalled();
-		vi.advanceTimersByTime(100);
+		vi.advanceTimersByTime(1);
 		expect(globalThis.URL.revokeObjectURL).toHaveBeenCalledWith(
 			"blob:fake-url",
 		);

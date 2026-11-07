@@ -21,6 +21,12 @@ declare module "@tanstack/react-table" {
 		options?: Option[];
 		range?: [number, number];
 		unit?: string;
+		/**
+		 * Formats the range filter's chosen bounds on its trigger (money as
+		 * `formatCurrency`, e.g.); without it the bounds print as plain numbers
+		 * followed by `unit`.
+		 */
+		formatValue?: (value: number) => string;
 		icon?: FC<SVGProps<SVGSVGElement>>;
 	}
 }

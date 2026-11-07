@@ -10,6 +10,7 @@ import {
 	documentQueries,
 } from "#hooks/api/query-keys/document-keys";
 import { documentSearchQueries } from "#hooks/api/query-keys/document-search-keys";
+import { escapeRegExp } from "#test/utils/regexp-source";
 import { DocumentsSection } from "../documents-section";
 
 const mockUseQuery = vi.fn();
@@ -438,7 +439,7 @@ describe("DocumentsSection", () => {
 		]) {
 			expect(
 				await screen.findByRole("option", {
-					name: new RegExp(`^${label}$`, "i"),
+					name: new RegExp(`^${escapeRegExp(label)}$`, "i"),
 				}),
 			).toBeInTheDocument();
 		}
@@ -495,12 +496,12 @@ describe("DocumentsSection", () => {
 	 * D-11 — the two mutations that change what "Recently added" should show.
 	 *
 	 * Scope, stated precisely: it is NOT true that nothing invalidated
-	 * `documentSearchQueries` before this. `categories-settings.tsx:69` reaches it
-	 * indirectly through the broad `["documents"]` prefix (its comment names the
-	 * search key but its actual call is `documentQueries.all()`). The gap these
-	 * two tests close is that no document UPLOAD or DELETE mutation reached it —
-	 * and those are exactly the two mutations that make the /documents landing's
-	 * preview wrong.
+	 * `documentSearchQueries` before this. CategoriesSettings' `invalidateAll`
+	 * (`categories-settings.tsx`) reaches it indirectly through the broad
+	 * `["documents"]` prefix (its comment names the search key but its actual
+	 * call is `documentQueries.all()`). The gap these two tests close is that
+	 * no document UPLOAD or DELETE mutation reached it — and those are exactly
+	 * the two mutations that make the /documents landing's preview wrong.
 	 *
 	 * Both assert BOTH keys. The entity-scoped assertion is what proves the
 	 * change is ADDITIVE: `["documents","search"]` does not prefix-match

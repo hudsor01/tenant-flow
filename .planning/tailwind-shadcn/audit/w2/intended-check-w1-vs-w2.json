@@ -1,0 +1,44 @@
+{
+ "checked": {
+  "x3-width-full-single-declaration": 5,
+  "x3-max-width-to-container": 4,
+  "x3-leading-none-literal": 2,
+  "x3-ease-linear-literal": 1
+ },
+ "checkedCandidates": {
+  "x3-width-full-single-declaration": [
+   "[&>*]:w-full",
+   "data-[orientation=horizontal]:w-full",
+   "data-[orientation=vertical]:w-full",
+   "has-[>[data-slot=field]]:w-full",
+   "w-full"
+  ],
+  "x3-max-width-to-container": [
+   "max-w-2xl",
+   "max-w-3xl",
+   "sm:max-w-2xl",
+   "sm:max-w-3xl"
+  ],
+  "x3-leading-none-literal": [
+   "leading-none",
+   "typography-stat"
+  ],
+  "x3-ease-linear-literal": [
+   "[animation-timing-function:var(--ease-linear)] -> [animation-timing-function:linear]"
+  ]
+ },
+ "unchanged": {
+  "x3-width-full-single-declaration": 0,
+  "x3-max-width-to-container": 0,
+  "x3-leading-none-literal": 0,
+  "x3-ease-linear-literal": 0
+ },
+ "skipped": [
+  "d20-rewrite-removed",
+  "d20-rewrite-added",
+  "b9-outside-src",
+  "b10-owner-loading-utilities"
+ ],
+ "oneSided": [],
+ "mismatches": []
+}

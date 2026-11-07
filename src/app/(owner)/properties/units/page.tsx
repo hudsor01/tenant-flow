@@ -16,6 +16,7 @@ import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
 import { Button } from "#components/ui/button";
 import {
 	Dialog,
+	DialogClose,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
@@ -36,7 +37,7 @@ import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useCreateUnitMutation } from "#hooks/api/use-unit";
 import { createLogger } from "#lib/frontend-logger";
 import type { UnitInput } from "#lib/validation/units";
-import { type UnitRow, unitColumns } from "./columns";
+import { unitColumns } from "./columns";
 
 // Dynamic import: ChartAreaInteractive is heavy (~40KB), defer loading until needed
 const ChartAreaInteractive = dynamic(
@@ -46,7 +47,7 @@ const ChartAreaInteractive = dynamic(
 		),
 	{
 		loading: () => (
-			<div className="h-[300px] rounded-lg border bg-card shadow-sm animate-pulse" />
+			<div className="h-75 rounded-lg border bg-card shadow-sm animate-pulse" />
 		),
 		ssr: false, // Chart renders client-side only
 	},
@@ -68,7 +69,7 @@ export default function UnitsPage() {
 	// Use backend RPC functions for statistics - NO CLIENT-SIDE CALCULATIONS
 	const { data: unitsStats } = useQuery(unitQueries.stats());
 
-	const units = (unitsResponse?.data || []) as UnitRow[];
+	const units = unitsResponse?.data ?? [];
 	const properties = propertiesResponse?.data || [];
 
 	// Use backend statistics directly - trust the database calculations
@@ -100,19 +101,21 @@ export default function UnitsPage() {
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
 						<h3 className="text-muted-foreground font-medium">Total Units</h3>
-						<div className="size-2 rounded-full bg-chart-4" />
+						<div className="size-2 rounded-full bg-muted-foreground" />
 					</div>
 					<div className="typography-h3">{totalUnits}</div>
-					<p className="text-caption mt-1">Across all properties</p>
+					<p className="text-caption text-muted-foreground mt-1">
+						Across all properties
+					</p>
 				</div>
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
 						<h3 className="text-muted-foreground font-medium">Occupied</h3>
-						<div className="size-2 rounded-full bg-chart-1" />
+						<div className="size-2 rounded-full bg-success-text" />
 					</div>
 					<div className="typography-h3">{occupiedCount}</div>
-					<div className="text-xs mt-1 text-chart-1">
+					<div className="text-xs mt-1 text-success-text">
 						{occupancyRate.toFixed(1)}% occupancy
 					</div>
 				</div>
@@ -120,19 +123,23 @@ export default function UnitsPage() {
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
 						<h3 className="text-muted-foreground font-medium">Vacant</h3>
-						<div className="size-2 rounded-full bg-chart-7" />
+						<div className="size-2 rounded-full bg-primary-text" />
 					</div>
 					<div className="typography-h3">{vacantCount}</div>
-					<div className="text-xs mt-1 text-chart-7">Available now</div>
+					<div className="text-xs mt-1 text-muted-foreground">
+						Available now
+					</div>
 				</div>
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
 						<h3 className="text-muted-foreground font-medium">Maintenance</h3>
-						<div className="size-2 rounded-full bg-chart-5" />
+						<div className="size-2 rounded-full bg-destructive-text" />
 					</div>
 					<div className="typography-h3">{maintenanceCount}</div>
-					<div className="text-xs mt-1 text-chart-5">Needs attention</div>
+					<div className="text-xs mt-1 text-destructive-text">
+						Needs attention
+					</div>
 				</div>
 			</div>
 
@@ -214,7 +221,7 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
-				<Button className="flex items-center gap-2 bg-chart-7 hover:bg-chart-7/90">
+				<Button className="flex items-center gap-2">
 					<Plus className="size-4" />
 					Add Unit
 				</Button>
@@ -243,7 +250,7 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 						<div className="grid gap-2">
 							<Label htmlFor="property_id">Property</Label>
 							<Select name="property_id" required>
-								<SelectTrigger>
+								<SelectTrigger id="property_id">
 									<SelectValue placeholder="Select property" />
 								</SelectTrigger>
 								<SelectContent>
@@ -290,9 +297,11 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 						</div>
 					</div>
 					<div className="flex justify-end gap-2 pt-2">
-						<Button ref={closeButtonRef} type="button" variant="outline">
-							Cancel
-						</Button>
+						<DialogClose asChild>
+							<Button ref={closeButtonRef} type="button" variant="outline">
+								Cancel
+							</Button>
+						</DialogClose>
 						<Button type="submit" disabled={create.isPending}>
 							{create.isPending ? "Creating..." : "Add Unit"}
 						</Button>

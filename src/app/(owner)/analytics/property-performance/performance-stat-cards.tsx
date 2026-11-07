@@ -10,6 +10,7 @@ import {
 	StatTrend,
 	StatValue,
 } from "#components/ui/stat";
+import { formatDateWindow } from "#lib/formatters/date";
 import { formatNumber } from "#lib/utils/currency";
 import type { PropertyPerformanceSummary } from "#types/analytics";
 
@@ -18,17 +19,23 @@ interface PerformanceStatCardsProps {
 }
 
 export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
+	// Each wrapper fills its grid cell and each tile its wrapper, rows held to
+	// the top; below lg every label keeps two lines' height, so at 390, where
+	// "Best performer" wraps beside "Rent received", the two figures share a
+	// line (66.2-39 part Q).
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-			<BlurFade delay={0.2} inView>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.2} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					<BorderBeam
 						size={100}
 						duration={10}
 						colorFrom="var(--color-primary)"
 						colorTo="oklch(from var(--color-primary) l c h / 0.3)"
 					/>
-					<StatLabel>Total properties</StatLabel>
+					<StatLabel className="min-h-10 lg:min-h-0">
+						Total properties
+					</StatLabel>
 					<StatValue className="flex items-baseline">
 						<NumberTicker value={metrics.totalProperties} duration={1500} />
 					</StatValue>
@@ -39,16 +46,18 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.3} inView>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.3} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					<BorderBeam
 						size={100}
 						duration={12}
-						colorFrom="hsl(142 76% 36%)"
-						colorTo="hsl(142 76% 36% / 0.3)"
+						colorFrom="var(--color-success)"
+						colorTo="oklch(from var(--color-success) l c h / 0.3)"
 					/>
-					<StatLabel>Average occupancy</StatLabel>
-					<StatValue className="flex items-baseline gap-0.5 text-emerald-600 dark:text-emerald-400">
+					<StatLabel className="min-h-10 lg:min-h-0">
+						Average occupancy
+					</StatLabel>
+					<StatValue className="flex items-baseline gap-0.5 text-success-text">
 						<NumberTicker
 							value={metrics.averageOccupancy}
 							duration={1500}
@@ -68,9 +77,9 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.4} inView>
-				<Stat className="relative overflow-hidden">
-					<StatLabel>Best performer</StatLabel>
+			<BlurFade delay={0.4} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
+					<StatLabel className="min-h-10 lg:min-h-0">Best performer</StatLabel>
 					<StatValue className="flex items-baseline text-base font-semibold truncate">
 						{metrics.bestPerformer ?? "-"}
 					</StatValue>
@@ -81,17 +90,33 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.5} inView>
-				<Stat className="relative overflow-hidden">
-					<StatLabel>Monthly revenue</StatLabel>
-					<StatValue className="flex items-baseline gap-0.5">
-						<span className="text-lg">$</span>
-						<NumberTicker value={metrics.totalRevenue} duration={1500} />
-					</StatValue>
+			<BlurFade delay={0.5} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
+					<StatLabel className="min-h-10 lg:min-h-0">Rent received</StatLabel>
+					{metrics.rentReceived === null ? (
+						<StatValue className="flex items-baseline text-base font-semibold text-muted-foreground">
+							Unavailable
+						</StatValue>
+					) : (
+						<StatValue className="flex items-baseline gap-0.5">
+							<NumberTicker
+								value={metrics.rentReceived}
+								duration={1500}
+								currency
+								symbolClassName="text-lg mr-0.5"
+							/>
+						</StatValue>
+					)}
 					<StatIndicator variant="icon" color="success">
 						<DollarSign />
 					</StatIndicator>
-					<StatDescription>Combined across properties</StatDescription>
+					<StatDescription>
+						{metrics.rentReceivedWindow
+							? formatDateWindow(metrics.rentReceivedWindow)
+							: metrics.rentReceived === null
+								? "Ledger totals pending"
+								: "Last 30 days"}
+					</StatDescription>
 				</Stat>
 			</BlurFade>
 		</div>

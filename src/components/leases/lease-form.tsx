@@ -6,7 +6,10 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ErrorBoundary } from "#components/error-boundary/error-boundary";
 import { Button } from "#components/ui/button";
-import { leaseQueries } from "#hooks/api/query-keys/lease-keys";
+import {
+	type LeaseDetailRow,
+	leaseQueries,
+} from "#hooks/api/query-keys/lease-keys";
 import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
@@ -19,15 +22,34 @@ import { useAppForm } from "#lib/forms/form-hook";
 import { createLogger } from "#lib/frontend-logger";
 import { cn } from "#lib/utils";
 import type { LeaseCreate } from "#lib/validation/leases";
-import type { LeaseWithExtras } from "#types/core";
+import type { Property, TenantWithLeaseInfo, Unit } from "#types/core";
 import { LeaseFormFinancialFields } from "./lease-form-financial-fields";
 import { leaseFormOptions } from "./lease-form-options";
 import { LeaseFormPropertyUnitFields } from "./lease-form-property-unit-fields";
 import { LeaseFormTenantDateFields } from "./lease-form-tenant-date-fields";
 
+/**
+ * A picker's rows with the edited lease's own record kept in them. The
+ * property and tenant pickers read the 50 newest active rows and the unit
+ * picker its property's first 500 active units by number, so a lease on an
+ * older or a deleted tenant, property or unit opened on a blank value; the
+ * lease detail's embeds name that record whatever the lists hold. It goes
+ * last, where an older row or a later unit number would sort. A new lease
+ * has no record, so its pickers show the lists alone.
+ */
+function withLeaseRecord<Row extends { id: string }>(
+	rows: readonly Row[],
+	record: Row | null,
+): Row[] {
+	if (record === null || rows.some((row) => row.id === record.id)) {
+		return [...rows];
+	}
+	return [...rows, record];
+}
+
 interface LeaseFormProps {
 	mode: "create" | "edit";
-	lease?: LeaseWithExtras;
+	lease?: LeaseDetailRow;
 	onSuccess?: () => void;
 }
 
@@ -42,14 +64,21 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 
 	const {
 		data: propertiesResponse,
-		error: propertiesError,
 		isError: propertiesIsError,
 		isLoading: propertiesIsLoading,
 	} = useQuery(propertyQueries.list());
-	const properties = propertiesResponse?.data ?? [];
+	const leaseUnit = lease?.unit ?? null;
+	const properties = withLeaseRecord<Pick<Property, "id" | "name">>(
+		propertiesResponse?.data ?? [],
+		leaseUnit?.property
+			? { id: leaseUnit.property_id, name: leaseUnit.property.name }
+			: null,
+	);
 
 	const tenantsResponse = useQuery(tenantQueries.list());
-	const tenants = tenantsResponse.data?.data ?? [];
+	const tenants = withLeaseRecord<
+		Pick<TenantWithLeaseInfo, "id" | "name" | "email">
+	>(tenantsResponse.data?.data ?? [], lease?.tenant ?? null);
 
 	// Sync server-fetched lease into TanStack Query cache (edit mode only)
 	useEffect(() => {
@@ -116,17 +145,24 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 		},
 	});
 
+	// The lease's unit as the detail maps it. The detail returned its raw
+	// `units` embed, so `unit` was always absent and the edit form opened with
+	// no property chosen and no units to show the lease's unit by.
 	const [selectedPropertyId, setSelectedPropertyId] = useState(
-		lease?.unit?.property_id ?? "",
+		leaseUnit?.property_id ?? "",
 	);
-	const {
-		data: unitsData,
-		error: unitsError,
-		isError: unitsIsError,
-	} = useQuery({
+	const { data: unitsData, isError: unitsIsError } = useQuery({
 		...unitQueries.listByProperty(selectedPropertyId),
 		enabled: !!selectedPropertyId,
 	});
+	// The lease's unit is an option only under its own property: choosing
+	// another property clears the unit and lists that property's units.
+	const units = withLeaseRecord<Pick<Unit, "id" | "unit_number">>(
+		unitsData ?? [],
+		leaseUnit && leaseUnit.property_id === selectedPropertyId
+			? { id: leaseUnit.id, unit_number: leaseUnit.unit_number }
+			: null,
+	);
 
 	const isSubmitting =
 		mode === "create"
@@ -148,10 +184,8 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 						properties={properties}
 						propertiesIsLoading={propertiesIsLoading}
 						propertiesIsError={propertiesIsError}
-						propertiesError={propertiesError}
-						units={unitsData ?? []}
+						units={units}
 						unitsIsError={unitsIsError}
-						unitsError={unitsError}
 						selectedPropertyId={selectedPropertyId}
 						onPropertyChange={setSelectedPropertyId}
 					/>

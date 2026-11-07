@@ -72,7 +72,7 @@ export function ActiveSessionsSection() {
 	};
 
 	return (
-		<BlurFade delay={0.35} inView>
+		<BlurFade delay={0.35}>
 			<section className="rounded-lg border bg-card p-6">
 				<div className="flex items-center justify-between mb-4">
 					<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
@@ -96,13 +96,11 @@ export function ActiveSessionsSection() {
 								session.os || "Unknown OS"
 							}`;
 							return (
-								<BlurFade key={session.id} delay={0.4 + idx * 0.05} inView>
+								<BlurFade key={session.id} delay={0.4 + idx * 0.05}>
 									<div
 										className={`flex items-center justify-between p-3 rounded-lg border ${
-											session.is_current
-												? "bg-primary/5 border-primary/20"
-												: "hover:bg-muted/30"
-										} transition-colors`}
+											session.is_current ? "bg-primary/5 border-primary/20" : ""
+										}`}
 									>
 										<div className="flex items-center gap-3">
 											<User className="h-5 w-5 text-muted-foreground" />

@@ -148,7 +148,7 @@ export function PropertyImageGallery({
 
 							{/* Primary badge */}
 							{isPrimary && (
-								<Badge className="pointer-events-none absolute top-2 left-2 z-20 bg-primary text-white">
+								<Badge className="pointer-events-none absolute top-2 left-2 z-20">
 									Primary
 								</Badge>
 							)}
@@ -218,7 +218,7 @@ export function PropertyImageGallery({
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={handleDeleteConfirm}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							variant="destructive"
 						>
 							{deleteMutation.isPending ? "Deleting..." : "Delete"}
 						</AlertDialogAction>

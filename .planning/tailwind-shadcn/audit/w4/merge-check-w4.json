@@ -1,0 +1,130 @@
+{
+ "pairs": 54,
+ "files": 50,
+ "calls": 36,
+ "sites": {
+  "call": 4,
+  "caller-to-base": 158,
+  "base-to-caller": 0
+ },
+ "unresolved": 5,
+ "diffs": [],
+ "cascadeEquivalent": [
+  {
+   "kind": "caller-to-base",
+   "file": "src/components/bulk-import/bulk-import-upload-step.tsx",
+   "line": 68,
+   "other": "src/components/ui/file-upload/file-upload-dropzone.tsx",
+   "drops": [
+    {
+     "D": "data-invalid:border-destructive",
+     "S": "data-invalid:border-destructive/60",
+     "ruleD": ".data-invalid\\:border-destructive[data-invalid] {\n  border-color: var(--destructive);\n}\n",
+     "ruleS": ".data-invalid\\:border-destructive\\/60[data-invalid] {\n  border-color: color-mix(in oklab, var(--destructive) 60%, transparent);\n}\n",
+     "orderD": "0",
+     "orderS": "1",
+     "oldOrders": [
+      {
+       "D": "data-invalid:border-destructive",
+       "S": "data-[invalid]:border-destructive/60",
+       "orderD": "0",
+       "orderS": "1",
+       "ok": true
+      }
+     ],
+     "propsD": [
+      "border-color"
+     ],
+     "propsS": [
+      "border-color"
+     ]
+    }
+   ],
+   "old": [
+    "border-2",
+    "border-dashed",
+    "cursor-pointer",
+    "data-disabled:pointer-events-none",
+    "data-drag-over:bg-primary/10",
+    "data-drag-over:border-primary",
+    "data-drag-over:scale-[1.01]",
+    "data-drag-over:shadow-lg",
+    "data-drag-over:shadow-primary/10",
+    "data-dragging:bg-accent/30",
+    "data-dragging:border-primary/30",
+    "data-invalid:bg-destructive/5",
+    "data-invalid:border-destructive",
+    "data-invalid:border-destructive/60",
+    "data-invalid:ring-destructive/20",
+    "duration-300",
+    "flex",
+    "flex-col",
+    "focus-visible:border-ring/50",
+    "focus-visible:outline-none",
+    "focus-visible:ring-2",
+    "focus-visible:ring-offset-2",
+    "focus-visible:ring-ring",
+    "gap-2",
+    "group",
+    "hover:bg-primary/5",
+    "hover:border-primary/60",
+    "hover:shadow-lg",
+    "hover:shadow-primary/5",
+    "items-center",
+    "justify-center",
+    "outline-none",
+    "p-10",
+    "relative",
+    "rounded-xl",
+    "select-none",
+    "transition-all"
+   ],
+   "new": [
+    "border-2",
+    "border-dashed",
+    "cursor-pointer",
+    "data-disabled:pointer-events-none",
+    "data-drag-over:bg-primary/10",
+    "data-drag-over:border-primary",
+    "data-drag-over:scale-[1.01]",
+    "data-drag-over:shadow-lg",
+    "data-drag-over:shadow-primary/10",
+    "data-dragging:bg-accent/30",
+    "data-dragging:border-primary/30",
+    "data-invalid:bg-destructive/5",
+    "data-invalid:border-destructive/60",
+    "data-invalid:ring-destructive/20",
+    "duration-300",
+    "flex",
+    "flex-col",
+    "focus-visible:border-ring/50",
+    "focus-visible:outline-none",
+    "focus-visible:ring-2",
+    "focus-visible:ring-offset-2",
+    "focus-visible:ring-ring",
+    "gap-2",
+    "group",
+    "hover:bg-primary/5",
+    "hover:border-primary/60",
+    "hover:shadow-lg",
+    "hover:shadow-primary/5",
+    "items-center",
+    "justify-center",
+    "outline-none",
+    "p-10",
+    "relative",
+    "rounded-xl",
+    "select-none",
+    "transition-all"
+   ],
+   "oldStrings": [
+    "relative flex select-none flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 outline-none transition-colors hover:bg-accent/30 focus-visible:border-ring/50 data-disabled:pointer-events-none data-dragging:border-primary/30 data-invalid:border-destructive data-dragging:bg-accent/30 data-invalid:ring-destructive/20",
+    "group relative rounded-xl border-2 border-dashed p-10 transition-all duration-300 cursor-pointer hover:border-primary/60 hover:bg-primary/5 hover:shadow-lg hover:shadow-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[drag-over]:border-primary data-[drag-over]:bg-primary/10 data-[drag-over]:shadow-lg data-[drag-over]:shadow-primary/10 data-[drag-over]:scale-[1.01] data-[invalid]:border-destructive/60 data-[invalid]:bg-destructive/5"
+   ],
+   "newStrings": [
+    "relative flex select-none flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 outline-none transition-colors hover:bg-accent/30 focus-visible:border-ring/50 data-disabled:pointer-events-none data-dragging:border-primary/30 data-invalid:border-destructive data-dragging:bg-accent/30 data-invalid:ring-destructive/20",
+    "group relative rounded-xl border-2 border-dashed p-10 transition-all duration-300 cursor-pointer hover:border-primary/60 hover:bg-primary/5 hover:shadow-lg hover:shadow-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-drag-over:border-primary data-drag-over:bg-primary/10 data-drag-over:shadow-lg data-drag-over:shadow-primary/10 data-drag-over:scale-[1.01] data-invalid:border-destructive/60 data-invalid:bg-destructive/5"
+   ]
+  }
+ ]
+}

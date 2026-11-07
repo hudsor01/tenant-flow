@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Badge } from "#components/ui/badge";
 import { formatBytes } from "#lib/format-bytes";
+import { formatCount } from "#lib/formatters/count";
 import { cn } from "#lib/utils";
 import type { ParsedRow } from "#types/api-contracts";
 
@@ -161,7 +162,8 @@ export function BulkImportValidateStep<T>({
 					<AlertCircle className="size-4 text-destructive shrink-0 mt-0.5" />
 					<div>
 						<p className="typography-small text-destructive-text">
-							{errorCount} row{errorCount > 1 ? "s" : ""} have errors
+							{formatCount(errorCount, "row")}{" "}
+							{errorCount === 1 ? "has" : "have"} errors
 						</p>
 						<p className="text-xs text-muted-foreground mt-0.5">
 							Fix errors in your CSV and re-upload. All rows must be valid
@@ -177,7 +179,7 @@ export function BulkImportValidateStep<T>({
 					<FileText className="size-4 text-muted-foreground" />
 					<p className="text-sm font-semibold">Data Preview</p>
 					<Badge variant="secondary" className="text-xs">
-						{parsedData.length} rows
+						{formatCount(parsedData.length, "row")}
 					</Badge>
 				</div>
 			</div>
@@ -209,12 +211,7 @@ export function BulkImportValidateStep<T>({
 								{parsedData.map((row) => (
 									<tr
 										key={row.row}
-										className={cn(
-											"transition-colors",
-											row.errors.length > 0
-												? "bg-destructive/5 hover:bg-destructive/10"
-												: "hover:bg-muted/30",
-										)}
+										className={cn(row.errors.length > 0 && "bg-destructive/5")}
 									>
 										<td className="px-4 py-3 text-muted-foreground font-mono text-xs">
 											#{row.row}

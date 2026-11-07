@@ -7,7 +7,6 @@ import { Button } from "#components/ui/button";
 import {
 	Tooltip,
 	TooltipContent,
-	TooltipProvider,
 	TooltipTrigger,
 } from "#components/ui/tooltip";
 import type { DocumentCategoryRow } from "#hooks/api/query-keys/document-category-keys";
@@ -20,8 +19,9 @@ interface CategoryRowProps {
 
 /**
  * Single category row in the settings list. Drag handle + label + slug
- * + rename + delete. Default categories surface a tooltip-disabled
- * delete button (the RPC also rejects server-side as defense-in-depth).
+ * + rename + delete. A default category's delete button is aria-disabled
+ * and its tooltip says why (the RPC also rejects server-side as
+ * defense-in-depth).
  */
 export function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
 	const {
@@ -38,10 +38,15 @@ export function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
 		opacity: isDragging ? 0.6 : 1,
 	};
 	return (
+		// The actions wrap onto a line of their own when the label column
+		// would get less than 7rem beside them: below 48rem each control is a
+		// 44px touch target, and at 320px the three left the label and slug
+		// no width at all. The slug breaks anywhere, so a long one wraps
+		// rather than running past the row (and the page) at 320px.
 		<li
 			ref={setNodeRef}
 			style={style}
-			className="flex items-center gap-3 rounded-md border border-border bg-background px-3 py-2"
+			className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-border bg-background px-3 py-2"
 		>
 			<button
 				type="button"
@@ -52,7 +57,7 @@ export function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
 			>
 				<GripVertical className="size-4" aria-hidden="true" />
 			</button>
-			<div className="flex-1 min-w-0">
+			<div className="min-w-0 grow basis-28">
 				<div className="flex items-center gap-2">
 					<span className="font-medium truncate">{category.label}</span>
 					{category.is_default && (
@@ -61,49 +66,52 @@ export function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
 						</span>
 					)}
 				</div>
-				<code className="text-xs text-muted-foreground">{category.slug}</code>
+				<code className="text-xs text-muted-foreground wrap-anywhere">
+					{category.slug}
+				</code>
 			</div>
-			<Button
-				variant="ghost"
-				size="sm"
-				className="size-9 p-0"
-				onClick={() => onEdit(category)}
-				aria-label={`Rename ${category.label}`}
-			>
-				<Pencil className="size-4" aria-hidden="true" />
-			</Button>
-			{category.is_default ? (
-				<TooltipProvider delayDuration={150}>
+			<div className="ml-auto flex items-center gap-3">
+				<Button
+					variant="ghost"
+					size="sm"
+					className="size-9 p-0"
+					onClick={() => onEdit(category)}
+					aria-label={`Rename ${category.label}`}
+				>
+					<Pencil className="size-4" aria-hidden="true" />
+				</Button>
+				{category.is_default ? (
 					<Tooltip>
 						<TooltipTrigger asChild>
-							<span tabIndex={0}>
-								<Button
-									variant="ghost"
-									size="sm"
-									className="size-9 p-0 text-muted-foreground"
-									disabled
-									aria-label="Default categories can't be deleted"
-								>
-									<Trash2 className="size-4" aria-hidden="true" />
-								</Button>
-							</span>
+							{/* One focusable control: `aria-disabled` rather than `disabled`,
+							    so the button keeps its tab stop and pointer events and the
+							    tooltip opens on focus and hover alike. It has no handler. */}
+							<Button
+								variant="ghost"
+								size="sm"
+								className="size-9 cursor-not-allowed p-0 text-muted-foreground opacity-50 hover:bg-transparent hover:text-muted-foreground dark:hover:bg-transparent dark:hover:text-muted-foreground"
+								aria-disabled="true"
+								aria-label={`Delete ${category.label}`}
+							>
+								<Trash2 className="size-4" aria-hidden="true" />
+							</Button>
 						</TooltipTrigger>
 						<TooltipContent>
 							Default categories can&rsquo;t be deleted.
 						</TooltipContent>
 					</Tooltip>
-				</TooltipProvider>
-			) : (
-				<Button
-					variant="ghost"
-					size="sm"
-					className="size-9 p-0"
-					onClick={() => onDelete(category)}
-					aria-label={`Delete ${category.label}`}
-				>
-					<Trash2 className="size-4" aria-hidden="true" />
-				</Button>
-			)}
+				) : (
+					<Button
+						variant="ghost"
+						size="sm"
+						className="size-9 p-0"
+						onClick={() => onDelete(category)}
+						aria-label={`Delete ${category.label}`}
+					>
+						<Trash2 className="size-4" aria-hidden="true" />
+					</Button>
+				)}
+			</div>
 		</li>
 	);
 }

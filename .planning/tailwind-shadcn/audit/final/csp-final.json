@@ -1,0 +1,93 @@
+{
+  "build": "capture-3062",
+  "control": "same-session git archive 754c91802 build (capture-3062 origin), same probe",
+  "routes": [
+    {
+      "route": "/login",
+      "status": 200,
+      "nonceCsp": true,
+      "consoleCspErrors": [],
+      "violations": [
+        {
+          "directive": "script-src",
+          "blocked": "eval",
+          "source": "02w0d8rlgrux_.js:2:4409",
+          "disposition": "enforce"
+        }
+      ],
+      "count": 1
+    },
+    {
+      "route": "/auth/confirm-email",
+      "status": 200,
+      "nonceCsp": true,
+      "consoleCspErrors": [],
+      "violations": [],
+      "count": 0
+    },
+    {
+      "route": "/auth/update-password",
+      "status": 200,
+      "nonceCsp": true,
+      "consoleCspErrors": [],
+      "violations": [
+        {
+          "directive": "script-src",
+          "blocked": "eval",
+          "source": "02w0d8rlgrux_.js:2:4409",
+          "disposition": "enforce"
+        }
+      ],
+      "count": 1
+    }
+  ],
+  "controlRoutes": [
+    {
+      "route": "/login",
+      "status": 200,
+      "nonceCsp": true,
+      "consoleCspErrors": [],
+      "violations": [
+        {
+          "directive": "script-src",
+          "blocked": "eval",
+          "source": "02w0d8rlgrux_.js:2:4409",
+          "disposition": "enforce"
+        }
+      ],
+      "count": 1
+    },
+    {
+      "route": "/auth/confirm-email",
+      "status": 200,
+      "nonceCsp": true,
+      "consoleCspErrors": [],
+      "violations": [],
+      "count": 0
+    },
+    {
+      "route": "/auth/update-password",
+      "status": 200,
+      "nonceCsp": true,
+      "consoleCspErrors": [],
+      "violations": [
+        {
+          "directive": "script-src",
+          "blocked": "eval",
+          "source": "02w0d8rlgrux_.js:2:4409",
+          "disposition": "enforce"
+        }
+      ],
+      "count": 1
+    }
+  ],
+  "rawViolations": 2,
+  "controlViolations": 2,
+  "beyondControl": [],
+  "ownerManifestCspErrors": 0,
+  "sidebarManifestCspErrors": 0,
+  "total": 0,
+  "note": "total counts violations beyond the same-session 754c91802 control (Execution mode CSP rule (2)); both trees report the same zod 4 Function(\"\") eval probe on /login and /auth/update-password (chunk 02w0d8rlgrux_.js:2:4409)",
+  "proxyUnchanged": true,
+  "themeProviderTagIdentical": true
+}

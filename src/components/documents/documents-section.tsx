@@ -35,6 +35,7 @@ import { useDocumentCategories } from "#hooks/api/use-document-categories";
 import {
 	handleMutationError,
 	showStorageQuotaUpgradeToast,
+	userFacingErrorMessage,
 } from "#lib/mutation-error-handler";
 import {
 	isStoragePlanLimitError,
@@ -181,7 +182,10 @@ export function DocumentsSection({
 		// owners must still upload; the DB trigger is authoritative). A usage-read
 		// failure must never block the upload either.
 		try {
-			const usage = await queryClient.ensureQueryData(usageQueries.storage());
+			const usage = await queryClient.query({
+				...usageQueries.storage(),
+				staleTime: "static",
+			});
 			const totalIncomingBytes = valid.reduce((sum, f) => sum + f.size, 0);
 			if (wouldExceedStorageQuota(usage, totalIncomingBytes)) {
 				showStorageQuotaUpgradeToast();
@@ -213,7 +217,7 @@ export function DocumentsSection({
 					handleMutationError(err, "Upload document");
 				} else {
 					failures.push(
-						`${file.name}: ${err instanceof Error ? err.message : "unknown error"}`,
+						`${file.name}: ${userFacingErrorMessage(err, "Upload failed")}`,
 					);
 				}
 			}
@@ -248,7 +252,7 @@ export function DocumentsSection({
 			toast.success("Document removed");
 		} catch (err) {
 			toast.error("Failed to remove document", {
-				description: err instanceof Error ? err.message : "Please try again.",
+				description: userFacingErrorMessage(err, "Please try again."),
 			});
 		} finally {
 			// Always close the preview dialog and clear the in-flight flag,
@@ -270,7 +274,7 @@ export function DocumentsSection({
 
 	return (
 		<Card>
-			<CardHeader className="flex flex-row items-start justify-between space-y-0 gap-3">
+			<CardHeader className="flex flex-row flex-wrap items-start justify-between space-y-0 gap-3">
 				<div>
 					<CardTitle>
 						Documents
@@ -284,7 +288,7 @@ export function DocumentsSection({
 						Attach PDFs or images you want to keep alongside this {entityLabel}.
 					</CardDescription>
 				</div>
-				<div className="flex items-center gap-2">
+				<div className="flex flex-wrap items-center gap-2">
 					<Select
 						value={category}
 						onValueChange={(value) => setCategory(value as DocumentCategory)}
@@ -292,7 +296,7 @@ export function DocumentsSection({
 					>
 						<SelectTrigger
 							size="sm"
-							className="w-[180px]"
+							className="w-45"
 							aria-label="Category for next upload"
 						>
 							<SelectValue
@@ -382,7 +386,7 @@ export function DocumentsSection({
 								displayed. Pagination arrives in a later release.
 							</p>
 						)}
-						<ul className="divide-y divide-border">
+						<ul className="divide-y divide-border pl-0 mt-0 mb-0 [&>li]:mb-0">
 							{documents?.map((doc) => (
 								<DocumentRow
 									key={doc.id}

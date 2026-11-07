@@ -2,11 +2,12 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle, Eye, EyeOff, Loader2 } from "lucide-react";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { BlurFade } from "#components/ui/blur-fade";
 import { VALIDATION_LIMITS } from "#lib/constants/billing";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import {
@@ -56,19 +57,17 @@ export function PasswordSection() {
 			setConfirmPassword("");
 		},
 		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to update password",
-			);
+			handleMutationError(error, "Update password");
 		},
 	});
 
-	const handlePasswordSubmit = (e: FormEvent) => {
+	const handlePasswordSubmit = (e: SubmitEvent) => {
 		e.preventDefault();
 		updatePassword.mutate();
 	};
 
 	return (
-		<BlurFade delay={0.15} inView>
+		<BlurFade delay={0.15}>
 			<section className="rounded-lg border bg-card p-6">
 				<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
 					Password
@@ -170,7 +169,7 @@ export function PasswordSection() {
 								newPassword.length < VALIDATION_LIMITS.PASSWORD_MIN_LENGTH ||
 								!PASSWORD_COMPLEXITY_RE.test(newPassword)
 							}
-							className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+							className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary-text dark:hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
 						>
 							{updatePassword.isPending ? (
 								<span className="flex items-center gap-2">

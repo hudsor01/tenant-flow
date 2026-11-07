@@ -10,7 +10,7 @@ import {
 	TrendingDown,
 	TrendingUp,
 } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Button } from "#components/ui/button";
 import {
@@ -25,6 +25,11 @@ import { useTaxDocuments } from "#hooks/api/use-expense-mutations";
 import { useDownloadTaxDocumentPdf } from "#hooks/api/use-report-mutations";
 import { createLogger } from "#lib/frontend-logger";
 import { formatCurrency } from "#lib/utils/currency";
+import {
+	DEDUCTIBILITY_NOTE,
+	EXPENSES_BY_VENDOR_SECTION,
+} from "../../../../../supabase/functions/_shared/tax-year-reports";
+import { LedgerTotalsUnavailable } from "../ledger-totals-unavailable";
 
 const logger = createLogger({ component: "TaxDocumentsPage" });
 
@@ -35,8 +40,14 @@ const TAX_YEARS = Array.from(
 
 export default function TaxDocumentsPage() {
 	const [taxYear, setTaxYear] = useState(new Date().getFullYear());
-	const { data, isLoading, error, refetch } = useTaxDocuments(taxYear);
+	const { data: result, isLoading, error, refetch } = useTaxDocuments(taxYear);
+	// When get_billing_insights returns none of the ledger figures the tax
+	// year's income comes from (its body before 20261102055449), the query
+	// says so rather than handing the page a $0 gross income.
+	const ledgerUnavailable = result?.status === "ledger-unavailable";
+	const data = result?.status === "ready" ? result.documents : undefined;
 	const downloadPdfMutation = useDownloadTaxDocumentPdf();
+	const pdfReasonId = useId();
 
 	if (isLoading) {
 		return (
@@ -76,9 +87,7 @@ export default function TaxDocumentsPage() {
 							Failed to load tax documents
 						</p>
 						<p className="text-sm text-muted-foreground mt-1">
-							{error instanceof Error
-								? error.message
-								: "An unexpected error occurred"}
+							An unexpected error occurred
 						</p>
 					</div>
 					<Button variant="outline" onClick={() => refetch()}>
@@ -90,21 +99,34 @@ export default function TaxDocumentsPage() {
 		);
 	}
 
+	// Rent received is the ledger's for the year, so a reversal posted in it can
+	// leave it below zero: that is a figure to show, as the year-end page does.
 	const hasData =
 		data &&
-		(data.totals.totalIncome > 0 ||
-			data.totals.totalDeductions > 0 ||
+		(data.totals.totalIncome !== 0 ||
+			data.totals.totalExpenses > 0 ||
 			data.expenseCategories.length > 0);
+
+	// aria-disabled, not disabled, keeps the tab stop so the reason stays
+	// reachable (as the statements' ReportExportButton does); the click is
+	// ignored while it is set, and while a PDF is generating.
+	const pdfUnavailableReason = ledgerUnavailable
+		? "The rent ledger totals the tax documents are built on aren't available yet."
+		: !hasData
+			? `No rent received or expenses recorded for tax year ${taxYear}.`
+			: null;
+	const pdfBlocked =
+		pdfUnavailableReason !== null || downloadPdfMutation.isPending;
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
 			{/* Header */}
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Tax Documents</h1>
-						<p className="text-muted-foreground">
-							Tax summary and deductions for your rental properties.
+						<p className="mb-0 text-muted-foreground">
+							Rent received and expenses for a tax year, for your tax preparer.
 						</p>
 					</div>
 					<div className="flex items-center gap-2">
@@ -112,7 +134,10 @@ export default function TaxDocumentsPage() {
 							value={taxYear.toString()}
 							onValueChange={(v) => setTaxYear(parseInt(v, 10))}
 						>
-							<SelectTrigger className="w-[130px]">
+							<SelectTrigger
+								className="w-32.5"
+								aria-label={`${taxYear} (tax year)`}
+							>
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -127,10 +152,21 @@ export default function TaxDocumentsPage() {
 						<Button
 							variant="outline"
 							size="sm"
-							className="gap-1.5 min-h-11"
-							onClick={() => downloadPdfMutation.mutate(taxYear)}
-							disabled={downloadPdfMutation.isPending || isLoading || !hasData}
-							aria-label="Download tax documents as PDF"
+							className="gap-1.5 min-h-11 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+							onClick={
+								pdfBlocked
+									? undefined
+									: () => downloadPdfMutation.mutate(taxYear)
+							}
+							aria-disabled={pdfBlocked || undefined}
+							aria-describedby={
+								pdfUnavailableReason !== null ? pdfReasonId : undefined
+							}
+							aria-label={
+								downloadPdfMutation.isPending
+									? "Generating..."
+									: "Download PDF of the tax documents"
+							}
 						>
 							{downloadPdfMutation.isPending ? (
 								<Loader2 className="size-4 animate-spin" />
@@ -139,12 +175,22 @@ export default function TaxDocumentsPage() {
 							)}
 							{downloadPdfMutation.isPending ? "Generating..." : "Download PDF"}
 						</Button>
+						{pdfUnavailableReason !== null ? (
+							<span id={pdfReasonId} className="sr-only">
+								{pdfUnavailableReason}
+							</span>
+						) : null}
 					</div>
 				</div>
 			</BlurFade>
 
-			{!hasData ? (
-				<BlurFade delay={0.15} inView>
+			{ledgerUnavailable ? (
+				<LedgerTotalsUnavailable
+					description="Rent received for the tax year comes from your rent ledger."
+					onRetryAction={() => void refetch()}
+				/>
+			) : !hasData ? (
+				<BlurFade delay={0.15}>
 					<div className="flex flex-col items-center justify-center py-16 text-center">
 						<div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
 							<FileText className="w-8 h-8 text-muted-foreground" />
@@ -158,19 +204,22 @@ export default function TaxDocumentsPage() {
 			) : (
 				<>
 					{/* Summary Cards */}
-					<BlurFade delay={0.15} inView>
+					<BlurFade delay={0.15}>
+						{/* mb-0 on every figure and label: each pair is a flex item, so
+						    the base `p` margin would stay inside it and add 16px
+						    between the two and 16px under the label. */}
 						<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
 							<div className="p-4 rounded-lg border border-border bg-card">
 								<div className="flex items-center gap-3">
-									<div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-										<TrendingUp className="w-5 h-5 text-emerald-600" />
+									<div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+										<TrendingUp className="w-5 h-5 text-success-text" />
 									</div>
 									<div>
-										<p className="text-xl font-semibold tabular-nums">
+										<p className="mb-0 text-xl font-semibold tabular-nums">
 											{formatCurrency(data.totals.totalIncome)}
 										</p>
-										<p className="text-sm text-muted-foreground">
-											Gross Income
+										<p className="mb-0 text-sm text-muted-foreground">
+											Rent Received
 										</p>
 									</div>
 								</div>
@@ -178,15 +227,15 @@ export default function TaxDocumentsPage() {
 
 							<div className="p-4 rounded-lg border border-border bg-card">
 								<div className="flex items-center gap-3">
-									<div className="w-10 h-10 rounded-lg bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
-										<TrendingDown className="w-5 h-5 text-rose-600" />
+									<div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
+										<TrendingDown className="w-5 h-5 text-destructive-text" />
 									</div>
 									<div>
-										<p className="text-xl font-semibold tabular-nums">
-											{formatCurrency(data.totals.totalDeductions)}
+										<p className="mb-0 text-xl font-semibold tabular-nums">
+											{formatCurrency(data.totals.totalExpenses)}
 										</p>
-										<p className="text-sm text-muted-foreground">
-											Total Deductions
+										<p className="mb-0 text-sm text-muted-foreground">
+											Operating Expenses
 										</p>
 									</div>
 								</div>
@@ -194,15 +243,15 @@ export default function TaxDocumentsPage() {
 
 							<div className="p-4 rounded-lg border border-border bg-card">
 								<div className="flex items-center gap-3">
-									<div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-										<Calendar className="w-5 h-5 text-blue-600" />
+									<div className="w-10 h-10 rounded-lg bg-info/10 flex items-center justify-center">
+										<Calendar className="w-5 h-5 text-info-text" />
 									</div>
 									<div>
-										<p className="text-xl font-semibold tabular-nums">
-											{formatCurrency(data.totals.netTaxableIncome)}
+										<p className="mb-0 text-xl font-semibold tabular-nums">
+											{formatCurrency(data.totals.netIncome)}
 										</p>
-										<p className="text-sm text-muted-foreground">
-											Net Taxable Income
+										<p className="mb-0 text-sm text-muted-foreground">
+											Net Income
 										</p>
 									</div>
 								</div>
@@ -210,84 +259,51 @@ export default function TaxDocumentsPage() {
 						</div>
 					</BlurFade>
 
-					{/* Expense Categories */}
+					{/* Expenses by vendor: TenantFlow does not decide deductibility. */}
 					{data.expenseCategories.length > 0 && (
-						<BlurFade delay={0.2} inView>
-							<div className="bg-card border border-border rounded-lg overflow-hidden mb-6">
+						<BlurFade delay={0.2}>
+							<section
+								aria-labelledby="tax-expenses-by-vendor"
+								className="bg-card border border-border rounded-lg overflow-hidden mb-6"
+							>
 								<div className="p-4 border-b border-border bg-muted/30">
-									<h3 className="font-medium text-foreground">
-										Deductible Expenses — Schedule E
+									<h3
+										id="tax-expenses-by-vendor"
+										className="font-medium text-foreground"
+									>
+										{EXPENSES_BY_VENDOR_SECTION}
 									</h3>
+									{/* mb-0: the last child of the p-4 box, where the base
+									    `p` margin cannot collapse past the padding. */}
+									<p className="mt-1 mb-0 text-sm text-muted-foreground">
+										{DEDUCTIBILITY_NOTE}
+									</p>
 								</div>
+								{/* Each row's name, amount and share take mb-0 together: the
+								    name and the amount column are flex items, so the base `p`
+								    margin stays inside each, and neutralizing the name alone
+								    would leave it 8px off the amount column's center line. */}
 								<div className="divide-y divide-border">
-									{data.expenseCategories
-										.filter((cat) => cat.deductible)
-										.map((cat) => (
-											<div
-												key={cat.category}
-												className="flex items-center justify-between p-4"
-											>
-												<div>
-													<p className="text-sm font-medium capitalize">
-														{cat.category.replace(/_/g, " ")}
-													</p>
-													{cat.notes && (
-														<p className="text-xs text-muted-foreground">
-															{cat.notes}
-														</p>
-													)}
-												</div>
-												<div className="text-right">
-													<p className="text-sm font-medium tabular-nums">
-														{formatCurrency(cat.amount)}
-													</p>
-													<p className="text-xs text-muted-foreground">
-														{cat.percentage.toFixed(1)}% of expenses
-													</p>
-												</div>
-											</div>
-										))}
-								</div>
-							</div>
-						</BlurFade>
-					)}
-
-					{/* Property Depreciation */}
-					{data.propertyDepreciation.length > 0 && (
-						<BlurFade delay={0.25} inView>
-							<div className="bg-card border border-border rounded-lg overflow-hidden">
-								<div className="p-4 border-b border-border bg-muted/30">
-									<h3 className="font-medium text-foreground">
-										Property Depreciation
-									</h3>
-								</div>
-								<div className="divide-y divide-border">
-									{data.propertyDepreciation.map((prop) => (
+									{data.expenseCategories.map((cat) => (
 										<div
-											key={prop.property_id}
-											className="flex items-center justify-between p-4"
+											key={cat.category}
+											className="flex items-center justify-between gap-4 p-4"
 										>
-											<div>
-												<p className="text-sm font-medium">
-													{prop.propertyName}
+											<p className="mb-0 min-w-0 wrap-break-word text-sm font-medium">
+												{cat.category}
+											</p>
+											<div className="shrink-0 text-right">
+												<p className="mb-0 text-sm font-medium tabular-nums">
+													{formatCurrency(cat.amount)}
 												</p>
-												<p className="text-xs text-muted-foreground">
-													Basis: {formatCurrency(prop.propertyValue)}
-												</p>
-											</div>
-											<div className="text-right">
-												<p className="text-sm font-medium tabular-nums">
-													{formatCurrency(prop.annualDepreciation)}/yr
-												</p>
-												<p className="text-xs text-muted-foreground">
-													Accumulated:{" "}
-													{formatCurrency(prop.accumulatedDepreciation)}
+												<p className="mb-0 text-xs text-muted-foreground">
+													{cat.percentage.toFixed(1)}% of expenses
 												</p>
 											</div>
 										</div>
 									))}
 								</div>
-							</div>
+							</section>
 						</BlurFade>
 					)}
 				</>

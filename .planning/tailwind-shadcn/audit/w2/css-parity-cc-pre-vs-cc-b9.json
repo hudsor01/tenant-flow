@@ -1,0 +1,28 @@
+{
+ "baseline": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-12/cc-pre.json",
+ "current": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-12/cc-b9.json",
+ "strict": true,
+ "total": 1887,
+ "identical": 1885,
+ "changed": 2,
+ "counts": {
+  "spacing-equivalent": 0,
+  "color-inline": 0,
+  "added": 0,
+  "removed": 0,
+  "unclassified": 0,
+  "intended:b9-outside-src": 2
+ },
+ "lists": {
+  "spacing-equivalent": [],
+  "color-inline": [],
+  "added": [],
+  "removed": [],
+  "unclassified": [],
+  "intended:b9-outside-src": [
+   "invert",
+   "table-column"
+  ]
+ },
+ "unclassified": []
+}

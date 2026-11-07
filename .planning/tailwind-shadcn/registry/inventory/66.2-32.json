@@ -1,0 +1,43 @@
+{
+  "label": "66.2-32",
+  "generatedAt": "2026-10-31T22:40:24.355Z",
+  "files": [
+    {
+      "file": "src/components/ui/sidebar.tsx",
+      "item": "sidebar",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 38,
+      "normalizedDiffPath": "/var/folders/97/49l0bl6s2tngpfqhd13nv9w80000gn/T/tw-66.2-32/inv/src__components__ui__sidebar.tsx.diff",
+      "missingExports": [
+        "SidebarGroupAction",
+        "SidebarGroupContent",
+        "SidebarGroupLabel",
+        "SidebarInput",
+        "SidebarInset",
+        "SidebarMenuAction",
+        "SidebarMenuBadge",
+        "SidebarMenuSkeleton"
+      ],
+      "missingDataSlots": [
+        "sidebar-inset",
+        "sidebar-input",
+        "sidebar-group-label",
+        "sidebar-group-action",
+        "sidebar-group-content",
+        "sidebar-menu-action",
+        "sidebar-menu-badge",
+        "sidebar-menu-skeleton"
+      ],
+      "registered": true,
+      "divergenceCount": 23
+    }
+  ],
+  "counts": {
+    "inSync": 0,
+    "divergent": 1,
+    "nonRegistry": 0
+  },
+  "problems": []
+}

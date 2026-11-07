@@ -205,7 +205,7 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 					href={docFallbackUrl}
 					target="_blank"
 					rel="noopener noreferrer"
-					className="block text-center text-sm text-primary underline"
+					className="block text-center text-sm text-primary-text underline"
 					data-testid="view-lease-fallback-link"
 				>
 					Your browser blocked the document window — open the lease here

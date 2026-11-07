@@ -168,6 +168,19 @@ describe("PropertyImageGallery Component", () => {
 			const primaryBadges = screen.getAllByText(/primary/i);
 			expect(primaryBadges.length).toBe(1);
 		});
+
+		// 66.2-39 VD-56: the badge keeps the default Badge pair. A named white
+		// label read 2.75:1 on the dark bg-primary; text-primary-foreground reads
+		// 4.88:1 light and 6.84:1 dark.
+		it("labels the primary badge in the primary-foreground token", () => {
+			render(<PropertyImageGallery propertyId="prop-123" />, {
+				wrapper: createWrapper(),
+			});
+
+			const badge = screen.getByText("Primary");
+			expect(badge).toHaveClass("bg-primary", "text-primary-foreground");
+			expect(badge).not.toHaveClass("text-white");
+		});
 	});
 
 	describe("Empty State", () => {

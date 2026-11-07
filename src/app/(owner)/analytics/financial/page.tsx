@@ -4,12 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { BarChart3, PieChart } from "lucide-react";
 import dynamic from "next/dynamic";
 import { RefreshableAnalytics } from "#app/(owner)/analytics/refreshable-analytics";
+import { LeaseProfitabilityTable } from "#components/analytics/lease-profitability-table";
 import { OwnerPaymentSummary } from "#components/analytics/owner-payment-summary";
 import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
 import { ExportButtons } from "#components/shared/export-buttons";
 import { BlurFade } from "#components/ui/blur-fade";
 import { analyticsQueries } from "#hooks/api/use-analytics";
-import { EMPTY_PAYMENT_SUMMARY } from "#types/api-contracts";
 
 const RevenueExpenseChart = dynamic(
 	() =>
@@ -22,22 +22,15 @@ const NetOperatingIncomeChart = dynamic(
 	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
 );
 
-const BillingTimelineChart = dynamic(
-	() => import("./financial-charts").then((mod) => mod.BillingTimelineChart),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
-);
-
 import { BreakdownList } from "./_components/breakdown-list";
 import { FinancialAnalyticsSkeleton } from "./_components/financial-analytics-skeleton";
 import { FinancialOverviewStats } from "./_components/financial-overview-stats";
-import { InvoiceSummaryList } from "./_components/invoice-summary-list";
-import { LeaseTable } from "./_components/lease-table";
 
 export default function FinancialAnalyticsPage() {
 	const { data, isLoading, isError } = useQuery(
 		analyticsQueries.financialPageData(),
 	);
-	const { data: paymentSummary = EMPTY_PAYMENT_SUMMARY } = useQuery(
+	const { data: paymentSummary, isError: paymentSummaryError } = useQuery(
 		analyticsQueries.ownerPaymentSummary(),
 	);
 
@@ -58,7 +51,7 @@ export default function FinancialAnalyticsPage() {
 					<button
 						type="button"
 						onClick={() => window.location.reload()}
-						className="inline-flex items-center gap-2 px-4 py-2 min-h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
+						className="inline-flex items-center gap-2 px-4 py-2 min-h-11 bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
 					>
 						Refresh Page
 					</button>
@@ -71,36 +64,29 @@ export default function FinancialAnalyticsPage() {
 		metrics = {
 			totalRevenue: 0,
 			totalCollected: 0,
-			totalExpenses: 0,
 			netIncome: 0,
-			cashFlow: 0,
 		},
-		breakdown = { revenue: [], expenses: [] },
+		breakdown = { expenses: [] },
 		netOperatingIncome = [],
-		billingInsights = {
-			points: [],
-			totals: { invoiced: 0, paid: 0, overdue: 0 },
-		},
-		invoiceSummary = [],
 		monthlyMetrics = [],
-		leaseAnalytics = [],
+		leaseProfitability = { status: "unavailable" } as const,
 	} = data || {};
 
 	return (
 		<RefreshableAnalytics cooldownSeconds={30}>
 			<div className="p-6 lg:p-8 bg-background min-h-full">
 				{/* Header */}
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 						<div>
 							<h1 className="typography-h1">Financial Analytics</h1>
-							<p className="text-muted-foreground">
-								Track revenue, profitability, and portfolio cash flow in real
-								time.
+							<p className="mb-0 text-muted-foreground">
+								Scheduled rent, rent collected and expenses across your
+								portfolio.
 							</p>
 						</div>
 						<div className="flex flex-wrap items-center gap-3">
-							<ExportButtons filename="financial-analytics" payload={data} />
+							<ExportButtons />
 						</div>
 					</div>
 				</BlurFade>
@@ -109,23 +95,28 @@ export default function FinancialAnalyticsPage() {
 				<FinancialOverviewStats metrics={metrics} />
 
 				{/* Payment Summary */}
-				<BlurFade delay={0.55} inView>
+				<BlurFade delay={0.55}>
 					<div className="mb-8">
-						<OwnerPaymentSummary summary={paymentSummary} />
+						<OwnerPaymentSummary
+							summary={paymentSummary}
+							isError={paymentSummaryError}
+						/>
 					</div>
 				</BlurFade>
 
-				{/* Charts Row 1: Revenue & Expenses + Breakdowns */}
+				{/* Charts Row 1: Scheduled Rent & Expenses + the expense breakdown. No
+				    revenue breakdown: received rent is not split by type anywhere,
+				    and the charged split is the income statement's own page. */}
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-					<BlurFade delay={0.6} inView>
-						<div className="lg:col-span-2 bg-card border border-border rounded-lg p-6">
+					<BlurFade delay={0.6} className="lg:col-span-2">
+						<div className="bg-card border border-border rounded-lg p-6">
 							<div className="flex items-center justify-between mb-6">
 								<div>
 									<h3 className="font-medium text-foreground">
-										Revenue & Expenses
+										Scheduled Rent & Expenses
 									</h3>
-									<p className="text-sm text-muted-foreground">
-										Monthly breakdown of income and costs
+									<p className="mb-0 text-sm text-muted-foreground">
+										Each month&apos;s scheduled rent (not received) and expenses
 									</p>
 								</div>
 								<BarChart3 className="w-5 h-5 text-muted-foreground" />
@@ -135,38 +126,23 @@ export default function FinancialAnalyticsPage() {
 					</BlurFade>
 
 					<div className="space-y-6">
-						<BlurFade delay={0.7} inView>
-							<div className="bg-card border border-border rounded-lg p-6">
-								<div className="flex items-center justify-between mb-4">
-									<div>
-										<h3 className="font-medium text-foreground">
-											Revenue Breakdown
-										</h3>
-										<p className="text-sm text-muted-foreground">By category</p>
-									</div>
-									<PieChart className="w-5 h-5 text-muted-foreground" />
-								</div>
-								<BreakdownList
-									title="Revenue Sources"
-									rows={breakdown.revenue}
-									detailsHref="/reports/income-statement"
-								/>
-							</div>
-						</BlurFade>
-
-						<BlurFade delay={0.8} inView>
+						<BlurFade delay={0.7}>
 							<div className="bg-card border border-border rounded-lg p-6">
 								<div className="flex items-center justify-between mb-4">
 									<div>
 										<h3 className="font-medium text-foreground">
 											Expense Breakdown
 										</h3>
-										<p className="text-sm text-muted-foreground">By category</p>
+										{/* get_expense_summary's categories are vendor names, over
+										    its default period: January 1 through today. */}
+										<p className="mb-0 text-sm text-muted-foreground">
+											By vendor, year to date
+										</p>
 									</div>
 									<PieChart className="w-5 h-5 text-muted-foreground" />
 								</div>
 								<BreakdownList
-									title="Expense Categories"
+									title="Vendors"
 									rows={breakdown.expenses}
 									detailsHref="/reports/expenses"
 								/>
@@ -175,17 +151,15 @@ export default function FinancialAnalyticsPage() {
 					</div>
 				</div>
 
-				{/* Charts Row 2: NOI & Lease Profitability */}
+				{/* Charts Row 2: Scheduled Net & Lease Profitability */}
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-					<BlurFade delay={0.9} inView>
+					<BlurFade delay={0.9}>
 						<div className="bg-card border border-border rounded-lg p-6">
 							<div className="flex items-center justify-between mb-6">
 								<div>
-									<h3 className="font-medium text-foreground">
-										Net Operating Income
-									</h3>
-									<p className="text-sm text-muted-foreground">
-										Revenue minus operating expenses over time
+									<h3 className="font-medium text-foreground">Scheduled Net</h3>
+									<p className="mb-0 text-sm text-muted-foreground">
+										Scheduled rent less expenses, by month
 									</p>
 								</div>
 								<BarChart3 className="w-5 h-5 text-muted-foreground" />
@@ -194,55 +168,22 @@ export default function FinancialAnalyticsPage() {
 						</div>
 					</BlurFade>
 
-					<BlurFade delay={1.0} inView>
+					<BlurFade delay={1.0}>
 						<div className="bg-card border border-border rounded-lg p-6">
 							<div className="flex items-center justify-between mb-6">
 								<div>
 									<h3 className="font-medium text-foreground">
 										Lease Profitability
 									</h3>
-									<p className="text-sm text-muted-foreground">
-										Top performing leases by profitability score
+									<p className="mb-0 text-sm text-muted-foreground">
+										Each lease&apos;s rent received less its expenses
 									</p>
 								</div>
 							</div>
-							<LeaseTable leases={leaseAnalytics} />
-						</div>
-					</BlurFade>
-				</div>
-
-				{/* Charts Row 3: Billing & Invoice Summary */}
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-					<BlurFade delay={1.1} inView>
-						<div className="bg-card border border-border rounded-lg p-6">
-							<div className="flex items-center justify-between mb-6">
-								<div>
-									<h3 className="font-medium text-foreground">
-										Billing Timeline
-									</h3>
-									<p className="text-sm text-muted-foreground">
-										Invoice status and payment patterns
-									</p>
-								</div>
-								<BarChart3 className="w-5 h-5 text-muted-foreground" />
-							</div>
-							<BillingTimelineChart data={billingInsights} />
-						</div>
-					</BlurFade>
-
-					<BlurFade delay={1.2} inView>
-						<div className="bg-card border border-border rounded-lg p-6">
-							<div className="flex items-center justify-between mb-6">
-								<div>
-									<h3 className="font-medium text-foreground">
-										Invoice Summary
-									</h3>
-									<p className="text-sm text-muted-foreground">
-										Status breakdown
-									</p>
-								</div>
-							</div>
-							<InvoiceSummaryList invoiceSummary={invoiceSummary} />
+							<LeaseProfitabilityTable
+								profitability={leaseProfitability}
+								pageSize={6}
+							/>
 						</div>
 					</BlurFade>
 				</div>

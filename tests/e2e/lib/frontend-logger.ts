@@ -7,7 +7,7 @@
  */
 
 // TypeScript interfaces for structured logging
-export interface LogContext {
+interface LogContext {
 	component?: string;
 	action?: string;
 	user_id?: string;
@@ -18,7 +18,7 @@ export interface LogContext {
 	[key: string]: unknown;
 }
 
-export interface LogEntry {
+interface LogEntry {
 	level: LogLevel;
 	message: string;
 	context?: LogContext;
@@ -26,7 +26,7 @@ export interface LogEntry {
 	args?: unknown[];
 }
 
-export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
+type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 
 // Environment checks
 const isDevelopment = () => process.env["NODE_ENV"] === "development";
@@ -143,9 +143,3 @@ export const createLogger = (defaultContext?: LogContext) => {
 		},
 	};
 };
-
-/**
- * Default logger instance
- * Use this for quick logging without component context
- */
-export const logger = createLogger();

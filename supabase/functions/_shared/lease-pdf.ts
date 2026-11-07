@@ -272,7 +272,9 @@ class Layout {
  * Render the lease PDF. When both parties have a `signedAt`, an electronic
  * signature audit certificate is appended. Returns the raw PDF bytes.
  */
-export async function renderLeasePdf(data: LeasePdfData): Promise<Uint8Array> {
+export async function renderLeasePdf(
+	data: LeasePdfData,
+): Promise<Uint8Array<ArrayBuffer>> {
 	const doc = await PDFDocument.create();
 	doc.setTitle("Residential Lease Agreement");
 	doc.setProducer("TenantFlow");
@@ -332,5 +334,8 @@ export async function renderLeasePdf(data: LeasePdfData): Promise<Uint8Array> {
 		);
 	}
 
-	return doc.save();
+	// pdf-lib declares save() as Promise<Uint8Array>, which TypeScript reads as
+	// ArrayBufferLike-backed; its writer fills a `new Uint8Array(size)`, so the
+	// bytes always sit on a plain ArrayBuffer, the BufferSource and BodyInit form.
+	return doc.save() as Promise<Uint8Array<ArrayBuffer>>;
 }

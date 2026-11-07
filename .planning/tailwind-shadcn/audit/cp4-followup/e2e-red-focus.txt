@@ -1,0 +1,120 @@
+$ bunx playwright test --config tests/e2e/playwright.config.ts "--project=owner-axe" "--reporter=list" "--max-failures=0" --grep "WCAG 2.4.11"
+◇ injected env (0) from tests/e2e/.env.test
+
+Running 1 test using 1 worker
+
+◇ injected env (0) from tests/e2e/.env.test
+  ✘  1 [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1764:2 › CP-4 follow-up: dashboard layout at every rail state › a quick action focused by Tab under the dock scrolls clear of it (WCAG 2.4.11) (6.5s)
+
+
+  1) [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1764:2 › CP-4 follow-up: dashboard layout at every rail state › a quick action focused by Tab under the dock scrolls clear of it (WCAG 2.4.11) 
+
+    Error: 1024px expanded: the focused quick action ends above the dock
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 678.5
+    Received:    768
+
+      1818 | 					`${where}: the focused quick action ends above the dock`,
+      1819 | 				)
+    > 1820 | 				.toBeLessThanOrEqual(dockAfter.y + 0.5);
+           | 				 ^
+      1821 | 		}
+      1822 | 		expect(errors).toEqual([]);
+      1823 | 	});
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1820:6
+
+    Error: 1024px collapsed: the focused quick action ends above the dock
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 678.5
+    Received:    768
+
+      1818 | 					`${where}: the focused quick action ends above the dock`,
+      1819 | 				)
+    > 1820 | 				.toBeLessThanOrEqual(dockAfter.y + 0.5);
+           | 				 ^
+      1821 | 		}
+      1822 | 		expect(errors).toEqual([]);
+      1823 | 	});
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1820:6
+
+    Error: 1280px expanded: the focused quick action ends above the dock
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 630.5
+    Received:    720
+
+      1818 | 					`${where}: the focused quick action ends above the dock`,
+      1819 | 				)
+    > 1820 | 				.toBeLessThanOrEqual(dockAfter.y + 0.5);
+           | 				 ^
+      1821 | 		}
+      1822 | 		expect(errors).toEqual([]);
+      1823 | 	});
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1820:6
+
+    Error: 1280px collapsed: the focused quick action ends above the dock
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 630.5
+    Received:    696
+
+      1818 | 					`${where}: the focused quick action ends above the dock`,
+      1819 | 				)
+    > 1820 | 				.toBeLessThanOrEqual(dockAfter.y + 0.5);
+           | 				 ^
+      1821 | 		}
+      1822 | 		expect(errors).toEqual([]);
+      1823 | 	});
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1820:6
+
+    Error: 1440px expanded: the focused quick action ends above the dock
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 810.5
+    Received:    892
+
+      1818 | 					`${where}: the focused quick action ends above the dock`,
+      1819 | 				)
+    > 1820 | 				.toBeLessThanOrEqual(dockAfter.y + 0.5);
+           | 				 ^
+      1821 | 		}
+      1822 | 		expect(errors).toEqual([]);
+      1823 | 	});
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1820:6
+
+    Error: 1440px collapsed: the focused quick action ends above the dock
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 810.5
+    Received:    876
+
+      1818 | 					`${where}: the focused quick action ends above the dock`,
+      1819 | 				)
+    > 1820 | 				.toBeLessThanOrEqual(dockAfter.y + 0.5);
+           | 				 ^
+      1821 | 		}
+      1822 | 		expect(errors).toEqual([]);
+      1823 | 	});
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1820:6
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    tests/e2e/test-results/owner-app-shell-sidebar-CP-8a584-ls-clear-of-it-WCAG-2-4-11--owner-axe/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    tests/e2e/test-results/owner-app-shell-sidebar-CP-8a584-ls-clear-of-it-WCAG-2-4-11--owner-axe/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: tests/e2e/test-results/owner-app-shell-sidebar-CP-8a584-ls-clear-of-it-WCAG-2-4-11--owner-axe/error-context.md
+
+  1 failed
+    [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1764:2 › CP-4 follow-up: dashboard layout at every rail state › a quick action focused by Tab under the dock scrolls clear of it (WCAG 2.4.11) 
+error: script "test:e2e" exited with code 1

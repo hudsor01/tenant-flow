@@ -13,17 +13,24 @@ import type { ActivityItem } from "#types/activity";
 import type {
 	MetricTrend,
 	MonthlyRevenuePoint,
+	PortfolioTrends,
 	TimeSeriesDataPoint,
 } from "#types/analytics";
 import type { PropertyPerformance } from "#types/core";
 import type { PropertyPerformanceRpcResponse } from "#types/database-rpc";
 import type { DashboardStats } from "#types/stats";
 import type { Database } from "#types/supabase";
+import {
+	mapMetricTrend,
+	mapPortfolioTrends,
+} from "./query-keys/analytics-mappers";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 
 // Types exported for use-dashboard-hooks.ts
 export interface DashboardStatsData {
 	stats: DashboardStats;
+	/** The analytics overview's occupancy and revenue trends, with windows. */
+	portfolioTrends: PortfolioTrends;
 	metricTrends: {
 		occupancyRate: MetricTrend | null;
 		activeTenants: MetricTrend | null;
@@ -51,6 +58,7 @@ export interface DashboardActivityData {
 
 export type OwnerDashboardData = {
 	stats: DashboardStats;
+	portfolioTrends: PortfolioTrends;
 	activity: ActivityItem[];
 	metricTrends: {
 		occupancyRate: MetricTrend | null;
@@ -155,7 +163,7 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 
 	const result = jsonObject<{
 		stats: DashboardStats;
-		trends: Record<string, MetricTrend>;
+		trends: Record<string, unknown>;
 		time_series: Record<string, TimeSeriesDataPoint[]> & {
 			monthly_revenue_6mo?: MonthlyRevenuePoint[];
 		};
@@ -184,8 +192,9 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 		address_line1: row.address,
 		property_type: row.property_type,
 		status: mapPropertyPerformanceStatus(row.status),
-		trend: "stable",
-		trendPercentage: 0,
+		// No `trend` or `trendPercentage`: get_dashboard_data_v2 reports no
+		// property's change over time, and they were written "stable" and 0
+		// for every row and read by no screen (66.2-39).
 		// Defensive: until the `perf_open_maintenance` migration is applied in
 		// prod (see 20260523223626_phase2_open_maintenance_per_property.sql),
 		// the RPC may return undefined for this field. `?? 0` keeps the
@@ -196,12 +205,15 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 
 	return {
 		stats: result.stats,
+		portfolioTrends: mapPortfolioTrends(result.stats),
 		activity: (result.activities ?? []).map(mapDashboardActivityRow),
+		// Each trend at the boundary (mapMetricTrend): its window is the marker
+		// the chips key on, and a null percentChange means no prior figure.
 		metricTrends: {
-			occupancyRate: result.trends?.occupancy_rate ?? null,
-			activeTenants: result.trends?.active_tenants ?? null,
-			monthlyRevenue: result.trends?.monthly_revenue ?? null,
-			openMaintenance: result.trends?.open_maintenance ?? null,
+			occupancyRate: mapMetricTrend(result.trends?.occupancy_rate),
+			activeTenants: mapMetricTrend(result.trends?.active_tenants),
+			monthlyRevenue: mapMetricTrend(result.trends?.monthly_revenue),
+			openMaintenance: mapMetricTrend(result.trends?.open_maintenance),
 		},
 		timeSeries: {
 			occupancyRate: result.time_series?.occupancy_rate ?? [],

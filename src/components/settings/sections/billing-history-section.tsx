@@ -6,26 +6,29 @@ import { useBillingHistory } from "#hooks/api/use-billing";
 import { useBillingPortalMutation } from "#hooks/api/use-billing-mutations";
 import type { BillingHistoryItem } from "#types/api-contracts";
 
+/**
+ * An invoice's status as the owner reads it. `status` is already
+ * mapInvoiceStatus's four values (Stripe's open and draft read pending, void
+ * cancelled, uncollectible failed), so these are the only labels it can take.
+ */
+const INVOICE_STATUS_LABELS: Readonly<
+	Record<BillingHistoryItem["status"], string>
+> = {
+	succeeded: "Paid",
+	failed: "Failed",
+	cancelled: "Cancelled",
+	pending: "Pending",
+};
+
 function getStatusVisual(invoice: BillingHistoryItem) {
+	const label = INVOICE_STATUS_LABELS[invoice.status];
 	if (invoice.isSuccessful) {
-		return {
-			Icon: CheckCircle,
-			color: "text-success-text",
-			label: "Paid",
-		};
+		return { Icon: CheckCircle, color: "text-success-text", label };
 	}
 	if (invoice.status === "failed" || invoice.status === "cancelled") {
-		return {
-			Icon: XCircle,
-			color: "text-destructive-text",
-			label: invoice.status === "failed" ? "Failed" : "Cancelled",
-		};
+		return { Icon: XCircle, color: "text-destructive-text", label };
 	}
-	return {
-		Icon: Clock,
-		color: "text-muted-foreground",
-		label: invoice.status,
-	};
+	return { Icon: Clock, color: "text-muted-foreground", label };
 }
 
 export function BillingHistorySection() {
@@ -33,7 +36,7 @@ export function BillingHistorySection() {
 	const createPortalSession = useBillingPortalMutation();
 
 	return (
-		<BlurFade delay={0.35} inView>
+		<BlurFade delay={0.35}>
 			<section className="rounded-lg border bg-card p-6">
 				<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
 					Billing History
@@ -48,16 +51,13 @@ export function BillingHistorySection() {
 								const downloadHref =
 									invoice.invoice_pdf ?? invoice.hosted_invoice_url;
 								return (
-									<BlurFade key={invoice.id} delay={0.4 + idx * 0.05} inView>
-										<div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/30 transition-colors">
-											<div className="flex items-center gap-4">
-												<span className="text-sm font-medium">
-													{invoice.id.slice(0, 12)}
-												</span>
-												<span className="text-sm text-muted-foreground">
-													{invoice.formattedDate}
-												</span>
-											</div>
+									<BlurFade key={invoice.id} delay={0.4 + idx * 0.05}>
+										<div className="flex items-center justify-between p-3 rounded-lg border">
+											{/* The invoice by its date: the row led with the first 12
+											    characters of its Stripe id, a reference no owner can use. */}
+											<span className="text-sm font-medium">
+												{invoice.formattedDate}
+											</span>
 											<div className="flex items-center gap-4">
 												<span className="text-sm font-medium">
 													{invoice.formattedAmount}

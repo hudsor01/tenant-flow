@@ -9,6 +9,7 @@
 import { describe, expect, it } from "vitest";
 import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { mapCollectionRateRow } from "#hooks/api/use-owner-dashboard-financial";
+import { escapeRegExp } from "#test/utils/regexp-source";
 
 describe("mapCollectionRateRow", () => {
 	it("reads numeric-as-string dollars without scaling them", () => {
@@ -46,7 +47,9 @@ describe("mapCollectionRateRow", () => {
 				rate: 90,
 			};
 			delete row[field];
-			expect(() => mapCollectionRateRow(row)).toThrow(new RegExp(`'${field}'`));
+			expect(() => mapCollectionRateRow(row)).toThrow(
+				new RegExp(`'${escapeRegExp(field)}'`),
+			);
 		},
 	);
 

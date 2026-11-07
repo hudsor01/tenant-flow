@@ -15,11 +15,13 @@ import { Button } from "#components/ui/button";
 import { Skeleton } from "#components/ui/skeleton";
 import { getAllPricingPlans, type PricingConfig } from "#config/pricing";
 import { useSubscriptionStatus } from "#hooks/api/use-billing";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import {
 	createCheckoutSession,
 	createCustomerPortalSession,
 } from "#lib/stripe/stripe-client";
 import { cn } from "#lib/utils";
+import { formatCurrency } from "#lib/utils/currency";
 
 const TIER_BY_PLAN_ID: Record<PricingConfig["planId"], number> = {
 	trial: 0,
@@ -149,9 +151,7 @@ export default function BillingPlansPage() {
 				}
 			}
 		} catch (error) {
-			const message =
-				error instanceof Error ? error.message : "An error occurred";
-			toast.error(message);
+			handleMutationError(error, "Start checkout");
 			setDialogOpen(false);
 		} finally {
 			setIsLoading(false);
@@ -167,11 +167,7 @@ export default function BillingPlansPage() {
 			const { url } = await createCustomerPortalSession(returnUrl);
 			window.location.href = url;
 		} catch (error) {
-			const message =
-				error instanceof Error
-					? error.message
-					: "Failed to open billing portal";
-			toast.error(message);
+			handleMutationError(error, "Open billing portal");
 		} finally {
 			setIsLoading(false);
 		}
@@ -208,7 +204,7 @@ export default function BillingPlansPage() {
 						<h1 className="text-2xl font-bold text-foreground">
 							Subscription Plans
 						</h1>
-						<p className="text-muted-foreground mt-1">
+						<p className="mb-0 text-muted-foreground mt-1">
 							{hasSubscription && currentPlan
 								? `You are currently on the ${currentPlan.name} plan`
 								: hasSubscription
@@ -245,7 +241,7 @@ export default function BillingPlansPage() {
 							<p className="text-sm text-muted-foreground">
 								{currentPlan.price === 0
 									? "Free"
-									: `$${currentPlan.price}/month`}
+									: `${formatCurrency(currentPlan.price, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/month`}
 							</p>
 						</div>
 					</div>

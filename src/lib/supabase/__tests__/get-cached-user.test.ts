@@ -25,7 +25,7 @@ vi.mock("#env", () => ({
 	},
 }));
 
-import type { QueryClient } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 import { getCachedUser, setQueryClientRef } from "../get-cached-user";
 
 // ── Tests ──────────────────────────────────────────────────
@@ -43,7 +43,7 @@ describe("getCachedUser", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		// Reset the module-level queryClientRef by setting it to null
-		setQueryClientRef(null as unknown as QueryClient);
+		setQueryClientRef(null);
 
 		mockGetUser.mockResolvedValue({
 			data: { user: mockUser },
@@ -88,9 +88,8 @@ describe("getCachedUser", () => {
 	});
 
 	it("returns cached user from QueryClient when available", async () => {
-		const mockQueryClient = {
-			getQueryData: vi.fn().mockReturnValue(mockUser),
-		} as unknown as QueryClient;
+		const mockQueryClient = new QueryClient();
+		vi.spyOn(mockQueryClient, "getQueryData").mockReturnValue(mockUser);
 
 		setQueryClientRef(mockQueryClient);
 
@@ -103,9 +102,8 @@ describe("getCachedUser", () => {
 	});
 
 	it("falls back to getUser() when QueryClient cache returns null", async () => {
-		const mockQueryClient = {
-			getQueryData: vi.fn().mockReturnValue(null),
-		} as unknown as QueryClient;
+		const mockQueryClient = new QueryClient();
+		vi.spyOn(mockQueryClient, "getQueryData").mockReturnValue(null);
 
 		setQueryClientRef(mockQueryClient);
 
@@ -117,9 +115,8 @@ describe("getCachedUser", () => {
 	});
 
 	it("falls back to getUser() when QueryClient cache returns undefined", async () => {
-		const mockQueryClient = {
-			getQueryData: vi.fn().mockReturnValue(undefined),
-		} as unknown as QueryClient;
+		const mockQueryClient = new QueryClient();
+		vi.spyOn(mockQueryClient, "getQueryData").mockReturnValue(undefined);
 
 		setQueryClientRef(mockQueryClient);
 
@@ -132,12 +129,11 @@ describe("getCachedUser", () => {
 
 describe("setQueryClientRef", () => {
 	it("sets the QueryClient reference used by getCachedUser", async () => {
-		const mockQueryClient = {
-			getQueryData: vi.fn().mockReturnValue({
-				id: "cached-user",
-				email: "cached@example.com",
-			}),
-		} as unknown as QueryClient;
+		const mockQueryClient = new QueryClient();
+		vi.spyOn(mockQueryClient, "getQueryData").mockReturnValue({
+			id: "cached-user",
+			email: "cached@example.com",
+		});
 
 		setQueryClientRef(mockQueryClient);
 

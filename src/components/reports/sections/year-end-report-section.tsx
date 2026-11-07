@@ -1,7 +1,7 @@
 "use client";
 
-import { AlertCircle, Download, FileText } from "lucide-react";
-import { Badge } from "#components/ui/badge";
+import { Download, FileText } from "lucide-react";
+import { useId } from "react";
 import { Button } from "#components/ui/button";
 import {
 	Card,
@@ -19,28 +19,45 @@ import {
 	TableHeader,
 	TableRow,
 } from "#components/ui/table";
-import type { Year1099Summary, YearEndSummary } from "#types/reports";
-import { sortExpenseCategoriesDesc } from "./year-end-report-section-utils";
-
-function formatMoney(amount: number): string {
-	return new Intl.NumberFormat("en-US", {
-		style: "currency",
-		currency: "USD",
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	}).format(amount);
-}
+import { formatCurrency } from "#lib/utils/currency";
+import type { YearEndSummary } from "#types/reports";
+import {
+	sortExpenseCategoriesDesc,
+	yearEndUnavailableReason,
+} from "./year-end-report-section-utils";
 
 interface YearEndReportSectionProps {
 	year: number;
 	yearEndData: YearEndSummary | undefined;
-	data1099: Year1099Summary | undefined;
+	/** The server cannot report the year's rent received yet. */
+	ledgerUnavailable: boolean;
 	isLoadingYearEnd: boolean;
-	isLoading1099: boolean;
 	onDownloadYearEndCsv: () => void;
-	onDownload1099Csv: () => void;
 	isExportingYearEnd: boolean;
-	isExporting1099: boolean;
+}
+
+/** A figure the page has no data for: never shown as $0.00. */
+const UNAVAILABLE = "Unavailable";
+
+/**
+ * In place of the year's figures when the server cannot report the year's
+ * rent received yet. Nothing renders below it: an unavailable result carries
+ * no summary, so the By Property and Expense Breakdown cards have no rows.
+ */
+function LedgerTotalsUnavailableCard({ year }: { year: number }) {
+	// The Card's own py-6 pads it. mb-0: CardContent is a flex item, so the
+	// base `p` margin would stay inside it, under the text and between the lines.
+	return (
+		<Card>
+			<CardContent>
+				<p className="mb-0 font-medium">Ledger totals unavailable</p>
+				<p className="mt-1 mb-0 text-sm text-muted-foreground">
+					Rent received in {year} comes from your rent ledger, and its totals
+					aren&apos;t available yet. Try again later.
+				</p>
+			</CardContent>
+		</Card>
+	);
 }
 
 function SummaryCard({
@@ -52,15 +69,18 @@ function SummaryCard({
 	value: string;
 	isLoading: boolean;
 }) {
+	// The Card's own py-6 pads it: a pt-6 here doubled the top to 48px. mb-0:
+	// CardContent is a flex item, so the base `p` margin would stay inside it,
+	// under the label and between the figure and its label.
 	return (
 		<Card>
-			<CardContent className="pt-6">
+			<CardContent>
 				{isLoading ? (
 					<Skeleton className="h-8 w-32 mb-1" />
 				) : (
-					<p className="text-2xl font-semibold">{value}</p>
+					<p className="mb-0 text-2xl font-semibold">{value}</p>
 				)}
-				<p className="text-sm text-muted-foreground mt-1">{label}</p>
+				<p className="mt-1 mb-0 text-sm text-muted-foreground">{label}</p>
 			</CardContent>
 		</Card>
 	);
@@ -69,14 +89,20 @@ function SummaryCard({
 export function YearEndReportSection({
 	year,
 	yearEndData,
-	data1099,
+	ledgerUnavailable,
 	isLoadingYearEnd,
-	isLoading1099,
 	onDownloadYearEndCsv,
-	onDownload1099Csv,
 	isExportingYearEnd,
-	isExporting1099,
 }: YearEndReportSectionProps) {
+	// The click is ignored while Download CSV is off or exporting.
+	const csvUnavailableReason = yearEndUnavailableReason({
+		year,
+		yearEndData,
+		ledgerUnavailable,
+		isLoadingYearEnd,
+	});
+	const csvBlocked = isExportingYearEnd || !yearEndData;
+	const csvReasonId = useId();
 	return (
 		<section className="flex flex-col gap-6">
 			{/* Year-End Summary */}
@@ -87,43 +113,63 @@ export function YearEndReportSection({
 							<FileText className="size-5 text-primary" />
 							{year} Year-End Summary
 						</h2>
-						<p className="text-sm text-muted-foreground">
+						<p className="mb-0 text-sm text-muted-foreground">
 							Annual income and expense summary for tax preparation
 						</p>
 					</div>
 					<Button
 						variant="outline"
 						size="sm"
-						onClick={onDownloadYearEndCsv}
-						disabled={isExportingYearEnd || !yearEndData}
-						className="gap-1.5 min-h-11"
+						onClick={csvBlocked ? undefined : onDownloadYearEndCsv}
+						aria-disabled={csvBlocked || undefined}
+						aria-describedby={
+							csvUnavailableReason !== null ? csvReasonId : undefined
+						}
+						className="gap-1.5 min-h-11 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
 					>
 						<Download className="size-4" />
 						{isExportingYearEnd ? "Exporting..." : "Download CSV"}
 					</Button>
+					{csvUnavailableReason !== null ? (
+						<span id={csvReasonId} className="sr-only">
+							{csvUnavailableReason}
+						</span>
+					) : null}
 				</div>
 
-				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-					<SummaryCard
-						label="Gross Rental Income"
-						value={
-							yearEndData ? formatMoney(yearEndData.grossRentalIncome) : "$0.00"
-						}
-						isLoading={isLoadingYearEnd}
-					/>
-					<SummaryCard
-						label="Operating Expenses"
-						value={
-							yearEndData ? formatMoney(yearEndData.operatingExpenses) : "$0.00"
-						}
-						isLoading={isLoadingYearEnd}
-					/>
-					<SummaryCard
-						label="Net Income"
-						value={yearEndData ? formatMoney(yearEndData.netIncome) : "$0.00"}
-						isLoading={isLoadingYearEnd}
-					/>
-				</div>
+				{ledgerUnavailable ? (
+					<LedgerTotalsUnavailableCard year={year} />
+				) : (
+					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+						<SummaryCard
+							label="Rent Received"
+							value={
+								yearEndData
+									? formatCurrency(yearEndData.rentReceived)
+									: UNAVAILABLE
+							}
+							isLoading={isLoadingYearEnd}
+						/>
+						<SummaryCard
+							label="Operating Expenses"
+							value={
+								yearEndData
+									? formatCurrency(yearEndData.operatingExpenses)
+									: UNAVAILABLE
+							}
+							isLoading={isLoadingYearEnd}
+						/>
+						<SummaryCard
+							label="Net Income"
+							value={
+								yearEndData
+									? formatCurrency(yearEndData.netIncome)
+									: UNAVAILABLE
+							}
+							isLoading={isLoadingYearEnd}
+						/>
+					</div>
+				)}
 
 				{/* By Property Table */}
 				{(isLoadingYearEnd || (yearEndData?.byProperty.length ?? 0) > 0) && (
@@ -131,7 +177,7 @@ export function YearEndReportSection({
 						<CardHeader className="pb-3">
 							<CardTitle className="text-base">By Property</CardTitle>
 							<CardDescription>
-								Income and expenses for each property in {year}
+								Rent received and expenses for each property in {year}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
@@ -146,7 +192,9 @@ export function YearEndReportSection({
 									<TableHeader>
 										<TableRow>
 											<TableHead>Property</TableHead>
-											<TableHead className="text-right">Income</TableHead>
+											<TableHead className="text-right">
+												Rent Received
+											</TableHead>
 											<TableHead className="text-right">Expenses</TableHead>
 											<TableHead className="text-right">Net Income</TableHead>
 										</TableRow>
@@ -157,20 +205,20 @@ export function YearEndReportSection({
 												<TableCell className="font-medium">
 													{p.propertyName}
 												</TableCell>
-												<TableCell className="text-right text-emerald-600">
-													{formatMoney(p.income)}
+												<TableCell className="text-right text-success-text">
+													{formatCurrency(p.rentReceived)}
 												</TableCell>
-												<TableCell className="text-right text-red-500">
-													{formatMoney(p.expenses)}
+												<TableCell className="text-right text-destructive-text">
+													{formatCurrency(p.expenses)}
 												</TableCell>
 												<TableCell
 													className={`text-right font-medium ${
 														p.netIncome >= 0
-															? "text-emerald-600"
-															: "text-red-500"
+															? "text-success-text"
+															: "text-destructive-text"
 													}`}
 												>
-													{formatMoney(p.netIncome)}
+													{formatCurrency(p.netIncome)}
 												</TableCell>
 											</TableRow>
 										))}
@@ -187,9 +235,7 @@ export function YearEndReportSection({
 					<Card>
 						<CardHeader className="pb-3">
 							<CardTitle className="text-base">Expense Breakdown</CardTitle>
-							<CardDescription>
-								Operating expenses by category for {year}
-							</CardDescription>
+							<CardDescription>Expenses by vendor for {year}</CardDescription>
 						</CardHeader>
 						<CardContent>
 							{isLoadingYearEnd ? (
@@ -202,7 +248,7 @@ export function YearEndReportSection({
 								<Table>
 									<TableHeader>
 										<TableRow>
-											<TableHead>Category</TableHead>
+											<TableHead>Vendor</TableHead>
 											<TableHead className="text-right">Amount</TableHead>
 										</TableRow>
 									</TableHeader>
@@ -213,8 +259,8 @@ export function YearEndReportSection({
 											).map((cat, i) => (
 												<TableRow key={i}>
 													<TableCell>{cat.category}</TableCell>
-													<TableCell className="text-right text-red-500">
-														{formatMoney(cat.amount)}
+													<TableCell className="text-right text-destructive-text">
+														{formatCurrency(cat.amount)}
 													</TableCell>
 												</TableRow>
 											))}
@@ -224,81 +270,6 @@ export function YearEndReportSection({
 						</CardContent>
 					</Card>
 				)}
-			</div>
-
-			{/* 1099-NEC Section */}
-			<div className="flex flex-col gap-4">
-				<div className="flex items-center justify-between">
-					<div>
-						<h2 className="text-lg font-semibold flex items-center gap-2">
-							<AlertCircle className="size-5 text-amber-500" />
-							1099-NEC Vendors ({year})
-						</h2>
-						<p className="text-sm text-muted-foreground">
-							Vendors paid ${data1099?.threshold ?? 600}+ — may require 1099-NEC
-							filing
-						</p>
-					</div>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={onDownload1099Csv}
-						disabled={isExporting1099 || !data1099}
-						className="gap-1.5 min-h-11"
-					>
-						<Download className="size-4" />
-						{isExporting1099 ? "Exporting..." : "Download CSV"}
-					</Button>
-				</div>
-
-				<Card>
-					<CardContent className="pt-6">
-						{isLoading1099 ? (
-							<div className="space-y-2">
-								{Array.from({ length: 3 }).map((_, i) => (
-									<Skeleton key={i} className="h-10 w-full" />
-								))}
-							</div>
-						) : (data1099?.recipients.length ?? 0) === 0 ? (
-							<p className="text-sm text-muted-foreground text-center py-4">
-								No vendors exceeded the ${data1099?.threshold ?? 600} threshold
-								in {year}.
-							</p>
-						) : (
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Vendor</TableHead>
-										<TableHead className="text-right">Jobs</TableHead>
-										<TableHead className="text-right">Total Paid</TableHead>
-										<TableHead className="text-right">Status</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{data1099?.recipients.map((r, i) => (
-										<TableRow key={i}>
-											<TableCell className="font-medium">
-												{r.vendorName}
-											</TableCell>
-											<TableCell className="text-right">{r.jobCount}</TableCell>
-											<TableCell className="text-right font-medium">
-												{formatMoney(r.totalPaid)}
-											</TableCell>
-											<TableCell className="text-right">
-												<Badge
-													variant="outline"
-													className="text-amber-600 border-amber-300"
-												>
-													1099 Required
-												</Badge>
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						)}
-					</CardContent>
-				</Card>
 			</div>
 		</section>
 	);

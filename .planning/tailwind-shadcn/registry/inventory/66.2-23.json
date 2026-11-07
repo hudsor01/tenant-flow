@@ -1,0 +1,44 @@
+{
+  "label": "66.2-23",
+  "generatedAt": "2026-10-31T18:55:36.828Z",
+  "files": [
+    {
+      "file": "src/components/ui/alert-dialog.tsx",
+      "item": "alert-dialog",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 10,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-23/inv/src__components__ui__alert-dialog.tsx.diff",
+      "missingExports": [
+        "AlertDialogMedia",
+        "AlertDialogOverlay",
+        "AlertDialogPortal"
+      ],
+      "missingDataSlots": [
+        "alert-dialog-media"
+      ],
+      "registered": true,
+      "divergenceCount": 7
+    },
+    {
+      "file": "src/components/ui/confirm-dialog.tsx",
+      "item": "alert-dialog",
+      "derivativeOf": "alert-dialog",
+      "registryStatus": 200,
+      "status": "non-registry",
+      "normalizedDiffHunks": null,
+      "normalizedDiffPath": null,
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": false,
+      "divergenceCount": 0
+    }
+  ],
+  "counts": {
+    "inSync": 0,
+    "divergent": 1,
+    "nonRegistry": 1
+  },
+  "problems": []
+}

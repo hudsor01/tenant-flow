@@ -1,18 +1,21 @@
 import { http } from "msw";
-import { DEFAULT_MAINTENANCE_REQUEST } from "#test/utils/test-data";
+import {
+	MAINTENANCE_LIST_POSTGREST_ROW,
+	MAINTENANCE_REQUEST_POSTGREST_ROW,
+} from "#test/utils/test-data";
 import { postgrestList, postgrestSingle, supabaseUrl } from "../utils";
 
 export const maintenanceHandlers = [
 	http.get(supabaseUrl("/rest/v1/maintenance_requests"), () => {
-		return postgrestList([DEFAULT_MAINTENANCE_REQUEST], 1);
+		return postgrestList([MAINTENANCE_LIST_POSTGREST_ROW], 1);
 	}),
 	http.post(supabaseUrl("/rest/v1/maintenance_requests"), () => {
-		return postgrestSingle(DEFAULT_MAINTENANCE_REQUEST);
+		return postgrestSingle(MAINTENANCE_REQUEST_POSTGREST_ROW);
 	}),
 	http.patch(supabaseUrl("/rest/v1/maintenance_requests"), () => {
-		return postgrestSingle(DEFAULT_MAINTENANCE_REQUEST);
+		return postgrestSingle(MAINTENANCE_REQUEST_POSTGREST_ROW);
 	}),
 	http.delete(supabaseUrl("/rest/v1/maintenance_requests"), () => {
-		return postgrestSingle(DEFAULT_MAINTENANCE_REQUEST);
+		return postgrestSingle(MAINTENANCE_REQUEST_POSTGREST_ROW);
 	}),
 ];

@@ -48,6 +48,16 @@ describe("CollectionRateKpi", () => {
 		mockResult();
 	});
 
+	// The narrated label sits on the Stat div; a role-less div cannot be
+	// named, so the KPI is a named group (66.2-39).
+	it("exposes its narrated label on a named group", () => {
+		mockResult({ data: { scheduled: 2000, collected: 1900, rate: 95 } });
+		render(<CollectionRateKpi />);
+		expect(
+			screen.getByRole("group", { name: /^Collection rate: 95%/ }),
+		).toBeInTheDocument();
+	});
+
 	it("renders the label and the SQL rate verbatim (no re-scaling)", () => {
 		mockResult({ data: { scheduled: 2000, collected: 1900, rate: 95 } });
 		render(<CollectionRateKpi />);

@@ -6,7 +6,7 @@
  * field is Zod-validated via `safeParse` so a dropped/renamed RPC key throws a
  * descriptive `mapUnitStats:` error instead of leaking `undefined` into the KPI
  * cards. The remaining `UnitStats` fields (vacant / occupancyRate / averageRent /
- * occupancyChange / totalPotentialRent) are DERIVED per the LOCKED no-regression
+ * totalPotentialRent) are DERIVED per the LOCKED no-regression
  * contract in 03-CONTEXT.md — the final values must be identical to the old
  * multi-query path.
  */
@@ -32,7 +32,6 @@ describe("mapUnitStats", () => {
 		expect(mapped.totalActualRent).toBe(12000);
 		// Derived per the LOCKED contract.
 		expect(mapped.vacant).toBe(3); // vacant = available
-		expect(mapped.occupancyChange).toBe(0); // preserved stub
 		expect(mapped.totalPotentialRent).toBe(12000); // alias of totalActualRent
 	});
 
@@ -45,7 +44,6 @@ describe("mapUnitStats", () => {
 		expect(mapped.occupancyRate).toBe(60);
 		expect(mapped.averageRent).toBe(1200);
 		expect(mapped.vacant).toBe(3);
-		expect(mapped.occupancyChange).toBe(0);
 		expect(mapped.totalPotentialRent).toBe(12000);
 		expect(mapped.totalActualRent).toBe(12000);
 	});

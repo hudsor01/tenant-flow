@@ -14,56 +14,68 @@ export function PropertyStatsSection({ summary }: PropertyStatsSectionProps) {
 					Overview
 				</h2>
 			</div>
+			{/* Below lg every label keeps two lines' height: at 390 "Occupied
+			    Rent" wraps beside "Available", and the two figures share a line
+			    (66.2-39 part Q). */}
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 				{/* Total Properties */}
-				<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
+				<div className="bg-card border border-border rounded-sm p-4">
 					<div className="flex items-center justify-between mb-2">
-						<p className="text-sm text-muted-foreground">Properties</p>
+						<p className="min-h-10 lg:min-h-0 text-sm text-muted-foreground">
+							Properties
+						</p>
 					</div>
 					<div className="flex items-end justify-between">
 						<p className="text-2xl font-bold text-foreground">
 							{summary.totalProperties}
 						</p>
-						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center">
 							<Building2 className="w-4 h-4 text-primary" />
 						</div>
 					</div>
 				</div>
 
 				{/* Occupancy Rate */}
-				<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
+				<div className="bg-card border border-border rounded-sm p-4">
 					<div className="flex items-center justify-between mb-2">
-						<p className="text-sm text-muted-foreground">Occupancy</p>
+						<p className="min-h-10 lg:min-h-0 text-sm text-muted-foreground">
+							Occupancy
+						</p>
 					</div>
 					<div className="flex items-end justify-between">
 						<p className="text-2xl font-bold text-foreground">
 							{summary.overallOccupancyRate}%
 						</p>
-						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center">
 							<Users className="w-4 h-4 text-primary" />
 						</div>
 					</div>
 				</div>
 
 				{/* Available Units */}
-				<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
+				<div className="bg-card border border-border rounded-sm p-4">
 					<div className="flex items-center justify-between mb-2">
-						<p className="text-sm text-muted-foreground">Available</p>
+						<p className="min-h-10 lg:min-h-0 text-sm text-muted-foreground">
+							Available
+						</p>
 					</div>
 					<div className="flex items-end justify-between">
 						<p className="text-2xl font-bold text-foreground">
 							{summary.availableUnits}
 						</p>
-						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center">
 							<Home className="w-4 h-4 text-primary" />
 						</div>
 					</div>
 				</div>
 
-				{/* Monthly Revenue */}
-				<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
+				{/* The occupied units' rent as listed on each unit, monthly: no lease
+				    is read here, so it is neither scheduled nor received rent. */}
+				<div className="bg-card border border-border rounded-sm p-4">
 					<div className="flex items-center justify-between mb-2">
-						<p className="text-sm text-muted-foreground">Monthly Revenue</p>
+						<p className="min-h-10 lg:min-h-0 text-sm text-muted-foreground">
+							Occupied Rent
+						</p>
 					</div>
 					<div className="flex items-end justify-between">
 						<div>
@@ -81,8 +93,8 @@ export function PropertyStatsSection({ summary }: PropertyStatsSectionProps) {
 								</p>
 							)}
 						</div>
-						<div className="w-9 h-9 rounded-sm bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
-							<DollarSign className="w-4 h-4 text-emerald-600" />
+						<div className="w-9 h-9 rounded-sm bg-success/10 flex items-center justify-center">
+							<DollarSign className="w-4 h-4 text-success-text" />
 						</div>
 					</div>
 				</div>

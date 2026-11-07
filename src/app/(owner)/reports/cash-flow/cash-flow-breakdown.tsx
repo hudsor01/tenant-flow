@@ -1,16 +1,11 @@
 import { ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
-import { formatCents } from "#lib/utils/currency";
-
-interface FlowItem {
-	category: string;
-	amount: number;
-	percentage: number;
-}
+import { formatCurrency } from "#lib/utils/currency";
+import type { CashFlowCategory } from "#types/financial-statements";
 
 interface CashFlowBreakdownProps {
-	inflowItems: FlowItem[];
-	outflowItems: FlowItem[];
+	inflowItems: CashFlowCategory[];
+	outflowItems: CashFlowCategory[];
 	totalInflows: number;
 	totalOutflows: number;
 }
@@ -22,12 +17,12 @@ export function CashFlowBreakdown({
 	totalOutflows,
 }: CashFlowBreakdownProps) {
 	return (
-		<BlurFade delay={0.35} inView>
+		<BlurFade delay={0.35}>
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
 				{/* Cash Inflows */}
 				<div className="bg-card border border-border rounded-lg p-6">
 					<h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
-						<ArrowUpCircle className="w-4 h-4 text-emerald-600" />
+						<ArrowUpCircle className="w-4 h-4 text-success-text" />
 						Cash Inflows
 					</h3>
 					<div className="space-y-4">
@@ -38,20 +33,25 @@ export function CashFlowBreakdown({
 										{item.category}
 									</span>
 									<div className="flex items-center gap-3">
-										<span className="text-sm text-muted-foreground">
-											{item.percentage.toFixed(1)}%
-										</span>
-										<span className="text-sm font-medium text-emerald-600 tabular-nums">
-											{formatCents(item.amount * 100)}
+										{item.percentage !== null && (
+											<span className="text-sm text-muted-foreground">
+												{item.percentage.toFixed(1)}%
+											</span>
+										)}
+										<span className="text-sm font-medium text-success-text tabular-nums">
+											{formatCurrency(item.amount)}
 										</span>
 									</div>
 								</div>
-								<div className="h-2 bg-muted rounded-full overflow-hidden">
-									<div
-										className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-										style={{ width: `${item.percentage}%` }}
-									/>
-								</div>
+								{/* A line below zero has no share, so no bar. */}
+								{item.percentage !== null && (
+									<div className="h-2 bg-muted rounded-full overflow-hidden">
+										<div
+											className="h-full bg-success-text rounded-full transition-all duration-500"
+											style={{ width: `${item.percentage}%` }}
+										/>
+									</div>
+								)}
 							</div>
 						))}
 						{inflowItems.length === 0 && (
@@ -63,8 +63,8 @@ export function CashFlowBreakdown({
 							<span className="text-sm font-medium text-foreground">
 								Total Inflows
 							</span>
-							<span className="text-sm font-semibold text-emerald-600 tabular-nums">
-								{formatCents(totalInflows * 100)}
+							<span className="text-sm font-semibold text-success-text tabular-nums">
+								{formatCurrency(totalInflows)}
 							</span>
 						</div>
 					</div>
@@ -73,7 +73,7 @@ export function CashFlowBreakdown({
 				{/* Cash Outflows */}
 				<div className="bg-card border border-border rounded-lg p-6">
 					<h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
-						<ArrowDownCircle className="w-4 h-4 text-red-600" />
+						<ArrowDownCircle className="w-4 h-4 text-destructive-text" />
 						Cash Outflows
 					</h3>
 					<div className="space-y-4">
@@ -84,20 +84,24 @@ export function CashFlowBreakdown({
 										{item.category}
 									</span>
 									<div className="flex items-center gap-3">
-										<span className="text-sm text-muted-foreground">
-											{item.percentage.toFixed(1)}%
-										</span>
-										<span className="text-sm font-medium text-red-600 tabular-nums">
-											{formatCents(item.amount * 100)}
+										{item.percentage !== null && (
+											<span className="text-sm text-muted-foreground">
+												{item.percentage.toFixed(1)}%
+											</span>
+										)}
+										<span className="text-sm font-medium text-destructive-text tabular-nums">
+											{formatCurrency(item.amount)}
 										</span>
 									</div>
 								</div>
-								<div className="h-2 bg-muted rounded-full overflow-hidden">
-									<div
-										className="h-full bg-red-500 rounded-full transition-all duration-500"
-										style={{ width: `${item.percentage}%` }}
-									/>
-								</div>
+								{item.percentage !== null && (
+									<div className="h-2 bg-muted rounded-full overflow-hidden">
+										<div
+											className="h-full bg-destructive-text rounded-full transition-all duration-500"
+											style={{ width: `${item.percentage}%` }}
+										/>
+									</div>
+								)}
 							</div>
 						))}
 						{outflowItems.length === 0 && (
@@ -109,8 +113,8 @@ export function CashFlowBreakdown({
 							<span className="text-sm font-medium text-foreground">
 								Total Outflows
 							</span>
-							<span className="text-sm font-semibold text-red-600 tabular-nums">
-								{formatCents(totalOutflows * 100)}
+							<span className="text-sm font-semibold text-destructive-text tabular-nums">
+								{formatCurrency(totalOutflows)}
 							</span>
 						</div>
 					</div>

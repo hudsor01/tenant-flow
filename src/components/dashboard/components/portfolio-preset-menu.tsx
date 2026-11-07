@@ -2,9 +2,10 @@
 
 "use no memo";
 
-import type { SortingState } from "@tanstack/react-table";
+import type { ColumnSort, SortingState } from "@tanstack/react-table";
 import { Bookmark, Save, Trash2 } from "lucide-react";
 import {
+	type inferParserType,
 	parseAsArrayOf,
 	parseAsInteger,
 	parseAsString,
@@ -32,16 +33,19 @@ import {
 
 // The SAME nuqs keys `useClientDataTable` writes (D-4). The search filter lives
 // under the pinned `property` column key (W-3) — there is NO separate search/q
-// key. `status` is the faceted multi-select (string[]); `property` is the search
+// key. `occupancy` is the faceted multi-select (string[]); `property` is the search
 // string. `,` is the array separator `useClientDataTable` uses for faceted keys.
 const ARRAY_SEPARATOR = ",";
 const PORTFOLIO_COLUMN_IDS = portfolioColumns
 	.map((column) => column.id)
 	.filter((id): id is string => Boolean(id));
+const PORTFOLIO_COLUMN_ID_SET: ReadonlySet<string> = new Set(
+	PORTFOLIO_COLUMN_IDS,
+);
 
 // Parser element type the sort nuqs key serializes (ExtendedColumnSort<PortfolioRow>[]).
-type PortfolioSort = ReturnType<
-	ReturnType<typeof getSortingStateParser<PortfolioRow>>["parseServerSide"]
+type PortfolioSort = inferParserType<
+	ReturnType<typeof getSortingStateParser<PortfolioRow>>
 >;
 
 /**
@@ -54,16 +58,25 @@ const urlStateParsers = {
 	sort: getSortingStateParser<PortfolioRow>(PORTFOLIO_COLUMN_IDS).withDefault(
 		[],
 	),
-	status: parseAsArrayOf(parseAsString, ARRAY_SEPARATOR),
+	occupancy: parseAsArrayOf(parseAsString, ARRAY_SEPARATOR),
 	property: parseAsString,
 };
 
-// The sort parser narrows `id` to the column-id set, so its setter expects
-// `ExtendedColumnSort<PortfolioRow>[]`. The stored snapshot's `sort` is the plain
-// TanStack `SortingState` (`id: string`); this single narrowing cast mirrors the
-// boundary cast `useClientDataTable` already performs on its own sort setter.
+/** A stored sort entry on a column the table has, as the sort parser admits. */
+function isPortfolioSortEntry(
+	entry: ColumnSort,
+): entry is NonNullable<PortfolioSort>[number] {
+	return PORTFOLIO_COLUMN_ID_SET.has(entry.id);
+}
+
+// The stored snapshot's `sort` is the plain TanStack `SortingState` (`id:
+// string`), and nuqs hands a written value to the table without the parser's
+// id check, so a preset sorted by a column that is gone (the old Lease Status,
+// `status`) would reach the table, which drops it with a dev warning and
+// renders unsorted, while the bad `sort` stays in the URL. Keep only the
+// entries the parser would accept: a column id the table has.
 function toPortfolioSort(sort: SortingState): PortfolioSort {
-	return sort as PortfolioSort;
+	return sort.filter(isPortfolioSortEntry);
 }
 
 /**
@@ -91,8 +104,8 @@ export function PortfolioPresetMenu() {
 
 	function collectSnapshot(): DashboardViewSnapshot {
 		const filters: Record<string, string | string[]> = {};
-		if (urlState.status && urlState.status.length > 0) {
-			filters.status = urlState.status;
+		if (urlState.occupancy && urlState.occupancy.length > 0) {
+			filters.occupancy = urlState.occupancy;
 		}
 		if (urlState.property) {
 			filters.property = urlState.property;
@@ -115,12 +128,19 @@ export function PortfolioPresetMenu() {
 	function handleApply(presetName: string) {
 		const preset = applyPreset(presetName);
 		if (!preset) return;
-		const status = preset.filters.status;
+		// A preset saved before the column was Occupancy carries a `status`
+		// filter (the invented lease status, whose values no row has): not
+		// applied; a sort by that column goes in toPortfolioSort.
+		const occupancy = preset.filters.occupancy;
 		const property = preset.filters.property;
 		void setUrlState({
 			page: preset.page,
 			sort: toPortfolioSort(preset.sort),
-			status: Array.isArray(status) ? status : status ? [status] : null,
+			occupancy: Array.isArray(occupancy)
+				? occupancy
+				: occupancy
+					? [occupancy]
+					: null,
 			property: typeof property === "string" ? property : null,
 		});
 		setColumnVisibility(preset.columnVisibility);
@@ -166,25 +186,27 @@ export function PortfolioPresetMenu() {
 						<DropdownMenuSeparator />
 						<DropdownMenuLabel>Saved presets</DropdownMenuLabel>
 						{presets.map((preset) => (
-							<DropdownMenuItem
-								key={preset.name}
-								onSelect={() => handleApply(preset.name)}
-								className="justify-between gap-2"
-							>
-								<span className="truncate">{preset.name}</span>
-								<button
-									type="button"
+							// Apply and delete are two menu items in one row, so the arrow
+							// keys reach both (a button inside the item was mouse-only).
+							<div key={preset.name} className="flex items-center">
+								<DropdownMenuItem
+									onSelect={() => handleApply(preset.name)}
+									className="min-w-0 flex-1"
+								>
+									<span className="truncate">{preset.name}</span>
+								</DropdownMenuItem>
+								<DropdownMenuItem
 									aria-label={`Delete preset ${preset.name}`}
-									className="text-muted-foreground hover:text-destructive"
-									onClick={(event) => {
+									onSelect={(event) => {
+										// Keep the menu open, as the inline delete did.
 										event.preventDefault();
-										event.stopPropagation();
 										deletePreset(preset.name);
 									}}
+									className="shrink-0"
 								>
 									<Trash2 aria-hidden="true" className="size-4" />
-								</button>
-							</DropdownMenuItem>
+								</DropdownMenuItem>
+							</div>
 						))}
 					</>
 				)}

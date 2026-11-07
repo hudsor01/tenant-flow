@@ -30,7 +30,7 @@ export function TestimonialsSection() {
 	return (
 		<section className="section-spacing-compact bg-muted/50">
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
-				<BlurFade delay={0.2} inView>
+				<BlurFade delay={0.2}>
 					<div className="text-center space-y-8">
 						<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground/60">
 							<div className="flex items-center space-x-2">
@@ -48,7 +48,7 @@ export function TestimonialsSection() {
 									&quot;{t.quote}&quot;
 								</blockquote>
 								<div className="flex-center space-x-4">
-									<div className="size-12 rounded-full bg-primary/10 flex-center text-primary font-bold">
+									<div className="size-12 rounded-full bg-primary/10 flex-center text-primary-text font-bold">
 										{t.author
 											.split(" ")
 											.map((n) => n[0])

@@ -195,7 +195,7 @@ export default function OwnerProfilePage() {
 	return (
 		<div className="space-y-6">
 			{/* Header */}
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div>
 					<h1 className="text-2xl font-bold">My Profile</h1>
 					<p className="text-muted-foreground">
@@ -204,7 +204,7 @@ export default function OwnerProfilePage() {
 				</div>
 			</BlurFade>
 
-			<div className="grid gap-6 lg:grid-cols-3">
+			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				{/* Profile Card */}
 				<ProfileCard
 					profile={profile}

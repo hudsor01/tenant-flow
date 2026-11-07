@@ -1,0 +1,111 @@
+{
+ "srcBaseline": "754c91802",
+ "head": "e82726ce3a9d658f09e156cd08d0253b7521a5dd",
+ "capturedAt": "2026-10-26T17:03:59.772Z",
+ "appUrl": "http://localhost:3062",
+ "build": {
+  "command": "NEXT_PUBLIC_APP_URL=http://localhost:3062 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder SKIP_ENV_VALIDATION=true bun run build",
+  "env": {
+   "NEXT_PUBLIC_APP_URL": "http://localhost:3062",
+   "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_placeholder",
+   "SKIP_ENV_VALIDATION": "true"
+  },
+  "envFile": "worktree .env.local (loaded by bun/Next; presence-checked with test -f only, never read)"
+ },
+ "cap": "$CAP = $TMPDIR/tenantflow-tw-baseline-66.2",
+ "tools": {
+  ".planning/tailwind-shadcn/audit/audit.mjs": "fca21bc47f9540840683e61f80c66d9f4457c1c630d604a094809ec447de2d12",
+  ".planning/tailwind-shadcn/audit/render-check.mjs": "188468aae2af474d947bb0f3a15290d0563188263220ca6c9db63ad787b26633",
+  ".planning/tailwind-shadcn/audit/css-parity.mjs": "934579e0cdb0c3259daecece4a7dee17ac355eaabe34da7bbef649d4371b4fab",
+  ".planning/tailwind-shadcn/audit/component-probes.mjs": "8368f9fdc4f490eb78f694a49fcd613f6045c7a397511faccdffce1d6158253a",
+  ".planning/tailwind-shadcn/audit/screens.mjs": "ce38afa9f5007d31286bba7ef6a1bf14c99ba69131569dcd358aa32ef82607f4",
+  ".planning/tailwind-shadcn/audit/guards-proto.mjs": "1f2c93f061e60d5f198ca512927fa0d4a908da50256b512be92db26ab8f7aa5a",
+  ".planning/tailwind-shadcn/audit/scope-projection.mjs": "8d96f6dcd2b7c219e7c3bc714e7f134edb12720396a247f89c3865e5f3442fb4"
+ },
+ "artifacts": [
+  {
+   "path": "candidate-css.json",
+   "sha256": "4ff379d471418e8a0ea2ba469649712478b4e78929aa94f1ef1e5ce52a4098ff",
+   "producedBy": "TW_AUDIT_OUT=$CAP node .planning/tailwind-shadcn/audit/audit.mjs",
+   "capturedAtHead": "b459d5af625e4e0c45a96711f9995cab65554d4b"
+  },
+  {
+   "path": "compiled.css",
+   "sha256": "f3de3a33c87b1c9c4084e4473fb847cacdc3331f5aaa621679d2a25ce0a755bc",
+   "producedBy": "TW_AUDIT_OUT=$CAP node .planning/tailwind-shadcn/audit/audit.mjs",
+   "capturedAtHead": "b459d5af625e4e0c45a96711f9995cab65554d4b"
+  },
+  {
+   "path": "component-probes-baseline.json",
+   "sha256": "0067ed98ae837cfd3bc4faa30e7392e80c9755c694647c7f72d98a4f4d313bb5",
+   "producedBy": "TW_AUDIT_OUT=$CAP node .planning/tailwind-shadcn/audit/component-probes.mjs baseline && cp $CAP/probes-baseline.json $CAP/component-probes-baseline.json",
+   "capturedAtHead": "2115ec79831f5e22e080c211ecb7f57f659aa79e"
+  },
+  {
+   "path": "dead.json",
+   "sha256": "b43d8b39498eb45b673aa47c3bb463030c735e6edf34bcd54baba38c46aa6a98",
+   "producedBy": "TW_AUDIT_OUT=$CAP node .planning/tailwind-shadcn/audit/audit.mjs",
+   "capturedAtHead": "b459d5af625e4e0c45a96711f9995cab65554d4b"
+  },
+  {
+   "path": "guards-baseline.json",
+   "sha256": "600258e1e0acab965d6d5f179d1b8a632c941bb6b803271e97bd6a0cadd49186",
+   "producedBy": "node .planning/tailwind-shadcn/audit/guards-proto.mjs . > $CAP/guards-baseline.json",
+   "capturedAtHead": "b459d5af625e4e0c45a96711f9995cab65554d4b"
+  },
+  {
+   "path": "metrics-baseline.json",
+   "sha256": "06b1ca7bb97e5c9a97bd49dab99b107d8a0c8b17ca8ecb8a14583df6394e5950",
+   "producedBy": "node /private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-02/metrics-baseline.mjs $CAP",
+   "capturedAtHead": "2115ec79831f5e22e080c211ecb7f57f659aa79e"
+  },
+  {
+   "path": "noncanonical-by-file.json",
+   "sha256": "dc4e6792f7d7671a49901fce0866ad996a4d5301da9e0941f48c8bfdfc26eb8e",
+   "producedBy": "TW_AUDIT_OUT=$CAP node .planning/tailwind-shadcn/audit/audit.mjs",
+   "capturedAtHead": "b459d5af625e4e0c45a96711f9995cab65554d4b"
+  },
+  {
+   "path": "render-baseline.json",
+   "sha256": "a72bd749e197b46bf8b8425db27c773a3cb454e0b1a1ca4f4c42e588f3f733af",
+   "producedBy": "TW_AUDIT_OUT=$CAP node .planning/tailwind-shadcn/audit/render-check.mjs baseline",
+   "capturedAtHead": "2115ec79831f5e22e080c211ecb7f57f659aa79e"
+  },
+  {
+   "path": "report.json",
+   "sha256": "5b3a0995d680a29d4d952a63f913fbf3b185a8d337de741cf6e6664d8afeefb0",
+   "producedBy": "TW_AUDIT_OUT=$CAP node .planning/tailwind-shadcn/audit/audit.mjs",
+   "capturedAtHead": "b459d5af625e4e0c45a96711f9995cab65554d4b"
+  },
+  {
+   "path": "scope-projection.json",
+   "sha256": "c885a42350ec42114e5a5782452f0f57a8390bd1ceed032377217710713512f8",
+   "producedBy": "TW_AUDIT_OUT=$CAP node .planning/tailwind-shadcn/audit/scope-projection.mjs",
+   "capturedAtHead": "b459d5af625e4e0c45a96711f9995cab65554d4b"
+  },
+  {
+   "path": "screens-manifest.json",
+   "sha256": "11628d549eb033db5fad5b08ac1ebbbd3959d9ea66f6c19537e4332e3c535f8e",
+   "producedBy": "node /private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-02/screens-manifest.mjs $CAP",
+   "capturedAtHead": "e82726ce3a9d658f09e156cd08d0253b7521a5dd"
+  },
+  {
+   "path": "token-list.json",
+   "sha256": "440452ba2761b514f88f0d5bcf95e828ede976a68f3e74a36b2b6ddfc927eb67",
+   "producedBy": "jq -S '.light|keys' $CAP/tokens-baseline.json > $CAP/token-list.json",
+   "capturedAtHead": "2115ec79831f5e22e080c211ecb7f57f659aa79e"
+  },
+  {
+   "path": "tokens-baseline.json",
+   "sha256": "ec103ed8bf68e23cc1c1f5f8efac4d8ba9fad82a157c9a5ddd3e5db1d9a36967",
+   "producedBy": "TW_AUDIT_OUT=$CAP node .planning/tailwind-shadcn/audit/render-check.mjs baseline",
+   "capturedAtHead": "2115ec79831f5e22e080c211ecb7f57f659aa79e"
+  },
+  {
+   "path": "valid-candidates.txt",
+   "sha256": "3728343305f66d66b18b588cc157a64c1c3938d3e84404a2982fd117410d834e",
+   "producedBy": "TW_AUDIT_OUT=$CAP node .planning/tailwind-shadcn/audit/audit.mjs",
+   "capturedAtHead": "b459d5af625e4e0c45a96711f9995cab65554d4b"
+  }
+ ]
+}

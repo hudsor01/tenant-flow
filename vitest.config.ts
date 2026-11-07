@@ -32,10 +32,6 @@ export default defineConfig({
 		tsconfigPaths: true,
 		alias: {
 			recharts: resolve(import.meta.dirname, "src/test/mocks/recharts.tsx"),
-			"recharts/types/component/DefaultTooltipContent": resolve(
-				import.meta.dirname,
-				"src/test/mocks/recharts-tooltip.ts",
-			),
 		},
 	},
 	plugins: [react()],

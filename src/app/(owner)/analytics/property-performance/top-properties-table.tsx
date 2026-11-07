@@ -16,6 +16,26 @@ export function TopPropertiesTable({
 }: {
 	properties: PropertyPerformanceEntry[];
 }) {
+	// Rent received is null on every row when the server cannot report it yet:
+	// the column is left out rather than filled with $0.
+	const rentReceivedAvailable = properties.some(
+		(property) => property.rentReceived !== null,
+	);
+	const rentReceivedColumn: ColumnDef<PropertyPerformanceEntry> = {
+		id: "rentReceived",
+		accessorKey: "rentReceived",
+		header: "Rent received",
+		meta: {
+			label: "Rent Received",
+			variant: "number",
+		},
+		enableColumnFilter: true,
+		cell: ({ row }) => (
+			<div className="text-right">
+				{formatCurrency(row.original.rentReceived ?? 0)}
+			</div>
+		),
+	};
 	const columns: ColumnDef<PropertyPerformanceEntry>[] = [
 		{
 			id: "propertyName",
@@ -53,21 +73,7 @@ export function TopPropertiesTable({
 				</div>
 			),
 		},
-		{
-			id: "monthlyRevenue",
-			accessorKey: "monthlyRevenue",
-			header: "Monthly revenue",
-			meta: {
-				label: "Monthly Revenue",
-				variant: "number",
-			},
-			enableColumnFilter: true,
-			cell: ({ row }) => (
-				<div className="text-right">
-					{formatCurrency(row.original.monthlyRevenue)}
-				</div>
-			),
-		},
+		...(rentReceivedAvailable ? [rentReceivedColumn] : []),
 	];
 
 	const { table } = useClientDataTable({

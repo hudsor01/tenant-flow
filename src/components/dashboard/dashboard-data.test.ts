@@ -34,12 +34,14 @@ describe("transformDashboardData", () => {
 		address_line1: "1 Test St",
 		property_type: "APARTMENT",
 		status: "PARTIAL" as const,
-		trend: "stable" as const,
-		trendPercentage: 0,
 	};
 
 	const basePayload: OwnerDashboardData = {
 		stats: {} as OwnerDashboardData["stats"],
+		portfolioTrends: {
+			occupancy: { status: "unavailable" },
+			revenue: { status: "unavailable" },
+		},
 		activity: [],
 		metricTrends: {
 			occupancyRate: null,
@@ -63,6 +65,26 @@ describe("transformDashboardData", () => {
 		const result = transformDashboardData(payload);
 		expect(result.portfolioRows).toHaveLength(1);
 		expect(result.portfolioRows[0]?.maintenanceOpen).toBe(3);
+	});
+
+	it("counts each row's units once: occupied of total, no tenants field", () => {
+		// The row said "N tenants" ("1 tenants") from its occupied units, beside
+		// the units cell that shows the same count, with no tenant behind it.
+		const payload: OwnerDashboardData = {
+			...basePayload,
+			propertyPerformance: [{ ...baseProperty, occupiedUnits: 1 }],
+		};
+		const row = transformDashboardData(payload).portfolioRows[0];
+		expect(row?.units.occupied).toBe(1);
+		expect(Object.keys(row ?? {}).sort()).toEqual([
+			"address",
+			"id",
+			"maintenanceOpen",
+			"occupancy",
+			"property",
+			"rent",
+			"units",
+		]);
 	});
 
 	it("falls back to 0 when prop.open_maintenance is undefined (optional field)", () => {

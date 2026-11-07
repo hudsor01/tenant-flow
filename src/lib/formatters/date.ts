@@ -1,4 +1,5 @@
 import { differenceInCalendarDays } from "date-fns";
+import type { DateWindow } from "#types/analytics";
 
 export type DateInput = string | number | Date | null | undefined;
 
@@ -77,6 +78,21 @@ export const formatDate = (
 
 	return formatWithIntl(date, locale, style, formatOptions);
 };
+
+/**
+ * The days a stated window covers, short enough for one line of a tile:
+ * "Oct 3 to Nov 2, 2026", with the start's year only when it differs.
+ */
+export function formatDateWindow(days: DateWindow): string {
+	const sameYear = days.start_date.slice(0, 4) === days.end_date.slice(0, 4);
+	const start = formatDate(
+		days.start_date,
+		sameYear
+			? { formatOptions: { month: "short", day: "numeric", timeZone: "UTC" } }
+			: {},
+	);
+	return `${start} to ${formatDate(days.end_date)}`;
+}
 
 // Parse a YYYY-MM-DD string into a local-zone Date (midnight local).
 // Returns undefined on malformed input. Critically uses local-component

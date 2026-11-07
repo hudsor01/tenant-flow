@@ -9,6 +9,7 @@ import {
 	StatLabel,
 	StatValue,
 } from "#components/ui/stat";
+import { LEASE_STATUS_LABELS } from "#lib/constants/status-types";
 
 interface TenantStatsProps {
 	totalTenants: number;
@@ -23,17 +24,22 @@ export function TenantStats({
 	pendingTenants,
 	endedTenants,
 }: TenantStatsProps) {
+	// Each wrapper fills its grid cell and each tile its wrapper, rows held to
+	// the top (66.2-39 part M, VD-111). At 390 "Total Tenants" and "Pending
+	// Signature" wrap to two lines and their figures sat 20 px below their
+	// neighbours'. Below lg every label keeps two lines' height (min-h-10),
+	// so the figures in a row share a line whichever labels wrap (part Q).
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-			<BlurFade delay={0.2} inView>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.2} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					<BorderBeam
 						size={80}
 						duration={10}
-						colorFrom="hsl(var(--primary))"
-						colorTo="hsl(var(--primary)/0.3)"
+						colorFrom="var(--color-primary)"
+						colorTo="color-mix(in oklab, var(--color-primary) 30%, transparent)"
 					/>
-					<StatLabel>Total Tenants</StatLabel>
+					<StatLabel className="min-h-10 lg:min-h-0">Total Tenants</StatLabel>
 					<StatValue className="flex items-baseline">
 						<NumberTicker value={totalTenants} duration={1000} />
 					</StatValue>
@@ -44,10 +50,12 @@ export function TenantStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.3} inView>
-				<Stat className="relative overflow-hidden">
-					<StatLabel>Active</StatLabel>
-					<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
+			<BlurFade delay={0.3} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
+					<StatLabel className="min-h-10 lg:min-h-0">
+						{LEASE_STATUS_LABELS.active}
+					</StatLabel>
+					<StatValue className="flex items-baseline text-success-text">
 						<NumberTicker value={activeTenants} duration={1000} />
 					</StatValue>
 					<StatIndicator variant="icon" color="success">
@@ -57,18 +65,20 @@ export function TenantStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.4} inView>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.4} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					{pendingTenants > 0 && (
 						<BorderBeam
 							size={80}
 							duration={6}
-							colorFrom="hsl(45 93% 47%)"
-							colorTo="hsl(45 93% 47% / 0.3)"
+							colorFrom="var(--color-warning)"
+							colorTo="oklch(from var(--color-warning) l c h / 0.3)"
 						/>
 					)}
-					<StatLabel>Pending</StatLabel>
-					<StatValue className="flex items-baseline text-amber-600 dark:text-amber-400">
+					<StatLabel className="min-h-10 lg:min-h-0">
+						{LEASE_STATUS_LABELS.pending_signature}
+					</StatLabel>
+					<StatValue className="flex items-baseline text-warning-text">
 						<NumberTicker value={pendingTenants} duration={1000} />
 					</StatValue>
 					<StatIndicator variant="icon" color="warning">
@@ -78,9 +88,9 @@ export function TenantStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.5} inView>
-				<Stat>
-					<StatLabel>Ended</StatLabel>
+			<BlurFade delay={0.5} className="h-full">
+				<Stat className="h-full content-start">
+					<StatLabel className="min-h-10 lg:min-h-0">Ended</StatLabel>
 					<StatValue className="flex items-baseline">
 						<NumberTicker value={endedTenants} duration={1000} />
 					</StatValue>

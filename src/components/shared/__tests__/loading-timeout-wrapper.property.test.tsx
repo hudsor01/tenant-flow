@@ -129,12 +129,17 @@ describe("Property 3: Loading State Timeout", () => {
 					);
 
 					try {
-						// Should always show error message (use flexible matcher for whitespace)
-						expect(
-							screen.getByText((_content, element) => {
-								return element?.textContent?.trim() === errorMessage.trim();
-							}),
-						).toBeInTheDocument();
+						// Should always show the error state, in its own copy: the
+						// error's message is for logs, never the screen.
+						expect(screen.getByText("Failed to load data")).toBeInTheDocument();
+						if (errorMessage.trim() !== "Failed to load data") {
+							expect(
+								screen.queryByText(
+									(_content, element) =>
+										element?.textContent?.trim() === errorMessage.trim(),
+								),
+							).toBeNull();
+						}
 
 						// Should never show content
 						expect(

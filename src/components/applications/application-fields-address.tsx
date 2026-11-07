@@ -16,8 +16,8 @@ import { applicationFormOptions } from "./application-form-options";
  * The VALUE is still validated against the existing `USState` union by
  * `rentalApplicationSchema`; there is no second list of states anywhere.
  *
- * Every input is `inputSize="lg"` for the D-1 reason recorded in
- * `application-fields-about.tsx`.
+ * Every input is `inputSize="lg"`, the applicant form's 48px height contract
+ * recorded in `application-fields-about.tsx`.
  */
 export const ApplicationFieldsAddress = withForm({
 	...applicationFormOptions,
@@ -45,7 +45,7 @@ export const ApplicationFieldsAddress = withForm({
 
 					{/* Single column below 640px without exception (A-3). City takes two
 					    of the four columns at sm and above so state and ZIP each get one. */}
-					<div className="grid gap-4 sm:grid-cols-4">
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
 						{/* The span sits on a wrapper, not on the field: TextField forwards
 						    className to the <input>, so a col-span there would size the
 						    control instead of the grid cell. */}
@@ -110,16 +110,16 @@ export const ApplicationFieldsAddress = withForm({
 						)}
 					</form.AppField>
 
-					{/* min-h-24! is a LAYERED !important, and it is the only thing that
-					    beats the unlayered mobile block's `min-height: 2.75rem` on a
-					    textarea (D-1). Without it an empty textarea renders 44px tall at
-					    375px and reads as a single-line text input. The trailing-`!` is
-					    Tailwind v4's important syntax and is new to this repo. */}
+					{/* min-h-24 sets the 96px multi-line floor over the primitive's
+					    `min-h-16`, so an empty textarea never reads as a single-line text
+					    input; E-3 pins it at 375px. No important flag is needed since
+					    D-08: the touch-target rule lives in `@layer base`, which the
+					    cascade orders before `@layer utilities`, so the utility wins. */}
 					<form.AppField name="reason_for_moving">
 						{(field) => (
 							<field.TextareaField
 								label="Reason for moving (optional)"
-								className="min-h-24!"
+								className="min-h-24"
 								autoComplete="off"
 							/>
 						)}

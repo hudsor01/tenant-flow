@@ -19,7 +19,7 @@ export function ErrorPage({
 	dashboardHref = "/dashboard",
 }: ErrorPageProps) {
 	return (
-		<div className="flex min-h-[400px] w-full items-center justify-center p-8">
+		<div className="flex min-h-100 w-full items-center justify-center p-8">
 			<div className="flex max-w-md flex-col items-center gap-4 text-center">
 				<AlertCircle className="size-12 text-destructive" />
 				<div className="space-y-2">

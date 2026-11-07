@@ -1,0 +1,732 @@
+{
+  "meta": {
+    "tailwindVersion": "4.3.3",
+    "scannedFiles": 916,
+    "candidates": 15793,
+    "bundleBytes": 2758225
+  },
+  "light": {
+    "bodyBg": [
+      249,
+      250,
+      251,
+      1
+    ],
+    "variants": {
+      "default": {
+        "dataSlot": null,
+        "dataVariant": null,
+        "dataSize": null,
+        "height": 44,
+        "minHeight": "44px",
+        "flexShrink": "1",
+        "borderTopWidth": 0,
+        "borderColor": [
+          210,
+          216,
+          222,
+          1
+        ],
+        "bg": [
+          0,
+          100,
+          239,
+          1
+        ],
+        "color": [
+          244,
+          249,
+          255,
+          1
+        ],
+        "boxShadowRest": "none",
+        "contrast": 4.88,
+        "focus": {
+          "focusVisible": true,
+          "outlineStyle": "none",
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.985 0.002 240) 0px 0px 0px 2px, oklch(0.5 0.2 257) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "borderColor": [
+            210,
+            216,
+            222,
+            1
+          ]
+        },
+        "hoverBg": [
+          0,
+          100,
+          239,
+          0.902
+        ]
+      },
+      "destructive": {
+        "dataSlot": null,
+        "dataVariant": null,
+        "dataSize": null,
+        "height": 44,
+        "minHeight": "44px",
+        "flexShrink": "1",
+        "borderTopWidth": 0,
+        "borderColor": [
+          210,
+          216,
+          222,
+          1
+        ],
+        "bg": [
+          231,
+          0,
+          30,
+          1
+        ],
+        "color": [
+          251,
+          248,
+          241,
+          1
+        ],
+        "boxShadowRest": "none",
+        "contrast": 4.48,
+        "focus": {
+          "focusVisible": true,
+          "outlineStyle": "none",
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.985 0.002 240) 0px 0px 0px 2px, oklch(0.5 0.2 257) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "borderColor": [
+            210,
+            216,
+            222,
+            1
+          ]
+        },
+        "hoverBg": [
+          231,
+          0,
+          30,
+          0.902
+        ]
+      },
+      "outline": {
+        "dataSlot": null,
+        "dataVariant": null,
+        "dataSize": null,
+        "height": 44,
+        "minHeight": "44px",
+        "flexShrink": "1",
+        "borderTopWidth": 1,
+        "borderColor": [
+          182,
+          191,
+          199,
+          1
+        ],
+        "bg": [
+          249,
+          250,
+          251,
+          1
+        ],
+        "color": [
+          14,
+          23,
+          31,
+          1
+        ],
+        "boxShadowRest": "none",
+        "contrast": 17.31,
+        "focus": {
+          "focusVisible": true,
+          "outlineStyle": "none",
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.985 0.002 240) 0px 0px 0px 2px, oklch(0.5 0.2 257) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "borderColor": [
+            182,
+            191,
+            199,
+            1
+          ]
+        },
+        "hoverBg": [
+          0,
+          157,
+          91,
+          1
+        ]
+      },
+      "secondary": {
+        "dataSlot": null,
+        "dataVariant": null,
+        "dataSize": null,
+        "height": 44,
+        "minHeight": "44px",
+        "flexShrink": "1",
+        "borderTopWidth": 0,
+        "borderColor": [
+          210,
+          216,
+          222,
+          1
+        ],
+        "bg": [
+          222,
+          243,
+          255,
+          1
+        ],
+        "color": [
+          22,
+          22,
+          22,
+          1
+        ],
+        "boxShadowRest": "none",
+        "contrast": 15.83,
+        "focus": {
+          "focusVisible": true,
+          "outlineStyle": "none",
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.985 0.002 240) 0px 0px 0px 2px, oklch(0.5 0.2 257) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "borderColor": [
+            210,
+            216,
+            222,
+            1
+          ]
+        },
+        "hoverBg": [
+          221,
+          242,
+          255,
+          0.8
+        ]
+      },
+      "ghost": {
+        "dataSlot": null,
+        "dataVariant": null,
+        "dataSize": null,
+        "height": 44,
+        "minHeight": "44px",
+        "flexShrink": "1",
+        "borderTopWidth": 0,
+        "borderColor": [
+          210,
+          216,
+          222,
+          1
+        ],
+        "bg": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "color": [
+          14,
+          23,
+          31,
+          1
+        ],
+        "boxShadowRest": "none",
+        "contrast": 17.31,
+        "focus": {
+          "focusVisible": true,
+          "outlineStyle": "none",
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.985 0.002 240) 0px 0px 0px 2px, oklch(0.5 0.2 257) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "borderColor": [
+            210,
+            216,
+            222,
+            1
+          ]
+        },
+        "hoverBg": [
+          0,
+          157,
+          91,
+          1
+        ]
+      },
+      "link": {
+        "dataSlot": null,
+        "dataVariant": null,
+        "dataSize": null,
+        "height": 44,
+        "minHeight": "44px",
+        "flexShrink": "1",
+        "borderTopWidth": 0,
+        "borderColor": [
+          210,
+          216,
+          222,
+          1
+        ],
+        "bg": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "color": [
+          0,
+          79,
+          196,
+          1
+        ],
+        "boxShadowRest": "none",
+        "contrast": 6.89,
+        "focus": {
+          "focusVisible": true,
+          "outlineStyle": "none",
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.985 0.002 240) 0px 0px 0px 2px, oklch(0.5 0.2 257) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "borderColor": [
+            210,
+            216,
+            222,
+            1
+          ]
+        },
+        "hoverBg": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "sizes": {
+      "sm": {
+        "height": 44,
+        "width": 56.7,
+        "minHeight": "44px",
+        "minWidth": "auto",
+        "dataSize": null
+      },
+      "lg": {
+        "height": 44,
+        "width": 96.4,
+        "minHeight": "44px",
+        "minWidth": "auto",
+        "dataSize": null
+      },
+      "icon": {
+        "height": 44,
+        "width": 44,
+        "minHeight": "44px",
+        "minWidth": "44px",
+        "dataSize": null
+      }
+    },
+    "invalid": {
+      "borderColor": [
+        182,
+        191,
+        199,
+        1
+      ]
+    },
+    "asChild": {
+      "tag": "A",
+      "dataSlot": null,
+      "buttonCount": 0
+    },
+    "icons": {
+      "unsized": [
+        24,
+        24
+      ],
+      "size5": [
+        20,
+        20
+      ],
+      "hw5": [
+        20,
+        20
+      ]
+    },
+    "refs": {
+      "border": [
+        210,
+        216,
+        222,
+        1
+      ],
+      "input": [
+        182,
+        191,
+        199,
+        1
+      ],
+      "destructive": [
+        231,
+        0,
+        30,
+        1
+      ],
+      "ring": [
+        0,
+        91,
+        209,
+        1
+      ]
+    }
+  },
+  "dark": {
+    "bodyBg": [
+      4,
+      10,
+      17,
+      1
+    ],
+    "variants": {
+      "default": {
+        "dataSlot": null,
+        "dataVariant": null,
+        "dataSize": null,
+        "height": 44,
+        "minHeight": "44px",
+        "flexShrink": "1",
+        "borderTopWidth": 0,
+        "borderColor": [
+          41,
+          46,
+          53,
+          1
+        ],
+        "bg": [
+          67,
+          159,
+          255,
+          1
+        ],
+        "color": [
+          14,
+          18,
+          22,
+          1
+        ],
+        "boxShadowRest": "none",
+        "contrast": 6.84,
+        "focus": {
+          "focusVisible": true,
+          "outlineStyle": "none",
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.14 0.02 250) 0px 0px 0px 2px, oklch(0.72 0.22 259) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "borderColor": [
+            41,
+            46,
+            53,
+            1
+          ]
+        },
+        "hoverBg": [
+          68,
+          159,
+          255,
+          0.902
+        ]
+      },
+      "destructive": {
+        "dataSlot": null,
+        "dataVariant": null,
+        "dataSize": null,
+        "height": 44,
+        "minHeight": "44px",
+        "flexShrink": "1",
+        "borderTopWidth": 0,
+        "borderColor": [
+          41,
+          46,
+          53,
+          1
+        ],
+        "bg": [
+          201,
+          0,
+          0,
+          1
+        ],
+        "color": [
+          246,
+          237,
+          224,
+          1
+        ],
+        "boxShadowRest": "none",
+        "contrast": 5.2,
+        "focus": {
+          "focusVisible": true,
+          "outlineStyle": "none",
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.14 0.02 250) 0px 0px 0px 2px, oklch(0.72 0.22 259) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "borderColor": [
+            41,
+            46,
+            53,
+            1
+          ]
+        },
+        "hoverBg": [
+          201,
+          0,
+          0,
+          0.902
+        ]
+      },
+      "outline": {
+        "dataSlot": null,
+        "dataVariant": null,
+        "dataSize": null,
+        "height": 44,
+        "minHeight": "44px",
+        "flexShrink": "1",
+        "borderTopWidth": 1,
+        "borderColor": [
+          42,
+          46,
+          51,
+          1
+        ],
+        "bg": [
+          4,
+          10,
+          17,
+          1
+        ],
+        "color": [
+          236,
+          243,
+          248,
+          1
+        ],
+        "boxShadowRest": "none",
+        "contrast": 17.74,
+        "focus": {
+          "focusVisible": true,
+          "outlineStyle": "none",
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.14 0.02 250) 0px 0px 0px 2px, oklch(0.72 0.22 259) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "borderColor": [
+            42,
+            46,
+            51,
+            1
+          ]
+        },
+        "hoverBg": [
+          0,
+          189,
+          121,
+          1
+        ]
+      },
+      "secondary": {
+        "dataSlot": null,
+        "dataVariant": null,
+        "dataSize": null,
+        "height": 44,
+        "minHeight": "44px",
+        "flexShrink": "1",
+        "borderTopWidth": 0,
+        "borderColor": [
+          41,
+          46,
+          53,
+          1
+        ],
+        "bg": [
+          37,
+          41,
+          46,
+          1
+        ],
+        "color": [
+          217,
+          223,
+          229,
+          1
+        ],
+        "boxShadowRest": "none",
+        "contrast": 10.89,
+        "focus": {
+          "focusVisible": true,
+          "outlineStyle": "none",
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.14 0.02 250) 0px 0px 0px 2px, oklch(0.72 0.22 259) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "borderColor": [
+            41,
+            46,
+            53,
+            1
+          ]
+        },
+        "hoverBg": [
+          37,
+          41,
+          46,
+          0.8
+        ]
+      },
+      "ghost": {
+        "dataSlot": null,
+        "dataVariant": null,
+        "dataSize": null,
+        "height": 44,
+        "minHeight": "44px",
+        "flexShrink": "1",
+        "borderTopWidth": 0,
+        "borderColor": [
+          41,
+          46,
+          53,
+          1
+        ],
+        "bg": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "color": [
+          236,
+          243,
+          248,
+          1
+        ],
+        "boxShadowRest": "none",
+        "contrast": 17.74,
+        "focus": {
+          "focusVisible": true,
+          "outlineStyle": "none",
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.14 0.02 250) 0px 0px 0px 2px, oklch(0.72 0.22 259) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "borderColor": [
+            41,
+            46,
+            53,
+            1
+          ]
+        },
+        "hoverBg": [
+          0,
+          189,
+          121,
+          1
+        ]
+      },
+      "link": {
+        "dataSlot": null,
+        "dataVariant": null,
+        "dataSize": null,
+        "height": 44,
+        "minHeight": "44px",
+        "flexShrink": "1",
+        "borderTopWidth": 0,
+        "borderColor": [
+          41,
+          46,
+          53,
+          1
+        ],
+        "bg": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "color": [
+          124,
+          190,
+          255,
+          1
+        ],
+        "boxShadowRest": "none",
+        "contrast": 10.09,
+        "focus": {
+          "focusVisible": true,
+          "outlineStyle": "none",
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.14 0.02 250) 0px 0px 0px 2px, oklch(0.72 0.22 259) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+          "borderColor": [
+            41,
+            46,
+            53,
+            1
+          ]
+        },
+        "hoverBg": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "sizes": {
+      "sm": {
+        "height": 44,
+        "width": 56.7,
+        "minHeight": "44px",
+        "minWidth": "auto",
+        "dataSize": null
+      },
+      "lg": {
+        "height": 44,
+        "width": 96.4,
+        "minHeight": "44px",
+        "minWidth": "auto",
+        "dataSize": null
+      },
+      "icon": {
+        "height": 44,
+        "width": 44,
+        "minHeight": "44px",
+        "minWidth": "44px",
+        "dataSize": null
+      }
+    },
+    "invalid": {
+      "borderColor": [
+        42,
+        46,
+        51,
+        1
+      ]
+    },
+    "asChild": {
+      "tag": "A",
+      "dataSlot": null,
+      "buttonCount": 0
+    },
+    "icons": {
+      "unsized": [
+        24,
+        24
+      ],
+      "size5": [
+        20,
+        20
+      ],
+      "hw5": [
+        20,
+        20
+      ]
+    },
+    "refs": {
+      "border": [
+        41,
+        46,
+        53,
+        1
+      ],
+      "input": [
+        42,
+        46,
+        51,
+        1
+      ],
+      "destructive": [
+        201,
+        0,
+        0,
+        1
+      ],
+      "ring": [
+        67,
+        159,
+        255,
+        1
+      ]
+    }
+  }
+}

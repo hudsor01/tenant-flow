@@ -9,6 +9,7 @@ import { usageQueries } from "#hooks/api/query-keys/usage-keys";
 import {
 	handleMutationError,
 	showStorageQuotaUpgradeToast,
+	userFacingErrorMessage,
 } from "#lib/mutation-error-handler";
 import {
 	isStoragePlanLimitError,
@@ -107,7 +108,10 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 		// must still upload; the DB trigger is authoritative). Ignore usage-read
 		// failures so the pre-check can never block an upload.
 		try {
-			const usage = await queryClient.ensureQueryData(usageQueries.storage());
+			const usage = await queryClient.query({
+				...usageQueries.storage(),
+				staleTime: "static",
+			});
 			const totalBytes = filesToUpload.reduce((sum, f) => sum + f.size, 0);
 			if (wouldExceedStorageQuota(usage, totalBytes)) {
 				showStorageQuotaUpgradeToast();
@@ -135,7 +139,10 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 					if (isStoragePlanLimitError(error)) {
 						handleMutationError(error, "Upload file");
 					}
-					return { name: file.name, message: error.message };
+					return {
+						name: file.name,
+						message: userFacingErrorMessage(error, "Upload failed"),
+					};
 				} else {
 					return { name: file.name, message: undefined };
 				}

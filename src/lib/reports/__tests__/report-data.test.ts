@@ -7,18 +7,16 @@ import { isMissingRelationError, safeFetch } from "../report-data";
 /**
  * D-37 regression pin.
  *
- * `executiveKeyMetricsRows` is module-private, so this scans source rather than
- * calling it — the same mechanism `reports-hub-purity.test.ts` uses, which
- * cannot cover this file because its REPORTS_ROOT is `src/app/(owner)/reports`
- * and this lives under `src/lib/reports`.
+ * `ledgerPeriodRows` and `occupancyTodayRows`, the executive key metrics' rows,
+ * are module-private, so this scans source rather than calling them — the
+ * same mechanism `reports-hub-purity.test.ts` uses, which cannot cover this
+ * file because its REPORTS_ROOT is `src/app/(owner)/reports` and this lives
+ * under `src/lib/reports`.
  *
- * Without this, the excision was pinned by nothing but a prose comment, while
- * its sibling D-35 excision DID carry an absence assertion
- * (`use-financial-overview.test.ts`: `.not.toContain("accounts_receivable")`).
- * That asymmetry reads as coverage that is not there: re-adding the rows would
- * pass the entire suite and put permanently-zero counts back into a
- * customer-facing generated file on every tier, since `executive-monthly` is
- * deliberately not premium.
+ * Without this, the excision would be pinned by nothing but a prose comment:
+ * re-adding the rows would pass the entire suite and put permanently-zero
+ * counts back into a customer-facing generated file on every tier, since
+ * `executive-monthly` is deliberately not premium.
  */
 const REPORT_DATA_SRC = readFileSync(
 	join(process.cwd(), "src/lib/reports/report-data.ts"),
@@ -34,13 +32,12 @@ const REPORT_DATA_CODE = REPORT_DATA_SRC.replace(
 /**
  * Isolate one top-level function body.
  *
- * The must-survive assertions below MUST scan only `executiveKeyMetricsRows`,
- * never the whole file. Every one of the six labels it emits also appears in a
- * sibling helper — Total Income / Total Expenses / Net Income / Cash Flow in
- * `financialSummaryRows`, Occupied Units in `propertyPortfolioSummaryRows`,
- * Occupancy Rate as a table header. A whole-file `toContain` therefore passes
- * with the function gutted to `return []`, which is exactly the outcome those
- * assertions were added to catch. The absence assertions can stay whole-file:
+ * The must-survive assertions below MUST scan only the helpers the executive
+ * key metrics come from (`ledgerPeriodRows`, `occupancyTodayRows`), never the
+ * whole file: their labels also appear in sibling helpers (the property
+ * portfolio's Occupied Units (today), a table header). A whole-file
+ * `toContain` therefore passes with a function gutted to `return []`, which is
+ * exactly the outcome those assertions were added to catch. The absence assertions can stay whole-file:
  * the tokens they ban must not appear anywhere in this module.
  */
 function functionBody(source: string, name: string): string {
@@ -60,10 +57,10 @@ function functionBody(source: string, name: string): string {
 	throw new Error(`unbalanced braces reading ${name}`);
 }
 
-const EXECUTIVE_KEY_METRICS_BODY = functionBody(
-	REPORT_DATA_CODE,
-	"executiveKeyMetricsRows",
-);
+const EXECUTIVE_KEY_METRICS_BODY = [
+	functionBody(REPORT_DATA_CODE, "ledgerPeriodRows"),
+	functionBody(REPORT_DATA_CODE, "occupancyTodayRows"),
+].join("\n");
 
 describe("isMissingRelationError", () => {
 	it("returns true for Postgres 42P01 by error code", () => {
@@ -194,6 +191,21 @@ describe("safeFetch", () => {
 	});
 });
 
+// buildTaxPreparation builds these sections only for a ready summary, and
+// safeFetch's one fallback is a ledger-unavailable result, which takes the
+// unavailable sections instead: an `available` parameter here could never be
+// false, and its branch wrote a note no export could carry (cycle 2, F120).
+describe("the tax preparation export's vendor note", () => {
+	it("is the deductibility note alone, with no failed-read branch", () => {
+		const body = functionBody(REPORT_DATA_CODE, "taxPreparationSections");
+		expect(body).toContain("note: DEDUCTIBILITY_NOTE");
+		expect(body).not.toContain("UNAVAILABLE_NOTE");
+		expect(REPORT_DATA_CODE).toMatch(
+			/function taxPreparationSections\(yearEnd: YearEndSummary\)/,
+		);
+	});
+});
+
 describe("D-37: the permanently-zero payment counts stay excised", () => {
 	it.each([
 		"Total Payments",
@@ -210,34 +222,44 @@ describe("D-37: the permanently-zero payment counts stay excised", () => {
 		"payments_by_method",
 		"payments_by_status",
 	])("does not read the broken snake_case key %s", (key) => {
-		// The mapper at report-analytics-keys.ts still parses these off a payload
-		// that returns only camelCase, so every lookup resolves undefined. It is
-		// still live for other consumers; this file must not become one again.
+		// get_billing_insights returns only camelCase, so each lookup resolved
+		// undefined. Nothing in src/ reads these keys any more (the mapper that
+		// parsed them is gone); this file must not read them again.
 		expect(REPORT_DATA_CODE).not.toContain(key);
 	});
 
 	it("still emits the six honest executive key metrics", () => {
-		// Scanned against the FUNCTION BODY, not the file. See functionBody().
-		// The whole-file form of this assertion was vacuous: all six labels also
-		// live in sibling helpers, so it passed with the function gutted to
+		// Scanned against the FUNCTION BODIES, not the file. See functionBody().
+		// The whole-file form of this assertion was vacuous: the labels also
+		// live in sibling helpers, so it passed with a function gutted to
 		// `return []` — the precise outcome it was written to catch.
 		for (const label of [
-			"Total Income",
+			"Total Revenue",
 			"Total Expenses",
 			"Net Income",
-			"Cash Flow",
-			"Occupancy Rate",
-			"Occupied Units",
+			"Net Cash Flow",
+			"Occupancy Rate (today)",
+			"Occupied Units (today)",
 		]) {
 			expect(EXECUTIVE_KEY_METRICS_BODY).toContain(label);
 		}
+	});
+
+	it.each([
+		"Total Income",
+		'"Cash Flow"',
+		"Rent-Roll Occupancy",
+		"revenue.yearly",
+		"totalIncome",
+	])("does not label scheduled rent as income or cash again: %s", (token) => {
+		expect(REPORT_DATA_CODE).not.toContain(token);
 	});
 
 	it("the must-survive scan is scoped to the function, not the file", () => {
 		// A body that no longer emits the rows must fail the assertion above.
 		// Proven here rather than asserted, because the vacuous version of this
 		// guard looked identical from the outside.
-		for (const label of ["Total Income", "Occupancy Rate"]) {
+		for (const label of ["Total Revenue", "Occupancy Rate (today)"]) {
 			expect("{\n\treturn [];\n}").not.toContain(label);
 		}
 		// And the extractor must fail loudly if the function is renamed away.

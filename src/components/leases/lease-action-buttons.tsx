@@ -176,7 +176,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 						<AlertDialogAction
 							onClick={() => deleteLease.mutate(lease.id)}
 							disabled={deleteLease.isPending}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							variant="destructive"
 						>
 							{deleteLease.isPending ? "Deleting..." : "Delete"}
 						</AlertDialogAction>

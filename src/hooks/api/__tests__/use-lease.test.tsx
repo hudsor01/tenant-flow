@@ -15,7 +15,11 @@
  * @vitest-environment jsdom
  */
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+	QueryClient,
+	QueryClientProvider,
+	useQuery,
+} from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -32,12 +36,8 @@ import { ownerDashboardKeys } from "../query-keys/owner-dashboard-keys";
 import { tenantQueries } from "../query-keys/tenant-keys";
 import { unitQueries } from "../query-keys/unit-keys";
 import {
-	useExpiringLeases,
-	useLease,
 	useLeaseList,
 	useLeaseSignatureStatus,
-	useLeaseStats,
-	usePrefetchLeaseDetail,
 	useSignedDocumentUrl,
 } from "../use-lease";
 import {
@@ -46,7 +46,6 @@ import {
 } from "../use-lease-lifecycle-mutations";
 import {
 	useCreateLeaseMutation,
-	useDeleteLeaseMutation,
 	useUpdateLeaseMutation,
 } from "../use-lease-mutations";
 import {
@@ -219,11 +218,14 @@ describe("Query Hooks", () => {
 		});
 	});
 
-	describe("useLease", () => {
+	describe("leaseQueries.detail", () => {
 		it("should query leases table by ID", async () => {
-			const { result } = renderHook(() => useLease("lease-123"), {
-				wrapper: createWrapper(),
-			});
+			const { result } = renderHook(
+				() => useQuery(leaseQueries.detail("lease-123")),
+				{
+					wrapper: createWrapper(),
+				},
+			);
 
 			await waitFor(() => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true);
@@ -233,7 +235,7 @@ describe("Query Hooks", () => {
 		});
 
 		it("should not fetch when ID is empty", () => {
-			const { result } = renderHook(() => useLease(""), {
+			const { result } = renderHook(() => useQuery(leaseQueries.detail("")), {
 				wrapper: createWrapper(),
 			});
 
@@ -282,47 +284,7 @@ describe("Query Hooks", () => {
 		});
 	});
 
-	describe("useExpiringLeases", () => {
-		it("should query leases expiring within default 30 days", async () => {
-			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === "leases") {
-					return createQueryChain({ data: [mockLease] });
-				}
-				return createQueryChain({ data: null });
-			});
-
-			const { result } = renderHook(() => useExpiringLeases(), {
-				wrapper: createWrapper(),
-			});
-
-			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true);
-			});
-
-			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
-		});
-
-		it("should query leases expiring within custom days", async () => {
-			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === "leases") {
-					return createQueryChain({ data: [] });
-				}
-				return createQueryChain({ data: null });
-			});
-
-			const { result } = renderHook(() => useExpiringLeases(60), {
-				wrapper: createWrapper(),
-			});
-
-			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true);
-			});
-
-			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
-		});
-	});
-
-	describe("useLeaseStats", () => {
+	describe("leaseQueries.stats", () => {
 		it("should call get_lease_stats RPC for aggregated counts", async () => {
 			supabaseRpcMock.mockResolvedValue({
 				data: {
@@ -338,7 +300,7 @@ describe("Query Hooks", () => {
 				error: null,
 			});
 
-			const { result } = renderHook(() => useLeaseStats(), {
+			const { result } = renderHook(() => useQuery(leaseQueries.stats()), {
 				wrapper: createWrapper(),
 			});
 
@@ -671,18 +633,6 @@ describe("Mutation Hooks", () => {
 		});
 	});
 
-	describe("useDeleteLeaseMutation", () => {
-		it("should soft-delete via status update in leases table", async () => {
-			const { result } = renderHook(() => useDeleteLeaseMutation(), {
-				wrapper: createWrapper(),
-			});
-
-			await result.current.mutateAsync("lease-123");
-
-			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
-		});
-	});
-
 	describe("useTerminateLeaseMutation", () => {
 		it("should update lease_status to terminated in leases table", async () => {
 			const terminatedLease = { ...mockLease, lease_status: "terminated" };
@@ -897,42 +847,6 @@ describe("Mutation Hooks", () => {
 	});
 });
 
-describe("Utility Hooks", () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-
-		supabaseAuthGetUserMock.mockResolvedValue({
-			data: { user: { id: "user-123" } },
-		});
-
-		supabaseAuthGetSessionMock.mockResolvedValue({
-			data: { session: { access_token: "mock-token" } },
-		});
-
-		fetchMock.mockResolvedValue({
-			ok: true,
-			json: async () => ({ success: true }),
-		});
-
-		supabaseFromMock.mockImplementation((table: string) => {
-			if (table === "leases") {
-				return createQueryChain({ data: mockLease });
-			}
-			return createQueryChain({ data: null });
-		});
-	});
-
-	describe("usePrefetchLeaseDetail", () => {
-		it("should be a declarative prefetch hook", () => {
-			const { result } = renderHook(() => usePrefetchLeaseDetail("lease-123"), {
-				wrapper: createWrapper(),
-			});
-
-			expect(result.current).toBeUndefined();
-		});
-	});
-});
-
 describe("Error Handling", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -964,9 +878,12 @@ describe("Error Handling", () => {
 			}),
 		);
 
-		const { result } = renderHook(() => useLease("lease-123"), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(leaseQueries.detail("lease-123")),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isError).toBe(true);
@@ -978,9 +895,12 @@ describe("Error Handling", () => {
 			throw new Error("Network error");
 		});
 
-		const { result } = renderHook(() => useLease("lease-123"), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(leaseQueries.detail("lease-123")),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isError).toBe(true);
@@ -1000,7 +920,7 @@ describe("Error Handling", () => {
 			}),
 		);
 
-		const { result } = renderHook(() => useDeleteLeaseMutation(), {
+		const { result } = renderHook(() => useTerminateLeaseMutation(), {
 			wrapper: createWrapper(),
 		});
 

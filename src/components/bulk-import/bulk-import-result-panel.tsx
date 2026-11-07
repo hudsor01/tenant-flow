@@ -90,10 +90,12 @@ function ResultHeader({
 			<div
 				className={cn(
 					"icon-container-md border",
-					tone === "success" && "bg-success/10 text-success border-success/20",
-					tone === "warning" && "bg-warning/10 text-warning border-warning/20",
+					tone === "success" &&
+						"bg-success/10 text-success-text border-success/20",
+					tone === "warning" &&
+						"bg-warning/10 text-warning-text border-warning/20",
 					tone === "destructive" &&
-						"bg-destructive/10 text-destructive border-destructive/20",
+						"bg-destructive/10 text-destructive-text border-destructive/20",
 				)}
 			>
 				{tone === "success" && <PartyPopper className="size-5" />}

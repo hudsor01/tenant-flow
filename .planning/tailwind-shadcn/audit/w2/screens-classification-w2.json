@@ -1,0 +1,909 @@
+[
+ {
+  "capture": "owner/analytics_overview-dark-1280.png",
+  "differs": true,
+  "changedPixels": 210,
+  "class": "data-drift:owner header notification badge count (w1 '9+' or '9', w2 '8': production notifications)",
+  "bbox": {
+   "x": 1185,
+   "y": 2,
+   "width": 18,
+   "height": 16
+  },
+  "sizeW1": [
+   1280,
+   1599
+  ],
+  "sizeW2": [
+   1280,
+   1599
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/analytics_overview-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/analytics_overview-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/analytics_overview-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/applications-dark-1280.png",
+  "differs": true,
+  "changedPixels": 210,
+  "class": "data-drift:owner header notification badge count (w1 '9+' or '9', w2 '8': production notifications)",
+  "bbox": {
+   "x": 1185,
+   "y": 2,
+   "width": 18,
+   "height": 16
+  },
+  "sizeW1": [
+   1280,
+   2960
+  ],
+  "sizeW2": [
+   1280,
+   2960
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/applications-dark-320.png",
+  "differs": true,
+  "changedPixels": 210,
+  "class": "data-drift:owner header notification badge count (w1 '9+' or '9', w2 '8': production notifications)",
+  "bbox": {
+   "x": 237,
+   "y": 2,
+   "width": 18,
+   "height": 16
+  },
+  "sizeW1": [
+   320,
+   3233
+  ],
+  "sizeW2": [
+   320,
+   3233
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/applications-dark-375.png",
+  "differs": true,
+  "changedPixels": 210,
+  "class": "data-drift:owner header notification badge count (w1 '9+' or '9', w2 '8': production notifications)",
+  "bbox": {
+   "x": 288,
+   "y": 2,
+   "width": 18,
+   "height": 16
+  },
+  "sizeW1": [
+   375,
+   3161
+  ],
+  "sizeW2": [
+   375,
+   3161
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/applications-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/applications-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/applications-light-320.png",
+  "differs": true,
+  "changedPixels": 134107,
+  "class": "data-drift:per-property link card list order and count (first card 'Ledger Append-Only Te…' in w1, 'rls-sign-test-…' in w2; page 3351 -> 3233): production properties",
+  "bbox": {
+   "x": 0,
+   "y": 760,
+   "width": 320,
+   "height": 2591
+  },
+  "sizeW1": [
+   320,
+   3351
+  ],
+  "sizeW2": [
+   320,
+   3233
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/applications-light-375.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/applications-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/dashboard-dark-1280.png",
+  "differs": true,
+  "changedPixels": 26672,
+  "class": "data-drift:KPIs occupancy 32% -> 33%, properties 25 -> 24, units 19 -> 18, open maintenance 1 -> 0: production data",
+  "bbox": {
+   "x": 455,
+   "y": 5,
+   "width": 749,
+   "height": 2739
+  },
+  "sizeW1": [
+   1280,
+   3060
+  ],
+  "sizeW2": [
+   1280,
+   3060
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/dashboard-dark-390.png",
+  "differs": true,
+  "changedPixels": 155373,
+  "class": "data-drift:KPIs revenue $8,734 -> $7,500, occupancy 37% -> 33%, active leases 6 -> 5, properties 25 -> 24, units 19 -> 18, collection rate -5.3% -> 0%: production data",
+  "bbox": {
+   "x": 0,
+   "y": 145,
+   "width": 390,
+   "height": 6214
+  },
+  "sizeW1": [
+   390,
+   6359
+  ],
+  "sizeW2": [
+   390,
+   6335
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/dashboard-light-1280.png",
+  "differs": true,
+  "changedPixels": 19446,
+  "class": "data-drift:Recent Activity feed rows ('Property added · METER-03 A Property' and 'Lease created' rows in w1; 'Document uploaded · RLS Test Doc' and 'Property added · plan-limit-test-max-…' rows in w2): production activity",
+  "bbox": {
+   "x": 813,
+   "y": 1833,
+   "width": 384,
+   "height": 911
+  },
+  "sizeW1": [
+   1280,
+   3060
+  ],
+  "sizeW2": [
+   1280,
+   3060
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/dashboard-light-390.png",
+  "differs": true,
+  "changedPixels": 12921,
+  "class": "data-drift:Recent Activity feed rows (same production activity change as dashboard-light-1280)",
+  "bbox": {
+   "x": 89,
+   "y": 5116,
+   "width": 232,
+   "height": 911
+  },
+  "sizeW1": [
+   390,
+   6335
+  ],
+  "sizeW2": [
+   390,
+   6335
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/documents-dark-1280.png",
+  "differs": true,
+  "changedPixels": 210,
+  "class": "data-drift:owner header notification badge count (w1 '9+' or '9', w2 '8': production notifications)",
+  "bbox": {
+   "x": 1185,
+   "y": 2,
+   "width": 18,
+   "height": 16
+  },
+  "sizeW1": [
+   1280,
+   1314
+  ],
+  "sizeW2": [
+   1280,
+   1314
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/documents-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/documents-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/documents-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/documents_lease-template-dark-1280.png",
+  "differs": true,
+  "changedPixels": 210,
+  "class": "data-drift:owner header notification badge count (w1 '9+' or '9', w2 '8': production notifications)",
+  "bbox": {
+   "x": 1185,
+   "y": 2,
+   "width": 18,
+   "height": 16
+  },
+  "sizeW1": [
+   1280,
+   6178
+  ],
+  "sizeW2": [
+   1280,
+   6178
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/documents_lease-template-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/documents_lease-template-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/documents_lease-template-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/leases-dark-1280.png",
+  "differs": true,
+  "changedPixels": 53,
+  "class": "data-drift:owner header notification badge count (w1 '9+' or '9', w2 '8': production notifications)",
+  "bbox": {
+   "x": 1196,
+   "y": 5,
+   "width": 7,
+   "height": 10
+  },
+  "sizeW1": [
+   1280,
+   1169
+  ],
+  "sizeW2": [
+   1280,
+   1169
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/leases-dark-390.png",
+  "differs": true,
+  "changedPixels": 240,
+  "class": "data-drift:Total Leases KPI 18 (w1) vs 17 (w2): production lease count",
+  "bbox": {
+   "x": 65,
+   "y": 316,
+   "width": 19,
+   "height": 896
+  },
+  "sizeW1": [
+   390,
+   1462
+  ],
+  "sizeW2": [
+   390,
+   1462
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/leases-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/leases-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/maintenance-dark-1280.png",
+  "differs": true,
+  "changedPixels": 601376,
+  "class": "data-drift:w1 shows one open maintenance request (KPI Open 1, kanban card); w2 the empty state; height 1075 -> 800: production maintenance rows",
+  "bbox": {
+   "x": 0,
+   "y": 2,
+   "width": 1280,
+   "height": 1073
+  },
+  "sizeW1": [
+   1280,
+   1075
+  ],
+  "sizeW2": [
+   1280,
+   800
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/maintenance-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/maintenance-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/maintenance-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/properties-dark-1280.png",
+  "differs": true,
+  "changedPixels": 10435,
+  "class": "data-drift:KPIs properties 25 -> 24, available 13 -> 12, '25 properties' -> '24 properties', grid card order: production portfolio rows",
+  "bbox": {
+   "x": 343,
+   "y": 5,
+   "width": 860,
+   "height": 947
+  },
+  "sizeW1": [
+   1280,
+   1346
+  ],
+  "sizeW2": [
+   1280,
+   1346
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/properties-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/properties-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/properties-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/reports_cash-flow-dark-1280.png",
+  "differs": true,
+  "changedPixels": 210,
+  "class": "data-drift:owner header notification badge count (w1 '9+' or '9', w2 '8': production notifications)",
+  "bbox": {
+   "x": 1185,
+   "y": 2,
+   "width": 18,
+   "height": 16
+  },
+  "sizeW1": [
+   1280,
+   1188
+  ],
+  "sizeW2": [
+   1280,
+   1188
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/reports_cash-flow-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/reports_cash-flow-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/reports_cash-flow-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/settings-dark-1280.png",
+  "differs": true,
+  "changedPixels": 210,
+  "class": "data-drift:owner header notification badge count (w1 '9+' or '9', w2 '8': production notifications)",
+  "bbox": {
+   "x": 1185,
+   "y": 2,
+   "width": 18,
+   "height": 16
+  },
+  "sizeW1": [
+   1280,
+   1611
+  ],
+  "sizeW2": [
+   1280,
+   1611
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/settings-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/settings-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/settings-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/tenants-dark-1280.png",
+  "differs": true,
+  "changedPixels": 53,
+  "class": "data-drift:owner header notification badge count (w1 '9+' or '9', w2 '8': production notifications)",
+  "bbox": {
+   "x": 1196,
+   "y": 5,
+   "width": 7,
+   "height": 10
+  },
+  "sizeW1": [
+   1280,
+   1132
+  ],
+  "sizeW2": [
+   1280,
+   1132
+  ],
+  "w1nowVsW2ChangedPixels": 0
+ },
+ {
+  "capture": "owner/tenants-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/tenants-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "owner/tenants-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/auth_confirm-email-dark-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/auth_confirm-email-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/auth_confirm-email-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/auth_confirm-email-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/auth_update-password-dark-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/auth_update-password-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/auth_update-password-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/auth_update-password-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/contact-dark-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/contact-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/contact-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/contact-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/faq-dark-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/faq-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/faq-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/faq-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/help-dark-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/help-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/help-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/help-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/login-dark-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/login-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/login-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/login-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/pricing-dark-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/pricing-dark-390.png",
+  "differs": true,
+  "changedPixels": 22,
+  "class": "noise",
+  "bbox": {
+   "x": 55,
+   "y": 3807,
+   "width": 20,
+   "height": 7
+  },
+  "sizeW1": [
+   390,
+   7008
+  ],
+  "sizeW2": [
+   390,
+   7008
+  ],
+  "w1nowVsW2ChangedPixels": 22,
+  "evidence": "lucide house icon roof antialiasing on the 'Built for' card (x55 y3807, 20x7); /signup redirects to /pricing",
+  "confirmedBy": [
+   "w2-repeat (w2 tree): 22 px",
+   "w2-repeat2 (w2 tree): 22 px"
+  ],
+  "rule": "Noise and probe rules (decided 2026-10-31 after 66.2-15), commit 234419439"
+ },
+ {
+  "capture": "public/pricing-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/pricing-light-390.png",
+  "differs": true,
+  "changedPixels": 22,
+  "class": "noise",
+  "bbox": {
+   "x": 55,
+   "y": 3807,
+   "width": 20,
+   "height": 7
+  },
+  "sizeW1": [
+   390,
+   7008
+  ],
+  "sizeW2": [
+   390,
+   7008
+  ],
+  "w1nowVsW2ChangedPixels": 0,
+  "evidence": "lucide house icon roof antialiasing on the 'Built for' card (x55 y3807, 20x7); /signup redirects to /pricing",
+  "confirmedBy": [
+   "w2-repeat (w2 tree): 22 px",
+   "w1 vs w1now (W1 tree recaptured this session): 22 px"
+  ],
+  "rule": "Noise and probe rules (decided 2026-10-31 after 66.2-15), commit 234419439"
+ },
+ {
+  "capture": "public/privacy-dark-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/privacy-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/privacy-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/privacy-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/root-dark-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/root-dark-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/root-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/root-light-390.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/signup-dark-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/signup-dark-390.png",
+  "differs": true,
+  "changedPixels": 22,
+  "class": "noise",
+  "bbox": {
+   "x": 55,
+   "y": 3807,
+   "width": 20,
+   "height": 7
+  },
+  "sizeW1": [
+   390,
+   7008
+  ],
+  "sizeW2": [
+   390,
+   7008
+  ],
+  "w1nowVsW2ChangedPixels": 0,
+  "evidence": "lucide house icon roof antialiasing on the 'Built for' card (x55 y3807, 20x7); /signup redirects to /pricing",
+  "confirmedBy": [
+   "w2-repeat2 (w2 tree): 22 px",
+   "w1 vs w1now (W1 tree recaptured this session): 22 px"
+  ],
+  "rule": "Noise and probe rules (decided 2026-10-31 after 66.2-15), commit 234419439"
+ },
+ {
+  "capture": "public/signup-light-1280.png",
+  "differs": false,
+  "changedPixels": 0,
+  "class": "identical"
+ },
+ {
+  "capture": "public/signup-light-390.png",
+  "differs": true,
+  "changedPixels": 22,
+  "class": "noise",
+  "bbox": {
+   "x": 55,
+   "y": 3807,
+   "width": 20,
+   "height": 7
+  },
+  "sizeW1": [
+   390,
+   7008
+  ],
+  "sizeW2": [
+   390,
+   7008
+  ],
+  "w1nowVsW2ChangedPixels": 0,
+  "evidence": "lucide house icon roof antialiasing on the 'Built for' card (x55 y3807, 20x7); /signup redirects to /pricing",
+  "confirmedBy": [
+   "w2-repeat (w2 tree): 22 px",
+   "w2-repeat2 (w2 tree): 22 px",
+   "w1 vs w1now (W1 tree recaptured this session): 22 px"
+  ],
+  "rule": "Noise and probe rules (decided 2026-10-31 after 66.2-15), commit 234419439"
+ }
+]

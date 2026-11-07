@@ -12,6 +12,7 @@ import {
 	userPreferencesQueries,
 } from "#hooks/api/query-keys/user-preferences-keys";
 import { profileKeys, useProfile } from "#hooks/api/use-profile";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import {
@@ -101,9 +102,7 @@ export function GeneralSettings() {
 			toast.success("Profile updated successfully");
 		},
 		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to update profile",
-			);
+			handleMutationError(error, "Update profile");
 		},
 	});
 
@@ -123,9 +122,7 @@ export function GeneralSettings() {
 			);
 		},
 		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to update email",
-			);
+			handleMutationError(error, "Update email");
 		},
 	});
 
@@ -154,9 +151,7 @@ export function GeneralSettings() {
 			toast.success("Preferences updated successfully");
 		},
 		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to update preferences",
-			);
+			handleMutationError(error, "Update preferences");
 		},
 	});
 
@@ -220,8 +215,8 @@ export function GeneralSettings() {
 
 	return (
 		<div className="space-y-6">
-			<BlurFade delay={0.1} inView>
-				<div className="mb-6">
+			<BlurFade delay={0.1}>
+				<div>
 					<h2 className="text-lg font-semibold">General Settings</h2>
 					<p className="text-sm text-muted-foreground">
 						Manage your business profile and preferences
@@ -230,7 +225,7 @@ export function GeneralSettings() {
 			</BlurFade>
 
 			{/* Contact Info */}
-			<BlurFade delay={0.15} inView>
+			<BlurFade delay={0.15}>
 				<section className="rounded-lg border bg-card p-6">
 					<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
 						Contact Info
@@ -275,7 +270,7 @@ export function GeneralSettings() {
 			</BlurFade>
 
 			{/* Preferences */}
-			<BlurFade delay={0.25} inView>
+			<BlurFade delay={0.25}>
 				<section className="rounded-lg border bg-card p-6">
 					<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
 						Preferences
@@ -371,12 +366,12 @@ export function GeneralSettings() {
 			</BlurFade>
 
 			{/* Save Button */}
-			<BlurFade delay={0.35} inView>
+			<BlurFade delay={0.35}>
 				<div className="flex justify-end">
 					<button
 						onClick={handleSaveChanges}
 						disabled={isSaving}
-						className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+						className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary-text dark:hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
 					>
 						{isSaving ? (
 							<span className="flex items-center gap-2">
@@ -391,7 +386,7 @@ export function GeneralSettings() {
 			</BlurFade>
 
 			{/* Emergency Contact (F-3 from 2026-05-03 audit) */}
-			<BlurFade delay={0.4} inView>
+			<BlurFade delay={0.4}>
 				<OwnerEmergencyContactSection />
 			</BlurFade>
 		</div>

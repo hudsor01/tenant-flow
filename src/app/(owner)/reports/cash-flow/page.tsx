@@ -2,13 +2,24 @@
 
 import { useState } from "react";
 import { useCashFlow } from "#hooks/api/use-financials";
+import { formatLocalYmd } from "#lib/formatters/date";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { CSV_MIME_TYPE } from "#lib/reports/csv";
+import { downloadBlob } from "#lib/reports/download-blob";
+import { LedgerTotalsUnavailable } from "../ledger-totals-unavailable";
+import { StatementBasisNote } from "../statement-basis-note";
 import { CashFlowActivity } from "./cash-flow-activity";
 import { CashFlowBalanceSummary } from "./cash-flow-balance-summary";
 import { CashFlowBreakdown } from "./cash-flow-breakdown";
+import { buildCashFlowCsv, cashFlowCsvFilename } from "./cash-flow-csv";
 import { CashFlowError } from "./cash-flow-error";
 import { CashFlowHeader } from "./cash-flow-header";
 import { CashFlowLoading } from "./cash-flow-loading";
 import { CashFlowStats } from "./cash-flow-stats";
+import { buildCashFlowView } from "./cash-flow-view";
+
+const LEDGER_UNAVAILABLE_EXPORT_REASON =
+	"The rent ledger totals this report is built on aren't available yet.";
 
 export default function CashFlowPage() {
 	const [period, setPeriod] = useState("monthly");
@@ -17,110 +28,70 @@ export default function CashFlowPage() {
 	const dateRange = (() => {
 		const currentDate = new Date();
 		const selectedYear = parseInt(year, 10);
+		// First and last day of a run of months, as local YYYY-MM-DD (day 0 of
+		// the following month is the last day of the run).
+		const range = (startMonthIndex: number, months: number) => ({
+			start_date: formatLocalYmd(new Date(selectedYear, startMonthIndex, 1)),
+			end_date: formatLocalYmd(
+				new Date(selectedYear, startMonthIndex + months, 0),
+			),
+		});
 
-		if (period === "yearly") {
-			return {
-				start_date: `${selectedYear}-01-01`,
-				end_date: `${selectedYear}-12-31`,
-			};
-		} else if (period === "quarterly") {
-			const currentQuarter = Math.floor(currentDate.getMonth() / 3);
-			const startMonth = currentQuarter * 3 + 1;
-			const endMonth = startMonth + 2;
-			return {
-				start_date: `${selectedYear}-${String(startMonth).padStart(2, "0")}-01`,
-				end_date: `${selectedYear}-${String(endMonth).padStart(2, "0")}-${new Date(selectedYear, endMonth, 0).getDate()}`,
-			};
-		} else {
-			const month = currentDate.getMonth() + 1;
-			const lastDay = new Date(selectedYear, month, 0).getDate();
-			return {
-				start_date: `${selectedYear}-${String(month).padStart(2, "0")}-01`,
-				end_date: `${selectedYear}-${String(month).padStart(2, "0")}-${lastDay}`,
-			};
+		if (period === "yearly") return range(0, 12);
+		if (period === "quarterly") {
+			return range(Math.floor(currentDate.getMonth() / 3) * 3, 3);
 		}
+		return range(currentDate.getMonth(), 1);
 	})();
 
-	const { data, isLoading, error, refetch } = useCashFlow(dateRange);
-	const cashFlowData = data?.data;
+	const { data, isLoading, isPlaceholderData, error, refetch } =
+		useCashFlow(dateRange);
+	// When get_billing_insights returns none of the ledger figures the report
+	// is built on (its body before 20261102055449), the query says so rather
+	// than handing the page zeros to present as rent received and balances.
+	const ledgerUnavailable = data?.status === "ledger-unavailable";
+	const cashFlowData = data?.status === "ready" ? data.report : undefined;
+	const view = buildCashFlowView(cashFlowData);
 
-	const inflowItems = (() => {
-		if (!cashFlowData) return [];
-		const items = [
-			{
-				category: "Rental Payments Received",
-				amount: cashFlowData.operatingActivities.rentalPaymentsReceived,
-			},
-			{
-				category: "Loan Proceeds",
-				amount: cashFlowData.financingActivities.loanProceeds,
-			},
-			{
-				category: "Owner Contributions",
-				amount: cashFlowData.financingActivities.ownerContributions,
-			},
-		].filter((i) => i.amount > 0);
-		const total = items.reduce((sum, i) => sum + i.amount, 0);
-		return items.map((i) => ({
-			...i,
-			percentage: total > 0 ? (i.amount / total) * 100 : 0,
-		}));
-	})();
+	// The global keepPreviousData shows the last period while the selected one
+	// loads, so the export waits for the data that matches the selectors.
+	const exportUnavailableReason = ledgerUnavailable
+		? LEDGER_UNAVAILABLE_EXPORT_REASON
+		: !cashFlowData
+			? "No cash flow data to export yet."
+			: isPlaceholderData
+				? "Loading the selected period. Export is available when it finishes."
+				: null;
 
-	const outflowItems = (() => {
-		if (!cashFlowData) return [];
-		const items = [
-			{
-				category: "Operating Expenses Paid",
-				amount: Math.abs(
-					cashFlowData.operatingActivities.operatingExpensesPaid,
-				),
-			},
-			{
-				category: "Maintenance Paid",
-				amount: Math.abs(cashFlowData.operatingActivities.maintenancePaid),
-			},
-			{
-				category: "Property Acquisitions",
-				amount: Math.abs(cashFlowData.investingActivities.propertyAcquisitions),
-			},
-			{
-				category: "Property Improvements",
-				amount: Math.abs(cashFlowData.investingActivities.propertyImprovements),
-			},
-			{
-				category: "Mortgage Payments",
-				amount: Math.abs(cashFlowData.financingActivities.mortgagePayments),
-			},
-			{
-				category: "Owner Distributions",
-				amount: Math.abs(cashFlowData.financingActivities.ownerDistributions),
-			},
-		].filter((i) => i.amount > 0);
-		const total = items.reduce((sum, i) => sum + i.amount, 0);
-		return items.map((i) => ({
-			...i,
-			percentage: total > 0 ? (i.amount / total) * 100 : 0,
-		}));
-	})();
-
-	const totalInflows = inflowItems.reduce((sum, i) => sum + i.amount, 0);
-	const totalOutflows = outflowItems.reduce((sum, i) => sum + i.amount, 0);
-	const netCashFlow = cashFlowData?.netCashFlow || 0;
-	const openingBalance = cashFlowData?.beginningCash || 0;
-	const closingBalance = cashFlowData?.endingCash || 0;
+	const handleExport = () => {
+		if (!cashFlowData || isPlaceholderData) return;
+		try {
+			const { start_date, end_date } = cashFlowData.period;
+			const csv = buildCashFlowCsv({
+				period,
+				startDate: start_date,
+				endDate: end_date,
+				view,
+			});
+			downloadBlob(
+				new Blob([csv], { type: CSV_MIME_TYPE }),
+				cashFlowCsvFilename(start_date, end_date),
+			);
+		} catch (exportError) {
+			handleMutationError(
+				exportError,
+				"Export cash flow",
+				"Couldn't export the cash flow report. Please try again.",
+			);
+		}
+	};
 
 	if (isLoading) {
 		return <CashFlowLoading />;
 	}
 
 	if (error) {
-		return (
-			<CashFlowError
-				error={error instanceof Error ? error : null}
-				onRetry={() => void refetch()}
-			/>
-		);
+		return <CashFlowError onRetry={() => void refetch()} />;
 	}
 
 	return (
@@ -130,38 +101,44 @@ export default function CashFlowPage() {
 				year={year}
 				onPeriodChange={setPeriod}
 				onYearChange={setYear}
+				onExport={handleExport}
+				exportUnavailableReason={exportUnavailableReason}
 			/>
 
-			<CashFlowBalanceSummary
-				openingBalance={openingBalance}
-				netCashFlow={netCashFlow}
-				closingBalance={closingBalance}
-			/>
+			{ledgerUnavailable ? (
+				<LedgerTotalsUnavailable
+					description="Rent received and the opening and closing balances on this report come from your rent ledger."
+					onRetryAction={() => void refetch()}
+				/>
+			) : (
+				<>
+					<CashFlowBalanceSummary
+						openingBalance={view.openingBalance}
+						netCashFlow={view.netCashFlow}
+						closingBalance={view.closingBalance}
+					/>
 
-			<CashFlowStats
-				totalInflows={totalInflows}
-				totalOutflows={totalOutflows}
-				netCashFlow={netCashFlow}
-			/>
+					<CashFlowStats
+						totalInflows={view.totalInflows}
+						totalOutflows={view.totalOutflows}
+						netCashFlow={view.netCashFlow}
+					/>
 
-			<CashFlowBreakdown
-				inflowItems={inflowItems}
-				outflowItems={outflowItems}
-				totalInflows={totalInflows}
-				totalOutflows={totalOutflows}
-			/>
+					<CashFlowBreakdown
+						inflowItems={view.inflowItems}
+						outflowItems={view.outflowItems}
+						totalInflows={view.totalInflows}
+						totalOutflows={view.totalOutflows}
+					/>
 
-			<CashFlowActivity
-				netOperatingCash={
-					cashFlowData?.operatingActivities.netOperatingCash || 0
-				}
-				netInvestingCash={
-					cashFlowData?.investingActivities.netInvestingCash || 0
-				}
-				netFinancingCash={
-					cashFlowData?.financingActivities.netFinancingCash || 0
-				}
-			/>
+					<CashFlowActivity
+						netOperatingCash={view.netOperatingCash}
+						netFinancingCash={view.netFinancingCash}
+					/>
+
+					<StatementBasisNote />
+				</>
+			)}
 		</div>
 	);
 }

@@ -1,0 +1,42 @@
+{
+ "meta": {
+  "tailwindVersion": "4.3.3",
+  "scannedFiles": 916,
+  "candidates": 15689,
+  "bundleBytes": 2750425
+ },
+ "results": {
+  "card-action": {
+   "light": {
+    "cardDataSlots": 7,
+    "columns": [
+     499.8,
+     44.2
+    ],
+    "headerContentWidth": 550,
+    "actionWidth": 44.2,
+    "columnGap": 6
+   },
+   "dark": {
+    "cardDataSlots": 7,
+    "columns": [
+     499.8,
+     44.2
+    ],
+    "headerContentWidth": 550,
+    "actionWidth": 44.2,
+    "columnGap": 6
+   }
+  },
+  "button-group-nested": {
+   "light": {
+    "outerColumnGap": 8,
+    "innerGap": 8
+   },
+   "dark": {
+    "outerColumnGap": 8,
+    "innerGap": 8
+   }
+  }
+ }
+}

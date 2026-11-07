@@ -4,9 +4,13 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useRef } from "react";
 import { BlurFade } from "#components/ui/blur-fade";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { CSV_MIME_TYPE } from "#lib/reports/csv";
+import { downloadBlob } from "#lib/reports/download-blob";
 import { cn } from "#lib/utils";
 import type { StatusFilter } from "#stores/leases-store";
 import type { LeaseDisplay, SortDirection, SortField } from "./lease-utils";
+import { buildLeasesCsv, leasesCsvFilename } from "./leases-csv";
 import {
 	LEASE_COLUMN_CLASS,
 	LeaseRow,
@@ -15,7 +19,13 @@ import {
 import { LeasesTableToolbar } from "./leases-table-toolbar";
 
 interface LeasesTableProps {
+	/** The leases the search and status filter keep, in table order. */
 	leases: LeaseDisplay[];
+	/**
+	 * Every fetched lease in table order: Export writes each selected one from
+	 * here, one the filter hides included.
+	 */
+	allLeases: LeaseDisplay[];
 	paginatedLeases: LeaseDisplay[];
 	searchQuery: string;
 	statusFilter: StatusFilter;
@@ -40,6 +50,7 @@ interface LeasesTableProps {
 
 export function LeasesTable({
 	leases,
+	allLeases,
 	paginatedLeases,
 	searchQuery,
 	statusFilter,
@@ -61,6 +72,26 @@ export function LeasesTable({
 	onTerminate,
 	onClearSelection,
 }: LeasesTableProps) {
+	// Every selected lease, one the search or status filter hides included
+	// (the bar counts it), in table order. Exporting writes a file and leaves
+	// the selection as it is.
+	const handleExportSelected = () => {
+		const selected = allLeases.filter((l) => selectedRows.has(l.id));
+		if (selected.length === 0) return;
+		try {
+			downloadBlob(
+				new Blob([buildLeasesCsv(selected)], { type: CSV_MIME_TYPE }),
+				leasesCsvFilename(new Date()),
+			);
+		} catch (exportError) {
+			handleMutationError(
+				exportError,
+				"Export leases",
+				"Couldn't export the leases. Please try again.",
+			);
+		}
+	};
+
 	const handleClearFilters = () => {
 		onSearchChange("");
 		onStatusFilterChange("all");
@@ -85,7 +116,7 @@ export function LeasesTable({
 	});
 
 	return (
-		<BlurFade delay={0.6} inView>
+		<BlurFade delay={0.6}>
 			<div className="bg-card border border-border rounded-sm overflow-hidden">
 				<LeasesTableToolbar
 					searchQuery={searchQuery}
@@ -99,7 +130,11 @@ export function LeasesTable({
 							{selectedRows.size} selected
 						</span>
 						<div className="flex items-center gap-2">
-							<button className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-sm hover:bg-muted transition-colors">
+							<button
+								type="button"
+								onClick={handleExportSelected}
+								className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-sm hover:bg-muted transition-colors"
+							>
 								Export
 							</button>
 							<button

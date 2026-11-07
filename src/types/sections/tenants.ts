@@ -26,7 +26,6 @@ export interface TenantItem {
 	currentUnit?: string;
 	leaseStatus?: LeaseStatus;
 	leaseId?: string;
-	moveInDate?: string;
 	totalPaid: number;
 	lastPaymentDate?: string;
 }

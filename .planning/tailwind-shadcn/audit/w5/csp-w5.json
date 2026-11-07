@@ -1,0 +1,54 @@
+{
+  "build": "HEAD at 8361a45d8",
+  "routes": [
+    {
+      "route": "/login",
+      "status": 200,
+      "nonceCsp": true,
+      "count": 1,
+      "violations": [
+        {
+          "directive": "script-src",
+          "blocked": "eval",
+          "source": "02w0d8rlgrux_.js:2:4409",
+          "disposition": "enforce"
+        }
+      ],
+      "consoleCspErrors": [],
+      "control754Count": 1,
+      "excess": 0
+    },
+    {
+      "route": "/auth/confirm-email",
+      "status": 200,
+      "nonceCsp": true,
+      "count": 0,
+      "violations": [],
+      "consoleCspErrors": [],
+      "control754Count": 0,
+      "excess": 0
+    },
+    {
+      "route": "/auth/update-password",
+      "status": 200,
+      "nonceCsp": true,
+      "count": 1,
+      "violations": [
+        {
+          "directive": "script-src",
+          "blocked": "eval",
+          "source": "02w0d8rlgrux_.js:2:4409",
+          "disposition": "enforce"
+        }
+      ],
+      "consoleCspErrors": [],
+      "control754Count": 1,
+      "excess": 0
+    }
+  ],
+  "control": "same-session git archive 754c91802 build, same probe (run before the gate fix; neither tree changed in between)",
+  "rawViolations": 2,
+  "ownerManifestCspErrors": 0,
+  "total": 0,
+  "note": "total counts violations beyond the same-session 754c91802 control (Execution mode CSP rule (2)); both trees report the same zod 4 Function(\"\") eval probe on /login and /auth/update-password"
+}

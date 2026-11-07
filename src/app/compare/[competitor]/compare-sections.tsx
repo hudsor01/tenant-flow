@@ -6,13 +6,17 @@ import type { CompetitorData, FeatureSupport } from "#types/sections/compare";
 function FeatureIcon({ support }: { support: FeatureSupport }) {
 	switch (support) {
 		case "yes":
-			return <Check className="size-5 text-success" aria-label="Included" />;
+			return (
+				<Check className="size-5 text-success-text" aria-label="Included" />
+			);
 		case "no":
 			return (
 				<X className="size-5 text-destructive" aria-label="Not included" />
 			);
 		case "partial":
-			return <Minus className="size-5 text-warning" aria-label="Partial" />;
+			return (
+				<Minus className="size-5 text-warning-text" aria-label="Partial" />
+			);
 		case "addon":
 			return (
 				<Plus className="size-5 text-info" aria-label="Available as add-on" />
@@ -37,7 +41,7 @@ export function PricingComparison({ data }: { data: CompetitorData }) {
 				<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-center mb-16">
 					Pricing Comparison
 				</h2>
-				<div className="grid md:grid-cols-2 gap-8">
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 					<div className="rounded-2xl border-2 border-primary bg-background p-8">
 						<h3 className="text-xl font-bold text-foreground mb-1">
 							TenantFlow
@@ -167,12 +171,12 @@ export function WhySwitchSection({ data }: { data: CompetitorData }) {
 	return (
 		<section className="section-spacing bg-muted/30">
 			<div className="max-w-4xl mx-auto px-6 lg:px-8">
-				<div className="grid md:grid-cols-2 gap-12">
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-12">
 					<div>
 						<h2 className="text-2xl font-bold text-foreground mb-6">
 							Why Switch to TenantFlow
 						</h2>
-						<ul className="space-y-4">
+						<ul className="flex flex-col gap-4 pl-0 mt-0 mb-0 [&>li]:mb-0">
 							{data.whySwitch.map((reason) => (
 								<li key={reason} className="flex gap-3 text-muted-foreground">
 									<Check className="size-5 text-success mt-0.5 shrink-0" />
@@ -185,7 +189,7 @@ export function WhySwitchSection({ data }: { data: CompetitorData }) {
 						<h2 className="text-2xl font-bold text-foreground mb-6">
 							Where {data.name} Excels
 						</h2>
-						<ul className="space-y-4">
+						<ul className="flex flex-col gap-4 pl-0 mt-0 mb-0 [&>li]:mb-0">
 							{data.competitorStrengths.map((strength) => (
 								<li key={strength} className="flex gap-3 text-muted-foreground">
 									<Check className="size-5 text-info mt-0.5 shrink-0" />

@@ -9,8 +9,9 @@
  *   E-18  the row link's computed `text-decoration-line` and `color`
  *   E-20  the `<ul>`'s computed `padding-left` and its first `<li>`'s margin
  *
- * That split is not pedantry. §D-1 is a real unlayered `@media (max-width:768px)`
- * block that outranks every Tailwind utility at 768px and below, and §D-4 is a
+ * That split is not pedantry. §D-1 is the historical unlayered mobile block,
+ * removed by Phase 66.2 D-08, that outranked every Tailwind utility at 768px and
+ * below while the classes stayed correct, and §D-4 is a
  * `truncate` that is INERT on the primitive it is written on — both are cases
  * where the class is present and spelled correctly and the rendered result is
  * still wrong. Phase 65 shipped two defects of exactly that shape. So the one
@@ -177,8 +178,9 @@ function successState(
 
 /**
  * Radix activates a tab on `mousedown`, not on `click` — its Trigger composes
- * `onMouseDown` (react-tabs/dist/index.mjs:121), so `fireEvent.click` alone
- * changes nothing and a test written that way would pass for the wrong reason.
+ * `onMouseDown` (`TabsTrigger` in @radix-ui/react-tabs), so `fireEvent.click`
+ * alone changes nothing and a test written that way would pass for the wrong
+ * reason.
  */
 function selectTab(name: string) {
 	fireEvent.mouseDown(screen.getByRole("tab", { name }), { button: 0 });
@@ -616,8 +618,9 @@ describe("ApplicationQueue — base-rule neutralizers survive (spelling only)", 
 
 		const list = container.querySelector("ul");
 		const listClasses = list?.getAttribute("class")?.split(/\s+/) ?? [];
-		// globals.css:517-524 — `ul, ol { margin: 1rem 0; padding-left: 1.5rem }`
-		// and `li { margin-bottom: 0.25rem }`.
+		// The `@layer base` `ul, ol` / `li` rules in globals.css —
+		// `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
+		// `li { margin-bottom: 0.25rem }`.
 		expect(listClasses).toContain("pl-0");
 		expect(listClasses).toContain("mt-0");
 		// `mb-0` is the other half of `margin: 1rem 0`. The computed-value test
@@ -629,7 +632,10 @@ describe("ApplicationQueue — base-rule neutralizers survive (spelling only)", 
 		// rhythm to zero (§D-2).
 		expect(listClasses).toContain("gap-2");
 
-		// globals.css:504 — the base `a` rule sets `color: var(--color-primary)`
+		// The `@layer base`
+		// `a:not([role="button"]):not(.button):not([class*="button"])
+		// :not([data-slot="button"])` rule in globals.css, which this plain row
+		// Link satisfies, sets `color: var(--color-primary)`
 		// plus an underline that becomes visible on hover. Either class missing is
 		// a visible defect: an accent-blue row, or a hover underline spanning it.
 		const link = screen.getAllByRole("link")[0];
@@ -655,7 +661,7 @@ describe("ApplicationQueue — base-rule neutralizers survive (spelling only)", 
 	 * A RESOLUTION CHECK, NOT A SPELLING ONE — the same shape as the `w-fit`
 	 * assertion above, and answerable without layout for the same reason.
 	 * `line-clamp-2` is written in `ItemDescription`'s own base string
-	 * (`item.tsx:131-143`) and can only be absent from a rendered attribute if a
+	 * (item.tsx) and can only be absent from a rendered attribute if a
 	 * same-group utility displaced it through tailwind-merge.
 	 *
 	 * THE ROW DECLARES NO CLAMP AND MUST NOT HAVE ONE. UI-SPEC §B-3: "no fixed
@@ -732,9 +738,9 @@ describe("ApplicationQueue — base-rule neutralizers survive (spelling only)", 
 			const classes = trigger.getAttribute("class")?.split(/\s+/) ?? [];
 			// Positive control on each trigger, for the same reason as above.
 			expect(classes).toContain("whitespace-nowrap");
-			// `flex: 1 1 0%` is what let the unlayered `min-width: 44px` at
-			// globals.css:1557 squeeze a trigger to 64.2px around 60.7px of text.
-			// `flex: 0 0 auto` makes the label the floor instead.
+			// `flex: 1 1 0%` is what let the old touch-target min-width squeeze a
+			// trigger to 64.2px around 60.7px of text. `flex: 0 0 auto` keeps the
+			// label as the floor.
 			expect(classes).not.toContain("flex-1");
 			expect(classes).toContain("flex-none");
 		}

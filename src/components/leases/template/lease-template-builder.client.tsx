@@ -25,10 +25,9 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#components/ui/select";
-import { TooltipProvider } from "#components/ui/tooltip";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import {
-	type CustomClause,
 	createDefaultContext,
 	getDefaultSelections,
 	type LeaseTemplateContext,
@@ -37,6 +36,7 @@ import {
 	renderLeaseHtmlBody,
 	stateNames,
 } from "#lib/templates/lease-template";
+import { ApiErrorCode, createApiErrorFromResponse } from "#lib/utils/api-error";
 import type { USState } from "#types/lease-generator.types";
 import { ClauseSelector } from "./clause-selector";
 import {
@@ -124,7 +124,6 @@ export function LeaseTemplateBuilder() {
 		() =>
 			getDefaultSelections(leaseTemplateSchema, defaultState).selectedClauses,
 	);
-	const customClauses: CustomClause[] = [];
 	const [pdfPreview, setPdfPreview] = useState<string | null>(null);
 	const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
@@ -164,7 +163,6 @@ export function LeaseTemplateBuilder() {
 		selectedClauses,
 		includeFederalDisclosures,
 		includeStateDisclosures,
-		customClauses,
 	};
 
 	const previewHtml = (() => {
@@ -208,8 +206,10 @@ export function LeaseTemplateBuilder() {
 			});
 
 			if (!response.ok) {
-				const errText = await response.text().catch(() => response.statusText);
-				throw new Error(`Failed to generate PDF preview: ${errText}`);
+				throw createApiErrorFromResponse(
+					response,
+					ApiErrorCode.PDF_GENERATION_FAILED,
+				);
 			}
 
 			const blob = await response.blob();
@@ -217,124 +217,121 @@ export function LeaseTemplateBuilder() {
 			setPdfPreview(blobUrl);
 			toast.success("PDF preview generated");
 		} catch (error) {
-			const message =
-				error instanceof Error
-					? error.message
-					: "Unable to generate PDF preview";
-			toast.error(message);
+			handleMutationError(error, "Generate PDF preview");
 		} finally {
 			setIsGeneratingPdf(false);
 		}
 	};
 
 	return (
-		<TooltipProvider>
-			<div className="space-y-6">
-				<Card>
-					<CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-						<div>
-							<CardTitle className="flex items-center gap-2">
-								<FileText className="hidden size-5 text-primary sm:block" />
-								Dynamic Lease Builder
-							</CardTitle>
-							<CardDescription>
-								Choose clauses, review state rules, and preview the generated
-								lease before downloading the PDF.
-							</CardDescription>
-						</div>
-						<div className="flex flex-wrap items-center gap-2">
-							<Select
-								value={state}
-								onValueChange={(value) => setState(value as USState)}
-							>
-								<SelectTrigger className="w-[160px]">
-									<SelectValue placeholder="Select state" />
-								</SelectTrigger>
-								<SelectContent className="max-h-72">
-									{stateSelectOptions.map((option) => (
-										<SelectItem key={option.value} value={option.value}>
-											{option.label}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => {
-									setSelectedClauses(
-										getDefaultSelections(leaseTemplateSchema, state)
-											.selectedClauses,
-									);
-									toast.success("Restored default clause selection");
-								}}
-							>
-								<RefreshCw className="mr-1 size-4" /> Reset Clauses
-							</Button>
-						</div>
-					</CardHeader>
-					<CardContent>
-						<div className="grid gap-6 lg:grid-cols-[20rem_1fr]">
-							<aside className="space-y-6">
-								<ConfigurationPanel
-									builderInputs={builderInputs}
-									onChange={setBuilderInputs}
-									includeStateDisclosures={includeStateDisclosures}
-									onToggleStateDisclosures={() =>
-										setIncludeStateDisclosures((prev) => !prev)
-									}
-									includeFederalDisclosures={includeFederalDisclosures}
-									onToggleFederalDisclosures={() =>
-										setIncludeFederalDisclosures((prev) => !prev)
-									}
-								/>
-
-								<StateRuleSummary state={state} />
-							</aside>
-							<div className="space-y-6">
-								<ClauseSelector
-									selectedClauses={selectedClauses}
-									onToggleClause={toggleClause}
-									recommendedClauses={recommendedClauses}
-									state={state}
-								/>
-
-								<PreviewPanel html={previewHtml} />
-
-								<PdfPreviewPanel
-									isGenerating={isGeneratingPdf}
-									dataUrl={pdfPreview}
-									onGenerate={handlePreviewPdf}
-								/>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader>
+		<div className="space-y-6">
+			<Card>
+				<CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+					<div>
 						<CardTitle className="flex items-center gap-2">
-							<BookOpen className="size-5 text-primary" /> Legal Glossary
+							<FileText className="hidden size-5 text-primary sm:block" />
+							Dynamic Lease Builder
 						</CardTitle>
 						<CardDescription>
-							Hover over clauses to see plain-language explanations of legal
-							terminology.
+							Choose clauses, review state rules, and preview the generated
+							lease before downloading the PDF.
 						</CardDescription>
-					</CardHeader>
-					<CardContent className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-						{Object.entries(leaseTemplateSchema.glossary).map(
-							([term, definition]) => (
-								<div
-									key={term}
-									className="rounded-lg border bg-muted/30 p-4 text-sm"
-								>
-									<p className="font-medium text-foreground">{term}</p>
-									<p className="text-muted-foreground">{definition}</p>
-								</div>
-							),
-						)}
-					</CardContent>
-				</Card>
-			</div>
-		</TooltipProvider>
+					</div>
+					<div className="flex flex-wrap items-center gap-2">
+						<Select
+							value={state}
+							onValueChange={(value) => setState(value as USState)}
+						>
+							<SelectTrigger
+								className="w-40"
+								aria-label={`${stateNames[state] ?? state} (state)`}
+							>
+								<SelectValue placeholder="Select state" />
+							</SelectTrigger>
+							<SelectContent className="max-h-72">
+								{stateSelectOptions.map((option) => (
+									<SelectItem key={option.value} value={option.value}>
+										{option.label}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => {
+								setSelectedClauses(
+									getDefaultSelections(leaseTemplateSchema, state)
+										.selectedClauses,
+								);
+								toast.success("Restored default clause selection");
+							}}
+						>
+							<RefreshCw className="mr-1 size-4" /> Reset Clauses
+						</Button>
+					</div>
+				</CardHeader>
+				<CardContent>
+					<div className="grid grid-cols-1 gap-6 lg:grid-cols-[20rem_1fr]">
+						<aside className="space-y-6">
+							<ConfigurationPanel
+								builderInputs={builderInputs}
+								onChange={setBuilderInputs}
+								includeStateDisclosures={includeStateDisclosures}
+								onToggleStateDisclosures={() =>
+									setIncludeStateDisclosures((prev) => !prev)
+								}
+								includeFederalDisclosures={includeFederalDisclosures}
+								onToggleFederalDisclosures={() =>
+									setIncludeFederalDisclosures((prev) => !prev)
+								}
+							/>
+
+							<StateRuleSummary state={state} />
+						</aside>
+						<div className="space-y-6">
+							<ClauseSelector
+								selectedClauses={selectedClauses}
+								onToggleClause={toggleClause}
+								recommendedClauses={recommendedClauses}
+								state={state}
+							/>
+
+							<PreviewPanel html={previewHtml} />
+
+							<PdfPreviewPanel
+								isGenerating={isGeneratingPdf}
+								dataUrl={pdfPreview}
+								onGenerate={handlePreviewPdf}
+							/>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+			<Card>
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<BookOpen className="size-5 text-primary" /> Legal Glossary
+					</CardTitle>
+					<CardDescription>
+						Hover over clauses to see plain-language explanations of legal
+						terminology.
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+					{Object.entries(leaseTemplateSchema.glossary).map(
+						([term, definition]) => (
+							<div
+								key={term}
+								className="rounded-lg border bg-muted/30 p-4 text-sm"
+							>
+								<p className="font-medium text-foreground">{term}</p>
+								<p className="text-muted-foreground">{definition}</p>
+							</div>
+						),
+					)}
+				</CardContent>
+			</Card>
+		</div>
 	);
 }

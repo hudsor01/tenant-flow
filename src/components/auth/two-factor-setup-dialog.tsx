@@ -114,7 +114,7 @@ export function TwoFactorSetupDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[480px]" intent="edit">
+			<DialogContent className="sm:max-w-120" intent="edit">
 				{step === "qr" && (
 					<QrStep
 						enrollmentData={enrollmentData}
@@ -176,7 +176,7 @@ export function DisableTwoFactorDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[400px]" intent="delete">
+			<DialogContent className="sm:max-w-100" intent="delete">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2 text-destructive-text">
 						<ShieldOff className="size-5" />

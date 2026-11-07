@@ -1,0 +1,90 @@
+{
+ "rule": "Noise and probe rules (decided 2026-10-31 after 66.2-15), commit 234419439",
+ "note": "Union of every same-session repeat of the W2 tree: changedPixels is the largest per-repeat value, perRepeat holds each raw run; the raw tool outputs are the files named in repeats[].",
+ "repeats": [
+  {
+   "label": "w2-repeat",
+   "file": "diff-w2-vs-w2-repeat-run1.json",
+   "summary": {
+    "identical": 1,
+    "changed": 3,
+    "sizeChanged": 0,
+    "missingInA": 0,
+    "missingInB": 88
+   }
+  },
+  {
+   "label": "w2-repeat2",
+   "file": "diff-w2-vs-w2-repeat2.json",
+   "summary": {
+    "identical": 1,
+    "changed": 3,
+    "sizeChanged": 0,
+    "missingInA": 0,
+    "missingInB": 88
+   }
+  }
+ ],
+ "summary": {
+  "identical": 0,
+  "changed": 4
+ },
+ "files": [
+  {
+   "name": "public/pricing-dark-390.png",
+   "changedPixels": 22,
+   "bbox": {
+    "x": 55,
+    "y": 3807,
+    "width": 20,
+    "height": 7
+   },
+   "perRepeat": {
+    "w2-repeat": 22,
+    "w2-repeat2": 22
+   }
+  },
+  {
+   "name": "public/pricing-light-390.png",
+   "changedPixels": 22,
+   "bbox": {
+    "x": 55,
+    "y": 3807,
+    "width": 20,
+    "height": 7
+   },
+   "perRepeat": {
+    "w2-repeat": 22,
+    "w2-repeat2": 0
+   }
+  },
+  {
+   "name": "public/signup-dark-390.png",
+   "changedPixels": 22,
+   "bbox": {
+    "x": 55,
+    "y": 3807,
+    "width": 20,
+    "height": 7
+   },
+   "perRepeat": {
+    "w2-repeat": 0,
+    "w2-repeat2": 22
+   }
+  },
+  {
+   "name": "public/signup-light-390.png",
+   "changedPixels": 22,
+   "bbox": {
+    "x": 55,
+    "y": 3807,
+    "width": 20,
+    "height": 7
+   },
+   "perRepeat": {
+    "w2-repeat": 22,
+    "w2-repeat2": 22
+   }
+  }
+ ]
+}

@@ -1,0 +1,137 @@
+{
+  "label": "baseline",
+  "tokenListSource": "globals.css",
+  "tokenCount": 71,
+  "fontVarsSource": "src/app/layout.tsx",
+  "fontVars": [
+    "--font-sans",
+    "--font-display",
+    "--font-geist-mono"
+  ],
+  "fontVarsOn": "body",
+  "globalError": {
+    "fontVarsOn": "none"
+  },
+  "fonts": {
+    "light": {
+      "html": "Times",
+      "body": "Stubfontsans",
+      "fontMono": "Stubfontsans",
+      "codeTag": "ui-monospace, SFMono-Regular, \"SF Mono\", Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace",
+      "fontDisplay": "Stubfontdisplay"
+    },
+    "dark": {
+      "html": "Times",
+      "body": "Stubfontsans",
+      "fontMono": "Stubfontsans",
+      "codeTag": "ui-monospace, SFMono-Regular, \"SF Mono\", Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace",
+      "fontDisplay": "Stubfontdisplay"
+    }
+  },
+  "secondaryPixel": {
+    "light": [
+      255,
+      0,
+      255
+    ],
+    "dark": [
+      37,
+      41,
+      46
+    ]
+  },
+  "pairs": [
+    {
+      "name": "renew-lease heading",
+      "outer": "bg-background",
+      "inner": "bg-fill-tertiary",
+      "fg": "text-label-primary"
+    },
+    {
+      "name": "renew-lease body",
+      "outer": "bg-background",
+      "inner": "bg-fill-tertiary",
+      "fg": "text-label-secondary"
+    },
+    {
+      "name": "renew-lease icon",
+      "outer": "bg-background",
+      "inner": "bg-fill-tertiary",
+      "fg": "text-label-tertiary"
+    },
+    {
+      "name": "badge secondary",
+      "outer": "bg-background",
+      "inner": "bg-secondary",
+      "fg": "text-secondary-foreground"
+    }
+  ],
+  "contrast": {
+    "light": {
+      "renew-lease heading": 11.28,
+      "renew-lease body": 3.7,
+      "renew-lease icon": 2.34,
+      "badge secondary": 5.77,
+      "lease template preview h2": 16.98,
+      "lease template preview p": 9.86,
+      "lease template preview strong": 16.98,
+      "lease template preview a": 16.98,
+      "admin blog review h2": 16.98,
+      "admin blog review p": 17.31,
+      "admin blog review strong": 16.98,
+      "admin blog review a": 16.98
+    },
+    "dark": {
+      "renew-lease heading": 1.04,
+      "renew-lease body": 1.02,
+      "renew-lease icon": 1.02,
+      "badge secondary": 10.89,
+      "lease template preview h2": 1.12,
+      "lease template preview p": 1.93,
+      "lease template preview strong": 1.12,
+      "lease template preview a": 1.12,
+      "admin blog review h2": 1.12,
+      "admin blog review p": 17.74,
+      "admin blog review strong": 1.12,
+      "admin blog review a": 1.12
+    }
+  },
+  "touch390": {
+    "switch": {
+      "width": 44,
+      "height": 44,
+      "padding": "12px",
+      "minHeight": "44px"
+    },
+    "buttonSecondary": {
+      "width": 62.1,
+      "height": 44,
+      "padding": "12px",
+      "minHeight": "44px"
+    },
+    "iconButton": {
+      "width": 44,
+      "height": 44,
+      "padding": "12px",
+      "minHeight": "44px"
+    },
+    "iconButtonSize8": {
+      "width": 44,
+      "height": 44,
+      "padding": "12px",
+      "minHeight": "44px"
+    },
+    "input": {
+      "width": 390,
+      "height": 44,
+      "padding": "12px",
+      "minHeight": "44px"
+    },
+    "inputH9": {
+      "width": 190,
+      "height": 44,
+      "padding": "12px",
+      "minHeight": "44px"
+    }
+  }
+}

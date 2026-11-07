@@ -1,0 +1,117 @@
+{
+  "root": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-15/base",
+  "guards": {
+    "G1": {
+      "count": 1,
+      "violations": [
+        "--color-secondary: oklch(95.46% 3.51 (line 166)"
+      ]
+    },
+    "G2": {
+      "count": 11,
+      "violations": [
+        "--color-sidebar",
+        "--color-sidebar-accent",
+        "--color-sidebar-accent-foreground",
+        "--color-sidebar-border",
+        "--color-sidebar-foreground",
+        "--color-sidebar-primary",
+        "--color-sidebar-primary-foreground",
+        "--color-sidebar-ring",
+        "--font-display",
+        "--font-mono",
+        "--font-sans"
+      ]
+    },
+    "G3": {
+      "count": 2,
+      "violations": [
+        "text-muted",
+        "text-caption"
+      ]
+    },
+    "G4": {
+      "count": 7,
+      "violations": [
+        "--color-fill-primary (light oklch(0 0 0 / 6%)) has no dark value; chain --color-fill-primary. Give it a dark-scope value or replace its consumers with a semantic token (MODE_INDEPENDENT_TOKENS is only for white, black and chart-1..5)",
+        "--color-fill-secondary (light oklch(0 0 0 / 10%)) has no dark value; chain --color-fill-secondary. Give it a dark-scope value or replace its consumers with a semantic token (MODE_INDEPENDENT_TOKENS is only for white, black and chart-1..5)",
+        "--color-fill-tertiary (light oklch(0 0 0 / 14%)) has no dark value; chain --color-fill-tertiary. Give it a dark-scope value or replace its consumers with a semantic token (MODE_INDEPENDENT_TOKENS is only for white, black and chart-1..5)",
+        "--color-label-primary (light oklch(0 0 0 / 85%)) has no dark value; chain --color-label-primary. Give it a dark-scope value or replace its consumers with a semantic token (MODE_INDEPENDENT_TOKENS is only for white, black and chart-1..5)",
+        "--color-label-secondary (light oklch(0 0 0 / 50%)) has no dark value; chain --color-label-secondary. Give it a dark-scope value or replace its consumers with a semantic token (MODE_INDEPENDENT_TOKENS is only for white, black and chart-1..5)",
+        "--color-label-tertiary (light oklch(0 0 0 / 35%)) has no dark value; chain --color-label-tertiary. Give it a dark-scope value or replace its consumers with a semantic token (MODE_INDEPENDENT_TOKENS is only for white, black and chart-1..5)",
+        "--color-separator (light oklch(0.31 0 0 / 29%)) has no dark value; chain --color-separator. Give it a dark-scope value or replace its consumers with a semantic token (MODE_INDEPENDENT_TOKENS is only for white, black and chart-1..5)"
+      ]
+    },
+    "G5": {
+      "count": 44,
+      "violations": [
+        "text-display-hero does not merge with text-sm",
+        "text-display-hero dropped next to text-primary",
+        "text-display-lg does not merge with text-sm",
+        "text-display-lg dropped next to text-primary",
+        "text-display does not merge with text-sm",
+        "text-display dropped next to text-primary",
+        "text-display-sm does not merge with text-sm",
+        "text-display-sm dropped next to text-primary",
+        "text-title-1 does not merge with text-sm",
+        "text-title-1 dropped next to text-primary",
+        "text-title-2 does not merge with text-sm",
+        "text-title-2 dropped next to text-primary",
+        "text-title-3 does not merge with text-sm",
+        "text-title-3 dropped next to text-primary",
+        "text-title-4 does not merge with text-sm",
+        "text-title-4 dropped next to text-primary",
+        "text-caption does not merge with text-sm",
+        "text-caption dropped next to text-primary",
+        "text-stat-sm does not merge with text-sm",
+        "text-stat-sm dropped next to text-primary",
+        "text-stat does not merge with text-sm",
+        "text-stat dropped next to text-primary",
+        "text-stat-lg does not merge with text-sm",
+        "text-stat-lg dropped next to text-primary",
+        "text-stat-xl does not merge with text-sm",
+        "text-stat-xl dropped next to text-primary",
+        "text-display-2xl does not merge with text-sm",
+        "text-display-2xl dropped next to text-primary",
+        "text-display-xl does not merge with text-sm",
+        "text-display-xl dropped next to text-primary",
+        "text-display-md does not merge with text-sm",
+        "text-display-md dropped next to text-primary",
+        "leading-display does not merge with leading-tight",
+        "p-container-inline does not merge with p-4",
+        "p-responsive-xs does not merge with p-4",
+        "p-responsive-sm does not merge with p-4",
+        "p-responsive-md does not merge with p-4",
+        "p-responsive-lg does not merge with p-4",
+        "p-responsive-xl does not merge with p-4",
+        "duration-instant does not merge with duration-200",
+        "duration-fast does not merge with duration-200",
+        "duration-normal does not merge with duration-200",
+        "duration-slow does not merge with duration-200",
+        "duration-slower does not merge with duration-200"
+      ]
+    },
+    "G6": {
+      "count": 2,
+      "violations": [
+        "..*.{ts,tsx} (base /private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-15/base/src/app)",
+        "root: no source() on @import \"tailwindcss\", so auto-detection scans the whole working directory (B9 class)"
+      ]
+    },
+    "G7": {
+      "count": 10,
+      "violations": [
+        "--container-padding-mobile <- compiled globals.css, src/app/globals.css",
+        "--container-padding-responsive <- src/app/globals.css",
+        "--font-body <- compiled globals.css, src/components/ui/loading-spinner.tsx",
+        "--font-footnote <- compiled globals.css, src/components/ui/loading-spinner.tsx",
+        "--font-title-2 <- compiled globals.css, src/components/ui/loading-spinner.tsx",
+        "--font-title-3 <- compiled globals.css, src/components/ui/loading-spinner.tsx",
+        "--leading-title-1 <- src/app/(owner)/dashboard.css",
+        "--leading-title-2 <- src/app/(owner)/dashboard.css",
+        "--text-responsive-h2 <- src/app/(owner)/dashboard.css",
+        "--text-responsive-h3 <- src/app/(owner)/dashboard.css"
+      ]
+    }
+  }
+}

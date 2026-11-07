@@ -2,9 +2,9 @@
 
 import { ChevronLeft, Download, FileText, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useId, useState } from "react";
 import { YearEndReportSection } from "#components/reports/sections/year-end-report-section";
+import { yearEndUnavailableReason } from "#components/reports/sections/year-end-report-section-utils";
 import { Button } from "#components/ui/button";
 import {
 	Select,
@@ -14,10 +14,11 @@ import {
 	SelectValue,
 } from "#components/ui/select";
 import { useDownloadYearEndPdf } from "#hooks/api/use-report-mutations";
-import {
-	useReport1099Summary,
-	useYearEndSummary,
-} from "#hooks/api/use-reports";
+import { useYearEndSummary } from "#hooks/api/use-reports";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { CSV_MIME_TYPE } from "#lib/reports/csv";
+import { downloadBlob } from "#lib/reports/download-blob";
+import { buildYearEndCsv } from "./year-end-csv";
 
 function buildYearOptions(): number[] {
 	const currentYear = new Date().getFullYear();
@@ -28,35 +29,8 @@ function buildYearOptions(): number[] {
 	return years;
 }
 
-function downloadCsv(rows: Record<string, unknown>[], filename: string) {
-	if (rows.length === 0) {
-		toast.error("No data to download");
-		return;
-	}
-	const firstRow = rows[0];
-	if (!firstRow) return;
-	const headers = Object.keys(firstRow);
-	const csv = [
-		headers.join(","),
-		...rows.map((row) =>
-			headers
-				.map((h) => {
-					const val = String(row[h] ?? "");
-					return val.includes(",") ? `"${val}"` : val;
-				})
-				.join(","),
-		),
-	].join("\n");
-
-	const blob = new Blob([csv], { type: "text/csv" });
-	const url = URL.createObjectURL(blob);
-	const a = document.createElement("a");
-	a.href = url;
-	a.download = filename;
-	document.body.appendChild(a);
-	a.click();
-	document.body.removeChild(a);
-	setTimeout(() => URL.revokeObjectURL(url), 100);
+function downloadCsv(csv: string, filename: string) {
+	downloadBlob(new Blob([csv], { type: CSV_MIME_TYPE }), filename);
 }
 
 export default function YearEndReportsPage() {
@@ -65,98 +39,59 @@ export default function YearEndReportsPage() {
 		years[0] ?? new Date().getFullYear(),
 	);
 	const [isExportingYearEnd, setIsExportingYearEnd] = useState(false);
-	const [isExporting1099, setIsExporting1099] = useState(false);
 
-	const { data: yearEndResponse, isLoading: isLoadingYearEnd } =
+	const { data: yearEndResult, isLoading: isLoadingYearEnd } =
 		useYearEndSummary(selectedYear);
-	const { data: data1099Response, isLoading: isLoading1099 } =
-		useReport1099Summary(selectedYear);
+	// null-free: when the server cannot report the year's rent received yet
+	// (get_billing_insights before 20261102055449, or
+	// get_property_performance_analytics before 20261102163709), the section
+	// says so and both downloads stay off.
+	const yearEndResponse =
+		yearEndResult?.status === "ready" ? yearEndResult.summary : undefined;
 
 	const downloadPdfMutation = useDownloadYearEndPdf();
 
 	const hasData =
 		yearEndResponse &&
-		(yearEndResponse.grossRentalIncome > 0 ||
+		(yearEndResponse.rentReceived !== 0 ||
 			yearEndResponse.operatingExpenses > 0 ||
 			yearEndResponse.byProperty.length > 0);
+
+	// Why Download PDF is off: the year's reason, or a year with nothing
+	// recorded (OD-12). The click is ignored while it is off, while the year
+	// loads, and while a PDF generates.
+	const pdfUnavailableReason =
+		yearEndUnavailableReason({
+			year: selectedYear,
+			yearEndData: yearEndResponse,
+			ledgerUnavailable: yearEndResult?.status === "ledger-unavailable",
+			isLoadingYearEnd,
+		}) ??
+		(!isLoadingYearEnd && !hasData
+			? `No rent received or expenses recorded for ${selectedYear}.`
+			: null);
+	const pdfBlocked =
+		isLoadingYearEnd ||
+		downloadPdfMutation.isPending ||
+		pdfUnavailableReason !== null;
+	const pdfReasonId = useId();
 
 	const handleDownloadYearEndCsv = () => {
 		if (!yearEndResponse) return;
 		setIsExportingYearEnd(true);
 		try {
-			const overviewRows = [
-				{
-					section: "Overview",
-					item: "Tax Year",
-					value: String(yearEndResponse.year),
-				},
-				{
-					section: "Overview",
-					item: "Gross Rental Income",
-					value: yearEndResponse.grossRentalIncome.toFixed(2),
-				},
-				{
-					section: "Overview",
-					item: "Operating Expenses",
-					value: yearEndResponse.operatingExpenses.toFixed(2),
-				},
-				{
-					section: "Overview",
-					item: "Net Income",
-					value: yearEndResponse.netIncome.toFixed(2),
-				},
-			];
-			const propertyRows = yearEndResponse.byProperty.map((p) => ({
-				section: "By Property",
-				item: p.propertyName,
-				income: p.income.toFixed(2),
-				expenses: p.expenses.toFixed(2),
-				net: p.netIncome.toFixed(2),
-				value: "",
-			}));
-			const categoryRows = yearEndResponse.expenseByCategory.map((c) => ({
-				section: "Expense Categories",
-				item: c.category,
-				value: c.amount.toFixed(2),
-				income: "",
-				expenses: "",
-				net: "",
-			}));
 			downloadCsv(
-				[...overviewRows, ...propertyRows, ...categoryRows],
+				buildYearEndCsv(yearEndResponse),
 				`year-end-${selectedYear}.csv`,
+			);
+		} catch (error) {
+			handleMutationError(
+				error,
+				"Export year-end CSV",
+				"Couldn't export the year-end report. Please try again.",
 			);
 		} finally {
 			setIsExportingYearEnd(false);
-		}
-	};
-
-	const handleDownload1099Csv = () => {
-		if (!data1099Response) return;
-		setIsExporting1099(true);
-		try {
-			if (data1099Response.recipients.length === 0) {
-				downloadCsv(
-					[
-						{
-							message: `No vendors met the $${data1099Response.threshold} 1099-NEC threshold for ${selectedYear}`,
-						},
-					],
-					`1099-${selectedYear}.csv`,
-				);
-				return;
-			}
-			const rows = data1099Response.recipients.map((r) => ({
-				vendor_name: r.vendorName,
-				total_paid: r.totalPaid.toFixed(2),
-				job_count: String(r.jobCount),
-				year: String(selectedYear),
-				threshold: String(data1099Response.threshold),
-				requires_1099: "Yes",
-			}));
-			downloadCsv(rows, `1099-${selectedYear}.csv`);
-		} finally {
-			setIsExporting1099(false);
 		}
 	};
 
@@ -164,20 +99,25 @@ export default function YearEndReportsPage() {
 		<div className="p-6 lg:p-8 bg-background min-h-full">
 			<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 				<div className="flex items-center gap-3">
-					<Link href="/reports">
-						<Button variant="ghost" size="sm" className="gap-1.5 min-h-11">
+					<Button
+						asChild
+						variant="ghost"
+						size="sm"
+						className="gap-1.5 min-h-11"
+					>
+						<Link href="/reports">
 							<ChevronLeft className="size-4" />
 							Reports
-						</Button>
-					</Link>
+						</Link>
+					</Button>
 					<div>
 						<h1 className="text-2xl font-semibold flex items-center gap-2">
 							<FileText className="size-6 text-primary" />
 							Year-End Reports
 						</h1>
 						<p className="text-sm text-muted-foreground">
-							Annual income, expenses, and 1099-NEC vendor data for tax
-							preparation
+							Rent received, expenses and net income for a tax year, by property
+							and by vendor.
 						</p>
 					</div>
 				</div>
@@ -186,7 +126,10 @@ export default function YearEndReportsPage() {
 						value={String(selectedYear)}
 						onValueChange={(v) => setSelectedYear(parseInt(v, 10))}
 					>
-						<SelectTrigger className="w-32 h-11">
+						<SelectTrigger
+							className="w-32 h-11"
+							aria-label={`${selectedYear} (year)`}
+						>
 							<SelectValue placeholder="Year" />
 						</SelectTrigger>
 						<SelectContent>
@@ -201,12 +144,21 @@ export default function YearEndReportsPage() {
 					<Button
 						variant="outline"
 						size="sm"
-						className="gap-1.5 min-h-11"
-						onClick={() => downloadPdfMutation.mutate(selectedYear)}
-						disabled={
-							downloadPdfMutation.isPending || isLoadingYearEnd || !hasData
+						className="gap-1.5 min-h-11 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+						onClick={
+							pdfBlocked
+								? undefined
+								: () => downloadPdfMutation.mutate(selectedYear)
 						}
-						aria-label="Download year-end report as PDF"
+						aria-disabled={pdfBlocked || undefined}
+						aria-describedby={
+							pdfUnavailableReason !== null ? pdfReasonId : undefined
+						}
+						aria-label={
+							downloadPdfMutation.isPending
+								? "Generating..."
+								: "Download PDF of the year-end report"
+						}
 					>
 						{downloadPdfMutation.isPending ? (
 							<Loader2 className="size-4 animate-spin" />
@@ -215,6 +167,11 @@ export default function YearEndReportsPage() {
 						)}
 						{downloadPdfMutation.isPending ? "Generating..." : "Download PDF"}
 					</Button>
+					{pdfUnavailableReason !== null ? (
+						<span id={pdfReasonId} className="sr-only">
+							{pdfUnavailableReason}
+						</span>
+					) : null}
 				</div>
 			</div>
 
@@ -222,13 +179,10 @@ export default function YearEndReportsPage() {
 				<YearEndReportSection
 					year={selectedYear}
 					yearEndData={yearEndResponse}
-					data1099={data1099Response}
+					ledgerUnavailable={yearEndResult?.status === "ledger-unavailable"}
 					isLoadingYearEnd={isLoadingYearEnd}
-					isLoading1099={isLoading1099}
 					onDownloadYearEndCsv={handleDownloadYearEndCsv}
-					onDownload1099Csv={handleDownload1099Csv}
 					isExportingYearEnd={isExportingYearEnd}
-					isExporting1099={isExporting1099}
 				/>
 			</div>
 		</div>

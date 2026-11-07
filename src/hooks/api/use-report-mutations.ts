@@ -10,21 +10,31 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { handleMutationError } from "#lib/mutation-error-handler";
+import {
+	handleMutationError,
+	userFacingErrorMessage,
+} from "#lib/mutation-error-handler";
+import { downloadBlob } from "#lib/reports/download-blob";
 import { createClient } from "#lib/supabase/client";
-import { PaywallError, reportMutations } from "./query-keys/report-keys";
+import { ApiErrorCode, createApiErrorFromResponse } from "#lib/utils/api-error";
+import {
+	PaywallError,
+	type ReportExportFormat,
+	reportMutations,
+} from "./query-keys/report-keys";
 
 /**
  * Report download mutation error handler. When the Edge Function returned 402,
  * surface an "Upgrade" toast CTA that navigates to /billing/plans?source=...
  * so the Stripe checkout keeps the source attribution for admin analytics
- * (REQ-45-00 / REQ-46-03). Any other error falls through to the shared
- * handler so generic network failures still toast the underlying message.
+ * (REQ-45-00 / REQ-46-03). Any other error goes to `handleMutationError`,
+ * which toasts the sanitized copy (`userFacingErrorMessage`), never the
+ * browser's network text or an HTTP status line.
  */
 function handleReportMutationError(err: unknown, action: string): void {
 	if (err instanceof PaywallError) {
 		toast.error("Upgrade required", {
-			description: err.message,
+			description: userFacingErrorMessage(err),
 			action: {
 				label: "See plans",
 				onClick: () => {
@@ -63,19 +73,33 @@ export async function callGeneratePdfFromHtml(
 	});
 
 	if (!response.ok) {
-		const errText = await response.text().catch(() => response.statusText);
-		throw new Error(`PDF generation failed: ${errText}`);
+		throw createApiErrorFromResponse(
+			response,
+			ApiErrorCode.PDF_GENERATION_FAILED,
+		);
 	}
 
-	const blob = await response.blob();
-	const blobUrl = window.URL.createObjectURL(blob);
-	const link = document.createElement("a");
-	link.href = blobUrl;
-	link.download = filename;
-	document.body.appendChild(link);
-	link.click();
-	document.body.removeChild(link);
-	setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+	downloadBlob(await response.blob(), filename);
+}
+
+/** The label each export format carries in the UI and its toasts. */
+export const EXPORT_FORMAT_LABELS: Readonly<
+	Record<ReportExportFormat, string>
+> = { xlsx: "Excel", pdf: "PDF", csv: "CSV" };
+
+/**
+ * Mutation hook for the /analytics/financial export. The variable is the
+ * format; the file is built by the export-report Edge Function. A free-tier
+ * 402 surfaces as the reports Upgrade toast (`handleReportMutationError`).
+ */
+export function useExportFinancialAnalytics() {
+	return useMutation({
+		...reportMutations.exportFinancialAnalytics(),
+		onSuccess: (_result, format) =>
+			toast.success(`Exported ${EXPORT_FORMAT_LABELS[format]}`),
+		onError: (err, format) =>
+			handleReportMutationError(err, `Export ${EXPORT_FORMAT_LABELS[format]}`),
+	});
 }
 
 /**

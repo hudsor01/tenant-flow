@@ -91,9 +91,11 @@ export function DataTableSliderFilter<TData>({
 
 	const range: RangeValue = columnFilterValue ?? [min, max];
 
-	const formatValue = (value: number) => {
-		return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
-	};
+	const formatBound = column.columnDef.meta?.formatValue;
+	const formatValue = (value: number) =>
+		formatBound
+			? formatBound(value)
+			: value.toLocaleString(undefined, { maximumFractionDigits: 0 });
 
 	const onFromInputChange = (event: ChangeEvent<HTMLInputElement>) => {
 		const numValue = Number(event.target.value);
@@ -154,7 +156,7 @@ export function DataTableSliderFilter<TData>({
 								/>
 								{formatValue(columnFilterValue[0])} -{" "}
 								{formatValue(columnFilterValue[1])}
-								{unit ? ` ${unit}` : ""}
+								{unit && !formatBound ? ` ${unit}` : ""}
 							</>
 						) : null}
 					</Button>
@@ -162,7 +164,7 @@ export function DataTableSliderFilter<TData>({
 			</div>
 			<PopoverContent align="start" className="flex w-auto flex-col gap-4">
 				<div className="flex flex-col gap-3">
-					<p className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+					<p className="mb-0 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
 						{title}
 					</p>
 					<div className="flex items-center gap-4">
@@ -185,7 +187,7 @@ export function DataTableSliderFilter<TData>({
 								className={cn("h-8 w-24", unit && "pr-8")}
 							/>
 							{unit && (
-								<span className="absolute top-0 right-0 bottom-0 flex items-center rounded-r-md bg-accent px-2 text-muted-foreground text-sm">
+								<span className="absolute top-0 right-0 bottom-0 flex items-center rounded-r-md bg-muted px-2 text-muted-foreground text-sm">
 									{unit}
 								</span>
 							)}
@@ -209,7 +211,7 @@ export function DataTableSliderFilter<TData>({
 								className={cn("h-8 w-24", unit && "pr-8")}
 							/>
 							{unit && (
-								<span className="absolute top-0 right-0 bottom-0 flex items-center rounded-r-md bg-accent px-2 text-muted-foreground text-sm">
+								<span className="absolute top-0 right-0 bottom-0 flex items-center rounded-r-md bg-muted px-2 text-muted-foreground text-sm">
 									{unit}
 								</span>
 							)}

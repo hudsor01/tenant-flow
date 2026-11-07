@@ -17,6 +17,7 @@
 
 import { QueryClient, QueryObserver } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { escapeRegExp } from "#test/utils/regexp-source";
 
 const {
 	mockFrom,
@@ -237,7 +238,7 @@ describe("mapRentalApplicationRow", () => {
 			expect(
 				() => mapRentalApplicationRow(broken),
 				`expected a throw when '${field}' is missing`,
-			).toThrow(new RegExp(`'${field}'`));
+			).toThrow(new RegExp(`'${escapeRegExp(field)}'`));
 		}
 	});
 
@@ -336,7 +337,7 @@ describe("mapRentalApplicationSummaryRow", () => {
 				() =>
 					mapRentalApplicationSummaryRow({ ...summaryRow, [field]: undefined }),
 				`expected a throw when '${field}' is missing`,
-			).toThrow(new RegExp(`'${field}'`));
+			).toThrow(new RegExp(`'${escapeRegExp(field)}'`));
 		}
 		expect(() =>
 			mapRentalApplicationSummaryRow({ ...summaryRow, status: "archived" }),

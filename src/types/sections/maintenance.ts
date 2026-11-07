@@ -1,9 +1,5 @@
 // Maintenance Section Types
-import type {
-	MaintenancePriority,
-	MaintenanceRequest,
-	MaintenanceStatus,
-} from "../core";
+import type { MaintenancePriority, MaintenanceStatus } from "../core";
 
 export interface MaintenanceProps {
 	// Request list
@@ -66,7 +62,6 @@ export interface MaintenanceSectionRequestDetail
 	tenantId?: string;
 	requestedBy: string;
 	estimatedCost?: number;
-	actualCost?: number;
 	completedAt?: string;
 	inspectorId?: string;
 	inspectionDate?: string;
@@ -165,17 +160,6 @@ export type MaintenanceTimelineEventType =
 	| "photo_added"
 	| "scheduled"
 	| "completed";
-
-/**
- * Flat display type for maintenance requests with optional related entity names.
- * Used by maintenance table, kanban, and card components.
- */
-export type MaintenanceDisplayRequest = MaintenanceRequest & {
-	property?: { name: string } | null;
-	unit?: { name: string } | null;
-	assignedTo?: { name: string } | null;
-	tenant?: { name: string } | null;
-};
 
 export interface MaintenanceListProps {
 	requests: MaintenanceRequestItem[];

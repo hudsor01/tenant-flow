@@ -26,7 +26,7 @@ test.describe("Owner subscription cancellation (Phase 42 happy path)", () => {
 		// Gate: ensure we landed on a page exposing the cancellation section
 		const dangerHeading = page.getByText(/danger zone/i).first();
 		const cancelButton = page.getByRole("button", {
-			name: /cancel my subscription/i,
+			name: /^cancel plan$/i,
 		});
 		const hasSubscriptionToCancel = (await cancelButton.count()) > 0;
 
@@ -55,7 +55,7 @@ test.describe("Owner subscription cancellation (Phase 42 happy path)", () => {
 		).toBeVisible();
 
 		const confirmBtn = dialog.getByRole("button", {
-			name: /confirm subscription cancellation/i,
+			name: /^yes, cancel plan$/i,
 		});
 		await expect(confirmBtn).toBeVisible();
 
@@ -71,7 +71,7 @@ test.describe("Owner subscription cancellation (Phase 42 happy path)", () => {
 			timeout: 10000,
 		});
 		await expect(
-			page.getByRole("button", { name: /reactivate subscription/i }),
+			page.getByRole("button", { name: /^reactivate plan$/i }),
 		).toBeVisible();
 		await expect(
 			page.getByText(/reactivating before then|days remaining/i),
@@ -83,13 +83,13 @@ test.describe("Owner subscription cancellation (Phase 42 happy path)", () => {
 
 		// Best-effort cleanup: reactivate so subsequent test runs find Active state again
 		const reactivateBtn = page.getByRole("button", {
-			name: /reactivate subscription/i,
+			name: /^reactivate plan$/i,
 		});
 		if (await reactivateBtn.count()) {
 			await reactivateBtn.click();
 			// Wait for flip back to Active state OR for button to disappear
 			await expect(
-				page.getByRole("button", { name: /cancel my subscription/i }),
+				page.getByRole("button", { name: /^cancel plan$/i }),
 			).toBeVisible({ timeout: 10000 });
 		}
 	});
@@ -103,7 +103,7 @@ test.describe("Owner subscription cancellation (Phase 42 happy path)", () => {
 		}
 
 		const cancelButton = page.getByRole("button", {
-			name: /cancel my subscription/i,
+			name: /^cancel plan$/i,
 		});
 		const hasSubscription = (await cancelButton.count()) > 0;
 

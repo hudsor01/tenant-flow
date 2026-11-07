@@ -24,27 +24,57 @@ import { createHmac } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { loadDotenv } from "./_shared/load-dotenv";
 
-loadDotenv(process.cwd());
+// Importing this module reads no env file and no environment variable: the
+// unit suite imports it, and a load at import put the developer's .env.local
+// (production credentials) into the unit process. The CLI guard at the foot
+// loads the env files before main(); every variable is read when a call needs
+// it (scripts/import-reads-no-env.test.ts).
 
-const LM_BASE = process.env.LM_BASE_URL ?? "http://localhost:1234/v1";
-// Mutable: main() resolves this against LM Studio's LOADED instance at
-// startup (see pickLoadedModel) — requesting a non-loaded identifier makes
-// LM Studio JIT-load a DUPLICATE 20GB copy (e.g. plain id vs "...@6bit"),
-// and two resident 24B copies crawl decode into the timeout (exec 151/311).
-let GEN_MODEL =
-	process.env.LM_GEN_MODEL ?? "mistral-small-3.2-24b-instruct-2506-mlx";
-const EMBED_MODEL =
-	process.env.LM_EMBED_MODEL ?? "text-embedding-qwen3-embedding-0.6b";
+/** LM Studio's OpenAI-compatible endpoint. */
+function lmBase(): string {
+	return process.env.LM_BASE_URL ?? "http://localhost:1234/v1";
+}
+
+function embedModel(): string {
+	return process.env.LM_EMBED_MODEL ?? "text-embedding-qwen3-embedding-0.6b";
+}
+
+// main() resolves the model against LM Studio's LOADED instance at startup
+// (see pickLoadedModel) — requesting a non-loaded identifier makes LM Studio
+// JIT-load a DUPLICATE 20GB copy (e.g. plain id vs "...@6bit"), and two
+// resident 24B copies crawl decode into the timeout (exec 151/311).
+let resolvedGenModel: string | undefined;
+
+/** The generation model: the resolved loaded id, else LM_GEN_MODEL, else the base id. */
+function genModel(): string {
+	return (
+		resolvedGenModel ??
+		process.env.LM_GEN_MODEL ??
+		"mistral-small-3.2-24b-instruct-2506-mlx"
+	);
+}
+
 const EXPECTED_DIM = 1024;
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SERVICE_KEY =
-	process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
-const HMAC_SECRET = process.env.N8N_WEBHOOK_SECRET;
-const PUBLISHABLE =
-	process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-	process.env.SUPABASE_PUBLISHABLE_KEY ??
-	process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-	process.env.SUPABASE_ANON_KEY;
+
+/** The ingest credentials main() needs, read after the CLI loads the env files. */
+function ingestEnv(): {
+	supabaseUrl: string | undefined;
+	serviceKey: string | undefined;
+	hmacSecret: string | undefined;
+	publishable: string | undefined;
+} {
+	return {
+		supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+		serviceKey:
+			process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY,
+		hmacSecret: process.env.N8N_WEBHOOK_SECRET,
+		publishable:
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+			process.env.SUPABASE_PUBLISHABLE_KEY ??
+			process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+			process.env.SUPABASE_ANON_KEY,
+	};
+}
 
 const VALID_CATEGORIES = [
 	"lease-law",
@@ -55,7 +85,11 @@ const VALID_CATEGORIES = [
 ] as const;
 type Category = (typeof VALID_CATEGORIES)[number];
 
-// banlist mirrors supabase/functions/n8n-blog-ingest/index.ts exactly
+// The banlist (gate 8), in step with supabase/functions/_shared/blog-banlist.ts
+// (the n8n-blog-ingest gate) and the validate_blog_post trigger (live body:
+// supabase/migrations/20261102230101_blog_banlist_persona_and_fields.sql);
+// src/lib/seo/__tests__/banlist-parity.test.ts fails when they drift.
+// Phrases: a substring, case ignored.
 const BANLIST = [
 	"rent collection",
 	"online rent",
@@ -78,6 +112,34 @@ const BANLIST = [
 	"paid rent",
 	"pay rent",
 ] as const;
+// Persona words, as persona-consistency.spec.ts bans them on every public page
+// (/property owners?\b/i): case ignored, an optional plural "s", then a word end,
+// no word start required ("single-property owner" matches, "property ownership"
+// does not).
+const PERSONA_BANLIST = ["property owner"] as const;
+const personaWordPattern = (word: string): RegExp =>
+	new RegExp(`${word}s?\\b`, "i");
+// The fields the banlist checks, in order: /blog renders the title and the
+// excerpt of every post.
+const BANLIST_FIELDS = ["title", "excerpt", "content"] as const;
+
+/**
+ * The first banned phrase or persona word in a draft's title, excerpt or
+ * content (in that order; phrases, then persona words), or null.
+ */
+function findBanlistHit(
+	p: Pick<Draft, (typeof BANLIST_FIELDS)[number]>,
+): { phrase: string; field: (typeof BANLIST_FIELDS)[number] } | null {
+	for (const field of BANLIST_FIELDS) {
+		const text = p[field];
+		const lower = text.toLowerCase();
+		const phrase =
+			BANLIST.find((b) => lower.includes(b)) ??
+			PERSONA_BANLIST.find((w) => personaWordPattern(w).test(text));
+		if (phrase !== undefined) return { phrase, field };
+	}
+	return null;
+}
 const SLUG_REGEX = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 
 // Pick the LM Studio model id to request: prefer a LOADED instance whose id
@@ -99,14 +161,14 @@ export function pickLoadedModel(
 async function resolveGenModel(): Promise<void> {
 	if (process.env.LM_GEN_MODEL) return; // explicit override wins
 	try {
-		const r = await fetch(`${LM_BASE.replace(/\/v1$/, "")}/api/v0/models`, {
+		const r = await fetch(`${lmBase().replace(/\/v1$/, "")}/api/v0/models`, {
 			signal: AbortSignal.timeout(10_000),
 		});
 		if (!r.ok) return;
 		const j = (await r.json()) as {
 			data?: { id?: unknown; state?: unknown }[];
 		};
-		GEN_MODEL = pickLoadedModel(j.data ?? [], GEN_MODEL);
+		resolvedGenModel = pickLoadedModel(j.data ?? [], genModel());
 	} catch {
 		// fall through — base id JIT-loads
 	}
@@ -537,13 +599,12 @@ export function runGates(
 			message: p.category,
 			fix: `category must be exactly one of ${VALID_CATEGORIES.join(", ")}.`,
 		});
-	const lc = p.content.toLowerCase();
-	const banHit = BANLIST.find((b) => lc.includes(b));
+	const banHit = findBanlistHit(p);
 	if (banHit)
 		out.push({
 			gate: "banlist",
-			message: banHit,
-			fix: `Remove the literal phrase "${banHit}" and rephrase it (e.g. "pay rent on time" -> "stay current on their lease" / "meet their rent obligations"; "tenant portal" -> drop it entirely). TenantFlow does not facilitate rent payments or offer a tenant portal.`,
+			message: `${banHit.phrase} (${banHit.field})`,
+			fix: `Remove the literal phrase "${banHit.phrase}" from the ${banHit.field} and rephrase it (e.g. "pay rent on time" -> "stay current on their lease" / "meet their rent obligations"; "tenant portal" -> drop it entirely). TenantFlow does not facilitate rent payments or offer a tenant portal.`,
 		});
 	const docuseal = (p.content.match(/DocuSeal/gi) ?? []).length;
 	if (docuseal > 1)
@@ -681,8 +742,13 @@ export function runGates(
 const BANLIST_REPLACEMENTS: [RegExp, string][] = [
 	// Persona purity (persona-consistency e2e bans these on every public page):
 	// the audience is "landlords" — never "property owners" / "real estate investors".
-	[/\bproperty owners\b/gi, "landlords"],
-	[/\bproperty owner\b/gi, "landlord"],
+	// The gate needs no word start (PERSONA_BANLIST), so neither do these: a word
+	// glued to "property" keeps it ("single-property owner" -> "single-property
+	// landlord", "multiproperty owners" -> "multiproperty landlords").
+	[/([\w-])property owners\b/gi, "$1property landlords"],
+	[/([\w-])property owner\b/gi, "$1property landlord"],
+	[/property owners\b/gi, "landlords"],
+	[/property owner\b/gi, "landlord"],
 	[/\breal estate investors\b/gi, "landlords"],
 	[/\breal estate investor\b/gi, "landlord"],
 	[/\bunpaid rent\b/gi, "overdue rent"],
@@ -846,10 +912,10 @@ export function ensureInternalLinks(
 }
 
 async function embed(input: string): Promise<number[]> {
-	const r = await fetch(`${LM_BASE}/embeddings`, {
+	const r = await fetch(`${lmBase()}/embeddings`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ model: EMBED_MODEL, input }),
+		body: JSON.stringify({ model: embedModel(), input }),
 		signal: AbortSignal.timeout(120_000),
 	});
 	if (!r.ok) fail(`embeddings ${r.status}: ${await r.text()}`);
@@ -867,11 +933,11 @@ async function generate(
 	messages: { role: string; content: string }[],
 	category: Category,
 ): Promise<Draft> {
-	const r = await fetch(`${LM_BASE}/chat/completions`, {
+	const r = await fetch(`${lmBase()}/chat/completions`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
-			model: GEN_MODEL,
+			model: genModel(),
 			messages,
 			temperature: 0.7,
 			max_tokens: 7000,
@@ -1010,11 +1076,11 @@ function isCritiquePass(c: Critique, threshold: number): boolean {
 }
 
 async function critique(draft: Draft, facts: string): Promise<Critique> {
-	const r = await fetch(`${LM_BASE}/chat/completions`, {
+	const r = await fetch(`${lmBase()}/chat/completions`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
-			model: GEN_MODEL,
+			model: genModel(),
 			temperature: 0.2,
 			max_tokens: 1500,
 			messages: [
@@ -1278,12 +1344,13 @@ async function main() {
 		);
 	if (!VALID_CATEGORIES.includes(category))
 		fail(`category must be one of ${VALID_CATEGORIES.join(", ")}`);
+	const env = ingestEnv();
 	const required: [string, string | undefined][] = [
-		["NEXT_PUBLIC_SUPABASE_URL", SUPABASE_URL],
-		["SUPABASE_SECRET_KEY", SERVICE_KEY],
-		["a publishable key", PUBLISHABLE],
+		["NEXT_PUBLIC_SUPABASE_URL", env.supabaseUrl],
+		["SUPABASE_SECRET_KEY", env.serviceKey],
+		["a publishable key", env.publishable],
 	];
-	if (!dryRun) required.push(["N8N_WEBHOOK_SECRET", HMAC_SECRET]);
+	if (!dryRun) required.push(["N8N_WEBHOOK_SECRET", env.hmacSecret]);
 	const missing = required.filter(([, v]) => !v).map(([n]) => n);
 	if (missing.length)
 		fail(`Missing env: ${missing.join(", ")} (in .env.local)`);
@@ -1293,11 +1360,15 @@ async function main() {
 	// 0. resolve the LOADED generation model (avoids JIT-loading a duplicate
 	// 24B copy when the loaded identifier differs, e.g. "...@6bit")
 	await resolveGenModel();
-	console.log(`Model: ${GEN_MODEL}`);
+	console.log(`Model: ${genModel()}`);
 
-	const supabase = createClient(SUPABASE_URL as string, SERVICE_KEY as string, {
-		auth: { persistSession: false },
-	});
+	const supabase = createClient(
+		env.supabaseUrl as string,
+		env.serviceKey as string,
+		{
+			auth: { persistSession: false },
+		},
+	);
 
 	// 0b. duplicate-comparison guard (pre-generation): a second post covering
 	// the same brand pair (in either order) cannibalizes the first — fail
@@ -1494,7 +1565,7 @@ STRICT requirements:
 				cacheControl: "31536000",
 			});
 		if (coverErr) throw new Error(coverErr.message);
-		ogImageUrl = `${SUPABASE_URL}/storage/v1/object/public/blog-covers/${draft.slug}.png`;
+		ogImageUrl = `${env.supabaseUrl}/storage/v1/object/public/blog-covers/${draft.slug}.png`;
 		console.log(`  cover uploaded: ${ogImageUrl}`);
 	} catch (e) {
 		console.error(
@@ -1513,18 +1584,18 @@ STRICT requirements:
 		og_image_url: ogImageUrl,
 	};
 	const body = JSON.stringify(payload);
-	const signature = createHmac("sha256", HMAC_SECRET as string)
+	const signature = createHmac("sha256", env.hmacSecret as string)
 		.update(body)
 		.digest("hex");
-	const ingestUrl = `${SUPABASE_URL}/functions/v1/n8n-blog-ingest`;
+	const ingestUrl = `${env.supabaseUrl}/functions/v1/n8n-blog-ingest`;
 	console.log(`\nPOST ${ingestUrl} (HMAC-signed)...`);
 	const res = await fetch(ingestUrl, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
 			"x-n8n-signature": signature,
-			apikey: PUBLISHABLE as string,
-			Authorization: `Bearer ${PUBLISHABLE}`,
+			apikey: env.publishable as string,
+			Authorization: `Bearer ${env.publishable}`,
 		},
 		body,
 	});
@@ -1566,7 +1637,9 @@ export { critique, isCritiquePass, parseCritique };
 // findDuplicateComparison, validateInternalLinks, isAllowlistedCitation,
 // extractExternalUrls, headCheckCitations are exported inline above.)
 
-// run the CLI only when executed directly (not when imported by the unit test)
+// run the CLI only when executed directly (not when imported by the unit test):
+// it alone loads the env files (.env.local first; a variable already set wins)
 if (process.argv[1]?.endsWith("/generate-blog-draft.ts")) {
+	loadDotenv(process.cwd());
 	main().catch((e) => fail(e instanceof Error ? e.message : String(e)));
 }

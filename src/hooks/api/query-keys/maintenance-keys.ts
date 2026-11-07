@@ -28,7 +28,13 @@ import type {
 	VendorUpdateInput,
 } from "#types/domain";
 import { mutationKeys } from "../mutation-keys";
-import { mapMaintenanceRow } from "./maintenance-mappers";
+import {
+	type MaintenanceDetailRow,
+	type MaintenanceListRow,
+	mapMaintenanceDetailRow,
+	mapMaintenanceListRow,
+	mapMaintenanceRow,
+} from "./maintenance-mappers";
 
 /**
  * Maintenance query filters
@@ -42,9 +48,28 @@ export interface MaintenanceFilters {
 	offset?: number;
 }
 
-// All columns on maintenance_requests (no category column in DB schema)
+// Every column on maintenance_requests the app reads: all but actual_cost,
+// which nothing writes (MaintenanceRequest, #types/core). No category column.
 const MAINTENANCE_SELECT_COLUMNS =
-	"id, owner_user_id, unit_id, tenant_id, title, description, priority, status, vendor_id, requested_by, assigned_to, estimated_cost, actual_cost, scheduled_date, completed_at, inspection_date, inspection_findings, inspector_id, created_at, updated_at";
+	"id, owner_user_id, unit_id, tenant_id, title, description, priority, status, vendor_id, requested_by, assigned_to, estimated_cost, scheduled_date, completed_at, inspection_date, inspection_findings, inspector_id, created_at, updated_at";
+
+/**
+ * What the list shows each request by, embedded through the request's own
+ * foreign keys: its unit's number, the unit's property (name and status, so a
+ * property the owner deleted, which does not cascade, is named "(deleted)")
+ * and its tenant's name. No capped or filtered unit, property or tenant list
+ * can name every request.
+ */
+const UNIT_EMBED_COLUMNS = "unit_number, property_id, properties(name, status)";
+
+const LIST_TENANT_COLUMNS = "name, first_name, last_name";
+
+/**
+ * The detail page's select, which an update also returns (its result replaces
+ * the cached detail): the list's embeds, and the tenant's email and phone for
+ * the page's contact card.
+ */
+const MAINTENANCE_DETAIL_SELECT = `${MAINTENANCE_SELECT_COLUMNS}, units(${UNIT_EMBED_COLUMNS}), tenant:tenant_id(${LIST_TENANT_COLUMNS}, email, phone)`;
 
 /**
  * Maintenance query factory
@@ -58,20 +83,20 @@ export const maintenanceQueries = {
 	list: (filters?: MaintenanceFilters) =>
 		queryOptions({
 			queryKey: [...maintenanceQueries.lists(), filters ?? {}],
-			queryFn: async (): Promise<PaginatedResponse<MaintenanceRequest>> => {
+			queryFn: async (): Promise<PaginatedResponse<MaintenanceListRow>> => {
 				const supabase = createClient();
 				const limit = filters?.limit ?? 50;
 				const offset = filters?.offset ?? 0;
 
-				// Single builder so EVERY filter applies on EVERY path. When
-				// filtering by property_id we join through units (`units!inner`);
-				// mapMaintenanceRow reads only the maintenance_requests columns, so
-				// the embed is ignored and each row is field-validated at the boundary.
-				// The select string is widened to `string` (runtime-conditional) so the
-				// client returns a generic row shape mapped at the boundary.
-				const selectColumns: string = filters?.property_id
-					? `${MAINTENANCE_SELECT_COLUMNS}, units!inner(property_id)`
-					: MAINTENANCE_SELECT_COLUMNS;
+				// Single builder so EVERY filter applies on EVERY path. Filtering by
+				// property_id makes the unit embed an inner join (`units!inner`), so
+				// the filter on units.property_id drops the other requests rather
+				// than only their embedded unit. The select string is widened to
+				// `string` (runtime-conditional), so the client returns a generic row
+				// shape, field-validated at the mapMaintenanceListRow boundary.
+				const selectColumns: string = `${MAINTENANCE_SELECT_COLUMNS}, ${
+					filters?.property_id ? "units!inner" : "units"
+				}(${UNIT_EMBED_COLUMNS}), tenant:tenant_id(${LIST_TENANT_COLUMNS})`;
 
 				let q = supabase
 					.from("maintenance_requests")
@@ -91,11 +116,9 @@ export const maintenanceQueries = {
 				if (error) handlePostgrestError(error, "maintenance_requests");
 
 				// The widened `string` select yields an opaque row type; each row is
-				// validated field-by-field at the mapMaintenanceRow boundary.
+				// validated field-by-field at the mapMaintenanceListRow boundary.
 				const rawRows: unknown[] = rows ?? [];
-				const data = rawRows.map((row) =>
-					mapMaintenanceRow(row as Record<string, unknown>),
-				);
+				const data = rawRows.map(mapMaintenanceListRow);
 
 				const total = count ?? 0;
 				const totalPages = Math.ceil(total / limit);
@@ -119,19 +142,17 @@ export const maintenanceQueries = {
 	detail: (id: string) =>
 		queryOptions({
 			queryKey: [...maintenanceQueries.details(), id],
-			queryFn: async (): Promise<MaintenanceRequest> => {
+			queryFn: async (): Promise<MaintenanceDetailRow> => {
 				const supabase = createClient();
-				// Include vendor relation in detail view for vendor name display
 				const { data, error } = await supabase
 					.from("maintenance_requests")
-					.select(`${MAINTENANCE_SELECT_COLUMNS}, vendors(id, name, trade)`)
+					.select(MAINTENANCE_DETAIL_SELECT)
 					.eq("id", id)
 					.single();
 
 				if (error) handlePostgrestError(error, "maintenance_requests");
 
-				// detail() embeds `vendors(...)` — mapMaintenanceRow ignores it.
-				return mapMaintenanceRow(data as Record<string, unknown>);
+				return mapMaintenanceDetailRow(data);
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id,
@@ -176,29 +197,6 @@ export const maintenanceQueries = {
 				};
 			},
 			...QUERY_CACHE_TIMES.STATS,
-		}),
-
-	urgent: () =>
-		queryOptions({
-			queryKey: [...maintenanceQueries.all(), "urgent"],
-			queryFn: async (): Promise<MaintenanceRequest[]> => {
-				const supabase = createClient();
-				const { data, error } = await supabase
-					.from("maintenance_requests")
-					.select(MAINTENANCE_SELECT_COLUMNS)
-					.in("priority", ["high", "urgent"])
-					.not("status", "in", '("completed","cancelled")')
-					.order("created_at", { ascending: false })
-					.limit(50);
-
-				if (error) handlePostgrestError(error, "maintenance_requests");
-
-				return ((data ?? []) as Record<string, unknown>[]).map(
-					mapMaintenanceRow,
-				);
-			},
-			staleTime: 30 * 1000,
-			gcTime: 5 * 60 * 1000,
 		}),
 
 	photos: (requestId: string) =>
@@ -253,28 +251,6 @@ export const maintenanceQueries = {
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!requestId,
-		}),
-
-	overdue: () =>
-		queryOptions({
-			queryKey: [...maintenanceQueries.all(), "overdue"],
-			queryFn: async (): Promise<MaintenanceRequest[]> => {
-				const supabase = createClient();
-				const { data, error } = await supabase
-					.from("maintenance_requests")
-					.select(MAINTENANCE_SELECT_COLUMNS)
-					.lt("scheduled_date", new Date().toISOString())
-					.not("status", "in", '("completed","cancelled")')
-					.order("scheduled_date", { ascending: true })
-					.limit(50);
-
-				if (error) handlePostgrestError(error, "maintenance_requests");
-
-				return ((data ?? []) as Record<string, unknown>[]).map(
-					mapMaintenanceRow,
-				);
-			},
-			...QUERY_CACHE_TIMES.STATS,
 		}),
 
 	/**
@@ -337,22 +313,24 @@ export const maintenanceMutations = {
 				id,
 				data,
 				version: _version,
-			}: MaintenanceUpdateMutationVariables): Promise<MaintenanceRequest> => {
+			}: MaintenanceUpdateMutationVariables): Promise<MaintenanceDetailRow> => {
 				// Note: version is intentionally unused -- optimistic locking via version
 				// is not implemented in the DB schema. The parameter is kept in the
 				// interface for future compatibility.
 				const supabase = createClient();
 
+				// The detail's select, so the cached detail this replaces
+				// (updateDetail) keeps where the request is.
 				const { data: updated, error } = await supabase
 					.from("maintenance_requests")
 					.update(omitUndefined(data))
 					.eq("id", id)
-					.select()
+					.select(MAINTENANCE_DETAIL_SELECT)
 					.single();
 
 				if (error) handlePostgrestError(error, "maintenance_requests");
 
-				return mapMaintenanceRow(updated as Record<string, unknown>);
+				return mapMaintenanceDetailRow(updated);
 			},
 		}),
 
@@ -494,40 +472,6 @@ export const vendorMutations = {
 				const { error } = await supabase.from("vendors").delete().eq("id", id);
 
 				if (error) handlePostgrestError(error, "vendors");
-			},
-		}),
-
-	assign: () =>
-		mutationOptions({
-			mutationKey: ["mutations", "vendors", "assign"] as const,
-			mutationFn: async ({
-				vendorId,
-				maintenanceId,
-			}: {
-				vendorId: string;
-				maintenanceId: string;
-			}): Promise<void> => {
-				const supabase = createClient();
-				const { error } = await supabase
-					.from("maintenance_requests")
-					.update({ vendor_id: vendorId, status: "assigned" })
-					.eq("id", maintenanceId);
-
-				if (error) handlePostgrestError(error, "maintenance_requests");
-			},
-		}),
-
-	unassign: () =>
-		mutationOptions({
-			mutationKey: ["mutations", "vendors", "unassign"] as const,
-			mutationFn: async (maintenanceId: string): Promise<void> => {
-				const supabase = createClient();
-				const { error } = await supabase
-					.from("maintenance_requests")
-					.update({ vendor_id: null, status: "needs_reassignment" })
-					.eq("id", maintenanceId);
-
-				if (error) handlePostgrestError(error, "maintenance_requests");
 			},
 		}),
 };

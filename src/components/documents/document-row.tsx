@@ -55,9 +55,8 @@ export function DocumentRow({
 					<DialogTrigger asChild>
 						<button
 							type="button"
-							className="flex-1 min-w-0 flex items-center gap-3 rounded-md -mx-2 px-2 py-1.5 transition-colors hover:bg-accent text-left"
+							className="flex-1 min-w-0 flex items-center gap-3 rounded-md -mx-2 px-2 py-1.5 transition-colors hover:bg-muted text-left"
 							disabled={!doc.signed_url}
-							aria-label={`Preview ${displayName}`}
 							aria-haspopup="dialog"
 						>
 							<Icon
@@ -65,10 +64,10 @@ export function DocumentRow({
 								aria-hidden="true"
 							/>
 							<div className="min-w-0 flex-1">
-								<p className="truncate text-sm font-medium text-foreground">
+								<p className="mb-0 truncate text-sm font-medium text-foreground">
 									{displayName}
 								</p>
-								<p className="truncate text-xs text-muted-foreground">
+								<p className="mb-0 truncate text-xs text-muted-foreground">
 									{formatBytes(doc.file_size)} ·{" "}
 									{doc.created_at
 										? new Date(doc.created_at).toLocaleDateString("en-US", {
@@ -139,7 +138,7 @@ export function DocumentRow({
 								variant="outline"
 								onClick={() => onDelete(doc)}
 								disabled={isDeleting}
-								className="text-destructive-text hover:text-destructive-text hover:bg-destructive/10"
+								className="text-destructive-text hover:text-destructive-text hover:bg-destructive/10 dark:hover:bg-destructive/20 dark:hover:text-destructive-text"
 							>
 								<Trash2 className="size-4 mr-2" />
 								{isDeleting ? "Removing..." : "Remove"}

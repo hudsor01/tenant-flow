@@ -851,6 +851,32 @@ describe("DocumentsVaultClient", () => {
 			});
 		});
 
+		it("never toasts the status line when the error body is not JSON", async () => {
+			const user = userEvent.setup();
+			global.fetch = vi.fn().mockResolvedValue(
+				new Response("<html>upstream</html>", {
+					status: 502,
+					statusText: "Bad Gateway",
+				}),
+			);
+			mockUseQuery.mockReturnValue({
+				data: { rows: [{ id: "a" }], totalCount: 5, page: 0, pageSize: 50 },
+				isLoading: false,
+				isFetching: false,
+				isError: false,
+			});
+			renderVault();
+			await user.click(screen.getByRole("button", { name: /download all/i }));
+			await waitFor(() => {
+				expect(mockToastError).toHaveBeenCalledWith(
+					"Failed to download the documents. Please try again.",
+				);
+			});
+			expect(mockToastError).not.toHaveBeenCalledWith(
+				expect.stringMatching(/Bad Gateway|upstream/),
+			);
+		});
+
 		it("double-click guard prevents two concurrent fetches", async () => {
 			// Hold the fetch promise open so both clicks land BEFORE the
 			// first call resolves (and BEFORE setIsDownloading commits).

@@ -35,6 +35,7 @@ import {
 } from "#hooks/api/query-keys/document-category-keys";
 import { documentQueries } from "#hooks/api/query-keys/document-keys";
 import { useDocumentCategories } from "#hooks/api/use-document-categories";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { CategoryCreateDialog } from "./category-create-dialog";
 import { CategoryDeleteDialog } from "./category-delete-dialog";
 import { CategoryRenameDialog } from "./category-rename-dialog";
@@ -77,7 +78,7 @@ export function CategoriesSettings() {
 			toast.success("Category created.");
 		},
 		onError: (err) => {
-			toast.error(err instanceof Error ? err.message : "Create failed.");
+			handleMutationError(err, "Create category");
 		},
 	});
 
@@ -89,7 +90,7 @@ export function CategoriesSettings() {
 			toast.success("Category renamed.");
 		},
 		onError: (err) => {
-			toast.error(err instanceof Error ? err.message : "Rename failed.");
+			handleMutationError(err, "Rename category");
 		},
 	});
 
@@ -101,7 +102,7 @@ export function CategoriesSettings() {
 			toast.success("Category deleted; documents reassigned.");
 		},
 		onError: (err) => {
-			toast.error(err instanceof Error ? err.message : "Delete failed.");
+			handleMutationError(err, "Delete category");
 		},
 	});
 
@@ -133,7 +134,7 @@ export function CategoriesSettings() {
 			if (ctx?.previous) {
 				queryClient.setQueryData(listKey, ctx.previous);
 			}
-			toast.error(err instanceof Error ? err.message : "Reorder failed.");
+			handleMutationError(err, "Reorder categories");
 		},
 	});
 
@@ -214,8 +215,11 @@ export function CategoriesSettings() {
 
 	return (
 		<Card>
-			<CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-				<div className="space-y-1">
+			{/* The title block takes a line to itself when it would get less
+			    than 14rem beside the button: at 320px it was a 76px column,
+			    a word or two to a line. */}
+			<CardHeader className="flex flex-row flex-wrap items-start justify-between gap-4">
+				<div className="min-w-0 grow basis-56 space-y-1">
 					<CardTitle>Document categories</CardTitle>
 					<CardDescription>
 						Customize the taxonomy used when uploading and filtering documents.
@@ -241,7 +245,12 @@ export function CategoriesSettings() {
 						items={categories.map((c) => c.id)}
 						strategy={verticalListSortingStrategy}
 					>
-						<ul className="space-y-2" aria-label="Document categories">
+						{/* The base `ul` rule's indent and margins neutralized (the
+						    row lost 24px of its width to the indent). */}
+						<ul
+							className="flex flex-col gap-2 pl-0 mt-0 mb-0 [&>li]:mb-0"
+							aria-label="Document categories"
+						>
 							{categories.map((c) => (
 								<CategoryRow
 									key={c.id}

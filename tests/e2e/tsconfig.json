@@ -16,9 +16,7 @@
 		"tests/**/*.ts",
 		"lib/**/*.ts",
 		"auth-helpers.ts",
-		"playwright.config.ts",
-		"../frontend/tests/fixtures/**/*.ts",
-		"global.d.ts"
+		"playwright.config.ts"
 	],
-	"exclude": ["tests/**/__snapshots__/**", "tests/tanstack-query/**"]
+	"exclude": ["tests/**/__snapshots__/**"]
 }

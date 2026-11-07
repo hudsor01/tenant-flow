@@ -33,8 +33,8 @@ export const maintenancePrioritySchema = z.enum([
 
 // Maintenance status enum validation — mirrors the DB
 // maintenance_requests_status_check CHECK constraint and the MaintenanceStatus
-// union in #types/core (all 7 valid statuses). vendorMutations.assign/unassign
-// set "assigned"/"needs_reassignment", so both must validate.
+// union in #types/core (all 7 valid statuses). The kanban drag and the detail
+// StatusSelect set "assigned"/"needs_reassignment", so both must validate.
 export const maintenanceStatusSchema = z.enum([
 	"open",
 	"assigned",
@@ -75,10 +75,6 @@ export const maintenanceRequestInputSchema = z.object({
 			VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
 			"Estimated cost seems unrealistic",
 		)
-		.optional(),
-
-	actual_cost: positiveNumberSchema
-		.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE, "Actual cost seems unrealistic")
 		.optional(),
 
 	scheduled_date: z.string().optional(),
@@ -165,22 +161,20 @@ export const maintenanceRequestCreateSchema = maintenanceRequestInputSchema
 	.omit({
 		status: true,
 		completed_at: true,
-		actual_cost: true,
 	})
 	.extend({
 		status: maintenanceStatusSchema.default("open"),
 	});
 
 // Maintenance cost update schema
+// No actual_cost: spend is the request's expenses, and nothing writes that
+// column (66.2-39 parts N and P).
 export const maintenanceCostUpdateSchema = z.object({
 	estimated_cost: positiveNumberSchema
 		.max(
 			VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
 			"Estimated cost seems unrealistic",
 		)
-		.optional(),
-	actual_cost: positiveNumberSchema
-		.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE, "Actual cost seems unrealistic")
 		.optional(),
 });
 
@@ -193,9 +187,6 @@ export const maintenanceAssignmentSchema = z.object({
 // Maintenance completion schema
 export const maintenanceCompletionSchema = z.object({
 	completed_at: z.string().min(1, "Completion date is required"),
-	actual_cost: positiveNumberSchema
-		.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE, "Actual cost seems unrealistic")
-		.optional(),
 	completion_notes: z
 		.string()
 		.max(

@@ -189,7 +189,7 @@ export default function TaxDeductionTrackerPage() {
 								Total Deductions
 							</h2>
 							<div className="text-right">
-								<span className="text-2xl font-bold text-primary">$</span>
+								<span className="text-2xl font-bold text-primary-text">$</span>
 								<span className="inline-block w-32 border-b-2 border-primary ml-1" />
 							</div>
 						</div>

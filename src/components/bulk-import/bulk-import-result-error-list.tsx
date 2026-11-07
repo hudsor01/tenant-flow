@@ -5,11 +5,17 @@ import { Button } from "#components/ui/button";
 import type { ParsedRow } from "#types/api-contracts";
 import { buildCsvTemplate, triggerCsvDownload } from "./parse-csv-with-schema";
 
+// Papa's header mode leaves the fields a short row lacks off its object, and
+// puts the cells past the header row under `__parsed_extra` (an array).
+const PAPA_EXTRA_FIELDS_KEY = "__parsed_extra";
+
 // Fall through to the synthetic `row,error` shape when parseResult is
 // missing OR every error is a synthetic `row: 0` entry from the mutation's
 // onError handler. Otherwise emit the original-headers shape so users can
-// fix in Excel and re-upload.
-function buildFailedRowsCsv(
+// fix in Excel and re-upload. The headers are every parsed row's keys in
+// first-seen order: the first row's keys alone dropped, from every row, any
+// column the first row was short of.
+export function buildFailedRowsCsv(
 	errors: Array<{ row: number; error: string }>,
 	parseResult: {
 		rows: ParsedRow<unknown>[];
@@ -25,8 +31,9 @@ function buildFailedRowsCsv(
 			.join("\n");
 		return `${header}\n${body}\n`;
 	}
-	const firstRow = parseResult.rows[0];
-	const originalHeaders = firstRow ? Object.keys(firstRow.data) : [];
+	const originalHeaders = [
+		...new Set(parseResult.rows.flatMap((r) => Object.keys(r.data))),
+	].filter((key) => key !== PAPA_EXTRA_FIELDS_KEY);
 	const headerRow = [...originalHeaders, "_error"];
 	const errorByLine = new Map(errors.map((e) => [e.row, e.error]));
 	const dataRows = parseResult.rows
@@ -70,7 +77,7 @@ export function ResultErrorList({
 		<div className="space-y-2">
 			<p className="text-sm font-semibold">Failed rows</p>
 			<div className="card-standard max-h-56 overflow-y-auto">
-				<ul className="divide-y divide-border/40 text-xs">
+				<ul className="divide-y divide-border/40 pl-0 mt-0 mb-0 [&>li]:mb-0 text-xs">
 					{errors.map((err) => (
 						<li key={err.row} className="px-3 py-2 flex items-start gap-2">
 							<span className="font-mono text-muted-foreground shrink-0">

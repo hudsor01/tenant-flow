@@ -15,6 +15,19 @@ import {
 } from "#components/ui/select";
 import type { DynamicField } from "./dynamic-form";
 
+/** The name the owner sees for each field type in the builder's picker. */
+const FIELD_TYPE_LABELS: Record<DynamicField["type"], string> = {
+	text: "Text",
+	email: "Email",
+	tel: "Phone",
+	number: "Number",
+	date: "Date",
+	textarea: "Long Text",
+	select: "Dropdown",
+	checkbox: "Checkbox",
+	list: "List",
+};
+
 const fieldTypes: Array<DynamicField["type"]> = [
 	"text",
 	"email",
@@ -116,7 +129,7 @@ export function FormBuilderPanel({
 
 	return (
 		<Card>
-			<CardHeader className="flex flex-row items-center justify-between">
+			<CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
 				<div>
 					<CardTitle>Form builder</CardTitle>
 					<p className="text-sm text-muted-foreground">
@@ -157,7 +170,7 @@ export function FormBuilderPanel({
 								<Trash2 className="size-4" />
 							</Button>
 						</div>
-						<div className="grid gap-3 sm:grid-cols-2">
+						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 							<div className="space-y-2">
 								<Label htmlFor={`builder-field-${index}-label`}>Label</Label>
 								<Input
@@ -198,7 +211,7 @@ export function FormBuilderPanel({
 									<SelectContent>
 										{fieldTypes.map((type) => (
 											<SelectItem key={type} value={type}>
-												{type}
+												{FIELD_TYPE_LABELS[type]}
 											</SelectItem>
 										))}
 									</SelectContent>

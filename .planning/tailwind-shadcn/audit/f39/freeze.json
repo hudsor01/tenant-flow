@@ -1,0 +1,233 @@
+{
+	"codeStateSha": "b7f25511b600b9cf1edd50bc56c41de55e02f29a",
+	"codeStateRule": "the last commit that touches anything outside .planning/ (git log -1 -- . ':(exclude).planning'); every commit after it (this re-freeze's evidence commit 69cd16d15, docs(66.2-39): record the final checkpoint re-run, and FROZEN, the fourth docs(66.2-39): refresh the pr body and final record commit) touches .planning/ only",
+	"branch": "gsd/phase-66.2-tailwind-v4-and-shadcn-ui-canonical-remediation",
+	"mergeBase": "d9c7329f0fa500a597e87e7ac02d5a4fb0cf2f2d",
+	"mergeBaseRule": "origin/main after git fetch origin main is d9c7329f0 (2026-11-06), and git rev-list HEAD contains it (git merge-base is permission-blocked in this environment)",
+	"pre39": "23f42a97635ff9c8cb157be63ee7d365dd5f20d8",
+	"g38": "cdcffc1e157e13fca5cc5fa6e4d6c316a97e2adb",
+	"mainMerge": "54fc508299a90eb501a91caf74de8950fd002d5f",
+	"previousFrozen": "36972318f30401edad3831ea624b8e281f73c3aa",
+	"previousCodeStateSha": "f8de0175e3e2c76e1429956ab4f3d5c675a0789f",
+	"freezeHistory": [
+		{
+			"frozen": "4476e64508f456cb6be3bccb37a7d3f5d4f04b12",
+			"codeStateSha": "d2b7b51242d8611d6ae9fb19341d22adcecd3352",
+			"note": "first freeze; perfect-PR cycle 1 found 24 defects"
+		},
+		{
+			"frozen": "bc54b045aa4bb418a1001bedf29e705a0447a7aa",
+			"codeStateSha": "b628eb9f1b0c68e8d2d48cfd6660921b0660fef5",
+			"note": "re-freeze after fix round 1; CI failed (CodeQL, mutation sweep timeout, rls-security; e2e-smoke on the intermediate head f8de0175e)"
+		},
+		{
+			"frozen": "36972318f30401edad3831ea624b8e281f73c3aa",
+			"codeStateSha": "f8de0175e3e2c76e1429956ab4f3d5c675a0789f",
+			"note": "re-freeze after fix round 2 (CI failures on bc54b045a and f8de0175e); CI green on it; perfect-PR cycle 2 found 139 findings",
+			"carriedForwardSteps": {
+				"screens": "f39/screens-diff-f39.json was measured on the 4433ca833 build; the 4433ca833, b628eb9f1 and f8de0175e builds hash identically (5002 files, build id normalized; positive control 13 files) and the compiled CSS is byte-identical (f39/build-identity-f39.json)",
+				"probes": "f39/probes-diff-f39.json mounts the repo's components with the compiled CSS; no component source changed and the CSS is byte-identical",
+				"csp": "the manifest counts in f39/csp-f39.json carry forward with the identical build; the route probe re-ran on f8de0175e's build with the recorded events exactly (fixRound2Reprobe)",
+				"replay": "no migration, replay script, assertion module, seed or replay workflow changed since b628eb9f1 (git diff --quiet exits 0), and CI's replay on f8de0175e passed (run 41636133301)",
+				"deno": "no Edge Function source changed since b628eb9f1 (only the Vitest guard supabase/functions/__tests__/rate-limit.test.ts)",
+				"edgeBundles": "as deno",
+				"vendoredInventory": "no src/components/ui/*.tsx changed since b628eb9f1"
+			}
+		}
+	],
+	"stops": [
+		{
+			"run": "first",
+			"head": "ec7353b2d",
+			"defect": "f39-checks.mjs --fix-round-2's escape scan: a $-only escape before new RegExp in ids-not-shown-as-text.test.tsx, and a first-occurrence / replace in group-markers.test.ts",
+			"fix": "852158ab4 (main session)"
+		},
+		{
+			"run": "second",
+			"head": "852158ab4",
+			"defect": "the sidebar set's tour-step5 state could not be captured at 1280x800: 108988369's longer step-1 copy put the fixed-position step's footer at y 799-843 (a pointer click on Next intercepted)",
+			"fix": "Part 6d, 5ab6b39e3 and b7f25511b"
+		}
+	],
+	"applied": [],
+	"carriedForward": false,
+	"carriedForwardNote": "Every Task 2 step re-ran for fix round 3. Four were measured on 852158ab4, before Part 6d, and carry to b7f25511b because Part 6d (5ab6b39e3, b7f25511b: src/components/ui/tour.tsx, its unit test and app-shell-sidebar.spec.ts) changed none of their inputs; f39-checks.mjs --fix-round-3 re-checks each with git diff --quiet",
+	"carriedForwardSteps": {
+		"sweep": "measured on 852158ab4; git diff --quiet 852158ab4 b7f25511b -- scripts src/lib .github/workflows/mutation-sweep.yml exits 0",
+		"replay": "measured on 852158ab4; git diff --quiet 852158ab4 b7f25511b -- supabase scripts .github/workflows/migration-replay.yml exits 0",
+		"deno": "measured on 852158ab4; git diff --quiet 852158ab4 b7f25511b -- supabase/functions exits 0",
+		"edgeBundles": "as deno"
+	},
+	"finalDir": ".planning/tailwind-shadcn/audit/final",
+	"checks": {
+		"preconditions": {
+			"command": "gsd-sdk query config-get workflow.use_worktrees / workflow.test_command / workflow.build_command; toplevel, branch, HEAD b7f25511b, clean tree, no deno.lock",
+			"exit": 0,
+			"value": "false / \"bun run test:unit\" / \"SKIP_ENV_VALIDATION=true bun run build\"; origin/main still d9c7329f0"
+		},
+		"f39SelfTest": {
+			"command": "node .planning/tailwind-shadcn/audit/f39-checks.mjs --self-test",
+			"exit": 0,
+			"value": "94 passed (64 before; fix-round-2 5 more mutations for .replaceAll and the string-pattern escape; fix-round-3 the clean fixture and 24 mutations, each failing exactly its group)"
+		},
+		"fixRound1": {
+			"command": "f39-checks.mjs --fix-round-1 f39 --out f39/fix-round-1-checks.json",
+			"exit": 0,
+			"value": "211 checks, 0 failed (VD-01..VD-151 and VD-19b mapped; VD-74 keeps fix round 1's screenshot evidence, f39/screens-diff-fix-round-1.json)"
+		},
+		"fixRound2": {
+			"command": "f39-checks.mjs --fix-round-2 f39 --out f39/fix-round-2-checks.json",
+			"exit": 0,
+			"value": "44 checks, 0 failed (28 helper importers; escape scan 7 sites, 0 partial, 0 string-pattern escapes; scope b628eb9f1..f8de0175e 42 paths)"
+		},
+		"fixRound3": {
+			"command": "f39-checks.mjs --fix-round-3 f39 --out f39/fix-round-3-checks.json",
+			"exit": 0,
+			"value": "36 checks, 0 failed (26 guard files, code state, freshness with 4 carried, probes, sweep 185, replay 357, deno 17, redeploy list, parity, PR body, scope 355 paths)"
+		},
+		"escapeScan": {
+			"command": "f39-checks.mjs --escape-scan <rev>",
+			"exit": 0,
+			"value": "ec7353b2d: 2 partial (group-markers.test.ts:71 string inside new RegExp, ids-not-shown-as-text.test.tsx:151 single $); 852158ab4 and b7f25511b: 0; b628eb9f1: equal to redproof-fix-round-2.json (f39/redproof-fix-round-3.json)"
+		},
+		"cpChecks": {
+			"command": "f39-checks.mjs --decisions f39/cp-decisions.json --probes f39/probes-f39.json --tokens f39/tokens-f39.json --out f39/cp-checks.json",
+			"exit": 0,
+			"value": "45 checks, 0 failed (byte-identical to the previous freeze's)"
+		},
+		"cpNegativeControl": {
+			"command": "f39-checks.mjs ... --probes final/probes-final.json --probe-only --expect-fail \"\"",
+			"exit": 0,
+			"value": "no fallback applied: failed CPs [] as expected"
+		},
+		"audit": {
+			"command": "TW_AUDIT_OUT=<out> node .planning/tailwind-shadcn/audit/audit.mjs",
+			"exit": 0,
+			"value": "scannedFiles 940; M10 first-party 0 (48 classes, 17 vendored files); M6 chart-1, chart-4; M8 4 / 0 / 0 of 42 / 0 / 0; every other report field equal to the previous freeze's"
+		},
+		"m1Delta": {
+			"command": "f39/m1-delta.json",
+			"exit": 0,
+			"value": "917 + 32 - 9 = 940 = actual; fix round 3 added src/components/shared/chart-series.tsx and src/test/utils/button-sites.ts"
+		},
+		"cssParity": {
+			"command": "node css-parity.mjs final/candidate-css.json f39/candidate-css.json --intended f39/css-parity-intended-f39.json --strict",
+			"exit": 0,
+			"value": "unclassified 0; fix-round-1 added 84 / removed 198 / utility-changed 2, fix-round-3 added 28 / removed 7 (each with its commit and VD row), cp4-followup 2 + 2"
+		},
+		"compiledCss": {
+			"command": "sha256 of audit.mjs compiled.css on 36972318f (this session) and b7f25511b",
+			"exit": 0,
+			"value": "de12912060d9f1892b0c130aa3ed3b4e6ca1f7f81dda0b86f4f137a575f274d0 -> bbf1a69aff432f0d4042a73c9843e5b383620462a39dbd7ee7c4a1b3224a1c0b; outside the utilities only the two base anchor selectors gain :not([data-slot=\"button\"]) (OD-3, 9a7092a7f)"
+		},
+		"tokens": {
+			"command": "node render-check.mjs f39 --tokens baseline/token-list.json",
+			"exit": 0,
+			"value": "tokens-f39.json and render-f39.json byte-identical to the previous freeze (only light accent-foreground, VD-59, and light destructive-foreground, VD-38, differ from FINAL)"
+		},
+		"guards": {
+			"command": "bun guard-redproof.ts --root <worktree> --guards G1,...,G8,inline-structure",
+			"exit": 0,
+			"value": "9 entries, every count 0; byte-identical to the previous freeze"
+		},
+		"unit": {
+			"command": "CI=true bun run test:unit -- --coverage --reporter=default --reporter=json",
+			"exit": 0,
+			"value": "491 files, 114,159 tests, 0 failed; coverage 74.5 / 66.14 / 73.19 / 76.44 (12524/16810, 8668/13105, 3465/4734, 11778/15408) against 64/56/63/66 (the evidence commit's lefthook run read 74.49 / 66.13, one statement and one branch apart); threshold lines unchanged since 754c91802"
+		},
+		"validateQuick": {
+			"command": "bun run validate:quick",
+			"exit": 0,
+			"value": "typecheck (root, integration, e2e), biome 1610 files, 491 files / 114,159 tests"
+		},
+		"build": {
+			"command": "SKIP_ENV_VALIDATION=true NEXT_PUBLIC_APP_URL=http://localhost:3062 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder VERCEL_ENV=preview ./node_modules/.bin/next build",
+			"exit": 0,
+			"value": "b7f25511b build _Nnp0e_wFsNWRbPU8NSYu and 36972318f's code (set in the worktree) build OVNriGMcj5hcoc9aw-M6m, 276/276 static pages each"
+		},
+		"probes": {
+			"command": "TW_AUDIT_OUT=<out> node component-probes.mjs f39 --shots <scratch>, and the same on 36972318f's code",
+			"exit": 0,
+			"value": "26 probes; 0 attributable differences; 1 noise field (toast-loading dark.iconWidth 23 -> 22; six same-session repeats on b7f25511b read 22 and 23) (f39/probes-diff-f39.json)"
+		},
+		"screens": {
+			"command": "screens.mjs old / f39 / f39-repeat --base-url :3064 --markers final/markers-w6.json; sidebar-step0.mjs shots; screens.mjs --diff",
+			"exit": 0,
+			"value": "public/owner 92: 32 identical, 60 intended; sidebar 60: 60 intended (tour-step5 at 1280 captured, VD-151); the HEAD repeats differ in 2 public captures (a 20x7 box at 55,3807) outside every changed box, sidebar repeat identical; 0 data-drift, 0 unclassified; every DOM class-token and text change occurs in fix round 3's src diff (f39/screens-diff-f39.json)"
+		},
+		"tour": {
+			"command": "scratch tour-probe.mjs (pointer clicks; tour progress answered locally, 0 writes forwarded)",
+			"exit": 0,
+			"value": "b7f25511b: all 5 steps and footers inside the viewport and every Next a working pointer click at 1280x800 (light and dark), 1280x720, 900x800, 390x844, 375x812 (30/30); step 1 at 1280x800 y 530-784, footer 707-767; at 1280x720 y 450-704, footer 627-687; on 852158ab4 at 1280x800 step 1 y 614-868, Next 799-843, click intercepted"
+		},
+		"csp": {
+			"command": "csp-probe.mjs (66.2-29 method) on :3062 and, for the control, on 36972318f's build on :3064",
+			"exit": 0,
+			"value": "/login 1, /auth/confirm-email 0, /auth/update-password 1 on both trees, each zod's Function(\"\") probe at 1-g7excfkl0wo.js line 1 col 4409; manifest CSP errors 0 and 0; total 0"
+		},
+		"e2e": {
+			"command": "bun .planning/tailwind-shadcn/audit/with-env.mjs ./node_modules/.bin/playwright test --config <scratch>/rf3b/e2e/pw-3062-ci.config.mts (smoke + public + owner-axe, retries 0, traces off, list reporter) on next start -p 3062",
+			"exit": 0,
+			"value": "260 tests: 257 passed, 3 skipped, 0 failed (smoke 7; public 119 + 1 skipped; owner-axe 131 + 2 skipped; app-shell-sidebar.spec.ts 31/31 incl. the pointer tour walk at 1280x800 and 1280x720)"
+		},
+		"denoCheck": {
+			"command": "deno check --no-lock --node-modules-dir=none --allow-import=deno.land:443,jsr.io:443,esm.sh:443,raw.esm.sh:443,cdn.jsdelivr.net:443,raw.githubusercontent.com:443,gist.githubusercontent.com:443,cdn.sheetjs.com:443 --import-map=supabase/functions/deno.json supabase/functions/<fn>/index.ts",
+			"exit": 0,
+			"value": "17 of 17 functions clean, and tests/export-report-test.ts and tests/generate-pdf-test.ts",
+			"carriedForward": "carriedForwardSteps.deno"
+		},
+		"denoTests": {
+			"command": "deno test --no-lock --node-modules-dir=none --allow-all --no-check --import-map=supabase/functions/deno.json <file>",
+			"exit": 0,
+			"value": "send-lease-reminders 25, lease-signature-metering 5, lease-signing 12, rate-limit-sentry 2, export-report 16, generate-pdf 9; 0 failed",
+			"carriedForward": "carriedForwardSteps.deno"
+		},
+		"edgeBundles": {
+			"command": "deno bundle --no-lock ... on git-archive exports of d9c7329f0 and the code state, all 17 functions",
+			"exit": 0,
+			"value": "deploy export-report, generate-pdf, lease-signature, n8n-blog-ingest; 13 functions' sources changed, 9 of them bundle identically, 4 functions unchanged (f39/edge-bundles-f39.json)",
+			"carriedForward": "carriedForwardSteps.edgeBundles"
+		},
+		"replay": {
+			"command": "scratch replay.sh on tf-replay-j (ports 546xx), CI's supabase start exclusions",
+			"exit": 0,
+			"value": "357 of 357 from empty; applied, no-network, seed, test-cast, billing-insights, property-performance, owner-figures, blog-banlist all exit 0; owner A scheduled rent -25.26%; stopped with --no-backup; colima stopped again",
+			"carriedForward": "carriedForwardSteps.replay"
+		},
+		"sweepListing": {
+			"command": "SWEEP_LIST=1 [SWEEP_SHARD=i SWEEP_SHARDS=8] bash scripts/mutation-sweep.sh",
+			"exit": 0,
+			"value": "185 rows; shards 24/23/23/23/23/23/23/23, disjoint, non-empty, union = the unsharded listing; row r in shard ((r - 1) mod 8) + 1",
+			"carriedForward": "carriedForwardSteps.sweep"
+		},
+		"sweep": {
+			"command": "bash scripts/mutation-sweep.sh",
+			"exit": 0,
+			"value": "caught=185 vacuous=0 not-applied=0, tree restored byte-exact (414 s)",
+			"carriedForward": "carriedForwardSteps.sweep"
+		},
+		"sweepShards": {
+			"command": "SWEEP_SHARD=i SWEEP_SHARDS=8 bash scripts/mutation-sweep.sh, i = 1..8",
+			"exit": 0,
+			"value": "every shard exit 0, caught = rows, 0 vacuous, 0 not applied, restored byte-exact; totals 185 / 185 / 0 / 0 (f39/sweep-f39.json)",
+			"carriedForward": "carriedForwardSteps.sweep"
+		},
+		"vendoredInventory": {
+			"command": "registry-fetch.mjs + vendored-inventory.mjs against a fresh new-york-v4 fetch",
+			"exit": 0,
+			"value": "3 in sync, 37 divergent, 32 non-registry, problems []; breadcrumb 7 register entries, chart 9; tour.tsx non-registry"
+		},
+		"aikido": {
+			"command": "Aikido MCP aikido_scan_paths",
+			"exit": null,
+			"value": "every fix part ran the secrets scan on the first-party files it changed, all clean; this re-freeze's scan of f39-checks.mjs and its changed docs and evidence, clean; the SAST scan could not run (unknown JSON field taint_intrafile)"
+		}
+	},
+	"codeStateNote": "fix round 3's last code commit is b7f25511b (Part 6d); the re-run is on that code state, measured on 2026-11-06, with the four carried steps measured on 852158ab4 on 2026-11-05",
+	"evidenceCommits": [
+		"dfe1400aa (evidence measured on 4433ca833, the checker extension, the plan amendment)",
+		"ec01c2a3a (the always-run steps re-run on b628eb9f1)",
+		"2ce048dfd (fix round 2: the re-run on f8de0175e, the build identity, the checker's --fix-round-2 mode, the plan amendment)",
+		"69cd16d15 (fix round 3: the re-run on b7f25511b, the checker's --fix-round-3 mode and widened escape scan, the plan amendment)"
+	]
+}

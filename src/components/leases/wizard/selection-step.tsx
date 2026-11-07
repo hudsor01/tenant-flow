@@ -107,7 +107,7 @@ export function SelectionStep({
 					) : propertiesError ? (
 						<div className="flex items-center gap-2 text-destructive-text text-sm p-3 bg-destructive/10 rounded-md">
 							<AlertCircle className="h-4 w-4" />
-							Failed to load properties: {propertiesError.message}
+							Failed to load properties. Please try again.
 						</div>
 					) : (
 						<Combobox
@@ -146,7 +146,7 @@ export function SelectionStep({
 					) : unitsError ? (
 						<div className="flex items-center gap-2 text-destructive-text text-sm p-3 bg-destructive/10 rounded-md">
 							<AlertCircle className="h-4 w-4" />
-							Failed to load units: {unitsError.message}
+							Failed to load units. Please try again.
 						</div>
 					) : units?.length === 0 ? (
 						<div className="flex items-center gap-2 text-muted-foreground text-sm p-3 bg-muted rounded-md">
@@ -195,7 +195,7 @@ export function SelectionStep({
 					) : tenantsError ? (
 						<div className="flex items-center gap-2 text-destructive-text text-sm p-3 bg-destructive/10 rounded-md">
 							<AlertCircle className="h-4 w-4" />
-							Failed to load tenants: {tenantsError.message}
+							Failed to load tenants. Please try again.
 						</div>
 					) : tenants?.length === 0 ? (
 						<Empty>

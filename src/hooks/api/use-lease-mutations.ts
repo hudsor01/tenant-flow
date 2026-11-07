@@ -14,7 +14,7 @@ import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
 import { logger } from "#lib/frontend-logger";
 import type { LeaseUpdateInput } from "#lib/validation/leases";
 import type { Lease } from "#types/core";
-import { leaseQueries } from "./query-keys/lease-keys";
+import { type LeaseDetailRow, leaseQueries } from "./query-keys/lease-keys";
 import { leaseMutations } from "./query-keys/lease-mutation-options";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 import { tenantQueries } from "./query-keys/tenant-keys";
@@ -33,7 +33,7 @@ export function useDeleteLeaseOptimisticMutation(options?: {
 		string,
 		string,
 		{
-			previousDetail: Lease | undefined;
+			previousDetail: LeaseDetailRow | undefined;
 			previousLists: [
 				readonly unknown[],
 				(
@@ -64,9 +64,7 @@ export function useDeleteLeaseOptimisticMutation(options?: {
 		optimistic: {
 			cancel: (id) => [leaseQueries.detail(id).queryKey, leaseQueries.lists()],
 			snapshot: (qc, id) => ({
-				previousDetail: qc.getQueryData<Lease>(
-					leaseQueries.detail(id).queryKey,
-				),
+				previousDetail: qc.getQueryData(leaseQueries.detail(id).queryKey),
 				previousLists: qc.getQueriesData<{
 					data: Lease[];
 					total?: number;
@@ -167,30 +165,5 @@ export function useUpdateLeaseMutation() {
 				errorContext: "Update lease",
 			},
 		),
-	});
-}
-
-/**
- * Delete lease mutation (simplified version)
- * Use useDeleteLeaseOptimisticMutation for optimistic updates
- */
-export function useDeleteLeaseMutation() {
-	const queryClient = useQueryClient();
-
-	return useMutation({
-		...leaseMutations.delete(),
-		...createMutationCallbacks<unknown, string>(queryClient, {
-			invalidate: [
-				leaseQueries.lists(),
-				tenantQueries.lists(),
-				unitQueries.all(),
-				ownerDashboardKeys.all,
-			],
-			removeDetail: (_data, deletedId) => [
-				leaseQueries.detail(deletedId).queryKey,
-			],
-			successMessage: "Lease deleted successfully",
-			errorContext: "Delete lease",
-		}),
 	});
 }

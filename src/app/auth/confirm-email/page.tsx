@@ -5,6 +5,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { GridPattern } from "#components/ui/grid-pattern";
 import { logger } from "#lib/frontend-logger";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import {
 	ConfirmEmailActions,
@@ -118,10 +119,10 @@ function ConfirmEmailContent() {
 				},
 			});
 			toast.error("Failed to resend email", {
-				description:
-					error instanceof Error
-						? error.message
-						: "Please try again or contact support.",
+				description: userFacingErrorMessage(
+					error,
+					"Please try again or contact support.",
+				),
 			});
 		} finally {
 			setIsResending(false);

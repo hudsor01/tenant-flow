@@ -9,10 +9,10 @@ export function ChartLoadingSkeleton() {
 			role="status"
 			aria-label="Loading chart"
 		>
-			<div className="w-8 rounded-t-sm bg-primary/20 animate-[chart-rise_1.4s_ease-in-out_infinite] h-[40%] [animation-delay:0ms]" />
+			<div className="w-8 rounded-t-sm bg-primary/20 animate-[chart-rise_1.4s_ease-in-out_infinite] h-2/5 [animation-delay:0ms]" />
 			<div className="w-8 rounded-t-sm bg-primary/30 animate-[chart-rise_1.4s_ease-in-out_infinite] h-[65%] [animation-delay:var(--duration-200)]" />
 			<div className="w-8 rounded-t-sm bg-primary/40 animate-[chart-rise_1.4s_ease-in-out_infinite] h-[45%] [animation-delay:var(--duration-300)]" />
-			<div className="w-8 rounded-t-sm bg-primary/30 animate-[chart-rise_1.4s_ease-in-out_infinite] h-[80%] [animation-delay:var(--duration-500)]" />
+			<div className="w-8 rounded-t-sm bg-primary/30 animate-[chart-rise_1.4s_ease-in-out_infinite] h-4/5 [animation-delay:var(--duration-500)]" />
 			<div className="w-8 rounded-t-sm bg-primary/20 animate-[chart-rise_1.4s_ease-in-out_infinite] h-[55%] [animation-delay:var(--duration-700)]" />
 			<style>{`
 				@keyframes chart-rise {

@@ -20,6 +20,7 @@ import {
 	useSendLeaseForSignatureMutation,
 } from "#hooks/api/use-lease-signature-mutations";
 import { createLogger } from "#lib/frontend-logger";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
 
@@ -166,8 +167,7 @@ export function SendForSignatureButton({
 			// An aborted preview (dialog closed) is expected — stay silent.
 			if (controller.signal.aborted) return;
 			toast.error("Failed to preview PDF", {
-				description:
-					error instanceof Error ? error.message : "Please try again.",
+				description: userFacingErrorMessage(error, "Please try again."),
 			});
 		} finally {
 			if (previewAbortRef.current === controller) {

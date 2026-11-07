@@ -35,6 +35,7 @@ import {
 import { Skeleton } from "#components/ui/skeleton";
 import { useDeleteVendorMutation, useVendors } from "#hooks/api/use-vendor";
 import { useDebouncedCallback } from "#hooks/use-debounced-callback";
+import { formatCurrency } from "#lib/utils/currency";
 import type { Vendor, VendorFilters } from "#types/domain";
 
 const TRADE_LABELS: Record<string, string> = {
@@ -69,7 +70,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 								<Button
 									variant="ghost"
 									size="sm"
-									className="text-destructive hover:text-destructive min-h-11"
+									className="text-destructive hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/10 dark:hover:text-destructive-text min-h-11"
 									aria-label={`Delete ${vendor.name}`}
 								>
 									<Trash2 className="size-4" />
@@ -88,7 +89,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 									<AlertDialogCancel>Cancel</AlertDialogCancel>
 									<AlertDialogAction
 										onClick={() => deleteMutation.mutate(vendor.id)}
-										className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+										variant="destructive"
 									>
 										Remove
 									</AlertDialogAction>
@@ -114,7 +115,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 				{vendor.hourly_rate && (
 					<div className="flex items-center gap-2 text-sm text-muted-foreground">
 						<DollarSign className="size-3.5 shrink-0" />
-						<span>${vendor.hourly_rate}/hour</span>
+						<span>{formatCurrency(vendor.hourly_rate)}/hour</span>
 					</div>
 				)}
 				{vendor.notes && (
@@ -129,7 +130,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 
 function VendorsSkeleton() {
 	return (
-		<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 			{Array.from({ length: 6 }).map((_, i) => (
 				<Card key={i}>
 					<CardHeader className="pb-2">
@@ -196,7 +197,10 @@ export function VendorsPageClient() {
 					/>
 				</div>
 				<Select value={tradeFilter} onValueChange={setTradeFilter}>
-					<SelectTrigger className="w-full sm:w-48 h-11">
+					<SelectTrigger
+						className="w-full sm:w-48 h-11"
+						aria-label={`${tradeFilter === "all" ? "All trades" : (TRADE_LABELS[tradeFilter] ?? tradeFilter)} (trade)`}
+					>
 						<SelectValue placeholder="All trades" />
 					</SelectTrigger>
 					<SelectContent>
@@ -228,7 +232,7 @@ export function VendorsPageClient() {
 					{!search && tradeFilter === "all" && <VendorFormDialog />}
 				</div>
 			) : (
-				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{vendors.map((vendor) => (
 						<VendorCard key={vendor.id} vendor={vendor} />
 					))}

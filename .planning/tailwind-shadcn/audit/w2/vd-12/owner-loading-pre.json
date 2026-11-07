@@ -1,0 +1,906 @@
+{
+ "label": "pre",
+ "mode": "harness",
+ "captures": [
+  {
+   "theme": "light",
+   "width": 390,
+   "status": "ok",
+   "checks": [
+    {
+     "name": "root.display",
+     "expected": "flex",
+     "actual": "block",
+     "pass": false
+    },
+    {
+     "name": "root.flexDirection",
+     "expected": "column",
+     "actual": "row",
+     "pass": false
+    },
+    {
+     "name": "root.rowGap",
+     "expected": "32px",
+     "actual": "normal",
+     "pass": false
+    },
+    {
+     "name": "section.paddingTop",
+     "expected": "4px",
+     "actual": "0px",
+     "pass": false
+    },
+    {
+     "name": "section.paddingBottom",
+     "expected": "4px",
+     "actual": "0px",
+     "pass": false
+    },
+    {
+     "name": "header.display",
+     "expected": "flex",
+     "actual": "block",
+     "pass": false
+    },
+    {
+     "name": "header.flexDirection",
+     "expected": "column",
+     "actual": "row",
+     "pass": false
+    },
+    {
+     "name": "header.rowGap",
+     "expected": "8px",
+     "actual": "normal",
+     "pass": false
+    },
+    {
+     "name": "actionInner.columnGap",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "grid.display",
+     "expected": "grid",
+     "actual": "block",
+     "pass": false
+    },
+    {
+     "name": "grid.rowGap",
+     "expected": "24px",
+     "actual": "normal",
+     "pass": false
+    },
+    {
+     "name": "grid.columnGap",
+     "expected": "24px",
+     "actual": "normal",
+     "pass": false
+    },
+    {
+     "name": "grid.marginBottom",
+     "expected": "0px",
+     "actual": "0px",
+     "pass": true
+    },
+    {
+     "name": "grid.gridTemplateColumns",
+     "expected": "1 track >= 320px",
+     "actual": "none",
+     "pass": false
+    },
+    {
+     "name": "card.borderTopLeftRadius",
+     "expected": "12px",
+     "actual": "12px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopColor",
+     "expected": "oklch(0.88 0.01 245)",
+     "actual": "oklch(0.88 0.01 245)",
+     "pass": true
+    },
+    {
+     "name": "card.backgroundColor",
+     "expected": "oklch(0.99 0.003 240)",
+     "actual": "oklch(0.99 0.003 240)",
+     "pass": true
+    },
+    {
+     "name": "card.boxShadow",
+     "expected": "not none",
+     "actual": "none",
+     "pass": false
+    },
+    {
+     "name": "card.overflow",
+     "expected": "hidden",
+     "actual": "hidden",
+     "pass": true
+    },
+    {
+     "name": "cardInner.paddingTop",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "table.borderTopLeftRadius",
+     "expected": "16px",
+     "actual": "0px",
+     "pass": false
+    },
+    {
+     "name": "table.borderTopWidth",
+     "expected": "1px",
+     "actual": "0px",
+     "pass": false
+    },
+    {
+     "name": "table.borderTopColor",
+     "expected": "oklch(0.88 0.01 245)",
+     "actual": "oklch(0.88 0.01 245)",
+     "pass": true
+    },
+    {
+     "name": "table.backgroundColor",
+     "expected": "oklch(0.99 0.003 240)",
+     "actual": "rgba(0, 0, 0, 0)",
+     "pass": false
+    },
+    {
+     "name": "table.boxShadow",
+     "expected": "not none",
+     "actual": "none",
+     "pass": false
+    },
+    {
+     "name": "tableInner.paddingTop",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.columnGap",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.marginBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.paddingBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.borderBottomWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "row.paddingTop",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "row.paddingBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "skeletonCount",
+     "expected": "37",
+     "actual": "37",
+     "pass": true
+    },
+    {
+     "name": "dashboardClassCount",
+     "expected": "0",
+     "actual": "9",
+     "pass": false
+    },
+    {
+     "name": "horizontalOverflow",
+     "expected": "<= 0",
+     "actual": "10",
+     "pass": false
+    }
+   ],
+   "allPass": false,
+   "png": "owner-loading-pre/harness-light-390.png"
+  },
+  {
+   "theme": "light",
+   "width": 1280,
+   "status": "ok",
+   "checks": [
+    {
+     "name": "root.display",
+     "expected": "flex",
+     "actual": "block",
+     "pass": false
+    },
+    {
+     "name": "root.flexDirection",
+     "expected": "column",
+     "actual": "row",
+     "pass": false
+    },
+    {
+     "name": "root.rowGap",
+     "expected": "32px",
+     "actual": "normal",
+     "pass": false
+    },
+    {
+     "name": "section.paddingTop",
+     "expected": "4px",
+     "actual": "0px",
+     "pass": false
+    },
+    {
+     "name": "section.paddingBottom",
+     "expected": "4px",
+     "actual": "0px",
+     "pass": false
+    },
+    {
+     "name": "header.display",
+     "expected": "flex",
+     "actual": "block",
+     "pass": false
+    },
+    {
+     "name": "header.flexDirection",
+     "expected": "column",
+     "actual": "row",
+     "pass": false
+    },
+    {
+     "name": "header.rowGap",
+     "expected": "8px",
+     "actual": "normal",
+     "pass": false
+    },
+    {
+     "name": "actionInner.columnGap",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "grid.display",
+     "expected": "grid",
+     "actual": "block",
+     "pass": false
+    },
+    {
+     "name": "grid.rowGap",
+     "expected": "24px",
+     "actual": "normal",
+     "pass": false
+    },
+    {
+     "name": "grid.columnGap",
+     "expected": "24px",
+     "actual": "normal",
+     "pass": false
+    },
+    {
+     "name": "grid.marginBottom",
+     "expected": "0px",
+     "actual": "0px",
+     "pass": true
+    },
+    {
+     "name": "grid.gridTemplateColumns",
+     "expected": "every track >= 320px",
+     "actual": "none",
+     "pass": false
+    },
+    {
+     "name": "card.borderTopLeftRadius",
+     "expected": "12px",
+     "actual": "12px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopColor",
+     "expected": "oklch(0.88 0.01 245)",
+     "actual": "oklch(0.88 0.01 245)",
+     "pass": true
+    },
+    {
+     "name": "card.backgroundColor",
+     "expected": "oklch(0.99 0.003 240)",
+     "actual": "oklch(0.99 0.003 240)",
+     "pass": true
+    },
+    {
+     "name": "card.boxShadow",
+     "expected": "not none",
+     "actual": "none",
+     "pass": false
+    },
+    {
+     "name": "card.overflow",
+     "expected": "hidden",
+     "actual": "hidden",
+     "pass": true
+    },
+    {
+     "name": "cardInner.paddingTop",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "table.borderTopLeftRadius",
+     "expected": "16px",
+     "actual": "0px",
+     "pass": false
+    },
+    {
+     "name": "table.borderTopWidth",
+     "expected": "1px",
+     "actual": "0px",
+     "pass": false
+    },
+    {
+     "name": "table.borderTopColor",
+     "expected": "oklch(0.88 0.01 245)",
+     "actual": "oklch(0.88 0.01 245)",
+     "pass": true
+    },
+    {
+     "name": "table.backgroundColor",
+     "expected": "oklch(0.99 0.003 240)",
+     "actual": "rgba(0, 0, 0, 0)",
+     "pass": false
+    },
+    {
+     "name": "table.boxShadow",
+     "expected": "not none",
+     "actual": "none",
+     "pass": false
+    },
+    {
+     "name": "tableInner.paddingTop",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.columnGap",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.marginBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.paddingBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.borderBottomWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "row.paddingTop",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "row.paddingBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "skeletonCount",
+     "expected": "37",
+     "actual": "37",
+     "pass": true
+    },
+    {
+     "name": "dashboardClassCount",
+     "expected": "0",
+     "actual": "9",
+     "pass": false
+    },
+    {
+     "name": "horizontalOverflow",
+     "expected": "<= 0",
+     "actual": "0",
+     "pass": true
+    }
+   ],
+   "allPass": false,
+   "png": "owner-loading-pre/harness-light-1280.png"
+  },
+  {
+   "theme": "dark",
+   "width": 390,
+   "status": "ok",
+   "checks": [
+    {
+     "name": "root.display",
+     "expected": "flex",
+     "actual": "block",
+     "pass": false
+    },
+    {
+     "name": "root.flexDirection",
+     "expected": "column",
+     "actual": "row",
+     "pass": false
+    },
+    {
+     "name": "root.rowGap",
+     "expected": "32px",
+     "actual": "normal",
+     "pass": false
+    },
+    {
+     "name": "section.paddingTop",
+     "expected": "4px",
+     "actual": "0px",
+     "pass": false
+    },
+    {
+     "name": "section.paddingBottom",
+     "expected": "4px",
+     "actual": "0px",
+     "pass": false
+    },
+    {
+     "name": "header.display",
+     "expected": "flex",
+     "actual": "block",
+     "pass": false
+    },
+    {
+     "name": "header.flexDirection",
+     "expected": "column",
+     "actual": "row",
+     "pass": false
+    },
+    {
+     "name": "header.rowGap",
+     "expected": "8px",
+     "actual": "normal",
+     "pass": false
+    },
+    {
+     "name": "actionInner.columnGap",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "grid.display",
+     "expected": "grid",
+     "actual": "block",
+     "pass": false
+    },
+    {
+     "name": "grid.rowGap",
+     "expected": "24px",
+     "actual": "normal",
+     "pass": false
+    },
+    {
+     "name": "grid.columnGap",
+     "expected": "24px",
+     "actual": "normal",
+     "pass": false
+    },
+    {
+     "name": "grid.marginBottom",
+     "expected": "0px",
+     "actual": "0px",
+     "pass": true
+    },
+    {
+     "name": "grid.gridTemplateColumns",
+     "expected": "1 track >= 320px",
+     "actual": "none",
+     "pass": false
+    },
+    {
+     "name": "card.borderTopLeftRadius",
+     "expected": "12px",
+     "actual": "12px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopColor",
+     "expected": "oklch(0.3 0.015 255)",
+     "actual": "oklch(0.3 0.015 255)",
+     "pass": true
+    },
+    {
+     "name": "card.backgroundColor",
+     "expected": "oklch(0.16 0.02 255)",
+     "actual": "oklch(0.16 0.02 255)",
+     "pass": true
+    },
+    {
+     "name": "card.boxShadow",
+     "expected": "not none",
+     "actual": "none",
+     "pass": false
+    },
+    {
+     "name": "card.overflow",
+     "expected": "hidden",
+     "actual": "hidden",
+     "pass": true
+    },
+    {
+     "name": "cardInner.paddingTop",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "table.borderTopLeftRadius",
+     "expected": "16px",
+     "actual": "0px",
+     "pass": false
+    },
+    {
+     "name": "table.borderTopWidth",
+     "expected": "1px",
+     "actual": "0px",
+     "pass": false
+    },
+    {
+     "name": "table.borderTopColor",
+     "expected": "oklch(0.3 0.015 255)",
+     "actual": "oklch(0.3 0.015 255)",
+     "pass": true
+    },
+    {
+     "name": "table.backgroundColor",
+     "expected": "oklch(0.16 0.02 255)",
+     "actual": "rgba(0, 0, 0, 0)",
+     "pass": false
+    },
+    {
+     "name": "table.boxShadow",
+     "expected": "not none",
+     "actual": "none",
+     "pass": false
+    },
+    {
+     "name": "tableInner.paddingTop",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.columnGap",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.marginBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.paddingBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.borderBottomWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "row.paddingTop",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "row.paddingBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "skeletonCount",
+     "expected": "37",
+     "actual": "37",
+     "pass": true
+    },
+    {
+     "name": "dashboardClassCount",
+     "expected": "0",
+     "actual": "9",
+     "pass": false
+    },
+    {
+     "name": "horizontalOverflow",
+     "expected": "<= 0",
+     "actual": "10",
+     "pass": false
+    }
+   ],
+   "allPass": false,
+   "png": "owner-loading-pre/harness-dark-390.png"
+  },
+  {
+   "theme": "dark",
+   "width": 1280,
+   "status": "ok",
+   "checks": [
+    {
+     "name": "root.display",
+     "expected": "flex",
+     "actual": "block",
+     "pass": false
+    },
+    {
+     "name": "root.flexDirection",
+     "expected": "column",
+     "actual": "row",
+     "pass": false
+    },
+    {
+     "name": "root.rowGap",
+     "expected": "32px",
+     "actual": "normal",
+     "pass": false
+    },
+    {
+     "name": "section.paddingTop",
+     "expected": "4px",
+     "actual": "0px",
+     "pass": false
+    },
+    {
+     "name": "section.paddingBottom",
+     "expected": "4px",
+     "actual": "0px",
+     "pass": false
+    },
+    {
+     "name": "header.display",
+     "expected": "flex",
+     "actual": "block",
+     "pass": false
+    },
+    {
+     "name": "header.flexDirection",
+     "expected": "column",
+     "actual": "row",
+     "pass": false
+    },
+    {
+     "name": "header.rowGap",
+     "expected": "8px",
+     "actual": "normal",
+     "pass": false
+    },
+    {
+     "name": "actionInner.columnGap",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "grid.display",
+     "expected": "grid",
+     "actual": "block",
+     "pass": false
+    },
+    {
+     "name": "grid.rowGap",
+     "expected": "24px",
+     "actual": "normal",
+     "pass": false
+    },
+    {
+     "name": "grid.columnGap",
+     "expected": "24px",
+     "actual": "normal",
+     "pass": false
+    },
+    {
+     "name": "grid.marginBottom",
+     "expected": "0px",
+     "actual": "0px",
+     "pass": true
+    },
+    {
+     "name": "grid.gridTemplateColumns",
+     "expected": "every track >= 320px",
+     "actual": "none",
+     "pass": false
+    },
+    {
+     "name": "card.borderTopLeftRadius",
+     "expected": "12px",
+     "actual": "12px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopColor",
+     "expected": "oklch(0.3 0.015 255)",
+     "actual": "oklch(0.3 0.015 255)",
+     "pass": true
+    },
+    {
+     "name": "card.backgroundColor",
+     "expected": "oklch(0.16 0.02 255)",
+     "actual": "oklch(0.16 0.02 255)",
+     "pass": true
+    },
+    {
+     "name": "card.boxShadow",
+     "expected": "not none",
+     "actual": "none",
+     "pass": false
+    },
+    {
+     "name": "card.overflow",
+     "expected": "hidden",
+     "actual": "hidden",
+     "pass": true
+    },
+    {
+     "name": "cardInner.paddingTop",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "table.borderTopLeftRadius",
+     "expected": "16px",
+     "actual": "0px",
+     "pass": false
+    },
+    {
+     "name": "table.borderTopWidth",
+     "expected": "1px",
+     "actual": "0px",
+     "pass": false
+    },
+    {
+     "name": "table.borderTopColor",
+     "expected": "oklch(0.3 0.015 255)",
+     "actual": "oklch(0.3 0.015 255)",
+     "pass": true
+    },
+    {
+     "name": "table.backgroundColor",
+     "expected": "oklch(0.16 0.02 255)",
+     "actual": "rgba(0, 0, 0, 0)",
+     "pass": false
+    },
+    {
+     "name": "table.boxShadow",
+     "expected": "not none",
+     "actual": "none",
+     "pass": false
+    },
+    {
+     "name": "tableInner.paddingTop",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.columnGap",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.marginBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.paddingBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.borderBottomWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "row.paddingTop",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "row.paddingBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "skeletonCount",
+     "expected": "37",
+     "actual": "37",
+     "pass": true
+    },
+    {
+     "name": "dashboardClassCount",
+     "expected": "0",
+     "actual": "9",
+     "pass": false
+    },
+    {
+     "name": "horizontalOverflow",
+     "expected": "<= 0",
+     "actual": "0",
+     "pass": true
+    }
+   ],
+   "allPass": false,
+   "png": "owner-loading-pre/harness-dark-1280.png"
+  }
+ ]
+}

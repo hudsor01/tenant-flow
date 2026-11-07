@@ -50,7 +50,7 @@ export function ExpenseTable({
 	onClearFilters,
 }: ExpenseTableProps) {
 	return (
-		<BlurFade delay={0.4} inView>
+		<BlurFade delay={0.4}>
 			<div className="bg-card border border-border rounded-lg overflow-hidden">
 				{/* Toolbar */}
 				<div className="px-4 py-3 border-b border-border flex flex-col sm:flex-row items-start sm:items-center gap-3">

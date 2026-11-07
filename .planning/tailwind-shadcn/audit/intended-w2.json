@@ -1,0 +1,100 @@
+{
+ "d20-rewrite-removed": [
+  "duration-[var(--duration-standard)]",
+  "gap-[var(--spacing-1)]",
+  "gap-[var(--spacing-2)]",
+  "gap-x-[var(--spacing-2)]",
+  "h-[var(--spacing-1_5)]",
+  "h-[var(--spacing-2)]",
+  "left-[var(--spacing-3)]",
+  "mb-[var(--spacing-3)]",
+  "mb-[var(--spacing-4)]",
+  "mr-[var(--spacing-2)]",
+  "mt-[var(--spacing-1)]",
+  "mt-[var(--spacing-2)]",
+  "mt-[var(--spacing-4)]",
+  "p-[var(--spacing-3)]",
+  "pl-[var(--spacing-9)]",
+  "pr-[var(--spacing-10)]",
+  "pt-[var(--spacing-4)]",
+  "right-[var(--spacing-3)]",
+  "rounded-[var(--radius-lg)]",
+  "size-[var(--spacing-12)]",
+  "size-[var(--spacing-2)]",
+  "size-[var(--spacing-3)]",
+  "size-[var(--spacing-4)]",
+  "size-[var(--spacing-5)]",
+  "size-[var(--spacing-6)]",
+  "space-y-[var(--spacing-2)]",
+  "space-y-[var(--spacing-4)]",
+  "space-y-[var(--spacing-6)]",
+  "w-[var(--spacing-1_5)]"
+ ],
+ "d20-rewrite-added": [
+  "duration-(--duration-standard)",
+  "gap-1",
+  "gap-2",
+  "gap-x-2",
+  "h-1.5",
+  "h-2",
+  "left-3",
+  "mb-3",
+  "mb-4",
+  "mr-2",
+  "mt-1",
+  "mt-2",
+  "mt-4",
+  "p-3",
+  "pl-9",
+  "pr-10",
+  "pt-4",
+  "right-3",
+  "rounded-lg",
+  "size-12",
+  "size-2",
+  "size-3",
+  "size-4",
+  "size-5",
+  "size-6",
+  "space-y-2",
+  "space-y-4",
+  "space-y-6",
+  "w-1.5"
+ ],
+ "b9-outside-src": [
+  "invert",
+  "table-column"
+ ],
+ "b10-owner-loading-utilities": [
+  "gap-(--layout-gap-group)",
+  "gap-(--layout-gap-items)",
+  "gap-[var(--layout-gap-group)]",
+  "gap-[var(--layout-gap-items)]",
+  "grid-cols-[repeat(auto-fit,minmax(20rem,1fr))]",
+  "mb-(--layout-gap-items)",
+  "mb-[var(--layout-gap-items)]",
+  "p-(--layout-content-padding)",
+  "p-(--layout-content-padding-compact)",
+  "p-[var(--layout-content-padding)]",
+  "p-[var(--layout-content-padding-compact)]",
+  "pb-(--layout-gap-items)",
+  "pb-[var(--layout-gap-items)]",
+  "py-(--layout-gap-items)",
+  "py-[var(--layout-gap-items)]"
+ ],
+ "x3-width-full-single-declaration": [
+  "/(^|:)w-full$/"
+ ],
+ "x3-max-width-to-container": [
+  "/(^|:)max-w-(2xl|3xl)$/"
+ ],
+ "x3-leading-none-literal": [
+  "/(^|:)leading-none$/",
+  "/(^|:)typography-stat(-lg|-xl)?$/"
+ ],
+ "x3-ease-linear-literal": [
+  "/(^|:)ease-linear$/",
+  "[animation-timing-function:var(--ease-linear)]",
+  "[animation-timing-function:linear]"
+ ]
+}

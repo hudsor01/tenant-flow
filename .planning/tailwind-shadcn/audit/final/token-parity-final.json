@@ -1,0 +1,441 @@
+{
+ "w5Link": {
+  "changed": [
+   "light.sidebar",
+   "light.sidebar-accent",
+   "light.sidebar-accent-foreground",
+   "light.sidebar-border",
+   "light.sidebar-foreground",
+   "light.sidebar-primary",
+   "light.sidebar-primary-foreground",
+   "light.sidebar-ring",
+   "dark.sidebar",
+   "dark.sidebar-accent",
+   "dark.sidebar-accent-foreground",
+   "dark.sidebar-border",
+   "dark.sidebar-foreground",
+   "dark.sidebar-primary",
+   "dark.sidebar-primary-foreground",
+   "dark.sidebar-ring"
+  ],
+  "pass": true
+ },
+ "d37": {
+  "rows": [
+   {
+    "mode": "light",
+    "sidebar": "sidebar",
+    "alias": "card",
+    "value": [
+     250,
+     252,
+     254,
+     1
+    ],
+    "aliasValue": [
+     250,
+     252,
+     254,
+     1
+    ],
+    "equal": true
+   },
+   {
+    "mode": "light",
+    "sidebar": "sidebar-foreground",
+    "alias": "card-foreground",
+    "value": [
+     14,
+     23,
+     31,
+     1
+    ],
+    "aliasValue": [
+     14,
+     23,
+     31,
+     1
+    ],
+    "equal": true
+   },
+   {
+    "mode": "light",
+    "sidebar": "sidebar-primary",
+    "alias": "primary",
+    "value": [
+     0,
+     100,
+     239,
+     1
+    ],
+    "aliasValue": [
+     0,
+     100,
+     239,
+     1
+    ],
+    "equal": true
+   },
+   {
+    "mode": "light",
+    "sidebar": "sidebar-primary-foreground",
+    "alias": "primary-foreground",
+    "value": [
+     244,
+     249,
+     255,
+     1
+    ],
+    "aliasValue": [
+     244,
+     249,
+     255,
+     1
+    ],
+    "equal": true
+   },
+   {
+    "mode": "light",
+    "sidebar": "sidebar-accent",
+    "alias": "muted",
+    "value": [
+     229,
+     236,
+     241,
+     1
+    ],
+    "aliasValue": [
+     229,
+     236,
+     241,
+     1
+    ],
+    "equal": true
+   },
+   {
+    "mode": "light",
+    "sidebar": "sidebar-accent-foreground",
+    "alias": "foreground",
+    "value": [
+     14,
+     23,
+     31,
+     1
+    ],
+    "aliasValue": [
+     14,
+     23,
+     31,
+     1
+    ],
+    "equal": true
+   },
+   {
+    "mode": "light",
+    "sidebar": "sidebar-border",
+    "alias": "border",
+    "value": [
+     210,
+     216,
+     222,
+     1
+    ],
+    "aliasValue": [
+     210,
+     216,
+     222,
+     1
+    ],
+    "equal": true
+   },
+   {
+    "mode": "light",
+    "sidebar": "sidebar-ring",
+    "alias": "ring",
+    "value": [
+     0,
+     91,
+     209,
+     1
+    ],
+    "aliasValue": [
+     0,
+     91,
+     209,
+     1
+    ],
+    "equal": true
+   },
+   {
+    "mode": "dark",
+    "sidebar": "sidebar",
+    "alias": "card",
+    "value": [
+     8,
+     14,
+     22,
+     1
+    ],
+    "aliasValue": [
+     8,
+     14,
+     22,
+     1
+    ],
+    "equal": true
+   },
+   {
+    "mode": "dark",
+    "sidebar": "sidebar-foreground",
+    "alias": "card-foreground",
+    "value": [
+     236,
+     243,
+     248,
+     1
+    ],
+    "aliasValue": [
+     236,
+     243,
+     248,
+     1
+    ],
+    "equal": true
+   },
+   {
+    "mode": "dark",
+    "sidebar": "sidebar-primary",
+    "alias": "primary",
+    "value": [
+     67,
+     159,
+     255,
+     1
+    ],
+    "aliasValue": [
+     67,
+     159,
+     255,
+     1
+    ],
+    "equal": true
+   },
+   {
+    "mode": "dark",
+    "sidebar": "sidebar-primary-foreground",
+    "alias": "primary-foreground",
+    "value": [
+     14,
+     18,
+     22,
+     1
+    ],
+    "aliasValue": [
+     14,
+     18,
+     22,
+     1
+    ],
+    "equal": true
+   },
+   {
+    "mode": "dark",
+    "sidebar": "sidebar-accent",
+    "alias": "muted",
+    "value": [
+     20,
+     27,
+     36,
+     1
+    ],
+    "aliasValue": [
+     20,
+     27,
+     36,
+     1
+    ],
+    "equal": true
+   },
+   {
+    "mode": "dark",
+    "sidebar": "sidebar-accent-foreground",
+    "alias": "foreground",
+    "value": [
+     236,
+     243,
+     248,
+     1
+    ],
+    "aliasValue": [
+     236,
+     243,
+     248,
+     1
+    ],
+    "equal": true
+   },
+   {
+    "mode": "dark",
+    "sidebar": "sidebar-border",
+    "alias": "border",
+    "value": [
+     41,
+     46,
+     53,
+     1
+    ],
+    "aliasValue": [
+     41,
+     46,
+     53,
+     1
+    ],
+    "equal": true
+   },
+   {
+    "mode": "dark",
+    "sidebar": "sidebar-ring",
+    "alias": "ring",
+    "value": [
+     67,
+     159,
+     255,
+     1
+    ],
+    "aliasValue": [
+     67,
+     159,
+     255,
+     1
+    ],
+    "equal": true
+   }
+  ],
+  "lightDiffersFromDarkForSidebar": true,
+  "pass": true
+ },
+ "cumulative": {
+  "deletedNames": [
+   "fill-muted",
+   "fill-primary",
+   "fill-quaternary",
+   "fill-secondary",
+   "fill-tertiary",
+   "label-on-dark",
+   "label-on-dark-secondary",
+   "label-primary",
+   "label-quaternary",
+   "label-secondary",
+   "label-tertiary",
+   "separator"
+  ],
+  "changed": [
+   "light.accent-85",
+   "light.border-secondary",
+   "light.fill-muted",
+   "light.fill-primary",
+   "light.fill-quaternary",
+   "light.fill-secondary",
+   "light.fill-tertiary",
+   "light.label-on-dark",
+   "light.label-on-dark-secondary",
+   "light.label-primary",
+   "light.label-quaternary",
+   "light.label-secondary",
+   "light.label-tertiary",
+   "light.secondary",
+   "light.separator",
+   "light.sidebar",
+   "light.sidebar-accent",
+   "light.sidebar-accent-foreground",
+   "light.sidebar-border",
+   "light.sidebar-foreground",
+   "light.sidebar-primary",
+   "light.sidebar-primary-foreground",
+   "light.sidebar-ring",
+   "light.slate-700",
+   "dark.accent-85",
+   "dark.border-secondary",
+   "dark.fill-muted",
+   "dark.fill-primary",
+   "dark.fill-quaternary",
+   "dark.fill-secondary",
+   "dark.fill-tertiary",
+   "dark.label-on-dark",
+   "dark.label-on-dark-secondary",
+   "dark.label-primary",
+   "dark.label-quaternary",
+   "dark.label-secondary",
+   "dark.label-tertiary",
+   "dark.separator",
+   "dark.sidebar",
+   "dark.sidebar-accent",
+   "dark.sidebar-accent-foreground",
+   "dark.sidebar-border",
+   "dark.sidebar-foreground",
+   "dark.sidebar-primary",
+   "dark.sidebar-primary-foreground",
+   "dark.sidebar-ring",
+   "dark.slate-700"
+  ],
+  "notAllowed": [],
+  "missingRequired": [],
+  "secondary": [
+   222,
+   243,
+   255,
+   1
+  ],
+  "secondaryOk": true,
+  "deletedNotZero": [],
+  "slate": [
+   {
+    "key": "light.slate-700",
+    "baseline": [
+     50,
+     65,
+     88,
+     1
+    ],
+    "final": [
+     49,
+     65,
+     88,
+     1
+    ],
+    "w2": [
+     49,
+     65,
+     88,
+     1
+    ],
+    "within1": true,
+    "equalsW2": true
+   },
+   {
+    "key": "dark.slate-700",
+    "baseline": [
+     50,
+     65,
+     88,
+     1
+    ],
+    "final": [
+     49,
+     65,
+     88,
+     1
+    ],
+    "w2": [
+     49,
+     65,
+     88,
+     1
+    ],
+    "within1": true,
+    "equalsW2": true
+   }
+  ],
+  "pass": true
+ }
+}

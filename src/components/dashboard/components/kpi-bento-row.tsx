@@ -13,12 +13,13 @@ import {
 	StatValue,
 } from "#components/ui/stat";
 import { useReducedMotion } from "#hooks/use-reduced-motion";
+import { formatCount } from "#lib/formatters/count";
 import { cn } from "#lib/utils";
 import { formatCurrency } from "#lib/utils/currency";
 import type { MetricTrend, TimeSeriesDataPoint } from "#types/analytics";
 import {
 	buildTileAriaLabel,
-	formatTrendPercent,
+	describeTrend,
 	type KpiBentoRowProps,
 	type KpiTileConfig,
 } from "./kpi-helpers";
@@ -30,23 +31,16 @@ const KpiSparkline = dynamic(
 	() => import("./kpi-sparkline").then((m) => m.KpiSparkline),
 	{
 		ssr: false,
-		loading: () => <Skeleton className="h-16 w-full [grid-column:1/-1]" />,
+		loading: () => <Skeleton className="h-16 w-full col-span-full" />,
 	},
 );
 
-// Grid wrapper styles for the `@container` parent. Tailwind v4 has no
-// parent-side container-type utility — this `style={{}}` PROP is the SOLE
-// inline-style exemption in Phase 3 (03-UI-SPEC § 3.1 + § 13). Carries
-// only static container-query keys; NO color, NO duration, NO spacing.
-const GRID_CONTAINER_STYLE = {
-	containerType: "inline-size",
-	containerName: "kpi-bento",
-} as const;
-
+// The grid is the `kpi-bento` inline-size container its tiles query. A
+// container query matches ancestors only, so nothing on this element may use a
+// `@…/kpi-bento:` variant: the gap stays a fixed `gap-4` at every width.
 const GRID_CLASSES = cn(
-	"grid gap-4",
+	"@container/kpi-bento grid gap-4",
 	"grid-cols-[repeat(auto-fit,minmax(180px,1fr))]",
-	"@4xl/kpi-bento:gap-6",
 );
 
 function TrendArrow({ direction }: { direction: "up" | "down" | "stable" }) {
@@ -59,36 +53,30 @@ function TrendArrow({ direction }: { direction: "up" | "down" | "stable" }) {
 	return <Minus aria-hidden="true" className="inline-block size-3" />;
 }
 
-// Belt-and-suspenders reduced-motion wrapper per 03-UI-SPEC § 5.4. NumberTicker
-// gained its own internal reduced-motion guard in Phase 6, so this outer
-// short-circuit is now redundant for the animation, but it is kept to render the
-// statically-formatted value (with thousands separators) when motion is off.
-// Both layers honor the opt-out.
+// Reduced motion (03-UI-SPEC § 5.4): the ticker starts at the value, so the
+// first paint already shows the figure rather than counting up from 0.
+// NumberTicker formats it either way (thousands separators, the currency
+// symbol in its own span outside the digits' tracking-wider), so the "$" keeps
+// the stat's letter-spacing with motion on or off (VD-71).
 function KpiNumberTicker({
 	value,
 	decimalPlaces = 0,
 	duration = 800,
+	currency = false,
 }: {
 	value: number;
 	decimalPlaces?: number;
 	duration?: number;
+	currency?: boolean;
 }) {
 	const reducedMotion = useReducedMotion();
-	if (reducedMotion) {
-		return (
-			<span className="inline-block tabular-nums tracking-wider">
-				{Intl.NumberFormat("en-US", {
-					minimumFractionDigits: decimalPlaces,
-					maximumFractionDigits: decimalPlaces,
-				}).format(value)}
-			</span>
-		);
-	}
 	return (
 		<NumberTicker
 			value={value}
+			startValue={reducedMotion ? value : 0}
 			decimalPlaces={decimalPlaces}
 			duration={duration}
+			currency={currency}
 		/>
 	);
 }
@@ -125,7 +113,7 @@ function KpiSkeletonGrid() {
 			<h2 id="kpi-bento-heading" className="sr-only">
 				Portfolio summary
 			</h2>
-			<div className={GRID_CLASSES} style={GRID_CONTAINER_STYLE}>
+			<div className={GRID_CLASSES}>
 				{hasSparkline.map((sparkline, idx) => (
 					<KpiSkeletonTile key={`skeleton-${idx}`} hasSparkline={sparkline} />
 				))}
@@ -155,7 +143,8 @@ function buildSparkline(
 	};
 }
 
-function buildKpiTileConfigs(
+/** The row's six tiles, in D-01 order (exported for its test). */
+export function buildKpiTileConfigs(
 	stats: NonNullable<KpiBentoRowProps["stats"]>,
 	metricTrends: NonNullable<KpiBentoRowProps["metricTrends"]>,
 	timeSeries: NonNullable<KpiBentoRowProps["timeSeries"]>,
@@ -175,9 +164,11 @@ function buildKpiTileConfigs(
 	// WR-04 cycle-1 fix: keep `spokenValue` symmetric with the other tiles —
 	// just the formatted currency, no period qualifier. The "This month"
 	// qualifier moves to `spokenDescription` (matching the visible
-	// `description`) so the aria-label narrates "Revenue: $14,250. This
-	// month. Up 12 percent vs. last month." instead of duplicating the
-	// period if a future maintainer adds the spokenDescription field.
+	// `description`) so the aria-label narrates "Scheduled Rent: $14,250. This
+	// month. Up 12 percent vs. 30 days ago." instead of duplicating the
+	// period if a future maintainer adds the spokenDescription field. Each
+	// chip states the window its trend computes (the trend's own `window`,
+	// 30 days in get_dashboard_data_v2), never "last month".
 	const revenueSpoken = formatCurrency(stats.revenue.monthly, {
 		minimumFractionDigits: 0,
 		maximumFractionDigits: 0,
@@ -186,20 +177,26 @@ function buildKpiTileConfigs(
 
 	const tiles: KpiTileConfig[] = [
 		{
+			// stats.revenue.monthly and its sparkline are the active leases' rent:
+			// scheduled rent, not money received (66.2-39 part P names every
+			// scheduled-rent chart so, as part N named the financial page's). At
+			// 1280 its figure takes the row's second line, as the tile row's
+			// wrapping layout lets any figure that does not fit (VD-114).
 			id: "revenue",
-			label: "Revenue",
+			label: "Scheduled Rent",
 			spokenValue: revenueSpoken,
 			description: "This month",
 			spokenDescription: "This month",
 			value: stats.revenue.monthly,
 			decimalPlaces: 0,
-			prefix: "$",
+			currency: true,
 			trend: revenueTrend,
-			trendLabel: "vs. last month",
+			trendUnit: "percent",
+			noPriorText: "No rent scheduled",
 			sparkline: buildSparkline(
 				timeSeries.monthlyRevenue,
 				revenueTrend,
-				"Revenue",
+				"Scheduled rent",
 				`${revenueSpoken} this month`,
 			),
 			waveDelay: 0,
@@ -209,12 +206,16 @@ function buildKpiTileConfigs(
 			label: "Occupancy",
 			spokenValue: occupancySpoken,
 			description: `${stats.units.occupied} of ${stats.units.total} occupied`,
-			spokenDescription: `${stats.units.occupied} of ${stats.units.total} units occupied`,
+			spokenDescription: `${stats.units.occupied} of ${formatCount(stats.units.total, "unit")} occupied`,
 			value: safeOccupancy,
 			decimalPlaces: 0,
 			suffix: "%",
 			trend: occupancyTrend,
-			trendLabel: "vs. last month",
+			// In percentage points, as the analytics overview's tile states it.
+			// A points chip always states its change (describeTrend has no
+			// no-prior branch for points), so the tile has no no-prior copy.
+			trendUnit: "points",
+			noPriorText: "",
 			sparkline: buildSparkline(
 				timeSeries.occupancyRate,
 				occupancyTrend,
@@ -234,6 +235,8 @@ function buildKpiTileConfigs(
 			// hold N leases), so attributing it to "Active leases" is dishonest.
 			// Omit until the data layer exposes the right signal.
 			trend: null,
+			trendUnit: "percent",
+			noPriorText: "",
 			sparkline: null,
 			waveDelay: 2,
 			...(stats.leases.expiringSoon > 0 && {
@@ -252,7 +255,8 @@ function buildKpiTileConfigs(
 			value: stats.maintenance.open,
 			decimalPlaces: 0,
 			trend: maintenanceTrend,
-			trendLabel: "vs. last month",
+			trendUnit: "percent",
+			noPriorText: "None open",
 			sparkline: null,
 			waveDelay: 4,
 		},
@@ -265,6 +269,8 @@ function buildKpiTileConfigs(
 			trend: null,
 			sparkline: null,
 			waveDelay: 5,
+			trendUnit: "percent",
+			noPriorText: "",
 		},
 		{
 			id: "units",
@@ -275,6 +281,8 @@ function buildKpiTileConfigs(
 			value: stats.units.total,
 			decimalPlaces: 0,
 			trend: null,
+			trendUnit: "percent",
+			noPriorText: "",
 			sparkline: null,
 			waveDelay: 6,
 		},
@@ -288,38 +296,61 @@ function KpiTile({ tile }: { tile: KpiTileConfig }) {
 		label: tile.label,
 		spokenValue: tile.spokenValue,
 		trend: tile.trend,
+		trendUnit: tile.trendUnit,
+		noPriorText: tile.noPriorText,
 		...(tile.spokenDescription && {
 			spokenDescription: tile.spokenDescription,
 		}),
-		...(tile.trendLabel && { trendLabel: tile.trendLabel }),
 	});
-	const trendChip = tile.trend ? (
-		<StatTrend
-			trend={tile.trend.trend === "stable" ? "neutral" : tile.trend.trend}
-			className={cn(tile.trend.trend === "down" && "!text-warning-text")}
-		>
-			<TrendArrow direction={tile.trend.trend} />
-			<span>{formatTrendPercent(tile.trend.percentChange)}</span>
-			{tile.trendLabel ? (
-				<span className="text-muted-foreground">{tile.trendLabel}</span>
-			) : null}
-		</StatTrend>
-	) : null;
+	const chip = tile.trend
+		? describeTrend(tile.trend, tile.trendUnit, tile.noPriorText)
+		: null;
+	const trendChip =
+		tile.trend && chip ? (
+			chip.kind === "change" ? (
+				<StatTrend
+					trend={tile.trend.trend === "stable" ? "neutral" : tile.trend.trend}
+					className={cn(tile.trend.trend === "down" && "text-warning-text!")}
+				>
+					<TrendArrow direction={tile.trend.trend} />
+					<span>{chip.figure}</span>
+					<span className="text-muted-foreground">{chip.windowLabel}</span>
+				</StatTrend>
+			) : (
+				// No figure to show: say why, in the muted body color.
+				<StatTrend trend="neutral">
+					<span className="text-muted-foreground">{chip.text}</span>
+				</StatTrend>
+			)
+		) : null;
 	return (
 		<Stat
 			className="h-full @4xl/kpi-bento:p-6 transition-colors duration-200"
+			// A generic div cannot be named, so the narrated label needs a role
+			// that can (66.2-39).
+			role="group"
 			aria-label={ariaLabel}
 		>
-			<StatLabel>{tile.label}</StatLabel>
-			<StatValue>
-				{tile.prefix ? <span aria-hidden="true">{tile.prefix}</span> : null}
-				<KpiNumberTicker
-					value={tile.value}
-					decimalPlaces={tile.decimalPlaces}
-					duration={800}
-				/>
-				{tile.suffix ? <span aria-hidden="true">{tile.suffix}</span> : null}
-			</StatValue>
+			{/* The label and the value share one wrapping row, and the value never
+			    breaks: when a tile is too narrow for both side by side, the whole
+			    value drops below its label instead of splitting "$" from the number
+			    (CP-4 follow-up). At widths where both fit, the row renders exactly
+			    as the stat's 1fr/auto grid columns did. */}
+			<div
+				data-slot="kpi-heading"
+				className="col-span-2 flex flex-wrap justify-between gap-x-4 gap-y-1"
+			>
+				<StatLabel>{tile.label}</StatLabel>
+				<StatValue className="whitespace-nowrap">
+					<KpiNumberTicker
+						value={tile.value}
+						decimalPlaces={tile.decimalPlaces}
+						duration={800}
+						currency={tile.currency ?? false}
+					/>
+					{tile.suffix ? <span aria-hidden="true">{tile.suffix}</span> : null}
+				</StatValue>
+			</div>
 			{trendChip}
 			{tile.description ? (
 				<StatDescription>{tile.description}</StatDescription>
@@ -354,7 +385,7 @@ export function KpiBentoRow({
 			<h2 id="kpi-bento-heading" className="sr-only">
 				Portfolio summary
 			</h2>
-			<div className={GRID_CLASSES} style={GRID_CONTAINER_STYLE} role="list">
+			<div className={GRID_CLASSES} role="list">
 				{tiles.map((tile) => (
 					// WR-01 cycle-1 fix: `role="listitem"` MUST be a direct child of
 					// the parent `role="list"`. The previous wiring placed BlurFade

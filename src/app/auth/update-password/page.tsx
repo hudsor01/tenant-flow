@@ -164,8 +164,8 @@ export default function UpdatePasswordPage() {
 
 						<div className="relative text-center space-y-6 section-spacing-compact px-8 z-20">
 							{/* Logo */}
-							<div className="size-16 mx-auto mb-8 relative group">
-								<div className="absolute inset-0 bg-linear-to-r from-primary/50 to-primary/60 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500" />
+							<div className="size-16 mx-auto mb-8 relative">
+								<div className="absolute inset-0 bg-linear-to-r from-primary/50 to-primary/60 rounded-2xl blur-xl" />
 								<div className="relative w-full h-full bg-primary rounded-2xl flex-center border border-glass-light shadow-lg">
 									<svg
 										viewBox="0 0 24 24"
@@ -207,7 +207,7 @@ export default function UpdatePasswordPage() {
 										<p className="text-sm font-medium text-foreground">
 											Password tips:
 										</p>
-										<ul className="text-sm text-muted-foreground space-y-1">
+										<ul className="flex flex-col gap-1 pl-0 mt-0 mb-0 [&>li]:mb-0 text-sm text-muted-foreground">
 											<li>
 												Use at least {VALIDATION_LIMITS.PASSWORD_MIN_LENGTH}{" "}
 												characters
@@ -228,7 +228,7 @@ export default function UpdatePasswordPage() {
 			<div className="flex-1 lg:w-1/2 flex-center p-6 sm:p-8 lg:p-12 bg-background min-h-screen">
 				<div className="w-full max-w-md space-y-8">
 					{/* Logo (Mobile only) */}
-					<div className="lg:hidden flex justify-center mb-8">
+					<div className="lg:hidden flex justify-center">
 						<Link href="/" className="flex items-center space-x-3">
 							<div className="size-10 rounded-xl overflow-hidden bg-primary border border-border flex-center shadow-lg">
 								<svg

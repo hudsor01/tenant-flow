@@ -3,7 +3,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Phone, Save, User } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { ChangeEvent, FormEvent } from "react";
+import type { ChangeEvent, SubmitEvent } from "react";
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
 import { Field, FieldError, FieldLabel } from "#components/ui/field";
@@ -53,7 +53,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 		validators: { onChange: tenantEmergencyContactEditSchema },
 	});
 
-	const handleSubmit = (e: FormEvent) => {
+	const handleSubmit = (e: SubmitEvent) => {
 		e.preventDefault();
 		form.handleSubmit();
 	};

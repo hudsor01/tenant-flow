@@ -468,6 +468,21 @@ describe("sanitizeBanlist persona purity (persona-consistency e2e words)", () =>
 		expect(out.toLowerCase()).toContain("landlords");
 	});
 
+	it("keeps a word glued to property, which the gate bans with no word start", () => {
+		expect(
+			sanitizeBanlist("A single-property owner and multiproperty owners."),
+		).toBe("A single-property landlord and multiproperty landlords.");
+	});
+
+	it("leaves nothing the gate's persona pattern matches", () => {
+		for (const text of [
+			"Property owners juggle many tasks; a property owner needs systems.",
+			"A single-property owner, multiproperty owners, PROPERTY OWNER's lease.",
+		]) {
+			expect(sanitizeBanlist(text)).not.toMatch(/property owners?\b/i);
+		}
+	});
+
 	it('rewrites "real estate investor(s)"', () => {
 		const out = sanitizeBanlist(
 			"Real estate investors and any real estate investor benefit.",
@@ -723,6 +738,58 @@ const gateNames = (d: Draft, ctx: GateContext = seoCtx): string[] =>
 describe("runGates SEO baseline", () => {
 	it("a fully compliant draft passes all 18 gates", () => {
 		expect(runGates(seoDraft, seoCtx)).toEqual([]);
+	});
+});
+
+describe("runGates banlist: the title, the excerpt and the content, and the persona word", () => {
+	const banlistFailures = (d: Draft) =>
+		runGates(d, seoCtx).filter((f) => f.gate === "banlist");
+	const withText = (field: "title" | "excerpt" | "content", text: string) => ({
+		...seoDraft,
+		[field]: `${seoDraft[field]} ${text}`,
+	});
+
+	for (const field of ["title", "excerpt", "content"] as const) {
+		it(`rejects a banlist phrase in the ${field}`, () => {
+			expect(
+				banlistFailures(withText(field, "with Rent Collection built in")),
+			).toEqual([
+				expect.objectContaining({ message: `rent collection (${field})` }),
+			]);
+		});
+
+		it(`rejects the persona word in the ${field}, as persona-consistency.spec.ts does`, () => {
+			for (const text of [
+				"for a single-property owner",
+				"for multiproperty owners",
+				"for Property Owners",
+				"PROPERTY OWNER",
+			]) {
+				expect(banlistFailures(withText(field, text)), text).toEqual([
+					expect.objectContaining({ message: `property owner (${field})` }),
+				]);
+			}
+		});
+
+		it(`accepts what the spec's regex does not match in the ${field}`, () => {
+			for (const text of [
+				"on property ownership",
+				"keyed by property owner_id",
+				"property owners2",
+			]) {
+				expect(banlistFailures(withText(field, text)), text).toEqual([]);
+			}
+		});
+	}
+
+	it("reports the title first, as the trigger checks it first", () => {
+		expect(
+			banlistFailures({
+				...seoDraft,
+				title: `${seoDraft.title} for property owners`,
+				content: `${seoDraft.content}\nautopay`,
+			}),
+		).toEqual([expect.objectContaining({ message: "property owner (title)" })]);
 	});
 });
 

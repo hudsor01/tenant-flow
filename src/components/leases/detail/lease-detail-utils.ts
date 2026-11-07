@@ -8,6 +8,11 @@ import {
 	Send,
 	XCircle,
 } from "lucide-react";
+import {
+	EXPIRING_LEASE_LABEL,
+	LEASE_STATUS_LABELS,
+} from "#lib/constants/status-types";
+import { formatCount } from "#lib/formatters/count";
 import { parseLocalYmd } from "#lib/formatters/date";
 import type { Lease } from "#types/core";
 
@@ -161,17 +166,17 @@ export function getTimelineIcon(type: LeaseTimelineEvent["type"]) {
 /** Get color classes for timeline event type */
 export function getTimelineColor(type: LeaseTimelineEvent["type"]) {
 	const colorMap = {
-		created: "text-stone-500 bg-stone-100 dark:bg-stone-800",
-		sent_for_signature: "text-blue-600 bg-blue-100 dark:bg-blue-900/30",
-		owner_signed: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30",
-		tenant_signed: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30",
-		activated: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30",
-		renewed: "text-blue-600 bg-blue-100 dark:bg-blue-900/30",
-		terminated: "text-red-600 bg-red-100 dark:bg-red-900/30",
-		ended: "text-stone-500 bg-stone-100 dark:bg-stone-800",
-		expired: "text-amber-600 bg-amber-100 dark:bg-amber-900/30",
+		created: "text-muted-foreground bg-muted",
+		sent_for_signature: "text-info-text bg-info/10",
+		owner_signed: "text-success-text bg-success/10",
+		tenant_signed: "text-success-text bg-success/10",
+		activated: "text-success-text bg-success/10",
+		renewed: "text-info-text bg-info/10",
+		terminated: "text-destructive-text bg-destructive/10",
+		ended: "text-muted-foreground bg-muted",
+		expired: "text-warning-text bg-warning/10",
 	};
-	return colorMap[type] || "text-stone-500 bg-stone-100 dark:bg-stone-800";
+	return colorMap[type] || "text-muted-foreground bg-muted";
 }
 
 /** Status badge configuration */
@@ -184,46 +189,40 @@ export interface StatusConfig {
 export function getStatusConfig(status: string): StatusConfig {
 	const config: Record<string, StatusConfig> = {
 		draft: {
-			className:
-				"bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
-			label: "Draft",
+			className: "bg-muted text-muted-foreground",
+			label: LEASE_STATUS_LABELS.draft,
 		},
 		pending_signature: {
-			className:
-				"bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-			label: "Pending Signature",
+			className: "bg-warning/10 text-warning-text",
+			label: LEASE_STATUS_LABELS.pending_signature,
 		},
 		active: {
-			className:
-				"bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-			label: "Active",
+			className: "bg-success/10 text-success-text",
+			label: LEASE_STATUS_LABELS.active,
 		},
 		ended: {
-			className:
-				"bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
-			label: "Ended",
+			className: "bg-muted text-muted-foreground",
+			label: LEASE_STATUS_LABELS.ended,
 		},
 		expired: {
-			className:
-				"bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
-			label: "Expired",
+			className: "bg-muted text-muted-foreground",
+			label: LEASE_STATUS_LABELS.expired,
 		},
 		terminated: {
-			className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-			label: "Terminated",
+			className: "bg-destructive/10 text-destructive-text",
+			label: LEASE_STATUS_LABELS.terminated,
 		},
 		// Pseudo-status produced by transformLease (table/lease-utils.ts) for an
 		// active lease within 30 days of its end date. Not a stored lease_status.
 		expiring: {
-			className:
-				"bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-			label: "Expiring",
+			className: "bg-warning/10 text-warning-text",
+			label: EXPIRING_LEASE_LABEL,
 		},
 	};
 
 	return (
 		config[status] ?? {
-			className: "bg-stone-100 text-stone-600",
+			className: "bg-muted text-muted-foreground",
 			label: status,
 		}
 	);
@@ -239,9 +238,11 @@ export function formatRelativeTime(dateString: string): string {
 	if (diffDays === 0) return "Today";
 	if (diffDays === 1) return "Yesterday";
 	if (diffDays < 7) return `${diffDays} days ago`;
-	if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-	if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-	return `${Math.floor(diffDays / 365)} years ago`;
+	if (diffDays < 30)
+		return `${formatCount(Math.floor(diffDays / 7), "week")} ago`;
+	if (diffDays < 365)
+		return `${formatCount(Math.floor(diffDays / 30), "month")} ago`;
+	return `${formatCount(Math.floor(diffDays / 365), "year")} ago`;
 }
 
 /** Calculate days until expiry */

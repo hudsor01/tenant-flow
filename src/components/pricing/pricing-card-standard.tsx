@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { calculateAnnualSavings } from "#config/pricing";
 import { createLogger } from "#lib/frontend-logger";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { checkoutRateLimiter } from "#lib/security";
 import { createCheckoutSession } from "#lib/stripe/stripe-client";
 import { createClient } from "#lib/supabase/client";
@@ -93,9 +94,7 @@ export function PricingCardStandard({
 			logger.error("Checkout failed", {
 				metadata: { error: error.message },
 			});
-			toast.error(
-				error.message || "Failed to start checkout. Please try again.",
-			);
+			handleMutationError(error, "Start checkout");
 		},
 		onSettled: () => {
 			toast.dismiss("checkout");
@@ -130,7 +129,6 @@ export function PricingCardStandard({
 			<div
 				className={cn(
 					"h-full rounded-2xl border border-border/50 bg-card p-6 flex flex-col",
-					"hover:border-primary/30 hover:shadow-lg transition-all duration-300",
 					className,
 				)}
 			>
@@ -207,7 +205,7 @@ export function PricingCardStandard({
 				<Button
 					variant="outline"
 					size="lg"
-					className="w-full group transition-all duration-300 border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary-text"
+					className="w-full group transition-all duration-300 border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary-text dark:border-border dark:hover:bg-primary/5 dark:hover:text-primary-text"
 					disabled={subscriptionMutation.isPending}
 					onClick={handleSubscribe}
 				>

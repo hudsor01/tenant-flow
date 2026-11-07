@@ -6,7 +6,7 @@
  *    hand-rolled portfolio trio (those imports are gone).
  *  - The grid/table toggle still flows through the trimmed dashboard-store.
  *  - PortfolioPresetMenu collects the live snapshot from the SAME nuqs keys
- *    useClientDataTable writes (status + property + sort + page — NOT a separate
+ *    useClientDataTable writes (occupancy + property + sort + page — NOT a separate
  *    search/q key) and round-trips it through the presets store + back to nuqs.
  *  - Column visibility is sourced from the presets store and survives a remount.
  *
@@ -180,11 +180,11 @@ describe("dashboard portfolio swap", () => {
 		expect(screen.getByText("Birch Flats")).toBeInTheDocument();
 	});
 
-	it("save preset captures the live nuqs snapshot (status + property + sort + page)", async () => {
+	it("save preset captures the live nuqs snapshot (occupancy + property + sort + page)", async () => {
 		const user = userEvent.setup();
-		// Seed the URL with a full view: status filter, property search, sort, page.
+		// Seed the URL with a full view: occupancy filter, property search, sort, page.
 		const wrapper = withUrl(
-			"?status=active&property=maple&sort=" +
+			"?occupancy=occupied&property=maple&sort=" +
 				encodeURIComponent('[{"id":"rent","desc":true}]') +
 				"&page=2",
 		);
@@ -204,7 +204,7 @@ describe("dashboard portfolio swap", () => {
 		const preset =
 			useDashboardPresetsStore.getState().presets["Active high rent"];
 		expect(preset).toBeDefined();
-		expect(preset?.filters.status).toEqual(["active"]);
+		expect(preset?.filters.occupancy).toEqual(["occupied"]);
 		expect(preset?.filters.property).toBe("maple");
 		expect(preset?.sort).toEqual([{ id: "rent", desc: true }]);
 		expect(preset?.page).toBe(2);
@@ -215,9 +215,9 @@ describe("dashboard portfolio swap", () => {
 		const user = userEvent.setup();
 		// Start from a clean URL; the preset carries the state to restore.
 		useDashboardPresetsStore.getState().savePreset("Vacant view", {
-			filters: { status: ["vacant"], property: "birch" },
+			filters: { occupancy: ["vacant"], property: "birch" },
 			sort: [{ id: "units", desc: false }],
-			columnVisibility: { tenant: false },
+			columnVisibility: { rent: false },
 			page: 3,
 		});
 
@@ -241,19 +241,56 @@ describe("dashboard portfolio swap", () => {
 		expect(screen.getByTestId("url-sort").textContent).toContain("units");
 		expect(screen.getByTestId("url-page").textContent).toBe("3");
 		expect(useDashboardPresetsStore.getState().columnVisibility).toEqual({
-			tenant: false,
+			rent: false,
 		});
 	});
 
-	it("apply preset RE-FILTERS the live table, not just the URL (multi-word property + status)", async () => {
+	// The stored sort is a plain SortingState, and nuqs hands a written value
+	// to the table without the parser's id check: a preset sorted by the old
+	// Lease Status column wrote `status` into the URL, and the table dropped it
+	// and rendered unsorted (cycle 2, F49). Only a column the table has is
+	// applied.
+	it("applies a preset's sort only on columns the table has", async () => {
+		const user = userEvent.setup();
+		useDashboardPresetsStore.getState().savePreset("Old status sort", {
+			filters: {},
+			sort: [
+				{ id: "status", desc: false },
+				{ id: "rent", desc: true },
+			],
+			columnVisibility: {},
+			page: 1,
+		});
+		const sorts: Array<string | null> = [];
+		render(<PortfolioPresetMenu />, {
+			wrapper: ({ children }: { children: ReactNode }) => (
+				<NuqsTestingAdapter
+					onUrlUpdate={(event) => sorts.push(event.searchParams.get("sort"))}
+				>
+					{children}
+				</NuqsTestingAdapter>
+			),
+		});
+
+		await user.click(screen.getByRole("button", { name: /^presets$/i }));
+		await user.click(await screen.findByText("Old status sort"));
+
+		await waitFor(() => {
+			expect(sorts.at(-1)).toBe('[{"id":"rent","desc":true}]');
+		});
+		expect(sorts.join(" ")).not.toContain("status");
+	});
+
+	it("apply preset RE-FILTERS the live table, not just the URL (multi-word property + occupancy)", async () => {
 		const user = userEvent.setup();
 		// Render in grid mode so the cards expose table.getRowModel().rows directly.
 		useDashboardStore.setState({ viewMode: "grid" }, false);
-		// A preset whose MULTI-WORD property search + status narrows to one row.
+		// A preset whose MULTI-WORD property search + occupancy narrows to one row.
 		// "maple court" must stay one string (the FIX-1 regression) and match only
-		// Maple Court; status=active also excludes the vacant Birch Flats.
+		// Maple Court; occupancy=occupied also excludes the partly vacant Birch
+		// Flats (4 of 8 units let).
 		useDashboardPresetsStore.getState().savePreset("Active maple", {
-			filters: { status: ["active"], property: "maple court" },
+			filters: { occupancy: ["occupied"], property: "maple court" },
 			sort: [{ id: "property", desc: false }],
 			columnVisibility: {},
 			page: 1,
@@ -278,9 +315,9 @@ describe("dashboard portfolio swap", () => {
 		const user = userEvent.setup();
 		useDashboardStore.setState({ viewMode: "grid" }, false);
 
-		// Save a FULL view preset: multi-word property + status + sort + page.
+		// Save a FULL view preset: multi-word property + occupancy + sort + page.
 		useDashboardPresetsStore.getState().savePreset("Saved full view", {
-			filters: { status: ["active"], property: "maple court" },
+			filters: { occupancy: ["occupied"], property: "maple court" },
 			sort: [{ id: "rent", desc: true }],
 			columnVisibility: {},
 			page: 1,
@@ -301,25 +338,25 @@ describe("dashboard portfolio swap", () => {
 		await user.click(await screen.findByText("Saved full view"));
 
 		// Applying the saved view re-filters the freshly mounted table: the
-		// multi-word property + status narrow the FILTERED ROWS to Maple Court.
+		// multi-word property + occupancy narrow the FILTERED ROWS to Maple Court.
 		await waitFor(() => {
 			expect(screen.queryByText("Birch Flats")).toBeNull();
 		});
 		expect(screen.getByText("Maple Court")).toBeInTheDocument();
 	});
 
-	it("deletes a saved preset via the trash button (store deletePreset wired through the UI)", async () => {
+	it("deletes a saved preset via its delete menu item (store deletePreset wired through the UI)", async () => {
 		const user = userEvent.setup();
 		// Seed two presets so we can assert the clicked one is removed and the other
 		// survives (not a wholesale clear).
 		useDashboardPresetsStore.getState().savePreset("Keep me", {
-			filters: { status: ["active"] },
+			filters: { occupancy: ["occupied"] },
 			sort: [],
 			columnVisibility: {},
 			page: 1,
 		});
 		useDashboardPresetsStore.getState().savePreset("Delete me", {
-			filters: { status: ["vacant"] },
+			filters: { occupancy: ["vacant"] },
 			sort: [],
 			columnVisibility: {},
 			page: 1,
@@ -332,10 +369,10 @@ describe("dashboard portfolio swap", () => {
 		expect(await screen.findByText("Keep me")).toBeInTheDocument();
 		expect(screen.getByText("Delete me")).toBeInTheDocument();
 
-		// Click the trash button for "Delete me" (the menu item carries a per-preset
-		// "Delete preset {name}" button).
+		// Click "Delete me"'s delete item (each preset row holds an apply item and
+		// a "Delete preset {name}" item).
 		await user.click(
-			screen.getByRole("button", { name: /delete preset delete me/i }),
+			screen.getByRole("menuitem", { name: /delete preset delete me/i }),
 		);
 
 		// The preset is gone from BOTH the store and the rendered list; the sibling
@@ -363,7 +400,7 @@ describe("dashboard portfolio swap", () => {
 		).toBeInTheDocument();
 
 		// Hide it via the table's view-options menu -> writes to presets store.
-		await user.click(screen.getByRole("combobox", { name: /toggle columns/i }));
+		await user.click(screen.getByRole("combobox", { name: /^view columns$/i }));
 		await user.click(
 			await screen.findByRole("option", { name: /maintenance/i }),
 		);
@@ -382,16 +419,41 @@ describe("dashboard portfolio swap", () => {
 			screen.queryByRole("columnheader", { name: /maintenance/i }),
 		).toBeNull();
 	});
+
+	it("hides no column for a stored visibility of the removed tenants column", async () => {
+		// A view saved while the table had its "Tenants" column (66.2-39 removed
+		// it) keeps `tenant: false`: it names no column, so every column shows.
+		useDashboardPresetsStore.getState().setColumnVisibility({ tenant: false });
+		renderDashboard();
+		await screen.findByRole("columnheader", { name: /property/i });
+		const headers = screen
+			.getAllByRole("columnheader")
+			.map((th) => th.textContent?.trim());
+		for (const name of [
+			"Property",
+			"Units",
+			"Occupancy",
+			"Monthly Rent",
+			"Maintenance",
+		]) {
+			expect(
+				headers.some((h) => h?.includes(name)),
+				name,
+			).toBe(true);
+		}
+		expect(headers.some((h) => /tenants/i.test(h ?? ""))).toBe(false);
+	});
 });
 
 // D-10: the inline PropertyPerformance -> PortfolioRow transform in dashboard.tsx
-// (occupancyRate -> leaseStatus boundaries, occupiedUnits -> tenant cell) was
-// previously untested. Grid mode renders the FULL derived row (status chip +
-// tenant cell), so it pins the actual boundary logic in dashboard.tsx.
+// (occupied/total units -> the units cell and the occupancy chip). Grid mode
+// renders the FULL derived row. The chip read a "Lease Status" invented from
+// the occupancy rate (100% Active, 80% or more Expiring, else Vacant); it
+// states the row's own occupancy. A "Tenants" cell repeated the occupied units
+// as "N tenants" ("1 tenants"), no tenant record behind it; it went (66.2-39).
 const TRANSFORM_PROPERTIES: PropertyPerformanceItem[] = [
 	{
-		// occupancyRate EXACTLY 100 -> "active" (the === 100 branch); full
-		// occupancy (4 of 4) -> tenant "4 tenants".
+		// 4 of 4 units -> "Occupied"; units "4/4".
 		id: "active-full",
 		name: "Active Full",
 		address: "100 Full Ave",
@@ -402,8 +464,8 @@ const TRANSFORM_PROPERTIES: PropertyPerformanceItem[] = [
 		openMaintenance: 0,
 	},
 	{
-		// occupancyRate 85 is in the >=80 && <100 band -> "expiring"; partial
-		// occupancy (5 of 6) -> tenant "5 tenants". Pins the >=80 boundary.
+		// 5 of 6 units (85%: the old "Expiring" band) -> "Partly vacant";
+		// units "5/6".
 		id: "expiring-partial",
 		name: "Expiring Partial",
 		address: "85 Boundary Rd",
@@ -414,7 +476,7 @@ const TRANSFORM_PROPERTIES: PropertyPerformanceItem[] = [
 		openMaintenance: 0,
 	},
 	{
-		// Zero occupancy -> tenant null -> "--"; occupancyRate 0 (<80) -> "vacant".
+		// 0 of 4 units -> "Vacant"; units "0/4".
 		id: "vacant-empty",
 		name: "Vacant Empty",
 		address: "0 Empty St",
@@ -426,7 +488,7 @@ const TRANSFORM_PROPERTIES: PropertyPerformanceItem[] = [
 	},
 ];
 
-describe("dashboard portfolio D-10 transform (occupancyRate -> leaseStatus, occupancy -> tenant)", () => {
+describe("dashboard portfolio D-10 transform (units -> the units cell and occupancy)", () => {
 	function renderTransformDashboard(wrapper = withUrl()) {
 		return render(
 			<Dashboard
@@ -440,8 +502,8 @@ describe("dashboard portfolio D-10 transform (occupancyRate -> leaseStatus, occu
 		);
 	}
 
-	it("derives leaseStatus from occupancyRate boundaries and tenant from occupancy (grid exposes full row)", async () => {
-		// Grid mode renders the full derived row (status chip + tenant cell).
+	it("derives occupancy from the units, and counts no tenants (grid exposes full row)", async () => {
+		// Grid mode renders the full derived row (occupancy chip + units cell).
 		useDashboardStore.setState({ viewMode: "grid" }, false);
 		renderTransformDashboard();
 
@@ -458,28 +520,28 @@ describe("dashboard portfolio D-10 transform (occupancyRate -> leaseStatus, occu
 		expect(expiringCard).not.toBeNull();
 		expect(vacantCard).not.toBeNull();
 
-		// occupancyRate === 100 -> leaseStatus "active" -> chip "Active"; full
-		// occupancy (4) -> tenant "4 tenants" (pins the === 100 branch).
+		// 4 of 4 -> chip "Occupied"; units "4/4".
 		const { getByText: getInActive } = within(activeCard);
-		expect(getInActive("Active")).toBeInTheDocument();
-		expect(getInActive("4 tenants")).toBeInTheDocument();
+		expect(getInActive("Occupied")).toBeInTheDocument();
+		expect(getInActive("4/4")).toBeInTheDocument();
 
-		// occupancyRate 85 -> ">=80 && <100" -> leaseStatus "expiring" -> chip
-		// renders exactly "Expiring" in grid mode (pins the >=80 boundary).
-		const { getByText: getInExpiring, queryByLabelText: queryExpiringTenant } =
+		// 5 of 6 -> chip "Partly vacant", never a lease state ("Expiring") the
+		// row has no lease date for.
+		const { getByText: getInExpiring, queryByText: queryExpiringTenant } =
 			within(expiringCard);
-		expect(getInExpiring("Expiring")).toBeInTheDocument();
-		// Partial occupancy (5 > 0) -> tenant "5 tenants" (NOT the "--" no-tenant
-		// placeholder).
-		expect(getInExpiring("5 tenants")).toBeInTheDocument();
-		expect(queryExpiringTenant("No tenants")).toBeNull();
+		expect(getInExpiring("Partly vacant")).toBeInTheDocument();
+		expect(queryExpiringTenant("Expiring")).toBeNull();
+		expect(getInExpiring("5/6")).toBeInTheDocument();
 
-		// occupancyRate 0 (<80) -> leaseStatus "vacant" -> chip "Vacant"; zero
-		// occupancy -> tenant null -> "--" placeholder (aria-label "No tenants").
-		const { getByText: getInVacant, getByLabelText: getVacantTenant } =
-			within(vacantCard);
+		// 0 of 4 -> chip "Vacant"; units "0/4".
+		const { getByText: getInVacant } = within(vacantCard);
 		expect(getInVacant("Vacant")).toBeInTheDocument();
-		expect(getVacantTenant("No tenants")).toBeInTheDocument();
+		expect(getInVacant("0/4")).toBeInTheDocument();
+
+		// No card counts tenants: the units cell is the row's count.
+		for (const card of [activeCard, expiringCard, vacantCard]) {
+			expect(card.textContent ?? "").not.toMatch(/tenants?/i);
+		}
 	});
 });
 
@@ -499,15 +561,15 @@ function UrlReadout() {
 		sort: getSortingStateParser([
 			"property",
 			"units",
-			"status",
+			"occupancy",
 			"rent",
 		]).withDefault([]),
-		status: parseAsArrayOf(parseAsString, ","),
+		occupancy: parseAsArrayOf(parseAsString, ","),
 		property: parseAsString,
 	});
 	return (
 		<div>
-			<span data-testid="url-status">{(state.status ?? []).join(",")}</span>
+			<span data-testid="url-status">{(state.occupancy ?? []).join(",")}</span>
 			<span data-testid="url-property">{state.property ?? ""}</span>
 			<span data-testid="url-sort">{JSON.stringify(state.sort)}</span>
 			<span data-testid="url-page">{String(state.page)}</span>

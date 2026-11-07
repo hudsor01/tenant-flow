@@ -1,0 +1,760 @@
+{
+ "summary": {
+  "identical": 51,
+  "changed": 1,
+  "sizeChanged": 0,
+  "missingInA": 0,
+  "missingInB": 0
+ },
+ "files": [
+  {
+   "name": "sidebar/closed-dark-375.png",
+   "sizeA": [
+    375,
+    812
+   ],
+   "sizeB": [
+    375,
+    812
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/closed-dark-900.png",
+   "sizeA": [
+    900,
+    800
+   ],
+   "sizeB": [
+    900,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/closed-light-375.png",
+   "sizeA": [
+    375,
+    812
+   ],
+   "sizeB": [
+    375,
+    812
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/closed-light-900.png",
+   "sizeA": [
+    900,
+    800
+   ],
+   "sizeB": [
+    900,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/current-row-dark-1024.png",
+   "sizeA": [
+    1024,
+    800
+   ],
+   "sizeB": [
+    1024,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/current-row-dark-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/current-row-hover-dark-1024.png",
+   "sizeA": [
+    1024,
+    800
+   ],
+   "sizeB": [
+    1024,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/current-row-hover-dark-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/current-row-hover-light-1024.png",
+   "sizeA": [
+    1024,
+    800
+   ],
+   "sizeB": [
+    1024,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/current-row-hover-light-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/current-row-light-1024.png",
+   "sizeA": [
+    1024,
+    800
+   ],
+   "sizeB": [
+    1024,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/current-row-light-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/palette-over-sheet-dark-375.png",
+   "sizeA": [
+    375,
+    812
+   ],
+   "sizeB": [
+    375,
+    812
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/palette-over-sheet-dark-900.png",
+   "sizeA": [
+    900,
+    800
+   ],
+   "sizeB": [
+    900,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/palette-over-sheet-light-375.png",
+   "sizeA": [
+    375,
+    812
+   ],
+   "sizeB": [
+    375,
+    812
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/palette-over-sheet-light-900.png",
+   "sizeA": [
+    900,
+    800
+   ],
+   "sizeB": [
+    900,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/rail-expanded-dark-1024.png",
+   "sizeA": [
+    1024,
+    800
+   ],
+   "sizeB": [
+    1024,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/rail-expanded-dark-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/rail-expanded-light-1024.png",
+   "sizeA": [
+    1024,
+    800
+   ],
+   "sizeB": [
+    1024,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/rail-expanded-light-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/reports-default-dark-1024.png",
+   "sizeA": [
+    1024,
+    800
+   ],
+   "sizeB": [
+    1024,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/reports-default-dark-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/reports-default-light-1024.png",
+   "sizeA": [
+    1024,
+    800
+   ],
+   "sizeB": [
+    1024,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/reports-default-light-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/reports-open-dark-1024.png",
+   "sizeA": [
+    1024,
+    800
+   ],
+   "sizeB": [
+    1024,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/reports-open-dark-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/reports-open-light-1024.png",
+   "sizeA": [
+    1024,
+    800
+   ],
+   "sizeB": [
+    1024,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/reports-open-light-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/row-focus-dark-1024.png",
+   "sizeA": [
+    1024,
+    800
+   ],
+   "sizeB": [
+    1024,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/row-focus-dark-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 2,
+   "changedRatio": 0.000002,
+   "bbox": {
+    "x": 8,
+    "y": 241,
+    "width": 3,
+    "height": 1
+   }
+  },
+  {
+   "name": "sidebar/row-focus-light-1024.png",
+   "sizeA": [
+    1024,
+    800
+   ],
+   "sizeB": [
+    1024,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/row-focus-light-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/row-hover-dark-1024.png",
+   "sizeA": [
+    1024,
+    800
+   ],
+   "sizeB": [
+    1024,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/row-hover-dark-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/row-hover-light-1024.png",
+   "sizeA": [
+    1024,
+    800
+   ],
+   "sizeB": [
+    1024,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/row-hover-light-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/sheet-open-default-dark-375.png",
+   "sizeA": [
+    375,
+    812
+   ],
+   "sizeB": [
+    375,
+    812
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/sheet-open-default-dark-900.png",
+   "sizeA": [
+    900,
+    800
+   ],
+   "sizeB": [
+    900,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/sheet-open-default-light-375.png",
+   "sizeA": [
+    375,
+    812
+   ],
+   "sizeB": [
+    375,
+    812
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/sheet-open-default-light-900.png",
+   "sizeA": [
+    900,
+    800
+   ],
+   "sizeB": [
+    900,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/sheet-open-reports-dark-375.png",
+   "sizeA": [
+    375,
+    812
+   ],
+   "sizeB": [
+    375,
+    812
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/sheet-open-reports-dark-900.png",
+   "sizeA": [
+    900,
+    800
+   ],
+   "sizeB": [
+    900,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/sheet-open-reports-light-375.png",
+   "sizeA": [
+    375,
+    812
+   ],
+   "sizeB": [
+    375,
+    812
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/sheet-open-reports-light-900.png",
+   "sizeA": [
+    900,
+    800
+   ],
+   "sizeB": [
+    900,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/tour-step5-dark-1024.png",
+   "sizeA": [
+    1024,
+    800
+   ],
+   "sizeB": [
+    1024,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/tour-step5-dark-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/tour-step5-dark-375.png",
+   "sizeA": [
+    375,
+    812
+   ],
+   "sizeB": [
+    375,
+    812
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/tour-step5-dark-900.png",
+   "sizeA": [
+    900,
+    800
+   ],
+   "sizeB": [
+    900,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/tour-step5-light-1024.png",
+   "sizeA": [
+    1024,
+    800
+   ],
+   "sizeB": [
+    1024,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/tour-step5-light-1280.png",
+   "sizeA": [
+    1280,
+    800
+   ],
+   "sizeB": [
+    1280,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/tour-step5-light-375.png",
+   "sizeA": [
+    375,
+    812
+   ],
+   "sizeB": [
+    375,
+    812
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  },
+  {
+   "name": "sidebar/tour-step5-light-900.png",
+   "sizeA": [
+    900,
+    800
+   ],
+   "sizeB": [
+    900,
+    800
+   ],
+   "changedPixels": 0,
+   "changedRatio": 0,
+   "bbox": null
+  }
+ ],
+ "missing": {
+  "inA": [],
+  "inB": []
+ },
+ "noise": [
+  {
+   "file": "sidebar/row-focus-dark-1280.png",
+   "changedPixels": 2,
+   "bbox": {
+    "x": 8,
+    "y": 241,
+    "width": 3,
+    "height": 1
+   }
+  }
+ ]
+}

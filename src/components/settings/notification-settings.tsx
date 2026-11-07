@@ -61,8 +61,8 @@ export function NotificationSettings() {
 
 	return (
 		<div className="space-y-6">
-			<BlurFade delay={0.1} inView>
-				<div className="mb-6">
+			<BlurFade delay={0.1}>
+				<div>
 					<h2 className="text-lg font-semibold">Notification Settings</h2>
 					<p className="text-sm text-muted-foreground">
 						Choose how you want to be notified
@@ -71,12 +71,12 @@ export function NotificationSettings() {
 			</BlurFade>
 
 			{/* Quick Toggle */}
-			<BlurFade delay={0.15} inView>
+			<BlurFade delay={0.15}>
 				<section className="rounded-lg border bg-card p-6">
 					<div className="flex items-center justify-between">
 						<div>
 							<h3 className="text-sm font-medium">Enable All Notifications</h3>
-							<p className="text-xs text-muted-foreground">
+							<p className="mb-0 text-xs text-muted-foreground">
 								Turn on email and all notification categories
 							</p>
 						</div>
@@ -91,7 +91,7 @@ export function NotificationSettings() {
 			</BlurFade>
 
 			{/* Channel Toggles */}
-			<BlurFade delay={0.2} inView>
+			<BlurFade delay={0.2}>
 				<section className="rounded-lg border bg-card p-6">
 					<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
 						Notification Channels
@@ -120,14 +120,14 @@ export function NotificationSettings() {
 			</BlurFade>
 
 			{/* Category Preferences */}
-			<BlurFade delay={0.25} inView>
+			<BlurFade delay={0.25}>
 				<section className="rounded-lg border bg-card p-6">
 					<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
 						Notification Categories
 					</h3>
 
 					<div className="space-y-4">
-						<div className="flex items-center justify-between py-2 hover:bg-muted/30 rounded-lg px-2 -mx-2 transition-colors">
+						<div className="flex items-center justify-between py-2 rounded-lg px-2 -mx-2">
 							<div>
 								<p className="text-sm font-medium">Maintenance Requests</p>
 								<p className="text-xs text-muted-foreground">
@@ -144,7 +144,7 @@ export function NotificationSettings() {
 							/>
 						</div>
 
-						<div className="flex items-center justify-between py-2 hover:bg-muted/30 rounded-lg px-2 -mx-2 transition-colors">
+						<div className="flex items-center justify-between py-2 rounded-lg px-2 -mx-2">
 							<div>
 								<p className="text-sm font-medium">Lease Updates</p>
 								<p className="text-xs text-muted-foreground">
@@ -161,7 +161,7 @@ export function NotificationSettings() {
 							/>
 						</div>
 
-						<div className="flex items-center justify-between py-2 hover:bg-muted/30 rounded-lg px-2 -mx-2 transition-colors">
+						<div className="flex items-center justify-between py-2 rounded-lg px-2 -mx-2">
 							<div>
 								<p className="text-sm font-medium">General Notifications</p>
 								<p className="text-xs text-muted-foreground">

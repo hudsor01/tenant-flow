@@ -8,11 +8,11 @@ export function QuickLinksSection() {
 	const router = useRouter();
 
 	return (
-		<BlurFade delay={0.75} inView>
+		<BlurFade delay={0.75}>
 			<section className="rounded-lg border bg-card p-6">
 				<h3 className="mb-4 text-lg font-semibold">Quick Links</h3>
 
-				<div className="grid gap-3 sm:grid-cols-4">
+				<div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
 					<button
 						type="button"
 						onClick={() => router.push("/settings")}

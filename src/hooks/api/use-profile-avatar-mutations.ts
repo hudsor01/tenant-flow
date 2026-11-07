@@ -114,7 +114,10 @@ export function useUploadAvatarMutation() {
 			// owner's upload succeeds (the DB trigger is authoritative). Ignore
 			// usage-read failures so the pre-check can never block an upload.
 			try {
-				const usage = await queryClient.ensureQueryData(usageQueries.storage());
+				const usage = await queryClient.query({
+					...usageQueries.storage(),
+					staleTime: "static",
+				});
 				if (wouldExceedStorageQuota(usage, file.size)) {
 					showStorageQuotaUpgradeToast();
 				}

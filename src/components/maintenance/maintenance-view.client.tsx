@@ -36,7 +36,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs";
 import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { usePreferencesStore } from "#providers/preferences-provider";
-import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
 import {
 	MaintenanceInsightsTab,
 	MaintenanceOverviewTab,
@@ -83,7 +82,7 @@ export function MaintenanceViewClient() {
 			unitIdFilter ? { unit_id: unitIdFilter } : undefined,
 		),
 	);
-	const requests = (response?.data ?? []) as MaintenanceDisplayRequest[];
+	const requests = response?.data ?? [];
 	// Stat cards come from the get_maintenance_stats RPC (counts the owner's FULL
 	// set) instead of the paginated list() (capped at 50), so they stay accurate
 	// for large portfolios. `completed_this_month` is scoped to the caller's local
@@ -106,7 +105,7 @@ export function MaintenanceViewClient() {
 		return requests.filter((r) => {
 			const title = r.title?.toLowerCase() ?? "";
 			const description = r.description?.toLowerCase() ?? "";
-			const propertyName = r.property?.name?.toLowerCase() ?? "";
+			const propertyName = r.propertyName?.toLowerCase() ?? "";
 			return (
 				title.includes(query) ||
 				description.includes(query) ||
@@ -155,7 +154,7 @@ export function MaintenanceViewClient() {
 	if (requests.length === 0) {
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					{unitIdFilter ? (
 						<Empty>
 							<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
@@ -193,7 +192,7 @@ export function MaintenanceViewClient() {
 							<EmptyContent>
 								<Button asChild>
 									<Link href="/maintenance/new">
-										<Plus className="w-5 h-5 mr-2" />
+										<Plus className="size-5 mr-2" />
 										Create Request
 									</Link>
 								</Button>
@@ -208,17 +207,17 @@ export function MaintenanceViewClient() {
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
 			{/* Header */}
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Maintenance</h1>
-						<p className="text-muted-foreground">
+						<p className="mb-0 text-muted-foreground">
 							Track and manage maintenance requests
 						</p>
 					</div>
 					<Link
 						href="/maintenance/new"
-						className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
+						className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
 					>
 						<Plus className="w-4 h-4" />
 						New Request
@@ -228,7 +227,7 @@ export function MaintenanceViewClient() {
 
 			{/* Stats */}
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-				<BlurFade delay={0.15} inView>
+				<BlurFade delay={0.15}>
 					<Stat className="relative overflow-hidden">
 						{openCount > 0 && (
 							<BorderBeam
@@ -240,8 +239,9 @@ export function MaintenanceViewClient() {
 						)}
 						<StatLabel>Open</StatLabel>
 						{/* warning/success stat numbers use -text companions: at 32px (typography-stat)
-						    text-warning/text-success measure 2.15/2.59:1 in light, below the AA-large 3:1
-						    bar; the Urgent stat below keeps vivid text-destructive (4.55/3.29:1, clears it). */}
+						    text-warning/text-success measure 2.18/2.62:1 on the stat's card in light,
+						    below the AA-large 3:1 bar; the Urgent stat below keeps vivid
+						    text-destructive (4.62/3.21:1 light/dark, clears it). */}
 						<StatValue className="flex items-baseline text-warning-text">
 							<NumberTicker value={openCount} duration={800} />
 						</StatValue>
@@ -251,7 +251,7 @@ export function MaintenanceViewClient() {
 						<StatDescription>awaiting action</StatDescription>
 					</Stat>
 				</BlurFade>
-				<BlurFade delay={0.2} inView>
+				<BlurFade delay={0.2}>
 					<Stat className="relative overflow-hidden">
 						<StatLabel>In Progress</StatLabel>
 						<StatValue className="flex items-baseline">
@@ -263,7 +263,7 @@ export function MaintenanceViewClient() {
 						<StatDescription>being worked on</StatDescription>
 					</Stat>
 				</BlurFade>
-				<BlurFade delay={0.25} inView>
+				<BlurFade delay={0.25}>
 					<Stat className="relative overflow-hidden">
 						<StatLabel>Completed</StatLabel>
 						<StatValue className="flex items-baseline text-success-text">
@@ -275,7 +275,7 @@ export function MaintenanceViewClient() {
 						<StatDescription>this month</StatDescription>
 					</Stat>
 				</BlurFade>
-				<BlurFade delay={0.3} inView>
+				<BlurFade delay={0.3}>
 					<Stat className="relative overflow-hidden">
 						{urgentCount > 0 && (
 							<BorderBeam

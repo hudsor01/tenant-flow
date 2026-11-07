@@ -104,7 +104,7 @@ export function TenantTableRow({
 						className="h-auto p-0 text-primary-text"
 						onClick={() => onViewLease(leaseId)}
 					>
-						<FileText className="mr-1 h-3.5 w-3.5" />
+						<FileText className="mr-1 size-3.5" />
 						View
 					</Button>
 				) : (
@@ -125,7 +125,7 @@ export function TenantTableRow({
 					<Button
 						variant="ghost"
 						size="icon"
-						className="h-8 w-8 min-h-8 min-w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+						className="h-8 w-8 min-h-8 min-w-8 text-destructive hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/10 dark:hover:text-destructive-text"
 						onClick={() => onDelete(tenant.id)}
 					>
 						<Trash2 className="h-4 w-4" />

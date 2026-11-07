@@ -6,9 +6,12 @@
  * D-07 (load-bearing): the lease-derived figure is labeled **Scheduled** and the
  * ledger-derived figure is labeled **Collected**. They are two explicitly
  * labeled, tooltipped numbers with different meanings — they are NEVER summed
- * into a single "Revenue" figure, and Net Income / Portfolio ROI / Cash Flow
- * still derive from Scheduled minus expenses exactly as before. Re-basing profit
- * on Collected would silently change what those three cards mean.
+ * into a single "Revenue" figure. Scheduled Net and Scheduled Margin derive from
+ * Scheduled minus expenses, and say so (get_financial_overview's revenue is
+ * the active leases' rent times twelve: neither income nor cash). There is no
+ * Cash Flow card: it showed Scheduled Net again under a cash label. No card has
+ * a trend chip: the RPC computes no prior-period figure, and the chips read
+ * fields nothing ever filled ("0.0% vs last period").
  */
 
 import {
@@ -18,7 +21,6 @@ import {
 	ReceiptText,
 	TrendingUp,
 } from "lucide-react";
-import { AnimatedTrendIndicator } from "#components/ui/animated-trend-indicator";
 import { BlurFade } from "#components/ui/blur-fade";
 import { BorderBeam } from "#components/ui/border-beam";
 import { NumberTicker } from "#components/ui/number-ticker";
@@ -27,7 +29,6 @@ import {
 	StatDescription,
 	StatIndicator,
 	StatLabel,
-	StatTrend,
 	StatValue,
 } from "#components/ui/stat";
 import {
@@ -44,7 +45,7 @@ interface FinancialOverviewStatsProps {
 /** A stat label whose meaning is spelled out in a keyboard-reachable tooltip. */
 function LabelWithTooltip({ label, help }: { label: string; help: string }) {
 	return (
-		<StatLabel>
+		<StatLabel className="min-h-10 lg:min-h-0">
 			<Tooltip>
 				<TooltipTrigger
 					type="button"
@@ -63,9 +64,9 @@ export function FinancialOverviewStats({
 	metrics,
 }: FinancialOverviewStatsProps) {
 	return (
-		<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
-			<BlurFade delay={0.2} inView>
-				<Stat className="relative overflow-hidden">
+		<div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+			<BlurFade delay={0.2} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					<BorderBeam
 						size={100}
 						duration={10}
@@ -74,40 +75,36 @@ export function FinancialOverviewStats({
 					/>
 					<LabelWithTooltip
 						label="Scheduled"
-						help="Rent expected from active lease terms this period."
+						help="Your active leases' monthly rent times twelve: rent expected, not received."
 					/>
-					<StatValue className="flex items-baseline gap-0.5 text-emerald-600 dark:text-emerald-400">
-						<span className="text-lg">$</span>
-						<NumberTicker value={metrics.totalRevenue} duration={1500} />
+					<StatValue className="flex items-baseline gap-0.5 text-success-text">
+						<NumberTicker
+							value={metrics.totalRevenue}
+							duration={1500}
+							currency
+							symbolClassName="text-lg mr-0.5"
+						/>
 					</StatValue>
 					<StatIndicator variant="icon" color="success">
 						<DollarSign />
 					</StatIndicator>
-					<StatTrend
-						trend={
-							metrics.revenueTrend && metrics.revenueTrend >= 0 ? "up" : "down"
-						}
-					>
-						<AnimatedTrendIndicator
-							value={metrics.revenueTrend ?? 0}
-							size="sm"
-							delay={500}
-						/>
-						<span className="text-muted-foreground">vs last period</span>
-					</StatTrend>
 					<StatDescription>Annualized from active leases</StatDescription>
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.25} inView>
-				<Stat className="relative overflow-hidden">
+			<BlurFade delay={0.25} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
 					<LabelWithTooltip
 						label="Collected"
-						help="Payments you've recorded against charges this period."
+						help="Payments recorded in your rent ledger over the last 12 months, this month included."
 					/>
 					<StatValue className="flex items-baseline gap-0.5">
-						<span className="text-lg">$</span>
-						<NumberTicker value={metrics.totalCollected} duration={1500} />
+						<NumberTicker
+							value={metrics.totalCollected}
+							duration={1500}
+							currency
+							symbolClassName="text-lg mr-0.5"
+						/>
 					</StatValue>
 					<StatIndicator variant="icon" color="info">
 						<ReceiptText />
@@ -118,35 +115,33 @@ export function FinancialOverviewStats({
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.3} inView>
-				<Stat className="relative overflow-hidden">
-					<StatLabel>Net Income</StatLabel>
+			<BlurFade delay={0.3} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
+					<StatLabel className="min-h-10 lg:min-h-0">Scheduled Net</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
-						<span className="text-lg">$</span>
-						<NumberTicker value={metrics.netIncome} duration={1500} />
+						<NumberTicker
+							value={metrics.netIncome}
+							duration={1500}
+							currency
+							symbolClassName="text-lg mr-0.5"
+						/>
 					</StatValue>
 					<StatIndicator variant="icon" color="primary">
 						<TrendingUp />
 					</StatIndicator>
-					<StatTrend
-						trend={
-							metrics.profitMargin && metrics.profitMargin >= 0 ? "up" : "down"
-						}
-					>
-						<AnimatedTrendIndicator
-							value={metrics.profitMargin ?? 0}
-							size="sm"
-							delay={600}
-						/>
-						<span className="text-muted-foreground">profit margin</span>
-					</StatTrend>
-					<StatDescription>Scheduled minus expenses</StatDescription>
+					{/* get_financial_overview's expenses run January 1 through today
+					    (its default period); its scheduled figure is a year's rent. */}
+					<StatDescription>
+						Scheduled less expenses, year to date
+					</StatDescription>
 				</Stat>
 			</BlurFade>
 
-			<BlurFade delay={0.4} inView>
-				<Stat className="relative overflow-hidden">
-					<StatLabel>Portfolio ROI</StatLabel>
+			<BlurFade delay={0.4} className="h-full">
+				<Stat className="relative h-full content-start overflow-hidden">
+					<StatLabel className="min-h-10 lg:min-h-0">
+						Scheduled Margin
+					</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
 						<NumberTicker
 							value={metrics.profitMargin ?? 0}
@@ -158,43 +153,7 @@ export function FinancialOverviewStats({
 					<StatIndicator variant="icon" color="info">
 						<BarChart3 />
 					</StatIndicator>
-					<StatTrend
-						trend={
-							metrics.expenseTrend && metrics.expenseTrend >= 0 ? "up" : "down"
-						}
-					>
-						<AnimatedTrendIndicator
-							value={metrics.expenseTrend ?? 0}
-							size="sm"
-							delay={700}
-						/>
-						<span className="text-muted-foreground">expense trend</span>
-					</StatTrend>
-				</Stat>
-			</BlurFade>
-
-			<BlurFade delay={0.5} inView>
-				<Stat className="relative overflow-hidden">
-					<StatLabel>Cash Flow</StatLabel>
-					<StatValue className="flex items-baseline gap-0.5">
-						<span className="text-lg">$</span>
-						<NumberTicker value={metrics.cashFlow} duration={1500} />
-					</StatValue>
-					<StatIndicator variant="icon" color="success">
-						<DollarSign />
-					</StatIndicator>
-					<StatTrend
-						trend={
-							metrics.revenueTrend && metrics.revenueTrend >= 0 ? "up" : "down"
-						}
-					>
-						<AnimatedTrendIndicator
-							value={metrics.revenueTrend ?? 0}
-							size="sm"
-							delay={800}
-						/>
-						<span className="text-muted-foreground">operating cash</span>
-					</StatTrend>
+					<StatDescription>Scheduled net over scheduled</StatDescription>
 				</Stat>
 			</BlurFade>
 		</div>

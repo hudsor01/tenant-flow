@@ -41,7 +41,7 @@ export function NewInspectionForm() {
 
 	const selectedLease = leases.find((l) => l.id === leaseId);
 
-	async function handleSubmit(e: React.FormEvent) {
+	async function handleSubmit(e: React.SubmitEvent) {
 		e.preventDefault();
 
 		if (!leaseId || !selectedLease) return;

@@ -27,6 +27,7 @@ import {
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import { loadDotenv } from "./_shared/load-dotenv";
 import { formatGenFailure } from "./generate-blog-draft";
 
 export interface BlogTopicEntry {
@@ -306,7 +307,10 @@ async function main(): Promise<number> {
 }
 
 // CLI guard — import-safe for unit tests (same pattern as generate-blog-draft).
+// The CLI alone loads the env files (generate-blog-draft.ts loaded them at
+// import, which this runner relied on; importing reads none now).
 if (process.argv[1]?.endsWith("/run-scheduled-blog.ts")) {
+	loadDotenv(process.cwd());
 	main()
 		.then((code) => process.exit(code))
 		.catch((e: unknown) => {

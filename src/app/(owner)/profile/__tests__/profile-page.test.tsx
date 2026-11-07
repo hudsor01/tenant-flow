@@ -10,6 +10,7 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthStoreProvider } from "#providers/auth-provider";
+import type { UserProfile } from "#types/api-contracts";
 
 // Mock next/navigation
 const mockPush = vi.fn();
@@ -58,7 +59,7 @@ vi.mock("#lib/supabase/client", () => ({
 }));
 
 // Mock profile data
-const mockOwnerProfile = {
+const mockOwnerProfile: UserProfile = {
 	id: "test-user-id",
 	email: "owner@test.com",
 	first_name: "Test",
@@ -77,7 +78,7 @@ const mockOwnerProfile = {
 };
 
 // Mock use-profile hooks
-let mockProfileData = mockOwnerProfile;
+let mockProfileData: UserProfile = mockOwnerProfile;
 const mockUpdateProfile = vi.fn();
 const mockUploadAvatar = vi.fn();
 const mockRemoveAvatar = vi.fn();
@@ -445,7 +446,7 @@ describe("Profile Avatar Upload", () => {
 		mockProfileData = {
 			...mockOwnerProfile,
 			avatar_url: "https://example.com/avatar.jpg",
-		} as unknown as typeof mockOwnerProfile;
+		};
 
 		render(
 			<TestWrapper>

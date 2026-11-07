@@ -1,0 +1,41 @@
+{
+  "root": "/Users/richard/Developer/tenant-flow-tw-shadcn",
+  "guards": {
+    "G1": {
+      "count": 0,
+      "violations": []
+    },
+    "G2": {
+      "count": 0,
+      "violations": []
+    },
+    "G3": {
+      "count": 0,
+      "violations": []
+    },
+    "G4": {
+      "count": 0,
+      "violations": []
+    },
+    "G5": {
+      "count": 0,
+      "violations": []
+    },
+    "G6": {
+      "count": 0,
+      "violations": []
+    },
+    "G7": {
+      "count": 0,
+      "violations": []
+    },
+    "G8": {
+      "count": 0,
+      "violations": []
+    },
+    "inline-structure": {
+      "count": 0,
+      "violations": []
+    }
+  }
+}

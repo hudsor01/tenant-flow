@@ -263,7 +263,55 @@ export function QueryProvider({
 }
 
 const QUERY_CACHE_KEY = "tenantflow-query-cache";
-const QUERY_CACHE_BUSTER = "tenantflow-cache-v1";
+// Bump when a persisted query's return shape changes (CLAUDE.md, Data layer).
+// v2: financialQueries.balanceSheet returns BalanceSheetResult
+// ({ status, sheet }), not a { data, success } wrapper of BalanceSheetData; a
+// v1 entry read back from IndexedDB is neither shape the page knows and
+// rendered as a $0 sheet.
+// v3: the rent-ledger statements and rent received. financialQueries.
+// incomeStatement and .cashFlow return IncomeStatementResult / CashFlowResult
+// ({ status, statement | report }), not that wrapper; reportAnalyticsQueries.
+// yearEnd YearEndResult and financialTaxQueries.taxDocuments
+// TaxDocumentsResult; propertyQueries.performance a PropertyPerformanceResult;
+// and analyticsQueries.propertyPerformancePageData and reportAnalyticsQueries.
+// properties name rent received where they held `monthlyRevenue`/`revenue`. A
+// v2 entry of any of them would render as an empty or $0 report.
+// v4: the computed dashboard, expense and maintenance figures (part M). The
+// owner dashboard payload carries portfolioTrends, financialQueries.
+// expenseSummary yearOverYear, analyticsQueries.maintenancePageData costs and
+// nullable trends, reportAnalyticsQueries.maintenance costs, and the
+// financial metrics no cashFlow. A v3 entry would draw the overview's and the
+// expenses page's trends as unavailable and crash the insights tab on its
+// missing costs until the refetch landed.
+// v5: part N's shapes. The owner dashboard payload's metricTrends carry a
+// window and a nullable percentChange; analyticsQueries.financialPageData
+// carries leaseProfitability (and .leaseProfitability() is new); the income
+// statement's expenses, the cash flow's activities and the balance sheet's
+// groups lost their no-source lines; reportAnalyticsQueries.yearEnd and
+// .properties rows carry `deleted`, .properties lost its literal summary
+// counts and trends, .financial is the expenses by vendor alone and .tenants
+// the three figures with a source. A v4 entry would read as a sheet, statement
+// or table missing the fields the pages now expect until the refetch landed.
+// v6: part Q's shapes. financialTaxQueries.taxDocuments' totals are
+// totalIncome, totalExpenses and netIncome, and its expense rows lost
+// `deductible`, with no Schedule E, depreciation or mortgage-interest fields
+// (none had a source); analyticsQueries.propertyPerformancePageData lost its
+// visitor analytics and revenue trends and its rows their literal trend, and
+// fills its units from the counted units. A v5 entry would read as a page with
+// no expenses or net figure, or as "0 of 0" units, until the refetch landed.
+// v7: fix round 3 dropped the fields no screen or export reads.
+// analyticsQueries' financial, overview, maintenance, occupancy, lease
+// profitability and property performance page data, reportKeys.revenue,
+// .properties and .yearEnd, and financialQueries.incomeStatement (no gross
+// profit, operating income, profit margin or previous period) all lost
+// fields, unitQueries.list's rows gained `propertyName`, from the property
+// the list now embeds, maintenanceQueries.list's rows gained `propertyName`,
+// `unitNumber` and `tenantName`, from the unit, property and tenant it now
+// embeds, maintenanceQueries.detail gained the same and `tenantEmail` and
+// `tenantPhone`, and leaseQueries.detail carries `tenant` and `unit` (with
+// the unit's `property`) in place of its raw `tenants` and `units` embeds.
+// A v6 entry would carry the old shapes until the refetch landed.
+const QUERY_CACHE_BUSTER = "tenantflow-cache-v7";
 const QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24; // 24 hours
 
 declare global {

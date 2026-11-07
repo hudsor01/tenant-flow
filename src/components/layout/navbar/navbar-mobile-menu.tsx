@@ -9,7 +9,7 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "#components/ui/sheet";
-import { isActiveLink } from "#lib/is-active-link";
+import { isActiveLink, navAriaCurrent } from "#lib/is-active-link";
 import { cn } from "#lib/utils";
 import type { NavItem } from "./types";
 
@@ -54,9 +54,11 @@ export function NavbarMobileMenu({
 									<Link
 										href={item.href}
 										onClick={() => !item.hasDropdown && onClose()}
-										aria-current={
-											isActiveLink(item.href, pathname) ? "page" : undefined
-										}
+										aria-current={navAriaCurrent(
+											item.href,
+											pathname,
+											isActiveLink(item.href, pathname),
+										)}
 										className={cn(
 											"flex-1 flex items-center px-4 py-3 text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors duration-fast",
 											isActiveLink(item.href, pathname) &&
@@ -96,11 +98,11 @@ export function NavbarMobileMenu({
 												key={dropdownItem.name}
 												href={dropdownItem.href}
 												onClick={() => onClose()}
-												aria-current={
-													isActiveLink(dropdownItem.href, pathname)
-														? "page"
-														: undefined
-												}
+												aria-current={navAriaCurrent(
+													dropdownItem.href,
+													pathname,
+													isActiveLink(dropdownItem.href, pathname),
+												)}
 												className="block px-4 py-2.5 text-foreground/60 hover:text-foreground hover:bg-muted/30 rounded-lg transition-colors duration-fast text-sm"
 											>
 												{dropdownItem.name}
@@ -118,7 +120,7 @@ export function NavbarMobileMenu({
 							<Link
 								href="/dashboard"
 								onClick={() => onClose()}
-								className="flex items-center justify-center w-full px-6 py-3 mt-2 bg-primary text-primary-foreground font-medium text-sm rounded-md hover:bg-primary/90 transition-colors duration-fast"
+								className="flex items-center justify-center w-full px-6 py-3 mt-2 bg-primary text-primary-foreground font-medium text-sm rounded-md hover:bg-primary-text dark:hover:bg-primary/90 transition-colors duration-fast"
 							>
 								Dashboard
 								<ArrowRight className="ml-2 size-4" />
@@ -135,7 +137,7 @@ export function NavbarMobileMenu({
 								<Link
 									href={ctaHref}
 									onClick={() => onClose()}
-									className="flex items-center justify-center w-full px-6 py-3 mt-2 bg-primary text-primary-foreground font-medium text-sm rounded-md hover:bg-primary/90 transition-colors duration-fast"
+									className="flex items-center justify-center w-full px-6 py-3 mt-2 bg-primary text-primary-foreground font-medium text-sm rounded-md hover:bg-primary-text dark:hover:bg-primary/90 transition-colors duration-fast"
 								>
 									{ctaText}
 									<ArrowRight className="ml-2 size-4" />

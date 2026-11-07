@@ -65,10 +65,10 @@ export function BulkImportUploadStep<T>({
 				onFileValidate={getFileValidationError}
 				label={`Upload CSV file for bulk ${config.entityLabel.singular.toLowerCase()} import`}
 			>
-				<FileUploadDropzone className="group relative rounded-xl border-2 border-dashed p-10 transition-all duration-300 cursor-pointer hover:border-primary/60 hover:bg-primary/5 hover:shadow-lg hover:shadow-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[drag-over]:border-primary data-[drag-over]:bg-primary/10 data-[drag-over]:shadow-lg data-[drag-over]:shadow-primary/10 data-[drag-over]:scale-[1.01] data-[invalid]:border-destructive/60 data-[invalid]:bg-destructive/5">
+				<FileUploadDropzone className="group relative rounded-xl border-2 border-dashed p-10 transition-all duration-300 cursor-pointer hover:border-primary/60 hover:bg-primary/5 hover:shadow-lg hover:shadow-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-dragging:border-primary data-dragging:bg-primary/10 data-dragging:shadow-lg data-dragging:shadow-primary/10 data-dragging:scale-[1.01] data-invalid:border-destructive/60 data-invalid:bg-destructive/5">
 					<div className="flex flex-col items-center justify-center gap-4 text-center">
-						<div className="icon-container-lg bg-primary/10 text-primary border border-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/15 group-data-[drag-over]:scale-110 group-data-[drag-over]:bg-primary/20 group-data-[drag-over]:animate-pulse">
-							<Upload className="size-6 transition-transform duration-300 group-data-[drag-over]:animate-bounce" />
+						<div className="icon-container-lg bg-primary/10 text-primary border border-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/15 group-data-dragging:scale-110 group-data-dragging:bg-primary/20 group-data-dragging:animate-pulse">
+							<Upload className="size-6 transition-transform duration-300 group-data-dragging:animate-bounce" />
 						</div>
 						<div className="space-y-1.5">
 							<p className="text-base font-semibold text-foreground">
@@ -88,7 +88,7 @@ export function BulkImportUploadStep<T>({
 				</FileUploadDropzone>
 			</FileUpload>
 
-			<div className="card-standard p-4 bg-linear-to-r from-muted/40 to-muted/20 hover:border-primary/30 transition-colors">
+			<div className="card-standard p-4 bg-linear-to-r from-muted/40 to-muted/20">
 				<div className="flex items-center justify-between gap-4">
 					<div className="flex items-center gap-3">
 						<div className="icon-container-sm bg-info/10 text-info">
@@ -104,7 +104,7 @@ export function BulkImportUploadStep<T>({
 					<Button
 						variant="outline"
 						size="sm"
-						className="gap-2 hover:bg-primary/5 hover:border-primary/40 transition-all"
+						className="gap-2 hover:bg-primary/5 hover:border-primary/40 dark:hover:bg-primary/5 transition-all"
 						onClick={(e) => {
 							e.stopPropagation();
 							downloadTemplate();

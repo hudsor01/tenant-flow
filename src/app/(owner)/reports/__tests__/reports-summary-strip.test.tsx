@@ -149,7 +149,7 @@ describe("ReportsSummaryStrip", () => {
 		render(<ReportsSummaryStrip />);
 
 		expect(
-			screen.getByText("Couldn't load this period's collection figures."),
+			screen.getByText("Couldn't load this month's collection figures."),
 		).toBeInTheDocument();
 		expect(screen.getByTestId("reports-summary-strip")).toBeInTheDocument();
 	});

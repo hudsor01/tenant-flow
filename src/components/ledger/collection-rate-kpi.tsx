@@ -132,6 +132,9 @@ export function CollectionRateKpi() {
 		<Stat
 			className="h-full transition-colors duration-200"
 			data-testid="collection-rate-kpi"
+			// A generic div cannot be named, so the narrated label needs a role
+			// that can (66.2-39).
+			role="group"
 			aria-label={
 				status
 					? `Collection rate: ${formatPercentage(rate)}. ${status.status}. Collected divided by scheduled, this month.`

@@ -42,12 +42,7 @@ export function PageLayout({
 	className,
 }: PageLayoutProps) {
 	return (
-		<div
-			className={cn(
-				"relative min-h-screen flex flex-col marketing-page",
-				className,
-			)}
-		>
+		<div className={cn("relative min-h-screen flex flex-col", className)}>
 			{showGridPattern && (
 				<GridPattern
 					patternId="page-layout-grid"

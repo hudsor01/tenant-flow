@@ -44,6 +44,17 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
 						{children}
 					</h2>
 				),
+				// A wide table scrolls inside its own keyboard-focusable region, so
+				// the article never scrolls sideways at 320px (WCAG 1.4.10 exempts
+				// the table's two-dimensional content, not the page).
+				// tabIndex: a scroll container must take focus to scroll by keyboard
+				// (WCAG 2.1.1); it is not a landmark, so a post with several tables
+				// adds no duplicate regions.
+				table: ({ children }) => (
+					<div tabIndex={0} className="overflow-x-auto">
+						<table>{children}</table>
+					</div>
+				),
 			}}
 		>
 			{content}

@@ -126,12 +126,12 @@ export function InlineTenantCreate({
 			>
 				{isSubmitting ? (
 					<>
-						<Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+						<Loader2 className="mr-2 size-3.5 animate-spin" />
 						Adding...
 					</>
 				) : (
 					<>
-						<UserPlus className="mr-2 h-3.5 w-3.5" />
+						<UserPlus className="mr-2 size-3.5" />
 						Add Tenant
 					</>
 				)}
@@ -153,7 +153,7 @@ export function TenantModeToggle({
 				"Existing Tenant"
 			) : (
 				<>
-					<UserPlus className="mr-1.5 h-3.5 w-3.5" />
+					<UserPlus className="mr-1.5 size-3.5" />
 					Add New Tenant
 				</>
 			)}

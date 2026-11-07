@@ -40,9 +40,9 @@ function TenantCard({
 	const isActive = tenant.leaseStatus === "active";
 
 	return (
-		<BlurFade delay={0.05 + index * 0.03} inView>
+		<BlurFade delay={0.05 + index * 0.03}>
 			<div
-				className={`bg-card border rounded-lg p-4 transition-all hover:shadow-md relative overflow-hidden ${
+				className={`bg-card border rounded-lg p-4 transition-all relative overflow-hidden ${
 					isSelected ? "border-primary ring-2 ring-primary/20" : "border-border"
 				}`}
 			>
@@ -51,7 +51,7 @@ function TenantCard({
 					<BorderBeam
 						size={100}
 						duration={12}
-						colorFrom="hsl(var(--primary)/0.5)"
+						colorFrom="color-mix(in oklab, var(--color-primary) 50%, transparent)"
 						colorTo="transparent"
 					/>
 				)}
@@ -73,7 +73,7 @@ function TenantCard({
 							{tenant.fullName}
 						</button>
 						{isActive && (
-							<span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded">
+							<span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-success/10 text-success-text rounded">
 								<Check className="w-3 h-3" />
 								Active
 							</span>
@@ -94,7 +94,7 @@ function TenantCard({
 						onClick={() => onContact("email")}
 						className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary-text transition-colors w-full group"
 					>
-						<Mail className="w-3.5 h-3.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
+						<Mail className="w-3.5 h-3.5 shrink-0 group-hover:scale-110 transition-transform" />
 						<span className="truncate">{tenant.email}</span>
 					</button>
 					{tenant.phone && (
@@ -102,7 +102,7 @@ function TenantCard({
 							onClick={() => onContact("phone")}
 							className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary-text transition-colors w-full group"
 						>
-							<Phone className="w-3.5 h-3.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
+							<Phone className="w-3.5 h-3.5 shrink-0 group-hover:scale-110 transition-transform" />
 							<span>{tenant.phone}</span>
 						</button>
 					)}
@@ -111,7 +111,7 @@ function TenantCard({
 				{/* Property/Unit */}
 				{tenant.currentProperty && (
 					<div className="flex items-start gap-2 text-sm text-muted-foreground mb-4">
-						<MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+						<MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5" />
 						<div>
 							<p className="text-foreground">{tenant.currentProperty}</p>
 							{tenant.currentUnit && (

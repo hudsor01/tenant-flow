@@ -16,7 +16,7 @@ export function FinalCtaSection() {
 			<div className="absolute inset-0 bg-muted/40" />
 
 			<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
-				<BlurFade delay={0.5} inView>
+				<BlurFade delay={0.5}>
 					<div className="text-center space-y-8">
 						<h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-tight">
 							<span className="text-foreground">
@@ -36,7 +36,7 @@ export function FinalCtaSection() {
 						<div className="flex flex-col sm:flex-row gap-6 justify-center">
 							<Button
 								size="lg"
-								className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 typography-large px-10 py-5"
+								className="shrink group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 typography-large px-10 py-5"
 								asChild
 							>
 								<Link href="/pricing" aria-label="Start free — no card">
@@ -49,7 +49,7 @@ export function FinalCtaSection() {
 							<Button
 								variant="outline"
 								size="lg"
-								className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 typography-large px-10 py-5 transition-all duration-300"
+								className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 dark:border-muted-foreground/30 dark:hover:bg-primary/5 typography-large px-10 py-5 transition-all duration-300"
 								asChild
 							>
 								<Link href="/contact" aria-label="Schedule demo">

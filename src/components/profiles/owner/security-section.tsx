@@ -13,13 +13,13 @@ export function SecuritySection({ onChangePassword }: SecuritySectionProps) {
 	const router = useRouter();
 
 	return (
-		<BlurFade delay={0.6} inView>
+		<BlurFade delay={0.6}>
 			<section className="rounded-lg border bg-card p-6">
 				<h3 className="mb-4 text-lg font-semibold">Security Status</h3>
 
-				<div className="grid gap-3 sm:grid-cols-2">
-					<BlurFade delay={0.65} inView>
-						<div className="flex items-center justify-between rounded-lg bg-muted/50 p-4 hover:bg-muted/70 transition-colors">
+				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+					<BlurFade delay={0.65}>
+						<div className="flex items-center justify-between rounded-lg bg-muted/50 p-4">
 							<div className="flex items-center gap-3">
 								<Key className="h-5 w-5 text-muted-foreground" />
 								<div>
@@ -35,8 +35,8 @@ export function SecuritySection({ onChangePassword }: SecuritySectionProps) {
 						</div>
 					</BlurFade>
 
-					<BlurFade delay={0.7} inView>
-						<div className="flex items-center justify-between rounded-lg bg-muted/50 p-4 relative overflow-hidden hover:bg-muted/70 transition-colors">
+					<BlurFade delay={0.7}>
+						<div className="flex items-center justify-between rounded-lg bg-muted/50 p-4 relative overflow-hidden">
 							<div className="flex items-center gap-3">
 								<Shield className="h-5 w-5 text-muted-foreground" />
 								<div>

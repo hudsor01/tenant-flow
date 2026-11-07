@@ -1,0 +1,148 @@
+# Phase 66.2 deferred items
+
+Out-of-scope discoveries logged by executors. Each entry names the plan that found it.
+
+## 66.2-36: a palette navigation from /dashboard can be replaced by the data tables' URL write
+
+- **Found during:** 66.2-36 Task 4, production build (`next start`, :3050), spec M2 close path 5 (palette selection of Properties right after `page.goto("/dashboard")` and hydration).
+- **Observed:** in 2 of the 16 production-build runs that reached this step, clicking the palette option "Properties" closed the palette and the sheet, but the page never reached /properties: Playwright's navigation log after the click shows exactly two navigations, both to `/dashboard?page=1&perPage=10`, and none to /properties. `useClientDataTable` (`src/hooks/use-client-data-table.ts`) keeps `page`/`perPage` in the URL through nuqs (`history: "replace"`, `shallow: true`).
+- **Not measured:** which data change triggers the write, or whether Next's router abandons the pending `router.push` because of the replace. The hypothesis is that the write lands while the push is in flight.
+- **Why out of scope:** the dashboard data tables and the palette's `router.push` are not wave-6 changes.
+- **Spec handling:** close path 5 waits for the dashboard content and `networkidle` after `page.goto("/dashboard")` before it opens the palette (20 of 20 repeats, then 6 of 6 in a 3x whole-spec repeat, passed after the gate). The navigation assertion is unchanged.
+
+## 66.2-38: dashboard layout defects in the CP-4 review captures (owner follow-up, before 66.2-39)
+
+- **Found during:** 66.2-38 Task 1, reading the 66.2-37 evidence pack captures (`screens/review/CP-4/after/`, the `final-sidebar` set: owner A, local `next start`, reduced motion).
+- **Observed:**
+  - Collapsed desktop rail (`collapsed`, new state, VD-29): the dashboard KPI values wrap. At 1024 the four-column KPI row puts "$" and "7,500" on two lines in the Revenue card; at 1280 the row becomes six columns and both "$" / "7,500" and "33" / "%" (Occupancy) wrap. Evidence: `collapsed-vs-rail-expanded-light-1280.png`, `collapsed-vs-rail-expanded-dark-1024.png`. With the rail expanded the values fit (`sidebar_rail-expanded-light-1024.png`, three columns).
+  - Expanded rail at 1024 (`sidebar_rail-expanded-light-1024.png`): the Quick Actions "Add Property" card overflows its column by about 10px at the right, and the quick-actions dock overlaps the occupancy donut.
+- **Not measured:** whether these exist before wave 6 at an equivalent content width (the expanded-rail overflow and the dock overlap may predate 66.2; the collapsed wrap needs the collapse, which only wave 6 added).
+- **Owner decision (2026-11-01, CP-4 "Keep + fix layout"):** keep desktop collapse (`cp4-default`) and fix these if this phase caused them, as a separate step after 66.2-38 and before 66.2-39. Recorded as `followUp` on the CP-4 entry of `66.2-38-CP-DECISIONS.json`, not as a fallback.
+- **Measured (follow-up, 2026-11-01):** Chromium, production builds of HEAD `1c3f30d24` and of the pre-phase commit `754c91802` (a `git archive` tree with an APFS clone of node_modules), each on its own `next start`, owner A, reduced motion, `user_tour_progress` answered locally. Probe, matrices and raw JSON: `.planning/tailwind-shadcn/audit/cp4-followup/` (`measure.mjs`, `m-head.json`, `m-pre.json`; `bun cmp.js m-head.json m-pre.json` prints the pairwise comparison, `identical` on all 10 pairs). The pre-phase rail is the same 224px, so a HEAD collapsed width W has the same content width as the pre-phase build at W + 224. At every pair compared (HEAD 1024/1280/1440 collapsed vs pre-phase 1248/1504/1664; 375, 900, 1024, 1280, 1440 at both commits) the KPI tracks, tile paddings, value boxes, trends tracks, Quick Actions boxes and dock-vs-donut overlap are identical to the hundredth of a pixel. The dashboard lays out as the same function of its content width at both commits; wave 6 only adds the collapsed states, whose content width is the viewport.
+  - **KPI wrap (1):** the grid is an inline-size container with `repeat(auto-fit, minmax(180px, 1fr))` tracks and tiles switch from 16px to 24px padding at the `@4xl` (896px) container width. Each tile puts the label (1fr) and the value (auto) on one row, and the value's "$" prefix is a plain inline span next to the inline-block ticker, which is a line-break opportunity. "Revenue" (53.67px min-content) + 16px gap + "$7,500" (107.23px) needs a 210.9px tile below 896px and 226.9px above it; Occupancy "33%" (69.44 + 16 + 63.13) needs 198.6px above it. Measured tracks: 193px at 900 (4 columns), 224 at 1024 expanded (3), 220 at 1024 collapsed (4), 228 at 1280 expanded (4), 184 at 1280 collapsed (6), 211.2 at 1440 expanded (5), 210.7 at 1440 collapsed (6). Revenue wraps at every measured width except 375, 1024 expanded and 1280 expanded, and 1280 expanded fits by 1.1px (one more digit is about 20px wider, so a five-digit revenue would wrap there too; inferred, not measured); Occupancy wraps at 184. **Attribution:** the mechanism predates 66.2. `754c91802` wraps Revenue at 900, at 1440 and at 1248/1504 with the same numbers (value box 89.34x64 at 900, 91.52x64 at 1440), and 66.2 made no layout change to the KPI row (`git diff 754c91802 HEAD` on `kpi-bento-row.tsx` is `col-span-full` and `text-warning-text!`). Wave 6 makes the wrap reachable at 1024 and 1280 collapsed. That contradicts the premise that the wrap needs the collapse, so the first pass left it to the owner (fixed after the owner's second decision, below).
+  - **Candidate fix, measured as a DOM prototype only (`probe-a.mjs`, `p-a.json`):** put each tile's label and value in one wrapping flex row (`justify-between`, 16px column gap) and make the value non-wrapping, so a value that does not fit beside its label drops below it as one unit. On the HEAD build every value stayed on one line inside its tile at all 12 width/state cells. At 1024 and 1280 expanded (800 and 720/768 high) every tile box and value box kept its position and size; only the label element's own box narrowed to its text, which renders at the same place. At the widths that wrap today, Revenue (and Occupancy at 184) moves below its label while the neighbouring tiles keep theirs beside it. The alternatives, computed from these numbers rather than prototyped, depend on the data: raising the 180px track minimum to keep 4 columns at 1280 expanded and avoid wrapping at 1280 collapsed needs a minimum between 224 and 228px, and either way a larger revenue figure would still wrap.
+  - **Quick Actions overflow (2):** at content width 800 (1024 expanded) `lg:grid-cols-4` gives 158px tracks. The card's content box is 108px, the "Add Property" button's min-content is 143.31px, and it ends 10.31px past the card's right edge (card scrollWidth 167 vs clientWidth 156). `754c91802` at 1024: the same 158px tracks and the same +10.31px. **Pre-existing** (fixed after the owner's second decision, below). Collapse does not reproduce it (214px tracks at 1024 collapsed).
+  - **Dock over the donut (3):** the dock is `fixed bottom-6`, so it covers whatever sits 24 to 90px above the viewport bottom. At 1024x800 expanded its panel (515..733 x 710..776) overlaps the donut chart by 72x66 and the revenue card by 97x66. `754c91802` at 1024x800: the same panel box (left 624px = 50% + 7rem then, 50% + `--sidebar-width`/2 now, which is the same 624px) and the same 72x66 overlap. It also overlaps first-fold content at 1280 and 1440 at both commits, and at 1024 collapsed (72x55, the same as pre-phase at 1248). **Pre-existing** (fixed after the owner's second decision, below).
+- **Owner decision (2026-11-01, follow-up, the owner's reply "fix everything and put it in this pr"):** fix all three on this branch even though they predate the phase.
+- **Fixed:** branch `gsd/phase-66.2-tailwind-v4-and-shadcn-ui-canonical-remediation`. Before/after on production builds (owner A, the 12-cell matrix of 375, 900, 1024x800/768, 1280x800/720 and 1440x900, rail expanded and collapsed): `m-head.json` vs `m-after.json`, `bun cmp-after.js m-head.json m-after.json`.
+  - **KPI wrap, `efb0a6fb9`:** `KpiTile` puts `StatLabel` and `StatValue` in a `col-span-2 flex flex-wrap justify-between gap-x-4 gap-y-1` row (`data-slot="kpi-heading"`) and the value is `whitespace-nowrap`; `ui/stat.tsx` is untouched. After: every value is one 32px line inside its tile in all 12 cells. At 375 and at 1024/1280 expanded every KPI tile, value and value-part box is identical to before. Where a value no longer fits beside its label it drops below it whole: Revenue at 900, 1024 collapsed, 1280 collapsed and 1440; Occupancy and Open maintenance at 1280 collapsed. Before the fix "Open maintenance" wrapped onto two lines beside its "0"; now the label keeps one line and the value drops. The separate 1px scrollWidth overflow of the Revenue tile at 1280 collapsed had the same root cause: the stat grid's tracks (53.67 label + 16 gap + 89.34 ticker = 159.02px) overran the 134px content box by 25.02px, 1px past the padding. It is 0 after the fix in every cell, with no separate change.
+  - **Quick Actions overflow, `036184de1`:** I chose column count keyed on the container. The quick actions need a 193.31px column (143.31px button min-content, set by the copy and not by data, + 48 padding + 2 border), so four columns need a 845.24px row. A label that wraps or truncates would have to fit 34px of text beside the 36px icon. The `Dashboard` root and `DashboardLoadingSkeleton` are now `@container/dashboard`. The trends row is `grid-cols-1 @4xl/dashboard:grid-cols-4` (56rem = 896px, leaving 12.7px of slack per column at the threshold). The revenue card and its skeleton use `@4xl/dashboard:col-span-2`, the donut card and its skeleton `@4xl/dashboard:col-span-1`, and the loading skeleton's chart block `@4xl/dashboard:col-span-3`. The skeletons had the same overflow at 158px: the donut skeleton's `size-40` and the quick-action skeleton rows' 144px bars. The trends tracks are unchanged at 375, 900, 1024 collapsed (4x214), 1280 (4x222 / 4x278) and 1440 (4x262 / 4x318). **Recorded layout change:** at 1024 expanded the row stacks (1x704) instead of 4x158, as at 900. It does so wherever the dashboard is narrower than 56rem with the rail expanded, which is viewports below 1216px. Quick Actions scrollWidth minus clientWidth went from 11 to 0 at 1024 expanded and stays 0 elsewhere. The cards below the KPI row move up where the KPI tiles got shorter, with no width change.
+  - **Dock overlap, `1a7eecd2a`:** globals.css `:root` declares `--dock-height: --spacing(16.5)` (66px, the panel's former natural height), `--dock-offset: --spacing(6)` (the former `bottom-6`) and `--dock-clearance: calc(var(--dock-height) + var(--dock-offset))` (90px). The dock uses `bottom-(--dock-offset)`, and its panel uses `h-(--dock-height)` instead of `py-3`, so its geometry is unchanged (515..733 x 710..776 at 1024x800 before and after). `<main>` reserves `lg:pb-(--dock-clearance)` (was `lg:pb-28`, 112px) while the dock is mounted. A base rule gives `html:has([data-slot="quick-actions-dock"])` `scroll-padding-bottom: var(--dock-clearance)` from lg. At scroll end the footer ends exactly at the dock's top. A quick action that Tab reaches under the dock scrolls clear of it. At 375 and 900 the padding is unchanged (96px / 24px) and scroll padding is `auto`. While the page is not at scroll end the floating dock still overlaps whatever scrolls under it, as before, but no content stays hidden.
+  - **Red-proof:** the new assertions ran in `app-shell-sidebar.spec.ts` (owner-axe; `e2e-red.txt`, `e2e-red-focus.txt`, `e2e-green.txt` in `audit/cp4-followup/`) against a production build of the pre-fix source, with the fix reverse-applied from a patch and only the tests kept. Results:
+    - KPI test: failed at 900, 1024 collapsed, 1280 collapsed (Revenue and Occupancy, plus the Revenue tile's scrollWidth) and 1440 expanded and collapsed.
+    - Quick Actions test: failed at 1024 expanded (scrollWidth, and all four buttons ending past the card).
+    - Padding test: failed at all six desktop cells (main 112 vs 90, scroll padding `auto`).
+    - Focus test: failed at all six desktop cells.
+    - Passed before and after: the scroll-end footer check (the old 112px already cleared the dock) and the 375/900 no-band tests. They guard against regression rather than prove the fix.
+    
+    The new unit assertions failed 7 of 103 on the pre-fix source and all pass after. With the fix re-applied all six e2e tests pass. The full owner-axe project ran 64 passed, 0 failed.
+  - **Gates:** `validate:quick` exit 0; `CI=true bun run test:unit -- --coverage` 357 files, 110,467 tests, coverage 65.52 / 57.79 / 64.89 / 67.68 (thresholds 64/56/63/66); the placeholder-env build exit 0; G1-G8 and the canonicalizer dry run (0 edits, `g8Agreement: true`) green.
+
+## 66.2-38: the onboarding "Getting Started" dialog flashes on /dashboard
+
+- **Found during:** 66.2-38 Task 1, the CP-5 frame strip (local `next start` :3062 on the HEAD build, owner A, 1280x800, `reducedMotion: no-preference`, tour progress seeded "completed" in localStorage, `user_tour_progress` intercepted locally).
+- **Observed:** a MutationObserver init script recorded, on every /dashboard load during sign-in navigation (real-time timeline), a `role="dialog"` titled "Getting Started" ("Let's get you set up", `src/components/onboarding/onboarding-step-welcome.tsx`) that mounts and is removed 214-234 ms later (final run: light 622->856, 276->492; dark 329->543, 278->503 ms after navigation start; earlier runs up to 255 ms). With the animation timeline frozen, the dialog's exit animation holds it on screen fully opaque at its start.
+- **Not measured:** what opens and then closes the dialog, and whether a reduced-motion user sees it.
+- **Why out of scope:** `git diff 754c91802 HEAD -- src/components/onboarding` is empty; this phase did not change the onboarding flow. Not a CP-1..CP-5 surface.
+
+## 66.2-39 (part O stage 2): this PR's revoke-then-grant reorders eight functions' ACL text
+
+- **Found during:** part O stage 2, comparing the full 357-file replay's public functions with production's 2026-11-02 listing.
+- **Observed:** 20261102055449, 20261102163709, 20261102184501, 20261102184502, 20261102184503, 20261102184504 and 20261102200501 end each replaced function with `revoke all ... from public, anon, authenticated;` and then `grant execute ... to authenticated, service_role;`. The REVOKE removes authenticated's entry and the GRANT appends it after service_role's, so the ACL text of get_billing_insights, get_property_performance_analytics, get_dashboard_stats, get_dashboard_data_v2, get_expense_summary, get_financial_overview, get_maintenance_analytics and get_occupancy_trends_optimized ends as `{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}`. Production's text is `{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}`. The grantees and privileges are the same, and the replay ends with the same text production will have after the apply.
+- **Why out of scope:** these files are earlier parts' work, and no privilege changes. Each header calls the ACL unchanged ("EXECUTE for authenticated and service_role only"), which holds for the privileges and not for the text. Revoking only `public, anon` would keep the text.
+- **Not changed.**
+
+## 66.2-39 (part O stage 2): the replayed chain schedules a cron job whose function it drops
+
+- **Found during:** part O stage 2, listing `cron.job` on the replayed chain through 20261005215446.
+- **Observed:** `process-autopay-charges` (`0 7 * * *`, `select public.process_autopay_charges()`) is scheduled. 20260418140000_demolish_rent_and_tenant_portal.sql drops the function, and its comment says the job "was unscheduled earlier as part of the safety PR", but no file in the chain unschedules it, so on a replayed stack the job fails every day. Production's `cron.job` was not read.
+- **Why out of scope:** 20261102055400 reconciles public functions only, not cron jobs.
+
+## 66.2-39 (part O stage 2): calculate_monthly_metrics(uuid) reports revenue as 0
+
+- **Found during:** part O stage 2, reading the 34 production bodies that 20261102055400 now writes to the chain.
+- **Observed:** production's body returns `'revenue', 0` for each of the 12 months, with net income and cash flow equal to the expenses negated. Authenticated holds EXECUTE. Nothing in `src/` or `supabase/functions/` calls it.
+- **Why out of scope:** the task is to reproduce production's body. The function has no reader.
+
+## 66.2-39 (fix round 2): the blog writer's prune-to-100 step
+
+- **Found during:** fix round 2, the `rls-security` failure on `bc54b045a` (PR body, "Fix round 2", item 3).
+- **Observed:** since 2026-11-02 the n8n workflow "TenantFlow AI Blog Writer" also pruned `public.blogs` to 100 rows with service-role REST DELETEs (140 published posts, restored 2026-11-04). The workflow is unpublished in n8n until this PR merges.
+- **Why deferred:** the step lives in the n8n workflow, not in this repository. Before the writer is re-enabled its prune step must be removed, or it deletes the restored posts again (PR body, "After merge" step 6).
+
+## 66.2-39 (fix round 3): the scope rule for what this round fixes
+
+- **Main-session decision (2026-11-05, after Part 7b):** a line that is identical at `d9c7329f0` and that this PR does not make wrong is not a finding by the perfect-PR gate's own definition (cycle 2's verifiers refuted that kind). Such items are recorded here and in the PR body's Known follow-ups, not sent to another fix part. Each entry below names its file, the defect, and why it is deferred: the file is not in this PR's diff, or the line predates the PR and the PR does not make it wrong.
+
+## 66.2-39 (fix round 3, Part 4): export-report and generate-pdf branches with no in-app caller (OD-15)
+
+- **Observed:** the app's only `export-report` caller is `callExportEdgeFunction(FINANCIAL_ANALYTICS_REPORT_TYPE, format)` (`src/hooks/api/query-keys/report-keys.ts`), for `/analytics/financial`'s CSV, XLSX and PDF; that PDF goes `export-report` -> `generate-pdf` Mode 2 (`{ html }`). `/reports/year-end` and `/reports/tax-documents` print their PDFs through `generate-pdf` Mode 1 (`callGeneratePdfEdgeFunction`, `year-end` and `financial`), and the year-end CSV is built in the browser. So `export-report`'s `year-end` and `financial` branches (CSV, XLSX, PDF) and `generate-pdf`'s Mode 1 `financial-analytics` branch are reachable only by a direct request.
+- **Why deferred:** owner default OD-15: removing Edge code paths is outside this PR's scope and changes the deployed functions. The live check reaches those branches with a direct GET (PR body, "After merge" step 5).
+
+## 66.2-39 (fix round 3, Part 2): page-shape fields a screen reads but nothing fills
+
+- **Observed:** `PropertyPerformanceSummary.bestPerformer` (`src/types/analytics.ts`; the property performance stat card prints `metrics.bestPerformer ?? "-"`, so it always reads "-"), `UnitStatisticEntry.trend` (read by `portfolio-kpis.tsx`, never set by `analyticsQueries.propertyPerformancePageData`) and `FinancialBreakdownRow.change` (read by the financial page's `breakdown-list.tsx`; `expenseBreakdownRows` (`analytics-mappers.ts`) sets it to `null`).
+- **Why deferred:** all three are in `d9c7329f0`'s types with the same readers and no writer; this PR does not make them wrong (Part 2 removed only the fields nothing read).
+
+## 66.2-39 (fix round 3, Part 6): the maintenance form's unit picker reads the 50-capped unit list
+
+- **File:** `src/components/maintenance/maintenance-form.client.tsx` (not in this PR's diff).
+- **Observed:** the unit picker reads `useUnitList()` with no filters, so `unitQueries.list` returns the 50 newest units (`limit ?? 50`). Editing a request whose unit is not among them shows a blank unit.
+- **Why deferred:** the file is not in this PR.
+
+## 66.2-39 (fix round 3, Part 6b): heading subtitles with the base margin in files this PR does not change
+
+- **Files:** `src/app/(owner)/reports/generate/page.tsx`, `src/app/marketing-home.tsx`, `src/app/pricing/page.tsx`, `src/components/error-boundary/error-fallback.tsx`, one each (the ratchet in `src/components/__tests__/heading-block-paragraph-margin.test.ts`).
+- **Observed:** a heading's `<p>` subtitle inside a flex item keeps the 16px `@layer base` paragraph margin (the G2h shape `df80082ec` fixed in 37 places in this PR's files, VD-142).
+- **Why deferred:** the files are not in this PR; the guard holds them as a ratchet, so the count can only fall.
+
+## 66.2-39 (fix round 3, Parts 6b and 7): comments that cite another file by line, in files this PR does not change
+
+- **Observed:** A1 at `81fdadd71` finds 28 such cites, none in a file this PR changes: `.github` 1, `scripts` 2 (two comment lines of `seed-test-users.ts`, citing `tests/e2e/auth-helpers.ts` and `dashboard-rpc-helpers.ts`), `src` 4 (`stripe-webhook-signature.test.ts`, `seo-title-separator-drift.test.ts`, `auth/layout.tsx`, `application-status-badge.tsx`), `supabase/functions` 3, `supabase/migrations` 17, `tests` 1. Parts 6b and 7 found the `src` and `scripts` ones stale; `supabase/functions/_shared/rate-limit.ts`'s and `apply-token/index.ts`'s still name the right lines. Also `src/proxy.ts` (twice) and `src/lib/supabase/middleware.ts` cite `app-render.js:167-168`, where Next 16.4.3 no longer parses the request CSP (it does so in `parse-request-headers` through `getScriptNonceFromHeader`).
+- **Why deferred:** the files are not in this PR. Applied migration files are history and are not rewritten.
+
+## 66.2-39 (fix round 3, Part 6b): the new-inspection form's lease list
+
+- **File:** `src/components/inspections/new-inspection-form.client.tsx` (in this PR's diff for one other line).
+- **Observed:** it offers the 100 newest active leases only (`limit: 100`), and it casts the list's rows to `LeaseWithRelations[]` (the lease list's own `data as Lease[]` boundary; the fields it reads are filled).
+- **Why deferred:** both lines are identical at `d9c7329f0` and this PR does not make them wrong (the scope rule above).
+
+## 66.2-39 (fix round 3, Part 6c): records named from fields their queries never fill
+
+- `src/components/inspections/inspection-detail.client.tsx` casts the inspection to `{ property?: { name } }` and `{ unit?: { name } }`, but `INSPECTION_DETAIL_SELECT` (`inspection-keys.ts`) embeds neither and units have no `name`, so the heading always reads "Property" and never names the unit.
+- `src/components/maintenance/detail/work-order-template.ts` prints `request.assigned_to`, a user id that nothing writes.
+- `src/components/leases/table/lease-utils.ts` keeps dead `tenant.user` / `tenant.User` fallbacks.
+- **Why deferred:** none of the three files is in this PR.
+- **Kept on purpose:** `66.2-25-PLAN.md` and the audit snapshots under `.planning/tailwind-shadcn/audit/` (w1, w5, f39, final) still quote the old chart axis selector; they are point-in-time evidence, and the re-freeze regenerates the snapshots it owns.
+
+## 66.2-39 (fix round 3, Part 7): fixed sleeps and emoji in E2E specs
+
+- **Files:** `tests/e2e/tests/smoke/critical-paths.smoke.spec.ts` (CI's `smoke` project runs it): two `page.waitForTimeout(1000)` calls in "No console errors on critical pages", and emoji in its `describe` and `test` titles (13 lines), against the E2E no-fixed-sleeps rule and CLAUDE.md rule 7. Nine other spec files outside CI's three projects hold 55 more `waitForTimeout` calls (`owner-tenants.e2e.spec.ts` 18, `owner-properties.e2e.spec.ts` 15, `owner-leases.e2e.spec.ts` 7, `owner-dashboard.e2e.spec.ts` 4, `owner-maintenance.e2e.spec.ts` 4, `visual-regression.e2e.spec.ts` 3, `owner-authentication.e2e.spec.ts` 2, `health-check.spec.ts` 1, `owner-settings.e2e.spec.ts` 1).
+- **Why deferred:** none of these files is in this PR.
+
+## 66.2-39 (fix round 3, Part 7): the geometry-read guard reads the working tree
+
+- **File:** `tests/e2e/lib/__tests__/measure-is-the-only-geometry-read.test.ts`.
+- **Observed:** it lists the specs with `readdirSync` / `readFileSync`, so an untracked file in the working tree is scanned too (it can only add failures; the e2e exports guard reads `git ls-files` since `476170760`).
+- **Why deferred:** the directory walk is identical at `d9c7329f0` and this PR does not make it wrong.
+
+## 66.2-39 (fix round 3, Part 7b): capped or unbounded picker reads in this PR's files
+
+- `src/app/(owner)/properties/units/page.tsx`: `NewUnitButton` gets the properties from `propertyQueries.list()` (the 50 newest), so a new unit cannot be put on the 51st property.
+- `propertyQueries.selectOptions`, `tenantQueries.listForLease` and `unitQueries.availableByProperty` set no `.limit()` / `.range()` (CLAUDE.md's data-access rule: PostgREST truncates at 1000 rows).
+- `src/components/documents/documents-vault.client.tsx`: the card header's "Showing X-Y of N" `<p>` is a flex item with the 16px base paragraph margin.
+- **Why deferred:** each line is identical at `d9c7329f0` and this PR does not make it wrong (the scope rule above).
+
+## 66.2-39 (fix round 3, Part 7b): base-rule and cap defects in files this PR does not change
+
+- The list ratchet in `src/components/__tests__/list-base-rule-neutralized.test.ts`: lists the base `ul, ol` / `li` rules still reach in `src/app/privacy/page.tsx` (11), `src/app/security-policy/page.tsx` (6), `src/app/terms/page.tsx` (16), `dashboard-activity-card.tsx`, `layout/footer.tsx`, `leases/template/state-rule-summary.tsx`, `notification-popover-list.tsx`, `notifications-inbox.client.tsx` and `ui/field.tsx`'s `FieldError` (1 each).
+- `src/components/ui/dialog.tsx`: `DialogDescription` renders a bare `<p>`, so every dialog description carries the 16px base margin below it.
+- `src/components/units/unit-form.client.tsx`: the edit form's property picker reads `propertyQueries.list({ limit: 100 })`, so a unit on the 101st property, or on a deleted one, opens with no property.
+- Exported names in `src/types` that no other tracked file under `src`, `supabase/functions`, `scripts` or `tests` names (raw counts at `81fdadd71`, a type used only in its own file's signatures included): `financial-statements.ts` 27, `core.ts` 26, `domain.ts` 16, `relations.ts` 15, `notifications.ts` 15, `sections/maintenance.ts` 14, `analytics.ts` 13, `stats.ts` 12, `stripe.ts` 9, `frontend.ts` 6, `data-table.ts` 6, `activity.ts` 5, and 1-3 in eight more.
+- **Why deferred:** none of these files is in this PR (`api-contracts.ts`, which is, lost its 43 unimported exports in `fc4fdd3dc` and is guarded).
+
+## 66.2-39 (fix round 3, Part 6d): the tour footer's step counter wraps from tablet width up
+
+- **Measured** (re-freeze 3 on `b7f25511b`, the tour probe on the capture build): at 1280x800, 1280x720 and 900x800 the footer row is 286px wide and its step counter ("1 / 5") takes 7.88x60 px, one character per line; at 390x844 and 375x812 it is 28.47x20, one line. The counter, Skip, Previous and Next share the row and need more width than it has.
+- **Why deferred:** the footer row's content and the counter are DiceUI's as at `d9c7329f0` (this PR changed only the last step's accessible name and, in Part 6d, the footer's `shrink-0`, a height rule), so it is not a defect this PR makes; fixing it needs a layout decision (stack the counter, drop it, or widen the step), its own change.
+

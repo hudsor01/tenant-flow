@@ -12,6 +12,7 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { fakeSupabaseClient } from "./fake-supabase-client.ts";
 import { finalizeSignedLease, formatMoney } from "../_shared/lease-signing.ts";
 
 interface LeaseRowState {
@@ -159,7 +160,7 @@ function makeClient(row: LeaseRowState): {
 		return b;
 	};
 
-	const client = {
+	const client = fakeSupabaseClient({
 		from: (table: string) => builder(table),
 		// Records every create_notification call so the finalize-failed notification
 		// (NOTIF-04, lease_finalize_failed) can be asserted on the failure branches.
@@ -182,7 +183,7 @@ function makeClient(row: LeaseRowState): {
 				},
 			}),
 		},
-	} as unknown as SupabaseClient;
+	});
 
 	return { client, calls, state };
 }

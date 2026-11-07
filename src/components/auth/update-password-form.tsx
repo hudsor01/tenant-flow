@@ -10,7 +10,7 @@ import {
 	Shield,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { ComponentPropsWithoutRef, FormEvent } from "react";
+import type { ComponentPropsWithoutRef, SubmitEvent } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -32,7 +32,10 @@ import {
 	InputGroupInput,
 } from "#components/ui/input-group";
 import { VALIDATION_LIMITS } from "#lib/constants/billing";
-import { handleMutationError } from "#lib/mutation-error-handler";
+import {
+	handleMutationError,
+	userFacingErrorMessage,
+} from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
 import {
@@ -77,42 +80,33 @@ export function UpdatePasswordForm({
 		},
 	});
 
-	const handleUpdatePassword = async (e: FormEvent) => {
+	const handleUpdatePassword = async (e: SubmitEvent) => {
 		e.preventDefault();
 		updatePasswordMutation.mutate(password);
 	};
 
 	return (
-		<div
-			className={cn(
-				"form-container max-w-md mx-auto animate-fade-in",
-				className,
-			)}
-			{...props}
-		>
+		<div className={cn("max-w-md mx-auto", className)} {...props}>
 			<Card
 				className={cn(
 					cardVariants({ variant: "default" }),
-					"shadow-xl border-2 hover:shadow-2xl transition-all duration-300 ease-out",
+					"shadow-xl border-2",
 				)}
 			>
-				<CardHeader className="text-center space-y-[var(--spacing-4)] animate-slide-in-top">
-					<div className="mx-auto bg-[color-mix(in oklch,var(--color-primary) 10%,transparent)] p-[var(--spacing-3)] rounded-full w-fit">
-						<Lock className="size-[var(--spacing-6)] text-primary" />
+				<CardHeader className="text-center space-y-4">
+					<div className="mx-auto bg-primary/10 p-3 rounded-full w-fit">
+						<Lock className="size-6 text-primary" />
 					</div>
-					<div className="space-y-[var(--spacing-2)]">
+					<div className="space-y-2">
 						<CardTitle className="typography-h2">Reset Your Password</CardTitle>
 						<CardDescription className="leading-relaxed">
 							Please enter a strong new password to secure your account.
 						</CardDescription>
 					</div>
 				</CardHeader>
-				<CardContent className="space-y-[var(--spacing-6)] animate-slide-in-bottom">
-					<form
-						onSubmit={handleUpdatePassword}
-						className="space-y-[var(--spacing-6)]"
-					>
-						<div className="space-y-[var(--spacing-4)]">
+				<CardContent className="space-y-6">
+					<form onSubmit={handleUpdatePassword} className="space-y-6">
+						<div className="space-y-4">
 							{/* New Password Field with PasswordStrength */}
 							<Field>
 								<FieldLabel htmlFor="password">New password</FieldLabel>
@@ -155,7 +149,7 @@ export function UpdatePasswordForm({
 											onClick={() =>
 												setShowConfirmPassword(!showConfirmPassword)
 											}
-											className="text-muted-foreground hover:text-foreground focus:text-primary transition-colors"
+											className="text-muted-foreground hover:text-foreground focus:text-primary-text transition-colors"
 											tabIndex={-1}
 										>
 											{showConfirmPassword ? <EyeOff /> : <Eye />}
@@ -170,16 +164,16 @@ export function UpdatePasswordForm({
 								{confirmPassword.length > 0 &&
 									password.length > 0 &&
 									password !== confirmPassword && (
-										<p className="text-xs text-destructive-text flex items-center gap-[var(--spacing-1)]">
-											<AlertTriangle className="size-[var(--spacing-3)]" />
+										<p className="text-xs text-destructive-text flex items-center gap-1">
+											<AlertTriangle className="size-3" />
 											Passwords do not match
 										</p>
 									)}
 								{confirmPassword.length > 0 &&
 									password.length > 0 &&
 									password === confirmPassword && (
-										<p className="text-xs text-primary-text flex items-center gap-[var(--spacing-1)]">
-											<CheckCircle2 className="size-[var(--spacing-3)]" />
+										<p className="text-xs text-primary-text flex items-center gap-1">
+											<CheckCircle2 className="size-3" />
 											Passwords match
 										</p>
 									)}
@@ -188,11 +182,12 @@ export function UpdatePasswordForm({
 
 						{updatePasswordMutation.isError && (
 							<Alert variant="destructive">
-								<AlertTriangle className="size-[var(--spacing-4)]" />
+								<AlertTriangle className="size-4" />
 								<AlertDescription>
-									{updatePasswordMutation.error instanceof Error
-										? updatePasswordMutation.error.message
-										: "An error occurred while updating your password"}
+									{userFacingErrorMessage(
+										updatePasswordMutation.error,
+										"An error occurred while updating your password",
+									)}
 								</AlertDescription>
 							</Alert>
 						)}
@@ -200,9 +195,8 @@ export function UpdatePasswordForm({
 						<Button
 							type="submit"
 							className={cn(
-								"bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-md px-8",
+								"bg-primary text-primary-foreground hover:bg-primary-text dark:hover:bg-primary/90 h-11 rounded-md px-8",
 								"w-full font-semibold hover:scale-105",
-								"transition-fast-transform",
 							)}
 							disabled={
 								updatePasswordMutation.isPending ||
@@ -215,20 +209,20 @@ export function UpdatePasswordForm({
 						>
 							{updatePasswordMutation.isPending ? (
 								<>
-									<div className="animate-spin rounded-full size-[var(--spacing-4)] border-b-2 border-white mr-[var(--spacing-2)]" />
+									<div className="animate-spin rounded-full size-4 border-b-2 border-primary-foreground mr-2" />
 									Saving...
 								</>
 							) : (
 								<>
-									<Shield className="size-[var(--spacing-4)] mr-[var(--spacing-2)]" />
+									<Shield className="size-4 mr-2" />
 									Save new password
 								</>
 							)}
 						</Button>
 					</form>
 
-					<div className="text-center pt-[var(--spacing-4)] border-t border-(--color-border)">
-						<p className="text-caption">
+					<div className="text-center pt-4 border-t border-border">
+						<p className="text-caption text-muted-foreground">
 							Your password will be encrypted and stored securely
 						</p>
 					</div>

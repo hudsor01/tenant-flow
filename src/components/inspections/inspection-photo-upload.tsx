@@ -6,6 +6,7 @@ import { type FileRejection, useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { useRecordInspectionPhoto } from "#hooks/api/use-inspection-photo-mutations";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 
 interface InspectionPhotoUploadProps {
@@ -145,7 +146,7 @@ export function InspectionPhotoUpload({
 			);
 			return true;
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Upload failed";
+			const message = userFacingErrorMessage(err, "Upload failed");
 			setFiles((prev) =>
 				prev.map((f) =>
 					f.id === id ? { ...f, status: "error" as const, error: message } : f,

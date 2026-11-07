@@ -12,27 +12,16 @@ import Link from "next/link";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import type { MaintenanceDetailRow } from "#hooks/api/query-keys/maintenance-mappers";
 import { formatDate } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
-import type {
-	MaintenancePriority,
-	MaintenanceRequest as MaintenanceRow,
-	MaintenanceStatus,
-} from "#types/core";
+import type { MaintenancePriority, MaintenanceStatus } from "#types/core";
 import { PRIORITY_CONFIG, STATUS_CONFIG } from "./maintenance-utils";
 import { ScheduleDialog } from "./schedule-dialog";
 import { StatusSelect } from "./status-select";
 
-interface PropertyInfo {
-	name?: string | null;
-}
-
-interface UnitInfo {
-	unit_number?: string | null;
-}
-
 type MaintenanceHeaderRequest = Pick<
-	MaintenanceRow,
+	MaintenanceDetailRow,
 	| "id"
 	| "title"
 	| "description"
@@ -40,23 +29,25 @@ type MaintenanceHeaderRequest = Pick<
 	| "priority"
 	| "scheduled_date"
 	| "estimated_cost"
-	| "actual_cost"
+	| "propertyName"
+	| "unitNumber"
 >;
 
 interface MaintenanceHeaderCardProps {
 	request: MaintenanceHeaderRequest;
-	property?: PropertyInfo | null | undefined;
-	unit?: UnitInfo | null | undefined;
-	totalExpenses: number;
+	/**
+	 * The request's spend to date: its expenses (not soft-deleted) dated
+	 * through today, as get_maintenance_analytics counts total_cost
+	 * (20261102184503). `actual_cost` is shown nowhere: nothing writes it.
+	 */
+	spentToDate: number;
 	onRefresh: () => void;
 	onExport: () => void;
 }
 
 export function MaintenanceHeaderCard({
 	request,
-	property,
-	unit,
-	totalExpenses,
+	spentToDate,
 	onRefresh,
 	onExport,
 }: MaintenanceHeaderCardProps) {
@@ -117,19 +108,22 @@ export function MaintenanceHeaderCard({
 					</p>
 				</section>
 
-				{/* Location & Schedule */}
-				<section className="grid gap-4 md:grid-cols-2">
+				{/* Location & Schedule. mb-0 on every line in these boxes and the
+				    cost boxes below: the base `p` margin stood 16px between the
+				    property and its unit and 16px under each box's last line,
+				    inside its p-4. */}
+				<section className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<div className="rounded-lg border bg-muted/30 p-4">
 						<div className="flex items-center gap-2 text-muted-foreground text-sm">
 							<MapPin className="size-4" />
 							Location
 						</div>
-						<p className="mt-1 font-medium">
-							{property?.name ?? "Unassigned property"}
+						<p className="mt-1 mb-0 font-medium">
+							{request.propertyName ?? "Unknown Property"}
 						</p>
-						{unit && (
-							<p className="text-sm text-muted-foreground">
-								Unit {unit.unit_number}
+						{request.unitNumber && (
+							<p className="mb-0 text-sm text-muted-foreground">
+								Unit {request.unitNumber}
 							</p>
 						)}
 					</div>
@@ -146,7 +140,7 @@ export function MaintenanceHeaderCard({
 								onSuccess={onRefresh}
 							/>
 						</div>
-						<p className="mt-1 font-medium">
+						<p className="mt-1 mb-0 font-medium">
 							{request.scheduled_date
 								? formatDate(request.scheduled_date, {
 										formatOptions: {
@@ -163,13 +157,13 @@ export function MaintenanceHeaderCard({
 				</section>
 
 				{/* Cost Summary */}
-				<section className="grid gap-4 md:grid-cols-3">
+				<section className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<div className="rounded-lg border bg-muted/30 p-4">
 						<div className="flex items-center gap-2 text-muted-foreground text-sm">
 							<DollarSign className="size-4" />
 							Estimated Cost
 						</div>
-						<p className="mt-1 font-medium text-lg">
+						<p className="mt-1 mb-0 font-medium text-lg">
 							{request.estimated_cost
 								? formatCurrency(request.estimated_cost)
 								: "-"}
@@ -178,19 +172,10 @@ export function MaintenanceHeaderCard({
 					<div className="rounded-lg border bg-muted/30 p-4">
 						<div className="flex items-center gap-2 text-muted-foreground text-sm">
 							<DollarSign className="size-4" />
-							Actual Cost
+							Spent to Date
 						</div>
-						<p className="mt-1 font-medium text-lg">
-							{request.actual_cost ? formatCurrency(request.actual_cost) : "-"}
-						</p>
-					</div>
-					<div className="rounded-lg border bg-muted/30 p-4">
-						<div className="flex items-center gap-2 text-muted-foreground text-sm">
-							<DollarSign className="size-4" />
-							Total Expenses
-						</div>
-						<p className="mt-1 font-medium text-lg">
-							{totalExpenses > 0 ? formatCurrency(totalExpenses) : "-"}
+						<p className="mt-1 mb-0 font-medium text-lg">
+							{spentToDate > 0 ? formatCurrency(spentToDate) : "-"}
 						</p>
 					</div>
 				</section>

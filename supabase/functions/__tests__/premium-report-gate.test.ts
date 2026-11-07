@@ -33,7 +33,7 @@
  * rest of the unit suite.
  *
  * WHY COMPARE THE SOURCES TO EACH OTHER RATHER THAN TO A LITERAL: a test that
- * asserted the current five members against a hardcoded list would pass today
+ * asserted the current members against a hardcoded list would pass today
  * and still let the three sources diverge tomorrow — editing any one of them
  * would leave the other two, and the test, untouched. Every equality assertion
  * below is source-against-source, so editing any single source fails the suite.
@@ -47,6 +47,8 @@ import {
 	REPORTS_HUB_ENTRIES,
 } from "#app/(owner)/reports/reports-hub-entries";
 import { PREMIUM_REPORT_SLUGS } from "#lib/reports/premium-report-slugs";
+import { FINANCIAL_ANALYTICS_REPORT_TYPE } from "../_shared/financial-analytics-report";
+import { TAX_YEAR_REPORT_TYPES } from "../_shared/tax-year-reports";
 
 function readRepoSource(relativePath: string): string {
 	return readFileSync(
@@ -176,6 +178,37 @@ describe("D-12 cross-source set equality", () => {
 	});
 });
 
+describe("the gated set names only reports the functions build", () => {
+	// Both functions build the financial-analytics export and the tax-year
+	// reports, and answer any other type with a 400 (before the gate), so a
+	// gated type neither function builds would gate nothing. income-statement
+	// and cash-flow were such types: they fell through to a flattened revenue
+	// dump no caller requested, and left the set with the dead branch.
+	const BUILT_TYPES = [
+		FINANCIAL_ANALYTICS_REPORT_TYPE,
+		...TAX_YEAR_REPORT_TYPES,
+	];
+
+	it("every gated type is a type both functions build", () => {
+		const unbuilt = EXPORT_REPORT_TYPES.filter(
+			(type) => !BUILT_TYPES.includes(type),
+		);
+		expect(unbuilt).toEqual([]);
+	});
+
+	it("both functions accept exactly the built types and 400 the rest", () => {
+		for (const [label, source] of [
+			["export-report", EXPORT_REPORT_SOURCE],
+			["generate-pdf", GENERATE_PDF_SOURCE],
+		] as const) {
+			expect(source, label).toMatch(
+				/const REPORT_TYPES: readonly string\[\] = \[\s*FINANCIAL_ANALYTICS_REPORT_TYPE,\s*\.\.\.TAX_YEAR_REPORT_TYPES,\s*\];/,
+			);
+			expect(source, label).toMatch(/!REPORT_TYPES\.includes\(/);
+		}
+	});
+});
+
 describe("gate wiring", () => {
 	it("export-report still consults PREMIUM_REPORT_TYPES before exporting", () => {
 		assertGateWiring(EXPORT_REPORT_SOURCE, "export-report");
@@ -235,47 +268,41 @@ describe("D-13 export call-site values survive the route consolidation", () => {
 });
 
 /**
- * RECORDED FINDINGS — verified facts this phase deliberately does NOT repair.
+ * RECORDED FINDINGS — verified facts Phase 56 recorded rather than repaired.
  *
- * Both items below are recorded, not defects this plan fixes. Phase 56 moves and
- * consolidates surfaces; it does not add reporting capability. Reading either
- * omission as an oversight would be wrong.
+ * Phase 56 moved and consolidated surfaces; it did not add reporting
+ * capability, so it recorded both items below instead of fixing them. Both
+ * have since been resolved in 66.2-39.
  *
- * 1. TWO GATED EXPORT PATHS ARE UNEXERCISED BY THE PRODUCT.
+ * 1. THE TWO UNEXERCISED GATED CSV EXPORTS ARE DELETED (66.2-39, part G).
  *    `reportMutations.downloadYearEndCsv` and `reportMutations.download1099Csv`
- *    (src/hooks/api/query-keys/report-keys.ts) POST to the gated `export-report`
- *    edge function with reportType "year-end" and "1099" respectively. Verified
- *    this session: neither has a call site anywhere in `src/` outside its own
- *    declaration. `/reports/year-end/page.tsx` builds its CSV client-side with a
- *    local `downloadCsv` helper instead, so those two 402 paths never fire in the
- *    shipped product. The sibling PDF mutations (`downloadYearEndPdf`,
- *    `downloadTaxDocumentPdf`) ARE wired, via `use-report-mutations.ts`. The test
- *    below pins that the two CSV exports still exist, so deleting them is a
- *    deliberate act rather than an incidental cleanup. They are NOT wired to UI
- *    here.
+ *    had no call site anywhere in `src/` (`/reports/year-end/page.tsx` builds
+ *    its CSV client-side), so their 402 paths never fired in the product. Part
+ *    G deleted them deliberately, with their mutation keys; the guard
+ *    `src/hooks/api/__tests__/report-mutations-have-callers.test.ts` fails on
+ *    any report mutation without a caller. The one export-report caller left,
+ *    `callExportEdgeFunction`, serves the `/analytics/financial` export
+ *    (`financial-analytics`, gated in all three sets above). The sibling PDF
+ *    mutations (`downloadYearEndPdf`, `downloadTaxDocumentPdf`) stay wired via
+ *    `use-report-mutations.ts`.
  *
- * 2. TWO EXPORT BUTTONS ARE RENDERED WITH no onClick HANDLER.
- *    The `Export` buttons in the income-statement and cash-flow page headers
- *    (`income-statement-page-header.tsx` renders a `<Button variant="outline">`,
- *    `cash-flow-header.tsx` a raw `<button>`) carry no handler at all — verified
- *    by inspection. They reach no edge function and gate nothing, which is
- *    precisely why neither tile carries a `Growth` badge in REPORTS_HUB_ENTRIES.
- *    An E2E author must not mistake a dead button for working behaviour: clicking
- *    it produces no request and no download. No handler is added here.
- *
- *    These two files are not asserted against by path because Phase 56 relocates
- *    the `/financials` tree in a later wave; a path assertion would break the
- *    suite mid-phase for a fact that is not about the tier gate.
+ * 2. THE INCOME-STATEMENT AND CASH-FLOW EXPORT BUTTONS ARE WIRED (66.2-39).
+ *    Phase 56 found the `Export` buttons in both page headers with no handler.
+ *    `973fec763` and `a9e06d461` wired them (`ReportExportButton`) to CSVs the
+ *    pages build client-side. They still reach no edge function and gate
+ *    nothing, which is why neither tile carries a `Growth` badge in
+ *    REPORTS_HUB_ENTRIES.
  */
-describe("recorded findings (not repaired by this phase)", () => {
-	it("report-keys.ts still declares both unexercised gated CSV exports", () => {
-		expect(REPORT_KEYS_SOURCE).toMatch(/\bdownloadYearEndCsv:\s*\(\)\s*=>/);
-		expect(REPORT_KEYS_SOURCE).toMatch(/\bdownload1099Csv:\s*\(\)\s*=>/);
+describe("recorded findings", () => {
+	it("report-keys.ts no longer declares the unexercised gated CSV exports", () => {
+		expect(REPORT_KEYS_SOURCE).not.toMatch(/\bdownloadYearEndCsv\b/);
+		expect(REPORT_KEYS_SOURCE).not.toMatch(/\bdownload1099Csv\b/);
+	});
+
+	it("the one export-report caller sends the gated financial-analytics type", () => {
 		expect(REPORT_KEYS_SOURCE).toContain(
-			'callExportEdgeFunction("year-end", "csv", year)',
+			"callExportEdgeFunction(FINANCIAL_ANALYTICS_REPORT_TYPE, format)",
 		);
-		expect(REPORT_KEYS_SOURCE).toContain(
-			'callExportEdgeFunction("1099", "csv", year)',
-		);
+		expect(EXPORT_REPORT_TYPES).toContain("financial-analytics");
 	});
 });

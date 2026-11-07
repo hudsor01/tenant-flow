@@ -1,0 +1,907 @@
+{
+ "capturedAt": "2026-10-26T17:03:27.059Z",
+ "head": "e82726ce3a9d658f09e156cd08d0253b7521a5dd",
+ "server": "screens.mjs --start next start :3062 (NEXT_PUBLIC_APP_URL=http://localhost:3062 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder SKIP_ENV_VALIDATION=true bun run build)",
+ "appUrl": "http://localhost:3062",
+ "blogSlug": "turbotenant-vs-apartments-com-complete-comparison-for-2025",
+ "captureCommands": {
+  "baseline": "NEXT_PUBLIC_APP_URL=http://localhost:3062 TW_AUDIT_OUT=\"$CAP/shots\" bun .planning/tailwind-shadcn/audit/screens.mjs baseline --start --port 3062",
+  "baseline-repeat": "NEXT_PUBLIC_APP_URL=http://localhost:3062 TW_AUDIT_OUT=\"$CAP/shots\" bun .planning/tailwind-shadcn/audit/screens.mjs baseline-repeat --start --port 3062 --blog-slug turbotenant-vs-apartments-com-complete-comparison-for-2025",
+  "pixelDiff": "TW_AUDIT_OUT=\"$CAP/shots\" bun .planning/tailwind-shadcn/audit/screens.mjs --diff baseline baseline-repeat"
+ },
+ "tool": {
+  "path": ".planning/tailwind-shadcn/audit/screens.mjs",
+  "sha256": "ce38afa9f5007d31286bba7ef6a1bf14c99ba69131569dcd358aa32ef82607f4"
+ },
+ "counts": {
+  "total": 92,
+  "public": 44,
+  "owner": 48,
+  "noise": 4,
+  "pixelDiffSummary": {
+   "identical": 89,
+   "changed": 3,
+   "sizeChanged": 0,
+   "missingInA": 0,
+   "missingInB": 0
+  }
+ },
+ "consoleErrorsPerMessage": {
+  "Failed to load resource: the server responded with a status of 404 (Not Found)": 184
+ },
+ "entries": [
+  {
+   "file": "owner/analytics_overview-dark-1280.png",
+   "set": "owner",
+   "route": "/analytics/overview",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "3578df5d61804800f093b7e7ee782c2a3876a9df1f1b5838e1cc5f4ee42d7958",
+   "bytes": 146055
+  },
+  {
+   "file": "owner/analytics_overview-dark-390.png",
+   "set": "owner",
+   "route": "/analytics/overview",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "762c080b1b8bb899e5b64b1dbb263b12fdeb4ea4c34968154dcef4c2fee6dda2",
+   "bytes": 112416
+  },
+  {
+   "file": "owner/analytics_overview-light-1280.png",
+   "set": "owner",
+   "route": "/analytics/overview",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "fb627427083016bdce364158e08f31f1aad1de53057ecb141589c52a60a98639",
+   "bytes": 146229
+  },
+  {
+   "file": "owner/analytics_overview-light-390.png",
+   "set": "owner",
+   "route": "/analytics/overview",
+   "theme": "light",
+   "width": 390,
+   "sha256": "306ca29cd1eeb68a04eb41fcbd7014bdb22855d6cb87e5666696fbcd2a4e6220",
+   "bytes": 111541
+  },
+  {
+   "file": "owner/applications-dark-1280.png",
+   "set": "owner",
+   "route": "/applications",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "b88ddf1ea3ace8c8e8f69004f76a93d59acd08daa52e26bb91381a32c7598d16",
+   "bytes": 238765
+  },
+  {
+   "file": "owner/applications-dark-320.png",
+   "set": "owner",
+   "route": "/applications",
+   "theme": "dark",
+   "width": 320,
+   "sha256": "2e2b2d6d9ab9859e6b503a26f56e7fb3a3951fbcabdf8bc03a4f61bb0cd2cb72",
+   "bytes": 146324
+  },
+  {
+   "file": "owner/applications-dark-375.png",
+   "set": "owner",
+   "route": "/applications",
+   "theme": "dark",
+   "width": 375,
+   "sha256": "04e3d7ed8f7dd9d373a5d009ed0f808f6bd5054ae0bda1d571497b161793757c",
+   "bytes": 164157
+  },
+  {
+   "file": "owner/applications-dark-390.png",
+   "set": "owner",
+   "route": "/applications",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "2100e3e05984de99ad6d20b17d5b2ea10d24337942709ffc3fecdf0abe7b8e9b",
+   "bytes": 169022
+  },
+  {
+   "file": "owner/applications-light-1280.png",
+   "set": "owner",
+   "route": "/applications",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "1ab600cacbff4fa01a03f6e869a1b1cd4f94a45034571397dc3c0479e6e2719e",
+   "bytes": 241994
+  },
+  {
+   "file": "owner/applications-light-320.png",
+   "set": "owner",
+   "route": "/applications",
+   "theme": "light",
+   "width": 320,
+   "sha256": "fc00764d0e8fa9aefefd1b5b350f2a64a257ce491a83cf347a548fef2731bc2c",
+   "bytes": 148225
+  },
+  {
+   "file": "owner/applications-light-375.png",
+   "set": "owner",
+   "route": "/applications",
+   "theme": "light",
+   "width": 375,
+   "sha256": "9ff3f597ff0ef80705f3b003daf779dcfe56bbefd9f44a06ec0209ae3e1225c9",
+   "bytes": 165619
+  },
+  {
+   "file": "owner/applications-light-390.png",
+   "set": "owner",
+   "route": "/applications",
+   "theme": "light",
+   "width": 390,
+   "sha256": "4cb6847b854486cad202d698fa58b5b2daf71b73b7a99b962e9e9b3c7d5dbc90",
+   "bytes": 171188
+  },
+  {
+   "file": "owner/dashboard-dark-1280.png",
+   "set": "owner",
+   "route": "/dashboard",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "a5a3ae56b709220009f805de8f1ecabc5024a4d41d87563f5bb8adc3a00079a0",
+   "bytes": 311382
+  },
+  {
+   "file": "owner/dashboard-dark-390.png",
+   "set": "owner",
+   "route": "/dashboard",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "63d60cfac920c688a7c50fb75cbd76f4c718f6db1375bc0d13a73645db8c9c38",
+   "bytes": 304122
+  },
+  {
+   "file": "owner/dashboard-light-1280.png",
+   "set": "owner",
+   "route": "/dashboard",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "643a509a1e948d9710b2527211ff7dba47b8384ce9b024e147f1889bd42e8747",
+   "bytes": 311346
+  },
+  {
+   "file": "owner/dashboard-light-390.png",
+   "set": "owner",
+   "route": "/dashboard",
+   "theme": "light",
+   "width": 390,
+   "sha256": "b5d5e0a60bc64d91ac0c4d8f97a74723898793f6239c89fad9ede2554fd79e4c",
+   "bytes": 303777
+  },
+  {
+   "file": "owner/documents_lease-template-dark-1280.png",
+   "set": "owner",
+   "route": "/documents/lease-template",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "7ec90d6da5f2f702d05265d60f4e0771659eb5dfb2a2ef86351fa0df00fb5c9a",
+   "bytes": 794540
+  },
+  {
+   "file": "owner/documents_lease-template-dark-390.png",
+   "set": "owner",
+   "route": "/documents/lease-template",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "40a10c6c792012c18579a978e8dd9c800301ae79a8f49b0e772f2c8364dd5276",
+   "bytes": 745210
+  },
+  {
+   "file": "owner/documents_lease-template-light-1280.png",
+   "set": "owner",
+   "route": "/documents/lease-template",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "b693b176f17b3eebde6bdfa62e1c85c091a91125b91f0ff596b44dd5f2ba630a",
+   "bytes": 860657
+  },
+  {
+   "file": "owner/documents_lease-template-light-390.png",
+   "set": "owner",
+   "route": "/documents/lease-template",
+   "theme": "light",
+   "width": 390,
+   "sha256": "6538723b4cc97bcd385acb2f44ffcbf4b93ce0f54e477e514867e535f652280d",
+   "bytes": 809151
+  },
+  {
+   "file": "owner/documents-dark-1280.png",
+   "set": "owner",
+   "route": "/documents",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "96659bae1cffe577e477d8e61726c4fbe4e194cd7de15038c8becb539cff2658",
+   "bytes": 134462
+  },
+  {
+   "file": "owner/documents-dark-390.png",
+   "set": "owner",
+   "route": "/documents",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "2af1efcb2363074f697dd74ff445359e903fb26a3a25f6188b9c6c796236fbde",
+   "bytes": 103522
+  },
+  {
+   "file": "owner/documents-light-1280.png",
+   "set": "owner",
+   "route": "/documents",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "0c930a9e61fb6934a7c6beaf53dd63db9041bff347cabbd8faa719a3e78f9d70",
+   "bytes": 134033
+  },
+  {
+   "file": "owner/documents-light-390.png",
+   "set": "owner",
+   "route": "/documents",
+   "theme": "light",
+   "width": 390,
+   "sha256": "04918fd86293949c11bb1ac4e926b828f0cd2200eb7866e13ab3ac28d8e4ebe3",
+   "bytes": 102047
+  },
+  {
+   "file": "owner/leases-dark-1280.png",
+   "set": "owner",
+   "route": "/leases",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "38bd61d64d32f7d800208073357e1b8ffc8688b59888104bccaba69217ced214",
+   "bytes": 124419
+  },
+  {
+   "file": "owner/leases-dark-390.png",
+   "set": "owner",
+   "route": "/leases",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "a9f788ab9563a9021ad5a50ed6b6f078edc31160769c30bd463b6562ca390e7d",
+   "bytes": 57265
+  },
+  {
+   "file": "owner/leases-light-1280.png",
+   "set": "owner",
+   "route": "/leases",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "06a91d71964dad282ca65e2afeebc1f1345fc32a54f5fd0c01e1c6e62a8af7f6",
+   "bytes": 124554
+  },
+  {
+   "file": "owner/leases-light-390.png",
+   "set": "owner",
+   "route": "/leases",
+   "theme": "light",
+   "width": 390,
+   "sha256": "2c9f639e949da5e9a3826d9c9d4521ceb02ef65a8bf8707b4067576bb7bdbe7e",
+   "bytes": 56688
+  },
+  {
+   "file": "owner/maintenance-dark-1280.png",
+   "set": "owner",
+   "route": "/maintenance",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "b6576c11bada26a7dfc485202183703ef7353387d376f51594ccdcf2471c0571",
+   "bytes": 60723
+  },
+  {
+   "file": "owner/maintenance-dark-390.png",
+   "set": "owner",
+   "route": "/maintenance",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "e68a0a548c1f79575588e9d6174d5405c2f5a5ee76817b8749b463d03c2a9b3c",
+   "bytes": 24688
+  },
+  {
+   "file": "owner/maintenance-light-1280.png",
+   "set": "owner",
+   "route": "/maintenance",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "8963948ad2cf826961d7f0501f4e2a49b6b7291fb23f826f7cab2f8a8672ff5c",
+   "bytes": 60931
+  },
+  {
+   "file": "owner/maintenance-light-390.png",
+   "set": "owner",
+   "route": "/maintenance",
+   "theme": "light",
+   "width": 390,
+   "sha256": "7205233287798257756449e516874192a81b121e38c13fc6f49a6c4fc032fc76",
+   "bytes": 24294
+  },
+  {
+   "file": "owner/properties-dark-1280.png",
+   "set": "owner",
+   "route": "/properties",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "603ff817fd807c9304d51f319ae3f3737705bc6b194572c3f0609f5052850d5a",
+   "bytes": 126704
+  },
+  {
+   "file": "owner/properties-dark-390.png",
+   "set": "owner",
+   "route": "/properties",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "69abc1de44ed55e23583591898837dc64522bb0249ebbd4f26f55d5cce6a0d3f",
+   "bytes": 68309
+  },
+  {
+   "file": "owner/properties-light-1280.png",
+   "set": "owner",
+   "route": "/properties",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "0566ecacf4fc29a7e6b1bdc1f323ba9cc3ba17eb4aecf881765052eb67ad7911",
+   "bytes": 125948
+  },
+  {
+   "file": "owner/properties-light-390.png",
+   "set": "owner",
+   "route": "/properties",
+   "theme": "light",
+   "width": 390,
+   "sha256": "af4bd6c2ececff350bbc1d7172d6df7dfff38fcc6134de6df48ea2867bc86cda",
+   "bytes": 67885
+  },
+  {
+   "file": "owner/reports_cash-flow-dark-1280.png",
+   "set": "owner",
+   "route": "/reports/cash-flow",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "ed90ee73e6f64fa39091166ed594d883c6d9d5978099bd95abde75f7e2b29e6d",
+   "bytes": 131010
+  },
+  {
+   "file": "owner/reports_cash-flow-dark-390.png",
+   "set": "owner",
+   "route": "/reports/cash-flow",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "ec0e6a4ea250f5b64a0d1e480b0466644fb40a0c9df7794a5bb477d5328b13b8",
+   "bytes": 99943
+  },
+  {
+   "file": "owner/reports_cash-flow-light-1280.png",
+   "set": "owner",
+   "route": "/reports/cash-flow",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "d127646bc78066d20e4d0a348c9e124607532fa889777cab428254772214afb9",
+   "bytes": 133099
+  },
+  {
+   "file": "owner/reports_cash-flow-light-390.png",
+   "set": "owner",
+   "route": "/reports/cash-flow",
+   "theme": "light",
+   "width": 390,
+   "sha256": "769de84faeec702f8df2806b4a04b0b2ff78c05117054fe258043db750c865f5",
+   "bytes": 100725
+  },
+  {
+   "file": "owner/settings-dark-1280.png",
+   "set": "owner",
+   "route": "/settings",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "c0207647957a078aea89d9a3eee5d1a04c0378781ff30212c1c731a6b69a0791",
+   "bytes": 134540
+  },
+  {
+   "file": "owner/settings-dark-390.png",
+   "set": "owner",
+   "route": "/settings",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "3b8e6b447a46cde22f3da4833344775b08fd1c37c003dcfd0c9154889c4521bb",
+   "bytes": 98684
+  },
+  {
+   "file": "owner/settings-light-1280.png",
+   "set": "owner",
+   "route": "/settings",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "7324c7d94d03ee59f45d56a07640c0f2525b92019ef901eb3c9599e8f8014a0a",
+   "bytes": 135141
+  },
+  {
+   "file": "owner/settings-light-390.png",
+   "set": "owner",
+   "route": "/settings",
+   "theme": "light",
+   "width": 390,
+   "sha256": "9912f751c06e162ade8d665a2bf7f859e0175d739ceb9c24c8bc05884a911042",
+   "bytes": 98610
+  },
+  {
+   "file": "owner/tenants-dark-1280.png",
+   "set": "owner",
+   "route": "/tenants",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "bfaf790d308c5b3a3d9afc7463711c4c6c0d815f86af7fb46ff9be8e901c15dc",
+   "bytes": 136995
+  },
+  {
+   "file": "owner/tenants-dark-390.png",
+   "set": "owner",
+   "route": "/tenants",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "5fe665ccc9eca2f77ce197519837bbbb4e7fda9735f86cce69587f34e8bf8587",
+   "bytes": 78043
+  },
+  {
+   "file": "owner/tenants-light-1280.png",
+   "set": "owner",
+   "route": "/tenants",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "5f80d2dc810362b0e6cd84571864174b418f13cfeb3fc8a335b7f9ca230628ba",
+   "bytes": 138203
+  },
+  {
+   "file": "owner/tenants-light-390.png",
+   "set": "owner",
+   "route": "/tenants",
+   "theme": "light",
+   "width": 390,
+   "sha256": "c5032220fabefd0224ac2d32bd0e547ff0d5b7105ae2b65e10ec2459bc4dbf17",
+   "bytes": 78137
+  },
+  {
+   "file": "public/auth_confirm-email-dark-1280.png",
+   "set": "public",
+   "route": "/auth/confirm-email",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "527ddac8a6a0ab212df1ef6698638c5d2427ccd8f0f95ae8d97ec416e0ea7c70",
+   "bytes": 566901
+  },
+  {
+   "file": "public/auth_confirm-email-dark-390.png",
+   "set": "public",
+   "route": "/auth/confirm-email",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "c9dddae377fbc4bdf2bc14fe7028d5f159711fdb7a4b8eb63d784b310bb11351",
+   "bytes": 66274
+  },
+  {
+   "file": "public/auth_confirm-email-light-1280.png",
+   "set": "public",
+   "route": "/auth/confirm-email",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "e7a3ed78c9808c3a92bcbb990419d8fb5788d75ec34c19758f85222ba1d7965a",
+   "bytes": 568445
+  },
+  {
+   "file": "public/auth_confirm-email-light-390.png",
+   "set": "public",
+   "route": "/auth/confirm-email",
+   "theme": "light",
+   "width": 390,
+   "sha256": "01dd737371a0bf2947c065175cdab10fdd4b3595192b2c1b4ee4c669dd8b7de5",
+   "bytes": 66889
+  },
+  {
+   "file": "public/auth_update-password-dark-1280.png",
+   "set": "public",
+   "route": "/auth/update-password",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "79250283d2d1ade6dd9563dea2e6405fe0fe382180bbc48551f067ae9f603668",
+   "bytes": 439412
+  },
+  {
+   "file": "public/auth_update-password-dark-390.png",
+   "set": "public",
+   "route": "/auth/update-password",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "34193e8d3862a1c832e5888ab94b0bee498a07a5e2fbcf6f63bc8df01b0c6d13",
+   "bytes": 36389
+  },
+  {
+   "file": "public/auth_update-password-light-1280.png",
+   "set": "public",
+   "route": "/auth/update-password",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "732bb8a0ce8456b8a619decf2372c2a3501c1983289ad2107fdd2486a281cf74",
+   "bytes": 441470
+  },
+  {
+   "file": "public/auth_update-password-light-390.png",
+   "set": "public",
+   "route": "/auth/update-password",
+   "theme": "light",
+   "width": 390,
+   "sha256": "8e11f68b3d246fa17b49f0b05465b3572f5dbba5fd51c271d490acfab1bfed73",
+   "bytes": 36544
+  },
+  {
+   "file": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280.png",
+   "set": "public",
+   "route": "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "141af756085cac9c66dab61b011f0083f66ca8be411b9db2bc67c60e03bbaa1b",
+   "bytes": 2235758
+  },
+  {
+   "file": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390.png",
+   "set": "public",
+   "route": "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "61c6e885a45efbf434e68736c1e42de9c43e9b38a22bbb50d281d063ada33d42",
+   "bytes": 2370644
+  },
+  {
+   "file": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280.png",
+   "set": "public",
+   "route": "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "853a440336f3bc45cae80a52777fd17fc035acff68b63175d085203318d65f95",
+   "bytes": 2250271
+  },
+  {
+   "file": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390.png",
+   "set": "public",
+   "route": "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
+   "theme": "light",
+   "width": 390,
+   "sha256": "597b02e0b86ceb3b146cd8d18916f698c137cf8ac3f94b4f2ef5f4005cb2d401",
+   "bytes": 2385665
+  },
+  {
+   "file": "public/contact-dark-1280.png",
+   "set": "public",
+   "route": "/contact",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "f3259ceb576a1840c495d5a33211cabc1d8f8749b4c08d85e3b8ca1153eb2316",
+   "bytes": 341137
+  },
+  {
+   "file": "public/contact-dark-390.png",
+   "set": "public",
+   "route": "/contact",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "dbe6f0c720808ce61b06da32d9f5ca4a5ae7631afa56e343dbf3f91ed6b1d100",
+   "bytes": 174791
+  },
+  {
+   "file": "public/contact-light-1280.png",
+   "set": "public",
+   "route": "/contact",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "db6c207b741d52580d8e2b88fcf487d621719724e897c1d76a78b2193eb8094d",
+   "bytes": 365950
+  },
+  {
+   "file": "public/contact-light-390.png",
+   "set": "public",
+   "route": "/contact",
+   "theme": "light",
+   "width": 390,
+   "sha256": "7dc309383945ef8002d5ba0174aa06e0735debef53658d3014ab1021d6755271",
+   "bytes": 180765
+  },
+  {
+   "file": "public/faq-dark-1280.png",
+   "set": "public",
+   "route": "/faq",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "5d9ae6b6cb898d77262628d7b3603dbd2fafbc775528dfcd28c358ee1b8721db",
+   "bytes": 331956
+  },
+  {
+   "file": "public/faq-dark-390.png",
+   "set": "public",
+   "route": "/faq",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "48766732add957cfa2668d209debd932dad10d4d16d2946786e6fdf191a7d6cc",
+   "bytes": 287196
+  },
+  {
+   "file": "public/faq-light-1280.png",
+   "set": "public",
+   "route": "/faq",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "73f1dfa91e471e063ad4ebc7402eaf3357ccefec1e70f8033c279212737240d6",
+   "bytes": 332628
+  },
+  {
+   "file": "public/faq-light-390.png",
+   "set": "public",
+   "route": "/faq",
+   "theme": "light",
+   "width": 390,
+   "sha256": "3804cc8f1c4e9ba64d56d294a5072afc0edb986349d69c625046bda643052ae2",
+   "bytes": 286850
+  },
+  {
+   "file": "public/help-dark-1280.png",
+   "set": "public",
+   "route": "/help",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "f5a63d01bc0ba9864ae22e78ec3916ddf60c3a232a6597a625c4d0e1275dde81",
+   "bytes": 253638
+  },
+  {
+   "file": "public/help-dark-390.png",
+   "set": "public",
+   "route": "/help",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "74446d064f9a7f79ca13228031049f88c65284de1162ffa8c59c0ca309f39f19",
+   "bytes": 240127
+  },
+  {
+   "file": "public/help-light-1280.png",
+   "set": "public",
+   "route": "/help",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "c8bd650cf0626844a29f3da99cda345897dc3cbfa82ffe03285f9c2e1ff512a5",
+   "bytes": 249375
+  },
+  {
+   "file": "public/help-light-390.png",
+   "set": "public",
+   "route": "/help",
+   "theme": "light",
+   "width": 390,
+   "sha256": "0f3e632bed6c7f1f81ace60d1c70a8d1ff0b3302ca85b4cf86d7c904b276116e",
+   "bytes": 234525
+  },
+  {
+   "file": "public/login-dark-1280.png",
+   "set": "public",
+   "route": "/login",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "043e47a1ce6f13737a0ef70da5498a4f2770e112a4c343845b08f49ec466eb74",
+   "bytes": 355114
+  },
+  {
+   "file": "public/login-dark-390.png",
+   "set": "public",
+   "route": "/login",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "8c07cfe00ce5c2f9ee500b778fc89a60a3c5c289c89b477fce58152d34365c2f",
+   "bytes": 46517
+  },
+  {
+   "file": "public/login-light-1280.png",
+   "set": "public",
+   "route": "/login",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "870f8e4c2a900f87fdf5e839c56de5edbaa6119600e1fe13c3e6c1846e8923b9",
+   "bytes": 355662
+  },
+  {
+   "file": "public/login-light-390.png",
+   "set": "public",
+   "route": "/login",
+   "theme": "light",
+   "width": 390,
+   "sha256": "eea10329a817d9ab2fdc92af892cabb423c127184a4c6d58f09841b3e36bfe1b",
+   "bytes": 46254
+  },
+  {
+   "file": "public/pricing-dark-1280.png",
+   "set": "public",
+   "route": "/pricing",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "a387f54b62fe577cd6af23a1f9030dbebe8fbf860f2d18aec1947a5ae52a42f1",
+   "bytes": 448948
+  },
+  {
+   "file": "public/pricing-dark-390.png",
+   "set": "public",
+   "route": "/pricing",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "03855826afb875115bab43f889ade77e44ce06d049b3a362927b235f1bedcb1a",
+   "bytes": 411055
+  },
+  {
+   "file": "public/pricing-light-1280.png",
+   "set": "public",
+   "route": "/pricing",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "b13719ef5db2c9195b63a56fc5fb2c21830800393679270083ce869b237b46d7",
+   "bytes": 446830
+  },
+  {
+   "file": "public/pricing-light-390.png",
+   "set": "public",
+   "route": "/pricing",
+   "theme": "light",
+   "width": 390,
+   "sha256": "d92edf648c0304ca00259255b89cd3fcc75d47362101be4abaffdd773b7d9065",
+   "bytes": 408265
+  },
+  {
+   "file": "public/privacy-dark-1280.png",
+   "set": "public",
+   "route": "/privacy",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "b9647a07469594acacb3abc634af3c61c00d5c5ddac2bd124c7491afffd7cfb8",
+   "bytes": 941193
+  },
+  {
+   "file": "public/privacy-dark-390.png",
+   "set": "public",
+   "route": "/privacy",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "67de6ef5a0a86d252cb15afed8105b37f4779701265057cc82e387d55bf50258",
+   "bytes": 925993
+  },
+  {
+   "file": "public/privacy-light-1280.png",
+   "set": "public",
+   "route": "/privacy",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "3eed9296595c68837db379cc00c21092eb2cf2aac7072b9ab48f15c9497bbfc4",
+   "bytes": 944626
+  },
+  {
+   "file": "public/privacy-light-390.png",
+   "set": "public",
+   "route": "/privacy",
+   "theme": "light",
+   "width": 390,
+   "sha256": "e859ca0e5a9d06eac6923cd499c6c5bb6f279ca57325843c2d7fe85f08395d8e",
+   "bytes": 926059
+  },
+  {
+   "file": "public/root-dark-1280.png",
+   "set": "public",
+   "route": "/",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "70f265195b98aa99e15ad43e2b2123af5d6fe51bb8c993b0d1c2fd60bccbae29",
+   "bytes": 789010
+  },
+  {
+   "file": "public/root-dark-390.png",
+   "set": "public",
+   "route": "/",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "815f213cc7f954c42c66c09de99d096dc82d422d854326c62978cb8491a0d36d",
+   "bytes": 614061
+  },
+  {
+   "file": "public/root-light-1280.png",
+   "set": "public",
+   "route": "/",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "45c3a13e6977d9b0f0f670db15fe7cc9a5e98fda8fd31f7af23cf24453d2251d",
+   "bytes": 783910
+  },
+  {
+   "file": "public/root-light-390.png",
+   "set": "public",
+   "route": "/",
+   "theme": "light",
+   "width": 390,
+   "sha256": "69b707bddbdbbd3c9502990ee00e2ba2bd5a280cff64dffeaa1c385263453e92",
+   "bytes": 608388
+  },
+  {
+   "file": "public/signup-dark-1280.png",
+   "set": "public",
+   "route": "/signup",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "a387f54b62fe577cd6af23a1f9030dbebe8fbf860f2d18aec1947a5ae52a42f1",
+   "bytes": 448948
+  },
+  {
+   "file": "public/signup-dark-390.png",
+   "set": "public",
+   "route": "/signup",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "76b751a6928e8bc5b1fe9883093035fd7b1d1bbd85abf1d81383b160ef015ae8",
+   "bytes": 411088
+  },
+  {
+   "file": "public/signup-light-1280.png",
+   "set": "public",
+   "route": "/signup",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "b13719ef5db2c9195b63a56fc5fb2c21830800393679270083ce869b237b46d7",
+   "bytes": 446830
+  },
+  {
+   "file": "public/signup-light-390.png",
+   "set": "public",
+   "route": "/signup",
+   "theme": "light",
+   "width": 390,
+   "sha256": "a519854b3ab53c36ffd2bae549cea56e62a88613c6d1b80c9a457509cb26ff61",
+   "bytes": 408301
+  }
+ ],
+ "noise": [
+  {
+   "file": "public/pricing-dark-390.png",
+   "baselineSha256": "03855826afb875115bab43f889ade77e44ce06d049b3a362927b235f1bedcb1a",
+   "repeatSha256": "76b751a6928e8bc5b1fe9883093035fd7b1d1bbd85abf1d81383b160ef015ae8",
+   "changedPixels": 12,
+   "bbox": {
+    "x": 57,
+    "y": 3550,
+    "width": 17,
+    "height": 9
+   }
+  },
+  {
+   "file": "public/pricing-light-390.png",
+   "baselineSha256": "d92edf648c0304ca00259255b89cd3fcc75d47362101be4abaffdd773b7d9065",
+   "repeatSha256": "425db96d493f2d7e8d850f454dac024c460577eed089355db4beea0e286971ed",
+   "changedPixels": 12,
+   "bbox": {
+    "x": 57,
+    "y": 3550,
+    "width": 17,
+    "height": 9
+   }
+  },
+  {
+   "file": "public/signup-dark-390.png",
+   "baselineSha256": "76b751a6928e8bc5b1fe9883093035fd7b1d1bbd85abf1d81383b160ef015ae8",
+   "repeatSha256": "0bcca1462a234254b8424995f572460d76ad70cd490e4112c3294723655637ac",
+   "changedPixels": 0,
+   "bbox": null
+  },
+  {
+   "file": "public/signup-light-390.png",
+   "baselineSha256": "a519854b3ab53c36ffd2bae549cea56e62a88613c6d1b80c9a457509cb26ff61",
+   "repeatSha256": "425db96d493f2d7e8d850f454dac024c460577eed089355db4beea0e286971ed",
+   "changedPixels": 12,
+   "bbox": {
+    "x": 57,
+    "y": 3550,
+    "width": 17,
+    "height": 9
+   }
+  }
+ ]
+}

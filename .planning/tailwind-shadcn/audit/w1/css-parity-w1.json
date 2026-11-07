@@ -1,0 +1,70 @@
+{
+ "baseline": "/Users/richard/Developer/tenant-flow-tw-shadcn/.planning/tailwind-shadcn/audit/baseline/candidate-css.json",
+ "current": "/var/folders/97/49l0bl6s2tngpfqhd13nv9w80000gn/T/tw-66.2-10/w1/candidate-css.json",
+ "strict": false,
+ "total": 1930,
+ "identical": 1908,
+ "changed": 22,
+ "counts": {
+  "spacing-equivalent": 0,
+  "color-inline": 0,
+  "added": 4,
+  "removed": 15,
+  "unclassified": 3
+ },
+ "lists": {
+  "spacing-equivalent": [],
+  "color-inline": [],
+  "added": [
+   "border-t-foreground",
+   "min-h-24",
+   "shadow-(--shadow-md)",
+   "text-muted-foreground/75"
+  ],
+  "removed": [
+   "bg-(--color-fill-primary)",
+   "bg-fill-tertiary",
+   "border-(--color-separator)",
+   "border-separator",
+   "min-h-24!",
+   "placeholder:text-(--color-label-tertiary)",
+   "rounded-[var(--radius-md)]",
+   "shadow-[var(--shadow-md)]",
+   "text-(--color-label-secondary)",
+   "text-(--color-label-tertiary)",
+   "text-caption/60",
+   "text-caption/75",
+   "text-label-primary",
+   "text-label-secondary",
+   "text-label-tertiary"
+  ],
+  "unclassified": [
+   "font-mono",
+   "font-sans",
+   "text-caption"
+  ]
+ },
+ "unclassified": [
+  {
+   "candidate": "font-mono",
+   "baseline": ".font-mono {\n  font-family: var(--font-mono);\n}\n",
+   "current": ".font-mono {\n  font-family: var(--font-geist-mono), ui-monospace, \"SF Mono\", \"Cascadia Code\", monospace;\n}\n",
+   "normalizedBaseline": ".font-mono {\n  font-family: var(--font-mono);\n}\n",
+   "normalizedCurrent": ".font-mono {\n  font-family: var(--font-geist-mono), ui-monospace, \"SF Mono\", \"Cascadia Code\", monospace;\n}\n"
+  },
+  {
+   "candidate": "font-sans",
+   "baseline": ".font-sans {\n  font-family: var(--font-sans);\n}\n",
+   "current": ".font-sans {\n  font-family: var(--font-roboto), system-ui, -apple-system, BlinkMacSystemFont,\n\t\t\"Segoe UI\", Roboto, sans-serif;\n}\n",
+   "normalizedBaseline": ".font-sans {\n  font-family: var(--font-sans);\n}\n",
+   "normalizedCurrent": ".font-sans {\n  font-family: var(--font-roboto), system-ui, -apple-system, BlinkMacSystemFont,\n\t\t\"Segoe UI\", Roboto, sans-serif;\n}\n"
+  },
+  {
+   "candidate": "text-caption",
+   "baseline": ".text-caption {\n  color: var(--color-muted-foreground);\n  font-size: var(--text-caption);\n}\n",
+   "current": ".text-caption {\n  font-size: var(--text-caption);\n}\n",
+   "normalizedBaseline": ".text-caption {\n  color: var(--muted-foreground);\n  font-size: var(--text-caption);\n}\n",
+   "normalizedCurrent": ".text-caption {\n  font-size: var(--text-caption);\n}\n"
+  }
+ ]
+}

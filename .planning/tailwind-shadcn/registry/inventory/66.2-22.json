@@ -1,0 +1,25 @@
+{
+  "label": "66.2-22",
+  "generatedAt": "2026-10-31T18:23:27.759Z",
+  "files": [
+    {
+      "file": "src/components/ui/button.tsx",
+      "item": "button",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 4,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-22/inv/src__components__ui__button.tsx.diff",
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": true,
+      "divergenceCount": 5
+    }
+  ],
+  "counts": {
+    "inSync": 0,
+    "divergent": 1,
+    "nonRegistry": 0
+  },
+  "problems": []
+}

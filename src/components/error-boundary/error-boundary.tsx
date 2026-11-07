@@ -69,7 +69,12 @@ function DefaultErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 		router.refresh();
 	};
 
-	const message = error instanceof Error ? error.message : undefined;
+	// The raw message is for the developer, never the user (the Error ID is
+	// what support needs).
+	const message =
+		process.env.NODE_ENV === "development" && error instanceof Error
+			? error.message
+			: undefined;
 
 	return (
 		<div className="min-h-screen flex-center p-4">
@@ -87,7 +92,9 @@ function DefaultErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 							</p>
 						)}
 						{errorState.errorId && (
-							<p className="text-caption">Error ID: {errorState.errorId}</p>
+							<p className="text-caption text-muted-foreground">
+								Error ID: {errorState.errorId}
+							</p>
 						)}
 					</div>
 					<div className="flex gap-2">

@@ -63,7 +63,7 @@ export function DownloadSignedLeaseButton({
 					refetch();
 				}}
 				className={cn(
-					"gap-2 text-destructive-text border-destructive/30",
+					"gap-2 text-destructive-text border-destructive/30 hover:bg-destructive/10 hover:text-destructive-text dark:border-destructive/30 dark:hover:bg-destructive/20 dark:hover:text-destructive-text",
 					className,
 				)}
 				data-testid="download-signed-lease-error"

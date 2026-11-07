@@ -1,10 +1,9 @@
 "use client";
 
-import { Building2, CreditCard, Download, Wallet } from "lucide-react";
+import { Building2, CreditCard, Wallet } from "lucide-react";
 import { useState } from "react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { BorderBeam } from "#components/ui/border-beam";
-import { Button } from "#components/ui/button";
 import {
 	Select,
 	SelectContent,
@@ -20,12 +19,30 @@ import {
 	StatValue,
 } from "#components/ui/stat";
 import { useBalanceSheet } from "#hooks/api/use-financials";
-import { formatDate } from "#lib/formatters/date";
+import { formatDate, formatLocalYmd } from "#lib/formatters/date";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { CSV_MIME_TYPE } from "#lib/reports/csv";
+import { downloadBlob } from "#lib/reports/download-blob";
+import { formatCurrency } from "#lib/utils/currency";
+import { LedgerTotalsUnavailable } from "../ledger-totals-unavailable";
+import { ReportExportButton } from "../report-export-button";
+import { StatementBasisNote } from "../statement-basis-note";
 import { BalanceEquationCheck } from "./balance-equation-check";
 import { BalanceSection } from "./balance-section";
+import {
+	balanceSheetCsvFilename,
+	buildBalanceSheetCsv,
+} from "./balance-sheet-csv";
 import { BalanceSheetError } from "./balance-sheet-error";
 import { BalanceSheetSkeleton } from "./balance-sheet-skeleton";
+import {
+	type BalanceSheetView,
+	buildBalanceSheetView,
+} from "./balance-sheet-view";
 import { EquitySection } from "./equity-section";
+
+const LEDGER_UNAVAILABLE_EXPORT_REASON =
+	"The rent ledger totals this sheet is built on aren't available yet.";
 
 export default function BalanceSheetPage() {
 	const now = new Date();
@@ -34,136 +51,79 @@ export default function BalanceSheetPage() {
 		String(now.getMonth() + 1).padStart(2, "0"),
 	);
 
-	const asOfDate = `${year}-${month}-${new Date(parseInt(year, 10), parseInt(month, 10), 0).getDate()}`;
-	const { data, isLoading, error, refetch } = useBalanceSheet(asOfDate);
-	const balanceData = data?.data;
+	// Each Select trigger's name starts with the value it shows, then says what
+	// it picks (WCAG 2.5.3 label in name; a bare trigger had no name at all).
+	const monthName = new Date(2000, parseInt(month, 10) - 1, 1).toLocaleString(
+		"en-US",
+		{ month: "long" },
+	);
 
-	const assetsItems = (() => {
-		if (!balanceData) return [];
-		return [
-			{
-				label: "Current Assets",
-				items: [
-					{ name: "Cash", amount: balanceData.assets.currentAssets.cash },
-					{
-						name: "Accounts Receivable",
-						amount: balanceData.assets.currentAssets.accountsReceivable,
-					},
-					{
-						name: "Security Deposits",
-						amount: balanceData.assets.currentAssets.security_deposits,
-					},
-				],
-				subtotal:
-					balanceData.assets.currentAssets.cash +
-					balanceData.assets.currentAssets.accountsReceivable +
-					balanceData.assets.currentAssets.security_deposits,
-			},
-			{
-				label: "Fixed Assets",
-				items: [
-					{
-						name: "Property Values",
-						amount: balanceData.assets.fixedAssets.propertyValues,
-					},
-					{
-						name: "Accumulated Depreciation",
-						amount: -balanceData.assets.fixedAssets.accumulatedDepreciation,
-					},
-					{
-						name: "Net Property Value",
-						amount: balanceData.assets.fixedAssets.netPropertyValue,
-					},
-				],
-				subtotal: balanceData.assets.fixedAssets.netPropertyValue,
-			},
-		];
-	})();
+	// The last day of the selected month, as local YYYY-MM-DD (day 0 of the
+	// following month).
+	const asOfDate = formatLocalYmd(
+		new Date(parseInt(year, 10), parseInt(month, 10), 0),
+	);
+	const { data, isLoading, isPlaceholderData, error, refetch } =
+		useBalanceSheet(asOfDate);
+	// When get_billing_insights returns none of the ledger figures the sheet is
+	// built on (its body before 20261102055449), the query says so rather than
+	// handing the page zeros to present as the owner's cash.
+	const ledgerUnavailable = data?.status === "ledger-unavailable";
+	const balanceData = data?.status === "ready" ? data.sheet : undefined;
+	const view = buildBalanceSheetView(balanceData);
 
-	const liabilitiesItems = (() => {
-		if (!balanceData) return [];
-		return [
-			{
-				label: "Current Liabilities",
-				items: [
-					{
-						name: "Accounts Payable",
-						amount: balanceData.liabilities.currentLiabilities.accountsPayable,
-					},
-					{
-						name: "Security Deposit Liability",
-						amount:
-							balanceData.liabilities.currentLiabilities
-								.security_depositLiability,
-					},
-					{
-						name: "Accrued Expenses",
-						amount: balanceData.liabilities.currentLiabilities.accruedExpenses,
-					},
-				],
-				subtotal:
-					balanceData.liabilities.currentLiabilities.accountsPayable +
-					balanceData.liabilities.currentLiabilities.security_depositLiability +
-					balanceData.liabilities.currentLiabilities.accruedExpenses,
-			},
-			{
-				label: "Long-Term Liabilities",
-				items: [
-					{
-						name: "Mortgages Payable",
-						amount:
-							balanceData.liabilities.longTermLiabilities.mortgagesPayable,
-					},
-				],
-				subtotal: balanceData.liabilities.longTermLiabilities.mortgagesPayable,
-			},
-		];
-	})();
+	// The global keepPreviousData shows the last month while the selected one
+	// loads, so the export waits for the data that matches the selectors.
+	const exportUnavailableReason = ledgerUnavailable
+		? LEDGER_UNAVAILABLE_EXPORT_REASON
+		: !balanceData
+			? "No balance sheet data to export yet."
+			: isPlaceholderData
+				? "Loading the selected month. Export is available when it finishes."
+				: null;
 
-	const equityItems = (() => {
-		if (!balanceData) return [];
-		return [
-			{ name: "Owner Capital", amount: balanceData.equity.ownerCapital },
-			{
-				name: "Retained Earnings",
-				amount: balanceData.equity.retainedEarnings,
-			},
-			{
-				name: "Current Period Income",
-				amount: balanceData.equity.currentPeriodIncome,
-			},
-		];
-	})();
-
-	const totalAssets = balanceData?.assets.totalAssets || 0;
-	const totalLiabilities = balanceData?.liabilities.totalLiabilities || 0;
-	const totalEquity = balanceData?.equity.totalEquity || 0;
-	const isBalanced = balanceData?.balanceCheck !== false;
+	const handleExport = () => {
+		if (!balanceData || isPlaceholderData) return;
+		try {
+			const asOf = balanceData.period.end_date;
+			const csv = buildBalanceSheetCsv({ asOfDate: asOf, view });
+			downloadBlob(
+				new Blob([csv], { type: CSV_MIME_TYPE }),
+				balanceSheetCsvFilename(asOf),
+			);
+		} catch (exportError) {
+			handleMutationError(
+				exportError,
+				"Export balance sheet",
+				"Couldn't export the balance sheet. Please try again.",
+			);
+		}
+	};
 
 	if (isLoading) {
 		return <BalanceSheetSkeleton />;
 	}
 
 	if (error) {
-		return (
-			<BalanceSheetError error={error} onRetryAction={() => void refetch()} />
-		);
+		return <BalanceSheetError onRetryAction={() => void refetch()} />;
 	}
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
 			{/* Header */}
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Balance Sheet</h1>
-						<p className="text-muted-foreground">
+						<p className="mb-0 text-muted-foreground">
 							As of {formatDate(asOfDate, { style: "long" })}
 						</p>
 					</div>
-					<div className="flex gap-2">
+					{/* Below sm the header stacks and this row spans it: the controls wrap
+				    rather than shrink, since a shrunk select clips its value. */}
+					<div className="flex flex-wrap gap-2 sm:flex-nowrap">
 						<Select value={year} onValueChange={setYear}>
-							<SelectTrigger className="w-[100px]">
+							<SelectTrigger className="w-25" aria-label={`${year} (year)`}>
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -177,7 +137,10 @@ export default function BalanceSheetPage() {
 							</SelectContent>
 						</Select>
 						<Select value={month} onValueChange={setMonth}>
-							<SelectTrigger className="w-[130px]">
+							<SelectTrigger
+								className="w-32.5"
+								aria-label={`${monthName} (month)`}
+							>
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -195,17 +158,33 @@ export default function BalanceSheetPage() {
 								<SelectItem value="12">December</SelectItem>
 							</SelectContent>
 						</Select>
-						<Button variant="outline">
-							<Download className="w-4 h-4" />
-							Export
-						</Button>
+						<ReportExportButton
+							onExport={handleExport}
+							unavailableReason={exportUnavailableReason}
+						/>
 					</div>
 				</div>
 			</BlurFade>
 
+			{ledgerUnavailable ? (
+				<LedgerTotalsUnavailable
+					description="Cash and accounts receivable on this sheet come from your rent ledger."
+					onRetryAction={() => void refetch()}
+				/>
+			) : (
+				<BalanceSheetFigures view={view} />
+			)}
+		</div>
+	);
+}
+
+function BalanceSheetFigures({ view }: { view: BalanceSheetView }) {
+	const { totalAssets, totalLiabilities, totalEquity, isBalanced } = view;
+	return (
+		<>
 			{/* Summary Stats */}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-				<BlurFade delay={0.15} inView>
+				<BlurFade delay={0.15}>
 					<Stat className="relative overflow-hidden">
 						<BorderBeam
 							size={100}
@@ -214,12 +193,8 @@ export default function BalanceSheetPage() {
 							colorTo="oklch(from var(--color-success) l c h / 0.3)"
 						/>
 						<StatLabel>Total Assets</StatLabel>
-						<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
-							$
-							{totalAssets.toLocaleString("en-US", {
-								minimumFractionDigits: 2,
-								maximumFractionDigits: 2,
-							})}
+						<StatValue className="flex items-baseline text-success-text">
+							{formatCurrency(totalAssets)}
 						</StatValue>
 						<StatIndicator variant="icon" color="success">
 							<Building2 />
@@ -228,15 +203,11 @@ export default function BalanceSheetPage() {
 					</Stat>
 				</BlurFade>
 
-				<BlurFade delay={0.2} inView>
+				<BlurFade delay={0.2}>
 					<Stat className="relative overflow-hidden">
 						<StatLabel>Total Liabilities</StatLabel>
-						<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
-							$
-							{totalLiabilities.toLocaleString("en-US", {
-								minimumFractionDigits: 2,
-								maximumFractionDigits: 2,
-							})}
+						<StatValue className="flex items-baseline text-destructive-text">
+							{formatCurrency(totalLiabilities)}
 						</StatValue>
 						<StatIndicator variant="icon" color="destructive">
 							<CreditCard />
@@ -245,7 +216,7 @@ export default function BalanceSheetPage() {
 					</Stat>
 				</BlurFade>
 
-				<BlurFade delay={0.25} inView>
+				<BlurFade delay={0.25}>
 					<Stat className="relative overflow-hidden">
 						{totalEquity > 0 && (
 							<BorderBeam
@@ -257,11 +228,7 @@ export default function BalanceSheetPage() {
 						)}
 						<StatLabel>Total Equity</StatLabel>
 						<StatValue className="flex items-baseline">
-							$
-							{totalEquity.toLocaleString("en-US", {
-								minimumFractionDigits: 2,
-								maximumFractionDigits: 2,
-							})}
+							{formatCurrency(totalEquity)}
 						</StatValue>
 						<StatIndicator variant="icon" color="primary">
 							<Wallet />
@@ -272,7 +239,7 @@ export default function BalanceSheetPage() {
 			</div>
 
 			{/* Balance Equation Check */}
-			<BlurFade delay={0.3} inView>
+			<BlurFade delay={0.3}>
 				<BalanceEquationCheck
 					totalAssets={totalAssets}
 					totalLiabilities={totalLiabilities}
@@ -282,30 +249,32 @@ export default function BalanceSheetPage() {
 			</BlurFade>
 
 			{/* Balance Sheet Details */}
-			<BlurFade delay={0.35} inView>
+			<BlurFade delay={0.35}>
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 					<BalanceSection
 						title="Assets"
 						icon={Building2}
-						items={assetsItems}
+						items={view.assetGroups}
 						total={totalAssets}
 						totalLabel="Total Assets"
-						colorClass="text-emerald-600"
+						colorClass="text-success-text"
 					/>
 
 					<div className="space-y-6">
 						<BalanceSection
 							title="Liabilities"
 							icon={CreditCard}
-							items={liabilitiesItems}
+							items={view.liabilityGroups}
 							total={totalLiabilities}
 							totalLabel="Total Liabilities"
-							colorClass="text-red-600"
+							colorClass="text-destructive-text"
 						/>
-						<EquitySection items={equityItems} totalEquity={totalEquity} />
+						<EquitySection items={view.equityItems} totalEquity={totalEquity} />
 					</div>
 				</div>
 			</BlurFade>
-		</div>
+
+			<StatementBasisNote />
+		</>
 	);
 }

@@ -82,7 +82,7 @@ export function DynamicForm({ form, fields }: DynamicFormProps) {
 					<h3 className="text-sm font-semibold text-muted-foreground">
 						{section}
 					</h3>
-					<div className="grid gap-4 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						{sectionFields.map((field) => (
 							<formApi.Field key={field.name} name={field.name}>
 								{(fieldApi) => {
@@ -144,7 +144,7 @@ export function DynamicForm({ form, fields }: DynamicFormProps) {
 																			<Trash2 className="size-4" />
 																		</Button>
 																	</div>
-																	<div className="grid gap-3 sm:grid-cols-2">
+																	<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 																		{field.itemFields?.map((itemField) => {
 																			const itemValue = item?.[itemField.key];
 																			const updateItem = (

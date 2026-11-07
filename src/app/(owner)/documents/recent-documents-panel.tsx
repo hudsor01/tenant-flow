@@ -6,10 +6,11 @@
  *
  * SC-3 / D-02, the reason this file has no data layer of its own: it calls
  * `documentSearchQueries.list({ page: 0 })` with no filters and no observer
- * overrides. That is byte-identical to the vault's default unfiltered call at
- * `documents-vault.client.tsx:230-239` — all five of its spreads are empty and
- * its `pageParam` is 0 — so both surfaces land on the SAME TanStack Query cache
- * entry, `["documents","search","",null,null,null,null,0]`. Building a second
+ * overrides. That is byte-identical to the vault's default unfiltered call
+ * (`DocumentsVaultClient`'s `documentSearchQueries.list({...})`) — all five of
+ * its spreads are empty and its `pageParam` is 0 — so both surfaces land on
+ * the SAME TanStack Query cache entry,
+ * `["documents","search","",null,null,null,null,0]`. Building a second
  * query, a second mapper, or a direct `.from("documents")` select here is a
  * blocking violation: it would fork the cache and let the landing render a row
  * set the vault does not.
@@ -70,9 +71,10 @@ const CATEGORY_LABELS: Record<string, string> = DEFAULT_CATEGORY_LABELS;
  * `hoa_dues` / "HOA Dues", gets the right label everywhere the per-owner table
  * is read and the wrong one everywhere the static map is.
  *
- * The vault already reads that table (`documents-vault.client.tsx:168`, whose
- * own Phase 65 comment records the move off the static map), so a panel reading
- * DEFAULT_CATEGORY_LABELS would contradict a decision this same phase made one
+ * The vault already reads that table (`DocumentsVaultClient`'s
+ * `useDocumentCategories()` call, whose own Phase 65 comment records the move
+ * off the static map), so a panel reading DEFAULT_CATEGORY_LABELS would
+ * contradict a decision this same phase made one
  * file over: "Insurance · 3 days ago" here against "Insurance Certificates" in
  * the vault filter and the upload Select, in the same session.
  *
@@ -115,7 +117,8 @@ function categoryLabel(slug: string): string {
  * `{category} · {relative date}`. `created_at` is nullable in the schema and
  * `formatRelativeDate` returns "" for null, so the date half is guarded rather
  * than rendered as a dangling separator. The separator is a middle dot, never
- * an em-dash (`document-row.tsx:72` sets the house convention).
+ * an em-dash (`DocumentRow`'s size · date meta line sets the house
+ * convention).
  */
 function metaLine(
 	doc: DocumentRow,
@@ -151,10 +154,10 @@ function RecentError({ onRetry }: { onRetry: () => void }) {
 			</p>
 			{/*
 			 * `variant="ghost"` is 65-UI-SPEC §I-3 verbatim and the divergence from
-			 * both shipped Retry siblings is DELIBERATE, not a copy error:
-			 * `documents-vault.client.tsx:499-507` ("Try again") and
-			 * `notification-popover-list.tsx:82-84` ("Retry") both use
-			 * `variant="outline"`. This panel sits inside the vault card, 24px under
+			 * both shipped Retry siblings is DELIBERATE, not a copy error: the
+			 * vault's error-state "Try again" (`DocumentsVaultClient`) and
+			 * `NotificationPopoverList`'s "Retry" both use `variant="outline"`.
+			 * This panel sits inside the vault card, 24px under
 			 * the page's only filled primary button; an outlined control there would
 			 * compete with the CTA the whole band exists to promote.
 			 */}
@@ -182,9 +185,11 @@ function RecentEmpty() {
 			<EmptyTitle>No documents yet</EmptyTitle>
 			{/*
 			 * `mb-0` for the same reason as the row meta line: EmptyDescription is a
-			 * bare `<p>` (empty.tsx:72-81) and `globals.css:499` gives every `<p>` a
-			 * 1rem bottom margin. `Empty` lays out with `gap-6`, which does not
-			 * cancel margins, and this is its LAST child — so the 16px landed
+			 * bare `<p>` (`EmptyDescription` in empty.tsx) and the `@layer base`
+			 * `p` rule in globals.css gives every `<p>` a 1rem bottom margin.
+			 * `Empty` lays out
+			 * with `gap-6`, which does not cancel margins, and this is its LAST
+			 * child — so the 16px landed
 			 * directly on top of the `py-6` this component sets, making the panel
 			 * read as 24px above and 40px below.
 			 */}
@@ -198,7 +203,7 @@ function RecentEmpty() {
 /**
  * `Item` renders a `<div>` or a radix `Slot` — there is no `as` prop — so
  * `asChild` is what makes these real `<li>` elements. Free win: `itemVariants`
- * gates its hover background behind `[a]:hover:bg-accent/50`, so a non-anchor
+ * gates its hover background behind `[a]:hover:bg-accent/25`, so a non-anchor
  * row gets no hover affordance and D-03 holds by construction.
  */
 function RecentList({
@@ -212,7 +217,8 @@ function RecentList({
 		<>
 			{/*
 			 * These four utilities neutralize GLOBAL base rules; none is defensive
-			 * noise. `globals.css:517-524` declares unscoped
+			 * noise. The `@layer base` `ul, ol` / `li` rules in globals.css declare
+			 * unscoped
 			 * `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
 			 * `li { margin-bottom: 0.25rem }` inside `@layer base`, and Tailwind
 			 * v4's preflight resets only `list-style` for lists (verified in the
@@ -258,8 +264,8 @@ function RecentList({
 							</ItemMedia>
 							{/*
 							 * `min-w-0` is load-bearing, not defensive. ItemContent is
-							 * `flex flex-1` (item.tsx:105-115) with no min-width of its
-							 * own, so its `min-width: auto` resolves to the min-content
+							 * `flex flex-1` (`ItemContent` in item.tsx) with no min-width
+							 * of its own, so its `min-width: auto` resolves to the min-content
 							 * width of a `whitespace-nowrap` title and the flex line
 							 * cannot shrink — the row then overflows the card instead of
 							 * ellipsising, and with no overflow-x clamp on <main> the
@@ -273,13 +279,14 @@ function RecentList({
 								 *
 								 * `block w-full min-w-0` is what makes §I-2's `truncate`
 								 * actually work. ItemTitle is `flex w-fit`
-								 * (item.tsx:118-128), and `text-overflow: ellipsis` does
-								 * not apply to a flex container's anonymous text child,
+								 * (`ItemTitle` in item.tsx), and `text-overflow: ellipsis`
+								 * does not apply to a flex container's anonymous text child,
 								 * while `w-fit` sizes the box to the text so
 								 * `overflow: hidden` has nothing to clip — `truncate`
 								 * alone is inert here. tailwind-merge resolves
 								 * flex->block and w-fit->w-full (verified). Same shape the
-								 * vault row uses at document-row.tsx:67-68.
+								 * vault row uses for its file name (`DocumentRow`'s block
+								 * `truncate` `<p>` in a `min-w-0 flex-1` box).
 								 *
 								 * This matters because `documents.title` is nullable while
 								 * `file_path` is NOT NULL, so the fallback renders a
@@ -292,11 +299,12 @@ function RecentList({
 								{/*
 								 * `mb-0` neutralizes the third rule from the same unscoped
 								 * `@layer base` block as the `<ul>` overrides above:
-								 * `globals.css:499-502` sets `p { margin-bottom: 1rem }`,
-								 * and ItemDescription renders a bare `<p>` (item.tsx:130-142)
-								 * with no margin utility of its own. ItemContent lays its
-								 * children out with `gap-1`, and gap does not cancel
-								 * margins, so without this each row carried 16px of dead
+								 * the `@layer base` `p` rule in globals.css sets
+								 * `p { margin-bottom: 1rem }`,
+								 * and ItemDescription renders a bare `<p>` (`ItemDescription`
+								 * in item.tsx) with no margin utility of its own. ItemContent
+								 * lays its children out with `gap-1`, and gap does not
+								 * cancel margins, so without this each row carried 16px of dead
 								 * space under the meta line — swamping the 4px rung the
 								 * list's own `gap-1` establishes.
 								 *
@@ -337,10 +345,11 @@ export function RecentDocumentsPanel() {
 	// query that is pending but not fetching reports `isLoading: false` with
 	// `data: undefined` and falls through to `RecentEmpty` — claiming the owner
 	// has no documents when we simply have not loaded them. Two reachable
-	// triggers: `networkMode: "online"` (query-provider.tsx:75) parks an offline
-	// query at `fetchStatus: "paused"`, and `PersistQueryClientProvider` mounts
-	// from an async effect (query-provider.tsx:244) so every cold load passes
-	// through an `isRestoring` window that forces `fetchStatus: "idle"`.
+	// triggers: `networkMode: "online"` (`QueryProvider`'s query defaults) parks
+	// an offline query at `fetchStatus: "paused"`, and the
+	// `PersistQueryClientProvider` that `QueryProvider` renders mounts from an
+	// async effect, so every cold load passes through an `isRestoring` window
+	// that forces `fetchStatus: "idle"`.
 	// `documents-vault.client.tsx` branches on the same predicate for the same
 	// reason — the two surfaces share one cache entry and must agree (SC-3).
 	const { data, isPending, isError, refetch } = useQuery(

@@ -19,9 +19,11 @@
  * Reading a computed font-size can answer it, and that is what this does.
  *
  * WHAT IT PROVES.
- *   - The sizes come from `src/app/globals.css`'s own `--text-*` scale, read AT
- *     RUN TIME. Retuning the scale retunes what this harness reports, and no test
- *     needs editing to follow.
+ *   - The sizes and the breakpoints come from Tailwind's own design system,
+ *     loaded AT RUN TIME from the real `src/app/globals.css` (Tailwind's default
+ *     theme plus the project `@theme`). A size that only Tailwind's defaults
+ *     define still resolves, and a retuned or deleted token is followed with no
+ *     test edit.
  *   - The rules are generated ONLY from the classes the component actually
  *     rendered, so a utility nobody wrote emits nothing.
  *   - Every result carries a `baseline` from an unclassed probe of the same tag
@@ -45,29 +47,31 @@
  * ordering this harness models.
  *
  * WHAT IT DOES NOT PROVE. Not Tailwind's real emitted CSS, not `@layer` order,
- * not geometry, and not the unlayered `@media (max-width: 768px)` block at
- * `globals.css:1536` — that one sets `min-height` and `padding` on inputs and no
- * font size at all, so it does not bear on this, but a future edit to it would
- * not be visible here. A real browser measurement is still the authority.
+ * not geometry, and not the touch-target rule (D-08). That rule lives in
+ * `@layer base` inside `@media (width < 48rem)` as zero-specificity `:where(...)`
+ * rules that set `min-height`/`min-width` and no font size at all, so it does
+ * not bear on this, but a future edit to it would not be visible here. A real
+ * browser measurement is still the authority.
  */
 
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import {
+	loadProjectDesignSystem,
+	type TailwindDesignSystem,
+} from "#test/utils/tailwind-engine";
 
-const GLOBALS_CSS_PATH = resolve(process.cwd(), "src/app/globals.css");
+/** One design system per test file: loading it is the slow step. */
+let designSystemPromise: Promise<TailwindDesignSystem> | undefined;
 
-/**
- * Tailwind v4's default breakpoints. `globals.css` defines no `--breakpoint-*`
- * override, so these are the real ones; a future override would need mirroring
- * here, which `assertKnownVariants` makes loud rather than silent.
- */
-const BREAKPOINTS = new Map<string, number>([
-	["sm", 640],
-	["md", 768],
-	["lg", 1024],
-	["xl", 1280],
-	["2xl", 1536],
-]);
+function designSystem(): Promise<TailwindDesignSystem> {
+	designSystemPromise ??= loadProjectDesignSystem();
+	return designSystemPromise;
+}
+
+/** Pixels per `rem`, for a breakpoint in a document with no root font-size override. */
+const ROOT_FONT_SIZE_PX = 16;
+
+/** A length jsdom can compute without layout: `0.75rem`, `14px`, `1em`. */
+const PLAIN_LENGTH = /^-?\d*\.?\d+(rem|px|em)$/;
 
 /**
  * Variants this harness knowingly IGNORES because they do not style the element
@@ -88,31 +92,46 @@ export interface FontSizeAtWidth {
 	baseline: string;
 }
 
-function stripComments(css: string): string {
-	return css.replace(/\/\*[\s\S]*?\*\//g, "");
-}
-
 /**
- * The `--text-*` type scale, by utility suffix.
+ * The size a `text-<token>` utility sets, or `undefined` when the utility is not
+ * a font size at all.
  *
  * Doubles as the disambiguator between a font-size utility and a colour one:
  * `text-foreground` resolves through `--color-foreground` and has no `--text-`
  * entry, so it is correctly not a size.
  */
-function readTypeScale(): Map<string, string> {
-	const css = stripComments(readFileSync(GLOBALS_CSS_PATH, "utf8"));
-	const scale = new Map<string, string>();
-	for (const match of css.matchAll(/--text-([a-z0-9-]+):\s*([^;]+);/g)) {
-		const name = match[1];
-		const value = match[2];
-		if (name && value) scale.set(name, value.trim());
-	}
-	if (scale.size === 0) {
+function sizeOf(
+	ds: TailwindDesignSystem,
+	className: string,
+	token: string,
+): string | undefined {
+	if (token.includes("--")) return undefined;
+	const value = ds.resolveThemeValue(`--text-${token}`);
+	if (value === undefined) return undefined;
+	if (!PLAIN_LENGTH.test(value)) {
 		throw new Error(
-			"responsive-font-size-cascade: found no --text-* tokens in globals.css",
+			`responsive-font-size-cascade: \`${className}\` resolves to "${value}", which jsdom cannot compute. Verify it in a real browser.`,
 		);
 	}
-	return scale;
+	return value;
+}
+
+/** The min-width of the responsive variant `variant`, in px. */
+function breakpointOf(
+	ds: TailwindDesignSystem,
+	className: string,
+	variant: string,
+): number {
+	const value = ds.resolveThemeValue(`--breakpoint-${variant}`);
+	const match =
+		value === undefined ? null : /^(\d*\.?\d+)(rem|px)$/.exec(value);
+	if (!match?.[1]) {
+		throw new Error(
+			`responsive-font-size-cascade: cannot model the variant in \`${className}\`. The design system has no --breakpoint-${variant}; verify this cascade in a real browser.`,
+		);
+	}
+	const size = Number(match[1]);
+	return match[2] === "rem" ? size * ROOT_FONT_SIZE_PX : size;
 }
 
 /** CSS identifier escaping, so `md:text-xs` becomes a usable selector. */
@@ -136,7 +155,7 @@ interface SizeUtility {
  * would return a confident answer computed from an incomplete cascade, which is
  * exactly the kind of quietly-wrong test this file exists to replace.
  */
-function sizeUtilitiesOf(element: Element, scale: Map<string, string>) {
+function sizeUtilitiesOf(element: Element, ds: TailwindDesignSystem) {
 	const classNames = (element.getAttribute("class") ?? "")
 		.split(/\s+/)
 		.filter((name) => name !== "");
@@ -148,7 +167,7 @@ function sizeUtilitiesOf(element: Element, scale: Map<string, string>) {
 		const variant = match[1];
 		const token = match[2];
 		if (token === undefined) continue;
-		const value = scale.get(token);
+		const value = sizeOf(ds, className, token);
 		// Not a size utility at all — `text-foreground`, `text-center`, …
 		if (value === undefined) continue;
 		if (variant === undefined) {
@@ -156,12 +175,7 @@ function sizeUtilitiesOf(element: Element, scale: Map<string, string>) {
 			continue;
 		}
 		if (PSEUDO_ELEMENT_VARIANTS.has(variant)) continue;
-		const breakpoint = BREAKPOINTS.get(variant);
-		if (breakpoint === undefined) {
-			throw new Error(
-				`responsive-font-size-cascade: cannot model the variant in \`${className}\`. Add it to BREAKPOINTS, or verify this cascade in a real browser.`,
-			);
-		}
+		const breakpoint = breakpointOf(ds, className, variant);
 		utilities.push({ className, breakpoint, value });
 	}
 
@@ -174,12 +188,12 @@ function sizeUtilitiesOf(element: Element, scale: Map<string, string>) {
  * The stylesheet and the probe are removed before returning, so repeated calls
  * across a suite never accumulate rules.
  */
-export function computeFontSizeAt(
+export async function computeFontSizeAt(
 	element: Element,
 	viewportWidth: number,
-): FontSizeAtWidth {
-	const scale = readTypeScale();
-	const matching = sizeUtilitiesOf(element, scale).filter(
+): Promise<FontSizeAtWidth> {
+	const ds = await designSystem();
+	const matching = sizeUtilitiesOf(element, ds).filter(
 		(utility) =>
 			utility.breakpoint === null || utility.breakpoint <= viewportWidth,
 	);

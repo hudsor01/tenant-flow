@@ -4,7 +4,7 @@ import { Skeleton } from "#components/ui/skeleton";
 export function LeasesPageSkeleton() {
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				{/* Header Skeleton */}
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
 					<div>

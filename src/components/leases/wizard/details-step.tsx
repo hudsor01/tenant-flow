@@ -15,6 +15,7 @@ import {
 import { Switch } from "#components/ui/switch";
 import { Textarea } from "#components/ui/textarea";
 import type { LeaseDetailsStepData } from "#lib/validation/lease-wizard.schemas";
+import { UTILITY_OPTIONS } from "./utility-options";
 
 interface DetailsStepProps {
 	data: Partial<LeaseDetailsStepData>;
@@ -22,19 +23,6 @@ interface DetailsStepProps {
 	/** Per-field validation messages surfaced on a failed step advance (FORM-09). */
 	errors?: Partial<Record<string, string>>;
 }
-
-const UTILITY_OPTIONS = [
-	{ value: "electricity", label: "Electricity" },
-	{ value: "gas", label: "Gas" },
-	{ value: "water", label: "Water" },
-	{ value: "sewer", label: "Sewer" },
-	{ value: "trash", label: "Trash" },
-	{ value: "internet", label: "Internet" },
-	{ value: "cable", label: "Cable" },
-	{ value: "lawn_care", label: "Lawn Care" },
-	{ value: "pest_control", label: "Pest Control" },
-	{ value: "hoa_fees", label: "HOA Fees" },
-];
 
 const US_STATES = [
 	{ value: "TX", label: "Texas" },
@@ -267,7 +255,7 @@ export function DetailsStep({ data, onChange, errors }: DetailsStepProps) {
 
 			<div className="space-y-4 p-4 border rounded-lg bg-muted/50">
 				<div className="flex items-start gap-3">
-					<AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5" />
+					<AlertTriangle className="h-5 w-5 text-warning-text mt-0.5" />
 					<div className="space-y-3 flex-1">
 						<h4 className="font-medium">Lead-Based Paint Disclosure</h4>
 						<p className="text-sm text-muted-foreground">

@@ -22,12 +22,12 @@ import { expect, type Locator } from "@playwright/test";
  * same element successfully).
  *
  * The obvious fix — gate the read on `await expect(locator).toBeVisible()` — is
- * NOT sufficient, and this repo already learned that the hard way. From
- * `tests/e2e/tests/public/mobile-nav-375px.spec.ts:8-11`:
+ * NOT sufficient, and this repo already learned that the hard way. From the
+ * `beforeEach` in `tests/e2e/tests/public/mobile-nav-375px.spec.ts`:
  *
  *   "This guards against server-rendered-but-not-yet-interactive failure modes
- *    observed on Vercel previews where toBeVisible() passes but boundingBox()
- *    returns null and onClick handlers aren't attached."
+ *    observed on Vercel previews where toBeVisible() passes but the element
+ *    still has no layout box and onClick handlers aren't attached."
  *
  * Visibility and a committed layout box are different states. `toBeVisible()`
  * can resolve during hydration, in the window before the browser has committed
@@ -36,9 +36,10 @@ import { expect, type Locator } from "@playwright/test";
  *
  * `expect.poll()` closes it: it re-invokes the callback until the assertion
  * passes or the timeout expires, so a late layout commit is waited out rather
- * than raced. That is the pattern mobile-nav-375px.spec.ts:57-64 already uses
- * for the 44x44 hit-target reads, and this module generalises it so every
- * measurement in the suite inherits it instead of each spec re-deriving it.
+ * than raced. mobile-nav-375px.spec.ts's 44x44 hit-target test first did that
+ * with two hand-rolled `expect.poll` reads; this module generalises it, so that
+ * test and every other measurement in the suite inherit it instead of each spec
+ * re-deriving it.
  *
  * Use these helpers for ALL geometry reads. A bare `boundingBox()` in a spec is
  * a latent CI failure, not a style preference.
@@ -81,7 +82,7 @@ export interface Box {
 }
 
 /** A `Box` plus the element's id, so an offender can name itself in a failure. */
-export interface MeasuredBox extends Box {
+interface MeasuredBox extends Box {
 	/** The empty string when the element carries no `id`. */
 	id: string;
 }
@@ -120,7 +121,10 @@ export async function boxOf(locator: Locator, timeout = 15_000): Promise<Box> {
 	//
 	//   E-5 and E-14: the card caps at 672px and pairs the name fields at 1280px
 	//   Error: boundingBox() returned null immediately after polling observed a box
-	//     at boxOf (tests/e2e/lib/measure.ts:117:9)
+	//     at boxOf (tests/e2e/lib/measure.ts)
+	//
+	// (the frame's line number, which counted this file as 8783cbde8 had it, is
+	// left out)
 	//
 	// and the required `e2e-smoke` check still reported SUCCESS, because
 	// `retries: 2` reclassified it as one of "3 flaky". That is the precise
@@ -163,14 +167,6 @@ export async function widthOf(
 	timeout = 15_000,
 ): Promise<number> {
 	return (await boxOf(locator, timeout)).width;
-}
-
-/** Rendered height in CSS pixels, measured after layout has committed. */
-export async function heightOf(
-	locator: Locator,
-	timeout = 15_000,
-): Promise<number> {
-	return (await boxOf(locator, timeout)).height;
 }
 
 /**

@@ -1,25 +1,26 @@
 /**
- * Drift guard (TYPE-03, Phase 2): zero `as unknown as` casts at the
- * PostgREST/RPC boundaries under `src/hooks/api/`.
+ * Drift guard (TYPE-03, widened in 66.2-39): zero `as unknown as` assertions in
+ * first-party code.
  *
- * CLAUDE.md Zero-Tolerance Rule #8 forbids `as unknown as` type assertions —
- * the data layer must route through validated mapper functions at the RPC /
- * PostgREST boundary instead (the canonical reference is `mapDocumentRow` in
- * `src/hooks/api/query-keys/document-keys.ts`). The 2026-05-29 audit flagged
- * this violation; it is already resolved (only comment/docstring mentions and
- * legitimate test-mock `fetch` casts remain). This test PINS that state so the
- * violation cannot silently return.
+ * CLAUDE.md Zero-Tolerance Rule #8 forbids `as unknown as`: the data layer
+ * routes through validated mapper functions at the RPC / PostgREST boundary
+ * (the canonical reference is `mapDocumentRow` in
+ * `src/hooks/api/query-keys/document-keys.ts`), and everything else uses a type
+ * guard, a sound annotation or a real value instead of a double assertion.
  *
- * Scope: production source under `src/hooks/api/` only.
- *  - `*.test.ts` / `*.test.tsx` / `*.spec.ts` are EXCLUDED — test-mock casts
- *    like `fetchMock as unknown as typeof fetch` are legitimate test
- *    scaffolding, not production boundary code.
- *  - Wholly-comment lines (`//`, `/*`, ` * `) are SKIPPED so the docstring /
- *    comment mentions of the rule (e.g. "...never `as unknown as`") don't trip
- *    the guard.
- *  - The library-shim casts (chart-tooltip / slider) live under
- *    `src/components/ui/`, NOT `src/hooks/api/`, so this scan is naturally
- *    clean on the production-boundary surface.
+ * This file first pinned only `src/hooks/api/`. The rule held there while the
+ * cast survived elsewhere: the Edge Functions carried three
+ * (`stripe-webhooks` writing `event.data` through an untyped client that needed
+ * no cast at all, and two `crypto.subtle` feature detections that a widening
+ * annotation types without an assertion). Scope is now every first-party code
+ * root -- `src/`, `supabase/functions/`, `scripts/` and `tests/`.
+ *
+ *  - `PRODUCTION` excludes test files; the second check covers the rest. The
+ *    test files carried 43 (fetch and QueryClient fakes, partial fixtures,
+ *    hand-built NextRequests, Deno fake clients), each replaced in 66.2-39.
+ *  - Wholly-comment lines (`//`, `/*`, ` * `) and string literals are skipped,
+ *    so prose about the rule and assertions that a source does not contain the
+ *    phrase (apply-token-contract.test.ts) do not trip the guard.
  *
  * Failures list the offending `file:line → snippet` so a regression is
  * actionable. Pure filesystem read — never touches the DOM.
@@ -29,42 +30,49 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const HOOKS_API_DIR = join(process.cwd(), "src", "hooks", "api");
-const FORBIDDEN_CAST = "as unknown as";
+const ROOT = process.cwd();
+const CODE_ROOTS = ["src", "supabase/functions", "scripts", "tests"];
+// Built from parts so this file's own code never contains the phrase.
+const FORBIDDEN_CAST = ["as", "unknown", "as"].join(" ");
+const SKIPPED_DIRS = new Set(["node_modules", ".next", "playwright"]);
 
-interface BoundaryFile {
+interface CodeFile {
 	/** Absolute path on disk. */
 	readonly absPath: string;
 	/** Path relative to the repo root, e.g. "src/hooks/api/query-keys/foo.ts". */
 	readonly relPath: string;
 }
 
-/** A `*.test.ts`/`*.test.tsx`/`*.spec.ts(x)` file — test scaffolding, excluded. */
-function isTestFile(name: string): boolean {
-	return /\.(test|spec)\.tsx?$/.test(name);
+/** A unit/Deno test or spec, by name or by living in a test directory. */
+function isTestFile(relPath: string): boolean {
+	return (
+		/\.(test|spec)\.tsx?$/.test(relPath) ||
+		/-test\.ts$/.test(relPath) ||
+		/(^|\/)(__tests__|tests)\//.test(relPath.replace(/^tests\//, ""))
+	);
 }
 
-/** Recursively collect production `.ts`/`.tsx` files under `src/hooks/api/`. */
-function collectBoundaryFiles(dir: string): BoundaryFile[] {
-	const out: BoundaryFile[] = [];
+function collect(dir: string): CodeFile[] {
+	const out: CodeFile[] = [];
 	for (const entry of readdirSync(dir, { withFileTypes: true })) {
+		if (SKIPPED_DIRS.has(entry.name)) continue;
 		const abs = join(dir, entry.name);
 		if (entry.isDirectory()) {
-			out.push(...collectBoundaryFiles(abs));
+			out.push(...collect(abs));
 			continue;
 		}
-		if (!/\.tsx?$/.test(entry.name)) continue;
-		if (isTestFile(entry.name)) continue;
-		out.push({ absPath: abs, relPath: relative(process.cwd(), abs) });
+		if (!/\.(ts|tsx|mts|mjs|js)$/.test(entry.name)) continue;
+		out.push({ absPath: abs, relPath: relative(ROOT, abs) });
 	}
 	return out;
 }
 
-/**
- * Is this line wholly a comment? We strip the production-boundary scope to
- * actual code, so docstring / comment mentions of the rule (the only current
- * matches under `src/hooks/api/`) don't register as violations.
- */
+const EVERYTHING = CODE_ROOTS.flatMap((root) => collect(join(ROOT, root)));
+const PRODUCTION = EVERYTHING.filter(
+	(f) => !f.relPath.startsWith("tests/") && !isTestFile(f.relPath),
+);
+
+/** Is this line wholly a comment? */
 function isCommentLine(trimmed: string): boolean {
 	return (
 		trimmed.startsWith("//") ||
@@ -73,18 +81,23 @@ function isCommentLine(trimmed: string): boolean {
 	);
 }
 
-function findViolations(files: BoundaryFile[]): string[] {
+/** The line's code with single-line string literals and a trailing `//` comment removed. */
+function codeOf(trimmed: string): string {
+	const withoutStrings = trimmed.replace(
+		/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`/g,
+		'""',
+	);
+	return withoutStrings.split("//")[0] ?? withoutStrings;
+}
+
+function findViolations(files: readonly CodeFile[]): string[] {
 	const violations: string[] = [];
 	for (const file of files) {
 		const lines = readFileSync(file.absPath, "utf8").split("\n");
 		lines.forEach((raw, index) => {
 			const trimmed = raw.trim();
 			if (trimmed === "" || isCommentLine(trimmed)) return;
-			// Strip a trailing `//` line-comment so an inline mention after real
-			// code doesn't trip the guard (the cast itself, if real, lives in the
-			// code portion before any `//`).
-			const codePortion = trimmed.split("//")[0] ?? trimmed;
-			if (codePortion.includes(FORBIDDEN_CAST)) {
+			if (codeOf(trimmed).includes(FORBIDDEN_CAST)) {
 				violations.push(`${file.relPath}:${index + 1} → ${trimmed}`);
 			}
 		});
@@ -92,20 +105,54 @@ function findViolations(files: BoundaryFile[]): string[] {
 	return violations;
 }
 
-describe("TYPE-03 — zero `as unknown as` at src/hooks/api boundaries", () => {
-	const files = collectBoundaryFiles(HOOKS_API_DIR);
-
-	it("finds at least one production boundary file to guard", () => {
-		// Sanity check: if the walker silently matched nothing, the assertion
-		// below would vacuously pass and the guard would be useless.
-		expect(files.length).toBeGreaterThan(0);
+describe("TYPE-03 — zero double assertions in first-party code", () => {
+	it("walks every code root, production and test files", () => {
+		// A walker that silently matched nothing would pass vacuously.
+		for (const root of CODE_ROOTS) {
+			expect(
+				EVERYTHING.some((f) => f.relPath.startsWith(`${root}/`)),
+				root,
+			).toBe(true);
+		}
+		expect(PRODUCTION.some((f) => f.relPath.startsWith("src/hooks/api/"))).toBe(
+			true,
+		);
+		expect(
+			PRODUCTION.some((f) =>
+				f.relPath.startsWith("supabase/functions/_shared/"),
+			),
+		).toBe(true);
+		expect(PRODUCTION.some((f) => f.relPath.includes("__tests__"))).toBe(false);
 	});
 
-	it("no `as unknown as` cast at any src/hooks/api PostgREST/RPC boundary", () => {
-		const violations = findViolations(files);
+	it("finds the phrase in code but not in comments or strings", () => {
+		expect(codeOf(`const x = y ${FORBIDDEN_CAST} Z;`)).toContain(
+			FORBIDDEN_CAST,
+		);
+		expect(
+			codeOf(`expect(src).not.toContain("${FORBIDDEN_CAST}");`),
+		).not.toContain(FORBIDDEN_CAST);
+		expect(isCommentLine(`// never \`${FORBIDDEN_CAST}\``)).toBe(true);
+	});
+
+	it("no double assertion in production code (src, supabase/functions, scripts)", () => {
+		const violations = findViolations(PRODUCTION);
 		expect(
 			violations,
-			`Reintroduced \`as unknown as\` boundary cast(s) — route through a validated mapper instead (see mapDocumentRow in document-keys.ts):\n${violations.join("\n")}`,
+			`Reintroduced double assertion(s) -- use a typed mapper, a type guard or a sound annotation (see mapDocumentRow in document-keys.ts):\n${violations.join("\n")}`,
+		).toEqual([]);
+	});
+
+	it("no double assertion in test code (unit, Deno, integration, e2e)", () => {
+		// Test fakes use a real value (Response, NextRequest, QueryClient), a
+		// typed vi.fn, a complete fixture or a type guard
+		// (supabase/functions/tests/fake-supabase-client.ts) instead.
+		const violations = findViolations(
+			EVERYTHING.filter((f) => !PRODUCTION.includes(f)),
+		);
+		expect(
+			violations,
+			`Double assertion(s) in test code:\n${violations.join("\n")}`,
 		).toEqual([]);
 	});
 });

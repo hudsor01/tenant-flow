@@ -23,6 +23,10 @@ import { Button } from "#components/ui/button";
 import { ButtonGroup } from "#components/ui/button-group";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
 import { useDeletePropertyMutation } from "#hooks/api/use-property-mutations";
+import {
+	propertyStatusLabel,
+	propertyTypeLabel,
+} from "#lib/constants/status-types";
 import { createLogger } from "#lib/frontend-logger";
 import type { Property } from "#types/core";
 
@@ -90,9 +94,10 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					<div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-sm text-muted-foreground">
 						<span className="flex items-center gap-1.5">
 							<Building className="size-3.5" />
-							<span className="capitalize">
-								{property.property_type?.toLowerCase().replace(/_/g, " ") ||
-									"Not specified"}
+							<span>
+								{property.property_type
+									? propertyTypeLabel(property.property_type)
+									: "Not specified"}
 							</span>
 						</span>
 						<span className="text-border">·</span>
@@ -100,7 +105,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 							variant="outline"
 							className={`border-0 text-xs px-2 py-0 ${getStatusBadgeClass(property.status)}`}
 						>
-							{property.status || "Active"}
+							{propertyStatusLabel(property.status)}
 						</Badge>
 						{property.created_at && (
 							<>
@@ -127,7 +132,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					<Button
 						variant="outline"
 						size="sm"
-						className="min-h-11 text-destructive hover:text-destructive hover:bg-destructive/10"
+						className="min-h-11 text-destructive hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 dark:hover:text-destructive-text"
 						onClick={() => setDeleteOpen(true)}
 						aria-label="Delete property"
 					>
@@ -172,10 +177,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
-						<AlertDialogAction
-							onClick={handleDelete}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-						>
+						<AlertDialogAction onClick={handleDelete} variant="destructive">
 							{deletePropertyMutation.isPending ? "Deleting..." : "Delete"}
 						</AlertDialogAction>
 					</AlertDialogFooter>

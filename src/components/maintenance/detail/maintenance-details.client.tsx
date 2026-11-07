@@ -5,22 +5,32 @@ import {
 	useQueryClient,
 	useSuspenseQuery,
 } from "@tanstack/react-query";
-import { Edit2, Loader2, Printer, Trash2, User } from "lucide-react";
+import {
+	Edit2,
+	Loader2,
+	Mail,
+	Phone,
+	Printer,
+	Trash2,
+	User,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DocumentsSection } from "#components/documents/documents-section";
 import { Button } from "#components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
 import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
-import { propertyQueries } from "#hooks/api/query-keys/property-keys";
-import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useDeleteMaintenanceRequest } from "#hooks/api/use-maintenance";
 import { callGeneratePdfFromHtml } from "#hooks/api/use-report-mutations";
+import { formatLocalYmd } from "#lib/formatters/date";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
+import { downloadBlob } from "#lib/reports/download-blob";
 import { formatCurrency } from "#lib/utils/currency";
 import { ExpensesCard } from "./expenses-card";
 import { MaintenanceHeaderCard } from "./maintenance-header-card";
-import { generateTimeline } from "./maintenance-utils";
+import { generateTimeline, spendToDate } from "./maintenance-utils";
 import { PhotosCard } from "./photos-card";
 import { TimelineCard } from "./timeline-card";
 import { buildWorkOrderHtml } from "./work-order-template";
@@ -29,22 +39,46 @@ interface MaintenanceDetailsProps {
 	id: string;
 }
 
+/**
+ * One line of the contact card: how to reach the tenant who has the request
+ * (its own tenant embed). The card showed `requested_by` and `assigned_to`,
+ * user ids nothing writes: an empty card, or an id as text on an older row.
+ */
+function ContactRow({
+	icon,
+	label,
+	value,
+}: {
+	icon: ReactNode;
+	label: string;
+	value: string | null;
+}) {
+	return (
+		<div className="flex items-start gap-3">
+			<div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+				{icon}
+			</div>
+			<div className="min-w-0">
+				<p className="mb-0 text-sm text-muted-foreground">{label}</p>
+				<p className="mb-0 font-medium text-sm wrap-break-word">
+					{value ?? "Not provided"}
+				</p>
+			</div>
+		</div>
+	);
+}
+
 export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const deleteMutation = useDeleteMaintenanceRequest();
+	// The request names its own unit and property (its detail embeds them):
+	// no capped or filtered unit or property list can name every request.
 	const { data: request } = useSuspenseQuery(maintenanceQueries.detail(id));
-	const { data: propertiesResponse } = useSuspenseQuery(propertyQueries.list());
-	const { data: unitsResponse } = useSuspenseQuery(unitQueries.list());
 
 	const { data: expensesData } = useQuery(maintenanceQueries.expenses(id));
 
-	const units = unitsResponse?.data ?? [];
-	const properties = propertiesResponse?.data ?? [];
 	const expenses = expensesData ?? [];
-
-	const unit = units.find((u) => u.id === request?.unit_id);
-	const property = properties.find((p) => p.id === unit?.property_id);
 
 	const handleRefresh = () => {
 		queryClient.invalidateQueries({
@@ -64,13 +98,12 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 			description: request.description,
 			status: request.status,
 			priority: request.priority,
-			property: property?.name ?? "Unknown",
-			unit: unit?.unit_number ?? "Unknown",
+			property: request.propertyName ?? "Unknown",
+			unit: request.unitNumber ?? "Unknown",
 			created_at: request.created_at,
 			scheduled_date: request.scheduled_date,
 			completed_at: request.completed_at,
 			estimated_cost: request.estimated_cost,
-			actual_cost: request.actual_cost,
 			expenses: expenses.map((e) => ({
 				vendor: e.vendor_name,
 				amount: e.amount,
@@ -81,17 +114,15 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 		const blob = new Blob([JSON.stringify(exportData, null, 2)], {
 			type: "application/json",
 		});
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = `maintenance-${id}.json`;
-		a.click();
-		URL.revokeObjectURL(url);
+		downloadBlob(blob, `maintenance-${id}.json`);
 		toast.success("Export downloaded");
 	};
 
 	const timeline = generateTimeline(request);
 	const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount ?? 0), 0);
+	// The work order lists every expense, so its total is totalExpenses; the
+	// header shows the spend to date, as the analytics count it.
+	const spentToDate = spendToDate(expenses, formatLocalYmd(new Date()));
 
 	const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 	const handleDownloadWorkOrder = async () => {
@@ -100,8 +131,8 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 		try {
 			const html = buildWorkOrderHtml({
 				request,
-				propertyName: property?.name ?? null,
-				unitNumber: unit?.unit_number ?? null,
+				propertyName: request.propertyName,
+				unitNumber: request.unitNumber,
 				expenses: expenses.map((e) => ({
 					vendor_name: e.vendor_name ?? "Vendor",
 					amount: formatCurrency(e.amount ?? 0),
@@ -116,7 +147,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 			toast.success("Work order PDF downloaded");
 		} catch (err) {
 			toast.error("Failed to generate work order", {
-				description: err instanceof Error ? err.message : "Please try again.",
+				description: userFacingErrorMessage(err, "Please try again."),
 			});
 		} finally {
 			setIsGeneratingPdf(false);
@@ -124,14 +155,12 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	};
 
 	return (
-		<div className="grid gap-6 lg:grid-cols-3">
+		<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 			{/* Main Content */}
 			<div className="lg:col-span-2 space-y-6">
 				<MaintenanceHeaderCard
 					request={request}
-					property={property}
-					unit={unit}
-					totalExpenses={totalExpenses}
+					spentToDate={spentToDate}
 					onRefresh={handleRefresh}
 					onExport={handleExport}
 				/>
@@ -153,28 +182,21 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 						<CardTitle className="text-base">Contact Information</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						{request.requested_by && (
-							<div className="flex items-start gap-3">
-								<div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-									<User className="size-4 text-primary" />
-								</div>
-								<div>
-									<p className="text-sm text-muted-foreground">Requested by</p>
-									<p className="font-medium text-sm">{request.requested_by}</p>
-								</div>
-							</div>
-						)}
-						{request.assigned_to && (
-							<div className="flex items-start gap-3">
-								<div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-									<User className="size-4 text-primary" />
-								</div>
-								<div>
-									<p className="text-sm text-muted-foreground">Assigned to</p>
-									<p className="font-medium text-sm">{request.assigned_to}</p>
-								</div>
-							</div>
-						)}
+						<ContactRow
+							icon={<User className="size-4 text-primary" />}
+							label="Tenant"
+							value={request.tenantName}
+						/>
+						<ContactRow
+							icon={<Mail className="size-4 text-primary" />}
+							label="Email"
+							value={request.tenantEmail}
+						/>
+						<ContactRow
+							icon={<Phone className="size-4 text-primary" />}
+							label="Phone"
+							value={request.tenantPhone}
+						/>
 					</CardContent>
 				</Card>
 
@@ -216,7 +238,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 						</Button>
 						<Button
 							variant="outline"
-							className="w-full justify-start gap-2 text-destructive-text hover:text-destructive-text"
+							className="w-full justify-start gap-2 text-destructive-text hover:text-destructive-text hover:bg-destructive/10 dark:hover:bg-destructive/20 dark:hover:text-destructive-text"
 							disabled={deleteMutation.isPending}
 							onClick={async () => {
 								if (

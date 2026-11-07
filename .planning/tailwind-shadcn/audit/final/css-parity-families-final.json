@@ -1,0 +1,115 @@
+{
+  "dockCentering": {
+    "n": 5,
+    "keys": [
+      "group-has-data-[collapsible=offcanvas]/sidebar-wrapper:lg:left-1/2",
+      "lg:duration-200",
+      "lg:ease-linear",
+      "lg:left-[calc(50%+var(--sidebar-width)/2)]",
+      "lg:transition-[left]"
+    ]
+  },
+  "sheetRowMinimums": {
+    "n": 1,
+    "keys": [
+      "max-md:min-h-11"
+    ]
+  },
+  "sidebarDataSelectors": {
+    "n": 44,
+    "keys": [
+      "[[data-side=left][data-collapsible=offcanvas]_&]:-right-2",
+      "[[data-side=left][data-state=collapsed]_&]:cursor-e-resize",
+      "[[data-side=right][data-collapsible=offcanvas]_&]:-left-2",
+      "[[data-side=right][data-state=collapsed]_&]:cursor-w-resize",
+      "data-[active=true]:bg-primary/10",
+      "data-[active=true]:bg-primary/5",
+      "data-[active=true]:bg-sidebar-accent",
+      "data-[active=true]:font-medium",
+      "data-[active=true]:text-primary-text",
+      "data-[active=true]:text-sidebar-accent-foreground",
+      "data-[orientation=horizontal]:w-auto",
+      "data-[state=closed]:animate-collapsible-up",
+      "data-[state=closed]:duration-200",
+      "data-[state=open]:animate-collapsible-down",
+      "data-[state=open]:duration-200",
+      "data-[state=open]:hover:bg-sidebar-accent",
+      "data-[state=open]:hover:text-sidebar-accent-foreground",
+      "group-data-[collapsible=icon]:hidden",
+      "group-data-[collapsible=icon]:overflow-hidden",
+      "group-data-[collapsible=icon]:p-0!",
+      "group-data-[collapsible=icon]:p-2!",
+      "group-data-[collapsible=icon]:size-8!",
+      "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
+      "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]",
+      "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]",
+      "group-data-[collapsible=offcanvas]:after:left-full",
+      "group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]",
+      "group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
+      "group-data-[collapsible=offcanvas]:translate-x-0",
+      "group-data-[collapsible=offcanvas]:w-0",
+      "group-data-[side=left]:-right-4",
+      "group-data-[side=left]:border-r",
+      "group-data-[side=right]:border-l",
+      "group-data-[side=right]:left-0",
+      "group-data-[side=right]:rotate-180",
+      "group-data-[state=open]/collapsible:rotate-180",
+      "group-data-[variant=floating]:border",
+      "group-data-[variant=floating]:border-sidebar-border",
+      "group-data-[variant=floating]:rounded-lg",
+      "group-data-[variant=floating]:shadow-sm",
+      "group-has-data-[sidebar=menu-action]/menu-item:pr-8",
+      "hover:group-data-[collapsible=offcanvas]:bg-sidebar",
+      "in-data-[side=left]:cursor-w-resize",
+      "in-data-[side=right]:cursor-e-resize"
+    ]
+  },
+  "sidebarTokenUtilities": {
+    "n": 17,
+    "keys": [
+      "[&>svg]:text-sidebar-accent-foreground",
+      "active:bg-sidebar-accent",
+      "active:text-sidebar-accent-foreground",
+      "bg-sidebar",
+      "bg-sidebar-border",
+      "bg-sidebar-primary",
+      "border-sidebar-border",
+      "hover:after:bg-sidebar-border",
+      "hover:bg-sidebar-accent",
+      "hover:shadow-[0_0_0_1px_var(--sidebar-accent)]",
+      "hover:text-sidebar-accent-foreground",
+      "ring-sidebar-ring",
+      "shadow-[0_0_0_1px_var(--sidebar-border)]",
+      "text-sidebar-foreground",
+      "text-sidebar-primary-foreground",
+      "w-(--sidebar-width)",
+      "w-(--sidebar-width-mobile)"
+    ]
+  },
+  "other": {
+    "n": 21,
+    "keys": [
+      "-translate-x-px",
+      "[&>button]:hidden",
+      "[&>span:last-child]:truncate",
+      "[&>svg:last-child]:size-4",
+      "[&>svg]:shrink-0",
+      "[&>svg]:size-5",
+      "after:inset-y-0",
+      "after:left-1/2",
+      "after:w-[2px]",
+      "aria-disabled:pointer-events-none",
+      "border-l-0",
+      "dark:hover:bg-muted",
+      "ease-linear",
+      "h-svh",
+      "mx-3",
+      "mx-3.5",
+      "pr-0",
+      "transition-[left,right,width]",
+      "transition-[width,height,padding]",
+      "transition-[width]",
+      "translate-x-px"
+    ]
+  }
+}

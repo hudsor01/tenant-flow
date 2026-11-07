@@ -2,11 +2,11 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
+import type { MaintenanceListRow } from "#hooks/api/query-keys/maintenance-mappers";
 import { MaintenanceCard } from "./maintenance-card";
 
 interface MaintenanceSortableCardProps {
-	request: MaintenanceDisplayRequest;
+	request: MaintenanceListRow;
 	columnId: string;
 	onView?: (id: string) => void;
 }

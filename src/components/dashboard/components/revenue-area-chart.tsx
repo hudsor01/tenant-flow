@@ -25,13 +25,14 @@
  * Color flows through `var(--color-chart-1)` (token defined in `globals.css`
  * for both light and dark themes — 04-CONTEXT.md D-09). Entrance animation
  * gates on `useReducedMotion()` (Phase 3 canonical hook). The Y-axis tick
- * formatter divides by 1000 — that's the parent-spec § 8.2 declared
- * non-currency-arithmetic exemption; do NOT route it through `formatCurrency`.
+ * formatter states thousands through `formatCurrency` (value / 1000, then
+ * "k"), so a negative reads "-$15k", never "$-15k" (VD-73).
  */
 
 import { useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
+import { moneyTooltipFormatter } from "#components/shared/chart-series";
 import {
 	Card,
 	CardContent,
@@ -72,7 +73,9 @@ type RevenuePoint = TimeSeriesDataPoint | MonthlyRevenuePoint;
 // `var(--color-chart-1)` directly so the design-token-drift scanner reads
 // the explicit token.
 const revenueConfig = {
-	revenue: { label: "Revenue", color: "var(--color-chart-1)" },
+	// get_dashboard_data_v2's series: each day's (or month's) lease rent, which
+	// is scheduled rent, not money received.
+	revenue: { label: "Scheduled Rent", color: "var(--color-chart-1)" },
 } as const satisfies ChartConfig;
 
 // Typed boundary helper — picks the active series at the union type so the
@@ -111,7 +114,7 @@ function format6moTick(yyyymm: string): string {
 }
 
 function formatYAxisThousands(value: number): string {
-	return `$${(value / 1000).toFixed(0)}k`;
+	return `${formatCurrency(value / 1000, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}k`;
 }
 
 // Recharts widens the `tickFormatter` parameter to `unknown` through its
@@ -133,16 +136,6 @@ function toTooltipLabelFormatter(
 		formatter(typeof label === "string" ? label : String(label));
 }
 
-function formatTooltipValue(value: unknown): [string, string] {
-	return [
-		formatCurrency(Number(value), {
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0,
-		}),
-		"Revenue",
-	];
-}
-
 export function RevenueAreaChart({
 	monthlyRevenue,
 	monthlyRevenue6mo,
@@ -162,10 +155,10 @@ export function RevenueAreaChart({
 	const isEmpty = data.length === 0;
 
 	return (
-		<Card className="lg:col-span-2" data-tour="charts-section">
+		<Card className="@4xl/dashboard:col-span-2" data-tour="charts-section">
 			<CardHeader className="flex flex-row items-center justify-between space-y-0">
 				<div>
-					<CardTitle>Revenue</CardTitle>
+					<CardTitle>Scheduled Rent</CardTitle>
 					<CardDescription>{description}</CardDescription>
 				</div>
 				{/* Window toggle is a single-select control with shared content (the
@@ -178,7 +171,7 @@ export function RevenueAreaChart({
 					onValueChange={(v) => v && setActiveWindow(v as RevenueWindow)}
 					variant="outline"
 					size="sm"
-					aria-label="Revenue window"
+					aria-label="Scheduled rent window"
 				>
 					<ToggleGroupItem value="30d">30d</ToggleGroupItem>
 					<ToggleGroupItem value="6mo">6mo</ToggleGroupItem>
@@ -186,16 +179,16 @@ export function RevenueAreaChart({
 			</CardHeader>
 			<CardContent>
 				{isEmpty ? (
-					<div className="flex h-[300px] flex-col items-center justify-center gap-2 text-center">
+					<div className="flex h-75 flex-col items-center justify-center gap-2 text-center">
 						<p className="text-base font-semibold text-foreground">
-							No revenue data yet
+							No scheduled rent yet
 						</p>
 						<p className="text-sm text-muted-foreground">
-							Add a lease to start tracking revenue
+							Add a lease to see its rent scheduled here
 						</p>
 					</div>
 				) : (
-					<ChartContainer config={revenueConfig} className="h-[300px] w-full">
+					<ChartContainer config={revenueConfig} className="h-75 w-full">
 						<AreaChart
 							data={data}
 							margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
@@ -233,12 +226,16 @@ export function RevenueAreaChart({
 								content={
 									<ChartTooltipContent
 										labelFormatter={toTooltipLabelFormatter(tickFormatter)}
-										formatter={formatTooltipValue}
+										formatter={moneyTooltipFormatter(revenueConfig, {
+											minimumFractionDigits: 0,
+											maximumFractionDigits: 0,
+										})}
 									/>
 								}
 							/>
 							<Area
 								dataKey="value"
+								name="revenue"
 								type="monotone"
 								fill="url(#fillRevenue)"
 								stroke="var(--color-chart-1)"

@@ -29,8 +29,9 @@
  *
  * D-18 SCOPE, narrowed by plan 56-05 and simultaneously made stricter. The
  * income statement is a GAAP financial statement whose revenue line is defined
- * on its own face — it itemises Rental Income, Late Fees and Other Income and
- * totals them from `get_income_statement`. That is not an undefined third
+ * on its own face — it itemises the rent, late fees and other charges the rent
+ * ledger recorded and the credits issued, and totals them
+ * (financialQueries.incomeStatement). That is not an undefined third
  * derivation hiding behind a locked name; it is the statement's own named
  * subtotal. Relabelling it "Collected" would be a NEW claims violation (it is
  * not ledger receipts) and "Scheduled" would be equally false. D-18's subject,

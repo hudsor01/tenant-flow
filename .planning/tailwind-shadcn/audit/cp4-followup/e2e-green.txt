@@ -1,0 +1,14 @@
+$ bunx playwright test --config tests/e2e/playwright.config.ts "--project=owner-axe" "--reporter=list" "--max-failures=0" --grep "CP-4 follow-up"
+◇ injected env (0) from tests/e2e/.env.test
+
+Running 6 tests using 1 worker
+
+◇ injected env (0) from tests/e2e/.env.test
+  ✓  1 [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1638:2 › CP-4 follow-up: dashboard layout at every rail state › each KPI value stays on one line inside its tile (7.9s)
+  ✓  2 [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1691:2 › CP-4 follow-up: dashboard layout at every rail state › the Quick Actions card's content stays inside its column (6.4s)
+  ✓  3 [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1722:2 › CP-4 follow-up: dashboard layout at every rail state › the dock's band is reserved: main padding, scroll padding and scroll end (6.2s)
+  ✓  4 [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1764:2 › CP-4 follow-up: dashboard layout at every rail state › a quick action focused by Tab under the dock scrolls clear of it (WCAG 2.4.11) (6.3s)
+  ✓  5 [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1826:3 › CP-4 follow-up: dashboard layout at every rail state › 375px: no dock, so no reserved band (2.8s)
+  ✓  6 [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1826:3 › CP-4 follow-up: dashboard layout at every rail state › 900px: no dock, so no reserved band (2.9s)
+
+  6 passed (33.1s)

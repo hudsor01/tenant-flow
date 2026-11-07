@@ -28,8 +28,8 @@ export function SecuritySettings() {
 
 	return (
 		<div className="space-y-6">
-			<BlurFade delay={0.1} inView>
-				<div className="mb-6">
+			<BlurFade delay={0.1}>
+				<div>
 					<h2 className="text-lg font-semibold">Security Settings</h2>
 					<p className="text-sm text-muted-foreground">
 						Manage your password and authentication methods
@@ -45,7 +45,7 @@ export function SecuritySettings() {
 			    Data tab now (Session 11 P2 #9: duplicating the danger
 			    affordance across Security and My Data increased the chance
 			    of mistaken clicks). Leave a pointer here. */}
-			<BlurFade delay={0.25} inView>
+			<BlurFade delay={0.25}>
 				<section className="rounded-lg border bg-card p-4">
 					<p className="text-sm text-muted-foreground">
 						Account deletion and data export moved to the{" "}

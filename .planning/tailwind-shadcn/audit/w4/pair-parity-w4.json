@@ -1,0 +1,6073 @@
+{
+ "total": 54,
+ "counts": {
+  "text-equal": 21,
+  "computed-equal": 9,
+  "rem-for-px": 24,
+  "unproven": 0
+ },
+ "pairs": [
+  {
+   "from": "!aspect-auto",
+   "to": "aspect-auto!",
+   "class": "text-equal",
+   "files": [
+    "src/components/dashboard/components/kpi-sparkline.tsx",
+    "src/components/dashboard/components/occupancy-donut-chart.tsx"
+   ],
+   "detail": {
+    "canonical": "aspect-auto!",
+    "css": ".__c { aspect-ratio: auto !important; }"
+   }
+  },
+  {
+   "from": "!text-warning-text",
+   "to": "text-warning-text!",
+   "class": "text-equal",
+   "files": [
+    "src/components/dashboard/components/kpi-bento-row.tsx"
+   ],
+   "detail": {
+    "canonical": "text-warning-text!",
+    "css": ".__c { color: var(--warning-text) !important; }"
+   }
+  },
+  {
+   "from": "-translate-y-[50%]",
+   "to": "translate-y-[-50%]",
+   "class": "computed-equal",
+   "files": [
+    "src/components/auth/change-password-dialog.tsx"
+   ],
+   "detail": {
+    "canonical": "translate-y-[-50%]",
+    "oldCss": ".__c { --tw-translate-y: calc(50% * -1); translate: var(--tw-translate-x) var(--tw-translate-y); } @property --tw-translate-x { syntax: \"*\"; inherits: false; initial-value: 0; } @property --tw-translate-y { syntax: \"*\"; inherits: false; initial-value: 0; } @property --tw-translate-z { syntax: \"*\"; inherits: false; initial-value: 0; }",
+    "newCss": ".__c { --tw-translate-y: -50%; translate: var(--tw-translate-x) var(--tw-translate-y); } @property --tw-translate-x { syntax: \"*\"; inherits: false; initial-value: 0; } @property --tw-translate-y { syntax: \"*\"; inherits: false; initial-value: 0; } @property --tw-translate-z { syntax: \"*\"; inherits: false; initial-value: 0; }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 6,
+      "bVsControl": 6
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 6,
+      "bVsControl": 6
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 6,
+      "bVsControl": 6
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 6,
+      "bVsControl": 6
+     }
+    ],
+    "consumerResolved": [
+     {
+      "context": "1600x1000 light",
+      "part": "target",
+      "property": "--tw-translate-y",
+      "a": "calc(50% * -1)",
+      "b": "-50%",
+      "consumers": [
+       "translate"
+      ]
+     },
+     {
+      "context": "1600x1000 dark",
+      "part": "target",
+      "property": "--tw-translate-y",
+      "a": "calc(50% * -1)",
+      "b": "-50%",
+      "consumers": [
+       "translate"
+      ]
+     },
+     {
+      "context": "360x800 light",
+      "part": "target",
+      "property": "--tw-translate-y",
+      "a": "calc(50% * -1)",
+      "b": "-50%",
+      "consumers": [
+       "translate"
+      ]
+     },
+     {
+      "context": "360x800 dark",
+      "part": "target",
+      "property": "--tw-translate-y",
+      "a": "calc(50% * -1)",
+      "b": "-50%",
+      "consumers": [
+       "translate"
+      ]
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "resolved": [
+       {
+        "part": "target",
+        "property": "--tw-translate-y",
+        "a": "calc(50% * -1)",
+        "b": "-50%",
+        "consumers": [
+         "translate"
+        ]
+       }
+      ]
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "resolved": [
+       {
+        "part": "target",
+        "property": "--tw-translate-y",
+        "a": "calc(50% * -1)",
+        "b": "-50%",
+        "consumers": [
+         "translate"
+        ]
+       }
+      ]
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "resolved": [
+       {
+        "part": "target",
+        "property": "--tw-translate-y",
+        "a": "calc(50% * -1)",
+        "b": "-50%",
+        "consumers": [
+         "translate"
+        ]
+       }
+      ]
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "resolved": [
+       {
+        "part": "target",
+        "property": "--tw-translate-y",
+        "a": "calc(50% * -1)",
+        "b": "-50%",
+        "consumers": [
+         "translate"
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "from": "[grid-column:1/-1]",
+   "to": "col-span-full",
+   "class": "computed-equal",
+   "files": [
+    "src/components/dashboard/components/kpi-bento-row.tsx",
+    "src/components/dashboard/components/kpi-sparkline.tsx"
+   ],
+   "detail": {
+    "canonical": "col-span-full",
+    "oldCss": ".__c { grid-column: 1/-1; }",
+    "newCss": ".__c { grid-column: 1 / -1; }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 2,
+      "bVsControl": 2
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 2,
+      "bVsControl": 2
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 2,
+      "bVsControl": 2
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 2,
+      "bVsControl": 2
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "aspect-[16/10]",
+   "to": "aspect-16/10",
+   "class": "text-equal",
+   "files": [
+    "src/components/blog/blog-card.tsx"
+   ],
+   "detail": {
+    "canonical": "aspect-16/10",
+    "css": ".__c { aspect-ratio: 16/10; }"
+   }
+  },
+  {
+   "from": "bg-(--color-accent-main)",
+   "to": "bg-accent-main",
+   "class": "computed-equal",
+   "files": [
+    "src/components/auth/password-strength.tsx"
+   ],
+   "detail": {
+    "canonical": "bg-accent-main",
+    "oldCss": ".__c { background-color: var(--color-accent-main); }",
+    "newCss": ".__c { background-color: var(--accent-main); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 1,
+      "bVsControl": 1
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 1,
+      "bVsControl": 1
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 1,
+      "bVsControl": 1
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 1,
+      "bVsControl": 1
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "bg-[var(--color-chart-2)]",
+   "to": "bg-chart-2",
+   "class": "computed-equal",
+   "files": [
+    "src/components/dashboard/components/occupancy-donut-chart.tsx"
+   ],
+   "detail": {
+    "canonical": "bg-chart-2",
+    "oldCss": ".__c { background-color: var(--color-chart-2); }",
+    "newCss": ".__c { background-color: var(--chart-2); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 1,
+      "bVsControl": 1
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 1,
+      "bVsControl": 1
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 1,
+      "bVsControl": 1
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 1,
+      "bVsControl": 1
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "bg-[var(--color-chart-5)]",
+   "to": "bg-(--color-chart-5)",
+   "class": "text-equal",
+   "files": [
+    "src/components/dashboard/components/occupancy-donut-chart.tsx"
+   ],
+   "detail": {
+    "canonical": "bg-(--color-chart-5)",
+    "css": ".__c { background-color: var(--color-chart-5); }"
+   }
+  },
+  {
+   "from": "bg-gradient-to-b",
+   "to": "bg-linear-to-b",
+   "class": "computed-equal",
+   "files": [
+    "src/components/contact/contact-form.tsx",
+    "src/components/pricing/pricing-card-featured.tsx",
+    "src/components/sections/hero-dashboard-mockup.tsx"
+   ],
+   "detail": {
+    "canonical": "bg-linear-to-b",
+    "oldCss": ".__c { --tw-gradient-position: to bottom in oklab; background-image: linear-gradient(var(--tw-gradient-stops)); }",
+    "newCss": ".__c { --tw-gradient-position: to bottom; @supports (background-image: linear-gradient(in lab, red, red)) { --tw-gradient-position: to bottom in oklab; } background-image: linear-gradient(var(--tw-gradient-stops)); }",
+    "companions": [
+     "from-primary",
+     "to-accent"
+    ],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 3,
+      "bVsControl": 3
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 3,
+      "bVsControl": 3
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 3,
+      "bVsControl": 3
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 3,
+      "bVsControl": 3
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "bg-gradient-to-br",
+   "to": "bg-linear-to-br",
+   "class": "computed-equal",
+   "files": [
+    "src/components/contact/contact-form.tsx",
+    "src/components/pricing/pricing-card-featured.tsx"
+   ],
+   "detail": {
+    "canonical": "bg-linear-to-br",
+    "oldCss": ".__c { --tw-gradient-position: to bottom right in oklab; background-image: linear-gradient(var(--tw-gradient-stops)); }",
+    "newCss": ".__c { --tw-gradient-position: to bottom right; @supports (background-image: linear-gradient(in lab, red, red)) { --tw-gradient-position: to bottom right in oklab; } background-image: linear-gradient(var(--tw-gradient-stops)); }",
+    "companions": [
+     "from-primary",
+     "to-accent"
+    ],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 3,
+      "bVsControl": 3
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 3,
+      "bVsControl": 3
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 3,
+      "bVsControl": 3
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 3,
+      "bVsControl": 3
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "bg-gradient-to-l",
+   "to": "bg-linear-to-l",
+   "class": "computed-equal",
+   "files": [
+    "src/components/pricing/pricing-comparison-table.tsx"
+   ],
+   "detail": {
+    "canonical": "bg-linear-to-l",
+    "oldCss": ".__c { --tw-gradient-position: to left in oklab; background-image: linear-gradient(var(--tw-gradient-stops)); }",
+    "newCss": ".__c { --tw-gradient-position: to left; @supports (background-image: linear-gradient(in lab, red, red)) { --tw-gradient-position: to left in oklab; } background-image: linear-gradient(var(--tw-gradient-stops)); }",
+    "companions": [
+     "from-primary",
+     "to-accent"
+    ],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 3,
+      "bVsControl": 3
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 3,
+      "bVsControl": 3
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 3,
+      "bVsControl": 3
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 3,
+      "bVsControl": 3
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "bg-gradient-to-r",
+   "to": "bg-linear-to-r",
+   "class": "computed-equal",
+   "files": [
+    "src/components/sections/how-it-works.tsx"
+   ],
+   "detail": {
+    "canonical": "bg-linear-to-r",
+    "oldCss": ".__c { --tw-gradient-position: to right in oklab; background-image: linear-gradient(var(--tw-gradient-stops)); }",
+    "newCss": ".__c { --tw-gradient-position: to right; @supports (background-image: linear-gradient(in lab, red, red)) { --tw-gradient-position: to right in oklab; } background-image: linear-gradient(var(--tw-gradient-stops)); }",
+    "companions": [
+     "from-primary",
+     "to-accent"
+    ],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 3,
+      "bVsControl": 3
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 3,
+      "bVsControl": 3
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 3,
+      "bVsControl": 3
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 3,
+      "bVsControl": 3
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "data-[drag-over]:bg-primary/10",
+   "to": "data-drag-over:bg-primary/10",
+   "class": "text-equal",
+   "files": [
+    "src/components/bulk-import/bulk-import-upload-step.tsx"
+   ],
+   "detail": {
+    "canonical": "data-drag-over:bg-primary/10",
+    "css": ".__c[data-drag-over] { background-color: color-mix(in oklab, var(--primary) 10%, transparent); }"
+   }
+  },
+  {
+   "from": "data-[drag-over]:border-primary",
+   "to": "data-drag-over:border-primary",
+   "class": "text-equal",
+   "files": [
+    "src/components/bulk-import/bulk-import-upload-step.tsx"
+   ],
+   "detail": {
+    "canonical": "data-drag-over:border-primary",
+    "css": ".__c[data-drag-over] { border-color: var(--primary); }"
+   }
+  },
+  {
+   "from": "data-[drag-over]:scale-[1.01]",
+   "to": "data-drag-over:scale-[1.01]",
+   "class": "text-equal",
+   "files": [
+    "src/components/bulk-import/bulk-import-upload-step.tsx"
+   ],
+   "detail": {
+    "canonical": "data-drag-over:scale-[1.01]",
+    "css": ".__c[data-drag-over] { scale: 1.01; }"
+   }
+  },
+  {
+   "from": "data-[drag-over]:shadow-lg",
+   "to": "data-drag-over:shadow-lg",
+   "class": "text-equal",
+   "files": [
+    "src/components/bulk-import/bulk-import-upload-step.tsx"
+   ],
+   "detail": {
+    "canonical": "data-drag-over:shadow-lg",
+    "css": ".__c[data-drag-over] { --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, oklch(0.15 0.02 250 / 0.1)), 0 4px 6px -4px var(--tw-shadow-color, oklch(0.15 0.02 250 / 0.1)); box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow); } @property --tw-shadow { syntax: \"*\"; inherits: false; initial-value: 0 0 #0000; } @property --tw-shadow-color { syntax: \"*\"; inherits: false; } @property --tw-shadow-alpha { syntax: \"<percentage>\"; inherits: false; initial-value: 100%; } @property --tw-inset-shadow { syntax: \"*\"; inherits: false; initial-value: 0 0 #0000; } @property --tw-inset-shadow-color { syntax: \"*\"; inherits: false; } @property --tw-inset-shadow-alpha { syntax: \"<percentage>\"; inherits: false; initial-value: 100%; } @property --tw-ring-color { syntax: \"*\"; inherits: false; } @property --tw-ring-shadow { syntax: \"*\"; inherits: false; initial-value: 0 0 #0000; } @property --tw-inset-ring-color { syntax: \"*\"; inherits: false; } @property --tw-inset-ring-shadow { syntax: \"*\"; inherits: false; initial-value: 0 0 #0000; } @property --tw-ring-inset { syntax: \"*\"; inherits: false; } @property --tw-ring-offset-width { syntax: \"<length>\"; inherits: false; initial-value: 0px; } @property --tw-ring-offset-color { syntax: \"*\"; inherits: false; initial-value: #fff; } @property --tw-ring-offset-shadow { syntax: \"*\"; inherits: false; initial-value: 0 0 #0000; }"
+   }
+  },
+  {
+   "from": "data-[drag-over]:shadow-primary/10",
+   "to": "data-drag-over:shadow-primary/10",
+   "class": "text-equal",
+   "files": [
+    "src/components/bulk-import/bulk-import-upload-step.tsx"
+   ],
+   "detail": {
+    "canonical": "data-drag-over:shadow-primary/10",
+    "css": ".__c[data-drag-over] { --tw-shadow-color: color-mix(in oklab, color-mix(in oklab, var(--primary) 10%, transparent) var(--tw-shadow-alpha), transparent); } @property --tw-shadow { syntax: \"*\"; inherits: false; initial-value: 0 0 #0000; } @property --tw-shadow-color { syntax: \"*\"; inherits: false; } @property --tw-shadow-alpha { syntax: \"<percentage>\"; inherits: false; initial-value: 100%; } @property --tw-inset-shadow { syntax: \"*\"; inherits: false; initial-value: 0 0 #0000; } @property --tw-inset-shadow-color { syntax: \"*\"; inherits: false; } @property --tw-inset-shadow-alpha { syntax: \"<percentage>\"; inherits: false; initial-value: 100%; } @property --tw-ring-color { syntax: \"*\"; inherits: false; } @property --tw-ring-shadow { syntax: \"*\"; inherits: false; initial-value: 0 0 #0000; } @property --tw-inset-ring-color { syntax: \"*\"; inherits: false; } @property --tw-inset-ring-shadow { syntax: \"*\"; inherits: false; initial-value: 0 0 #0000; } @property --tw-ring-inset { syntax: \"*\"; inherits: false; } @property --tw-ring-offset-width { syntax: \"<length>\"; inherits: false; initial-value: 0px; } @property --tw-ring-offset-color { syntax: \"*\"; inherits: false; initial-value: #fff; } @property --tw-ring-offset-shadow { syntax: \"*\"; inherits: false; initial-value: 0 0 #0000; }"
+   }
+  },
+  {
+   "from": "data-[invalid]:bg-destructive/5",
+   "to": "data-invalid:bg-destructive/5",
+   "class": "text-equal",
+   "files": [
+    "src/components/bulk-import/bulk-import-upload-step.tsx"
+   ],
+   "detail": {
+    "canonical": "data-invalid:bg-destructive/5",
+    "css": ".__c[data-invalid] { background-color: color-mix(in oklab, var(--destructive) 5%, transparent); }"
+   }
+  },
+  {
+   "from": "data-[invalid]:border-destructive/60",
+   "to": "data-invalid:border-destructive/60",
+   "class": "text-equal",
+   "files": [
+    "src/components/bulk-import/bulk-import-upload-step.tsx"
+   ],
+   "detail": {
+    "canonical": "data-invalid:border-destructive/60",
+    "css": ".__c[data-invalid] { border-color: color-mix(in oklab, var(--destructive) 60%, transparent); }"
+   }
+  },
+  {
+   "from": "flex-shrink-0",
+   "to": "shrink-0",
+   "class": "text-equal",
+   "files": [
+    "src/app/blog/page.tsx",
+    "src/components/maintenance/kanban/maintenance-kanban.client.tsx",
+    "src/components/maintenance/table/columns.tsx",
+    "src/components/tenants/tenant-grid.tsx"
+   ],
+   "detail": {
+    "canonical": "shrink-0",
+    "css": ".__c { flex-shrink: 0; }"
+   }
+  },
+  {
+   "from": "group-data-[drag-over]:animate-bounce",
+   "to": "group-data-drag-over:animate-bounce",
+   "class": "text-equal",
+   "files": [
+    "src/components/bulk-import/bulk-import-upload-step.tsx"
+   ],
+   "detail": {
+    "canonical": "group-data-drag-over:animate-bounce",
+    "css": ".__c:is(:where(.group)[data-drag-over] *) { animation: var(--animate-bounce); }"
+   }
+  },
+  {
+   "from": "group-data-[drag-over]:animate-pulse",
+   "to": "group-data-drag-over:animate-pulse",
+   "class": "text-equal",
+   "files": [
+    "src/components/bulk-import/bulk-import-upload-step.tsx"
+   ],
+   "detail": {
+    "canonical": "group-data-drag-over:animate-pulse",
+    "css": ".__c:is(:where(.group)[data-drag-over] *) { animation: var(--animate-pulse); }"
+   }
+  },
+  {
+   "from": "group-data-[drag-over]:bg-primary/20",
+   "to": "group-data-drag-over:bg-primary/20",
+   "class": "text-equal",
+   "files": [
+    "src/components/bulk-import/bulk-import-upload-step.tsx"
+   ],
+   "detail": {
+    "canonical": "group-data-drag-over:bg-primary/20",
+    "css": ".__c:is(:where(.group)[data-drag-over] *) { background-color: color-mix(in oklab, var(--primary) 20%, transparent); }"
+   }
+  },
+  {
+   "from": "group-data-[drag-over]:scale-110",
+   "to": "group-data-drag-over:scale-110",
+   "class": "text-equal",
+   "files": [
+    "src/components/bulk-import/bulk-import-upload-step.tsx"
+   ],
+   "detail": {
+    "canonical": "group-data-drag-over:scale-110",
+    "css": ".__c:is(:where(.group)[data-drag-over] *) { --tw-scale-x: 110%; --tw-scale-y: 110%; --tw-scale-z: 110%; scale: var(--tw-scale-x) var(--tw-scale-y); } @property --tw-scale-x { syntax: \"*\"; inherits: false; initial-value: 1; } @property --tw-scale-y { syntax: \"*\"; inherits: false; initial-value: 1; } @property --tw-scale-z { syntax: \"*\"; inherits: false; initial-value: 1; }"
+   }
+  },
+  {
+   "from": "h-[180px]",
+   "to": "h-45",
+   "class": "rem-for-px",
+   "files": [
+    "src/components/dashboard/components/occupancy-donut-chart.tsx"
+   ],
+   "detail": {
+    "canonical": "h-45",
+    "oldCss": ".__c { height: 180px; }",
+    "newCss": ".__c { height: calc(var(--spacing) * 45); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "180",
+        "b": "225"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "180px",
+        "b": "225px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "180px",
+        "b": "225px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 90px",
+        "b": "800px 112.5px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 90px",
+        "b": "800px 112.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "180",
+        "b": "225"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "180px",
+        "b": "225px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "180px",
+        "b": "225px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 90px",
+        "b": "800px 112.5px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 90px",
+        "b": "800px 112.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "180",
+        "b": "225"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "180px",
+        "b": "225px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "180px",
+        "b": "225px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 90px",
+        "b": "180px 112.5px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 90px",
+        "b": "180px 112.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "180",
+        "b": "225"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "180px",
+        "b": "225px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "180px",
+        "b": "225px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 90px",
+        "b": "180px 112.5px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 90px",
+        "b": "180px 112.5px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "h-[240px]",
+   "to": "h-60",
+   "class": "rem-for-px",
+   "files": [
+    "src/components/dashboard/components/occupancy-donut-chart.tsx"
+   ],
+   "detail": {
+    "canonical": "h-60",
+    "oldCss": ".__c { height: 240px; }",
+    "newCss": ".__c { height: calc(var(--spacing) * 60); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "240",
+        "b": "300"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "240px",
+        "b": "300px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "240px",
+        "b": "300px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 120px",
+        "b": "800px 150px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 120px",
+        "b": "800px 150px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "240",
+        "b": "300"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "240px",
+        "b": "300px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "240px",
+        "b": "300px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 120px",
+        "b": "800px 150px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 120px",
+        "b": "800px 150px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "240",
+        "b": "300"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "240px",
+        "b": "300px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "240px",
+        "b": "300px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 120px",
+        "b": "180px 150px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 120px",
+        "b": "180px 150px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "240",
+        "b": "300"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "240px",
+        "b": "300px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "240px",
+        "b": "300px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 120px",
+        "b": "180px 150px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 120px",
+        "b": "180px 150px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "h-[300px]",
+   "to": "h-75",
+   "class": "rem-for-px",
+   "files": [
+    "src/app/(owner)/properties/units/page.tsx",
+    "src/components/dashboard/components/revenue-area-chart-skeleton.tsx",
+    "src/components/dashboard/components/revenue-area-chart.tsx",
+    "src/components/data-table/data-table-faceted-filter.tsx"
+   ],
+   "detail": {
+    "canonical": "h-75",
+    "oldCss": ".__c { height: 300px; }",
+    "newCss": ".__c { height: calc(var(--spacing) * 75); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "300",
+        "b": "375"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "300px",
+        "b": "375px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "300px",
+        "b": "375px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 150px",
+        "b": "800px 187.5px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 150px",
+        "b": "800px 187.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "300",
+        "b": "375"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "300px",
+        "b": "375px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "300px",
+        "b": "375px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 150px",
+        "b": "800px 187.5px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 150px",
+        "b": "800px 187.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "300",
+        "b": "375"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "300px",
+        "b": "375px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "300px",
+        "b": "375px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 150px",
+        "b": "180px 187.5px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 150px",
+        "b": "180px 187.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "300",
+        "b": "375"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "300px",
+        "b": "375px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "300px",
+        "b": "375px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 150px",
+        "b": "180px 187.5px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 150px",
+        "b": "180px 187.5px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "h-[400px]",
+   "to": "h-100",
+   "class": "rem-for-px",
+   "files": [
+    "src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx",
+    "src/components/leases/wizard/lease-creation-wizard.tsx",
+    "src/components/properties/image-lightbox.tsx",
+    "src/components/shared/error-page.tsx",
+    "src/components/shared/not-found-page.tsx"
+   ],
+   "detail": {
+    "canonical": "h-100",
+    "oldCss": ".__c { height: 400px; }",
+    "newCss": ".__c { height: calc(var(--spacing) * 100); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "400",
+        "b": "500"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 200px",
+        "b": "800px 250px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 200px",
+        "b": "800px 250px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "400",
+        "b": "500"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 200px",
+        "b": "800px 250px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 200px",
+        "b": "800px 250px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "400",
+        "b": "500"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 200px",
+        "b": "180px 250px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 200px",
+        "b": "180px 250px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "400",
+        "b": "500"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 200px",
+        "b": "180px 250px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 200px",
+        "b": "180px 250px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "h-[480px]",
+   "to": "h-120",
+   "class": "rem-for-px",
+   "files": [
+    "src/components/leases/template/pdf-preview-panel.tsx"
+   ],
+   "detail": {
+    "canonical": "h-120",
+    "oldCss": ".__c { height: 480px; }",
+    "newCss": ".__c { height: calc(var(--spacing) * 120); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "480",
+        "b": "600"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "480px",
+        "b": "600px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "480px",
+        "b": "600px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 240px",
+        "b": "800px 300px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 240px",
+        "b": "800px 300px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "480",
+        "b": "600"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "480px",
+        "b": "600px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "480px",
+        "b": "600px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 240px",
+        "b": "800px 300px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 240px",
+        "b": "800px 300px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "480",
+        "b": "600"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "480px",
+        "b": "600px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "480px",
+        "b": "600px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 240px",
+        "b": "180px 300px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 240px",
+        "b": "180px 300px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "480",
+        "b": "600"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "480px",
+        "b": "600px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "480px",
+        "b": "600px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 240px",
+        "b": "180px 300px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 240px",
+        "b": "180px 300px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "h-[520px]",
+   "to": "h-130",
+   "class": "rem-for-px",
+   "files": [
+    "src/app/(owner)/documents/templates/components/template-preview-panel.tsx"
+   ],
+   "detail": {
+    "canonical": "h-130",
+    "oldCss": ".__c { height: 520px; }",
+    "newCss": ".__c { height: calc(var(--spacing) * 130); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "520",
+        "b": "650"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "520px",
+        "b": "650px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "520px",
+        "b": "650px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 260px",
+        "b": "800px 325px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 260px",
+        "b": "800px 325px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "520",
+        "b": "650"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "520px",
+        "b": "650px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "520px",
+        "b": "650px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 260px",
+        "b": "800px 325px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 260px",
+        "b": "800px 325px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "520",
+        "b": "650"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "520px",
+        "b": "650px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "520px",
+        "b": "650px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 260px",
+        "b": "180px 325px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 260px",
+        "b": "180px 325px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "520",
+        "b": "650"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "520px",
+        "b": "650px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "520px",
+        "b": "650px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 260px",
+        "b": "180px 325px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 260px",
+        "b": "180px 325px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "h-[72px]",
+   "to": "h-18",
+   "class": "rem-for-px",
+   "files": [
+    "src/components/applications/application-queue.tsx"
+   ],
+   "detail": {
+    "canonical": "h-18",
+    "oldCss": ".__c { height: 72px; }",
+    "newCss": ".__c { height: calc(var(--spacing) * 18); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "72",
+        "b": "90"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "72px",
+        "b": "90px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "72px",
+        "b": "90px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 36px",
+        "b": "800px 45px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 36px",
+        "b": "800px 45px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "72",
+        "b": "90"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "72px",
+        "b": "90px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "72px",
+        "b": "90px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 36px",
+        "b": "800px 45px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 36px",
+        "b": "800px 45px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "72",
+        "b": "90"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "72px",
+        "b": "90px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "72px",
+        "b": "90px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 36px",
+        "b": "180px 45px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 36px",
+        "b": "180px 45px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "72",
+        "b": "90"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "72px",
+        "b": "90px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "72px",
+        "b": "90px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 36px",
+        "b": "180px 45px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 36px",
+        "b": "180px 45px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "inset-[-2px]",
+   "to": "-inset-0.5",
+   "class": "rem-for-px",
+   "files": [
+    "src/components/sections/features-section.tsx"
+   ],
+   "detail": {
+    "canonical": "-inset-0.5",
+    "oldCss": ".__c { inset: -2px; }",
+    "newCss": ".__c { inset: calc(var(--spacing) * -0.5); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 8,
+      "bVsControl": 8
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 8,
+      "bVsControl": 8
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 8,
+      "bVsControl": 8
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 8,
+      "bVsControl": 8
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "target",
+        "property": "bottom",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "inset-block-end",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "inset-block-start",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "inset-inline-end",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "inset-inline-start",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "left",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "right",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "top",
+        "a": "-2px",
+        "b": "-2.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "target",
+        "property": "bottom",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "inset-block-end",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "inset-block-start",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "inset-inline-end",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "inset-inline-start",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "left",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "right",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "top",
+        "a": "-2px",
+        "b": "-2.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "target",
+        "property": "bottom",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "inset-block-end",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "inset-block-start",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "inset-inline-end",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "inset-inline-start",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "left",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "right",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "top",
+        "a": "-2px",
+        "b": "-2.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "target",
+        "property": "bottom",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "inset-block-end",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "inset-block-start",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "inset-inline-end",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "inset-inline-start",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "left",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "right",
+        "a": "-2px",
+        "b": "-2.5px"
+       },
+       {
+        "part": "target",
+        "property": "top",
+        "a": "-2px",
+        "b": "-2.5px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "leading-[1.1]",
+   "to": "leading-display",
+   "class": "computed-equal",
+   "files": [
+    "src/app/blog/[slug]/blog-post-page.tsx",
+    "src/app/resources/page.tsx",
+    "src/components/sections/hero-section.tsx"
+   ],
+   "detail": {
+    "canonical": "leading-display",
+    "oldCss": ".__c { --tw-leading: 1.1; line-height: 1.1; } @property --tw-leading { syntax: \"*\"; inherits: false; }",
+    "newCss": ".__c { --tw-leading: var(--leading-display); line-height: var(--leading-display); } @property --tw-leading { syntax: \"*\"; inherits: false; }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 15,
+      "bVsControl": 15
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 15,
+      "bVsControl": 15
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 15,
+      "bVsControl": 15
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 15,
+      "bVsControl": 15
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "list-[disc]",
+   "to": "list-disc",
+   "class": "text-equal",
+   "files": [
+    "src/components/auth/change-password-dialog.tsx"
+   ],
+   "detail": {
+    "canonical": "list-disc",
+    "css": ".__c { list-style-type: disc; }"
+   }
+  },
+  {
+   "from": "max-h-[300px]",
+   "to": "max-h-75",
+   "class": "rem-for-px",
+   "files": [
+    "src/components/data-table/data-table-faceted-filter.tsx"
+   ],
+   "detail": {
+    "canonical": "max-h-75",
+    "oldCss": ".__c { max-height: 300px; }",
+    "newCss": ".__c { max-height: calc(var(--spacing) * 75); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 2,
+      "bVsControl": 2
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 2,
+      "bVsControl": 2
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 2,
+      "bVsControl": 2
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 2,
+      "bVsControl": 2
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "target",
+        "property": "max-block-size",
+        "a": "300px",
+        "b": "375px"
+       },
+       {
+        "part": "target",
+        "property": "max-height",
+        "a": "300px",
+        "b": "375px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "target",
+        "property": "max-block-size",
+        "a": "300px",
+        "b": "375px"
+       },
+       {
+        "part": "target",
+        "property": "max-height",
+        "a": "300px",
+        "b": "375px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "target",
+        "property": "max-block-size",
+        "a": "300px",
+        "b": "375px"
+       },
+       {
+        "part": "target",
+        "property": "max-height",
+        "a": "300px",
+        "b": "375px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "target",
+        "property": "max-block-size",
+        "a": "300px",
+        "b": "375px"
+       },
+       {
+        "part": "target",
+        "property": "max-height",
+        "a": "300px",
+        "b": "375px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "max-w-[150px]",
+   "to": "max-w-37.5",
+   "class": "rem-for-px",
+   "files": [
+    "src/components/shell/app-shell-header.tsx"
+   ],
+   "detail": {
+    "canonical": "max-w-37.5",
+    "oldCss": ".__c { max-width: 150px; }",
+    "newCss": ".__c { max-width: calc(var(--spacing) * 37.5); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 7,
+      "bVsControl": 7
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 7,
+      "bVsControl": 7
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 7,
+      "bVsControl": 7
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 7,
+      "bVsControl": 7
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "150",
+        "b": "187.5"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "150px",
+        "b": "187.5px"
+       },
+       {
+        "part": "target",
+        "property": "max-inline-size",
+        "a": "150px",
+        "b": "187.5px"
+       },
+       {
+        "part": "target",
+        "property": "max-width",
+        "a": "150px",
+        "b": "187.5px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "75px 15px",
+        "b": "93.75px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "75px 15px",
+        "b": "93.75px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "150px",
+        "b": "187.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "150",
+        "b": "187.5"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "150px",
+        "b": "187.5px"
+       },
+       {
+        "part": "target",
+        "property": "max-inline-size",
+        "a": "150px",
+        "b": "187.5px"
+       },
+       {
+        "part": "target",
+        "property": "max-width",
+        "a": "150px",
+        "b": "187.5px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "75px 15px",
+        "b": "93.75px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "75px 15px",
+        "b": "93.75px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "150px",
+        "b": "187.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "150",
+        "b": "187.5"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "150px",
+        "b": "187.5px"
+       },
+       {
+        "part": "target",
+        "property": "max-inline-size",
+        "a": "150px",
+        "b": "187.5px"
+       },
+       {
+        "part": "target",
+        "property": "max-width",
+        "a": "150px",
+        "b": "187.5px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "75px 15px",
+        "b": "93.75px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "75px 15px",
+        "b": "93.75px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "150px",
+        "b": "187.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "150",
+        "b": "187.5"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "150px",
+        "b": "187.5px"
+       },
+       {
+        "part": "target",
+        "property": "max-inline-size",
+        "a": "150px",
+        "b": "187.5px"
+       },
+       {
+        "part": "target",
+        "property": "max-width",
+        "a": "150px",
+        "b": "187.5px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "75px 15px",
+        "b": "93.75px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "75px 15px",
+        "b": "93.75px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "150px",
+        "b": "187.5px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "min-h-[400px]",
+   "to": "min-h-100",
+   "class": "rem-for-px",
+   "files": [
+    "src/components/leases/wizard/lease-creation-wizard.tsx",
+    "src/components/properties/image-lightbox.tsx",
+    "src/components/shared/error-page.tsx",
+    "src/components/shared/not-found-page.tsx"
+   ],
+   "detail": {
+    "canonical": "min-h-100",
+    "oldCss": ".__c { min-height: 400px; }",
+    "newCss": ".__c { min-height: calc(var(--spacing) * 100); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 7,
+      "bVsControl": 7
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 7,
+      "bVsControl": 7
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 7,
+      "bVsControl": 7
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 7,
+      "bVsControl": 7
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "400",
+        "b": "500"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "min-block-size",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "min-height",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 200px",
+        "b": "800px 250px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 200px",
+        "b": "800px 250px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "400",
+        "b": "500"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "min-block-size",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "min-height",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 200px",
+        "b": "800px 250px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 200px",
+        "b": "800px 250px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "400",
+        "b": "500"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "min-block-size",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "min-height",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 200px",
+        "b": "180px 250px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 200px",
+        "b": "180px 250px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "400",
+        "b": "500"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "min-block-size",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "min-height",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 200px",
+        "b": "180px 250px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 200px",
+        "b": "180px 250px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "min-w-[280px]",
+   "to": "min-w-70",
+   "class": "rem-for-px",
+   "files": [
+    "src/app/blog/page.tsx",
+    "src/components/maintenance/kanban/maintenance-kanban.client.tsx"
+   ],
+   "detail": {
+    "canonical": "min-w-70",
+    "oldCss": ".__c { min-width: 280px; }",
+    "newCss": ".__c { min-width: calc(var(--spacing) * 70); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 2,
+      "bVsControl": 2
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 2,
+      "bVsControl": 2
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 2,
+      "bVsControl": 2
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 2,
+      "bVsControl": 2
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "target",
+        "property": "min-inline-size",
+        "a": "280px",
+        "b": "350px"
+       },
+       {
+        "part": "target",
+        "property": "min-width",
+        "a": "280px",
+        "b": "350px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "target",
+        "property": "min-inline-size",
+        "a": "280px",
+        "b": "350px"
+       },
+       {
+        "part": "target",
+        "property": "min-width",
+        "a": "280px",
+        "b": "350px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "target",
+        "property": "min-inline-size",
+        "a": "280px",
+        "b": "350px"
+       },
+       {
+        "part": "target",
+        "property": "min-width",
+        "a": "280px",
+        "b": "350px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "target",
+        "property": "min-inline-size",
+        "a": "280px",
+        "b": "350px"
+       },
+       {
+        "part": "target",
+        "property": "min-width",
+        "a": "280px",
+        "b": "350px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "min-w-[640px]",
+   "to": "min-w-160",
+   "class": "rem-for-px",
+   "files": [
+    "src/components/pricing/pricing-comparison-table.tsx",
+    "src/components/sections/comparison-table.tsx"
+   ],
+   "detail": {
+    "canonical": "min-w-160",
+    "oldCss": ".__c { min-width: 640px; }",
+    "newCss": ".__c { min-width: calc(var(--spacing) * 160); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 2,
+      "bVsControl": 2
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 2,
+      "bVsControl": 2
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 7,
+      "bVsControl": 7
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 7,
+      "bVsControl": 7
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "target",
+        "property": "min-inline-size",
+        "a": "640px",
+        "b": "800px"
+       },
+       {
+        "part": "target",
+        "property": "min-width",
+        "a": "640px",
+        "b": "800px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "target",
+        "property": "min-inline-size",
+        "a": "640px",
+        "b": "800px"
+       },
+       {
+        "part": "target",
+        "property": "min-width",
+        "a": "640px",
+        "b": "800px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "640",
+        "b": "800"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "640px",
+        "b": "800px"
+       },
+       {
+        "part": "target",
+        "property": "min-inline-size",
+        "a": "640px",
+        "b": "800px"
+       },
+       {
+        "part": "target",
+        "property": "min-width",
+        "a": "640px",
+        "b": "800px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "320px 15px",
+        "b": "400px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "320px 15px",
+        "b": "400px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "640px",
+        "b": "800px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "640",
+        "b": "800"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "640px",
+        "b": "800px"
+       },
+       {
+        "part": "target",
+        "property": "min-inline-size",
+        "a": "640px",
+        "b": "800px"
+       },
+       {
+        "part": "target",
+        "property": "min-width",
+        "a": "640px",
+        "b": "800px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "320px 15px",
+        "b": "400px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "320px 15px",
+        "b": "400px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "640px",
+        "b": "800px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "p-[2px]",
+   "to": "p-0.5",
+   "class": "rem-for-px",
+   "files": [
+    "src/components/pricing/pricing-card-featured.tsx"
+   ],
+   "detail": {
+    "canonical": "p-0.5",
+    "oldCss": ".__c { padding: 2px; }",
+    "newCss": ".__c { padding: calc(var(--spacing) * 0.5); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 19,
+      "bVsControl": 19
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 19,
+      "bVsControl": 19
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 19,
+      "bVsControl": 19
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 19,
+      "bVsControl": 19
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "34",
+        "b": "35"
+       },
+       {
+        "part": "geometry",
+        "property": "child1.x",
+        "a": "2",
+        "b": "2.5"
+       },
+       {
+        "part": "geometry",
+        "property": "child1.y",
+        "a": "35",
+        "b": "35.5"
+       },
+       {
+        "part": "geometry",
+        "property": "grandchild.x",
+        "a": "10.890625",
+        "b": "11.390625"
+       },
+       {
+        "part": "geometry",
+        "property": "grandchild.y",
+        "a": "35",
+        "b": "35.5"
+       },
+       {
+        "part": "geometry",
+        "property": "child2.x",
+        "a": "20.890625",
+        "b": "21.390625"
+       },
+       {
+        "part": "geometry",
+        "property": "child2.y",
+        "a": "35",
+        "b": "35.5"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "34px",
+        "b": "35px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "34px",
+        "b": "35px"
+       },
+       {
+        "part": "target",
+        "property": "padding-block-end",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-block-start",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-bottom",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-inline-end",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-inline-start",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-left",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-right",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-top",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 17px",
+        "b": "800px 17.5px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 17px",
+        "b": "800px 17.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "34",
+        "b": "35"
+       },
+       {
+        "part": "geometry",
+        "property": "child1.x",
+        "a": "2",
+        "b": "2.5"
+       },
+       {
+        "part": "geometry",
+        "property": "child1.y",
+        "a": "35",
+        "b": "35.5"
+       },
+       {
+        "part": "geometry",
+        "property": "grandchild.x",
+        "a": "10.890625",
+        "b": "11.390625"
+       },
+       {
+        "part": "geometry",
+        "property": "grandchild.y",
+        "a": "35",
+        "b": "35.5"
+       },
+       {
+        "part": "geometry",
+        "property": "child2.x",
+        "a": "20.890625",
+        "b": "21.390625"
+       },
+       {
+        "part": "geometry",
+        "property": "child2.y",
+        "a": "35",
+        "b": "35.5"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "34px",
+        "b": "35px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "34px",
+        "b": "35px"
+       },
+       {
+        "part": "target",
+        "property": "padding-block-end",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-block-start",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-bottom",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-inline-end",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-inline-start",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-left",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-right",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-top",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "800px 17px",
+        "b": "800px 17.5px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "800px 17px",
+        "b": "800px 17.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "34",
+        "b": "35"
+       },
+       {
+        "part": "geometry",
+        "property": "child1.x",
+        "a": "2",
+        "b": "2.5"
+       },
+       {
+        "part": "geometry",
+        "property": "child1.y",
+        "a": "35",
+        "b": "35.5"
+       },
+       {
+        "part": "geometry",
+        "property": "grandchild.x",
+        "a": "10.890625",
+        "b": "11.390625"
+       },
+       {
+        "part": "geometry",
+        "property": "grandchild.y",
+        "a": "35",
+        "b": "35.5"
+       },
+       {
+        "part": "geometry",
+        "property": "child2.x",
+        "a": "20.890625",
+        "b": "21.390625"
+       },
+       {
+        "part": "geometry",
+        "property": "child2.y",
+        "a": "35",
+        "b": "35.5"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "34px",
+        "b": "35px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "34px",
+        "b": "35px"
+       },
+       {
+        "part": "target",
+        "property": "padding-block-end",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-block-start",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-bottom",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-inline-end",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-inline-start",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-left",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-right",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-top",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 17px",
+        "b": "180px 17.5px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 17px",
+        "b": "180px 17.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "34",
+        "b": "35"
+       },
+       {
+        "part": "geometry",
+        "property": "child1.x",
+        "a": "2",
+        "b": "2.5"
+       },
+       {
+        "part": "geometry",
+        "property": "child1.y",
+        "a": "35",
+        "b": "35.5"
+       },
+       {
+        "part": "geometry",
+        "property": "grandchild.x",
+        "a": "10.890625",
+        "b": "11.390625"
+       },
+       {
+        "part": "geometry",
+        "property": "grandchild.y",
+        "a": "35",
+        "b": "35.5"
+       },
+       {
+        "part": "geometry",
+        "property": "child2.x",
+        "a": "20.890625",
+        "b": "21.390625"
+       },
+       {
+        "part": "geometry",
+        "property": "child2.y",
+        "a": "35",
+        "b": "35.5"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "34px",
+        "b": "35px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "34px",
+        "b": "35px"
+       },
+       {
+        "part": "target",
+        "property": "padding-block-end",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-block-start",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-bottom",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-inline-end",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-inline-start",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-left",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-right",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "padding-top",
+        "a": "2px",
+        "b": "2.5px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "180px 17px",
+        "b": "180px 17.5px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "180px 17px",
+        "b": "180px 17.5px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "size-[160px]",
+   "to": "size-40",
+   "class": "rem-for-px",
+   "files": [
+    "src/components/dashboard/components/occupancy-donut-chart-skeleton.tsx"
+   ],
+   "detail": {
+    "canonical": "size-40",
+    "oldCss": ".__c { width: 160px; height: 160px; }",
+    "newCss": ".__c { width: calc(var(--spacing) * 40); height: calc(var(--spacing) * 40); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 8,
+      "bVsControl": 8
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 8,
+      "bVsControl": 8
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 8,
+      "bVsControl": 8
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 8,
+      "bVsControl": 8
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "160",
+        "b": "200"
+       },
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "160",
+        "b": "200"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "160px",
+        "b": "200px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "160px",
+        "b": "200px"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "160px",
+        "b": "200px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "80px 80px",
+        "b": "100px 100px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "80px 80px",
+        "b": "100px 100px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "160px",
+        "b": "200px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "160",
+        "b": "200"
+       },
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "160",
+        "b": "200"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "160px",
+        "b": "200px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "160px",
+        "b": "200px"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "160px",
+        "b": "200px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "80px 80px",
+        "b": "100px 100px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "80px 80px",
+        "b": "100px 100px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "160px",
+        "b": "200px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "160",
+        "b": "200"
+       },
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "160",
+        "b": "200"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "160px",
+        "b": "200px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "160px",
+        "b": "200px"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "160px",
+        "b": "200px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "80px 80px",
+        "b": "100px 100px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "80px 80px",
+        "b": "100px 100px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "160px",
+        "b": "200px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "160",
+        "b": "200"
+       },
+       {
+        "part": "geometry",
+        "property": "target.height",
+        "a": "160",
+        "b": "200"
+       },
+       {
+        "part": "target",
+        "property": "block-size",
+        "a": "160px",
+        "b": "200px"
+       },
+       {
+        "part": "target",
+        "property": "height",
+        "a": "160px",
+        "b": "200px"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "160px",
+        "b": "200px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "80px 80px",
+        "b": "100px 100px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "80px 80px",
+        "b": "100px 100px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "160px",
+        "b": "200px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "sm:flex-shrink",
+   "to": "sm:shrink",
+   "class": "text-equal",
+   "files": [
+    "src/components/maintenance/kanban/maintenance-kanban.client.tsx"
+   ],
+   "detail": {
+    "canonical": "sm:shrink",
+    "css": "@media (width >= 40rem) { .__c { flex-shrink: 1; } }"
+   }
+  },
+  {
+   "from": "sm:max-w-[400px]",
+   "to": "sm:max-w-100",
+   "class": "rem-for-px",
+   "files": [
+    "src/components/auth/mfa-verification-dialog.tsx",
+    "src/components/auth/two-factor-setup-dialog.tsx"
+   ],
+   "detail": {
+    "canonical": "sm:max-w-100",
+    "oldCss": "@media (width >= 40rem) { .__c { max-width: 400px; } }",
+    "newCss": "@media (width >= 40rem) { .__c { max-width: calc(var(--spacing) * 100); } }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 7,
+      "bVsControl": 7
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 7,
+      "bVsControl": 7
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 0,
+      "bVsControl": 0
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 0,
+      "bVsControl": 0
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "400",
+        "b": "500"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "max-inline-size",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "max-width",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "200px 15px",
+        "b": "250px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "200px 15px",
+        "b": "250px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "400px",
+        "b": "500px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "400",
+        "b": "500"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "max-inline-size",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "max-width",
+        "a": "400px",
+        "b": "500px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "200px 15px",
+        "b": "250px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "200px 15px",
+        "b": "250px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "400px",
+        "b": "500px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "sm:max-w-[480px]",
+   "to": "sm:max-w-120",
+   "class": "rem-for-px",
+   "files": [
+    "src/components/auth/two-factor-setup-dialog.tsx"
+   ],
+   "detail": {
+    "canonical": "sm:max-w-120",
+    "oldCss": "@media (width >= 40rem) { .__c { max-width: 480px; } }",
+    "newCss": "@media (width >= 40rem) { .__c { max-width: calc(var(--spacing) * 120); } }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 7,
+      "bVsControl": 7
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 7,
+      "bVsControl": 7
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 0,
+      "bVsControl": 0
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 0,
+      "bVsControl": 0
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "480",
+        "b": "600"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "480px",
+        "b": "600px"
+       },
+       {
+        "part": "target",
+        "property": "max-inline-size",
+        "a": "480px",
+        "b": "600px"
+       },
+       {
+        "part": "target",
+        "property": "max-width",
+        "a": "480px",
+        "b": "600px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "240px 15px",
+        "b": "300px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "240px 15px",
+        "b": "300px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "480px",
+        "b": "600px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "480",
+        "b": "600"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "480px",
+        "b": "600px"
+       },
+       {
+        "part": "target",
+        "property": "max-inline-size",
+        "a": "480px",
+        "b": "600px"
+       },
+       {
+        "part": "target",
+        "property": "max-width",
+        "a": "480px",
+        "b": "600px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "240px 15px",
+        "b": "300px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "240px 15px",
+        "b": "300px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "480px",
+        "b": "600px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "sm:max-w-[500px]",
+   "to": "sm:max-w-125",
+   "class": "rem-for-px",
+   "files": [
+    "src/components/auth/change-password-dialog.tsx"
+   ],
+   "detail": {
+    "canonical": "sm:max-w-125",
+    "oldCss": "@media (width >= 40rem) { .__c { max-width: 500px; } }",
+    "newCss": "@media (width >= 40rem) { .__c { max-width: calc(var(--spacing) * 125); } }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 7,
+      "bVsControl": 7
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 7,
+      "bVsControl": 7
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 0,
+      "bVsControl": 0
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 0,
+      "bVsControl": 0
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "500",
+        "b": "625"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "500px",
+        "b": "625px"
+       },
+       {
+        "part": "target",
+        "property": "max-inline-size",
+        "a": "500px",
+        "b": "625px"
+       },
+       {
+        "part": "target",
+        "property": "max-width",
+        "a": "500px",
+        "b": "625px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "250px 15px",
+        "b": "312.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "250px 15px",
+        "b": "312.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "500px",
+        "b": "625px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "500",
+        "b": "625"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "500px",
+        "b": "625px"
+       },
+       {
+        "part": "target",
+        "property": "max-inline-size",
+        "a": "500px",
+        "b": "625px"
+       },
+       {
+        "part": "target",
+        "property": "max-width",
+        "a": "500px",
+        "b": "625px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "250px 15px",
+        "b": "312.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "250px 15px",
+        "b": "312.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "500px",
+        "b": "625px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "supports-[backdrop-filter]:bg-card/80",
+   "to": "supports-backdrop-filter:bg-card/80",
+   "class": "text-equal",
+   "files": [
+    "src/components/properties/property-form.mobile.tsx"
+   ],
+   "detail": {
+    "canonical": "supports-backdrop-filter:bg-card/80",
+    "css": "@supports (backdrop-filter: var(--tw)) { .__c { background-color: color-mix(in oklab, var(--card) 80%, transparent); } }"
+   }
+  },
+  {
+   "from": "via-primary/[0.02]",
+   "to": "via-primary/2",
+   "class": "text-equal",
+   "files": [
+    "src/components/blog/blog-inline-cta.tsx",
+    "src/components/blog/lead-magnet-cta.tsx"
+   ],
+   "detail": {
+    "canonical": "via-primary/2",
+    "css": ".__c { --tw-gradient-via: color-mix(in oklab, var(--primary) 2%, transparent); --tw-gradient-via-stops: var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-via) var(--tw-gradient-via-position), var(--tw-gradient-to) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-via-stops); } @property --tw-gradient-position { syntax: \"*\"; inherits: false; } @property --tw-gradient-from { syntax: \"<color>\"; inherits: false; initial-value: #0000; } @property --tw-gradient-via { syntax: \"<color>\"; inherits: false; initial-value: #0000; } @property --tw-gradient-to { syntax: \"<color>\"; inherits: false; initial-value: #0000; } @property --tw-gradient-stops { syntax: \"*\"; inherits: false; } @property --tw-gradient-via-stops { syntax: \"*\"; inherits: false; } @property --tw-gradient-from-position { syntax: \"<length-percentage>\"; inherits: false; initial-value: 0%; } @property --tw-gradient-via-position { syntax: \"<length-percentage>\"; inherits: false; initial-value: 50%; } @property --tw-gradient-to-position { syntax: \"<length-percentage>\"; inherits: false; initial-value: 100%; }"
+   }
+  },
+  {
+   "from": "w-[100px]",
+   "to": "w-25",
+   "class": "rem-for-px",
+   "files": [
+    "src/app/(owner)/reports/balance-sheet/page.tsx",
+    "src/app/(owner)/reports/cash-flow/cash-flow-header.tsx",
+    "src/app/(owner)/reports/income-statement/income-statement-page-header.tsx"
+   ],
+   "detail": {
+    "canonical": "w-25",
+    "oldCss": ".__c { width: 100px; }",
+    "newCss": ".__c { width: calc(var(--spacing) * 25); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "100",
+        "b": "125"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "100px",
+        "b": "125px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "50px 15px",
+        "b": "62.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "50px 15px",
+        "b": "62.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "100px",
+        "b": "125px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "100",
+        "b": "125"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "100px",
+        "b": "125px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "50px 15px",
+        "b": "62.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "50px 15px",
+        "b": "62.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "100px",
+        "b": "125px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "100",
+        "b": "125"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "100px",
+        "b": "125px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "50px 15px",
+        "b": "62.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "50px 15px",
+        "b": "62.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "100px",
+        "b": "125px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "100",
+        "b": "125"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "100px",
+        "b": "125px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "50px 15px",
+        "b": "62.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "50px 15px",
+        "b": "62.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "100px",
+        "b": "125px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "w-[120px]",
+   "to": "w-30",
+   "class": "rem-for-px",
+   "files": [
+    "src/components/data-table/data-table-toolbar.tsx"
+   ],
+   "detail": {
+    "canonical": "w-30",
+    "oldCss": ".__c { width: 120px; }",
+    "newCss": ".__c { width: calc(var(--spacing) * 30); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "120",
+        "b": "150"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "120px",
+        "b": "150px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "60px 15px",
+        "b": "75px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "60px 15px",
+        "b": "75px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "120px",
+        "b": "150px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "120",
+        "b": "150"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "120px",
+        "b": "150px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "60px 15px",
+        "b": "75px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "60px 15px",
+        "b": "75px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "120px",
+        "b": "150px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "120",
+        "b": "150"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "120px",
+        "b": "150px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "60px 15px",
+        "b": "75px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "60px 15px",
+        "b": "75px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "120px",
+        "b": "150px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "120",
+        "b": "150"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "120px",
+        "b": "150px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "60px 15px",
+        "b": "75px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "60px 15px",
+        "b": "75px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "120px",
+        "b": "150px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "w-[130px]",
+   "to": "w-32.5",
+   "class": "rem-for-px",
+   "files": [
+    "src/app/(owner)/reports/balance-sheet/page.tsx",
+    "src/app/(owner)/reports/cash-flow/cash-flow-header.tsx",
+    "src/app/(owner)/reports/income-statement/income-statement-page-header.tsx",
+    "src/app/(owner)/reports/tax-documents/page.tsx"
+   ],
+   "detail": {
+    "canonical": "w-32.5",
+    "oldCss": ".__c { width: 130px; }",
+    "newCss": ".__c { width: calc(var(--spacing) * 32.5); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "130",
+        "b": "162.5"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "130px",
+        "b": "162.5px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "65px 15px",
+        "b": "81.25px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "65px 15px",
+        "b": "81.25px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "130px",
+        "b": "162.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "130",
+        "b": "162.5"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "130px",
+        "b": "162.5px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "65px 15px",
+        "b": "81.25px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "65px 15px",
+        "b": "81.25px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "130px",
+        "b": "162.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "130",
+        "b": "162.5"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "130px",
+        "b": "162.5px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "65px 15px",
+        "b": "81.25px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "65px 15px",
+        "b": "81.25px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "130px",
+        "b": "162.5px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "130",
+        "b": "162.5"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "130px",
+        "b": "162.5px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "65px 15px",
+        "b": "81.25px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "65px 15px",
+        "b": "81.25px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "130px",
+        "b": "162.5px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "w-[140px]",
+   "to": "w-35",
+   "class": "rem-for-px",
+   "files": [
+    "src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx"
+   ],
+   "detail": {
+    "canonical": "w-35",
+    "oldCss": ".__c { width: 140px; }",
+    "newCss": ".__c { width: calc(var(--spacing) * 35); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "140",
+        "b": "175"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "140px",
+        "b": "175px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "70px 15px",
+        "b": "87.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "70px 15px",
+        "b": "87.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "140px",
+        "b": "175px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "140",
+        "b": "175"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "140px",
+        "b": "175px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "70px 15px",
+        "b": "87.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "70px 15px",
+        "b": "87.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "140px",
+        "b": "175px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "140",
+        "b": "175"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "140px",
+        "b": "175px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "70px 15px",
+        "b": "87.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "70px 15px",
+        "b": "87.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "140px",
+        "b": "175px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "140",
+        "b": "175"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "140px",
+        "b": "175px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "70px 15px",
+        "b": "87.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "70px 15px",
+        "b": "87.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "140px",
+        "b": "175px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "w-[160px]",
+   "to": "w-40",
+   "class": "rem-for-px",
+   "files": [
+    "src/app/(owner)/analytics/financial/financial-charts.tsx",
+    "src/app/(owner)/analytics/financial/revenue-expense-chart.tsx",
+    "src/components/leases/template/lease-template-builder.client.tsx"
+   ],
+   "detail": {
+    "canonical": "w-40",
+    "oldCss": ".__c { width: 160px; }",
+    "newCss": ".__c { width: calc(var(--spacing) * 40); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "160",
+        "b": "200"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "160px",
+        "b": "200px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "80px 15px",
+        "b": "100px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "80px 15px",
+        "b": "100px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "160px",
+        "b": "200px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "160",
+        "b": "200"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "160px",
+        "b": "200px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "80px 15px",
+        "b": "100px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "80px 15px",
+        "b": "100px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "160px",
+        "b": "200px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "160",
+        "b": "200"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "160px",
+        "b": "200px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "80px 15px",
+        "b": "100px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "80px 15px",
+        "b": "100px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "160px",
+        "b": "200px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "160",
+        "b": "200"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "160px",
+        "b": "200px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "80px 15px",
+        "b": "100px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "80px 15px",
+        "b": "100px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "160px",
+        "b": "200px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "w-[180px]",
+   "to": "w-45",
+   "class": "rem-for-px",
+   "files": [
+    "src/components/documents/documents-section.tsx"
+   ],
+   "detail": {
+    "canonical": "w-45",
+    "oldCss": ".__c { width: 180px; }",
+    "newCss": ".__c { width: calc(var(--spacing) * 45); }",
+    "companions": [],
+    "attributes": [],
+    "emulated": {
+     "media": null,
+     "reducedMotion": null
+    },
+    "appliedIn": [
+     "1600x1000 light",
+     "1600x1000 dark",
+     "360x800 light",
+     "360x800 dark"
+    ],
+    "contexts16": [
+     {
+      "context": "1600x1000 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 light",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [],
+      "aVsControl": 5,
+      "bVsControl": 5
+     }
+    ],
+    "contexts20": [
+     {
+      "context": "1600x1000 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "180",
+        "b": "225"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "180px",
+        "b": "225px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "90px 15px",
+        "b": "112.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "90px 15px",
+        "b": "112.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "180px",
+        "b": "225px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "1600x1000 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "180",
+        "b": "225"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "180px",
+        "b": "225px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "90px 15px",
+        "b": "112.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "90px 15px",
+        "b": "112.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "180px",
+        "b": "225px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 light",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "180",
+        "b": "225"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "180px",
+        "b": "225px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "90px 15px",
+        "b": "112.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "90px 15px",
+        "b": "112.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "180px",
+        "b": "225px"
+       }
+      ],
+      "resolved": []
+     },
+     {
+      "context": "360x800 dark",
+      "differences": [
+       {
+        "part": "geometry",
+        "property": "target.width",
+        "a": "180",
+        "b": "225"
+       },
+       {
+        "part": "target",
+        "property": "inline-size",
+        "a": "180px",
+        "b": "225px"
+       },
+       {
+        "part": "target",
+        "property": "perspective-origin",
+        "a": "90px 15px",
+        "b": "112.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "transform-origin",
+        "a": "90px 15px",
+        "b": "112.5px 15px"
+       },
+       {
+        "part": "target",
+        "property": "width",
+        "a": "180px",
+        "b": "225px"
+       }
+      ],
+      "resolved": []
+     }
+    ]
+   }
+  },
+  {
+   "from": "z-[1]",
+   "to": "z-1",
+   "class": "text-equal",
+   "files": [
+    "src/components/dashboard/components/portfolio-data-table.tsx"
+   ],
+   "detail": {
+    "canonical": "z-1",
+    "css": ".__c { z-index: 1; }"
+   }
+  }
+ ]
+}

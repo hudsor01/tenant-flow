@@ -135,7 +135,7 @@ export function InspectionRoomCard({
 					size="sm"
 					onClick={handleDelete}
 					disabled={deleteRoom.isPending}
-					className="shrink-0 text-muted-foreground hover:text-destructive"
+					className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/10 dark:hover:text-destructive-text"
 					aria-label={`Delete room ${room.room_name}`}
 				>
 					<Trash2 className="w-4 h-4" aria-hidden="true" />
@@ -203,7 +203,7 @@ export function InspectionRoomCard({
 								{photos.map((photo) => (
 									<div
 										key={photo.id}
-										className="aspect-square rounded-md bg-muted overflow-hidden relative group"
+										className="aspect-square rounded-md bg-muted overflow-hidden relative"
 									>
 										{photo.publicUrl ? (
 											// Signed URL from the private inspection-photos bucket is
@@ -217,6 +217,7 @@ export function InspectionRoomCard({
 										) : (
 											<div
 												className="flex h-full w-full items-center justify-center text-muted-foreground"
+												role="img"
 												aria-label={photo.file_name}
 											>
 												<Camera className="w-5 h-5" aria-hidden="true" />

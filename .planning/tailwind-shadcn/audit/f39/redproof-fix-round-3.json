@@ -1,0 +1,111 @@
+{
+  "method": "red proofs of the checker extensions of the re-freeze after fix round 3: (1) the widened escape scan (f39-checks.mjs --escape-scan <rev>, the --fix-round-2 scan over every tracked JS/TS file at <rev>, read with git cat-file) on ec7353b2d (the state the first run stopped on), on 852158ab4 and on the code state b7f25511b, and on b628eb9f1 (fix round 2's base, which must reproduce redproof-fix-round-2.json checkerScanOnBase); (2) --fix-round-3 run on the previous freeze's committed f39 evidence (measured on f8de0175e) must fail; (3) the previous checker (36972318f's f39-checks.mjs) run on this re-freeze's evidence fails exactly the checks this re-freeze had to change; (4) the self-test: each new check fails exactly its group under its planted mutation",
+  "tree": "b7f25511b (codeStateSha)",
+  "escapeScan": {
+    "ec7353b2d": {
+      "rev": "ec7353b2d",
+      "files": 1668,
+      "sites": 9,
+      "partial": [
+        "src/components/__tests__/group-markers.test.ts:71 string .replace(\"/\") (inside new RegExp)",
+        "src/components/__tests__/ids-not-shown-as-text.test.tsx:151 single \\$"
+      ],
+      "escapeHelpersOutsideHomes": [
+        "src/components/__tests__/group-markers.test.ts:71",
+        "src/components/__tests__/ids-not-shown-as-text.test.tsx:151"
+      ],
+      "stringPatternEscapes": [
+        "src/components/__tests__/group-markers.test.ts:71 .replace(\"/\") reaches new RegExp (inside new RegExp)"
+      ]
+    },
+    "852158ab4": {
+      "rev": "852158ab4",
+      "files": 1668,
+      "sites": 7,
+      "partial": [],
+      "stringPatternEscapes": []
+    },
+    "b7f25511b": {
+      "rev": "b7f25511b",
+      "files": 1669,
+      "sites": 7,
+      "partial": [],
+      "escapeHelpersOutsideHomes": [],
+      "stringPatternEscapes": []
+    },
+    "b628eb9f1": {
+      "rev": "b628eb9f1",
+      "files": 1629,
+      "sites": 12,
+      "partial": [
+        ".planning/tailwind-shadcn/audit/f39-checks.mjs:304 class [/.]",
+        "src/hooks/api/__tests__/report-mutations-have-callers.test.ts:50 single \\.",
+        "src/lib/__tests__/no-always-empty-local-list.test.ts:50 single \\$",
+        "src/lib/__tests__/no-deprecated-library-api.test.ts:216 single \\$"
+      ],
+      "escapeHelpersOutsideHomes": [
+        "src/components/shell/__tests__/label-in-name.test.tsx:91",
+        "src/hooks/api/__tests__/data-layer-callers.test.ts:85",
+        "src/hooks/api/__tests__/report-mutations-have-callers.test.ts:50",
+        "src/lib/__tests__/no-always-empty-local-list.test.ts:50",
+        "src/lib/__tests__/no-deprecated-library-api.test.ts:216",
+        "supabase/functions/__tests__/rate-limit.test.ts:1217"
+      ],
+      "equalsFixRound2Record": true
+    }
+  },
+  "fixRound3OnPreviousEvidence": {
+    "exit": 1,
+    "failed": 28,
+    "checks": 36,
+    "failedGroups": [
+      "fr3-guard:src/hooks/api/__tests__/rent-ledger-invalidation.test.tsx",
+      "fr3-guard:src/types/__tests__/api-contracts-exports-imported.test.ts",
+      "fr3-guard:src/components/__tests__/list-base-rule-neutralized.test.ts",
+      "fr3-guard:src/components/__tests__/billing-auth-lists-base-rules.test.tsx",
+      "fr3-guard:src/components/__tests__/heading-block-paragraph-margin.test.ts",
+      "fr3-guard:src/components/ui/__tests__/button-caller-states.test.ts",
+      "fr3-guard:src/components/ui/__tests__/button-link-base-rule.test.tsx",
+      "fr3-guard:src/components/__tests__/group-markers.test.ts",
+      "fr3-guard:src/components/ui/__tests__/chart-recharts-classes.test.tsx",
+      "fr3-guard:src/components/__tests__/ids-not-shown-as-text.test.tsx",
+      "fr3-guard:src/components/maintenance/__tests__/maintenance-list-names.test.tsx",
+      "fr3-guard:src/components/leases/detail/__tests__/lease-details-embeds.test.tsx",
+      "fr3-guard:src/components/leases/__tests__/lease-edit-unit-preselect.test.tsx",
+      "fr3-guard:src/components/__tests__/card-padding-v4.test.tsx",
+      "fr3-guard:src/components/leases/detail/__tests__/lease-card-padding.test.tsx",
+      "fr3-guard:src/app/(owner)/reports/__tests__/report-tile-spacing.test.tsx",
+      "fr3-guard:src/lib/reports/__tests__/report-data-notes.test.ts",
+      "fr3-guard:scripts/mutation-sweep.test.ts",
+      "fr3-guard:scripts/migration-replay-assertions.test.ts",
+      "fr3-guard:tests/e2e/lib/__tests__/reflow-newest-record.test.ts",
+      "fr3-guard:src/providers/__tests__/query-cache-buster.test.ts",
+      "fr3-guard:src/components/ui/__tests__/tour-viewport-fit.test.tsx",
+      "fr3-fresh",
+      "fr3-probes",
+      "fr3-sweep",
+      "fr3-edge",
+      "fr3-parity",
+      "fr3-scope"
+    ]
+  },
+  "previousCheckerOnThisEvidence": {
+    "fix-round-2": {
+      "failedGroups": [
+        "fr2-helper-users",
+        "fr2-scope"
+      ],
+      "why": "fr2-helper-users: 852158ab4 put group-markers.test.ts and ids-not-shown-as-text.test.tsx on the helper; fr2-scope: it read b628eb9f1..HEAD, which fix round 3 extended with application code"
+    },
+    "fix-round-1": {
+      "failedGroups": [
+        "screens",
+        "sweep",
+        "vd-ids",
+        "vd-measurement-only",
+        "vd:VD-74"
+      ],
+      "why": "sweep: 185 rows, not 179; vd-ids: VD-130..VD-151; screens: the round-3 classification names rows of VD-130..VD-151, outside the old VD-01..VD-129 list; VD-74 and vd-measurement-only: the old checker does not read screens-diff-fix-round-1.json, so VD-74 (Chrome probe proof only) loses fix round 1's screenshot evidence"
+    }
+  }
+}

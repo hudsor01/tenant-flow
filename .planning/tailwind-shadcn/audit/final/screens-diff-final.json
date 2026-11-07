@@ -1,0 +1,2653 @@
+[
+ {
+  "capture": "owner/analytics_overview-dark-1280.png",
+  "changedPixels": 11215,
+  "sizeA": [
+   1280,
+   1599
+  ],
+  "sizeB": [
+   1280,
+   1599
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 671,
+   "height": 1258
+  },
+  "markers": {
+   "VD-27": 1,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-27",
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical; also data drift: trend chart x-axis labels w5 '2026-06 / 2026-08 / 2026-10', final '2026-07 / 2026-09 / 2026-11' (UTC date rolled over to 2026-11-01)"
+ },
+ {
+  "capture": "owner/analytics_overview-dark-390.png",
+  "changedPixels": 341,
+  "sizeA": [
+   390,
+   2487
+  ],
+  "sizeB": [
+   390,
+   2487
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 283,
+   "height": 1868
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical; also data drift: trend chart x-axis labels shift one month (UTC date rolled over to 2026-11-01)"
+ },
+ {
+  "capture": "owner/analytics_overview-light-1280.png",
+  "changedPixels": 11253,
+  "sizeA": [
+   1280,
+   1599
+  ],
+  "sizeB": [
+   1280,
+   1599
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 671,
+   "height": 1258
+  },
+  "markers": {
+   "VD-27": 1,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-27",
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical; also data drift: trend chart x-axis labels w5 '2026-06 / 2026-08 / 2026-10', final '2026-07 / 2026-09 / 2026-11' (UTC date rolled over to 2026-11-01)"
+ },
+ {
+  "capture": "owner/analytics_overview-light-390.png",
+  "changedPixels": 352,
+  "sizeA": [
+   390,
+   2487
+  ],
+  "sizeB": [
+   390,
+   2487
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 283,
+   "height": 1868
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical; also data drift: trend chart x-axis labels shift one month (UTC date rolled over to 2026-11-01)"
+ },
+ {
+  "capture": "owner/applications-dark-1280.png",
+  "changedPixels": 2999,
+  "sizeA": [
+   1280,
+   2960
+  ],
+  "sizeB": [
+   1280,
+   2960
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 600,
+   "height": 2659
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical; also data drift: relative dates w5 '82 days ago', final '83 days ago' (UTC date rolled over)"
+ },
+ {
+  "capture": "owner/applications-dark-320.png",
+  "changedPixels": 332,
+  "sizeA": [
+   320,
+   3233
+  ],
+  "sizeB": [
+   320,
+   3233
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 188,
+   "height": 2924
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical; also data drift: relative dates one day later (UTC date rolled over)"
+ },
+ {
+  "capture": "owner/applications-dark-375.png",
+  "changedPixels": 338,
+  "sizeA": [
+   375,
+   3161
+  ],
+  "sizeB": [
+   375,
+   3161
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 188,
+   "height": 2868
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical; also data drift: relative dates one day later (UTC date rolled over)"
+ },
+ {
+  "capture": "owner/applications-dark-390.png",
+  "changedPixels": 332,
+  "sizeA": [
+   390,
+   3141
+  ],
+  "sizeB": [
+   390,
+   3141
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 190,
+   "height": 2848
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical; also data drift: relative dates w5 '82 days ago', final '83 days ago' (UTC date rolled over)"
+ },
+ {
+  "capture": "owner/applications-light-1280.png",
+  "changedPixels": 3013,
+  "sizeA": [
+   1280,
+   2960
+  ],
+  "sizeB": [
+   1280,
+   2960
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 600,
+   "height": 2659
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical; also data drift: relative dates w5 '82 days ago', final '83 days ago' (UTC date rolled over)"
+ },
+ {
+  "capture": "owner/applications-light-320.png",
+  "changedPixels": 333,
+  "sizeA": [
+   320,
+   3233
+  ],
+  "sizeB": [
+   320,
+   3233
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 188,
+   "height": 2924
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical; also data drift: relative dates one day later (UTC date rolled over)"
+ },
+ {
+  "capture": "owner/applications-light-375.png",
+  "changedPixels": 338,
+  "sizeA": [
+   375,
+   3161
+  ],
+  "sizeB": [
+   375,
+   3161
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 188,
+   "height": 2868
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical; also data drift: relative dates one day later (UTC date rolled over)"
+ },
+ {
+  "capture": "owner/applications-light-390.png",
+  "changedPixels": 333,
+  "sizeA": [
+   390,
+   3141
+  ],
+  "sizeB": [
+   390,
+   3141
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 190,
+   "height": 2848
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical; also data drift: relative dates w5 '82 days ago', final '83 days ago' (UTC date rolled over)"
+ },
+ {
+  "capture": "owner/dashboard-dark-1280.png",
+  "changedPixels": 27272,
+  "sizeA": [
+   1280,
+   3060
+  ],
+  "sizeB": [
+   1280,
+   3060
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 897,
+   "height": 2734
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical; also data drift: Leases expiring soon list (w5 empty, final five 'Happy Path Tenant' rows) and the revenue chart month labels (UTC date rolled over to 2026-11-01)"
+ },
+ {
+  "capture": "owner/dashboard-dark-390.png",
+  "changedPixels": 300511,
+  "sizeA": [
+   390,
+   6335
+  ],
+  "sizeB": [
+   390,
+   6867
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 19,
+   "width": 390,
+   "height": 6848
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical; also data drift: Leases expiring soon card: w5 'No leases expiring in the next 30 days', final five 'Happy Path Tenant' rows (production lease data); the page grows 6335 -> 6867 px"
+ },
+ {
+  "capture": "owner/dashboard-light-1280.png",
+  "changedPixels": 27539,
+  "sizeA": [
+   1280,
+   3060
+  ],
+  "sizeB": [
+   1280,
+   3060
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 897,
+   "height": 2734
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical; also data drift: Leases expiring soon list (w5 empty, final five 'Happy Path Tenant' rows) and the revenue chart month labels (UTC date rolled over to 2026-11-01)"
+ },
+ {
+  "capture": "owner/dashboard-light-390.png",
+  "changedPixels": 360473,
+  "sizeA": [
+   390,
+   6335
+  ],
+  "sizeB": [
+   390,
+   6867
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 19,
+   "width": 390,
+   "height": 6848
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical; also data drift: Leases expiring soon card: w5 'No leases expiring in the next 30 days', final five 'Happy Path Tenant' rows (production lease data); the page grows 6335 -> 6867 px"
+ },
+ {
+  "capture": "owner/documents-dark-1280.png",
+  "changedPixels": 2920,
+  "sizeA": [
+   1280,
+   1314
+  ],
+  "sizeB": [
+   1280,
+   1314
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 397,
+   "height": 763
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical; also data drift: relative dates one day later (UTC date rolled over)"
+ },
+ {
+  "capture": "owner/documents-dark-390.png",
+  "changedPixels": 381,
+  "sizeA": [
+   390,
+   1881
+  ],
+  "sizeB": [
+   390,
+   1881
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 143,
+   "height": 582
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical; also data drift: relative dates w5 '105 days ago / 179 days ago', final '106 days ago / 180 days ago'"
+ },
+ {
+  "capture": "owner/documents-light-1280.png",
+  "changedPixels": 2943,
+  "sizeA": [
+   1280,
+   1314
+  ],
+  "sizeB": [
+   1280,
+   1314
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 397,
+   "height": 763
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical; also data drift: relative dates one day later (UTC date rolled over)"
+ },
+ {
+  "capture": "owner/documents-light-390.png",
+  "changedPixels": 381,
+  "sizeA": [
+   390,
+   1881
+  ],
+  "sizeB": [
+   390,
+   1881
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 143,
+   "height": 582
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical; also data drift: relative dates w5 '105 days ago / 179 days ago', final '106 days ago / 180 days ago'"
+ },
+ {
+  "capture": "owner/documents_lease-template-dark-1280.png",
+  "changedPixels": 4159,
+  "sizeA": [
+   1280,
+   6178
+  ],
+  "sizeB": [
+   1280,
+   6178
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 1149,
+   "height": 2659
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical; also data drift: preview date w5 'Oct 31, 2026', final 'Nov 1, 2026'"
+ },
+ {
+  "capture": "owner/documents_lease-template-dark-390.png",
+  "changedPixels": 1684,
+  "sizeA": [
+   390,
+   10609
+  ],
+  "sizeB": [
+   390,
+   10609
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 290,
+   "height": 5213
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical; also data drift: preview date w5 'entered into on Oct 31, 2026', final 'Nov 1, 2026'"
+ },
+ {
+  "capture": "owner/documents_lease-template-light-1280.png",
+  "changedPixels": 4182,
+  "sizeA": [
+   1280,
+   6178
+  ],
+  "sizeB": [
+   1280,
+   6178
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 1149,
+   "height": 2659
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical; also data drift: preview date w5 'Oct 31, 2026', final 'Nov 1, 2026'"
+ },
+ {
+  "capture": "owner/documents_lease-template-light-390.png",
+  "changedPixels": 1691,
+  "sizeA": [
+   390,
+   10609
+  ],
+  "sizeB": [
+   390,
+   10609
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 290,
+   "height": 5213
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical; also data drift: preview date w5 'entered into on Oct 31, 2026', final 'Nov 1, 2026'"
+ },
+ {
+  "capture": "owner/leases-dark-1280.png",
+  "changedPixels": 2556,
+  "sizeA": [
+   1280,
+   1169
+  ],
+  "sizeB": [
+   1280,
+   1169
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 336,
+   "height": 763
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/leases-dark-390.png",
+  "changedPixels": 246,
+  "sizeA": [
+   390,
+   1462
+  ],
+  "sizeB": [
+   390,
+   1462
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 21,
+   "height": 18
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/leases-light-1280.png",
+  "changedPixels": 2568,
+  "sizeA": [
+   1280,
+   1169
+  ],
+  "sizeB": [
+   1280,
+   1169
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 336,
+   "height": 763
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/leases-light-390.png",
+  "changedPixels": 246,
+  "sizeA": [
+   390,
+   1462
+  ],
+  "sizeB": [
+   390,
+   1462
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 21,
+   "height": 18
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/maintenance-dark-1280.png",
+  "changedPixels": 2924,
+  "sizeA": [
+   1280,
+   800
+  ],
+  "sizeB": [
+   1280,
+   800
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 373,
+   "height": 763
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/maintenance-dark-390.png",
+  "changedPixels": 246,
+  "sizeA": [
+   390,
+   844
+  ],
+  "sizeB": [
+   390,
+   844
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 21,
+   "height": 18
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/maintenance-light-1280.png",
+  "changedPixels": 2944,
+  "sizeA": [
+   1280,
+   800
+  ],
+  "sizeB": [
+   1280,
+   800
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 373,
+   "height": 763
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/maintenance-light-390.png",
+  "changedPixels": 246,
+  "sizeA": [
+   390,
+   844
+  ],
+  "sizeB": [
+   390,
+   844
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 21,
+   "height": 18
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin noise"
+ },
+ {
+  "capture": "owner/properties-dark-1280.png",
+  "changedPixels": 2770,
+  "sizeA": [
+   1280,
+   1346
+  ],
+  "sizeB": [
+   1280,
+   1346
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 356,
+   "height": 763
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/properties-dark-390.png",
+  "changedPixels": 246,
+  "sizeA": [
+   390,
+   1785
+  ],
+  "sizeB": [
+   390,
+   1785
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 21,
+   "height": 18
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/properties-light-1280.png",
+  "changedPixels": 2783,
+  "sizeA": [
+   1280,
+   1346
+  ],
+  "sizeB": [
+   1280,
+   1346
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 356,
+   "height": 763
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/properties-light-390.png",
+  "changedPixels": 246,
+  "sizeA": [
+   390,
+   1785
+  ],
+  "sizeB": [
+   390,
+   1785
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 21,
+   "height": 18
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/reports_cash-flow-dark-1280.png",
+  "changedPixels": 10339,
+  "sizeA": [
+   1280,
+   1188
+  ],
+  "sizeB": [
+   1280,
+   1188
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 428,
+   "height": 763
+  },
+  "markers": {
+   "VD-27": 1,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-27",
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/reports_cash-flow-dark-390.png",
+  "changedPixels": 246,
+  "sizeA": [
+   390,
+   2132
+  ],
+  "sizeB": [
+   390,
+   2132
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 21,
+   "height": 18
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/reports_cash-flow-light-1280.png",
+  "changedPixels": 10350,
+  "sizeA": [
+   1280,
+   1188
+  ],
+  "sizeB": [
+   1280,
+   1188
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 428,
+   "height": 763
+  },
+  "markers": {
+   "VD-27": 1,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-27",
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/reports_cash-flow-light-390.png",
+  "changedPixels": 246,
+  "sizeA": [
+   390,
+   2132
+  ],
+  "sizeB": [
+   390,
+   2132
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 21,
+   "height": 18
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/settings-dark-1280.png",
+  "changedPixels": 9876,
+  "sizeA": [
+   1280,
+   1611
+  ],
+  "sizeB": [
+   1280,
+   1611
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 343,
+   "height": 763
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/settings-dark-390.png",
+  "changedPixels": 246,
+  "sizeA": [
+   390,
+   2122
+  ],
+  "sizeB": [
+   390,
+   2122
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 21,
+   "height": 18
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/settings-light-1280.png",
+  "changedPixels": 9882,
+  "sizeA": [
+   1280,
+   1611
+  ],
+  "sizeB": [
+   1280,
+   1611
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 343,
+   "height": 763
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/settings-light-390.png",
+  "changedPixels": 246,
+  "sizeA": [
+   390,
+   2122
+  ],
+  "sizeB": [
+   390,
+   2122
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 21,
+   "height": 18
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/tenants-dark-1280.png",
+  "changedPixels": 2629,
+  "sizeA": [
+   1280,
+   1132
+  ],
+  "sizeB": [
+   1280,
+   1132
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 342,
+   "height": 763
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/tenants-dark-390.png",
+  "changedPixels": 246,
+  "sizeA": [
+   390,
+   1427
+  ],
+  "sizeB": [
+   390,
+   1427
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 21,
+   "height": 18
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/tenants-light-1280.png",
+  "changedPixels": 2647,
+  "sizeA": [
+   1280,
+   1132
+  ],
+  "sizeB": [
+   1280,
+   1132
+  ],
+  "bbox": {
+   "x": 12,
+   "y": 19,
+   "width": 342,
+   "height": 763
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 1,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 1,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-28",
+   "VD-29",
+   "VD-31",
+   "VD-35",
+   "VD-37"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "owner/tenants-light-390.png",
+  "changedPixels": 246,
+  "sizeA": [
+   390,
+   1427
+  ],
+  "sizeB": [
+   390,
+   1427
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 19,
+   "width": 21,
+   "height": 18
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 1,
+   "VD-31": 1,
+   "VD-35": 0,
+   "VD-37": 1
+  },
+  "class": "intended",
+  "vd": [
+   "VD-31"
+  ],
+  "evidence": "iso twin identical"
+ },
+ {
+  "capture": "public/auth_confirm-email-dark-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   1062
+  ],
+  "sizeB": [
+   1280,
+   1062
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/auth_confirm-email-dark-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   1219
+  ],
+  "sizeB": [
+   390,
+   1219
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/auth_confirm-email-light-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   1062
+  ],
+  "sizeB": [
+   1280,
+   1062
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/auth_confirm-email-light-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   1219
+  ],
+  "sizeB": [
+   390,
+   1219
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/auth_update-password-dark-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   800
+  ],
+  "sizeB": [
+   1280,
+   800
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/auth_update-password-dark-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   844
+  ],
+  "sizeB": [
+   390,
+   844
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/auth_update-password-light-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   800
+  ],
+  "sizeB": [
+   1280,
+   800
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/auth_update-password-light-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   844
+  ],
+  "sizeB": [
+   390,
+   844
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   11887
+  ],
+  "sizeB": [
+   1280,
+   11887
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   20930
+  ],
+  "sizeB": [
+   390,
+   20930
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   11887
+  ],
+  "sizeB": [
+   1280,
+   11887
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   20930
+  ],
+  "sizeB": [
+   390,
+   20930
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/contact-dark-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   1312
+  ],
+  "sizeB": [
+   1280,
+   1312
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/contact-dark-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   2299
+  ],
+  "sizeB": [
+   390,
+   2299
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/contact-light-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   1312
+  ],
+  "sizeB": [
+   1280,
+   1312
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/contact-light-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   2299
+  ],
+  "sizeB": [
+   390,
+   2299
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/faq-dark-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   3654
+  ],
+  "sizeB": [
+   1280,
+   3654
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/faq-dark-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   4889
+  ],
+  "sizeB": [
+   390,
+   4889
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/faq-light-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   3654
+  ],
+  "sizeB": [
+   1280,
+   3654
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/faq-light-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   4889
+  ],
+  "sizeB": [
+   390,
+   4889
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/help-dark-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   2730
+  ],
+  "sizeB": [
+   1280,
+   2730
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/help-dark-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   4040
+  ],
+  "sizeB": [
+   390,
+   4040
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/help-light-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   2730
+  ],
+  "sizeB": [
+   1280,
+   2730
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/help-light-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   4040
+  ],
+  "sizeB": [
+   390,
+   4040
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/login-dark-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   903
+  ],
+  "sizeB": [
+   1280,
+   903
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/login-dark-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   870
+  ],
+  "sizeB": [
+   390,
+   870
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/login-light-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   903
+  ],
+  "sizeB": [
+   1280,
+   903
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/login-light-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   870
+  ],
+  "sizeB": [
+   390,
+   870
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/pricing-dark-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   4051
+  ],
+  "sizeB": [
+   1280,
+   4051
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/pricing-dark-390.png",
+  "changedPixels": 22,
+  "sizeA": [
+   390,
+   7008
+  ],
+  "sizeB": [
+   390,
+   7008
+  ],
+  "bbox": {
+   "x": 55,
+   "y": 3807,
+   "width": 20,
+   "height": 7
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "noise",
+  "vd": [],
+  "evidence": "final-vs-final-repeat: 22 px at the same bbox"
+ },
+ {
+  "capture": "public/pricing-light-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   4051
+  ],
+  "sizeB": [
+   1280,
+   4051
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/pricing-light-390.png",
+  "changedPixels": 22,
+  "sizeA": [
+   390,
+   7008
+  ],
+  "sizeB": [
+   390,
+   7008
+  ],
+  "bbox": {
+   "x": 55,
+   "y": 3807,
+   "width": 20,
+   "height": 7
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "noise",
+  "vd": [],
+  "evidence": "w5-vs-w5-repeat (66.2-29, same session): 22 px at the same bbox"
+ },
+ {
+  "capture": "public/privacy-dark-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   6383
+  ],
+  "sizeB": [
+   1280,
+   6383
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/privacy-dark-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   9761
+  ],
+  "sizeB": [
+   390,
+   9761
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/privacy-light-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   6383
+  ],
+  "sizeB": [
+   1280,
+   6383
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/privacy-light-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   9761
+  ],
+  "sizeB": [
+   390,
+   9761
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/root-dark-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   6029
+  ],
+  "sizeB": [
+   1280,
+   6029
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/root-dark-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   9757
+  ],
+  "sizeB": [
+   390,
+   9757
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/root-light-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   6029
+  ],
+  "sizeB": [
+   1280,
+   6029
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/root-light-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   9757
+  ],
+  "sizeB": [
+   390,
+   9757
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/signup-dark-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   4051
+  ],
+  "sizeB": [
+   1280,
+   4051
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/signup-dark-390.png",
+  "changedPixels": 0,
+  "sizeA": [
+   390,
+   7008
+  ],
+  "sizeB": [
+   390,
+   7008
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/signup-light-1280.png",
+  "changedPixels": 0,
+  "sizeA": [
+   1280,
+   4051
+  ],
+  "sizeB": [
+   1280,
+   4051
+  ],
+  "bbox": null,
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "identical",
+  "vd": [],
+  "evidence": null
+ },
+ {
+  "capture": "public/signup-light-390.png",
+  "changedPixels": 22,
+  "sizeA": [
+   390,
+   7008
+  ],
+  "sizeB": [
+   390,
+   7008
+  ],
+  "bbox": {
+   "x": 55,
+   "y": 3807,
+   "width": 20,
+   "height": 7
+  },
+  "markers": {
+   "VD-27": 0,
+   "VD-28": 0,
+   "VD-29": 0,
+   "VD-31": 0,
+   "VD-35": 0,
+   "VD-37": 0
+  },
+  "class": "noise",
+  "vd": [],
+  "evidence": "final-vs-final-repeat: 22 px at the same bbox"
+ }
+]

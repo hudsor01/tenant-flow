@@ -94,7 +94,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 	return (
 		<section className={cn("section-spacing bg-muted/30", className)}>
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					<div className="text-center mb-12">
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
 							Why Landlords Choose{" "}
@@ -107,9 +107,9 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 					</div>
 				</BlurFade>
 
-				<BlurFade delay={0.2} inView>
+				<BlurFade delay={0.2}>
 					<div className="overflow-x-auto">
-						<table className="w-full min-w-[640px]">
+						<table className="w-full min-w-160">
 							<thead>
 								<tr>
 									<th className="text-left py-4 px-4 typography-small text-muted-foreground">
@@ -119,7 +119,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 										<div className="inline-flex flex-col items-center">
 											<div className="relative">
 												<Crown className="absolute -top-4 left-1/2 -translate-x-1/2 size-5 text-accent fill-accent" />
-												<span className="text-lg font-bold text-primary">
+												<span className="text-lg font-bold text-primary-text">
 													TenantFlow
 												</span>
 											</div>
@@ -152,10 +152,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 								{comparisonData.map((feature, index) => (
 									<tr
 										key={feature.name}
-										className={cn(
-											"hover:bg-muted/50 transition-colors",
-											index % 2 === 0 ? "bg-card/50" : "",
-										)}
+										className={cn(index % 2 === 0 ? "bg-card/50" : "")}
 									>
 										<td className="py-4 px-4">
 											<div className="font-medium text-foreground">
@@ -190,7 +187,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 				</BlurFade>
 
 				{/* CTA */}
-				<BlurFade delay={0.3} inView>
+				<BlurFade delay={0.3}>
 					<div className="text-center mt-12">
 						<Button size="lg" className="shadow-lg shadow-primary/20" asChild>
 							<Link href="/pricing">
@@ -237,7 +234,10 @@ function FeatureCell({
 			>
 				<Check
 					aria-hidden="true"
-					className={cn("size-5", highlight ? "text-primary" : "text-success")}
+					className={cn(
+						"size-5",
+						highlight ? "text-primary" : "text-success-text",
+					)}
 				/>
 			</div>
 		);
@@ -262,7 +262,7 @@ function FeatureCell({
 			aria-label="Partial"
 			className="size-8 rounded-full bg-warning/10 flex-center"
 		>
-			<Minus aria-hidden="true" className="size-5 text-warning" />
+			<Minus aria-hidden="true" className="size-5 text-warning-text" />
 		</div>
 	);
 }

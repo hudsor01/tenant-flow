@@ -1,3 +1,17 @@
+/**
+ * shadcn new-york-v4 registry item `item`.
+ *
+ * Local divergences (recorded in the divergence register):
+ * - ItemHeader and ItemFooter removed (item-header, item-footer data-slots);
+ * - Item asChild renders Slot.Slot where upstream renders Slot.Root;
+ * - ItemDescription link hover uses text-primary-text in place of
+ *   text-primary;
+ * - class token order in itemVariants (the default size string keeps a
+ *   trailing space), itemMediaVariants and ItemDescription;
+ * - the anchor hover fill is accent/25, not upstream's accent/50:
+ *   muted-foreground descriptions read 3.43:1 (light) and 3.07:1 (dark) on the
+ *   emerald accent/50.
+ */
 import { cva, type VariantProps } from "class-variance-authority";
 import { Slot } from "radix-ui";
 import type { ComponentProps } from "react";
@@ -30,7 +44,7 @@ function ItemSeparator({
 }
 
 const itemVariants = cva(
-	"group/item flex items-center border border-transparent text-sm rounded-md transition-colors [a]:hover:bg-accent/50 [a]:transition-colors duration-100 flex-wrap outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+	"group/item flex items-center border border-transparent text-sm rounded-md transition-colors [a]:hover:bg-accent/25 [a]:transition-colors duration-100 flex-wrap outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
 	{
 		variants: {
 			variant: {

@@ -1,0 +1,17 @@
+{
+ "rule": "Noise and probe rules (decided 2026-10-31 after 66.2-15), commit 234419439",
+ "inputChanges": [
+  {
+   "field": "update-password-badge.light.classes",
+   "w1": "mx-auto bg-[color-mix(in oklch,var(--color-primary) 10%,transparent)] p-[var(--spacing-3)] rounded-full w-fit",
+   "w2": "mx-auto bg-[color-mix(in oklch,var(--color-primary) 10%,transparent)] p-3 rounded-full w-fit",
+   "attributedTo": "66.2-11 D-20 rewrite p-[var(--spacing-3)] -> p-3 in src/components/auth/update-password-form.tsx (hunk-proof rewrite-pair)"
+  },
+  {
+   "field": "update-password-badge.dark.classes",
+   "w1": "mx-auto bg-[color-mix(in oklch,var(--color-primary) 10%,transparent)] p-[var(--spacing-3)] rounded-full w-fit",
+   "w2": "mx-auto bg-[color-mix(in oklch,var(--color-primary) 10%,transparent)] p-3 rounded-full w-fit",
+   "attributedTo": "66.2-11 D-20 rewrite p-[var(--spacing-3)] -> p-3 in src/components/auth/update-password-form.tsx (hunk-proof rewrite-pair)"
+  }
+ ]
+}

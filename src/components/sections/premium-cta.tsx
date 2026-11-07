@@ -20,18 +20,20 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 			<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 				<div className="max-w-5xl mx-auto text-center">
 					{/* Headline */}
-					<BlurFade delay={0.1} inView>
+					<BlurFade delay={0.1}>
 						<div className="mb-8">
 							<h2 className="text-responsive-display-xl font-bold tracking-tight text-foreground mb-6 leading-[1.05]">
 								Stop juggling{" "}
-								<span className="text-primary">spreadsheets and Dropbox</span>{" "}
+								<span className="text-primary-text">
+									spreadsheets and Dropbox
+								</span>{" "}
 								for your portfolio
 							</h2>
 						</div>
 					</BlurFade>
 
 					{/* Value Proposition */}
-					<BlurFade delay={0.2} inView>
+					<BlurFade delay={0.2}>
 						<p className="text-responsive-h1 text-muted-foreground leading-relaxed mb-10 max-w-4xl mx-auto font-light">
 							Run your rentals from one place — with the document vault as your
 							single source of truth.
@@ -43,7 +45,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 					</BlurFade>
 
 					{/* CTA Buttons */}
-					<BlurFade delay={0.3} inView>
+					<BlurFade delay={0.3}>
 						<div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
 							{/* Primary CTA with Glow */}
 							<GlowingEffect
@@ -53,7 +55,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 							>
 								<Button
 									size="lg"
-									className="relative overflow-hidden bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-bold px-10 py-6 rounded shadow-2xl hover:shadow-primary/25 transform hover:scale-[1.02] transition-all duration-500 group"
+									className="relative overflow-hidden bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground text-lg font-bold px-10 py-6 rounded shadow-2xl hover:shadow-primary/25 transform hover:scale-[1.02] transition-all duration-500 group"
 									asChild
 								>
 									<Link href="/pricing" aria-label="Start free — no card">
@@ -70,7 +72,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 							<Button
 								variant="outline"
 								size="lg"
-								className="group border-2 border-border/50 hover:border-primary/40 hover:bg-primary/5 typography-large px-10 py-6 rounded transition-all duration-500 backdrop-blur-sm hover:shadow-lg"
+								className="group border-2 border-border/50 hover:border-primary/40 hover:bg-primary/5 dark:border-border/50 dark:hover:bg-primary/5 typography-large px-10 py-6 rounded transition-all duration-500 backdrop-blur-sm hover:shadow-lg"
 								asChild
 							>
 								<Link href="/contact" aria-label="Talk to our team">
@@ -82,10 +84,10 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 					</BlurFade>
 
 					{/* Trust Signals Grid */}
-					<BlurFade delay={0.4} inView>
+					<BlurFade delay={0.4}>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-							<div className="group flex flex-col items-center p-6 rounded bg-card/20 backdrop-blur-sm border border-border/30 hover:border-primary/30 hover:bg-card/40 transition-all duration-500">
-								<Check className="size-8 text-accent mb-4 group-hover:scale-110 transition-transform duration-500" />
+							<div className="flex flex-col items-center p-6 rounded bg-card/20 backdrop-blur-sm border border-border/30">
+								<Check className="size-8 text-accent mb-4" />
 								<div className="text-center">
 									<div className="typography-large text-foreground mb-1">
 										No Setup Fees
@@ -100,12 +102,14 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 							    cancellation clause in the Terms so prospects can
 							    confirm what cancellation actually entails (effects
 							    at end of billing period, no partial refunds, access
-							    retained until end of cycle). */}
+							    retained until end of cycle). As the one tile that is
+							    a link, it alone takes a hover; no-underline stops the
+							    base text-link rule from underlining the whole tile. */}
 							<Link
 								href="/terms#cancellation"
-								className="group flex flex-col items-center p-6 rounded bg-card/20 backdrop-blur-sm border border-border/30 hover:border-primary/30 hover:bg-card/40 transition-all duration-500"
+								className="flex flex-col items-center p-6 rounded bg-card/20 backdrop-blur-sm border border-border/30 no-underline hover:border-primary/30 hover:bg-card/40 transition-colors"
 							>
-								<Clock className="size-8 text-accent mb-4 group-hover:scale-110 transition-transform duration-500" />
+								<Clock className="size-8 text-accent mb-4" />
 								<div className="text-center">
 									<div className="typography-large text-foreground mb-1">
 										Cancel Anytime

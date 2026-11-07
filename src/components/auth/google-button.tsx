@@ -42,7 +42,7 @@ export function GoogleButton({
 					"hover:bg-linear-to-r hover:from-primary/5 hover:to-accent/5 dark:hover:from-primary/10 dark:hover:to-accent/10",
 					"hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]",
 					"active:scale-[0.98] active:shadow-md",
-					"border-2 border-border hover:border-primary dark:hover:border-primary",
+					"border-2 border-border hover:border-primary dark:border-border dark:hover:border-primary",
 					"focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 dark:focus:ring-offset-background",
 					"disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none",
 					isLoading && "animate-pulse",
@@ -72,7 +72,7 @@ export function GoogleButton({
 								: children || defaultText}
 						</span>
 						{showTrustIndicators && !isLoading && (
-							<span className="text-caption/75 leading-none mt-0.5">
+							<span className="text-caption text-muted-foreground leading-none mt-0.5">
 								Secure OAuth 2.0 authentication
 							</span>
 						)}
@@ -90,7 +90,7 @@ export function GoogleButton({
 			</Button>
 
 			{showTrustIndicators && (
-				<div className="flex-center gap-4 mt-2 text-caption/60">
+				<div className="flex-center gap-4 mt-2 text-caption text-muted-foreground">
 					<div className="flex items-center gap-1">
 						<div className="size-2 rounded-full bg-primary" />
 						<span>Encrypted</span>
@@ -121,7 +121,7 @@ function HighResGoogleIcon() {
 			height="18"
 			viewBox="0 0 48 48"
 			aria-hidden="true"
-			className="shrink-0"
+			className="size-4.5 shrink-0"
 		>
 			<path
 				fill="#FBBC05"

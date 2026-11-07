@@ -15,6 +15,7 @@ import {
 	useState,
 } from "react";
 import { createLogger } from "#lib/frontend-logger";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import type { FormProgressData } from "#types/core";
 
 const logger = createLogger({ component: "FormProgressHook" });
@@ -241,9 +242,7 @@ export function useFormWithProgress<T extends FormProgressData>(
 			await onSubmit(data);
 			progress.clearProgress();
 		} catch (error) {
-			setSubmitError(
-				error instanceof Error ? error.message : "Submission failed",
-			);
+			setSubmitError(userFacingErrorMessage(error, "Submission failed"));
 		} finally {
 			setIsSubmitting(false);
 		}

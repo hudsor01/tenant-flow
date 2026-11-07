@@ -15,14 +15,14 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#components/ui/card";
+import type { MaintenanceListRow } from "#hooks/api/query-keys/maintenance-mappers";
 import { useDataTable } from "#hooks/use-data-table";
-import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
 
 const PAGE_SIZE = 10;
 
 interface MaintenanceTableClientProps {
-	columns: ColumnDef<MaintenanceDisplayRequest>[];
-	initialRequests: MaintenanceDisplayRequest[];
+	columns: ColumnDef<MaintenanceListRow>[];
+	initialRequests: MaintenanceListRow[];
 }
 
 export function MaintenanceTableClient({

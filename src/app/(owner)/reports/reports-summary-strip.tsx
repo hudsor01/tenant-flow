@@ -41,8 +41,9 @@ const CENT_TOLERANCE = 0.005;
  * annual tiles (Tax Documents, Year-End) — so an unqualified "$2,000.00" next
  * to them reads as portfolio- or year-scope. The sibling surface on this exact
  * payload already discloses it (`collection-rate-kpi.tsx`: "Collected ÷
- * scheduled, this month"), and this component's own error copy says "this
- * period's". Only the success path was silent.
+ * scheduled, this month"), and this component's own error copy says
+ * "Couldn't load this month's collection figures". Only the success path was
+ * silent.
  */
 const PERIOD_LABEL = "this month";
 
@@ -60,9 +61,14 @@ function MetricCard({
 	// conditional tiles below pass `undefined` for the neutral default.
 	valueClassName?: string | undefined;
 }) {
+	// The v4 Card pads itself (py-6) and CardContent pads its sides (px-6): a
+	// 16px tile sets py-4 on the Card and px-4 here, not a v3 p-4 on top of
+	// the Card's own padding. mb-0: the figure is the content's last child,
+	// where the base `p` margin would stand under it (and make the loaded
+	// tile 16px taller than its skeleton).
 	return (
-		<Card>
-			<CardContent className="p-4">
+		<Card className="py-4">
+			<CardContent className="px-4">
 				<div className="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
 					<Icon className="h-4 w-4" aria-hidden="true" />
 					{label}
@@ -72,7 +78,7 @@ function MetricCard({
 				) : (
 					<p
 						className={cn(
-							"text-xl font-semibold tabular-nums leading-snug",
+							"mb-0 text-xl font-semibold tabular-nums leading-snug",
 							valueClassName,
 						)}
 					>
@@ -104,11 +110,11 @@ export function ReportsSummaryStrip() {
 	if (isError || (!data && !isPending)) {
 		return (
 			<div
-				className="grid gap-4 sm:grid-cols-3"
+				className="grid grid-cols-1 gap-4 sm:grid-cols-3"
 				data-testid="reports-summary-strip"
 			>
 				<p className="text-sm text-muted-foreground">
-					Couldn&apos;t load this period&apos;s collection figures.
+					Couldn&apos;t load this month&apos;s collection figures.
 				</p>
 			</div>
 		);
@@ -143,7 +149,7 @@ export function ReportsSummaryStrip() {
 			<p className="mb-2 text-sm capitalize text-muted-foreground">
 				{PERIOD_LABEL}
 			</p>
-			<div className="grid gap-4 sm:grid-cols-3">
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 				<MetricCard
 					icon={CalendarClock}
 					label="Scheduled"

@@ -40,7 +40,7 @@ export const UnitFormFields = withForm({
 			})) ?? [];
 		return (
 			<>
-				<div className="grid gap-4 md:grid-cols-2">
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<form.AppField name="property_id">
 						{(field) => (
 							<field.SelectField
@@ -62,7 +62,7 @@ export const UnitFormFields = withForm({
 					</form.AppField>
 				</div>
 
-				<div className="grid gap-4 md:grid-cols-3">
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 					<form.AppField name="bedrooms">
 						{(field) => (
 							<field.TextField label="Bedrooms *" type="number" min="0" />
@@ -92,7 +92,7 @@ export const UnitFormFields = withForm({
 					</form.AppField>
 				</div>
 
-				<div className="grid gap-4 md:grid-cols-2">
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<form.AppField name="rent_amount">
 						{(field) => (
 							<field.IconInputField

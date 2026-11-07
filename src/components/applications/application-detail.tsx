@@ -366,11 +366,11 @@ function DetailCard({
 			<CardHeader>
 				{/*
 				 * A REAL `<h2>`, not `CardTitle`. That primitive renders a `<div>`
-				 * (card.tsx:50), so a page of six cards would expose exactly one
+				 * (card.tsx), so a page of six cards would expose exactly one
 				 * heading — the `<h1>` — and a screen-reader user would have no way to
 				 * move between the sections of a 26-field record. The class string is
 				 * byte-identical to the applicant form's own section headings
-				 * (`application-fields-about.tsx:33`), which is the point: these cards
+				 * (`ApplicationFieldsAbout`'s `<h2>`s), which is the point: these cards
 				 * mirror those sections and should read the same way.
 				 */}
 				<h2 id={headingId} className="text-base font-semibold text-foreground">
@@ -378,7 +378,7 @@ function DetailCard({
 				</h2>
 			</CardHeader>
 			<CardContent>
-				<dl className="grid gap-3 sm:grid-cols-2">
+				<dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 					{fields.map((field) => (
 						<div key={field.label} className="flex flex-col gap-1">
 							<dt className="text-xs text-muted-foreground">{field.label}</dt>
@@ -435,15 +435,12 @@ function ActionHelper({ text }: { text: string }) {
 }
 
 /**
- * `no-underline` on the Link, not on the Button. `asChild` renders an `<a>`, and
- * `buttonVariants`' class string contains no "button" substring while `Button`
- * sets no `role="button"` — so the anchor satisfies every `:not()` guard on the
- * base `a` rule and picks up its transparent underline, which turns visible on
- * hover (§D-3). `text-foreground` is added only on the outline variant, which
- * sets no colour of its own and would otherwise inherit that rule's
- * `color: var(--color-primary)`; the filled variant's own `text-primary-
- * foreground` already wins by layer order, and forcing `text-foreground` there
- * would destroy its contrast.
+ * `asChild` renders an `<a>` that carries Button's `data-slot="button"`, so the
+ * base `a` rules pass it by: no link colour, no hover underline (66.2-39 fix
+ * round 3, OD-3). `text-foreground` is added only on the outline variant, which
+ * sets no colour of its own and would otherwise take its parent's; the filled
+ * variant's own `text-primary-foreground` is its colour, and forcing
+ * `text-foreground` there would destroy its contrast.
  */
 function ActionLink({
 	href,
@@ -460,7 +457,7 @@ function ActionLink({
 		<Button asChild variant={outline ? "outline" : "default"}>
 			<Link
 				href={href}
-				className={outline ? "no-underline text-foreground" : "no-underline"}
+				{...(outline ? { className: "text-foreground" } : {})}
 				{...(onClick ? { onClick } : {})}
 			>
 				{label}
@@ -625,15 +622,13 @@ function DetailHeader({
 /**
  * §B-5's owner notes.
  *
- * `min-h-24!` IS THE POINT OF THIS BLOCK, NOT A STYLE PREFERENCE (§D-1).
- * `globals.css:1536` opens an `@media (max-width: 768px)` block at brace depth
- * zero — outside every `@layer` — which forces `min-height: 2.75rem` onto every
- * `textarea`. An unlayered normal declaration outranks every layered one at any
- * specificity, so `min-h-16` loses and an empty notes box renders 44px tall and
- * reads as a single-line input. A LAYERED `!important` is the only thing that
- * beats it. §D-1 is viewport-scoped, not surface-scoped: the media query keys
- * off width alone, so it fires on this owner surface too, and `/applications` is
- * documented as phone-supported.
+ * `min-h-24` sets the 96px multi-line floor over the primitive's `min-h-16`, so
+ * an empty notes box never reads as a single-line input; E-3 pins the same
+ * floor on the applicant form. No important flag is needed since D-08: the
+ * touch-target rule below 48rem lives in `@layer base`, and the cascade orders
+ * `@layer utilities` after it, so this utility wins at every width whatever
+ * either selector's specificity, and `/applications` is documented as
+ * phone-supported.
  */
 function OwnerNotes({
 	value,
@@ -653,7 +648,7 @@ function OwnerNotes({
 			<Label htmlFor="application-owner-notes">{NOTES_COPY.label}</Label>
 			<Textarea
 				id="application-owner-notes"
-				className="min-h-24!"
+				className="min-h-24"
 				value={value}
 				onChange={(event) => onChange(event.target.value)}
 			/>
@@ -671,24 +666,16 @@ function OwnerNotes({
 /**
  * §B-5's breadcrumb. The `<nav>` carries `aria-label="Breadcrumb"`.
  *
- * THE NEUTRALIZERS ARE NOT OPTIONAL HERE EITHER, AND THIS IS THE LIST THE PHASE
- * FORGOT. `BreadcrumbList` renders a bare `<ol>` whose own classes are all
- * layout (`ui/breadcrumb.tsx:11-21`), so every one of globals.css:517-524's
- * unscoped `@layer base` declarations reached it: `padding-left: 1.5rem`,
- * `margin-top: 1rem`, the `margin-bottom: 1rem` half of the same
- * `margin: 1rem 0` shorthand, and `margin-bottom: 0.25rem` on each crumb.
- *
- * The page shell below is `p-6 lg:p-8 … flex flex-col gap-6` and this is its
- * FIRST flex item, so none of that collapses: the trail sat 16px lower than the
- * padding declares and started 24px to the RIGHT of the `<h1>` beneath it.
- * Passed through `className` rather than patched into the primitive, because
- * `ui/breadcrumb.tsx` is shared with the blog and compare surfaces, whose own
- * spacing was built around whatever they currently render.
+ * `BreadcrumbList` cancels the `@layer base` `ul, ol` / `li` rules itself
+ * (ui/breadcrumb.tsx). The page shell below is `p-6 lg:p-8 … flex flex-col
+ * gap-6` and this is its FIRST flex item, so nothing would collapse: with the
+ * base rules live the trail sat 16px lower than the padding declares and
+ * started 24px to the RIGHT of the `<h1>` beneath it.
  */
 function DetailBreadcrumb({ heading }: { heading: string }) {
 	return (
 		<Breadcrumb aria-label="Breadcrumb">
-			<BreadcrumbList className="pl-0 mt-0 mb-0 [&>li]:mb-0">
+			<BreadcrumbList>
 				<BreadcrumbItem>
 					<BreadcrumbLink asChild>
 						<Link href="/applications" className="no-underline">

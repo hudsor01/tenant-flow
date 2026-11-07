@@ -67,7 +67,7 @@ export default function FeaturesSectionDemo({
 				<div className="text-center mb-16 max-w-3xl mx-auto">
 					<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4 leading-tight">
 						Everything you need for
-						<span className="text-primary block">
+						<span className="text-primary-text block">
 							professional property management
 						</span>
 					</h2>
@@ -79,11 +79,11 @@ export default function FeaturesSectionDemo({
 
 				<div
 					className={cn(
-						"grid gap-8 md:grid-cols-2 lg:grid-cols-3 relative z-10",
+						"grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 relative z-10",
 					)}
 				>
 					{features.map((feature, index) => (
-						<BlurFade key={feature.title} delay={0.2 + index * 0.1} inView>
+						<BlurFade key={feature.title} delay={0.2 + index * 0.1}>
 							<Feature {...feature} />
 						</BlurFade>
 					))}
@@ -101,51 +101,21 @@ interface FeatureProps {
 
 const Feature = ({ title, description, icon }: FeatureProps) => {
 	return (
-		// section-feature-card styles inlined (group/feature must be on element, not in @apply)
-		<div className="group/feature relative p-6 rounded bg-card/50 border border-border/40 hover:border-primary/15 hover:bg-card/95 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 backdrop-blur-sm hover:-translate-y-0.5">
-			{/* Enhanced hover background glow */}
-			<div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 bg-primary/5 rounded pointer-events-none transition-all duration-500 blur-sm" />
-
-			{/* Icon with enhanced animations */}
-			<div className="mb-[var(--spacing-4)] relative z-10">
-				{/* feature-card-icon styles inlined */}
-				<div className="size-12 rounded bg-primary/10 text-primary flex-center group-hover/feature:bg-primary/20 group-hover/feature:scale-105 transition-all duration-300 group-hover/feature:shadow-lg group-hover/feature:shadow-primary/25">
-					<div className="size-[var(--spacing-6)] group-hover/feature:scale-110 transition-transform duration-300">
-						{icon}
-					</div>
+		// A feature card is not a control: no hover state (66.2-39 part I).
+		<div className="relative p-6 rounded bg-card/50 border border-border/40 backdrop-blur-sm">
+			<div className="mb-4 relative z-10">
+				<div className="size-12 rounded bg-primary/10 text-primary flex-center">
+					<div className="size-6">{icon}</div>
 				</div>
-
-				{/* Floating accent dots */}
-				<div
-					className="absolute -top-1 -right-1 size-[var(--spacing-2)] rounded-full bg-accent opacity-0 group-hover/feature:opacity-100 transition-all duration-500 group-hover/feature:scale-125 animate-pulse"
-					aria-hidden="true"
-				/>
-				<div
-					className="absolute -bottom-1 -left-1 w-[var(--spacing-1_5)] h-[var(--spacing-1_5)] rounded-full bg-primary/50 opacity-0 group-hover/feature:opacity-100 transition-all duration-700 group-hover/feature:scale-150"
-					aria-hidden="true"
-				/>
 			</div>
 
-			{/* Title with enhanced hover */}
-			<h3 className="typography-large tracking-tight text-foreground mb-3 leading-tight group-hover/feature:text-primary transition-colors duration-300">
+			<h3 className="typography-large tracking-tight text-foreground mb-3 leading-tight">
 				{title}
 			</h3>
 
-			{/* Description with enhanced contrast on hover */}
-			<p className="text-muted-foreground leading-relaxed text-sm group-hover/feature:text-foreground/80 transition-colors duration-300">
+			<p className="text-muted-foreground leading-relaxed text-sm">
 				{description}
 			</p>
-
-			{/* Animated border beam effect */}
-			<div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 rounded overflow-hidden pointer-events-none">
-				<div
-					className="absolute inset-[-2px] bg-primary/10 animate-pulse duration-1000 rounded"
-					aria-hidden="true"
-				/>
-			</div>
-
-			{/* Subtle hover gradient overlay */}
-			<div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 bg-primary/3 rounded pointer-events-none transition-opacity duration-500" />
 		</div>
 	);
 };

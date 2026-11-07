@@ -20,6 +20,8 @@ import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
 import { assertNever } from "#lib/assert-never";
 import { omitUndefined } from "#lib/db-insert";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
@@ -168,7 +170,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 				.insert(insertPayload)
 				.select("id")
 				.single();
-			if (error) throw new Error(error.message || "Failed to create lease");
+			if (error) handlePostgrestError(error, "leases");
 			return data;
 		},
 		onSuccess: (data) => {
@@ -180,9 +182,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 			}
 		},
 		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to create lease",
-			);
+			handleMutationError(error, "Create lease");
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() });
@@ -264,9 +264,10 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 				onStepChange={advanceTo}
 			/>
 
+			{/* The v4 Card pads itself (py-6): a v3 pt-6 here doubled the top. */}
 			<Card>
-				<CardContent className="pt-6">
-					<div className="min-h-[400px]">
+				<CardContent>
+					<div className="min-h-100">
 						{currentStep === "selection" && (
 							<SelectionStep
 								data={selectionData}

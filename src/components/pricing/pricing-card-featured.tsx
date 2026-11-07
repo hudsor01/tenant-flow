@@ -14,6 +14,7 @@ import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { calculateAnnualSavings } from "#config/pricing";
 import { createLogger } from "#lib/frontend-logger";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { checkoutRateLimiter } from "#lib/security";
 import { createCheckoutSession } from "#lib/stripe/stripe-client";
 import { createClient } from "#lib/supabase/client";
@@ -99,9 +100,7 @@ export function PricingCardFeatured({
 			logger.error("Checkout failed", {
 				metadata: { error: error.message },
 			});
-			toast.error(
-				error.message || "Failed to start checkout. Please try again.",
-			);
+			handleMutationError(error, "Start checkout");
 		},
 		onSettled: () => {
 			toast.dismiss("checkout");
@@ -137,7 +136,7 @@ export function PricingCardFeatured({
 		<>
 			<div
 				className={cn(
-					"relative h-full rounded-2xl p-[2px] bg-gradient-to-br from-primary via-accent to-primary",
+					"relative h-full rounded-2xl p-0.5 bg-linear-to-br from-primary via-accent to-primary",
 					className,
 				)}
 			>

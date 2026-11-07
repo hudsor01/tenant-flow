@@ -41,9 +41,9 @@ describe("propertyBulkImportConfig", () => {
 		]);
 		const result = config.parseAndValidate(csv);
 		expect(result.rows[0]?.errors).toEqual([]);
-		const parsed = result.rows[0]?.parsed as unknown as Record<string, string>;
-		expect(parsed.state).toBe("CA");
-		expect(parsed.property_type).toBe("APARTMENT");
+		const parsed = result.rows[0]?.parsed;
+		expect(parsed?.state).toBe("CA");
+		expect(parsed?.property_type).toBe("APARTMENT");
 	});
 
 	it("defaults country to US when the column is blank", () => {
@@ -60,8 +60,8 @@ describe("propertyBulkImportConfig", () => {
 			],
 		]);
 		const result = config.parseAndValidate(csv);
-		const parsed = result.rows[0]?.parsed as unknown as Record<string, string>;
-		expect(parsed.country).toBe("US");
+		const parsed = result.rows[0]?.parsed;
+		expect(parsed?.country).toBe("US");
 	});
 
 	it("sample rows must align with header length", () => {

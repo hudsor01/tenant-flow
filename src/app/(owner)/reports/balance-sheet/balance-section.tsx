@@ -4,13 +4,13 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import type { ElementType } from "react";
 import { useState } from "react";
 import { Button } from "#components/ui/button";
-import { formatCents } from "#lib/utils/currency";
-import type { FinancialLineItem } from "#types/financial-statements";
+import { formatCurrency } from "#lib/utils/currency";
+import type { BalanceSheetGroup } from "./balance-sheet-view";
 
 export interface BalanceSectionProps {
 	title: string;
 	icon: ElementType;
-	items: { label: string; items: FinancialLineItem[]; subtotal: number }[];
+	items: BalanceSheetGroup[];
 	total: number;
 	totalLabel: string;
 	colorClass: string;
@@ -55,7 +55,7 @@ export function BalanceSection({
 								<span className="text-sm font-medium">{section.label}</span>
 							</div>
 							<span className="text-sm font-medium tabular-nums">
-								{formatCents(section.subtotal * 100)}
+								{formatCurrency(section.subtotal)}
 							</span>
 						</Button>
 						{expanded[section.label] && (
@@ -69,9 +69,9 @@ export function BalanceSection({
 											{item.name}
 										</span>
 										<span
-											className={`text-sm tabular-nums ${item.amount < 0 ? "text-red-600" : ""}`}
+											className={`text-sm tabular-nums ${item.amount < 0 ? "text-destructive-text" : ""}`}
 										>
-											{formatCents(item.amount * 100)}
+											{formatCurrency(item.amount)}
 										</span>
 									</div>
 								))}
@@ -84,7 +84,7 @@ export function BalanceSection({
 				<div className="flex items-center justify-between">
 					<span className="text-sm font-semibold">{totalLabel}</span>
 					<span className={`text-lg font-bold tabular-nums ${colorClass}`}>
-						{formatCents(total * 100)}
+						{formatCurrency(total)}
 					</span>
 				</div>
 			</div>

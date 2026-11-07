@@ -1,0 +1,13 @@
+{
+ "currentFiles": 1553,
+ "projectedFiles": 914,
+ "projectedRoot": {
+  "base": "src/app",
+  "pattern": ".."
+ },
+ "droppedValidCandidates": [
+  "invert",
+  "table-column"
+ ],
+ "addedValidCandidates": []
+}

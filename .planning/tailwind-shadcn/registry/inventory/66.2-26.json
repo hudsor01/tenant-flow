@@ -1,0 +1,82 @@
+{
+  "label": "66.2-26",
+  "generatedAt": "2026-10-31T19:47:09.857Z",
+  "files": [
+    {
+      "file": "src/components/ui/dropdown-menu.tsx",
+      "item": "dropdown-menu",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 9,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-26/inv/src__components__ui__dropdown-menu.tsx.diff",
+      "missingExports": [
+        "DropdownMenuGroup",
+        "DropdownMenuPortal",
+        "DropdownMenuRadioGroup",
+        "DropdownMenuRadioItem",
+        "DropdownMenuShortcut",
+        "DropdownMenuSub",
+        "DropdownMenuSubContent",
+        "DropdownMenuSubTrigger"
+      ],
+      "missingDataSlots": [
+        "dropdown-menu-portal",
+        "dropdown-menu-group",
+        "dropdown-menu-radio-group",
+        "dropdown-menu-radio-item",
+        "dropdown-menu-shortcut",
+        "dropdown-menu-sub",
+        "dropdown-menu-sub-trigger",
+        "dropdown-menu-sub-content"
+      ],
+      "registered": true,
+      "divergenceCount": 3
+    },
+    {
+      "file": "src/components/ui/slider.tsx",
+      "item": "slider",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 1,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-26/inv/src__components__ui__slider.tsx.diff",
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": true,
+      "divergenceCount": 1
+    },
+    {
+      "file": "src/components/ui/progress.tsx",
+      "item": "progress",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 5,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-26/inv/src__components__ui__progress.tsx.diff",
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": true,
+      "divergenceCount": 2
+    },
+    {
+      "file": "src/components/ui/sonner.tsx",
+      "item": "sonner",
+      "derivativeOf": null,
+      "registryStatus": 200,
+      "status": "divergent",
+      "normalizedDiffHunks": 3,
+      "normalizedDiffPath": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-26/inv/src__components__ui__sonner.tsx.diff",
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": true,
+      "divergenceCount": 4
+    }
+  ],
+  "counts": {
+    "inSync": 0,
+    "divergent": 4,
+    "nonRegistry": 0
+  },
+  "problems": []
+}

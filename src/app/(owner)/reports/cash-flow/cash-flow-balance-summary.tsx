@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
-import { formatCents } from "#lib/utils/currency";
+import { formatCurrency } from "#lib/utils/currency";
 
 interface CashFlowBalanceSummaryProps {
 	openingBalance: number;
@@ -14,7 +14,7 @@ export function CashFlowBalanceSummary({
 	closingBalance,
 }: CashFlowBalanceSummaryProps) {
 	return (
-		<BlurFade delay={0.15} inView>
+		<BlurFade delay={0.15}>
 			<div className="bg-card border border-border rounded-lg p-6 mb-8">
 				<div className="flex flex-col md:flex-row items-center justify-between gap-6">
 					<div className="flex-1 text-center">
@@ -22,17 +22,17 @@ export function CashFlowBalanceSummary({
 							Opening Balance
 						</p>
 						<p className="text-2xl font-semibold tabular-nums">
-							{formatCents(openingBalance * 100)}
+							{formatCurrency(openingBalance)}
 						</p>
 					</div>
 					<ArrowRight className="w-6 h-6 text-muted-foreground hidden md:block" />
 					<div className="flex-1 text-center">
 						<p className="text-sm text-muted-foreground mb-1">Net Cash Flow</p>
 						<p
-							className={`text-2xl font-semibold tabular-nums ${netCashFlow >= 0 ? "text-emerald-600" : "text-red-600"}`}
+							className={`text-2xl font-semibold tabular-nums ${netCashFlow >= 0 ? "text-success-text" : "text-destructive-text"}`}
 						>
-							{netCashFlow >= 0 ? "+" : ""}
-							{formatCents(netCashFlow * 100)}
+							{netCashFlow > 0 ? "+" : ""}
+							{formatCurrency(netCashFlow)}
 						</p>
 					</div>
 					<ArrowRight className="w-6 h-6 text-muted-foreground hidden md:block" />
@@ -41,7 +41,7 @@ export function CashFlowBalanceSummary({
 							Closing Balance
 						</p>
 						<p className="text-2xl font-semibold tabular-nums">
-							{formatCents(closingBalance * 100)}
+							{formatCurrency(closingBalance)}
 						</p>
 					</div>
 				</div>

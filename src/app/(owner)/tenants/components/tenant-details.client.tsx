@@ -12,8 +12,11 @@ import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { useMarkTenantAsMovedOutMutation } from "#hooks/api/use-tenant-mutations";
+import { leaseStatusLabel } from "#lib/constants/status-types";
 import { formatDate } from "#lib/formatters/date";
 import { createLogger } from "#lib/frontend-logger";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
+import { formatCurrency } from "#lib/utils/currency";
 import { MoveOutDialog } from "./move-out-dialog";
 import { validateMoveOutDate } from "./move-out-validation";
 
@@ -39,9 +42,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 		try {
 			validateMoveOutDate(moveOutDate);
 		} catch (error) {
-			toast.error(
-				error instanceof Error ? error.message : "Invalid move-out date",
-			);
+			toast.error(userFacingErrorMessage(error, "Invalid move-out date"));
 			return;
 		}
 
@@ -75,16 +76,16 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 		<div className="flex-between">
 			<div>
 				<h1 className="typography-h2 tracking-tight">{tenant.name}</h1>
-				<p className="text-muted-foreground mt-1">{tenant.email}</p>
+				<p className="mb-0 text-muted-foreground mt-1">{tenant.email}</p>
 			</div>
 
 			<div className="flex items-center gap-2">
-				<Link href={`/tenants/${id}/edit`}>
-					<Button variant="outline" className="flex items-center gap-2">
+				<Button asChild variant="outline" className="flex items-center gap-2">
+					<Link href={`/tenants/${id}/edit`}>
 						<Edit className="size-4" />
 						Edit
-					</Button>
-				</Link>
+					</Link>
+				</Button>
 			</div>
 		</div>
 	);
@@ -132,7 +133,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 									<div>{tenant.emergency_contact_phone}</div>
 								)}
 								{tenant.emergency_contact_relationship && (
-									<div className="text-caption">
+									<div className="text-caption text-muted-foreground">
 										{tenant.emergency_contact_relationship}
 									</div>
 								)}
@@ -193,7 +194,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 										<div className="font-medium">
 											{lease.property?.address_line1 || "Unknown Property"}
 										</div>
-										<div className="text-muted-foreground flex items-center gap-4">
+										<div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1">
 											<span className="flex items-center gap-1">
 												<Calendar className="size-3" />
 												{formatDate(lease.start_date)} -{" "}
@@ -201,7 +202,13 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 													? formatDate(lease.end_date)
 													: "Month-to-Month"}
 											</span>
-											<span>${lease.rent_amount}/mo</span>
+											<span>
+												{formatCurrency(lease.rent_amount, {
+													minimumFractionDigits: 0,
+													maximumFractionDigits: 0,
+												})}
+												/mo
+											</span>
 										</div>
 									</div>
 									<Badge
@@ -209,7 +216,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 											lease.status === "active" ? "default" : "secondary"
 										}
 									>
-										{lease.status}
+										{leaseStatusLabel(lease.status)}
 									</Badge>
 								</div>
 							))}

@@ -217,7 +217,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 								<BlogCard
 									key={post.id}
 									post={post}
-									className="min-w-[280px] flex-shrink-0 snap-start md:min-w-[320px]"
+									className="min-w-70 shrink-0 snap-start md:min-w-[320px]"
 								/>
 							))}
 						</div>
@@ -232,7 +232,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 						<BlogEmptyState message="New articles appear here as we write them. Subscribe below to follow along." />
 					) : (
 						<>
-							<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+							<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 								{posts.map((post) => (
 									<BlogCard key={post.id} post={post} />
 								))}

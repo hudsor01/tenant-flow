@@ -1,0 +1,190 @@
+{
+	"tree": "f8de0175e (codeStateSha)",
+	"method": "part A's harness (fr2a-red.py), re-run by this re-freeze: each case swaps one fixed fragment back to its pre-fix form (RP, RS) or plants a violation (PV), runs the named unit test file with bun run test:unit, and restores the file byte for byte; git status was clean afterwards",
+	"cases": 26,
+	"allFailed": true,
+	"note": "part A's RS5 (a shard missing from the matrix) passed in its own run and was replaced by RS5b, which is the case re-run here",
+	"results": [
+		{
+			"name": "RP1 escapeRegExp partial ($ only)",
+			"exit": 1,
+			"tests": "4 failed | 7 passed (11)",
+			"firstAssertion": "\\: expected false to be true // Object.is equality"
+		},
+		{
+			"name": "RP2 report-mutations pre-fix access",
+			"exit": 1,
+			"tests": "1 failed | 3 passed (4)",
+			"firstAssertion": "expected [ 'called', 'lookalike' ] to deeply equal [ 'lookalike' ]"
+		},
+		{
+			"name": "RP3 always-empty pre-fix writes",
+			"exit": 1,
+			"tests": "1 failed | 3 passed (4)",
+			"firstAssertion": "expected [ 'd.ts:2 $rows' ] to deeply equal [ 'e.ts:2 rows' ]"
+		},
+		{
+			"name": "RP4 deprecated-api pre-fix type pattern",
+			"exit": 1,
+			"tests": "1 failed | 9 passed (10)",
+			"firstAssertion": "expected [ …(3) ] to have a length of 2 but got 3"
+		},
+		{
+			"name": "RP5 e2e-support pre-fix namespace regex",
+			"exit": 1,
+			"tests": "1 failed | 2 passed (3)",
+			"firstAssertion": "expected [ …(2) ] to deeply equal [ Array(1) ]"
+		},
+		{
+			"name": "RP6 blur-fade pre-fix pattern",
+			"exit": 1,
+			"tests": "2 failed | 3 passed (5)",
+			"firstAssertion": "expected [ [ …(3), index: +0, …(2) ] ] to have a length of +0 but got 1"
+		},
+		{
+			"name": "RP7 no-nested pre-fix gap",
+			"exit": 1,
+			"tests": "2 failed | 4 passed (6)",
+			"firstAssertion": "expected [ …(2) ] to deeply equal [ 'a.tsx:1 a link holding a button' ]"
+		},
+		{
+			"name": "PV1 blur-fade planted (comment then col-span child)",
+			"exit": 1,
+			"tests": "1 failed | 4 passed (5)",
+			"firstAssertion": "placement utility on BlurFade's child -- move it to <BlurFade className>:"
+		},
+		{
+			"name": "PV2 no-nested planted (comment then Button in Link)",
+			"exit": 1,
+			"tests": "1 failed | 5 passed (6)",
+			"firstAssertion": "a control inside a control -- use <Button asChild><Link/></Button>:"
+		},
+		{
+			"name": "PV3 always-empty planted",
+			"exit": 1,
+			"tests": "1 failed | 3 passed (4)",
+			"firstAssertion": "a list declared empty and never filled -- load the data, or delete the section:"
+		},
+		{
+			"name": "PV4 deprecated-api planted React.FormEvent",
+			"exit": 1,
+			"tests": "1 failed | 9 passed (10)",
+			"firstAssertion": "deprecated type(s) -- QueryExecuteOptions, SubmitEvent, RefObject:"
+		},
+		{
+			"name": "PV5 report-mutations + data-layer planted uncalled member",
+			"exit": 1,
+			"tests": "2 failed | 4 passed (6)",
+			"firstAssertion": "expected [ Array(1) ] to deeply equal []"
+		},
+		{
+			"name": "PV6 e2e-support planted uncalled export",
+			"exit": 1,
+			"tests": "1 failed | 2 passed (3)",
+			"firstAssertion": "expected [ Array(1) ] to deeply equal []"
+		},
+		{
+			"name": "PV7 one-label planted second pending label",
+			"exit": 1,
+			"tests": "1 failed | 8 passed (9)",
+			"firstAssertion": "expected [ Array(1) ] to deeply equal []"
+		},
+		{
+			"name": "PV8 rate-limit parity planted header rename",
+			"exit": 1,
+			"tests": "2 failed | 99 passed (101)",
+			"firstAssertion": "expected '\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\…' to contain '\"x-tf-client-ip\"'"
+		},
+		{
+			"name": "PV9 design-token-drift planted variant-map rename",
+			"exit": 1,
+			"tests": "1 failed | 2678 passed (2679)",
+			"firstAssertion": "src/components/ui/progress.tsx: no progressIndicatorVariants variant map"
+		},
+		{
+			"name": "PV10 inspections planted extra type",
+			"exit": 1,
+			"tests": "1 failed | 9 passed (10)",
+			"firstAssertion": "expected [ 'move_in', 'move_out' ] to deeply equal [ 'move_in', 'move_out', 'planted' ]"
+		},
+		{
+			"name": "RP8 workflow-contract pre-fix push matcher",
+			"exit": 1,
+			"tests": "1 failed | 26 passed (27)",
+			"firstAssertion": "expected 15737.739458999999 to be less than 1000"
+		},
+		{
+			"name": "RP9 JSX_CHILD_GAP pre-fix body",
+			"exit": 1,
+			"tests": "2 failed | 9 passed (11)",
+			"firstAssertion": "expected true to be false // Object.is equality"
+		},
+		{
+			"name": "RS1 shard rule drops a residue",
+			"exit": 1,
+			"tests": "2 failed | 3 passed (5)",
+			"firstAssertion": "shard 1/1 holds none of the 179 rows"
+		},
+		{
+			"name": "RS2 shards overlap",
+			"exit": 1,
+			"tests": "2 failed | 3 passed (5)",
+			"firstAssertion": "row 1 in two shards: expected true to be false // Object.is equality"
+		},
+		{
+			"name": "RS3 fail-fast true",
+			"exit": 1,
+			"tests": "1 failed | 4 passed (5)",
+			"firstAssertion": "expected true to be false // Object.is equality"
+		},
+		{
+			"name": "RS4 shard count hard-coded",
+			"exit": 1,
+			"tests": "1 failed | 4 passed (5)",
+			"firstAssertion": "expected { …(2) } to deeply equal { …(2) }"
+		},
+		{
+			"name": "RS6 half-set shard accepted",
+			"exit": 1,
+			"tests": "1 failed | 4 passed (5)",
+			"firstAssertion": "{\"SWEEP_SHARD\":\"1\"}: expected +0 to be 2 // Object.is equality"
+		},
+		{
+			"name": "RS7 empty shard passes",
+			"exit": 1,
+			"tests": "1 failed | 4 passed (5)",
+			"firstAssertion": "expected +0 to be 1 // Object.is equality"
+		},
+		{
+			"name": "RS5b matrix list not 1..n",
+			"exit": 1,
+			"tests": "1 failed | 4 passed (5)",
+			"firstAssertion": "expected [ 1, 2, 3, 4, 5, 6, 7, 9 ] to deeply equal [ 1, 2, 3, 4, 5, 6, 7, 8 ]"
+		}
+	],
+	"checkerScanOnBase": {
+		"rev": "b628eb9f1",
+		"files": 1629,
+		"sites": 12,
+		"partial": [
+			".planning/tailwind-shadcn/audit/f39-checks.mjs:304 class [/.]",
+			"src/hooks/api/__tests__/report-mutations-have-callers.test.ts:50 single \\.",
+			"src/lib/__tests__/no-always-empty-local-list.test.ts:50 single \\$",
+			"src/lib/__tests__/no-deprecated-library-api.test.ts:216 single \\$"
+		],
+		"escapeHelpersOutsideHomes": [
+			"src/components/shell/__tests__/label-in-name.test.tsx:91",
+			"src/hooks/api/__tests__/data-layer-callers.test.ts:85",
+			"src/hooks/api/__tests__/report-mutations-have-callers.test.ts:50",
+			"src/lib/__tests__/no-always-empty-local-list.test.ts:50",
+			"src/lib/__tests__/no-deprecated-library-api.test.ts:216",
+			"supabase/functions/__tests__/rate-limit.test.ts:1217"
+		],
+		"oldBacktrackingForms": [
+			"two-alternative push matcher: scripts/workflow-contract.test.ts:247",
+			"nested JSX-comment run: src/components/__tests__/no-nested-interactive.test.tsx:54",
+			"nested JSX-comment run: src/components/ui/__tests__/blur-fade-grid-placement.test.ts:43"
+		],
+		"method": "f39-checks.mjs --fix-round-2 escape and backtracking scan (its exact function source) over every tracked JS/TS file of b628eb9f1, the code state before fix round 2: the red proof of the local CodeQL-clean check. The f39-checks.mjs partial escape is this PR's own checker (CodeQL had not flagged it), fixed in this re-freeze; the other three partials are CodeQL's three js/incomplete-sanitization sites, and the nested JSX-comment run at blur-fade-grid-placement.test.ts:43 is its js/redos site"
+	}
+}

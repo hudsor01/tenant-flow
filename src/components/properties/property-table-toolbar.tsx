@@ -55,7 +55,7 @@ export function PropertyTableToolbar({
 					Columns
 					<ChevronDown
 						className={cn(
-							"w-3.5 h-3.5 transition-transform",
+							"size-3.5 transition-transform",
 							showColumnMenu && "rotate-180",
 						)}
 					/>

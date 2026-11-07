@@ -8,7 +8,7 @@ import {
 	MaintenanceInsightsSkeleton,
 } from "#components/analytics/maintenance-insights-section";
 import { BlurFade } from "#components/ui/blur-fade";
-import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
+import type { MaintenanceListRow } from "#hooks/api/query-keys/maintenance-mappers";
 import { MaintenanceKanban } from "./kanban/maintenance-kanban.client";
 import { columns } from "./table/columns";
 import { MaintenanceTableClient } from "./table/maintenance-table.client";
@@ -20,7 +20,7 @@ interface MaintenanceOverviewTabProps {
 	onSearchChange: (value: string) => void;
 	currentView: ViewType;
 	onViewChange: (view: ViewType) => void;
-	filteredRequests: MaintenanceDisplayRequest[];
+	filteredRequests: MaintenanceListRow[];
 	onViewAnalytics: () => void;
 }
 
@@ -35,7 +35,7 @@ export function MaintenanceOverviewTab({
 	return (
 		<>
 			{/* Quick Actions */}
-			<BlurFade delay={0.35} inView>
+			<BlurFade delay={0.35}>
 				<div className="flex items-center gap-3 mb-6 overflow-x-auto pb-2">
 					<Link
 						href="/maintenance/new"
@@ -65,7 +65,7 @@ export function MaintenanceOverviewTab({
 			</BlurFade>
 
 			{/* Standardized Toolbar: Search LEFT, View Toggle RIGHT */}
-			<BlurFade delay={0.35} inView>
+			<BlurFade delay={0.35}>
 				<div className="bg-card border border-border rounded-lg overflow-hidden mb-6">
 					<div className="px-4 py-3 border-b border-border flex items-center gap-3">
 						{/* LEFT: Search */}
@@ -122,7 +122,7 @@ export function MaintenanceOverviewTab({
 			</BlurFade>
 
 			{/* Content */}
-			<BlurFade delay={0.4} inView>
+			<BlurFade delay={0.4}>
 				{currentView === "kanban" ? (
 					<MaintenanceKanban initialRequests={filteredRequests} />
 				) : (

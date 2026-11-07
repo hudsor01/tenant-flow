@@ -50,6 +50,19 @@ export const formatCurrency = (
 };
 
 /**
+ * An amount the owner typed into a number field, as dollars: `formatCurrency`
+ * when the text is a number, and the text as typed otherwise, so an empty
+ * field stays empty instead of reading "$0.00".
+ */
+export const formatTypedAmount = (raw: string): string => {
+	const trimmed = raw.trim();
+	const amount = Number(trimmed);
+	return trimmed === "" || !Number.isFinite(amount)
+		? trimmed
+		: formatCurrency(amount);
+};
+
+/**
  * Format a cents value as currency (divides by 100 first)
  * Use for values stored in cents (e.g., Stripe amounts)
  */
@@ -262,9 +275,9 @@ export const getDashboardPercentage = (
 
 	let color: string;
 	if (trend === "positive") {
-		color = "text-success";
+		color = "text-success-text";
 	} else if (trend === "negative") {
-		color = "text-destructive";
+		color = "text-destructive-text";
 	} else {
 		color = "text-muted-foreground";
 	}

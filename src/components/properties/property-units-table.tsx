@@ -17,8 +17,10 @@ import {
 import { unitBulkImportConfig } from "#components/units/bulk-import-config";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useDeleteUnitMutation } from "#hooks/api/use-unit";
-import type { PropertyType } from "#lib/constants/status-types";
-import { SINGLE_UNIT_PROPERTY_TYPES } from "#lib/constants/status-types";
+import {
+	SINGLE_UNIT_PROPERTY_TYPES,
+	toPropertyType,
+} from "#lib/constants/status-types";
 import { createLogger } from "#lib/frontend-logger";
 import type { Unit } from "#types/core";
 import { AddUnitPanel } from "./add-unit-panel";
@@ -80,9 +82,11 @@ export function PropertyUnitsTable({
 		}
 	};
 
-	const isSingleUnit = SINGLE_UNIT_PROPERTY_TYPES.includes(
-		(propertyType ?? "") as PropertyType,
-	);
+	// The stored type read as the form's (any case, the multi_family alias); a
+	// type outside the set is not a single-unit type.
+	const storedType = propertyType ? toPropertyType(propertyType) : null;
+	const isSingleUnit =
+		storedType !== null && SINGLE_UNIT_PROPERTY_TYPES.includes(storedType);
 	const unitList = units ?? [];
 
 	// Loading skeleton
@@ -152,7 +156,7 @@ export function PropertyUnitsTable({
 	return (
 		<>
 			<Card>
-				<CardHeader className="flex flex-row items-center justify-between">
+				<CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
 					<CardTitle className="flex items-center gap-2">
 						<Home className="size-5" />
 						Units ({unitList.length})

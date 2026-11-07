@@ -1,4 +1,5 @@
 import { Check, ChevronRight, Mail, MapPin, Phone } from "lucide-react";
+import { LEASE_STATUS_LABELS } from "#lib/constants/status-types";
 import { formatDate } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
 import type { TenantSectionDetail } from "#types/sections/tenants";
@@ -124,8 +125,8 @@ export function LeaseHistorySection({
 								{formatDate(lease.startDate)} — {formatDate(lease.endDate)}
 							</p>
 						</div>
-						<span className="text-xs text-muted-foreground capitalize px-2 py-1 bg-muted rounded">
-							{lease.status}
+						<span className="text-xs text-muted-foreground px-2 py-1 bg-muted rounded">
+							{LEASE_STATUS_LABELS[lease.status]}
 						</span>
 					</button>
 				))}
@@ -161,11 +162,11 @@ export function AccountInfoSection({
 					<p className="text-muted-foreground">Identity</p>
 					<p className="font-medium text-foreground">
 						{tenant.identityVerified ? (
-							<span className="text-emerald-600 flex items-center gap-1">
+							<span className="text-success-text flex items-center gap-1">
 								<Check className="w-3 h-3" /> Verified
 							</span>
 						) : (
-							<span className="text-amber-600">Not verified</span>
+							<span className="text-warning-text">Not verified</span>
 						)}
 					</p>
 				</div>

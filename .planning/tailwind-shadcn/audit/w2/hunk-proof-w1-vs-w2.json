@@ -1,0 +1,2980 @@
+{
+ "sha": "72b2c0361557e3696ed89a4f691e4c835dc05d7d",
+ "changedFiles": [
+  "src/app/(owner)/applications/page.tsx",
+  "src/app/(owner)/dashboard.css",
+  "src/app/(owner)/dashboard/page.tsx",
+  "src/app/(owner)/documents/recent-documents-panel.tsx",
+  "src/app/(owner)/loading.tsx",
+  "src/app/global-error.tsx",
+  "src/app/globals.css",
+  "src/app/layout.tsx",
+  "src/components/applications/application-detail.tsx",
+  "src/components/applications/application-link-panel.tsx",
+  "src/components/applications/application-queue.tsx",
+  "src/components/auth/change-password-dialog.tsx",
+  "src/components/auth/forgot-password-modal.tsx",
+  "src/components/auth/password-strength.tsx",
+  "src/components/auth/update-password-form.tsx",
+  "src/components/sections/features-section.tsx",
+  "src/components/tenants/application-prefill-notice.tsx",
+  "src/components/ui/loading-spinner.tsx",
+  "src/lib/fonts.ts",
+  "src/lib/utils.ts",
+  "src/test/utils/responsive-font-size-cascade.ts",
+  "src/test/utils/tailwind-engine.ts",
+  "src/test/utils/tailwind-guards.ts",
+  "src/app/(owner)/documents/__tests__/documents-hub.test.ts",
+  "src/app/(owner)/documents/__tests__/recent-documents-panel.test.tsx",
+  "src/app/__tests__/global-error-fonts.test.tsx",
+  "src/app/__tests__/tailwind-theme-integrity.test.ts",
+  "src/components/applications/__tests__/application-detail.test.tsx",
+  "src/components/applications/__tests__/application-link-panel.test.tsx",
+  "src/components/applications/__tests__/application-queue.test.tsx",
+  "src/components/tenants/__tests__/application-prefill-notice.test.tsx",
+  "src/components/ui/__tests__/loading-spinner.test.tsx",
+  "src/components/ui/__tests__/responsive-design.test.tsx"
+ ],
+ "ambiguousDefinitions": {
+  "a": [],
+  "b": []
+ },
+ "scopeDropped": [
+  "invert",
+  "table-column"
+ ],
+ "scopeAdded": [],
+ "pairsChecked": 29,
+ "counts": {
+  "spacing-equivalent": 469,
+  "resolved-equal": 11,
+  "scope": 2,
+  "rewrite-pair": 30,
+  "source-removed": 12,
+  "source-added": 13,
+  "unproven": 0
+ },
+ "hunks": [
+  {
+   "candidate": "**:**:[&_[cmdk-group-heading]]:px-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "**:[&_*[data-slot=command-input-wrapper]]:h-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "**:[&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "**:[&_[cmdk-group]]:px-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "**:[&_[cmdk-input-wrapper]_svg]:h-5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "**:[&_[cmdk-input-wrapper]_svg]:w-5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "**:[&_[cmdk-input]]:h-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "**:[&_[cmdk-item]]:px-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "**:[&_[cmdk-item]]:py-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "**:[&_[cmdk-item]_svg]:h-5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "**:[&_[cmdk-item]_svg]:w-5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "*:[span]:last:gap-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "*:data-[slot=input-otp-slot]:h-14",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "*:data-[slot=input-otp-slot]:w-11",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "-bottom-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "-bottom-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "-left-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "-left-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "-ml-1.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "-mx-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "-mx-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "-mx-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "-my-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "-my-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "-right-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "-right-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "-top-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "-top-10",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "-top-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "-top-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "@4xl/kpi-bento:gap-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "@4xl/kpi-bento:p-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "@md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&>*]:data-[slot=field]:p-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&>*]:gap-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&>*]:w-full",
+   "kind": "resolved-equal",
+   "detail": {
+    "substitutedA": [
+     "--width-full"
+    ],
+    "substitutedB": [],
+    "rules": [
+     "collapse"
+    ]
+   }
+  },
+  {
+   "candidate": "[&>[data-slot=field-group]]:gap-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&>li]:mb-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&>span:first-child]:right-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&>svg:not([class*='size-'])]:size-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&>svg]:h-2.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&>svg]:h-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&>svg]:size-2.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&>svg]:size-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&>svg]:size-3.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&>svg]:size-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&>svg]:translate-y-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&>svg]:w-2.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&>svg]:w-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&_[cmdk-group-heading]]:px-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&_[cmdk-group-heading]]:py-1.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&_svg:not([class*='size-'])]:size-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&_svg:not([class*='size-'])]:size-3.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&_svg:not([class*='size-'])]:size-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&_svg:not([class*='size-'])]:size-5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&_svg:not([class*='size-'])]:size-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&_svg]:size-10",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&_svg]:size-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[&_svg]:size-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[.border-b]:pb-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[.border-b]:pb-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[.border-t]:pt-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[.border-t]:pt-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[[data-variant=legend]+&]:-mt-1.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "[animation-timing-function:linear]",
+   "kind": "source-added",
+   "detail": {
+    "file": "src/components/ui/loading-spinner.tsx"
+   }
+  },
+  {
+   "candidate": "[animation-timing-function:var(--ease-linear)]",
+   "kind": "source-removed",
+   "detail": {
+    "file": "src/components/ui/loading-spinner.tsx"
+   }
+  },
+  {
+   "candidate": "accordion-item",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "bottom-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "bottom-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "bottom-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "bottom-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "data-[inset]:pl-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "data-[orientation=horizontal]:h-1.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "data-[orientation=horizontal]:h-px",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "data-[orientation=horizontal]:w-full",
+   "kind": "resolved-equal",
+   "detail": {
+    "substitutedA": [
+     "--width-full"
+    ],
+    "substitutedB": [],
+    "rules": [
+     "collapse"
+    ]
+   }
+  },
+  {
+   "candidate": "data-[orientation=vertical]:h-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "data-[orientation=vertical]:min-h-44",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "data-[orientation=vertical]:w-1.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "data-[orientation=vertical]:w-full",
+   "kind": "resolved-equal",
+   "detail": {
+    "substitutedA": [
+     "--width-full"
+    ],
+    "substitutedB": [],
+    "rules": [
+     "collapse"
+    ]
+   }
+  },
+  {
+   "candidate": "data-[orientation=vertical]:w-px",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "data-[side=bottom]:translate-y-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "data-[side=left]:-translate-x-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "data-[side=right]:translate-x-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "data-[side=top]:-translate-y-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "data-[size=default]:h-11",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "data-[size=sm]:h-11",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "data-[slot=checkbox-group]:gap-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "data-[state=unchecked]:translate-x-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "data-size:h-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "duration-(--duration-standard)",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "duration-[var(--duration-standard)]",
+    "to": "duration-(--duration-standard)"
+   }
+  },
+  {
+   "candidate": "duration-[var(--duration-standard)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "duration-[var(--duration-standard)]",
+    "to": "duration-(--duration-standard)"
+   }
+  },
+  {
+   "candidate": "file:h-7",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "first:mt-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "focus:left-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "focus:px-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "focus:py-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "focus:top-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-(--layout-gap-group)",
+   "kind": "source-added",
+   "detail": {
+    "file": "src/app/(owner)/loading.tsx"
+   }
+  },
+  {
+   "candidate": "gap-(--layout-gap-items)",
+   "kind": "source-added",
+   "detail": {
+    "file": "src/app/(owner)/loading.tsx"
+   }
+  },
+  {
+   "candidate": "gap-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-1.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-10",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-16",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-2.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-7",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-[var(--layout-gap-group)]",
+   "kind": "source-removed",
+   "detail": {
+    "file": "src/app/(owner)/loading.tsx"
+   }
+  },
+  {
+   "candidate": "gap-[var(--layout-gap-items)]",
+   "kind": "source-removed",
+   "detail": {
+    "file": "src/app/(owner)/loading.tsx"
+   }
+  },
+  {
+   "candidate": "gap-[var(--spacing-1)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "gap-[var(--spacing-1)]",
+    "to": "gap-1"
+   }
+  },
+  {
+   "candidate": "gap-[var(--spacing-2)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "gap-[var(--spacing-2)]",
+    "to": "gap-2"
+   }
+  },
+  {
+   "candidate": "gap-x-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-x-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-x-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-x-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-x-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-x-[var(--spacing-2)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "gap-x-[var(--spacing-2)]",
+    "to": "gap-x-2"
+   }
+  },
+  {
+   "candidate": "gap-y-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-y-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-y-10",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-y-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "gap-y-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "glowing-effect-blur",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "grid-cols-[repeat(auto-fit,minmax(20rem,1fr))]",
+   "kind": "source-added",
+   "detail": {
+    "file": "src/app/(owner)/loading.tsx"
+   }
+  },
+  {
+   "candidate": "group-focus-within:translate-y-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "group-has-[>input]/input-group:pb-2.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "group-has-[>input]/input-group:pt-2.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "group-has-[[data-slot=item-description]]/item:translate-y-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "group-hover:-translate-y-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "group-hover:translate-x-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "group-hover:translate-x-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "group-hover:translate-x-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "group-hover:translate-y-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-1.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-10",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-11",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-14",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-16",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-2.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-20",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-24",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-28",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-3.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-32",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-40",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-44",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-48",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-60",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-64",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-7",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-80",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-9",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-96",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "h-[var(--spacing-1_5)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "h-[var(--spacing-1_5)]",
+    "to": "h-1.5"
+   }
+  },
+  {
+   "candidate": "h-[var(--spacing-2)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "h-[var(--spacing-2)]",
+    "to": "h-2"
+   }
+  },
+  {
+   "candidate": "h-px",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "has-[>.button-group]:gap-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "has-[>[data-align=block-end]]:[&>input]:pt-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "has-[>[data-align=block-start]]:[&>input]:pb-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "has-[>[data-align=inline-end]]:[&>input]:pr-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "has-[>[data-align=inline-start]]:[&>input]:pl-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "has-[>[data-slot=field]]:w-full",
+   "kind": "resolved-equal",
+   "detail": {
+    "substitutedA": [
+     "--width-full"
+    ],
+    "substitutedB": [],
+    "rules": [
+     "collapse"
+    ]
+   }
+  },
+  {
+   "candidate": "has-[>svg]:gap-x-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "has-[[role=checkbox]]:pr-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "hover:-translate-y-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "hover:-translate-y-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "icon-container-lg",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "icon-container-md",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "icon-container-sm",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "inset-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "inset-x-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "inset-y-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "inset-y-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "invert",
+   "kind": "scope",
+   "detail": {}
+  },
+  {
+   "candidate": "last:mb-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "last:mb-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "last:mt-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "leading-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "leading-7",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "leading-none",
+   "kind": "resolved-equal",
+   "detail": {
+    "substitutedA": [
+     "--leading-none"
+    ],
+    "substitutedB": [],
+    "rules": []
+   }
+  },
+  {
+   "candidate": "left-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "left-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "left-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "left-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "left-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "left-[var(--spacing-3)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "left-[var(--spacing-3)]",
+    "to": "left-3"
+   }
+  },
+  {
+   "candidate": "lg:gap-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "lg:mt-16",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "lg:p-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "lg:p-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "lg:p-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "lg:pb-28",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "lg:pb-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "lg:pl-56",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "lg:pt-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "lg:px-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "lg:px-16",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "lg:px-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "lg:px-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "lg:translate-x-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "lg:typography-h1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "lg:w-56",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "max-h-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "max-h-56",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "max-h-72",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "max-h-96",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "max-w-2xl",
+   "kind": "resolved-equal",
+   "detail": {
+    "substitutedA": [
+     "--max-width-2xl"
+    ],
+    "substitutedB": [
+     "--container-2xl"
+    ],
+    "rules": []
+   }
+  },
+  {
+   "candidate": "max-w-3xl",
+   "kind": "resolved-equal",
+   "detail": {
+    "substitutedA": [
+     "--max-width-3xl"
+    ],
+    "substitutedB": [
+     "--container-3xl"
+    ],
+    "rules": []
+   }
+  },
+  {
+   "candidate": "max-w-48",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "max-w-64",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mb-(--layout-gap-items)",
+   "kind": "source-added",
+   "detail": {
+    "file": "src/app/(owner)/loading.tsx"
+   }
+  },
+  {
+   "candidate": "mb-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mb-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mb-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mb-1.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mb-10",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mb-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mb-14",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mb-16",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mb-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mb-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mb-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mb-5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mb-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mb-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mb-[var(--layout-gap-items)]",
+   "kind": "source-removed",
+   "detail": {
+    "file": "src/app/(owner)/loading.tsx"
+   }
+  },
+  {
+   "candidate": "mb-[var(--spacing-3)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "mb-[var(--spacing-3)]",
+    "to": "mb-3"
+   }
+  },
+  {
+   "candidate": "mb-[var(--spacing-4)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "mb-[var(--spacing-4)]",
+    "to": "mb-4"
+   }
+  },
+  {
+   "candidate": "md:gap-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "md:left-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "md:p-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "md:p-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "md:p-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "md:py-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-h-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-h-11",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-h-16",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-h-24",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-h-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-h-48",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-h-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-h-9",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-h-96",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-w-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-w-11",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-w-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-w-32",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-w-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-w-40",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-w-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "min-w-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "ml-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "ml-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "ml-1.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "ml-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "ml-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "ml-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "ml-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "ml-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mr-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mr-1.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mr-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mr-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mr-[var(--spacing-2)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "mr-[var(--spacing-2)]",
+    "to": "mr-2"
+   }
+  },
+  {
+   "candidate": "mt-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mt-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mt-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mt-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mt-14",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mt-16",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mt-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mt-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mt-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mt-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mt-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mt-[var(--spacing-1)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "mt-[var(--spacing-1)]",
+    "to": "mt-1"
+   }
+  },
+  {
+   "candidate": "mt-[var(--spacing-2)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "mt-[var(--spacing-2)]",
+    "to": "mt-2"
+   }
+  },
+  {
+   "candidate": "mt-[var(--spacing-4)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "mt-[var(--spacing-4)]",
+    "to": "mt-4"
+   }
+  },
+  {
+   "candidate": "mx-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mx-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mx-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "mx-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "my-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "my-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "my-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "my-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "my-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "nth-last-2:-mt-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "p-(--layout-content-padding)",
+   "kind": "source-added",
+   "detail": {
+    "file": "src/app/(owner)/loading.tsx"
+   }
+  },
+  {
+   "candidate": "p-(--layout-content-padding-compact)",
+   "kind": "source-added",
+   "detail": {
+    "file": "src/app/(owner)/loading.tsx"
+   }
+  },
+  {
+   "candidate": "p-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "p-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "p-1.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "p-10",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "p-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "p-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "p-2.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "p-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "p-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "p-5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "p-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "p-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "p-[var(--layout-content-padding)]",
+   "kind": "source-removed",
+   "detail": {
+    "file": "src/app/(owner)/loading.tsx"
+   }
+  },
+  {
+   "candidate": "p-[var(--layout-content-padding-compact)]",
+   "kind": "source-removed",
+   "detail": {
+    "file": "src/app/(owner)/loading.tsx"
+   }
+  },
+  {
+   "candidate": "p-[var(--spacing-3)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "p-[var(--spacing-3)]",
+    "to": "p-3"
+   }
+  },
+  {
+   "candidate": "pb-(--layout-gap-items)",
+   "kind": "source-added",
+   "detail": {
+    "file": "src/app/(owner)/loading.tsx"
+   }
+  },
+  {
+   "candidate": "pb-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pb-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pb-16",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pb-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pb-20",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pb-24",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pb-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pb-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pb-5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pb-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pb-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pb-[var(--layout-gap-items)]",
+   "kind": "source-removed",
+   "detail": {
+    "file": "src/app/(owner)/loading.tsx"
+   }
+  },
+  {
+   "candidate": "pl-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pl-10",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pl-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pl-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pl-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pl-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pl-7",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pl-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pl-9",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pl-[var(--spacing-9)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "pl-[var(--spacing-9)]",
+    "to": "pl-9"
+   }
+  },
+  {
+   "candidate": "pr-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pr-10",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pr-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pr-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pr-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pr-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pr-[var(--spacing-10)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "pr-[var(--spacing-10)]",
+    "to": "pr-10"
+   }
+  },
+  {
+   "candidate": "property-grid",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pt-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pt-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pt-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pt-10",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pt-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pt-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pt-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pt-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pt-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pt-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "pt-[var(--spacing-4)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "pt-[var(--spacing-4)]",
+    "to": "pt-4"
+   }
+  },
+  {
+   "candidate": "px-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "px-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "px-1.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "px-10",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "px-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "px-2.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "px-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "px-3.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "px-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "px-5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "px-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "px-7",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "px-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "py-(--layout-gap-items)",
+   "kind": "source-added",
+   "detail": {
+    "file": "src/app/(owner)/loading.tsx"
+   }
+  },
+  {
+   "candidate": "py-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "py-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "py-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "py-1.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "py-10",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "py-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "py-16",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "py-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "py-2.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "py-20",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "py-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "py-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "py-5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "py-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "py-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "py-[var(--layout-gap-items)]",
+   "kind": "source-removed",
+   "detail": {
+    "file": "src/app/(owner)/loading.tsx"
+   }
+  },
+  {
+   "candidate": "right-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "right-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "right-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "right-2.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "right-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "right-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "right-[var(--spacing-3)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "right-[var(--spacing-3)]",
+    "to": "right-3"
+   }
+  },
+  {
+   "candidate": "rounded-[var(--radius-lg)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "rounded-[var(--radius-lg)]",
+    "to": "rounded-lg"
+   }
+  },
+  {
+   "candidate": "scroll-mt-20",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "scroll-mt-24",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "scroll-mt-28",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "scroll-my-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "scroll-py-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "showcase-card",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-1.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-10",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-11",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-14",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-16",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-2.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-20",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-24",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-3.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-32",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-48",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-7",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-9",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "size-[var(--spacing-12)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "size-[var(--spacing-12)]",
+    "to": "size-12"
+   }
+  },
+  {
+   "candidate": "size-[var(--spacing-2)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "size-[var(--spacing-2)]",
+    "to": "size-2"
+   }
+  },
+  {
+   "candidate": "size-[var(--spacing-3)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "size-[var(--spacing-3)]",
+    "to": "size-3"
+   }
+  },
+  {
+   "candidate": "size-[var(--spacing-4)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "size-[var(--spacing-4)]",
+    "to": "size-4"
+   }
+  },
+  {
+   "candidate": "size-[var(--spacing-5)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "size-[var(--spacing-5)]",
+    "to": "size-5"
+   }
+  },
+  {
+   "candidate": "size-[var(--spacing-6)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "size-[var(--spacing-6)]",
+    "to": "size-6"
+   }
+  },
+  {
+   "candidate": "sm:gap-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:gap-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:gap-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:gap-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:gap-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:leading-7",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:leading-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:max-w-2xl",
+   "kind": "resolved-equal",
+   "detail": {
+    "substitutedA": [
+     "--max-width-2xl"
+    ],
+    "substitutedB": [
+     "--container-2xl"
+    ],
+    "rules": []
+   }
+  },
+  {
+   "candidate": "sm:max-w-3xl",
+   "kind": "resolved-equal",
+   "detail": {
+    "substitutedA": [
+     "--max-width-3xl"
+    ],
+    "substitutedB": [
+     "--container-3xl"
+    ],
+    "rules": []
+   }
+  },
+  {
+   "candidate": "sm:min-w-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:mx-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:p-14",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:p-5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:p-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:p-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:pb-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:pt-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:px-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:px-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:w-48",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "sm:w-64",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-x-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-x-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-x-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-y-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-y-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-y-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-y-1.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-y-10",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-y-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-y-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-y-2.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-y-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-y-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-y-5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-y-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-y-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "space-y-[var(--spacing-2)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "space-y-[var(--spacing-2)]",
+    "to": "space-y-2"
+   }
+  },
+  {
+   "candidate": "space-y-[var(--spacing-4)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "space-y-[var(--spacing-4)]",
+    "to": "space-y-4"
+   }
+  },
+  {
+   "candidate": "space-y-[var(--spacing-6)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "space-y-[var(--spacing-6)]",
+    "to": "space-y-6"
+   }
+  },
+  {
+   "candidate": "table-column",
+   "kind": "scope",
+   "detail": {}
+  },
+  {
+   "candidate": "testimonial-card",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "text-(--font-body)",
+   "kind": "source-removed",
+   "detail": {
+    "file": "src/components/ui/loading-spinner.tsx"
+   }
+  },
+  {
+   "candidate": "text-(--font-footnote)",
+   "kind": "source-removed",
+   "detail": {
+    "file": "src/components/ui/loading-spinner.tsx"
+   }
+  },
+  {
+   "candidate": "text-(--font-title-2)",
+   "kind": "source-removed",
+   "detail": {
+    "file": "src/components/ui/loading-spinner.tsx"
+   }
+  },
+  {
+   "candidate": "text-(--font-title-3)",
+   "kind": "source-removed",
+   "detail": {
+    "file": "src/components/ui/loading-spinner.tsx"
+   }
+  },
+  {
+   "candidate": "text-base/normal",
+   "kind": "source-added",
+   "detail": {
+    "file": "src/components/ui/loading-spinner.tsx"
+   }
+  },
+  {
+   "candidate": "text-lg/normal",
+   "kind": "source-added",
+   "detail": {
+    "file": "src/components/ui/loading-spinner.tsx"
+   }
+  },
+  {
+   "candidate": "text-sm/normal",
+   "kind": "source-added",
+   "detail": {
+    "file": "src/components/ui/loading-spinner.tsx"
+   }
+  },
+  {
+   "candidate": "text-xs/normal",
+   "kind": "source-added",
+   "detail": {
+    "file": "src/components/ui/loading-spinner.tsx"
+   }
+  },
+  {
+   "candidate": "top-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "top-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "top-10",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "top-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "top-24",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "top-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "top-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "translate-x-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "translate-y-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "translate-y-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "typography-h1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "typography-h2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "typography-h3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "typography-h4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "typography-stat",
+   "kind": "resolved-equal",
+   "detail": {
+    "substitutedA": [
+     "--font-sans",
+     "--font-weight-bold",
+     "--leading-none",
+     "--text-stat",
+     "--tracking-tight"
+    ],
+    "substitutedB": [
+     "--font-sans",
+     "--font-weight-bold",
+     "--text-stat",
+     "--tracking-tight"
+    ],
+    "rules": []
+   }
+  },
+  {
+   "candidate": "w-0",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-0.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-1",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-1.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-10",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-11",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-12",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-14",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-16",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-2",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-2.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-20",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-24",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-28",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-3",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-3.5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-32",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-36",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-4",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-40",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-44",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-48",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-5",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-52",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-56",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-6",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-64",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-72",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-8",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-80",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-9",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-96",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "w-[var(--spacing-1_5)]",
+   "kind": "rewrite-pair",
+   "detail": {
+    "from": "w-[var(--spacing-1_5)]",
+    "to": "w-1.5"
+   }
+  },
+  {
+   "candidate": "w-full",
+   "kind": "resolved-equal",
+   "detail": {
+    "substitutedA": [
+     "--width-full"
+    ],
+    "substitutedB": [],
+    "rules": [
+     "collapse"
+    ]
+   }
+  },
+  {
+   "candidate": "w-px",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "xl:px-24",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  },
+  {
+   "candidate": "xl:px-32",
+   "kind": "spacing-equivalent",
+   "detail": {}
+  }
+ ],
+ "unproven": [],
+ "themeValueChanges": [],
+ "spacingScaleMismatches": []
+}

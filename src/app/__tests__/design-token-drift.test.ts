@@ -21,6 +21,14 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
+import {
+	contrast,
+	over,
+	type Theme,
+	tokenColor,
+} from "#test/utils/oklch-contrast";
+import { escapeRegExp } from "#test/utils/regexp-source";
+import { vividTextUses } from "#test/utils/vivid-text-elements";
 
 type DriftPattern = "hex" | "rgb" | "bgWhite" | "inlineMs" | "modernColor";
 
@@ -198,6 +206,582 @@ for (const root of ["src/components", "src/app"]) {
 		}
 	});
 }
+
+// 66.2-39: a chart series and a BorderBeam color reference a theme token, so
+// both themes and the measured contrast travel with the token (UI-SPEC VD-51,
+// VD-52). A ChartConfig `color` is exactly `var(--color-<token>)`, the form the
+// dashboard charts use; a beam color may wrap a token (`oklch(from var(...)
+// l c h / 0.3)`, `color-mix(...)`) but never a literal color. The vendored
+// primitives under src/components/ui are not callers and are skipped.
+const CHART_CONFIG_COLOR = /\bcolor:\s*(["'`])((?:(?!\1).)*)\1/g;
+const CHART_TOKEN_REFERENCE = /^var\(--color-[a-z0-9-]+\)$/;
+const BEAM_COLOR_PROP = /\bcolor(?:From|To)=(["'])((?:(?!\1).)*)\1/g;
+const LITERAL_COLOR_FUNCTION = /(?:oklch|oklab|lab|lch|hsla?|rgba?)\(\s*[\d.]/i;
+
+function chartAndBeamColorViolations(rel: string, content: string): string[] {
+	const out: string[] = [];
+	if (content.includes("ChartConfig")) {
+		for (const m of content.matchAll(CHART_CONFIG_COLOR)) {
+			const value = m[2] ?? "";
+			if (!CHART_TOKEN_REFERENCE.test(value))
+				out.push(`${rel}: color ${value}`);
+		}
+	}
+	for (const m of content.matchAll(BEAM_COLOR_PROP)) {
+		const value = m[2] ?? "";
+		if (value === "transparent") continue;
+		if (!value.includes("var(--color-") || LITERAL_COLOR_FUNCTION.test(value)) {
+			out.push(`${rel}: beam ${value}`);
+		}
+	}
+	return out;
+}
+
+describe("chart series and BorderBeam colors reference a token (66.2-39)", () => {
+	const scanned: string[] = [];
+	const violations: string[] = [];
+	for (const root of ["src/components", "src/app"]) {
+		for (const abs of walkSourceFiles(join(cwd, root))) {
+			const rel = relative(cwd, abs).replace(/\\/g, "/");
+			if (rel.startsWith("src/components/ui/")) continue;
+			const content = readFileSync(abs, "utf8");
+			if (!content.includes("ChartConfig") && !content.includes("BorderBeam"))
+				continue;
+			scanned.push(rel);
+			violations.push(...chartAndBeamColorViolations(rel, content));
+		}
+	}
+
+	it("scans the chart and beam callers", () => {
+		expect(scanned).toContain(
+			"src/app/(owner)/analytics/financial/revenue-expense-chart.tsx",
+		);
+		expect(scanned).toContain("src/components/tenants/tenant-stats.tsx");
+		expect(scanned.length).toBeGreaterThan(15);
+	});
+
+	it("finds no literal chart series or beam color", () => {
+		expect(
+			violations,
+			`Literal chart/beam color(s). Use color: "var(--color-chart-N)" or the semantic token the series means (status series: the -text companions), and a var(--color-...) beam color:\n${violations.join("\n")}`,
+		).toEqual([]);
+	});
+
+	// A chart token is a fill: as text it fails AA (chart-1 3.61:1 light,
+	// chart-5 4.00:1 dark on the card). Text uses an AA companion.
+	it("uses no chart token as a text color", () => {
+		const textChart: string[] = [];
+		for (const root of ["src/components", "src/app"]) {
+			for (const abs of walkSourceFiles(join(cwd, root))) {
+				const rel = relative(cwd, abs).replace(/\\/g, "/");
+				for (const m of readFileSync(abs, "utf8").matchAll(
+					/(?<![\w-])(?:[\w-]+:)*text-chart-\d(?![\w-])/g,
+				)) {
+					textChart.push(`${rel}: ${m[0]}`);
+				}
+			}
+		}
+		expect(textChart).toEqual([]);
+	});
+
+	it("flags a literal series and beam color and passes the token forms", () => {
+		expect(
+			chartAndBeamColorViolations(
+				"x.tsx",
+				[
+					'const c = { a: { label: "A", color: "oklch(0.6 0.16 138)" }, b: { color: "var(--color-chart-1)" } } satisfies ChartConfig;',
+					'<BorderBeam colorFrom="hsl(142 76% 36%)" colorTo="oklch(from var(--color-success) l c h / 0.3)" />',
+					'<BorderBeam colorFrom="var(--color-warning)" colorTo="transparent" />',
+				].join("\n"),
+			),
+		).toEqual([
+			"x.tsx: color oklch(0.6 0.16 138)",
+			"x.tsx: beam hsl(142 76% 36%)",
+		]);
+	});
+});
+
+// 66.2-39 VD-53: a chart mark is a graphical object (WCAG 1.4.11, 3:1 on the
+// card). chart-2 (2.25:1) and chart-3 (2.44:1) fail on the light card, and the
+// tokens are not retuned (the satori blog-cover renderers mirror their exact
+// values), so no shipped source references either one, in any utility or var()
+// form. A chart series or sparkline (any file that builds a ChartConfig) also
+// never reads the vivid success (2.62:1) or warning (2.18:1) fill: it takes the
+// -text companion. Only string-literal content is scanned, so a comment that
+// names a token does not trip it. The satori OG route is out of scope.
+const SUB_3_MARK_CHART_TOKEN =
+	/(?<![\w-])(?:[\w-]+:)*[a-z]+-chart-[23](?![\w-])|--(?:color-)?chart-[23](?![\w-])/g;
+const SUB_3_MARK_STATUS_TOKEN = /--color-(?:success|warning)(?![\w-])/g;
+const CODE_STRING_OR_COMMENT =
+	/\/\/[^\n]*|\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`/g;
+
+function stringLiteralsOutsideComments(content: string): string[] {
+	return [...content.matchAll(CODE_STRING_OR_COMMENT)]
+		.map((m) => m[0])
+		.filter((token) => !token.startsWith("//") && !token.startsWith("/*"));
+}
+
+function sub3MarkTokenViolations(rel: string, content: string): string[] {
+	const out: string[] = [];
+	const strings = stringLiteralsOutsideComments(content);
+	const isChartSource = content.includes("ChartConfig");
+	for (const literal of strings) {
+		for (const m of literal.matchAll(SUB_3_MARK_CHART_TOKEN)) {
+			out.push(`${rel}: ${m[0]}`);
+		}
+		if (!isChartSource) continue;
+		for (const m of literal.matchAll(SUB_3_MARK_STATUS_TOKEN)) {
+			out.push(`${rel}: ${m[0]}`);
+		}
+	}
+	return out;
+}
+
+// 66.2-39 VD-55: the vivid success (2.62:1 on the card) and warning (2.18:1)
+// fills fail 3:1 on every light surface, the lightest included (the popover,
+// oklch(1 0 0): 2.69:1 and 2.24:1 in Chrome), so as a utility they are only
+// ever a tint (/5 to /20) behind -text companion text or icons.
+// A solid bg-, fill- or stroke- form (a meter fill, a status dot, a step mark,
+// a filled badge) takes the companion: success-text, warning-text.
+const SOLID_VIVID_STATUS_FILL =
+	/(?<![\w/-])!?(?:bg|fill|stroke)-(?:success|warning)!?(?![\w/-])/g;
+
+function solidVividFillViolations(rel: string, content: string): string[] {
+	const out: string[] = [];
+	for (const literal of stringLiteralsOutsideComments(content)) {
+		for (const m of literal.matchAll(SOLID_VIVID_STATUS_FILL)) {
+			out.push(`${rel}: ${m[0]}`);
+		}
+	}
+	return out;
+}
+
+// 66.2-39 VD-55: a Progress indicator is a meter fill, a graphical object
+// (WCAG 1.4.11): it needs 3:1 against the card it sits on and against its own
+// track (the track variant's tint composited over the card), in both themes.
+// Both cva maps are read from the primitive's source, so a variant added later
+// is measured too; the colors are the globals.css token values.
+const PROGRESS_SOURCE = "src/components/ui/progress.tsx";
+const GLOBALS_CSS = "src/app/globals.css";
+const SINGLE_FILL_CLASS = /^bg-([a-z0-9-]+?)(?:\/(\d+))?$/;
+
+function cvaVariantMap(source: string, name: string): Record<string, string> {
+	const block = new RegExp(
+		`const ${escapeRegExp(name)} = cva\\([\\s\\S]*?variant:\\s*\\{([\\s\\S]*?)\\}`,
+	).exec(source);
+	if (!block?.[1])
+		throw new Error(`${PROGRESS_SOURCE}: no ${name} variant map`);
+	return Object.fromEntries(
+		[...block[1].matchAll(/(\w+):\s*"([^"]*)"/g)].map((m) => [
+			m[1] ?? "",
+			m[2] ?? "",
+		]),
+	);
+}
+
+function fillOf(classes: string): { token: string; alpha: number } {
+	for (const cls of classes.split(/\s+/)) {
+		const m = SINGLE_FILL_CLASS.exec(cls);
+		if (m?.[1]) return { token: m[1], alpha: m[2] ? Number(m[2]) / 100 : 1 };
+	}
+	throw new Error(`no single bg- fill class in "${classes}"`);
+}
+
+function meterFillViolations(progressSource: string, css: string): string[] {
+	const tracks = cvaVariantMap(progressSource, "progressVariants");
+	const indicators = cvaVariantMap(progressSource, "progressIndicatorVariants");
+	const out: string[] = [];
+	for (const [variant, indicatorClasses] of Object.entries(indicators)) {
+		const trackClasses = tracks[variant];
+		if (trackClasses === undefined) {
+			out.push(`${variant}: no track variant`);
+			continue;
+		}
+		const indicator = fillOf(indicatorClasses);
+		const track = fillOf(trackClasses);
+		for (const theme of ["light", "dark"] as Theme[]) {
+			const card = tokenColor(css, theme, "card");
+			const fill = over(
+				tokenColor(css, theme, indicator.token),
+				indicator.alpha,
+				card,
+			);
+			const trackColor = over(
+				tokenColor(css, theme, track.token),
+				track.alpha,
+				card,
+			);
+			const onCard = contrast(fill, card);
+			const onTrack = contrast(fill, trackColor);
+			if (onCard < 3) {
+				out.push(
+					`${variant} ${theme}: ${indicatorClasses} on the card ${onCard.toFixed(2)}:1`,
+				);
+			}
+			if (onTrack < 3) {
+				out.push(
+					`${variant} ${theme}: ${indicatorClasses} on ${trackClasses} ${onTrack.toFixed(2)}:1`,
+				);
+			}
+		}
+	}
+	return out;
+}
+
+describe("no chart or meter mark reads a token under 3:1 on the card (66.2-39 VD-53, VD-55)", () => {
+	const scanned: string[] = [];
+	const violations: string[] = [];
+	for (const abs of walkSourceFiles(join(cwd, "src"))) {
+		const rel = relative(cwd, abs).replace(/\\/g, "/");
+		if (rel.startsWith("src/test/") || rel.startsWith("src/app/api/og/")) {
+			continue;
+		}
+		scanned.push(rel);
+		violations.push(...sub3MarkTokenViolations(rel, readFileSync(abs, "utf8")));
+	}
+
+	it("scans the dashboard charts, the units page and the sparkline helper", () => {
+		for (const rel of [
+			"src/components/dashboard/components/occupancy-donut-chart.tsx",
+			"src/components/dashboard/chart-area-interactive.tsx",
+			"src/components/dashboard/components/kpi-helpers.ts",
+			"src/app/(owner)/analytics/overview/page.tsx",
+			"src/app/(owner)/properties/units/page.tsx",
+		]) {
+			expect(scanned).toContain(rel);
+		}
+		expect(scanned.length).toBeGreaterThan(500);
+	});
+
+	it("finds no chart-2, chart-3 or vivid success/warning chart mark", () => {
+		expect(
+			violations,
+			`Chart mark(s) on a token under 3:1 on the light card. Use chart-1 or chart-4 for a neutral series, or the -text companion (success-text, warning-text, primary-text, destructive-text) for a status series:\n${violations.join("\n")}`,
+		).toEqual([]);
+	});
+
+	it("flags each sub-3:1 form and passes the companions and comments", () => {
+		expect(
+			sub3MarkTokenViolations(
+				"x.tsx",
+				[
+					"// the old wedge was var(--color-chart-2)",
+					'const c = { occupied: { color: "var(--color-chart-2)" }, vacant: { color: "var(--color-primary-text)" } } satisfies ChartConfig;',
+					'<span className="size-2 rounded-full bg-chart-3" />',
+					'<span className="dark:fill-chart-2 bg-chart-1 bg-chart-4 bg-chart-5 bg-chart-20" />',
+					'const t = up ? "--color-success" : "--color-warning-text";',
+					"const u = `var(--chart-3)`;",
+				].join("\n"),
+			),
+		).toEqual([
+			"x.tsx: --color-chart-2",
+			"x.tsx: bg-chart-3",
+			"x.tsx: dark:fill-chart-2",
+			"x.tsx: --color-success",
+			"x.tsx: --chart-3",
+		]);
+		expect(
+			sub3MarkTokenViolations(
+				"y.tsx",
+				'<BorderBeam colorFrom="var(--color-success)" />',
+			),
+		).toEqual([]);
+	});
+
+	it("draws no meter, dot or step mark in the vivid success or warning fill (VD-55)", () => {
+		const fills: string[] = [];
+		for (const abs of walkSourceFiles(join(cwd, "src"))) {
+			const rel = relative(cwd, abs).replace(/\\/g, "/");
+			if (rel.startsWith("src/test/") || rel.startsWith("src/app/api/og/")) {
+				continue;
+			}
+			fills.push(...solidVividFillViolations(rel, readFileSync(abs, "utf8")));
+		}
+		expect(
+			fills,
+			`Solid vivid success/warning fill(s), under 3:1 on the light card. Use bg-success-text / bg-warning-text for a mark, or a /5-/20 tint behind -text companion text:\n${fills.join("\n")}`,
+		).toEqual([]);
+	});
+
+	it("draws every Progress indicator 3:1 against the card and its track in both themes (VD-55)", () => {
+		const violations = meterFillViolations(
+			readFileSync(join(cwd, PROGRESS_SOURCE), "utf8"),
+			readFileSync(join(cwd, GLOBALS_CSS), "utf8"),
+		);
+		expect(
+			violations,
+			`Progress indicator(s) under 3:1 (WCAG 1.4.11). Use the -text companion fill:\n${violations.join("\n")}`,
+		).toEqual([]);
+	});
+
+	it("flags the solid vivid fills and a sub-3:1 meter, and passes tints and companions (VD-55)", () => {
+		expect(
+			solidVividFillViolations(
+				"x.tsx",
+				[
+					"// a comment naming bg-success is not a mark",
+					'<span className="size-3 rounded-full bg-success" />',
+					'cn("data-[state=completed]:bg-warning", "!fill-success stroke-warning!")',
+					'<Badge className="bg-success/10 text-success-text bg-success-text border-success/20 bg-warning-foreground" />',
+				].join("\n"),
+			),
+		).toEqual([
+			"x.tsx: bg-success",
+			"x.tsx: bg-warning",
+			"x.tsx: !fill-success",
+			"x.tsx: stroke-warning!",
+		]);
+		const css = readFileSync(join(cwd, GLOBALS_CSS), "utf8");
+		const meter = (success: string) =>
+			[
+				'const progressVariants = cva("x", { variants: { variant: {',
+				'default: "bg-primary/20", success: "bg-success/20",',
+				"} } });",
+				'const progressIndicatorVariants = cva("y", { variants: { variant: {',
+				`default: "bg-primary", success: "${success}",`,
+				"} } });",
+			].join("\n");
+		expect(meterFillViolations(meter("bg-success"), css)).toEqual([
+			"success light: bg-success on the card 2.63:1",
+			"success light: bg-success on bg-success/20 2.15:1",
+		]);
+		expect(meterFillViolations(meter("bg-success-text"), css)).toEqual([]);
+	});
+});
+
+// 66.2-39 VD-56: the brand `--accent` is an emerald fill. Under the default
+// text it reads 2.19:1 in dark, and under muted text 1.85:1 light and 1.07:1
+// dark, so outside the vendored primitives it is never a surface behind text
+// the state does not recolor: a state-prefixed accent surface
+// (`hover:bg-accent`, `focus:bg-accent`, `data-[state=open]:bg-accent`) sets
+// `text-accent-foreground` under the same prefix, and an unprefixed one carries
+// no other text color. A row or addon takes the neutral `bg-muted` instead.
+// (The pair itself, accent-foreground on accent, reads 4.66:1 in light since
+// VD-59 darkened --accent-foreground to oklch(0.24 0.01 160); it is
+// state-fill-contrast.test.ts's to measure, not this block's.) A literal with
+// the fill alone is a mark (the password-strength segments, decorative dots).
+const ACCENT_SURFACE = /(?<![\w/-])((?:[^\s"'`]*:)?)!?bg-accent!?(?![\w/-])/g;
+const TEXT_COLOR_CLASS =
+	/(?<![\w:/-])text-(?!(?:xs|sm|base|lg|[2-9]?xl|left|center|right|justify|start|end|wrap|nowrap|balance|pretty|ellipsis|clip|accent-foreground)(?![\w-]))[a-z][\w-]*/;
+
+function accentSurfaceViolations(rel: string, content: string): string[] {
+	const out: string[] = [];
+	for (const literal of stringLiteralsOutsideComments(content)) {
+		for (const m of literal.matchAll(ACCENT_SURFACE)) {
+			const prefix = m[1] ?? "";
+			const unpaired =
+				prefix === ""
+					? TEXT_COLOR_CLASS.test(literal)
+					: !literal.includes(`${prefix}text-accent-foreground`);
+			if (unpaired) out.push(`${rel}: ${m[0]}`);
+		}
+	}
+	return out;
+}
+
+describe("no row hover or addon reads text on the emerald accent fill (66.2-39 VD-56)", () => {
+	const violations: string[] = [];
+	const scanned: string[] = [];
+	for (const abs of walkSourceFiles(join(cwd, "src"))) {
+		const rel = relative(cwd, abs).replace(/\\/g, "/");
+		if (
+			rel.startsWith("src/test/") ||
+			rel.startsWith("src/app/api/og/") ||
+			rel.startsWith("src/components/ui/")
+		) {
+			continue;
+		}
+		scanned.push(rel);
+		violations.push(...accentSurfaceViolations(rel, readFileSync(abs, "utf8")));
+	}
+
+	it("scans the first-party rows and data-table addons", () => {
+		for (const rel of [
+			"src/components/notifications/notification-item.tsx",
+			"src/components/data-table/data-table-toolbar.tsx",
+			"src/components/auth/password-strength.tsx",
+		]) {
+			expect(scanned).toContain(rel);
+		}
+	});
+
+	it("finds no accent surface behind unrecolored text", () => {
+		expect(
+			violations,
+			`Accent surface(s) behind text the state does not recolor. Use hover:bg-muted / bg-muted for a row or addon:\n${violations.join("\n")}`,
+		).toEqual([]);
+	});
+
+	it("flags an unpaired hover, focus or open accent and an addon with muted text", () => {
+		expect(
+			accentSurfaceViolations(
+				"x.tsx",
+				[
+					"// hover:bg-accent in a comment is not a surface",
+					'<a className="flex px-2 hover:bg-accent text-left" />',
+					'<b className="hover:bg-accent focus:bg-accent hover:text-accent-foreground" />',
+					'<i className="data-[state=open]:bg-accent [&_svg]:text-muted-foreground" />',
+					'<span className="absolute bg-accent px-2 text-muted-foreground text-sm" />',
+					'const seg = "bg-accent";',
+					'<u className="size-2 rounded-full bg-accent opacity-0" />',
+					'<s className="text-sm hover:bg-muted bg-accent-main" />',
+				].join("\n"),
+			),
+		).toEqual([
+			"x.tsx: hover:bg-accent",
+			"x.tsx: focus:bg-accent",
+			"x.tsx: data-[state=open]:bg-accent",
+			"x.tsx: bg-accent",
+		]);
+	});
+});
+
+/**
+ * 66.2-39 fix round 1, part F (status-colors.md section 8): a vivid status
+ * color (`text-success`, `-warning`, `-destructive`, `-info`, `-accent`,
+ * `-primary`) never colors an element that shows text. The vivid tokens fail
+ * 4.5:1 as text on the light surfaces (success 2.27, warning 1.88, info 2.87,
+ * accent 2.95, destructive 3.99, primary 4.33), so text takes the AA `-text`
+ * companion. An icon, or an element whose only content is icons, may keep the
+ * vivid token (CLAUDE.md), and so may a color map outside JSX that the
+ * reviewed list below names with what it colors. `vividTextUses` parses the
+ * source, so the element and its children decide, not the class string.
+ */
+const VIVID_TEXT_REVIEWED: Record<
+	string,
+	{
+		kinds: string[];
+		/** When set, the review covers only these tokens of those kinds. */
+		tokens?: string[];
+		reason: string;
+	}
+> = {
+	"src/components/settings/sections/active-sessions-section.tsx": {
+		kinds: ["text"],
+		reason:
+			"the sign-out button shows only a LogOut or Loader2 icon (an icon ternary); its name is its aria-label",
+	},
+	"src/components/tenants/tenant-table-row.tsx": {
+		kinds: ["text"],
+		reason: "the delete button shows only a Trash2 icon; its text is sr-only",
+	},
+	"src/components/sections/how-it-works.tsx": {
+		kinds: ["config"],
+		reason:
+			"colors.text tints each step's icon tile and its decorative step number, drawn at opacity-20 beside the step's own heading",
+	},
+	"src/lib/utils/currency.ts": {
+		kinds: ["config"],
+		reason:
+			"getCollectionRateStatus colors the collection-rate KPI icon, beside the status text it names",
+	},
+	"src/app/resources/page.tsx": {
+		kinds: ["config"],
+		reason: "iconColor tints each resource card's icon, beside its title",
+	},
+	"src/components/leases/table/leases-table-columns.tsx": {
+		kinds: ["leaf"],
+		reason:
+			"a native checkbox: with no forms plugin its text color paints nothing",
+	},
+	"src/components/leases/table/leases-table.tsx": {
+		kinds: ["leaf"],
+		reason:
+			"a native checkbox: with no forms plugin its text color paints nothing",
+	},
+	"src/components/tenants/tenant-grid.tsx": {
+		kinds: ["leaf"],
+		reason:
+			"a native checkbox: with no forms plugin its text color paints nothing",
+	},
+	"src/app/(owner)/leases/leases-stat-cards.tsx": {
+		kinds: ["leaf"],
+		reason: "<card.icon>, a lucide component held in the card data",
+	},
+	"src/components/maintenance/maintenance-view.client.tsx": {
+		kinds: ["text"],
+		tokens: ["text-destructive"],
+		reason:
+			"the Urgent stat's 32px semibold count: AA-large 3:1, and vivid text-destructive reads 4.62:1 light and 3.21:1 dark on the stat's card in Chrome",
+	},
+};
+
+function vividTextViolations(rel: string, content: string): string[] {
+	const reviewed = VIVID_TEXT_REVIEWED[rel];
+	return vividTextUses(rel, content)
+		.filter(
+			(use) =>
+				use.kind === "text" || use.kind === "leaf" || use.kind === "config",
+		)
+		.filter(
+			(use) =>
+				!reviewed?.kinds.includes(use.kind) ||
+				(reviewed.tokens !== undefined && !reviewed.tokens.includes(use.token)),
+		)
+		.map(
+			(use) => `${rel}:${use.line}: ${use.token} on ${use.kind} ${use.host}`,
+		);
+}
+
+describe("no vivid status color on an element that shows text (66.2-39 part F)", () => {
+	it("colors text with the AA -text companions in every shipped source", () => {
+		const violations: string[] = [];
+		const seen = new Set<string>();
+		for (const root of ["src"]) {
+			for (const file of walkSourceFiles(join(cwd, root))) {
+				const rel = relative(cwd, file).replace(/\\/g, "/");
+				if (rel.startsWith("src/test/")) continue;
+				const content = readFileSync(file, "utf8");
+				if (vividTextUses(rel, content).length > 0) seen.add(rel);
+				violations.push(...vividTextViolations(rel, content));
+			}
+		}
+		expect(violations).toEqual([]);
+		const stale = Object.keys(VIVID_TEXT_REVIEWED).filter(
+			(rel) => !seen.has(rel),
+		);
+		expect(stale).toEqual([]);
+	});
+
+	it("tells text from icons by the element and its children (fixture)", () => {
+		const fixture = [
+			'import { Check } from "lucide-react";',
+			"export function X() {",
+			"  return (",
+			"    <div>",
+			'      <span className="text-success">Saved</span>',
+			'      <Check className="size-4 text-success" />',
+			'      <div className="text-warning"><Check /></div>',
+			'      <p className={cn("text-sm", ok ? "text-destructive" : "")}>{label}</p>',
+			'      <span className="text-success-text">Saved</span>',
+			'      <div className="[&_svg]:text-info">x</div>',
+			'      <div className="text-warning"><NumberTicker value={n} /></div>',
+			"    </div>",
+			"  );",
+			"}",
+			'const map = { ok: "text-primary" };',
+		].join("\n");
+		expect(
+			vividTextUses("x.tsx", fixture).map(
+				(u) => `${u.line} ${u.token} ${u.kind}`,
+			),
+		).toEqual([
+			"5 text-success text",
+			"6 text-success icon",
+			"7 text-warning icon-container",
+			"8 text-destructive text",
+			"10 [&_svg]:text-info icon",
+			"11 text-warning text",
+			"15 text-primary config",
+		]);
+		expect(vividTextViolations("x.tsx", fixture)).toEqual([
+			"x.tsx:5: text-success on text span",
+			"x.tsx:8: text-destructive on text p",
+			"x.tsx:11: text-warning on text div",
+			"x.tsx:15: text-primary on config ok",
+		]);
+	});
+});
 
 describe("drift regexes catch known drift (meta-test)", () => {
 	it("hex regex catches a 6-digit hex", () =>

@@ -38,23 +38,33 @@ describe("TenantGrid accessibility (A11Y-02)", () => {
 		expect(checkbox).toHaveAccessibleName("Select Jane Doe");
 	});
 
-	it("exposes an accessible name on the read-only status badge", () => {
-		render(
-			<TenantGrid
-				tenants={[stubTenant]}
-				selectedIds={new Set<string>()}
-				onSelectChange={vi.fn()}
-				onView={vi.fn()}
-				onEdit={vi.fn()}
-				onDelete={vi.fn()}
-				onContact={vi.fn()}
-			/>,
-		);
-
-		// Resolves ONLY if the read-only badge carries
-		// aria-label="Lease status for Jane Doe" (accessible name preserved
-		// after the writable <select> was removed in TEN-03).
-		const statusBadge = screen.getByLabelText(/lease status for jane doe/i);
-		expect(statusBadge).toBeInTheDocument();
-	});
+	// The lease status is a role-less span, so it carries no accessible name;
+	// whose lease it is reads from sr-only text in the badge (TEN-03, 66.2-39).
+	// Both branches are rendered: the stub had no lease status, so only the
+	// no-status branch ran, and deleting the status chip's prefix passed every
+	// unit test (cycle 2, F69).
+	it.each([
+		[undefined, "—Lease status for Jane Doe: none"],
+		["active", "Lease status for Jane Doe: Active"],
+	] as const)(
+		"says whose lease status it is, with status %s, in sr-only text",
+		(leaseStatus, badgeText) => {
+			render(
+				<TenantGrid
+					tenants={[{ ...stubTenant, ...(leaseStatus ? { leaseStatus } : {}) }]}
+					selectedIds={new Set<string>()}
+					onSelectChange={vi.fn()}
+					onView={vi.fn()}
+					onEdit={vi.fn()}
+					onDelete={vi.fn()}
+					onContact={vi.fn()}
+				/>,
+			);
+			const prefix = screen.getByText(/^lease status for jane doe:/i);
+			expect(prefix).toHaveClass("sr-only");
+			const badge = prefix.parentElement as HTMLElement;
+			expect(badge).not.toHaveAttribute("aria-label");
+			expect(badge.textContent).toBe(badgeText);
+		},
+	);
 });
