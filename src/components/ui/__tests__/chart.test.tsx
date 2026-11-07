@@ -44,7 +44,10 @@ const CHART_STROKE_SELECTORS = [
 
 const [GRID, POLAR_GRID, REFERENCE_LINE, DOT, SECTOR] = CHART_STROKE_SELECTORS;
 
-const ATTRIBUTE_VALUE_SELECTOR = "[stroke=";
+// The start of an attribute-equality selector, upstream's form (the stroke
+// equal to a hex value). The sector's `[stroke^='var(']` is a prefix test,
+// which this does not match.
+const ATTRIBUTE_EQUALITY_SELECTOR = "[stroke=";
 const BORDER_VAR = /var\(--(color-)?border\)/;
 const ENGINE_TIMEOUT_MS = 30_000;
 
@@ -123,12 +126,12 @@ describe("ChartContainer recharts stroke selectors (D-28, C2)", () => {
 		expect(root).toContain('data-chart="chart-probe"');
 	});
 
-	it("carries the 5 attribute-presence selectors and no attribute-value selector", () => {
+	it("carries the four presence selectors, the sector's not-a-var() selector and no equality selector", () => {
 		const classes = chartRootClass(renderChart(REVENUE_CONFIG));
 		for (const selector of CHART_STROKE_SELECTORS) {
 			expect(classes).toContain(selector);
 		}
-		expect(classes).not.toContain(ATTRIBUTE_VALUE_SELECTOR);
+		expect(classes).not.toContain(ATTRIBUTE_EQUALITY_SELECTOR);
 	});
 
 	it("keeps the other recharts tokens and the layout classes", () => {
@@ -217,14 +220,14 @@ describe("ChartContainer recharts stroke selectors (D-28, C2)", () => {
 	);
 
 	it(
-		"extracts the 5 selector candidates and no attribute-value candidate",
+		"extracts the four presence candidates, the sector's not-a-var() candidate and no equality candidate",
 		async () => {
 			const { candidates } = await projectEngine();
 			for (const selector of CHART_STROKE_SELECTORS) {
 				expect(candidates).toContain(selector);
 			}
 			expect(
-				candidates.filter((c) => c.includes(ATTRIBUTE_VALUE_SELECTOR)),
+				candidates.filter((c) => c.includes(ATTRIBUTE_EQUALITY_SELECTOR)),
 			).toEqual([]);
 		},
 		ENGINE_TIMEOUT_MS,
