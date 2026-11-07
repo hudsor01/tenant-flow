@@ -2,13 +2,6 @@
 
 Out-of-scope discoveries logged by executors. Each entry names the plan that found it.
 
-## 66.2-36: onboarding tour step 1 footer below the fold at 1280x720
-
-- **Found during:** 66.2-36 Task 3, tour T4 (1280x720, rail expanded), local `next dev` against owner A's populated dashboard.
-- **Observed:** step 1 ("Welcome to TenantFlow", target `[data-testid='dashboard-stats']`, side bottom) is placed under the KPI grid at about y 590. Its footer (Skip tour / Next step) renders below the 720px viewport. The step is `fixed`, so scrolling cannot bring the footer into view, and Playwright's pointer click on "Next step" fails with "element is outside of the viewport". Keyboard activation (focus + Enter) still advances the tour. At 1280x720 with the rail collapsed, and at 375 and 900, the footer is reachable.
-- **Why out of scope:** step 1 and the tour's floating placement (`src/components/ui/tour.tsx`, `owner-onboarding-tour.tsx` step 1) are not wave-6 changes; 66.2-35 changed step 5 only. The rail keeps its pre-migration 224px width (UI-SPEC S-2 "today's values"). Whether step 1 overflowed before wave 6 was not measured.
-- **Spec handling:** `openTourAtStep5` advances steps with focus + Enter, as a keyboard user would. No assertion was loosened.
-
 ## 66.2-36: a palette navigation from /dashboard can be replaced by the data tables' URL write
 
 - **Found during:** 66.2-36 Task 4, production build (`next start`, :3050), spec M2 close path 5 (palette selection of Properties right after `page.goto("/dashboard")` and hydration).
@@ -147,3 +140,9 @@ Out-of-scope discoveries logged by executors. Each entry names the plan that fou
 - `src/components/units/unit-form.client.tsx`: the edit form's property picker reads `propertyQueries.list({ limit: 100 })`, so a unit on the 101st property, or on a deleted one, opens with no property.
 - Exported names in `src/types` that no other tracked file under `src`, `supabase/functions`, `scripts` or `tests` names (raw counts at `81fdadd71`, a type used only in its own file's signatures included): `financial-statements.ts` 27, `core.ts` 26, `domain.ts` 16, `relations.ts` 15, `notifications.ts` 15, `sections/maintenance.ts` 14, `analytics.ts` 13, `stats.ts` 12, `stripe.ts` 9, `frontend.ts` 6, `data-table.ts` 6, `activity.ts` 5, and 1-3 in eight more.
 - **Why deferred:** none of these files is in this PR (`api-contracts.ts`, which is, lost its 43 unimported exports in `fc4fdd3dc` and is guarded).
+
+## 66.2-39 (fix round 3, Part 6d): the tour footer's step counter wraps from tablet width up
+
+- **Measured** (re-freeze 3 on `b7f25511b`, the tour probe on the capture build): at 1280x800, 1280x720 and 900x800 the footer row is 286px wide and its step counter ("1 / 5") takes 7.88x60 px, one character per line; at 390x844 and 375x812 it is 28.47x20, one line. The counter, Skip, Previous and Next share the row and need more width than it has.
+- **Why deferred:** the footer row's content and the counter are DiceUI's as at `d9c7329f0` (this PR changed only the last step's accessible name and, in Part 6d, the footer's `shrink-0`, a height rule), so it is not a defect this PR makes; fixing it needs a layout decision (stack the counter, drop it, or widen the step), its own change.
+

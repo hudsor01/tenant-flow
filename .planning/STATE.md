@@ -71,12 +71,12 @@ See: .planning/PROJECT.md
 
 Phase: 66.2 (tailwind-v4-and-shadcn-ui-canonical-remediation) — EXECUTING
 Plan: 39 of 39
-Status: PR open for the merge gates; the owner merges (2026-11-04). Re-frozen after fix round 2
-(CI failures after the fix-round-1 re-freeze): code state `f8de0175e`
-(`.planning/tailwind-shadcn/audit/f39/freeze.json`); CI `checks` / `e2e-smoke` / `rls-security` and
-two consecutive clean perfect-PR cycles run again on the new PR head. After merge: the nine
-migrations, four Edge deploys and the rename PR in the PR body's "After merge, in this order"; the
-blog writer stays paused until its prune step is removed.
+Status: PR open for the merge gates; the owner merges (2026-11-05). Re-frozen after perfect-PR
+cycle 2 (139 findings on `36972318f`) and fix round 3 (139 commits, Parts 1-8 with 6b, 6c, 7b,
+`852158ab4` and Part 6d): code state `b7f25511b` (`.planning/tailwind-shadcn/audit/f39/freeze.json`); CI
+`checks` / `e2e-smoke` / `rls-security` and two consecutive clean perfect-PR cycles run again on the
+new PR head. After merge: the nine migrations, four Edge deploys and the rename PR in the PR body's
+"After merge, in this order"; the blog writer stays paused until its prune step is removed.
 
 66.1-01 authored the migration; **66.1-02 APPLIED IT TO PRODUCTION** as version
 `20260818031338` (see that plan's ADDENDUM — the earlier "BLOCKED on a dead PAT" body is
