@@ -108,8 +108,14 @@ export function TermsStep({
 		onChange({ ...data, end_date: endDate });
 	};
 
+	// The field grids step on the step's own width, never the viewport's: at
+	// 320 three fixed columns left a field 52.67px, and the late fee's
+	// "Optional, defaults to $0" ran 2.3px past it. One column until two
+	// fields of 11.5rem fit, three once three do (66.2-39 fix round 4, Part 8e).
+	// mb-0 on each description: a flex item of its Field, it kept the base
+	// paragraph margin (16px) under it, past the field's own gap.
 	return (
-		<div className="space-y-6">
+		<div className="@container/terms-step space-y-6">
 			<div>
 				<h3 className="text-lg font-medium mb-4">Lease Terms</h3>
 				<p className="text-muted-foreground text-sm mb-6">
@@ -142,7 +148,7 @@ export function TermsStep({
 				</div>
 
 				{/* Dates */}
-				<div className="grid grid-cols-2 gap-4">
+				<div className="grid grid-cols-1 gap-4 @min-[24rem]/terms-step:grid-cols-2">
 					<Field>
 						<FieldLabel htmlFor="start_date">Start Date *</FieldLabel>
 						<Input
@@ -164,7 +170,9 @@ export function TermsStep({
 							onChange={(e) => handleEndDateChange(e.target.value)}
 						/>
 						{selectedDuration && (
-							<FieldDescription>Auto-calculated from preset</FieldDescription>
+							<FieldDescription className="mb-0">
+								Auto-calculated from preset
+							</FieldDescription>
 						)}
 						{errors?.end_date ? (
 							<FieldError>{errors.end_date}</FieldError>
@@ -176,7 +184,7 @@ export function TermsStep({
 			{/* Financial Terms */}
 			<FieldGroup>
 				<h4 className="font-medium">Financial Terms</h4>
-				<div className="grid grid-cols-2 gap-4">
+				<div className="grid grid-cols-1 gap-4 @min-[24rem]/terms-step:grid-cols-2">
 					<Field>
 						<FieldLabel htmlFor="rent_amount">Monthly Rent ($) *</FieldLabel>
 						<Input
@@ -207,14 +215,16 @@ export function TermsStep({
 								handleChange("security_deposit", parseDollars(e.target.value))
 							}
 						/>
-						<FieldDescription>Optional, defaults to $0</FieldDescription>
+						<FieldDescription className="mb-0">
+							Optional, defaults to $0
+						</FieldDescription>
 						{errors?.security_deposit ? (
 							<FieldError>{errors.security_deposit}</FieldError>
 						) : null}
 					</Field>
 				</div>
 
-				<div className="grid grid-cols-3 gap-4">
+				<div className="grid grid-cols-1 gap-4 @min-[24rem]/terms-step:grid-cols-2 @min-[36rem]/terms-step:grid-cols-3">
 					<Field>
 						<FieldLabel htmlFor="payment_day">Monthly Due Date *</FieldLabel>
 						<Input
@@ -227,7 +237,9 @@ export function TermsStep({
 								handleChange("payment_day", parseInteger(e.target.value))
 							}
 						/>
-						<FieldDescription>Day rent is due (1-31)</FieldDescription>
+						<FieldDescription className="mb-0">
+							Day rent is due (1-31)
+						</FieldDescription>
 						{errors?.payment_day ? (
 							<FieldError>{errors.payment_day}</FieldError>
 						) : null}
@@ -246,7 +258,9 @@ export function TermsStep({
 								handleChange("grace_period_days", parseInteger(e.target.value))
 							}
 						/>
-						<FieldDescription>Days before late fee</FieldDescription>
+						<FieldDescription className="mb-0">
+							Days before late fee
+						</FieldDescription>
 						{errors?.grace_period_days ? (
 							<FieldError>{errors.grace_period_days}</FieldError>
 						) : null}
@@ -263,7 +277,9 @@ export function TermsStep({
 								handleChange("late_fee_amount", parseDollars(e.target.value))
 							}
 						/>
-						<FieldDescription>Optional, defaults to $0</FieldDescription>
+						<FieldDescription className="mb-0">
+							Optional, defaults to $0
+						</FieldDescription>
 						{errors?.late_fee_amount ? (
 							<FieldError>{errors.late_fee_amount}</FieldError>
 						) : null}
