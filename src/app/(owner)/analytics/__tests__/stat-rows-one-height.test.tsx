@@ -23,15 +23,30 @@ import { TooltipProvider } from "#components/ui/tooltip";
 import { render } from "#test/utils/test-render";
 
 /**
- * Below lg every label keeps two lines' height (min-h-10, none from lg), the
- * rows held to the top, so a label that wraps at 390 leaves the figures in a
- * row on one line (part Q, measured on the production build).
+ * Every label keeps two lines' height (min-h-10), the rows held to the top, so
+ * a label that wraps leaves the figures in a row on one line (part Q, measured
+ * on the production build). A row whose labels wrap at lg with the rail
+ * expanded releases it on its own width: its grid is the `container` named
+ * here and the release is that container's 56rem variant, never a viewport
+ * one (66.2-39 fix round 4, G38, K1). Without a name, the row releases at lg
+ * (measured to fit there: see reservation-release-keys-on-the-row.test.ts).
  */
-function expectTwoLineLabels() {
+function expectTwoLineLabels(container?: string) {
 	expectRowsOneHeight();
-	for (const label of document.querySelectorAll("[data-slot=stat-label]")) {
-		expect(label.className).toContain("min-h-10");
-		expect(label.className).toContain("lg:min-h-0");
+	const labels = [...document.querySelectorAll("[data-slot=stat-label]")];
+	expect(labels.length).toBeGreaterThan(0);
+	for (const label of labels) {
+		const classes = label.className.split(/\s+/);
+		expect(classes).toContain("min-h-10");
+		if (container === undefined) {
+			expect(classes).toContain("lg:min-h-0");
+			continue;
+		}
+		expect(classes).toContain(`@4xl/${container}:min-h-0`);
+		expect(classes).not.toContain("lg:min-h-0");
+		// The row's grid (the tile is a grid of its own).
+		const row = label.closest("[data-slot=stat]")?.parentElement?.parentElement;
+		expect(row?.className.split(/\s+/)).toContain(`@container/${container}`);
 	}
 }
 
@@ -47,8 +62,9 @@ function expectRowsOneHeight() {
 
 describe("stat rows", () => {
 	// "Total Tenants" and "Pending Signature" wrap at 390 (measured on the
-	// production build: 40 high beside 20-high "Active" and "Ended"). Held to
-	// the top, their figures sat 20 px below their neighbours' (part Q).
+	// production build: 40 high beside 20-high "Active" and "Ended"), and with
+	// the rail expanded from 1024 to 1152px (fix round 4, G38). Held to the
+	// top, their figures sat 20 px below their neighbours' (part Q).
 	it("keep the tenants tiles' figures on one line when a label wraps", () => {
 		render(
 			<TenantStats
@@ -59,7 +75,7 @@ describe("stat rows", () => {
 			/>,
 		);
 		expect(document.querySelectorAll("[data-slot=stat]")).toHaveLength(4);
-		expectTwoLineLabels();
+		expectTwoLineLabels("tenant-stats");
 	});
 
 	// "Pending Signature" (66.2-39 part P, one label per lease status) wraps to
