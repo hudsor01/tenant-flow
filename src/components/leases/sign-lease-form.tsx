@@ -225,7 +225,7 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 				/>
 			</div>
 
-			<div className={cn("flex items-start gap-3", !viewed && "opacity-60")}>
+			<div className="flex items-start gap-3">
 				<Checkbox
 					id="sign-consent"
 					checked={consent}
@@ -237,7 +237,10 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 				<div className="space-y-1">
 					<Label
 						htmlFor="sign-consent"
-						className="text-sm font-normal leading-relaxed cursor-pointer"
+						className={cn(
+							"text-sm font-normal leading-relaxed cursor-pointer",
+							!viewed && "opacity-60",
+						)}
 					>
 						I have read the lease, consent to sign electronically, and agree to
 						be legally bound by its terms.
