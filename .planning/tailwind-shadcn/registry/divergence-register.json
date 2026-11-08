@@ -61,6 +61,11 @@
      "what": "class token order in AlertDialogOverlay and AlertDialogDescription",
      "reason": "upstream drift not adopted (D-05)",
      "ref": "D-05"
+    },
+    {
+     "what": "AlertDialogContent grid-cols-1 (a minmax(0, 1fr) column), the same bound as DialogContent, where upstream leaves the grid's implicit auto track",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
     }
    ]
   },
@@ -524,6 +529,11 @@
      "what": "class token order in DialogOverlay, the DialogContent close button and DialogDescription",
      "reason": "upstream drift not adopted (D-05)",
      "ref": "D-05"
+    },
+    {
+     "what": "DialogContent grid-cols-1 (a minmax(0, 1fr) column) where upstream leaves the grid's implicit auto track: content wider than the dialog widened the track past max-w, so at 390x844 the bulk-import dialog's preview table drew the stepper and footer buttons 564px wide in a 308px body",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
     }
    ]
   },

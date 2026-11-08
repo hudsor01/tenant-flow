@@ -1,5 +1,18 @@
 "use client";
 
+/**
+ * shadcn new-york-v4 registry item `dialog` (other local divergences are
+ * recorded in the divergence register).
+ *
+ * Fix round 4, Part 5d (66.2-39; recorded in the divergence register):
+ * - DialogContent declares its one column (`grid-cols-1`, a minmax(0, 1fr)
+ *   track), where upstream leaves the grid's implicit auto track: content
+ *   wider than the dialog widened that track past the dialog's max-width.
+ *   At 390x844 the bulk-import dialog's data preview table drew the stepper
+ *   and the Back / Import buttons 564px wide in a 308px body, the dialog
+ *   scrolling sideways; now each row is the dialog's width and the preview
+ *   table scrolls in its own wrapper.
+ */
 import { cva, type VariantProps } from "class-variance-authority";
 import { XIcon } from "lucide-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
@@ -9,7 +22,7 @@ import { cn } from "#lib/utils";
 
 // Intent variants for semantic dialog styling
 const dialogContentVariants = cva(
-	"bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
+	"bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] grid-cols-1 translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
 	{
 		variants: {
 			intent: {

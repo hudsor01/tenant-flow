@@ -13,7 +13,10 @@
  *   in `#components/ui/__tests__/overlay-content-bounds.test.tsx`).
  * The code row's slots now share its width (44px each from `sm`, where the
  * row is 360px), and the stepper's step text is screen-reader only below
- * `sm`.
+ * `sm`. Behind all three, the dialog's grid had one implicit auto column, so
+ * the widest row widened the whole dialog (the bulk-import preview table
+ * drew the footer buttons 564px wide): DialogContent and AlertDialogContent
+ * now declare one minmax(0, 1fr) column.
  *
  * HOW IT IS READ. jsdom lays nothing out, so each row's classes are compiled
  * by the project's Tailwind and resolved against the rendered element: the
@@ -29,7 +32,12 @@ import { MfaVerificationDialog } from "#components/auth/mfa-verification-dialog"
 import { VerifyStep } from "#components/auth/two-factor-setup-steps";
 import { BulkImportStepper } from "#components/bulk-import/bulk-import-stepper";
 import { tenantBulkImportConfig } from "#components/tenants/bulk-import-config";
-import { Dialog, DialogContent } from "#components/ui/dialog";
+import {
+	AlertDialog,
+	AlertDialogContent,
+	AlertDialogTitle,
+} from "#components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogTitle } from "#components/ui/dialog";
 import { compileCandidates, parseCss } from "#test/utils/tailwind-engine";
 
 const ENGINE_TIMEOUT_MS = 60_000;
@@ -120,6 +128,38 @@ async function expectFluidCodeRow() {
 	expect(rules.get("width")).toBe("100%");
 	expect(rules.get("max-width")).toBe("calc(var(--spacing) * 90)");
 }
+
+describe("a dialog's content never widens the dialog", () => {
+	it(
+		"DialogContent and AlertDialogContent declare one minmax(0, 1fr) column",
+		async () => {
+			render(
+				<>
+					<Dialog open>
+						<DialogContent aria-describedby={undefined}>
+							<DialogTitle>Dialog</DialogTitle>
+						</DialogContent>
+					</Dialog>
+					<AlertDialog open>
+						<AlertDialogContent aria-describedby={undefined}>
+							<AlertDialogTitle>Alert</AlertDialogTitle>
+						</AlertDialogContent>
+					</AlertDialog>
+				</>,
+			);
+			for (const slot of ["dialog-content", "alert-dialog-content"]) {
+				const content = document.querySelector(`[data-slot="${slot}"]`);
+				if (!content) throw new Error(`${slot} did not render`);
+				const rules = await rulesAt([...content.classList], content, 390);
+				expect(rules.get("display"), slot).toBe("grid");
+				expect(rules.get("grid-template-columns"), slot).toBe(
+					"repeat(1, minmax(0, 1fr))",
+				);
+			}
+		},
+		ENGINE_TIMEOUT_MS,
+	);
+});
 
 describe("rows inside a dialog fit a phone-width dialog", () => {
 	beforeAll(() => {
