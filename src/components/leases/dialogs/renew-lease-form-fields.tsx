@@ -159,7 +159,7 @@ export function RentAdjustment({
 				</div>
 				<div className="flex items-start gap-2 rounded-lg bg-muted p-3">
 					<Info className="size-4 text-accent-main shrink-0 mt-0.5" />
-					<p className="text-xs text-muted-foreground">
+					<p className="mb-0 text-xs text-muted-foreground">
 						Rent cannot be changed after a lease has been sent for signature or
 						signed. You can still extend the end date.
 					</p>
@@ -237,7 +237,7 @@ export function RentAdjustment({
 			{!showRentIncrease && (
 				<div className="flex items-start gap-2 rounded-lg bg-muted p-3">
 					<Info className="size-4 text-accent-main shrink-0 mt-0.5" />
-					<p className="text-xs text-muted-foreground">
+					<p className="mb-0 text-xs text-muted-foreground">
 						New lease will maintain current rent of{" "}
 						{formatCurrency(currentRent)}/month
 					</p>

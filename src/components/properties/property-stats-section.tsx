@@ -21,12 +21,12 @@ export function PropertyStatsSection({ summary }: PropertyStatsSectionProps) {
 				{/* Total Properties */}
 				<div className="bg-card border border-border rounded-sm p-4">
 					<div className="flex items-center justify-between mb-2">
-						<p className="min-h-10 lg:min-h-0 text-sm text-muted-foreground">
+						<p className="mb-0 min-h-10 lg:min-h-0 text-sm text-muted-foreground">
 							Properties
 						</p>
 					</div>
 					<div className="flex items-end justify-between">
-						<p className="text-2xl font-bold text-foreground">
+						<p className="mb-0 text-2xl font-bold text-foreground">
 							{summary.totalProperties}
 						</p>
 						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center">
@@ -38,12 +38,12 @@ export function PropertyStatsSection({ summary }: PropertyStatsSectionProps) {
 				{/* Occupancy Rate */}
 				<div className="bg-card border border-border rounded-sm p-4">
 					<div className="flex items-center justify-between mb-2">
-						<p className="min-h-10 lg:min-h-0 text-sm text-muted-foreground">
+						<p className="mb-0 min-h-10 lg:min-h-0 text-sm text-muted-foreground">
 							Occupancy
 						</p>
 					</div>
 					<div className="flex items-end justify-between">
-						<p className="text-2xl font-bold text-foreground">
+						<p className="mb-0 text-2xl font-bold text-foreground">
 							{summary.overallOccupancyRate}%
 						</p>
 						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center">
@@ -55,12 +55,12 @@ export function PropertyStatsSection({ summary }: PropertyStatsSectionProps) {
 				{/* Available Units */}
 				<div className="bg-card border border-border rounded-sm p-4">
 					<div className="flex items-center justify-between mb-2">
-						<p className="min-h-10 lg:min-h-0 text-sm text-muted-foreground">
+						<p className="mb-0 min-h-10 lg:min-h-0 text-sm text-muted-foreground">
 							Available
 						</p>
 					</div>
 					<div className="flex items-end justify-between">
-						<p className="text-2xl font-bold text-foreground">
+						<p className="mb-0 text-2xl font-bold text-foreground">
 							{summary.availableUnits}
 						</p>
 						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center">
@@ -73,17 +73,17 @@ export function PropertyStatsSection({ summary }: PropertyStatsSectionProps) {
 				    is read here, so it is neither scheduled nor received rent. */}
 				<div className="bg-card border border-border rounded-sm p-4">
 					<div className="flex items-center justify-between mb-2">
-						<p className="min-h-10 lg:min-h-0 text-sm text-muted-foreground">
+						<p className="mb-0 min-h-10 lg:min-h-0 text-sm text-muted-foreground">
 							Occupied Rent
 						</p>
 					</div>
 					<div className="flex items-end justify-between">
 						<div>
-							<p className="text-2xl font-bold text-foreground">
+							<p className="mb-0 text-2xl font-bold text-foreground">
 								{formatCurrency(summary.totalMonthlyRevenue)}
 							</p>
 							{summary.totalUnits > 0 && (
-								<p className="text-xs text-muted-foreground">
+								<p className="mb-0 text-xs text-muted-foreground">
 									{formatCurrency(
 										Math.round(
 											summary.totalMonthlyRevenue / summary.totalUnits,

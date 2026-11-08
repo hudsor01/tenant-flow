@@ -48,7 +48,7 @@ export function ClauseSelector({
 							<h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
 								{section.title}
 							</h3>
-							<p className="text-caption text-muted-foreground">
+							<p className="mb-0 text-caption text-muted-foreground">
 								{section.description}
 							</p>
 						</div>

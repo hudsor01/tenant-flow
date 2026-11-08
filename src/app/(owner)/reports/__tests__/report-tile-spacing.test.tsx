@@ -97,6 +97,24 @@ describe("report tiles hold their declared spacing", () => {
 		}
 	});
 
+	// 66.2-39 fix round 4 (G14): the error card's text block is a flex item of
+	// the card, so the title's base margin met the message's mt-1 (16 apart
+	// where 4 is declared) and the message's stood 16px inside the block (32
+	// to Try Again where gap-4 declares 16).
+	it("the tax documents' error card", () => {
+		useTaxDocumentsMock.mockReturnValue({
+			data: undefined,
+			isLoading: false,
+			error: new Error("network"),
+			refetch: vi.fn(),
+		});
+		render(<TaxDocumentsPage />);
+		const title = screen.getByText("Failed to load tax documents");
+		const block = title.parentElement;
+		if (!block) throw new Error("no text block for the error card");
+		expectNoBaseMargin([...block.querySelectorAll("p")], 2);
+	});
+
 	it("the year-end summary cards", async () => {
 		render(
 			<YearEndReportSection

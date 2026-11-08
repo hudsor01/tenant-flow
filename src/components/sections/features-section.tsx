@@ -113,7 +113,7 @@ const Feature = ({ title, description, icon }: FeatureProps) => {
 				{title}
 			</h3>
 
-			<p className="text-muted-foreground leading-relaxed text-sm">
+			<p className="mb-0 text-muted-foreground leading-relaxed text-sm">
 				{description}
 			</p>
 		</div>

@@ -113,7 +113,7 @@ export function ReportsSummaryStrip() {
 				className="grid grid-cols-1 gap-4 sm:grid-cols-3"
 				data-testid="reports-summary-strip"
 			>
-				<p className="text-sm text-muted-foreground">
+				<p className="mb-0 text-sm text-muted-foreground">
 					Couldn&apos;t load this month&apos;s collection figures.
 				</p>
 			</div>

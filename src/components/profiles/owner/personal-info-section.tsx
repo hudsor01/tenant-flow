@@ -148,7 +148,9 @@ export function PersonalInfoSection({
 								</label>
 								<div className="flex items-center gap-2">
 									<User className="h-4 w-4 text-muted-foreground" />
-									<p className="text-sm font-medium">{profile.full_name}</p>
+									<p className="mb-0 text-sm font-medium">
+										{profile.full_name}
+									</p>
 								</div>
 							</div>
 						</BlurFade>
@@ -160,7 +162,7 @@ export function PersonalInfoSection({
 								</label>
 								<div className="flex items-center gap-2">
 									<Mail className="h-4 w-4 text-muted-foreground" />
-									<p className="text-sm font-medium">{profile.email}</p>
+									<p className="mb-0 text-sm font-medium">{profile.email}</p>
 								</div>
 							</div>
 						</BlurFade>
@@ -172,7 +174,7 @@ export function PersonalInfoSection({
 								</label>
 								<div className="flex items-center gap-2">
 									<Phone className="h-4 w-4 text-muted-foreground" />
-									<p className="text-sm font-medium">
+									<p className="mb-0 text-sm font-medium">
 										{profile.phone || "Not set"}
 									</p>
 								</div>
@@ -186,7 +188,7 @@ export function PersonalInfoSection({
 								</label>
 								<div className="flex items-center gap-2">
 									<CheckCircle className="h-4 w-4 text-success-text" />
-									<p className="text-sm font-medium">
+									<p className="mb-0 text-sm font-medium">
 										{ACCOUNT_STATUS_LABELS.get(profile.status) ??
 											profile.status}
 									</p>

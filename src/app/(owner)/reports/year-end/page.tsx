@@ -117,7 +117,7 @@ export default function YearEndReportsPage() {
 							<FileText className="size-6 text-primary" />
 							Year-End Reports
 						</h1>
-						<p className="text-sm text-muted-foreground">
+						<p className="mb-0 text-sm text-muted-foreground">
 							Rent received, expenses and net income for a tax year, by property
 							and by vendor.
 						</p>

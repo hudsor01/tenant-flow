@@ -132,7 +132,7 @@ export function FormBuilderPanel({
 			<CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
 				<div>
 					<CardTitle>Form builder</CardTitle>
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						Add custom fields that appear in the live template form and PDF.
 					</p>
 				</div>
@@ -149,7 +149,7 @@ export function FormBuilderPanel({
 			</CardHeader>
 			<CardContent className="space-y-4">
 				{fields.length === 0 ? (
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						No custom fields added yet.
 					</p>
 				) : null}
@@ -159,7 +159,9 @@ export function FormBuilderPanel({
 						className="space-y-3 rounded border p-4"
 					>
 						<div className="flex items-center justify-between">
-							<p className="text-sm font-semibold">Custom field {index + 1}</p>
+							<p className="mb-0 text-sm font-semibold">
+								Custom field {index + 1}
+							</p>
 							<Button
 								type="button"
 								variant="ghost"
@@ -192,7 +194,7 @@ export function FormBuilderPanel({
 									className={fieldErrors[index] ? "border-destructive" : ""}
 								/>
 								{fieldErrors[index] ? (
-									<p className="text-xs text-destructive-text">
+									<p className="mb-0 text-xs text-destructive-text">
 										{fieldErrors[index]}
 									</p>
 								) : null}

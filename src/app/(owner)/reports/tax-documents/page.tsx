@@ -85,10 +85,10 @@ export default function TaxDocumentsPage() {
 				<div className="rounded-lg border border-destructive/30 bg-destructive/10 p-6 flex flex-col items-center gap-4 text-center">
 					<AlertCircle className="size-10 text-destructive" />
 					<div>
-						<p className="font-medium text-destructive-text">
+						<p className="mb-0 font-medium text-destructive-text">
 							Failed to load tax documents
 						</p>
-						<p className="text-sm text-muted-foreground mt-1">
+						<p className="text-sm text-muted-foreground mt-1 mb-0">
 							An unexpected error occurred
 						</p>
 					</div>
@@ -202,7 +202,7 @@ export default function TaxDocumentsPage() {
 							<FileText className="w-8 h-8 text-muted-foreground" />
 						</div>
 						<h3 className="text-lg font-medium mb-1">No data for {taxYear}</h3>
-						<p className="text-sm text-muted-foreground">
+						<p className="mb-0 text-sm text-muted-foreground">
 							No rental income or expenses recorded for tax year {taxYear}.
 						</p>
 					</div>

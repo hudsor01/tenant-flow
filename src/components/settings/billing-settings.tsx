@@ -246,7 +246,7 @@ export function BillingSettings() {
 					</div>
 				</BlurFade>
 				<section className="rounded-lg border bg-card p-6">
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						{isAuthError ? (
 							<>
 								Your session appears to have expired.{" "}
@@ -318,7 +318,7 @@ export function BillingSettings() {
 							</div>
 							{isActive && currentPlan && (
 								<>
-									<p className="text-2xl font-bold text-primary-text">
+									<p className="mb-0 text-2xl font-bold text-primary-text">
 										{formatCurrency(
 											currentPeriod === "annual"
 												? currentPlan.price.annual
@@ -329,7 +329,7 @@ export function BillingSettings() {
 											/{currentPeriod === "annual" ? "year" : "month"}
 										</span>
 									</p>
-									<p className="text-sm text-muted-foreground mt-1">
+									<p className="text-sm text-muted-foreground mt-1 mb-0">
 										{formatUnitLimit(currentPlan.limits.units)} · Unlimited
 										tenant records
 									</p>
@@ -342,11 +342,11 @@ export function BillingSettings() {
 									    syncing" forever (mirrors the "Plan details will sync
 									    shortly" copy below). */}
 									{nextBillingDate ? (
-										<p className="text-xs text-muted-foreground mt-2">
+										<p className="text-xs text-muted-foreground mt-2 mb-0">
 											Next billing date: {nextBillingDate}
 										</p>
 									) : (
-										<p className="text-xs text-muted-foreground mt-2">
+										<p className="text-xs text-muted-foreground mt-2 mb-0">
 											Billing cycle syncing from Stripe…{" "}
 											<Link
 												href="/contact"
@@ -367,7 +367,7 @@ export function BillingSettings() {
 							    Single helpful message for both. Sentry-warns the
 							    unknown-priceId variant for ops follow-up. */}
 							{isActive && !currentPlan && status === "active" && (
-								<p className="text-sm text-muted-foreground mt-1">
+								<p className="text-sm text-muted-foreground mt-1 mb-0">
 									Your account has active access. Plan details will sync
 									shortly.{" "}
 									<Link
@@ -385,7 +385,7 @@ export function BillingSettings() {
 							    the user is on a trial without a committed plan choice,
 							    so the "Choose a plan" prompt applies. */}
 							{status === "trialing" && !currentPlan && (
-								<p className="text-sm text-muted-foreground mt-1">
+								<p className="text-sm text-muted-foreground mt-1 mb-0">
 									Your trial is active.{" "}
 									<Link
 										href="/billing/plans"
@@ -397,7 +397,7 @@ export function BillingSettings() {
 								</p>
 							)}
 							{isResubscribeState && (
-								<p className="text-sm text-muted-foreground mt-1">
+								<p className="text-sm text-muted-foreground mt-1 mb-0">
 									{status === "expired"
 										? "Your trial has expired."
 										: `Your subscription is ${statusVariant.label.toLowerCase()}.`}{" "}
@@ -411,7 +411,7 @@ export function BillingSettings() {
 								</p>
 							)}
 							{!status && (
-								<p className="text-sm text-muted-foreground mt-1">
+								<p className="text-sm text-muted-foreground mt-1 mb-0">
 									Upgrade to unlock premium features
 								</p>
 							)}

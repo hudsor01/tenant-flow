@@ -104,7 +104,7 @@ export default function UnitsPage() {
 						<div className="size-2 rounded-full bg-muted-foreground" />
 					</div>
 					<div className="typography-h3">{totalUnits}</div>
-					<p className="text-caption text-muted-foreground mt-1">
+					<p className="text-caption text-muted-foreground mt-1 mb-0">
 						Across all properties
 					</p>
 				</div>
@@ -162,12 +162,14 @@ export default function UnitsPage() {
 					{isLoading ? (
 						<div className="flex flex-col items-center justify-center py-12">
 							<div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-							<p className="mt-4 text-muted-foreground">Loading units...</p>
+							<p className="mt-4 mb-0 text-muted-foreground">
+								Loading units...
+							</p>
 						</div>
 					) : units.length === 0 ? (
 						<div className="flex flex-col items-center justify-center py-12">
 							<DoorOpen className="size-12 text-muted-foreground/50" />
-							<p className="mt-4 text-muted-foreground">No units found.</p>
+							<p className="mt-4 mb-0 text-muted-foreground">No units found.</p>
 							<NewUnitButton properties={properties} />
 						</div>
 					) : (
