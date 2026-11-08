@@ -20,6 +20,7 @@ import {
 import { financialQueries } from "#hooks/api/query-keys/financial-keys";
 import { reportAnalyticsQueries } from "#hooks/api/query-keys/report-analytics-keys";
 import { reportQueries } from "#hooks/api/query-keys/report-keys";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { parseLocalYmd } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
 import type { MaintenanceCostSummary } from "#types/analytics";
@@ -959,7 +960,7 @@ export async function buildReportData(
 ): Promise<ReportData> {
 	const builder = BUILDERS[reportType];
 	if (!builder) {
-		throw new Error(`Unknown report type: ${reportType}`);
+		throw new DiagnosticError(`Unknown report type: ${reportType}`);
 	}
 	return builder(queryClient, start_date, end_date);
 }

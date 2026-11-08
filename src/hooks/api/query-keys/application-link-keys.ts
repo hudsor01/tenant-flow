@@ -23,6 +23,7 @@ import {
 	type QueryClient,
 	queryOptions,
 } from "@tanstack/react-query";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import type { Database } from "#types/supabase";
@@ -79,7 +80,7 @@ function requireString(
 ): string {
 	const value = raw[field];
 	if (typeof value !== "string") {
-		throw new Error(
+		throw new DiagnosticError(
 			`${mapper}: NOT NULL field '${field}' missing or non-string from PostgREST response`,
 		);
 	}
@@ -103,7 +104,7 @@ export function mapApplicationLinkRow(
 				? Number(rawCount)
 				: Number.NaN;
 	if (!Number.isFinite(submission_count)) {
-		throw new Error(
+		throw new DiagnosticError(
 			`${mapper}: NOT NULL field 'submission_count' missing or non-numeric from PostgREST response`,
 		);
 	}
@@ -225,7 +226,7 @@ export function createApplicationLinkMutationOptions(queryClient: QueryClient) {
 
 			const row = data?.[0];
 			if (!row) {
-				throw new Error(
+				throw new DiagnosticError(
 					"create_application_link returned no row from PostgREST response",
 				);
 			}

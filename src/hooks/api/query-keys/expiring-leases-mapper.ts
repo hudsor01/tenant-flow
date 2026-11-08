@@ -23,6 +23,7 @@
  */
 
 import { z } from "zod";
+import { DiagnosticError } from "#lib/diagnostic-error";
 
 export interface ExpiringLeaseRow {
 	id: string;
@@ -64,7 +65,7 @@ export function mapExpiringLeaseRow(raw: unknown): ExpiringLeaseRow {
 	if (!parsed.success) {
 		const firstIssue = parsed.error.issues[0];
 		const path = firstIssue?.path.join(".") || "<root>";
-		throw new Error(
+		throw new DiagnosticError(
 			`mapExpiringLeaseRow: invalid expiring-lease row at '${path}' — ${firstIssue?.message ?? "validation failed"}`,
 		);
 	}

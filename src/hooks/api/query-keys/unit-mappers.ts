@@ -23,6 +23,7 @@
  */
 
 import { z } from "zod";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import type { UnitStats } from "#types/stats";
 
 // The raw jsonb aggregate contract from `get_unit_stats` (Plan 03-01). Each
@@ -45,7 +46,7 @@ const unitStatsRpcSchema = z.object({
 export function mapUnitStats(raw: unknown): UnitStats {
 	const parsed = unitStatsRpcSchema.safeParse(raw);
 	if (!parsed.success) {
-		throw new Error(
+		throw new DiagnosticError(
 			`mapUnitStats: malformed get_unit_stats response — ${parsed.error.message}`,
 		);
 	}

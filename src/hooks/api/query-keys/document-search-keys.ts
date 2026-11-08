@@ -12,6 +12,7 @@
 
 import { queryOptions } from "@tanstack/react-query";
 import { omitUndefined } from "#lib/db-insert";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import type { DocumentCategory } from "#lib/validation/documents";
@@ -152,7 +153,7 @@ export const documentSearchQueries = {
 				//    that don't parse, NaN, Infinity.
 				const totalCountRaw = rawRows[0]!.total_count;
 				if (totalCountRaw === null || totalCountRaw === undefined) {
-					throw new Error(
+					throw new DiagnosticError(
 						"search_documents RPC contract: total_count is null/undefined",
 					);
 				}
@@ -161,7 +162,7 @@ export const documentSearchQueries = {
 						? totalCountRaw
 						: Number(totalCountRaw);
 				if (!Number.isFinite(totalCountNumeric)) {
-					throw new Error(
+					throw new DiagnosticError(
 						"search_documents RPC contract: total_count is not a finite number",
 					);
 				}

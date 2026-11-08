@@ -20,6 +20,7 @@ import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
 import { assertNever } from "#lib/assert-never";
 import { omitUndefined } from "#lib/db-insert";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
@@ -144,7 +145,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 			};
 			for (const [k, v] of Object.entries(requiredCheck)) {
 				if (v === undefined || v === null) {
-					throw new Error(`Lease draft missing required field: ${k}`);
+					throw new DiagnosticError(`Lease draft missing required field: ${k}`);
 				}
 			}
 			const insertPayload = omitUndefined({

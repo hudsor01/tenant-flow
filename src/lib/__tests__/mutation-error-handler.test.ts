@@ -27,6 +27,7 @@ vi.mock("@sentry/nextjs", () => ({
 
 import { createClient } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import {
 	handleMutationError,
 	userFacingErrorMessage,
@@ -68,8 +69,10 @@ describe("handleMutationError — plan-limit detection", () => {
 
 		const [title, opts] = lastToastErrorCall();
 		expect(title).toBe("Plan limit reached");
+		// The trigger's MESSAGE is a machine prefix for detection; the copy is
+		// built from its DETAIL (66.2-39 fix round 4, Part 5d).
 		expect(opts?.description).toBe(
-			"plan_limit_exceeded: properties (1 / 1 used)",
+			"You've reached your plan's limit of 1 property. Upgrade to add more.",
 		);
 		// Action callback would route to /billing/plans?source=property_limit_gate.
 		// We can't easily test the navigation without window.location stubbing,
@@ -89,8 +92,46 @@ describe("handleMutationError — plan-limit detection", () => {
 
 		handleMutationError(error, "Create unit");
 
-		const [title] = lastToastErrorCall();
+		const [title, opts] = lastToastErrorCall();
 		expect(title).toBe("Plan limit reached");
+		expect(opts?.description).toBe(
+			"You've reached your plan's limit of 5 units. Upgrade to add more.",
+		);
+	});
+
+	it("never shows the trigger's plan_limit_exceeded message, whatever the DETAIL says", () => {
+		const cases: Array<[string | undefined, string]> = [
+			[
+				'{"resource":"storage","used":5,"limit":5,"upgrade_source":"storage_quota_gate"}',
+				"You've reached your plan's storage limit. Upgrade for more space.",
+			],
+			[
+				'{"resource":"units","upgrade_source":"unit_limit_gate"}',
+				"You've reached your plan's limit of units. Upgrade to add more.",
+			],
+			[
+				"{ this is not valid json",
+				"You've reached a limit of your current plan. Upgrade to add more.",
+			],
+			[
+				undefined,
+				"You've reached a limit of your current plan. Upgrade to add more.",
+			],
+		];
+		for (const [details, copy] of cases) {
+			vi.mocked(toast.error).mockClear();
+			handleMutationError(
+				{
+					message: "plan_limit_exceeded: units (5 / 5 used)",
+					code: "P0001",
+					hint: "plan_limit_exceeded",
+					...(details === undefined ? {} : { details }),
+				},
+				"Create unit",
+			);
+			const [, opts] = lastToastErrorCall();
+			expect(opts?.description, String(details)).toBe(copy);
+		}
 	});
 
 	it("falls back to default upgrade source when DETAIL is malformed JSON", () => {
@@ -334,14 +375,42 @@ describe("handleMutationError — leaky SQLSTATE → friendly copy (UIX-04)", ()
 		expect(title).toBe("A tenant with that email already exists.");
 	});
 
-	it("keeps a non-leaky code's raw message verbatim", () => {
-		// P0002 (no_data_found) is author-written PL/pgSQL RAISE — surfaces as-is.
-		handleMutationError(
-			{ message: "Lease term is locked and cannot be changed.", code: "P0002" },
-			"Update lease",
-		);
-		const [title] = lastToastErrorCall();
-		expect(title).toBe("Lease term is locked and cannot be changed.");
+	it("keeps an author RAISE message verbatim under every SQLSTATE the migrations raise with", () => {
+		// PL/pgSQL's default P0001 and every `errcode` in supabase/migrations.
+		for (const code of [
+			"P0001",
+			"PLIM1",
+			"22023",
+			"23514",
+			"28000",
+			"42501",
+			"0A000",
+		]) {
+			expect(
+				userFacingErrorMessage({
+					message: "Lease term is locked and cannot be changed.",
+					code,
+				}),
+				code,
+			).toBe("Lease term is locked and cannot be changed.");
+		}
+	});
+
+	it("never shows Postgres's own text under any other SQLSTATE (66.2-39 fix round 4, Part 5d)", () => {
+		// None of these matches RAW_DB_INTERNALS: before, each was toasted verbatim.
+		const cases: Array<[string, string]> = [
+			["57014", "canceling statement due to statement timeout"],
+			["42703", "column properties.foo does not exist"],
+			["P0002", "query returned no rows"],
+			["42883", "operator does not exist: text = uuid"],
+			["53300", "sorry, too many clients already"],
+		];
+		for (const [code, message] of cases) {
+			vi.mocked(toast.error).mockClear();
+			handleMutationError({ message, code, details: null, hint: null }, "Save");
+			const [title] = lastToastErrorCall();
+			expect(title, code).toBe("Something went wrong. Please try again.");
+		}
 	});
 
 	it("keeps a message with no code verbatim", () => {
@@ -499,6 +568,81 @@ describe("userFacingErrorMessage — the one sanitizer (66.2-39 part I)", () => 
 		expect(userFacingErrorMessage(undefined, "Upload failed")).toBe(
 			"Upload failed",
 		);
+	});
+});
+
+describe("userFacingErrorMessage — a message that names code is never shown (66.2-39 fix round 4, Part 5d)", () => {
+	beforeEach(() => {
+		vi.mocked(toast.error).mockClear();
+	});
+
+	it("shows the fallback for a DiagnosticError (a boundary mapper's shape check)", () => {
+		const error = new DiagnosticError(
+			"mapDocumentCategoryRow: NOT NULL field 'slug' missing or non-string from PostgREST response",
+		);
+		expect(userFacingErrorMessage(error, "Rename failed")).toBe(
+			"Rename failed",
+		);
+		handleMutationError(error, "Rename category");
+		expect(lastToastErrorCall()[0]).toBe(
+			"Something went wrong. Please try again.",
+		);
+	});
+
+	it("shows the fallback for a JavaScript runtime fault, the network copy still for a failed fetch", () => {
+		for (const error of [
+			new TypeError("Cannot read properties of undefined (reading 'id')"),
+			new RangeError("Invalid time value"),
+			new SyntaxError(
+				"Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON",
+			),
+			new ReferenceError("foo is not defined"),
+			new DOMException("signal is aborted without reason", "AbortError"),
+		]) {
+			expect(userFacingErrorMessage(error, "Save failed"), error.name).toBe(
+				"Save failed",
+			);
+		}
+		expect(userFacingErrorMessage(new TypeError("Failed to fetch"))).toBe(
+			NETWORK_COPY,
+		);
+	});
+
+	it("shows the fallback for an HTML page passed on as a PostgREST message", () => {
+		expect(
+			userFacingErrorMessage(
+				{ message: "<html><head><title>502 Bad Gateway</title></head></html>" },
+				"Save failed",
+			),
+		).toBe("Save failed");
+	});
+
+	it("maps supabase-js's own Edge Function errors to copy", () => {
+		const named = (name: string, message: string) =>
+			Object.assign(new Error(message), { name });
+		expect(
+			userFacingErrorMessage(
+				named(
+					"FunctionsHttpError",
+					"Edge Function returned a non-2xx status code",
+				),
+				"Send failed",
+			),
+		).toBe("Send failed");
+		expect(
+			userFacingErrorMessage(
+				named("FunctionsRelayError", "Relay Error invoking the Edge Function"),
+				"Send failed",
+			),
+		).toBe("Send failed");
+		expect(
+			userFacingErrorMessage(
+				named(
+					"FunctionsFetchError",
+					"Failed to send a request to the Edge Function",
+				),
+			),
+		).toBe(NETWORK_COPY);
 	});
 });
 

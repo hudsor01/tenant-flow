@@ -3,9 +3,11 @@
  * revokes the object URL after the click handler resolves.
  */
 
+import { DiagnosticError } from "#lib/diagnostic-error";
+
 export function downloadBlob(blob: Blob, filename: string): void {
 	if (typeof window === "undefined") {
-		throw new Error("downloadBlob requires a browser environment");
+		throw new DiagnosticError("downloadBlob requires a browser environment");
 	}
 	const url = URL.createObjectURL(blob);
 	const anchor = document.createElement("a");

@@ -15,6 +15,7 @@ import { Button } from "#components/ui/button";
 import { Skeleton } from "#components/ui/skeleton";
 import { getAllPricingPlans, type PricingConfig } from "#config/pricing";
 import { useSubscriptionStatus } from "#hooks/api/use-billing";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import {
 	createCheckoutSession,
@@ -147,7 +148,7 @@ export default function BillingPlansPage() {
 				if (url) {
 					window.location.href = url;
 				} else {
-					throw new Error("No checkout URL returned");
+					throw new DiagnosticError("No checkout URL returned");
 				}
 			}
 		} catch (error) {

@@ -19,6 +19,7 @@
  */
 
 import { z } from "zod";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import {
 	TENANT_ACTIVE_STATUSES,
 	tenantStatusSchema,
@@ -50,7 +51,7 @@ function requireString(
 ): string {
 	const value = raw[field];
 	if (typeof value !== "string") {
-		throw new Error(
+		throw new DiagnosticError(
 			`${mapper}: NOT NULL field '${field}' missing or non-string from PostgREST response`,
 		);
 	}
@@ -65,7 +66,7 @@ function requireString(
 function requireTenantStatus(value: unknown, mapper: string): string {
 	const parsed = tenantPersistedStatusSchema.safeParse(value);
 	if (!parsed.success) {
-		throw new Error(
+		throw new DiagnosticError(
 			`${mapper}: invalid 'status' value '${String(value)}' from PostgREST response`,
 		);
 	}
@@ -207,7 +208,7 @@ export function mapTenantRow(row: TenantPostgrestRow): TenantWithLeaseInfo {
 	// select can legally observe a NULL during transitional states); a
 	// non-null status must be a recognized value.
 	if (typeof row.id !== "string") {
-		throw new Error(
+		throw new DiagnosticError(
 			"mapTenantRow: NOT NULL field 'id' missing or non-string from PostgREST response",
 		);
 	}

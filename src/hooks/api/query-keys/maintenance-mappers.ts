@@ -17,6 +17,7 @@
  */
 
 import { z } from "zod";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { maintenancePrioritySchema } from "#lib/validation/maintenance";
 import type { MaintenanceRequest } from "#types/core";
 import { propertyReportName } from "../../../../supabase/functions/_shared/tax-year-reports";
@@ -54,7 +55,7 @@ const maintenancePersistedStatusSchema = z.enum([
 function requireString(raw: Record<string, unknown>, field: string): string {
 	const value = raw[field];
 	if (typeof value !== "string") {
-		throw new Error(
+		throw new DiagnosticError(
 			`mapMaintenanceRow: NOT NULL field '${field}' missing or non-string from PostgREST response`,
 		);
 	}
@@ -70,7 +71,7 @@ function requireString(raw: Record<string, unknown>, field: string): string {
 function requirePersistedStatus(value: unknown): string {
 	const parsed = maintenancePersistedStatusSchema.safeParse(value);
 	if (!parsed.success) {
-		throw new Error(
+		throw new DiagnosticError(
 			`mapMaintenanceRow: invalid status '${String(value)}' from PostgREST response`,
 		);
 	}
@@ -85,7 +86,7 @@ function requirePersistedStatus(value: unknown): string {
 function requirePersistedPriority(value: unknown): string {
 	const parsed = maintenancePrioritySchema.safeParse(value);
 	if (!parsed.success) {
-		throw new Error(
+		throw new DiagnosticError(
 			`mapMaintenanceRow: invalid priority '${String(value)}' from PostgREST response`,
 		);
 	}
@@ -161,7 +162,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function nullableString(value: unknown, field: string): string | null {
 	if (value === null || value === undefined) return null;
 	if (typeof value !== "string") {
-		throw new Error(
+		throw new DiagnosticError(
 			`maintenance row: '${field}' is not a string in the PostgREST response`,
 		);
 	}
@@ -178,14 +179,14 @@ function toOneEmbed(
 	key: string,
 ): Record<string, unknown> | null {
 	if (!(key in row)) {
-		throw new Error(
+		throw new DiagnosticError(
 			`maintenance row: embed '${key}' missing from PostgREST response`,
 		);
 	}
 	const value = row[key];
 	if (value === null) return null;
 	if (!isRecord(value)) {
-		throw new Error(
+		throw new DiagnosticError(
 			`maintenance row: embed '${key}' is not a single row in the PostgREST response`,
 		);
 	}

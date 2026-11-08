@@ -17,6 +17,7 @@
  */
 
 import { queryOptions } from "@tanstack/react-query";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
@@ -51,7 +52,7 @@ export function mapNotificationRow(
 	function requireString(field: string): string {
 		const value = raw[field];
 		if (typeof value !== "string") {
-			throw new Error(
+			throw new DiagnosticError(
 				`mapNotificationRow: NOT NULL field '${field}' missing or non-string from PostgREST response`,
 			);
 		}

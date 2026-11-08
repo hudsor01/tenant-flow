@@ -5,6 +5,7 @@
  * Derived hooks in use-dashboard-hooks.ts.
  */
 
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { jsonObject } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
@@ -102,7 +103,7 @@ export function mapDashboardActivityRow(
 	function requireString(field: string): string {
 		const value = raw[field];
 		if (typeof value !== "string") {
-			throw new Error(
+			throw new DiagnosticError(
 				`mapDashboardActivityRow: NOT NULL field '${field}' missing or non-string from get_dashboard_data_v2 response`,
 			);
 		}
@@ -132,7 +133,7 @@ function mapPropertyPerformanceStatus(
 	) {
 		return raw;
 	}
-	throw new Error(
+	throw new DiagnosticError(
 		`Unexpected property_performance.status value from get_dashboard_data_v2: ${raw}`,
 	);
 }
@@ -156,7 +157,7 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 		!("trends" in data) ||
 		!("time_series" in data)
 	) {
-		throw new Error(
+		throw new DiagnosticError(
 			"Dashboard RPC returned unexpected shape — verify get_dashboard_data_v2 is deployed",
 		);
 	}

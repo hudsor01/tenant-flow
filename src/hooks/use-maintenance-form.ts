@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import type { UseMutationResult } from "@tanstack/react-query";
 import type { MaintenanceUpdateMutationVariables } from "#hooks/api/use-maintenance";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { createLogger } from "#lib/frontend-logger";
 import type {
 	MaintenanceRequestCreate,
@@ -71,7 +72,9 @@ export function useMaintenanceForm({
 				if (mode === "create") {
 					if (!createMutation) {
 						logger.error("Create mutation not provided for create mode");
-						throw new Error("Create mutation is required for create mode");
+						throw new DiagnosticError(
+							"Create mutation is required for create mode",
+						);
 					}
 
 					const payload: MaintenanceRequestCreate = {
@@ -105,12 +108,14 @@ export function useMaintenanceForm({
 					// mode === 'edit'
 					if (!updateMutation) {
 						logger.error("Update mutation not provided for edit mode");
-						throw new Error("Update mutation is required for edit mode");
+						throw new DiagnosticError(
+							"Update mutation is required for edit mode",
+						);
 					}
 
 					if (!requestId) {
 						logger.error("Request ID not provided for edit mode");
-						throw new Error("Request ID is required for edit mode");
+						throw new DiagnosticError("Request ID is required for edit mode");
 					}
 
 					// FORMFIX-05: include unit_id/tenant_id so reassigning the unit or

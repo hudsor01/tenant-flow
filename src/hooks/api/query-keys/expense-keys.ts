@@ -1,4 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
@@ -190,7 +191,7 @@ export const expenseQueries = {
 				} else if (options?.offset !== undefined) {
 					// CLAUDE.md: list queries MUST be bounded. Refuse offset-without-limit
 					// rather than silently returning the full table under a paginated key.
-					throw new Error(
+					throw new DiagnosticError(
 						"expenseQueries.list: offset requires limit (unbounded list queries are not allowed)",
 					);
 				} else {

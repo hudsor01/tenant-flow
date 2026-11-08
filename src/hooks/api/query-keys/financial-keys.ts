@@ -15,6 +15,7 @@
  */
 
 import { queryOptions } from "@tanstack/react-query";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { formatLocalYmd, parseLocalYmd } from "#lib/formatters/date";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { jsonObjectOrEmpty } from "#lib/rpc-shape";
@@ -165,7 +166,7 @@ function mapLedgerCharges(data: unknown): LedgerCharges | null {
  */
 function dayBefore(ymd: string): string {
 	const date = parseLocalYmd(ymd);
-	if (!date) throw new Error(`Invalid statement date: ${ymd}`);
+	if (!date) throw new DiagnosticError(`Invalid statement date: ${ymd}`);
 	date.setDate(date.getDate() - 1);
 	return formatLocalYmd(date);
 }
@@ -224,7 +225,7 @@ function mapExpenseTotal(data: unknown): number {
 		{},
 	);
 	if (typeof total !== "number") {
-		throw new Error("get_expense_summary returned no total_amount");
+		throw new DiagnosticError("get_expense_summary returned no total_amount");
 	}
 	return total;
 }
@@ -586,7 +587,7 @@ export const financialQueries = {
 				if (!user?.id) throw new Error("Not authenticated");
 				const year = parseLocalYmd(asOfDate)?.getFullYear();
 				if (year === undefined) {
-					throw new Error(`Invalid balance sheet date: ${asOfDate}`);
+					throw new DiagnosticError(`Invalid balance sheet date: ${asOfDate}`);
 				}
 				const yearStart = `${year}-01-01`;
 				const priorYearEnd = `${year - 1}-12-31`;

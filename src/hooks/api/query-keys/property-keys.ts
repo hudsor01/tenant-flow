@@ -282,7 +282,7 @@ export const propertyQueries = {
 					.order("display_order", { ascending: true })
 					.limit(50);
 
-				if (error) throw new Error(error.message);
+				if (error) handlePostgrestError(error, "property images");
 
 				return (data as Tables<"property_images">[]).map((image) => {
 					const isFullUrl = /^https?:\/\//.test(image.image_url);
@@ -416,7 +416,7 @@ export const propertyMutations = {
 					.delete()
 					.eq("id", imageId);
 
-				if (dbError) throw new Error(dbError.message);
+				if (dbError) handlePostgrestError(dbError, "delete property image");
 
 				if (imagePath) {
 					try {

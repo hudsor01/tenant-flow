@@ -19,6 +19,7 @@
 
 import { queryOptions } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import type { LedgerEntry } from "#lib/ledger/ledger-math";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { jsonArray, jsonObject } from "#lib/rpc-shape";
@@ -58,7 +59,7 @@ function toDollars(
 	const value = raw[field];
 	if (value === null || value === undefined) {
 		if (fallback === null) {
-			throw new Error(
+			throw new DiagnosticError(
 				`rent-ledger mapper: NOT NULL field '${field}' missing from the RPC response`,
 			);
 		}
@@ -66,7 +67,7 @@ function toDollars(
 	}
 	const amount = typeof value === "string" ? Number(value) : value;
 	if (typeof amount !== "number" || !Number.isFinite(amount)) {
-		throw new Error(
+		throw new DiagnosticError(
 			`rent-ledger mapper: field '${field}' is not a finite dollar amount`,
 		);
 	}
@@ -76,7 +77,7 @@ function toDollars(
 function requireString(raw: Record<string, unknown>, field: string): string {
 	const value = raw[field];
 	if (typeof value !== "string") {
-		throw new Error(
+		throw new DiagnosticError(
 			`mapLedgerEntryRow: NOT NULL field '${field}' missing or non-string from the RPC response`,
 		);
 	}
@@ -115,7 +116,7 @@ export function mapLedgerEntryRow(
 ): LedgerEntryRow {
 	const kind = raw.kind;
 	if (kind !== "charge" && kind !== "receipt") {
-		throw new Error(
+		throw new DiagnosticError(
 			"mapLedgerEntryRow: field 'kind' must be 'charge' or 'receipt'",
 		);
 	}

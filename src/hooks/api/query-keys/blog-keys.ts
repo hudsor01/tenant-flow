@@ -2,6 +2,7 @@
 
 import { queryOptions } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import type { Database } from "#types/supabase";
@@ -60,10 +61,13 @@ export const BLOG_REVIEW_QUEUE_LIMIT = 50;
  */
 export function mapBlogReviewRow(raw: Record<string, unknown>): BlogReviewItem {
 	const { id, title, slug, content } = raw;
-	if (typeof id !== "string") throw new Error("blog row missing id");
-	if (typeof title !== "string") throw new Error("blog row missing title");
-	if (typeof slug !== "string") throw new Error("blog row missing slug");
-	if (typeof content !== "string") throw new Error("blog row missing content");
+	if (typeof id !== "string") throw new DiagnosticError("blog row missing id");
+	if (typeof title !== "string")
+		throw new DiagnosticError("blog row missing title");
+	if (typeof slug !== "string")
+		throw new DiagnosticError("blog row missing slug");
+	if (typeof content !== "string")
+		throw new DiagnosticError("blog row missing content");
 	return {
 		id,
 		title,

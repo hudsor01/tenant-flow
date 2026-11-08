@@ -10,6 +10,7 @@
 
 import { queryOptions } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import type { PaginatedResponse } from "#types/api-contracts";
@@ -115,7 +116,7 @@ export const inspectionQueries = {
 
 				if (error) handlePostgrestError(error, "inspections");
 				if (!data) {
-					throw new Error(`Inspection ${id} not found`);
+					throw new DiagnosticError(`Inspection ${id} not found`);
 				}
 
 				// Strip the raw PostgREST `inspection_rooms` embed -- the

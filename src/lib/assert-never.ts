@@ -1,3 +1,5 @@
+import { DiagnosticError } from "#lib/diagnostic-error";
+
 /**
  * Compile-time exhaustiveness guard for switches over finite unions.
  *
@@ -21,7 +23,7 @@
  * }
  */
 export function assertNever(value: never, context?: string): never {
-	throw new Error(
+	throw new DiagnosticError(
 		`Unhandled case${context ? ` in ${context}` : ""}: ${String(value)}`,
 	);
 }

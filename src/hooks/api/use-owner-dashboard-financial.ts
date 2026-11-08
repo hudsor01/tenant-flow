@@ -13,6 +13,7 @@
 
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { jsonArray, jsonObject } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
@@ -61,7 +62,7 @@ function toFiniteNumber(raw: Record<string, unknown>, field: string): number {
 	// PostgREST can serialise `numeric` as a JSON string to preserve precision.
 	const parsed = typeof value === "string" ? Number(value) : value;
 	if (typeof parsed !== "number" || !Number.isFinite(parsed)) {
-		throw new Error(
+		throw new DiagnosticError(
 			`mapCollectionRateRow: field '${field}' is missing or not a finite number`,
 		);
 	}

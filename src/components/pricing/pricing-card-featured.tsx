@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { calculateAnnualSavings } from "#config/pricing";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { createLogger } from "#lib/frontend-logger";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { checkoutRateLimiter } from "#lib/security";
@@ -75,7 +76,9 @@ export function PricingCardFeatured({
 					: plan.stripeMonthlyPriceId;
 
 			if (!stripePriceId) {
-				throw new Error(`No ${billingCycle} price configured for ${plan.name}`);
+				throw new DiagnosticError(
+					`No ${billingCycle} price configured for ${plan.name}`,
+				);
 			}
 
 			toast.loading("Creating checkout session...", { id: "checkout" });
