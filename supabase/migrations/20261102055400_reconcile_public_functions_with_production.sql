@@ -31,7 +31,7 @@
 --      md5(pg_get_functiondef) is not production's, is created from
 --      production's pg_get_functiondef text, verbatim. CREATE OR REPLACE keeps an
 --      existing function's owner and ACL.
---   2. ACLs. For each of the 149 functions whose ACL text is not production's,
+--   2. ACLs. For each of the 149 functions, where its ACL text is not production's,
 --      EXECUTE is revoked from every grantee production's ACL lacks. A REVOKE
 --      leaves the other entries in their order, and on the replayed chain that
 --      is production's text exactly, so nothing is granted (a catalog that would

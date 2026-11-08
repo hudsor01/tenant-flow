@@ -10,6 +10,8 @@
 //   - send + meter allowed=true (Growth under cap) -> send proceeds: lease flips
 //     to pending_signature, a token is inserted, exactly one email is sent
 //   - send + meter unlimited=true (Max) -> send proceeds unchanged
+//   - send + meter RPC error -> 500 with the generic body, the lease is NOT
+//     flipped, no email
 //   - resend -> meter_esign_send is NEVER invoked (D-02: resend never meters)
 //
 // Run: deno test --allow-all --no-check \

@@ -1970,8 +1970,8 @@ describe("G8 every first-party class is canonical (D-25, PLAN.md §4.4 class)", 
  * `bg-chart-7`, `bg-overlay`), and a utility size v4 does not have
  * (`hover:shadow-3xl`, `blur-0`). The hook names below are the only no-CSS
  * tokens a class string may carry, each read by something other than Tailwind.
- * Run against 1294dc80f (before 66.2-39 part B) the check reports 18
- * violations in 11 files.
+ * Run against 1294dc80f's tracked sources (before 66.2-39 part B) the check
+ * reports 18 violations in 10 files.
  */
 describe("G9 every first-party class string token emits CSS (66.2-39)", () => {
 	/**
