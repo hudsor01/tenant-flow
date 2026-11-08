@@ -142,16 +142,28 @@ function FeatureCell({
 	value: FeatureValue;
 	highlight?: boolean;
 }) {
+	// The icon is the cell's only visible content, so the value it draws is
+	// restated as text a screen reader announces (WCAG 1.1.1).
 	if (typeof value === "boolean") {
 		return value ? (
-			<Check
-				className={cn(
-					"size-5 mx-auto",
-					highlight ? "text-primary" : "text-success-text",
-				)}
-			/>
+			<>
+				<Check
+					aria-hidden="true"
+					className={cn(
+						"size-5 mx-auto",
+						highlight ? "text-primary" : "text-success-text",
+					)}
+				/>
+				<span className="sr-only">Included</span>
+			</>
 		) : (
-			<Minus className="size-5 text-muted-foreground mx-auto" />
+			<>
+				<Minus
+					aria-hidden="true"
+					className="size-5 text-muted-foreground mx-auto"
+				/>
+				<span className="sr-only">Not included</span>
+			</>
 		);
 	}
 	return (
