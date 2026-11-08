@@ -27,26 +27,52 @@
  *
  * RATCHET. The other hits sit in files this PR does not change and are
  * deferred (66.2 deferred-items); they are listed by file and count, so a new
- * hit fails and so does a fixed one until its entry goes.
+ * hit fails and so does a fixed one until its entry goes. Each entry also holds
+ * the file's git blob id at the PR's base, d9c7329f0 (`#test/utils/git-blob`):
+ * a deferred file that changes fails the ratchet, so its hits are fixed in the
+ * change that touches it rather than kept behind their entry (66.2-39 fix
+ * round 4, Part 8b).
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import { computeListCascade } from "#test/utils/base-rule-cascade";
+import { gitBlobId } from "#test/utils/git-blob";
 
 const ROOT = process.cwd();
 
-/** Hits in files this PR does not change: deferred, not fixed here. */
-const DEFERRED: Record<string, number> = {
-	"src/app/privacy/page.tsx": 11,
-	"src/app/security-policy/page.tsx": 6,
-	"src/app/terms/page.tsx": 16,
-	"src/components/dashboard/dashboard-activity-card.tsx": 1,
-	"src/components/layout/footer.tsx": 1,
-	"src/components/leases/template/state-rule-summary.tsx": 1,
-	"src/components/notifications/notification-popover-list.tsx": 1,
-	"src/components/notifications/notifications-inbox.client.tsx": 1,
-	"src/components/ui/field.tsx": 1,
+/** Hits in files this PR does not change: deferred, not fixed here, each with its blob at d9c7329f0. */
+const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
+	"src/app/privacy/page.tsx": [11, "b787e72998d6bfc3abcf221defd01320b1b825fe"],
+	"src/app/security-policy/page.tsx": [
+		6,
+		"e573dca49e90859aae9b8708c2ed96240108116c",
+	],
+	"src/app/terms/page.tsx": [16, "a421bd86530a74e901f2d72519c31658eabaf6ab"],
+	"src/components/dashboard/dashboard-activity-card.tsx": [
+		1,
+		"b19802c47ad4b87175aa27eeedd6f7e0085652f9",
+	],
+	"src/components/layout/footer.tsx": [
+		1,
+		"bcf99386eebfadd3fe25b5904671354ca7688ea4",
+	],
+	"src/components/leases/template/state-rule-summary.tsx": [
+		1,
+		"33d99e304a5182d78142103e845633f032b9f771",
+	],
+	"src/components/notifications/notification-popover-list.tsx": [
+		1,
+		"a93cbe45ea6dd284897823e6c7bfcf7632d002a1",
+	],
+	"src/components/notifications/notifications-inbox.client.tsx": [
+		1,
+		"9887cf96726efb1069afafe83a815b765115dbf2",
+	],
+	"src/components/ui/field.tsx": [
+		1,
+		"af8c9df150d91c52443dba4ea8d0a36520074682",
+	],
 };
 
 /**
@@ -193,7 +219,17 @@ describe("every list cancels the base ul, ol and li rules", () => {
 		const counts = Object.fromEntries(
 			Object.entries(offenders()).map(([file, hits]) => [file, hits.length]),
 		);
-		expect(counts).toEqual({ ...DEFERRED, ...INTENDED });
+		const deferred = Object.fromEntries(
+			Object.entries(DEFERRED).map(([file, [hits]]) => [file, hits]),
+		);
+		expect(counts).toEqual({ ...deferred, ...INTENDED });
+	});
+
+	it("defers only files left as they were at the PR's base", () => {
+		const changed = Object.entries(DEFERRED)
+			.filter(([file, [, blob]]) => gitBlobId(join(ROOT, file)) !== blob)
+			.map(([file]) => `${file} changed since d9c7329f0: fix its lists`);
+		expect(changed).toEqual([]);
 	});
 
 	it("reads both className forms and flags each open value", () => {

@@ -46,7 +46,7 @@ export function QrStep({
 					<Shield className="size-5" />
 					Set Up Two-Factor Authentication
 				</DialogTitle>
-				<DialogDescription>
+				<DialogDescription className="mb-0">
 					Scan the QR code with your authenticator app (Google Authenticator,
 					Authy, etc.)
 				</DialogDescription>
@@ -91,7 +91,7 @@ export function QrStep({
 					</>
 				) : enrollError ? (
 					<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center">
-						<p className="text-destructive-text">
+						<p className="mb-0 text-destructive-text">
 							Failed to start 2FA setup. Please try again.
 						</p>
 					</div>
@@ -142,7 +142,7 @@ export function VerifyStep({
 					<Shield className="size-5" />
 					Verify Your Code
 				</DialogTitle>
-				<DialogDescription>
+				<DialogDescription className="mb-0">
 					Enter the 6-digit code from your authenticator app to complete setup
 				</DialogDescription>
 			</DialogHeader>
@@ -174,7 +174,7 @@ export function VerifyStep({
 
 				{verifyError !== null && (
 					<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-center">
-						<p className="text-sm text-destructive-text">
+						<p className="mb-0 text-sm text-destructive-text">
 							Invalid code. Please try again.
 						</p>
 					</div>
@@ -228,7 +228,7 @@ export function SuccessStep({ onComplete }: SuccessStepProps) {
 					</div>
 					<div className="space-y-2">
 						<p className="font-medium">Your account is now more secure</p>
-						<p className="text-sm text-muted-foreground">
+						<p className="mb-0 text-sm text-muted-foreground">
 							You&apos;ll need your authenticator app to sign in from now on.
 						</p>
 					</div>

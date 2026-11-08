@@ -29,6 +29,11 @@
  * RATCHET. `DEFERRED` holds the hits in files this PR does not change (66.2
  * deferred-items), by file and count: a new hit anywhere fails, and so does a
  * fixed one until its entry goes. Every hit in a file this PR changes is fixed.
+ * Each entry also holds the file's git blob id at the PR's base, d9c7329f0
+ * (`#test/utils/git-blob`), so a deferred file that changes fails the ratchet
+ * and its hits are fixed in that change: two deferred files became PR files
+ * after this guard was written and kept their hits behind their entries
+ * (66.2-39 fix round 4, Part 8b).
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -42,68 +47,214 @@ import {
 	createBoxReader,
 } from "#test/utils/base-margin-sites";
 import { computeParagraphCascade } from "#test/utils/base-rule-cascade";
+import { gitBlobId } from "#test/utils/git-blob";
 import { loadProjectDesignSystem } from "#test/utils/tailwind-engine";
 
 const ROOT = process.cwd();
 const UI_DIR = join(ROOT, "src/components/ui");
 
-/** Hits in files this PR does not change: deferred, not fixed here. */
-const DEFERRED: Record<string, number> = {
-	"src/app/(admin)/admin/analytics/page.tsx": 1,
-	"src/app/(owner)/@modal/(.)leases/[id]/edit/page.tsx": 1,
-	"src/app/(owner)/@modal/(.)maintenance/[id]/edit/page.tsx": 1,
-	"src/app/(owner)/analytics/financial/_components/breakdown-list.tsx": 1,
-	"src/app/(owner)/billing/checkout/cancel/page.tsx": 1,
-	"src/app/(owner)/documents/templates/components/branding-editor.tsx": 1,
-	"src/app/(owner)/documents/templates/components/clauses-editor.tsx": 1,
-	"src/app/(owner)/documents/templates/maintenance-request/page.tsx": 1,
-	"src/app/(owner)/documents/templates/property-inspection/page.tsx": 1,
-	"src/app/(owner)/documents/templates/rental-application/page.tsx": 1,
-	"src/app/(owner)/documents/templates/tenant-notice/page.tsx": 1,
-	"src/app/(owner)/reports/generate/page.tsx": 1,
-	"src/app/(owner)/reports/report-hub-tile.tsx": 1,
-	"src/app/(owner)/tenants/components/move-out-dialog.tsx": 1,
-	"src/app/auth/confirm-email/loading.tsx": 1,
-	"src/app/marketing-home.tsx": 2,
-	"src/app/pricing/page.tsx": 1,
-	"src/app/privacy/page.tsx": 2,
-	"src/app/security-policy/page.tsx": 1,
-	"src/app/sign/[token]/page.tsx": 3,
-	"src/app/stripe/success/page.tsx": 1,
-	"src/app/terms/page.tsx": 3,
-	"src/components/admin/deliverability-table.tsx": 1,
-	"src/components/admin/funnel-chart.tsx": 1,
-	"src/components/admin/gate-conversion-table.tsx": 1,
-	"src/components/applications/application-decline-dialog.tsx": 1,
-	"src/components/auth/two-factor-setup-steps.tsx": 5,
-	"src/components/bulk-import/bulk-import-dialog.tsx": 1,
-	"src/components/dashboard/dashboard-activity-card.tsx": 3,
-	"src/components/data-table/data-table-pagination.tsx": 1,
-	"src/components/error-boundary/error-fallback.tsx": 1,
-	"src/components/inspections/inspection-detail.client.tsx": 3,
-	"src/components/leases/wizard/terms-step.tsx": 5,
-	"src/components/ledger/add-line-dialog.tsx": 1,
-	"src/components/ledger/ledger-date-field.tsx": 1,
-	"src/components/ledger/ledger-table.tsx": 2,
-	"src/components/ledger/track-since-dialog.tsx": 2,
-	"src/components/maintenance/detail/expenses-card.tsx": 5,
-	"src/components/maintenance/maintenance-form.client.tsx": 1,
-	"src/components/marketing/sticky-conversion-cta.tsx": 1,
-	"src/components/notifications/notification-popover-list.tsx": 1,
-	"src/components/notifications/notifications-inbox.client.tsx": 3,
-	"src/components/onboarding/onboarding-step-complete.tsx": 1,
-	"src/components/onboarding/onboarding-step-welcome.tsx": 1,
-	"src/components/properties/add-unit-panel.tsx": 2,
-	"src/components/properties/edit-unit-panel.tsx": 1,
-	"src/components/properties/property-units-single-view.tsx": 1,
-	"src/components/settings/category-create-dialog.tsx": 2,
-	"src/components/settings/category-delete-dialog.tsx": 1,
-	"src/components/settings/category-rename-dialog.tsx": 1,
-	"src/components/tenants/add-tenant-property-fields.tsx": 1,
-	"src/components/tenants/tenant-table.tsx": 1,
-	"src/components/ui/bento-grid.tsx": 1,
-	"src/lib/forms/fields/icon-input-field.tsx": 1,
-	"src/lib/forms/fields/switch-field.tsx": 1,
+/** Hits in files this PR does not change: deferred, not fixed here, each with its blob at d9c7329f0. */
+const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
+	"src/app/(admin)/admin/analytics/page.tsx": [
+		1,
+		"1b436ec887f6dc09f2ac34555988092dfd922189",
+	],
+	"src/app/(owner)/@modal/(.)leases/[id]/edit/page.tsx": [
+		1,
+		"f1c01563e06c97e5169546609321e7722139434e",
+	],
+	"src/app/(owner)/@modal/(.)maintenance/[id]/edit/page.tsx": [
+		1,
+		"376fecd8f6b2c31b0a89c076fd24f804481fd848",
+	],
+	"src/app/(owner)/analytics/financial/_components/breakdown-list.tsx": [
+		1,
+		"de07c434f7013af650f679bfaab94de8a9f8172b",
+	],
+	"src/app/(owner)/billing/checkout/cancel/page.tsx": [
+		1,
+		"c45d886c30a931666a08865530e8cfbc7cca82dc",
+	],
+	"src/app/(owner)/documents/templates/components/branding-editor.tsx": [
+		1,
+		"ab640343b60d1ff9e084f3aa96452ef318d4e1eb",
+	],
+	"src/app/(owner)/documents/templates/components/clauses-editor.tsx": [
+		1,
+		"b6397463df22f2e9a9530afea2599fcb29c783e3",
+	],
+	"src/app/(owner)/documents/templates/maintenance-request/page.tsx": [
+		1,
+		"066a70cf0f1dec3602e442d502ec9861606d19b3",
+	],
+	"src/app/(owner)/documents/templates/property-inspection/page.tsx": [
+		1,
+		"41c061bb00b70f4ecacdb3c079d77979dac44c56",
+	],
+	"src/app/(owner)/documents/templates/rental-application/page.tsx": [
+		1,
+		"c3700d733c5d78fa8161aeba356527ba1407eb6a",
+	],
+	"src/app/(owner)/documents/templates/tenant-notice/page.tsx": [
+		1,
+		"793655667c43e24795c02bd2de31878c1ecae3c2",
+	],
+	"src/app/(owner)/reports/generate/page.tsx": [
+		1,
+		"ac019397e2e04e01ef57bfa7a33398144c17da60",
+	],
+	"src/app/(owner)/reports/report-hub-tile.tsx": [
+		1,
+		"74de3ec2156c1275f875684e57cb3000bca0d05e",
+	],
+	"src/app/(owner)/tenants/components/move-out-dialog.tsx": [
+		1,
+		"e08c7ff46eb21d08abbd4e1bab5412891cc6681e",
+	],
+	"src/app/auth/confirm-email/loading.tsx": [
+		1,
+		"0b2dbc8d536722f4b448b00f7eae79a2e2d7d2a3",
+	],
+	"src/app/marketing-home.tsx": [2, "a637d6e38fbbde2a5d0f2d22f23321dfc95cf60c"],
+	"src/app/pricing/page.tsx": [1, "5b684df9ea95251daf511cc5b1ed8b7a09c310c1"],
+	"src/app/privacy/page.tsx": [2, "b787e72998d6bfc3abcf221defd01320b1b825fe"],
+	"src/app/security-policy/page.tsx": [
+		1,
+		"e573dca49e90859aae9b8708c2ed96240108116c",
+	],
+	"src/app/sign/[token]/page.tsx": [
+		3,
+		"59920fd69e0b49cae40d4a631849c72d03953bb7",
+	],
+	"src/app/stripe/success/page.tsx": [
+		1,
+		"269ef285eae41c907fb03c47391a5c6054e7de63",
+	],
+	"src/app/terms/page.tsx": [3, "a421bd86530a74e901f2d72519c31658eabaf6ab"],
+	"src/components/admin/deliverability-table.tsx": [
+		1,
+		"554323816217ddc619546d7926ae99c0fa691672",
+	],
+	"src/components/admin/funnel-chart.tsx": [
+		1,
+		"ce62d176c6450b577c36f6d52e8edac7203283e8",
+	],
+	"src/components/admin/gate-conversion-table.tsx": [
+		1,
+		"5b5e8a8b111d06fcbb5e168f2f96dd50cdb661ef",
+	],
+	"src/components/applications/application-decline-dialog.tsx": [
+		1,
+		"0a59fe3e5340276d8d7ef53e4e3e284a612d0686",
+	],
+	"src/components/bulk-import/bulk-import-dialog.tsx": [
+		1,
+		"389a01a37f66ac6d13dc303737964fdb7179f102",
+	],
+	"src/components/dashboard/dashboard-activity-card.tsx": [
+		3,
+		"b19802c47ad4b87175aa27eeedd6f7e0085652f9",
+	],
+	"src/components/data-table/data-table-pagination.tsx": [
+		1,
+		"809d7bac7d8816cb5e74e9b5ead4fb99faa5fe60",
+	],
+	"src/components/error-boundary/error-fallback.tsx": [
+		1,
+		"12c1bd46cf7c736c9a3043fc5437e5c265a054dd",
+	],
+	"src/components/inspections/inspection-detail.client.tsx": [
+		3,
+		"07caaa274018aa481a5ed5ecff5be839fc709532",
+	],
+	"src/components/leases/wizard/terms-step.tsx": [
+		5,
+		"7eba000004435c9f53c265f59b07bb80623edb1c",
+	],
+	"src/components/ledger/add-line-dialog.tsx": [
+		1,
+		"4ea9d26da0a7c3d8d6d9110053c7fed0731efdd9",
+	],
+	"src/components/ledger/ledger-date-field.tsx": [
+		1,
+		"e0a4af7b3060cb96952fd609434f1effed7e0b71",
+	],
+	"src/components/ledger/ledger-table.tsx": [
+		2,
+		"3ba77b5ee6f7f252347042fd4643a781dbf8f095",
+	],
+	"src/components/ledger/track-since-dialog.tsx": [
+		2,
+		"020a436558ff1ec2e8d0699b97a819a3f2f81836",
+	],
+	"src/components/maintenance/detail/expenses-card.tsx": [
+		5,
+		"2aecc2d6ec7af0646f6427b0ecb7df330f81662f",
+	],
+	"src/components/maintenance/maintenance-form.client.tsx": [
+		1,
+		"f92f0f37db5108ebf8a91ee14469025a1a8ffc1b",
+	],
+	"src/components/marketing/sticky-conversion-cta.tsx": [
+		1,
+		"8e96648044fed78625fe687e2640d43829439dcb",
+	],
+	"src/components/notifications/notification-popover-list.tsx": [
+		1,
+		"a93cbe45ea6dd284897823e6c7bfcf7632d002a1",
+	],
+	"src/components/notifications/notifications-inbox.client.tsx": [
+		3,
+		"9887cf96726efb1069afafe83a815b765115dbf2",
+	],
+	"src/components/onboarding/onboarding-step-complete.tsx": [
+		1,
+		"5a877de32e2622cefa1b88fe5777c1b4c270a7aa",
+	],
+	"src/components/onboarding/onboarding-step-welcome.tsx": [
+		1,
+		"d6aeb42d7128e2466b74ec4de65829b223d1e5dc",
+	],
+	"src/components/properties/add-unit-panel.tsx": [
+		2,
+		"e4e649fd0bfd1bb4966a2b407347e95ea8c7c5e2",
+	],
+	"src/components/properties/edit-unit-panel.tsx": [
+		1,
+		"3f925aa01cdbaa7caeffb145bf9fad98f6ad7f70",
+	],
+	"src/components/properties/property-units-single-view.tsx": [
+		1,
+		"e794cbdcd9e16fc1b271db4be58596f23f499157",
+	],
+	"src/components/settings/category-create-dialog.tsx": [
+		2,
+		"d6bc4d7202d01814a4b7cbd75f85e1530d986212",
+	],
+	"src/components/settings/category-delete-dialog.tsx": [
+		1,
+		"055ec3ccd245a77cbaffefd75d89e04e7f6b9e43",
+	],
+	"src/components/settings/category-rename-dialog.tsx": [
+		1,
+		"1aad9f874a7ce692b5a7da63a5c788da7e73686a",
+	],
+	"src/components/tenants/add-tenant-property-fields.tsx": [
+		1,
+		"e46314e9018fe6dd8f4599cb2c49cb1da0359c6a",
+	],
+	"src/components/tenants/tenant-table.tsx": [
+		1,
+		"9b4c24194c0917fb90b26c5159cd1b80c7bcf6fd",
+	],
+	"src/lib/forms/fields/icon-input-field.tsx": [
+		1,
+		"48e5d8e2af3d01041d584671741115dd4a33a01d",
+	],
+	"src/lib/forms/fields/switch-field.tsx": [
+		1,
+		"337b1f46bcdd6e926928d990a366beb39ccbb229",
+	],
 };
 
 function collect(dir: string): string[] {
@@ -305,12 +456,23 @@ describe("paragraphs carry no base margin where it breaks declared spacing", () 
 			const hits = scan(file, readFileSync(join(ROOT, file), "utf8"));
 			if (hits.length === 0) continue;
 			offenders[file] = hits.length;
-			if (DEFERRED[file] !== hits.length) {
+			if (DEFERRED[file]?.[0] !== hits.length) {
 				for (const h of hits)
 					lines.push(`${h.file}:${h.line} (${h.shape}) ${h.via}`);
 			}
 		}
 		expect(lines).toEqual([]);
-		expect(offenders).toEqual(DEFERRED);
+		expect(offenders).toEqual(
+			Object.fromEntries(
+				Object.entries(DEFERRED).map(([file, [hits]]) => [file, hits]),
+			),
+		);
 	}, 60_000);
+
+	it("defers only files left as they were at the PR's base", () => {
+		const changed = Object.entries(DEFERRED)
+			.filter(([file, [, blob]]) => gitBlobId(join(ROOT, file)) !== blob)
+			.map(([file]) => `${file} changed since d9c7329f0: fix its paragraphs`);
+		expect(changed).toEqual([]);
+	});
 });

@@ -66,13 +66,16 @@ const BentoCard = ({
 		{/* Gradient overlay for text readability - stronger fade at bottom */}
 		<div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-card from-25% via-card/80 via-45% to-transparent to-70%" />
 
-		{/* Content at bottom - positioned lower */}
-		<div className="relative z-10 mt-auto px-5 pb-4 pt-2 transform transition-transform duration-300 group-hover:-translate-y-8">
+		{/* Content at bottom, 16px above the card's edge as the CTA below sits.
+		    Hover or keyboard focus raises it 48px, clear of the CTA (44px tall
+		    plus its 16px inset) by the 4px it always had: focus used to show the
+		    CTA over the description without raising it. */}
+		<div className="relative z-10 mt-auto px-5 pb-4 pt-2 transform transition-transform duration-300 group-hover:-translate-y-12 group-focus-within:-translate-y-12">
 			<div className="icon-container-sm icon-container-primary w-fit mb-2">
 				<Icon className="size-4" />
 			</div>
 			<h3 className="text-base font-semibold text-foreground mb-0.5">{name}</h3>
-			<p className="text-muted-foreground text-xs leading-relaxed line-clamp-2">
+			<p className="mb-0 text-muted-foreground text-xs leading-relaxed line-clamp-2">
 				{description}
 			</p>
 		</div>
