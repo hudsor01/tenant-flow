@@ -105,8 +105,9 @@ describe("stat rows", () => {
 		}
 	});
 
-	// "Open Maintenance" wraps at 390 beside "Scheduled Rent" (measured: its
-	// figure 20 px lower, part Q).
+	// "Open Maintenance" wraps beside one-line labels (measured: its figure 20
+	// px lower, part Q), with the rail expanded from 1088 to 1176px too (fix
+	// round 4, K1).
 	it("keep the overview's figures on one line when a label wraps", () => {
 		render(
 			<AnalyticsStatCards
@@ -122,7 +123,7 @@ describe("stat rows", () => {
 				}}
 			/>,
 		);
-		expectTwoLineLabels();
+		expectTwoLineLabels("analytics-stats");
 	});
 
 	it("hold the expenses page's tiles to one height", () => {
@@ -154,8 +155,9 @@ describe("stat rows", () => {
 		expectTwoLineLabels();
 	});
 
-	// "Best performer" wraps at 390 beside "Rent received" (measured: its
-	// figure 20 px lower, part Q).
+	// "Best performer" wraps beside one-line labels (measured: its figure 20
+	// px lower, part Q), with the rail expanded from 1056 to 1200px too (fix
+	// round 4, K1).
 	it("keep the property performance figures on one line when a label wraps", () => {
 		render(
 			<PerformanceStatCards
@@ -171,7 +173,7 @@ describe("stat rows", () => {
 			/>,
 		);
 		expect(document.querySelectorAll("[data-slot=stat]")).toHaveLength(4);
-		expectTwoLineLabels();
+		expectTwoLineLabels("performance-stats");
 	});
 
 	// "Occupied Rent" wraps at 390 beside "Available" (measured: its figure

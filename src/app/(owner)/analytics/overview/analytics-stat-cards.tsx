@@ -175,10 +175,13 @@ export function AnalyticsStatCards({
 	trends,
 }: AnalyticsStatCardsProps) {
 	return (
-		// Below lg every label keeps two lines' height: at 390 "Open
-		// Maintenance" wraps beside "Scheduled Rent", and the two figures share a
-		// line (66.2-39 part Q, VD-117).
-		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+		// Every label keeps two lines' height until the row is 56rem wide, so
+		// the figures in a row share a line whichever labels wrap (66.2-39 part
+		// Q, VD-117). The release keys on the grid's width: with the rail
+		// expanded, "Open Maintenance" (117.56px) wraps beside one-line labels
+		// from 1088 to 1176px, where a release at lg put its figure 20px lower
+		// (fix round 4, K1). Four columns fit the longest label from 53rem.
+		<div className="@container/analytics-stats grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 			<BlurFade delay={0.2} className="h-full">
 				<Stat className="relative h-full content-start overflow-hidden">
 					<BorderBeam
@@ -187,7 +190,9 @@ export function AnalyticsStatCards({
 						colorFrom="var(--color-primary)"
 						colorTo="oklch(from var(--color-primary) l c h / 0.3)"
 					/>
-					<StatLabel className="min-h-10 lg:min-h-0">Occupancy Rate</StatLabel>
+					<StatLabel className="min-h-10 @4xl/analytics-stats:min-h-0">
+						Occupancy Rate
+					</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
 						<NumberTicker
 							value={occupancyRate}
@@ -205,7 +210,9 @@ export function AnalyticsStatCards({
 
 			<BlurFade delay={0.3} className="h-full">
 				<Stat className="relative h-full content-start overflow-hidden">
-					<StatLabel className="min-h-10 lg:min-h-0">Active Tenants</StatLabel>
+					<StatLabel className="min-h-10 @4xl/analytics-stats:min-h-0">
+						Active Tenants
+					</StatLabel>
 					<StatValue className="flex items-baseline">
 						<NumberTicker value={activeTenants} duration={1500} />
 					</StatValue>
@@ -223,7 +230,9 @@ export function AnalyticsStatCards({
 						colorFrom="var(--color-success)"
 						colorTo="oklch(from var(--color-success) l c h / 0.3)"
 					/>
-					<StatLabel className="min-h-10 lg:min-h-0">Scheduled Rent</StatLabel>
+					<StatLabel className="min-h-10 @4xl/analytics-stats:min-h-0">
+						Scheduled Rent
+					</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5 text-success-text">
 						<NumberTicker
 							value={monthlyRevenue}
@@ -254,7 +263,7 @@ export function AnalyticsStatCards({
 							colorTo="oklch(from var(--color-warning) l c h / 0.3)"
 						/>
 					)}
-					<StatLabel className="min-h-10 lg:min-h-0">
+					<StatLabel className="min-h-10 @4xl/analytics-stats:min-h-0">
 						Open Maintenance
 					</StatLabel>
 					<StatValue className="flex items-baseline text-warning-text">

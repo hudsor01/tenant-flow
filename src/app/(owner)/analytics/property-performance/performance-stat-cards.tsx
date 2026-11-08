@@ -20,11 +20,15 @@ interface PerformanceStatCardsProps {
 
 export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 	// Each wrapper fills its grid cell and each tile its wrapper, rows held to
-	// the top; below lg every label keeps two lines' height, so at 390, where
-	// "Best performer" wraps beside "Rent received", the two figures share a
-	// line (66.2-39 part Q).
+	// the top; every label keeps two lines' height until the row is 56rem
+	// wide, so the figures in a row share a line whichever labels wrap
+	// (66.2-39 part Q). The release keys on the grid's width: with the rail
+	// expanded, "Average occupancy" (122.19px) and its neighbours wrap beside
+	// one-line "Rent received" from 1056 to 1200px, where a release at lg put
+	// the figures 20px apart (fix round 4, K1). Four columns fit the longest
+	// label from 54.1rem.
 	return (
-		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+		<div className="@container/performance-stats grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 			<BlurFade delay={0.2} className="h-full">
 				<Stat className="relative h-full content-start overflow-hidden">
 					<BorderBeam
@@ -33,7 +37,7 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 						colorFrom="var(--color-primary)"
 						colorTo="oklch(from var(--color-primary) l c h / 0.3)"
 					/>
-					<StatLabel className="min-h-10 lg:min-h-0">
+					<StatLabel className="min-h-10 @4xl/performance-stats:min-h-0">
 						Total properties
 					</StatLabel>
 					<StatValue className="flex items-baseline">
@@ -54,7 +58,7 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 						colorFrom="var(--color-success)"
 						colorTo="oklch(from var(--color-success) l c h / 0.3)"
 					/>
-					<StatLabel className="min-h-10 lg:min-h-0">
+					<StatLabel className="min-h-10 @4xl/performance-stats:min-h-0">
 						Average occupancy
 					</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5 text-success-text">
@@ -79,7 +83,9 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 
 			<BlurFade delay={0.4} className="h-full">
 				<Stat className="relative h-full content-start overflow-hidden">
-					<StatLabel className="min-h-10 lg:min-h-0">Best performer</StatLabel>
+					<StatLabel className="min-h-10 @4xl/performance-stats:min-h-0">
+						Best performer
+					</StatLabel>
 					<StatValue className="flex items-baseline text-base font-semibold truncate">
 						{metrics.bestPerformer ?? "-"}
 					</StatValue>
@@ -92,7 +98,9 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 
 			<BlurFade delay={0.5} className="h-full">
 				<Stat className="relative h-full content-start overflow-hidden">
-					<StatLabel className="min-h-10 lg:min-h-0">Rent received</StatLabel>
+					<StatLabel className="min-h-10 @4xl/performance-stats:min-h-0">
+						Rent received
+					</StatLabel>
 					{metrics.rentReceived === null ? (
 						<StatValue className="flex items-baseline text-base font-semibold text-muted-foreground">
 							Unavailable
