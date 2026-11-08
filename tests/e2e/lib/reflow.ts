@@ -301,7 +301,8 @@ export async function reflowStateFailures(
 		states.push(
 			...(await measureEachTrigger(page, {
 				label: `${path} header > `,
-				region: "body > div header, header",
+				// The site's navbar is a `nav`; the app's header a `header`.
+				region: "[data-site-navbar], header",
 				measured,
 			})),
 		);
