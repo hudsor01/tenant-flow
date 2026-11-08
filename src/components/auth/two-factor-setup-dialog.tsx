@@ -40,9 +40,12 @@ export function TwoFactorSetupDialog({
 	// notify, but the bound `mutate` / `reset` methods (and `isPending`
 	// primitive) are stable. Destructure them so effect deps don't re-fire
 	// every render — that loop trips React error #185.
-	const { mutate: enrollMutate, reset: resetEnrollMfa } = enrollMfa;
+	const {
+		mutate: enrollMutate,
+		reset: resetEnrollMfa,
+		status: enrollStatus,
+	} = enrollMfa;
 	const { reset: resetVerifyMfa } = verifyMfa;
-	const enrollPending = enrollMfa.isPending;
 
 	const [step, setStep] = useState<SetupStep>("qr");
 	const [verifyCode, setVerifyCode] = useState("");
@@ -52,9 +55,12 @@ export function TwoFactorSetupDialog({
 		secret: string;
 	} | null>(null);
 
-	// Start enrollment when dialog opens
+	// Start enrollment once per opening: only from idle, which closing restores.
+	// Keyed on "not pending", a failed enrollment started the next one as soon
+	// as it settled, so the dialog re-posted the factor in a loop and flickered
+	// between the spinner and the error.
 	useEffect(() => {
-		if (open && !enrollmentData && !enrollPending) {
+		if (open && !enrollmentData && enrollStatus === "idle") {
 			enrollMutate(undefined, {
 				onSuccess: (data) => {
 					setEnrollmentData({
@@ -65,7 +71,7 @@ export function TwoFactorSetupDialog({
 				},
 			});
 		}
-	}, [open, enrollmentData, enrollPending, enrollMutate]);
+	}, [open, enrollmentData, enrollStatus, enrollMutate]);
 
 	// Reset state when dialog closes
 	useEffect(() => {
