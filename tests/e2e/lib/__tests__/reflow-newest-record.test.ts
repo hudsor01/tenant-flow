@@ -10,10 +10,14 @@ import { describe, expect, it } from "vitest";
 import { newestRecord } from "../reflow";
 
 describe("newestRecord", () => {
-	it("returns the newest record's id", () => {
+	it("returns the newest record's id: the first row of the created_at-descending lookup", () => {
+		// Two rows, so reading any row but the first fails.
 		expect(
-			newestRecord("lease", { data: [{ id: "lease-1" }], error: null }),
-		).toEqual({ state: "found", id: "lease-1" });
+			newestRecord("lease", {
+				data: [{ id: "lease-newest" }, { id: "lease-older" }],
+				error: null,
+			}),
+		).toEqual({ state: "found", id: "lease-newest" });
 	});
 
 	it("says owner A has no record only when the query returned none", () => {
