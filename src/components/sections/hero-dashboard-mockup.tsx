@@ -208,10 +208,14 @@ function StatCard({
 	trendUp: boolean;
 	icon: ReactNode;
 }) {
+	// The icon and the trend share a line, and neither shrinks: the icon is
+	// 24px until the card holds it at 32px beside "+12%" (73.09px of 74), as
+	// the mockup's narrow columns (about 200px wide at 1024 and on /about at
+	// 480) do not (66.2-39 fix round 4, Part 8d).
 	return (
-		<div className="card-standard p-2.5">
+		<div className="@container/mockup-stat card-standard p-2.5">
 			<div className="flex-between mb-1.5">
-				<div className="icon-container-sm bg-primary/10 text-primary">
+				<div className="size-6 @min-[4.625rem]/mockup-stat:size-8 shrink-0 rounded-lg flex-center bg-primary/10 text-primary">
 					{icon}
 				</div>
 				<span
@@ -221,9 +225,9 @@ function StatCard({
 					)}
 				>
 					{trendUp ? (
-						<ArrowUpRight className="size-2.5" />
+						<ArrowUpRight className="size-2.5 shrink-0" />
 					) : (
-						<ArrowDownRight className="size-2.5" />
+						<ArrowDownRight className="size-2.5 shrink-0" />
 					)}
 					{trend}
 				</span>

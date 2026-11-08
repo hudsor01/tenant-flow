@@ -52,7 +52,7 @@ function LabelWithTooltip({ label, help }: { label: string; help: string }) {
 					className="inline-flex items-center gap-1 rounded-sm underline decoration-dotted underline-offset-4"
 				>
 					{label}
-					<Info aria-hidden="true" className="size-3" />
+					<Info aria-hidden="true" className="size-3 shrink-0" />
 				</TooltipTrigger>
 				<TooltipContent className="max-w-64">{help}</TooltipContent>
 			</Tooltip>
