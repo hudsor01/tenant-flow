@@ -10,13 +10,24 @@ import { PUBLIC_REFLOW_ROUTES } from "../../lib/reflow";
  * failed /, /features, /login and the tax worksheet in light and / in dark:
  * the /login trust strip (3.21:1), the worksheet's category totals (3.78:1)
  * and the faded CTA lines on /features (3.78:1), once the page was in the
- * theme under test and its in-view entrances had painted.
+ * theme under test and its entrances had finished.
  *
  * The pages are `PUBLIC_REFLOW_ROUTES` and, as `reflow-320.spec.ts` reads
  * them, the pages whose paths depend on data: one blog post and one blog
  * category the blog index links, and every comparison page the compare index
  * links. The open `/apply/<token>` form needs a seeded link, so only its
  * invalid-token page is here; the rendered sweep measured the form.
+ *
+ * Each page is measured at rest under reduced motion. Its entrances (BlurFade)
+ * are mount-time CSS animations with no in-view trigger, and
+ * `motion-reduce:animate-none` renders their resting state at frame 0, so
+ * nothing needs waiting out or scrolling into view. Measured on every page
+ * here in both themes (66.2-39 fix round 4, Part 7): the same violations,
+ * passes (2,512 light, 2,507 dark, each with its ratio) and incomplete nodes
+ * as with motion on after scrolling each page through, in a tenth of the
+ * time (10 s against 103 s for the light pages). That scroll-through cost
+ * about 4 minutes of CI time, past the 9-minute globalTimeout e2e-smoke
+ * then had.
  *
  * Text inside an `aria-hidden` subtree is left out, and on these pages all of
  * it is decoration, which 1.4.3 exempts: the separators between links and
@@ -70,24 +81,7 @@ async function settle(page: Page): Promise<void> {
 		.toBe(0);
 }
 
-/** Scroll the page through once so each in-view entrance paints its text. */
-async function revealAll(page: Page): Promise<void> {
-	const height = await page.evaluate(
-		() => document.documentElement.scrollHeight,
-	);
-	const step = Math.max(
-		200,
-		Math.floor((page.viewportSize()?.height ?? 720) * 0.8),
-	);
-	for (let y = step; y < height; y += step) {
-		await page.evaluate((top) => window.scrollTo(0, top), y);
-		await settle(page);
-	}
-	await page.evaluate(() => window.scrollTo(0, 0));
-	await settle(page);
-}
-
-/** The page at `path` in `theme`, settled and scrolled through, has no axe color-contrast violation. */
+/** The page at `path` in `theme`, hydrated and at rest, has no axe color-contrast violation. */
 async function expectReadableText(
 	page: Page,
 	path: string,
@@ -100,7 +94,6 @@ async function expectReadableText(
 			page.evaluate(() => document.documentElement.classList.contains("dark")),
 		)
 		.toBe(theme === "dark");
-	await revealAll(page);
 	const { violations } = await new AxeBuilder({ page })
 		.withRules(["color-contrast"])
 		.exclude('[aria-hidden="true"]')
@@ -117,7 +110,7 @@ async function expectReadableText(
 
 for (const theme of ["light", "dark"] as const) {
 	test.describe(`text contrast (${theme})`, () => {
-		test.use({ colorScheme: theme });
+		test.use({ colorScheme: theme, reducedMotion: "reduce" });
 
 		test.beforeEach(async ({ page }) => {
 			await page.addInitScript(
