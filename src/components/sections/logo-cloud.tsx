@@ -8,7 +8,7 @@ interface LogoCloudProps {
 
 /**
  * Logo cloud showing the technology stack.
- * SVG logos render at native color with a subtle opacity bump on hover.
+ * SVG logos render at native color at 90% opacity.
  */
 export function LogoCloud({
 	className,
