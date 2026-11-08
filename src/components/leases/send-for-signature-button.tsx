@@ -212,7 +212,7 @@ export function SendForSignatureButton({
 					<DialogTitle>
 						{isResend ? "Resend Signature Request" : "Send Lease for Signature"}
 					</DialogTitle>
-					<DialogDescription>
+					<DialogDescription className="mb-0">
 						{isResend
 							? tenantName
 								? `Resend the signature request to ${tenantName}. This will create a fresh signing request.`

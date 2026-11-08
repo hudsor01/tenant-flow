@@ -237,7 +237,7 @@ export function ChartAreaInteractive({
 					chartData.length === 0 ? (
 					<Empty className="h-75 flex-center">
 						<EmptyTitle>No data available</EmptyTitle>
-						<EmptyDescription>
+						<EmptyDescription className="mb-0">
 							Add properties and tenants to see financial trends
 						</EmptyDescription>
 					</Empty>

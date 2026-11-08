@@ -288,7 +288,7 @@ export function LeasesTable({
 				{leases.length === 0 && (searchQuery || statusFilter !== "all") && (
 					<div className="text-center py-12">
 						<Search className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
-						<p className="text-muted-foreground">
+						<p className="mb-0 text-muted-foreground">
 							No leases match your filters
 						</p>
 						<button

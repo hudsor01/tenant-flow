@@ -94,7 +94,9 @@ export function UnitEditDialog({
 			<DialogContent className="sm:max-w-lg">
 				<DialogHeader>
 					<DialogTitle>Unit {unit.unit_number}</DialogTitle>
-					<DialogDescription>View unit details</DialogDescription>
+					<DialogDescription className="mb-0">
+						View unit details
+					</DialogDescription>
 				</DialogHeader>
 				<div className="space-y-4">
 					<div>
@@ -104,11 +106,11 @@ export function UnitEditDialog({
 					<div className="grid grid-cols-2 gap-4">
 						<div>
 							<Label>Bedrooms</Label>
-							<p className="mt-1 text-sm">{unit.bedrooms ?? "—"}</p>
+							<p className="mt-1 mb-0 text-sm">{unit.bedrooms ?? "—"}</p>
 						</div>
 						<div>
 							<Label>Bathrooms</Label>
-							<p className="mt-1 text-sm">{unit.bathrooms ?? "—"}</p>
+							<p className="mt-1 mb-0 text-sm">{unit.bathrooms ?? "—"}</p>
 						</div>
 					</div>
 					<div>

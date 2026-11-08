@@ -43,10 +43,12 @@ export function LeasesStatCards({
 					className="flex flex-col bg-card border border-border rounded-sm p-4"
 				>
 					<div className="flex items-center justify-between mb-2">
-						<p className="text-sm text-muted-foreground">{card.label}</p>
+						<p className="mb-0 text-sm text-muted-foreground">{card.label}</p>
 					</div>
 					<div className="mt-auto flex items-end justify-between">
-						<p className="text-2xl font-bold text-foreground">{card.value}</p>
+						<p className="mb-0 text-2xl font-bold text-foreground">
+							{card.value}
+						</p>
 						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center">
 							<card.icon className="w-4 h-4 text-primary" />
 						</div>

@@ -61,7 +61,7 @@ export function HeroSection({
 								</h1>
 
 								<p
-									className={`text-xl text-muted-foreground leading-relaxed ${hasVisual ? "max-w-lg" : "max-w-2xl"}`}
+									className={`mb-0 text-xl text-muted-foreground leading-relaxed ${hasVisual ? "max-w-lg" : "max-w-2xl"}`}
 								>
 									{subtitle}
 								</p>
@@ -80,7 +80,7 @@ export function HeroSection({
 							</div>
 
 							{trustSignals && (
-								<p className="text-muted-foreground font-medium">
+								<p className="mb-0 text-muted-foreground font-medium">
 									{trustSignals}
 								</p>
 							)}

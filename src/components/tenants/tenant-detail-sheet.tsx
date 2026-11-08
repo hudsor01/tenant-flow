@@ -45,7 +45,7 @@ export function TenantDetailSheet({
 					<SheetTitle className="text-balance font-semibold text-foreground text-lg/6 sm:text-base/6">
 						{tenant.fullName}
 					</SheetTitle>
-					<SheetDescription className="text-pretty text-base/6 text-muted-foreground sm:text-sm/6">
+					<SheetDescription className="mb-0 text-pretty text-base/6 text-muted-foreground sm:text-sm/6">
 						Tenant Profile
 					</SheetDescription>
 				</div>
@@ -62,11 +62,11 @@ export function TenantDetailSheet({
 								<p className="font-medium text-foreground">
 									{tenant.emergencyContactName}
 								</p>
-								<p className="text-sm text-muted-foreground">
+								<p className="mb-0 text-sm text-muted-foreground">
 									{tenant.emergencyContactRelationship}
 								</p>
 								{tenant.emergencyContactPhone && (
-									<p className="text-sm text-muted-foreground mt-1">
+									<p className="text-sm text-muted-foreground mt-1 mb-0">
 										{tenant.emergencyContactPhone}
 									</p>
 								)}

@@ -139,21 +139,23 @@ export default async function ComparePage({ params }: PageProps) {
 							<p className="text-2xl font-bold text-foreground">
 								{data.capterra}
 							</p>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								{data.name} Capterra
 							</p>
 						</div>
 						<div className="text-center p-6 rounded-xl border border-border bg-background">
 							<Star className="size-6 text-primary mx-auto mb-2" />
 							<p className="text-2xl font-bold text-foreground">{data.g2}</p>
-							<p className="text-sm text-muted-foreground">{data.name} G2</p>
+							<p className="mb-0 text-sm text-muted-foreground">
+								{data.name} G2
+							</p>
 						</div>
 						<div className="text-center p-6 rounded-xl border border-border bg-background">
 							<Calendar className="size-6 text-primary mx-auto mb-2" />
 							<p className="text-2xl font-bold text-foreground">
 								{data.founded}
 							</p>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								{data.name} Founded
 							</p>
 						</div>
@@ -162,7 +164,7 @@ export default async function ComparePage({ params }: PageProps) {
 							<p className="text-2xl font-bold text-foreground">
 								Landlord-only
 							</p>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								TenantFlow positioning
 							</p>
 						</div>

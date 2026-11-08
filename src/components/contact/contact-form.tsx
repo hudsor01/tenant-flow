@@ -238,7 +238,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 							<div className="ml-3">
 								<p className="text-foreground font-semibold">Email Us</p>
 								<p className="text-muted-foreground">sales@tenantflow.app</p>
-								<p className="text-muted-foreground text-sm">
+								<p className="mb-0 text-muted-foreground text-sm">
 									US business hours, Monday through Friday
 								</p>
 							</div>
@@ -259,7 +259,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 
 					{!isHydrated && (
 						<div className="mb-4 p-3 bg-muted rounded-md">
-							<p className="text-muted-foreground">
+							<p className="mb-0 text-muted-foreground">
 								Restoring your progress...
 							</p>
 						</div>
@@ -267,7 +267,9 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 
 					{submitError && (
 						<div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-							<p className="text-sm text-destructive-text">{submitError}</p>
+							<p className="mb-0 text-sm text-destructive-text">
+								{submitError}
+							</p>
 						</div>
 					)}
 
@@ -287,7 +289,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 							{isSubmitting ? "Sending..." : "Send Message"}
 						</Button>
 
-						<p className="text-center text-muted-foreground">
+						<p className="mb-0 text-center text-muted-foreground">
 							We respond during US business hours, Monday through Friday.
 						</p>
 					</form>

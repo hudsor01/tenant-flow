@@ -182,7 +182,7 @@ export function DisableTwoFactorDialog({
 						<ShieldOff className="size-5" />
 						Disable Two-Factor Authentication
 					</DialogTitle>
-					<DialogDescription>
+					<DialogDescription className="mb-0">
 						Are you sure you want to disable 2FA? This will make your account
 						less secure.
 					</DialogDescription>

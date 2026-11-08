@@ -76,7 +76,7 @@ export const LeaseFormPropertyUnitFields = withForm({
 					</Field>
 
 					{propertiesIsError && (
-						<p className="text-sm text-destructive-text mt-2">
+						<p className="text-sm text-destructive-text mt-2 mb-0">
 							Failed to load properties. Please refresh to retry.
 						</p>
 					)}

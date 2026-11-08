@@ -90,7 +90,7 @@ export default function PropertyPerformancePage() {
 								<Building2 />
 							</EmptyMedia>
 							<EmptyTitle>No property performance data yet</EmptyTitle>
-							<EmptyDescription>
+							<EmptyDescription className="mb-0">
 								Add properties and units to start tracking performance metrics
 								across your portfolio.
 							</EmptyDescription>

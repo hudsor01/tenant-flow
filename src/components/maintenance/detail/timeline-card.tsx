@@ -14,7 +14,7 @@ export function TimelineCard({ timeline }: TimelineCardProps) {
 			</CardHeader>
 			<CardContent>
 				{timeline.length === 0 ? (
-					<p className="text-sm text-muted-foreground">No activity yet</p>
+					<p className="mb-0 text-sm text-muted-foreground">No activity yet</p>
 				) : (
 					<div className="relative">
 						<div className="absolute left-3 top-0 bottom-0 w-px bg-border" />
@@ -37,13 +37,13 @@ export function TimelineCard({ timeline }: TimelineCardProps) {
 										)}
 									</div>
 									<div>
-										<p className="font-medium text-sm">{event.title}</p>
+										<p className="mb-0 font-medium text-sm">{event.title}</p>
 										{event.description && (
-											<p className="text-xs text-muted-foreground">
+											<p className="mb-0 text-xs text-muted-foreground">
 												{event.description}
 											</p>
 										)}
-										<p className="text-xs text-muted-foreground mt-1">
+										<p className="text-xs text-muted-foreground mt-1 mb-0">
 											{new Date(event.timestamp).toLocaleString()}
 										</p>
 									</div>

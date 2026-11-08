@@ -133,7 +133,7 @@ export function RenewLeaseDialog({
 				<form onSubmit={handleSubmit}>
 					<DialogHeader>
 						<DialogTitle>Renew Lease</DialogTitle>
-						<DialogDescription>
+						<DialogDescription className="mb-0">
 							Create a new lease term with optional rent adjustment
 						</DialogDescription>
 					</DialogHeader>

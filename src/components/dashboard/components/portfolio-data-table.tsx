@@ -139,7 +139,9 @@ function PortfolioNoMatchState({ onClear }: { onClear: () => void }) {
 				aria-hidden="true"
 				className="mx-auto mb-3 size-10 text-muted-foreground/40"
 			/>
-			<p className="text-muted-foreground">No properties match your filters</p>
+			<p className="mb-0 text-muted-foreground">
+				No properties match your filters
+			</p>
 			<button
 				type="button"
 				onClick={onClear}
@@ -162,7 +164,7 @@ function PortfolioNoPropertiesState() {
 				aria-hidden="true"
 				className="mx-auto mb-3 size-10 text-muted-foreground/40"
 			/>
-			<p className="text-muted-foreground">No properties yet</p>
+			<p className="mb-0 text-muted-foreground">No properties yet</p>
 		</div>
 	);
 }

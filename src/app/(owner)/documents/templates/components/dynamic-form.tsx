@@ -126,7 +126,7 @@ export function DynamicForm({ form, fields }: DynamicFormProps) {
 																	className="space-y-3 rounded border p-3"
 																>
 																	<div className="flex items-center justify-between">
-																		<p className="text-sm font-medium">
+																		<p className="mb-0 text-sm font-medium">
 																			{field.itemLabel ?? `Item ${index + 1}`}
 																		</p>
 																		<Button
@@ -260,11 +260,11 @@ export function DynamicForm({ form, fields }: DynamicFormProps) {
 															}
 														/>
 														<div>
-															<p className="text-sm font-medium">
+															<p className="mb-0 text-sm font-medium">
 																{field.label}
 															</p>
 															{field.description ? (
-																<p className="text-sm text-muted-foreground">
+																<p className="mb-0 text-sm text-muted-foreground">
 																	{field.description}
 																</p>
 															) : null}

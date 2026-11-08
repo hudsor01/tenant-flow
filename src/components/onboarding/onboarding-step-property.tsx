@@ -81,7 +81,7 @@ export function OnboardingStepProperty({
 				</div>
 				<div>
 					<h3 className="font-semibold">Add Your First Property</h3>
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						Enter basic details to get started.
 					</p>
 				</div>

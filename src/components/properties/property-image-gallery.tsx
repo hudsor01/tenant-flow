@@ -106,7 +106,7 @@ export function PropertyImageGallery({
 	// Empty state
 	if (!images || images.length === 0) {
 		return (
-			<p className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+			<p className="mb-0 flex items-center gap-2 text-sm text-muted-foreground py-2">
 				<ImageIcon className="size-4 shrink-0" />
 				No images yet
 				{editable
@@ -209,7 +209,7 @@ export function PropertyImageGallery({
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Image</AlertDialogTitle>
-						<AlertDialogDescription>
+						<AlertDialogDescription className="mb-0">
 							Are you sure you want to delete this image? This action cannot be
 							undone.
 						</AlertDialogDescription>

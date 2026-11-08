@@ -64,7 +64,7 @@ export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
 						<Building2 />
 					</EmptyMedia>
 					<EmptyTitle>No property data</EmptyTitle>
-					<EmptyDescription>
+					<EmptyDescription className="mb-0">
 						Property performance data will appear once properties are added
 					</EmptyDescription>
 				</EmptyHeader>

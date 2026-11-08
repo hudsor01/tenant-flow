@@ -105,7 +105,7 @@ function ResultHeader({
 			<div className="flex-1">
 				<p
 					className={cn(
-						"text-base font-semibold",
+						"mb-0 text-base font-semibold",
 						tone === "success" && "text-success-text",
 						tone === "warning" && "text-warning-text",
 						tone === "destructive" && "text-destructive-text",
@@ -116,7 +116,7 @@ function ResultHeader({
 					{tone === "warning" && "Partial import completed"}
 					{tone === "destructive" && "Import failed"}
 				</p>
-				<p className="text-sm text-muted-foreground mt-1">
+				<p className="text-sm text-muted-foreground mt-1 mb-0">
 					{tone === "success" && `Your ${plural} have been added.`}
 					{tone === "warning" &&
 						`Some ${plural} were imported, but others had errors.`}
@@ -177,7 +177,7 @@ function StatCard({
 				>
 					{count}
 				</p>
-				<p className="text-xs text-muted-foreground">{label}</p>
+				<p className="mb-0 text-xs text-muted-foreground">{label}</p>
 			</div>
 		</div>
 	);

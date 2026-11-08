@@ -56,7 +56,7 @@ export function PropertyBulkEditDialog({
 			<DialogContent intent="edit">
 				<DialogHeader>
 					<DialogTitle>Bulk edit properties</DialogTitle>
-					<DialogDescription>
+					<DialogDescription className="mb-0">
 						Apply changes to {selectedCount}{" "}
 						{selectedCount === 1 ? "property" : "properties"}.
 					</DialogDescription>

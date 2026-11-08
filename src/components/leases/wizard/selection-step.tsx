@@ -204,7 +204,7 @@ export function SelectionStep({
 									<UserPlus />
 								</EmptyMedia>
 								<EmptyTitle>No Tenants Available</EmptyTitle>
-								<EmptyDescription>
+								<EmptyDescription className="mb-0">
 									{data.property_id
 										? 'No tenants added to this property yet. Use "Add Tenant" above to get started.'
 										: 'No tenants found. Use "Add Tenant" above to get started.'}

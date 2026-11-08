@@ -61,7 +61,7 @@ export function BulkImportValidateStep<T>({
 					</div>
 					<div className="flex-1 min-w-0">
 						<p className="text-sm font-semibold truncate">{file.name}</p>
-						<p className="text-xs text-muted-foreground">
+						<p className="mb-0 text-xs text-muted-foreground">
 							{formatBytes(file.size)} • CSV file
 						</p>
 					</div>
@@ -81,10 +81,10 @@ export function BulkImportValidateStep<T>({
 				<div className="flex items-start gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
 					<AlertCircle className="size-4 text-destructive shrink-0 mt-0.5" />
 					<div>
-						<p className="typography-small text-destructive-text">
+						<p className="mb-0 typography-small text-destructive-text">
 							Your CSV file is malformed
 						</p>
-						<p className="text-xs text-muted-foreground mt-0.5">
+						<p className="text-xs text-muted-foreground mt-0.5 mb-0">
 							Check for unclosed quotes, wrong delimiter (must be a comma), or
 							unsupported encoding. Re-save as CSV UTF-8 and try again.
 						</p>
@@ -97,10 +97,10 @@ export function BulkImportValidateStep<T>({
 				<div className="flex items-start gap-3 p-3 rounded-lg bg-warning/10 border border-warning/30">
 					<AlertTriangle className="size-4 text-warning shrink-0 mt-0.5" />
 					<div>
-						<p className="typography-small text-warning-foreground">
+						<p className="mb-0 typography-small text-warning-foreground">
 							Too many rows
 						</p>
-						<p className="text-xs text-muted-foreground mt-0.5">
+						<p className="text-xs text-muted-foreground mt-0.5 mb-0">
 							Your CSV has {parseResult.totalRowCount} rows. Maximum is 100 rows
 							per import. Only the first 100 rows are shown.
 						</p>
@@ -121,7 +121,7 @@ export function BulkImportValidateStep<T>({
 					</div>
 					<div>
 						<p className="text-lg font-bold text-success-text">{validCount}</p>
-						<p className="text-xs text-muted-foreground">Valid rows</p>
+						<p className="mb-0 text-xs text-muted-foreground">Valid rows</p>
 					</div>
 				</div>
 				<div
@@ -151,7 +151,7 @@ export function BulkImportValidateStep<T>({
 						>
 							{errorCount}
 						</p>
-						<p className="text-xs text-muted-foreground">Errors found</p>
+						<p className="mb-0 text-xs text-muted-foreground">Errors found</p>
 					</div>
 				</div>
 			</div>
@@ -161,11 +161,11 @@ export function BulkImportValidateStep<T>({
 				<div className="flex items-start gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
 					<AlertCircle className="size-4 text-destructive shrink-0 mt-0.5" />
 					<div>
-						<p className="typography-small text-destructive-text">
+						<p className="mb-0 typography-small text-destructive-text">
 							{formatCount(errorCount, "row")}{" "}
 							{errorCount === 1 ? "has" : "have"} errors
 						</p>
-						<p className="text-xs text-muted-foreground mt-0.5">
+						<p className="text-xs text-muted-foreground mt-0.5 mb-0">
 							Fix errors in your CSV and re-upload. All rows must be valid
 							before importing.
 						</p>
@@ -177,7 +177,7 @@ export function BulkImportValidateStep<T>({
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
 					<FileText className="size-4 text-muted-foreground" />
-					<p className="text-sm font-semibold">Data Preview</p>
+					<p className="mb-0 text-sm font-semibold">Data Preview</p>
 					<Badge variant="secondary" className="text-xs">
 						{formatCount(parsedData.length, "row")}
 					</Badge>
@@ -268,10 +268,10 @@ export function BulkImportValidateStep<T>({
 					<div className="icon-container-lg bg-muted text-muted-foreground mx-auto mb-3">
 						<FileText className="size-6" />
 					</div>
-					<p className="typography-small text-muted-foreground">
+					<p className="mb-0 typography-small text-muted-foreground">
 						No data to preview
 					</p>
-					<p className="text-xs text-muted-foreground mt-1">
+					<p className="text-xs text-muted-foreground mt-1 mb-0">
 						The uploaded file appears to be empty
 					</p>
 				</div>

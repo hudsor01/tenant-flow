@@ -79,7 +79,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 							<AlertDialogContent>
 								<AlertDialogHeader>
 									<AlertDialogTitle>Remove vendor?</AlertDialogTitle>
-									<AlertDialogDescription>
+									<AlertDialogDescription className="mb-0">
 										This will remove <strong>{vendor.name}</strong> from your
 										vendor list. Existing maintenance requests with this vendor
 										will retain their assignment.
@@ -119,7 +119,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 					</div>
 				)}
 				{vendor.notes && (
-					<p className="text-xs text-muted-foreground line-clamp-2 pt-1">
+					<p className="mb-0 text-xs text-muted-foreground line-clamp-2 pt-1">
 						{vendor.notes}
 					</p>
 				)}
@@ -172,7 +172,7 @@ export function VendorsPageClient() {
 					<Building2 className="size-6 text-primary" />
 					<div>
 						<h1 className="text-2xl font-bold">Vendors</h1>
-						<p className="text-sm text-muted-foreground">
+						<p className="mb-0 text-sm text-muted-foreground">
 							{total > 0
 								? `${total} vendor${total !== 1 ? "s" : ""}`
 								: "No vendors yet"}

@@ -180,7 +180,7 @@ export function Tenants({
 						</EmptyMedia>
 						<EmptyHeader>
 							<EmptyTitle>No tenants yet</EmptyTitle>
-							<EmptyDescription>
+							<EmptyDescription className="mb-0">
 								Tenants are records you keep for your own tracking — they
 								don&apos;t log in. Add one to start building a lease.
 							</EmptyDescription>

@@ -94,7 +94,7 @@ function ChartEmpty({ badge, children }: { badge: string; children: string }) {
 				<Badge variant="outline" className="mb-1">
 					{badge}
 				</Badge>
-				<EmptyDescription>{children}</EmptyDescription>
+				<EmptyDescription className="mb-0">{children}</EmptyDescription>
 			</EmptyHeader>
 		</Empty>
 	);

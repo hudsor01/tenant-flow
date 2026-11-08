@@ -113,7 +113,7 @@ export function ActiveSessionsSection() {
 														</span>
 													)}
 												</p>
-												<p className="text-xs text-muted-foreground">
+												<p className="mb-0 text-xs text-muted-foreground">
 													{session.device === "mobile"
 														? "Mobile"
 														: session.device === "tablet"
@@ -151,16 +151,16 @@ export function ActiveSessionsSection() {
 							);
 						})
 					) : sessionsLoading ? (
-						<p className="text-sm text-muted-foreground text-center py-4">
+						<p className="mb-0 text-sm text-muted-foreground text-center py-4">
 							Loading sessions…
 						</p>
 					) : sessionsError ? (
-						<p className="text-sm text-muted-foreground text-center py-4">
+						<p className="mb-0 text-sm text-muted-foreground text-center py-4">
 							Couldn&apos;t load your active sessions. Try refreshing the page
 							or signing in again.
 						</p>
 					) : (
-						<p className="text-sm text-muted-foreground text-center py-4">
+						<p className="mb-0 text-sm text-muted-foreground text-center py-4">
 							No active sessions found
 						</p>
 					)}

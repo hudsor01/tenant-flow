@@ -202,7 +202,7 @@ function KanbanColumn({
 
 					{requests.length === 0 && (
 						<div className="text-center py-8">
-							<p className="text-sm text-muted-foreground">No requests</p>
+							<p className="mb-0 text-sm text-muted-foreground">No requests</p>
 						</div>
 					)}
 				</div>

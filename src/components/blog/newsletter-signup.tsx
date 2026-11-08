@@ -59,7 +59,7 @@ export function NewsletterSignup({ className }: NewsletterSignupProps) {
 				<Mail className="h-5 w-5 text-primary" />
 				<h3 className="text-sm font-semibold">Landlord tips in your inbox</h3>
 			</div>
-			<p className="text-sm text-muted-foreground">
+			<p className="mb-0 text-sm text-muted-foreground">
 				Monthly tips on leases, maintenance, and tax season — written for
 				independent landlords.
 			</p>

@@ -59,19 +59,19 @@ export function ReviewStep({
 				<div className="grid grid-cols-2 gap-4 pl-6">
 					<div>
 						<p className="text-sm text-muted-foreground">Property</p>
-						<p className="font-medium">{propertyName || "Not selected"}</p>
+						<p className="mb-0 font-medium">{propertyName || "Not selected"}</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Unit</p>
-						<p className="font-medium">{unitNumber || "Not selected"}</p>
+						<p className="mb-0 font-medium">{unitNumber || "Not selected"}</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Tenant</p>
-						<p className="font-medium">{tenantName || "Not selected"}</p>
+						<p className="mb-0 font-medium">{tenantName || "Not selected"}</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Governing State</p>
-						<p className="font-medium">{data.governing_state || "TX"}</p>
+						<p className="mb-0 font-medium">{data.governing_state || "TX"}</p>
 					</div>
 				</div>
 			</div>
@@ -87,11 +87,13 @@ export function ReviewStep({
 				<div className="grid grid-cols-2 gap-4 pl-6">
 					<div>
 						<p className="text-sm text-muted-foreground">Start Date</p>
-						<p className="font-medium">{formatLeaseDate(data.start_date)}</p>
+						<p className="mb-0 font-medium">
+							{formatLeaseDate(data.start_date)}
+						</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">End Date</p>
-						<p className="font-medium">{formatLeaseDate(data.end_date)}</p>
+						<p className="mb-0 font-medium">{formatLeaseDate(data.end_date)}</p>
 					</div>
 				</div>
 			</div>
@@ -107,19 +109,19 @@ export function ReviewStep({
 				<div className="grid grid-cols-3 gap-4 pl-6">
 					<div>
 						<p className="text-sm text-muted-foreground">Monthly Rent</p>
-						<p className="font-medium text-lg">
+						<p className="mb-0 font-medium text-lg">
 							{formatAmountOrDash(data.rent_amount)}
 						</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Security Deposit</p>
-						<p className="font-medium">
+						<p className="mb-0 font-medium">
 							{formatAmountOrDash(data.security_deposit)}
 						</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Rent Due Day</p>
-						<p className="font-medium">
+						<p className="mb-0 font-medium">
 							{data.payment_day
 								? `${data.payment_day}${getOrdinalSuffix(data.payment_day)} of month`
 								: "-"}
@@ -127,7 +129,7 @@ export function ReviewStep({
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Grace Period</p>
-						<p className="font-medium">
+						<p className="mb-0 font-medium">
 							{data.grace_period_days !== undefined
 								? formatCount(data.grace_period_days, "day")
 								: "-"}
@@ -135,7 +137,7 @@ export function ReviewStep({
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Late Fee</p>
-						<p className="font-medium">
+						<p className="mb-0 font-medium">
 							{formatAmountOrDash(data.late_fee_amount)}
 						</p>
 					</div>
@@ -153,7 +155,7 @@ export function ReviewStep({
 				<div className="grid grid-cols-2 gap-4 pl-6">
 					<div>
 						<p className="text-sm text-muted-foreground">Max Occupants</p>
-						<p className="font-medium">
+						<p className="mb-0 font-medium">
 							{data.max_occupants || "Not specified"}
 						</p>
 					</div>

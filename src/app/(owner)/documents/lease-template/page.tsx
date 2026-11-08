@@ -18,7 +18,7 @@ export default function LeaseTemplatePage() {
 						<h1 className="typography-h2 tracking-tight">
 							Lease Agreement Builder
 						</h1>
-						<p className="text-muted-foreground">
+						<p className="mb-0 text-muted-foreground">
 							Customize clauses, apply state-specific rules, and preview a
 							production-ready lease agreement without leaving TenantFlow.
 						</p>

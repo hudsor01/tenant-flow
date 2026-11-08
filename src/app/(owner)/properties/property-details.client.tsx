@@ -169,7 +169,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Property?</AlertDialogTitle>
-						<AlertDialogDescription>
+						<AlertDialogDescription className="mb-0">
 							Are you sure you want to delete <strong>{property.name}</strong>?
 							This will also delete all units associated with this property.
 							This action cannot be undone.

@@ -74,7 +74,7 @@ export function BulkImportUploadStep<T>({
 							<p className="text-base font-semibold text-foreground">
 								Click to upload or drag and drop
 							</p>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								CSV files only • Max 5MB
 							</p>
 						</div>
@@ -96,7 +96,7 @@ export function BulkImportUploadStep<T>({
 						</div>
 						<div>
 							<p className="typography-small">Need a template?</p>
-							<p className="text-xs text-muted-foreground">
+							<p className="mb-0 text-xs text-muted-foreground">
 								Download our CSV template to get started
 							</p>
 						</div>
@@ -130,7 +130,7 @@ export function BulkImportUploadStep<T>({
 							<p className="text-xs font-medium text-foreground">
 								Required Fields
 							</p>
-							<p className="text-xs text-muted-foreground">
+							<p className="mb-0 text-xs text-muted-foreground">
 								{config.requiredFields}
 							</p>
 						</div>
@@ -144,7 +144,7 @@ export function BulkImportUploadStep<T>({
 								<p className="text-xs font-medium text-foreground">
 									Optional Fields
 								</p>
-								<p className="text-xs text-muted-foreground">
+								<p className="mb-0 text-xs text-muted-foreground">
 									{config.optionalFields}
 								</p>
 							</div>

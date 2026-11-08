@@ -117,7 +117,7 @@ export function PropertyUnitsTable({
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<p className="text-muted-foreground text-center py-4">
+					<p className="mb-0 text-muted-foreground text-center py-4">
 						Failed to load unit details. Please try again.
 					</p>
 				</CardContent>

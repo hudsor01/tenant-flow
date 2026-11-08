@@ -180,7 +180,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 					<h1 className="text-responsive-display-xl font-bold tracking-tight">
 						The blog for independent landlords
 					</h1>
-					<p className="mt-4 text-lg text-muted-foreground">
+					<p className="mt-4 mb-0 text-lg text-muted-foreground">
 						Operational guides for leases, maintenance, tax season, and the
 						document vault.
 					</p>

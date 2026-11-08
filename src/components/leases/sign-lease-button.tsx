@@ -107,7 +107,7 @@ export function SignLeaseButton({
 			<AlertDialogContent>
 				<AlertDialogHeader>
 					<AlertDialogTitle>Sign Lease Agreement</AlertDialogTitle>
-					<AlertDialogDescription className="space-y-3">
+					<AlertDialogDescription className="mb-0 space-y-3">
 						<p>
 							You are about to electronically sign this lease agreement as the{" "}
 							<strong>owner</strong>.
@@ -116,7 +116,7 @@ export function SignLeaseButton({
 							By signing, you acknowledge that you have read and agree to all
 							terms and conditions outlined in the lease agreement.
 						</p>
-						<p className="text-warning-text font-medium">
+						<p className="mb-0 text-warning-text font-medium">
 							This action is legally binding and cannot be undone.
 						</p>
 					</AlertDialogDescription>

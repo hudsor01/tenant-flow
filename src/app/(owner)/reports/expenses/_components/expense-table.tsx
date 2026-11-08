@@ -108,11 +108,11 @@ export function ExpenseTable({
 								</TableCell>
 								<TableCell>
 									<div>
-										<p className="font-medium text-foreground text-sm">
+										<p className="mb-0 font-medium text-foreground text-sm">
 											{expense.description || "Expense"}
 										</p>
 										{expense.vendor_name && (
-											<p className="text-xs text-muted-foreground">
+											<p className="mb-0 text-xs text-muted-foreground">
 												{expense.vendor_name}
 											</p>
 										)}
@@ -151,7 +151,7 @@ export function ExpenseTable({
 						</EmptyMedia>
 						<EmptyHeader>
 							<EmptyTitle>No expenses yet</EmptyTitle>
-							<EmptyDescription>
+							<EmptyDescription className="mb-0">
 								Expenses from maintenance requests will appear here.
 							</EmptyDescription>
 						</EmptyHeader>

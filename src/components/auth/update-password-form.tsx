@@ -164,7 +164,7 @@ export function UpdatePasswordForm({
 								{confirmPassword.length > 0 &&
 									password.length > 0 &&
 									password !== confirmPassword && (
-										<p className="text-xs text-destructive-text flex items-center gap-1">
+										<p className="mb-0 text-xs text-destructive-text flex items-center gap-1">
 											<AlertTriangle className="size-3" />
 											Passwords do not match
 										</p>
@@ -172,7 +172,7 @@ export function UpdatePasswordForm({
 								{confirmPassword.length > 0 &&
 									password.length > 0 &&
 									password === confirmPassword && (
-										<p className="text-xs text-primary-text flex items-center gap-1">
+										<p className="mb-0 text-xs text-primary-text flex items-center gap-1">
 											<CheckCircle2 className="size-3" />
 											Passwords match
 										</p>
@@ -222,7 +222,7 @@ export function UpdatePasswordForm({
 					</form>
 
 					<div className="text-center pt-4 border-t border-border">
-						<p className="text-caption text-muted-foreground">
+						<p className="mb-0 text-caption text-muted-foreground">
 							Your password will be encrypted and stored securely
 						</p>
 					</div>

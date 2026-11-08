@@ -61,10 +61,10 @@ export function BulkImportConfirmStep({
 							<Loader2 className="size-5 animate-spin" />
 						</div>
 						<div className="flex-1">
-							<p className="text-sm font-semibold">
+							<p className="mb-0 text-sm font-semibold">
 								Importing {pluralLower}...
 							</p>
-							<p className="text-xs text-muted-foreground mt-0.5">
+							<p className="text-xs text-muted-foreground mt-0.5 mb-0">
 								{importProgress
 									? `Importing ${singularLower} ${importProgress.current} of ${importProgress.total}`
 									: "Preparing import..."}

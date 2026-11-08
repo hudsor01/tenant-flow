@@ -47,7 +47,7 @@ export function SecuritySettings() {
 			    of mistaken clicks). Leave a pointer here. */}
 			<BlurFade delay={0.25}>
 				<section className="rounded-lg border bg-card p-4">
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						Account deletion and data export moved to the{" "}
 						<Link
 							href="/settings?tab=data"

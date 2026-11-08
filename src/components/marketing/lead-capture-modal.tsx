@@ -132,7 +132,7 @@ export function LeadCaptureModal({
 						<Mail className="size-5 text-primary" />
 						Landlord tips in your inbox
 					</DialogTitle>
-					<DialogDescription>
+					<DialogDescription className="mb-0">
 						Monthly tips on leases, maintenance, and tax season — written for
 						independent landlords.
 					</DialogDescription>

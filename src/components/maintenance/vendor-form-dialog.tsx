@@ -142,7 +142,7 @@ export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
 			<DialogContent className="max-w-lg">
 				<DialogHeader>
 					<DialogTitle>{isEditing ? "Edit Vendor" : "Add Vendor"}</DialogTitle>
-					<DialogDescription>
+					<DialogDescription className="mb-0">
 						{isEditing
 							? "Update vendor details."
 							: "Add a new contractor or vendor to your roster."}

@@ -61,9 +61,11 @@ export default function HelpPage() {
 							</ItemMedia>
 							<ItemContent>
 								<ItemTitle>Email Support</ItemTitle>
-								<ItemDescription>Available on every plan</ItemDescription>
+								<ItemDescription className="mb-0">
+									Available on every plan
+								</ItemDescription>
 								<div className="mt-2">
-									<p className="text-muted-foreground">
+									<p className="mb-0 text-muted-foreground">
 										support@tenantflow.app
 									</p>
 								</div>
@@ -83,9 +85,11 @@ export default function HelpPage() {
 							</ItemMedia>
 							<ItemContent>
 								<ItemTitle>Phone Support</ItemTitle>
-								<ItemDescription>Growth and Max plans</ItemDescription>
+								<ItemDescription className="mb-0">
+									Growth and Max plans
+								</ItemDescription>
 								<div className="mt-2">
-									<p className="text-muted-foreground">
+									<p className="mb-0 text-muted-foreground">
 										Talk to a real person about onboarding, billing, or feature
 										questions
 									</p>
@@ -106,11 +110,11 @@ export default function HelpPage() {
 							</ItemMedia>
 							<ItemContent>
 								<ItemTitle>Contact Sales</ItemTitle>
-								<ItemDescription>
+								<ItemDescription className="mb-0">
 									Pre-purchase questions or migration help
 								</ItemDescription>
 								<div className="mt-2">
-									<p className="text-muted-foreground">
+									<p className="mb-0 text-muted-foreground">
 										Walk through your portfolio with our team and pick the right
 										plan
 									</p>

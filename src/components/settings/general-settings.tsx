@@ -314,7 +314,7 @@ export function GeneralSettings() {
 								<option value="comfortable">Comfortable</option>
 								<option value="spacious">Spacious</option>
 							</select>
-							<p className="text-xs text-muted-foreground">
+							<p className="mb-0 text-xs text-muted-foreground">
 								Controls spacing and row heights in tables and lists
 							</p>
 						</div>

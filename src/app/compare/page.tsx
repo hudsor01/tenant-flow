@@ -55,10 +55,10 @@ export default function ComparePage() {
 									<h2 className="text-lg font-semibold group-hover:underline">
 										TenantFlow vs {competitor.name}
 									</h2>
-									<p className="mt-2 text-sm text-muted-foreground">
+									<p className="mt-2 mb-0 text-sm text-muted-foreground">
 										{competitor.tagline}
 									</p>
-									<p className="mt-4 text-sm text-muted-foreground line-clamp-3">
+									<p className="mt-4 mb-0 text-sm text-muted-foreground line-clamp-3">
 										{competitor.description}
 									</p>
 									<span className="mt-auto pt-4 inline-flex items-center text-sm font-medium text-primary-text">

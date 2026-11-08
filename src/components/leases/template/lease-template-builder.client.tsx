@@ -326,7 +326,7 @@ export function LeaseTemplateBuilder() {
 								className="rounded-lg border bg-muted/30 p-4 text-sm"
 							>
 								<p className="font-medium text-foreground">{term}</p>
-								<p className="text-muted-foreground">{definition}</p>
+								<p className="mb-0 text-muted-foreground">{definition}</p>
 							</div>
 						),
 					)}

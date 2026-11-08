@@ -116,10 +116,10 @@ export function ConfirmEmailErrorBanner() {
 		<div className="p-4 rounded-lg border border-destructive/30 bg-destructive/10 flex items-start gap-3">
 			<AlertTriangle className="size-5 text-destructive shrink-0 mt-0.5" />
 			<div className="text-sm">
-				<p className="font-medium text-destructive-text">
+				<p className="mb-0 font-medium text-destructive-text">
 					Confirmation link expired or invalid
 				</p>
-				<p className="text-destructive-text/80 mt-1">
+				<p className="text-destructive-text/80 mt-1 mb-0">
 					The confirmation link you clicked is no longer valid. Please request a
 					new one using the button below.
 				</p>

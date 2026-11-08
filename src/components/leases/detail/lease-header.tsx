@@ -173,7 +173,7 @@ export function LeaseHeader({
 							<AlertDialogContent>
 								<AlertDialogHeader>
 									<AlertDialogTitle>Cancel Signature Request?</AlertDialogTitle>
-									<AlertDialogDescription>
+									<AlertDialogDescription className="mb-0">
 										This will revert the lease to draft status. Any pending
 										signatures will be lost and you will need to send a new
 										signature request.

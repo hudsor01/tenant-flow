@@ -147,14 +147,14 @@ export function NotificationItem({
 				<div className="min-w-0 flex-1">
 					<p
 						className={cn(
-							"truncate text-sm",
+							"mb-0 truncate text-sm",
 							unread ? "font-semibold" : "font-normal",
 						)}
 					>
 						{notification.title}
 					</p>
 					{secondaryLine && (
-						<p className="truncate text-xs text-muted-foreground">
+						<p className="mb-0 truncate text-xs text-muted-foreground">
 							{secondaryLine}
 						</p>
 					)}

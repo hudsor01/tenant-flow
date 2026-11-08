@@ -113,9 +113,9 @@ function TenantCard({
 					<div className="flex items-start gap-2 text-sm text-muted-foreground mb-4">
 						<MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5" />
 						<div>
-							<p className="text-foreground">{tenant.currentProperty}</p>
+							<p className="mb-0 text-foreground">{tenant.currentProperty}</p>
 							{tenant.currentUnit && (
-								<p className="text-xs">Unit {tenant.currentUnit}</p>
+								<p className="mb-0 text-xs">Unit {tenant.currentUnit}</p>
 							)}
 						</div>
 					</div>

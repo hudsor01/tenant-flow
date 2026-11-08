@@ -340,7 +340,7 @@ function Sidebar({
 				>
 					<SheetHeader className="sr-only">
 						<SheetTitle>Navigation menu</SheetTitle>
-						<SheetDescription>
+						<SheetDescription className="mb-0">
 							Main navigation for your TenantFlow account
 						</SheetDescription>
 					</SheetHeader>

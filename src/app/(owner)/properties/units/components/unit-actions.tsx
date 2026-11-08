@@ -150,7 +150,7 @@ export function UnitActions({ unit }: UnitActionsProps) {
 						<AlertDialogTitle className="text-center typography-large">
 							Delete Unit {unit.unit_number}?
 						</AlertDialogTitle>
-						<AlertDialogDescription className="text-center text-muted-foreground">
+						<AlertDialogDescription className="mb-0 text-center text-muted-foreground">
 							This action cannot be undone. The unit will be permanently removed
 							from your property management system.
 							{unit.status === "occupied" && (

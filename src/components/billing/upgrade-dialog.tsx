@@ -140,7 +140,9 @@ export function UpgradeDialog({
 						) : null}
 						{getDialogTitle()}
 					</DialogTitle>
-					<DialogDescription>{getDialogDescription()}</DialogDescription>
+					<DialogDescription className="mb-0">
+						{getDialogDescription()}
+					</DialogDescription>
 				</DialogHeader>
 
 				<div className="space-y-4 py-4">

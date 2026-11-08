@@ -174,7 +174,7 @@ export default async function BlogCategoryPage({
 					<h1 className="text-responsive-display-xl font-bold tracking-tight">
 						{label}
 					</h1>
-					<p className="mt-4 text-lg text-muted-foreground">
+					<p className="mt-4 mb-0 text-lg text-muted-foreground">
 						{total} article{total === 1 ? "" : "s"} on {label.toLowerCase()}.
 					</p>
 				</div>

@@ -56,20 +56,22 @@ export function PricingComparison({ data }: { data: CompetitorData }) {
 									className="flex items-center justify-between border-b border-border pb-3"
 								>
 									<div>
-										<p className="font-medium text-foreground">{tier.name}</p>
+										<p className="mb-0 font-medium text-foreground">
+											{tier.name}
+										</p>
 										{tier.note && (
-											<p className="text-sm text-muted-foreground">
+											<p className="mb-0 text-sm text-muted-foreground">
 												{tier.note}
 											</p>
 										)}
 									</div>
-									<p className="text-lg font-bold text-primary-text">
+									<p className="mb-0 text-lg font-bold text-primary-text">
 										{tier.price}
 									</p>
 								</div>
 							))}
 						</div>
-						<p className="mt-4 text-sm text-muted-foreground">
+						<p className="mt-4 mb-0 text-sm text-muted-foreground">
 							14-day free trial, no credit card required
 						</p>
 					</div>
@@ -86,14 +88,16 @@ export function PricingComparison({ data }: { data: CompetitorData }) {
 									className="flex items-center justify-between border-b border-border pb-3"
 								>
 									<div>
-										<p className="font-medium text-foreground">{tier.name}</p>
+										<p className="mb-0 font-medium text-foreground">
+											{tier.name}
+										</p>
 										{tier.note && (
-											<p className="text-sm text-muted-foreground">
+											<p className="mb-0 text-sm text-muted-foreground">
 												{tier.note}
 											</p>
 										)}
 									</div>
-									<p className="text-lg font-bold text-foreground">
+									<p className="mb-0 text-lg font-bold text-foreground">
 										{tier.price}
 									</p>
 								</div>

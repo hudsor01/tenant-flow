@@ -85,7 +85,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 						<DollarSign />
 					</EmptyMedia>
 					<EmptyTitle>No scheduled rent or expenses</EmptyTitle>
-					<EmptyDescription>
+					<EmptyDescription className="mb-0">
 						Each month&apos;s scheduled rent and expenses will appear once
 						leases and expenses are recorded
 					</EmptyDescription>

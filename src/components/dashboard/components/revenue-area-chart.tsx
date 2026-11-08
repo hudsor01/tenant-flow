@@ -180,10 +180,10 @@ export function RevenueAreaChart({
 			<CardContent>
 				{isEmpty ? (
 					<div className="flex h-75 flex-col items-center justify-center gap-2 text-center">
-						<p className="text-base font-semibold text-foreground">
+						<p className="mb-0 text-base font-semibold text-foreground">
 							No scheduled rent yet
 						</p>
-						<p className="text-sm text-muted-foreground">
+						<p className="mb-0 text-sm text-muted-foreground">
 							Add a lease to see its rent scheduled here
 						</p>
 					</div>

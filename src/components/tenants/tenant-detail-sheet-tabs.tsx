@@ -28,7 +28,7 @@ export function ContactSection({
 						<p className="text-sm font-medium text-foreground">
 							{tenant.email}
 						</p>
-						<p className="text-xs text-muted-foreground">Email</p>
+						<p className="mb-0 text-xs text-muted-foreground">Email</p>
 					</div>
 				</button>
 				{tenant.phone && (
@@ -43,7 +43,7 @@ export function ContactSection({
 							<p className="text-sm font-medium text-foreground">
 								{tenant.phone}
 							</p>
-							<p className="text-xs text-muted-foreground">Phone</p>
+							<p className="mb-0 text-xs text-muted-foreground">Phone</p>
 						</div>
 					</button>
 				)}
@@ -121,7 +121,7 @@ export function LeaseHistorySection({
 							<p className="text-sm font-medium text-foreground">
 								{lease.propertyName} - Unit {lease.unitNumber}
 							</p>
-							<p className="text-xs text-muted-foreground">
+							<p className="mb-0 text-xs text-muted-foreground">
 								{formatDate(lease.startDate)} — {formatDate(lease.endDate)}
 							</p>
 						</div>
@@ -148,19 +148,19 @@ export function AccountInfoSection({
 			<div className="grid grid-cols-2 gap-4 text-sm">
 				<div>
 					<p className="text-muted-foreground">Member since</p>
-					<p className="font-medium text-foreground">
+					<p className="mb-0 font-medium text-foreground">
 						{tenant.createdAt ? formatDate(tenant.createdAt) : "N/A"}
 					</p>
 				</div>
 				<div>
 					<p className="text-muted-foreground">Last updated</p>
-					<p className="font-medium text-foreground">
+					<p className="mb-0 font-medium text-foreground">
 						{tenant.updatedAt ? formatDate(tenant.updatedAt) : "N/A"}
 					</p>
 				</div>
 				<div>
 					<p className="text-muted-foreground">Identity</p>
-					<p className="font-medium text-foreground">
+					<p className="mb-0 font-medium text-foreground">
 						{tenant.identityVerified ? (
 							<span className="text-success-text flex items-center gap-1">
 								<Check className="w-3 h-3" /> Verified
@@ -172,7 +172,7 @@ export function AccountInfoSection({
 				</div>
 				<div>
 					<p className="text-muted-foreground">Total paid</p>
-					<p className="font-medium text-foreground">
+					<p className="mb-0 font-medium text-foreground">
 						{formatCurrency(tenant.totalPaid)}
 					</p>
 				</div>

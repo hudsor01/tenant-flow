@@ -66,10 +66,10 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 					<CardDescription>Across all units</CardDescription>
 				</CardHeader>
 				<CardContent className="flex h-60 flex-col items-center justify-center gap-2 text-center">
-					<p className="text-base font-semibold text-foreground">
+					<p className="mb-0 text-base font-semibold text-foreground">
 						No units yet
 					</p>
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						Add a property to see occupancy
 					</p>
 				</CardContent>

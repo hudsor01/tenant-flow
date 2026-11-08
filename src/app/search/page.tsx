@@ -108,7 +108,7 @@ export default async function SearchPage({
 								<Search />
 							</EmptyMedia>
 							<EmptyTitle>Start searching</EmptyTitle>
-							<EmptyDescription>
+							<EmptyDescription className="mb-0">
 								Enter a keyword above to search our property management
 								articles.
 							</EmptyDescription>
@@ -121,7 +121,7 @@ export default async function SearchPage({
 								<Search />
 							</EmptyMedia>
 							<EmptyTitle>No results for &ldquo;{query}&rdquo;</EmptyTitle>
-							<EmptyDescription>
+							<EmptyDescription className="mb-0">
 								We couldn&rsquo;t find any articles matching your search. Try a
 								different keyword.
 							</EmptyDescription>

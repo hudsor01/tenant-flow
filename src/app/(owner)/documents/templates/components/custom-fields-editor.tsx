@@ -46,7 +46,7 @@ export function CustomFieldsEditor({
 			</CardHeader>
 			<CardContent className="space-y-4">
 				{fields.length === 0 ? (
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						Add custom fields to capture state-specific clauses or extra
 						instructions.
 					</p>

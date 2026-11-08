@@ -116,7 +116,7 @@ export function OwnerSubscribeDialog({
 					<DialogTitle>
 						Join TenantFlow {planName ? `· ${planName}` : ""}
 					</DialogTitle>
-					<DialogDescription>
+					<DialogDescription className="mb-0">
 						Create your account to start your 14-day free trial. No credit card
 						required.
 					</DialogDescription>

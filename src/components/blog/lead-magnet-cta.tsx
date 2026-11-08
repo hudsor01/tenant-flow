@@ -54,15 +54,17 @@ export function LeadMagnetCta({
 			<div className="flex flex-col gap-4">
 				<div className="flex items-center gap-2">
 					<Icon className="size-5 text-primary" />
-					<p className="text-sm font-semibold uppercase tracking-wider text-primary-text">
+					<p className="mb-0 text-sm font-semibold uppercase tracking-wider text-primary-text">
 						Free {resourceType}
 					</p>
 				</div>
 				{/* Styled as a heading but rendered as <p>: this lead-magnet CTA is
 				    injected into post bodies, so an <h3> here pollutes each post's
 				    heading outline with non-content marketing copy. */}
-				<p className="text-2xl font-bold text-foreground">{title}</p>
-				<p className="text-muted-foreground leading-relaxed">{description}</p>
+				<p className="mb-0 text-2xl font-bold text-foreground">{title}</p>
+				<p className="mb-0 text-muted-foreground leading-relaxed">
+					{description}
+				</p>
 
 				{unlocked ? (
 					<div className="mt-2">

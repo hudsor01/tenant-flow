@@ -166,7 +166,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Lease</AlertDialogTitle>
-						<AlertDialogDescription>
+						<AlertDialogDescription className="mb-0">
 							Are you sure you want to delete this lease? This action cannot be
 							undone and will remove all associated payment records.
 						</AlertDialogDescription>
@@ -192,7 +192,9 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 				<DialogContent intent="read">
 					<DialogHeader>
 						<DialogTitle>Lease Details</DialogTitle>
-						<DialogDescription>View lease information</DialogDescription>
+						<DialogDescription className="mb-0">
+							View lease information
+						</DialogDescription>
 					</DialogHeader>
 					<DialogBody>
 						<div>

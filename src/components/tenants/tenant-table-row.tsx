@@ -80,11 +80,11 @@ export function TenantTableRow({
 			<td className={cn(TENANT_COLUMN_CLASS.property, "px-4 py-2")} role="cell">
 				{tenant.currentProperty ? (
 					<div className="text-left min-w-0">
-						<p className="text-sm text-foreground truncate">
+						<p className="mb-0 text-sm text-foreground truncate">
 							{tenant.currentProperty}
 						</p>
 						{tenant.currentUnit && (
-							<p className="text-xs text-muted-foreground truncate">
+							<p className="mb-0 text-xs text-muted-foreground truncate">
 								Unit {tenant.currentUnit}
 							</p>
 						)}

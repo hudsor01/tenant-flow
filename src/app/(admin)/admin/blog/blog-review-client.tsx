@@ -49,7 +49,7 @@ export function BlogReviewClient({ initialDrafts }: BlogReviewClientProps) {
 			<Empty>
 				<EmptyHeader>
 					<EmptyTitle>No drafts to review</EmptyTitle>
-					<EmptyDescription>
+					<EmptyDescription className="mb-0">
 						There are no in-review drafts right now. New drafts appear here once
 						the generator submits them.
 					</EmptyDescription>
@@ -126,7 +126,7 @@ function BlogReviewRow({ draft }: { draft: BlogReviewItem }) {
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Reject this draft?</AlertDialogTitle>
-						<AlertDialogDescription>
+						<AlertDialogDescription className="mb-0">
 							Rejecting archives this post. It cannot be undone from this
 							screen.
 						</AlertDialogDescription>

@@ -31,7 +31,7 @@ export function OccupancyTrendChart({ data }: OccupancyTrendChartProps) {
 					<Badge variant="outline" className="mb-1">
 						No data
 					</Badge>
-					<EmptyDescription>
+					<EmptyDescription className="mb-0">
 						Occupancy trend data is not available yet.
 					</EmptyDescription>
 				</EmptyHeader>

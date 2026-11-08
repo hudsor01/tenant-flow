@@ -189,7 +189,7 @@ export default function DashboardPage() {
 					fallback={
 						<div className="p-6 lg:p-8">
 							<div className="text-center py-16">
-								<p className="text-muted-foreground">
+								<p className="mb-0 text-muted-foreground">
 									Unable to load dashboard. Please refresh the page.
 								</p>
 							</div>

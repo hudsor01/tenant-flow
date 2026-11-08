@@ -38,7 +38,7 @@ export function NetOperatingIncomeChart({
 						<TrendingUp />
 					</EmptyMedia>
 					<EmptyTitle>No financial data</EmptyTitle>
-					<EmptyDescription>
+					<EmptyDescription className="mb-0">
 						Financial trends will appear once transactions are recorded
 					</EmptyDescription>
 				</EmptyHeader>

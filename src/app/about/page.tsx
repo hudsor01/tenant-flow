@@ -90,7 +90,7 @@ export default function AboutPage() {
 										business, reduce operational overhead, and stay organized
 										across their entire portfolio.
 									</p>
-									<p className="text-base text-muted-foreground leading-relaxed">
+									<p className="mb-0 text-base text-muted-foreground leading-relaxed">
 										We believe property management should be streamlined,
 										data-driven, and give landlords a reliable system of record
 										for every property they own.
@@ -102,7 +102,7 @@ export default function AboutPage() {
 								<h3 className="typography-h3 text-foreground">
 									Mission-Driven Development
 								</h3>
-								<p className="text-muted-foreground mt-3">
+								<p className="text-muted-foreground mt-3 mb-0">
 									Every feature built with landlords in mind
 								</p>
 							</div>
@@ -132,7 +132,7 @@ export default function AboutPage() {
 								</ItemMedia>
 								<ItemContent>
 									<ItemTitle>Built on a modern stack</ItemTitle>
-									<ItemDescription>
+									<ItemDescription className="mb-0">
 										TenantFlow runs on modern, well-documented infrastructure
 										and stays current with security and platform updates.
 									</ItemDescription>
@@ -147,7 +147,7 @@ export default function AboutPage() {
 								</ItemMedia>
 								<ItemContent>
 									<ItemTitle>Customer Success</ItemTitle>
-									<ItemDescription>
+									<ItemDescription className="mb-0">
 										Your success is our success. We are committed to helping you
 										achieve your goals.
 									</ItemDescription>
@@ -162,7 +162,7 @@ export default function AboutPage() {
 								</ItemMedia>
 								<ItemContent>
 									<ItemTitle>Security & Privacy</ItemTitle>
-									<ItemDescription>
+									<ItemDescription className="mb-0">
 										Row-level data isolation per landlord, encrypted at rest,
 										GDPR-compliant deletion flow.
 									</ItemDescription>
@@ -177,7 +177,7 @@ export default function AboutPage() {
 								</ItemMedia>
 								<ItemContent>
 									<ItemTitle>Simplicity</ItemTitle>
-									<ItemDescription>
+									<ItemDescription className="mb-0">
 										Property management has enough moving parts. We focus on
 										workflows landlords run every week — leases, maintenance,
 										documents, and tax-time exports — not configuration.
@@ -193,7 +193,7 @@ export default function AboutPage() {
 								</ItemMedia>
 								<ItemContent>
 									<ItemTitle>Sustainable Growth</ItemTitle>
-									<ItemDescription>
+									<ItemDescription className="mb-0">
 										We build for the long term, creating lasting value for our
 										customers and community.
 									</ItemDescription>
@@ -208,7 +208,7 @@ export default function AboutPage() {
 								</ItemMedia>
 								<ItemContent>
 									<ItemTitle>Continuous Learning</ItemTitle>
-									<ItemDescription>
+									<ItemDescription className="mb-0">
 										We listen, learn, and adapt to meet the evolving needs of
 										landlords.
 									</ItemDescription>
@@ -279,7 +279,7 @@ export default function AboutPage() {
 									<Link href="/contact">Contact Sales</Link>
 								</Button>
 							</div>
-							<p className="text-muted-foreground">
+							<p className="mb-0 text-muted-foreground">
 								No setup fees • Per-landlord data isolation • 14-day free trial
 								• Cancel anytime
 							</p>

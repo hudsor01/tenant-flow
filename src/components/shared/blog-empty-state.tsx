@@ -32,7 +32,7 @@ export function BlogEmptyState({
 					<div className="ml-0.5 h-3.5 w-0.5 bg-primary/50 animate-[typewriter-cursor_0.8s_step-end_infinite]" />
 				</div>
 			</div>
-			<p className="text-sm text-muted-foreground">{message}</p>
+			<p className="mb-0 text-sm text-muted-foreground">{message}</p>
 			<style>{`
 				@keyframes typewriter-line {
 					0% { transform: scaleX(0); opacity: 0.2; }

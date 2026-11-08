@@ -177,7 +177,7 @@ export function ChangePasswordDialog({
 						<Lock className="size-5" />
 						Change Password
 					</DialogTitle>
-					<DialogDescription>
+					<DialogDescription className="mb-0">
 						Enter your current password and choose a new secure password
 					</DialogDescription>
 				</DialogHeader>
@@ -255,7 +255,7 @@ export function ChangePasswordDialog({
 									</button>
 								</InputGroupAddon>
 							</InputGroup>
-							<p className="text-caption text-muted-foreground mt-1">
+							<p className="text-caption text-muted-foreground mt-1 mb-0">
 								Must be at least {VALIDATION_LIMITS.PASSWORD_MIN_LENGTH}{" "}
 								characters with uppercase, lowercase, number, and special
 								character

@@ -646,7 +646,7 @@ export default function SecurityDepositReferenceCardPage() {
 
 				{/* Disclaimer */}
 				<div className="mt-8 rounded-xl border border-warning/20 bg-warning/10 p-6">
-					<p className="text-sm text-warning-text">
+					<p className="mb-0 text-sm text-warning-text">
 						<strong>Disclaimer:</strong> This reference card provides a general
 						overview of state security deposit laws as of July 2026. Laws change
 						frequently and local jurisdictions may have additional requirements.
@@ -665,7 +665,7 @@ export default function SecurityDepositReferenceCardPage() {
 							<h3 className="font-semibold text-foreground mb-2">
 								Document Everything
 							</h3>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								Take timestamped photos at move-in and move-out. Use a written
 								checklist signed by both parties. This is your strongest
 								protection against disputes.
@@ -675,7 +675,7 @@ export default function SecurityDepositReferenceCardPage() {
 							<h3 className="font-semibold text-foreground mb-2">
 								Separate Trust Account
 							</h3>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								Many states require deposits held in a separate account. Even
 								where not required, it protects you from commingling claims and
 								simplifies accounting.
@@ -685,7 +685,7 @@ export default function SecurityDepositReferenceCardPage() {
 							<h3 className="font-semibold text-foreground mb-2">
 								Return Early When Possible
 							</h3>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								Returning deposits quickly builds goodwill and reduces dispute
 								risk. Many states impose penalties (2-3x the deposit) for late
 								returns.
@@ -695,7 +695,7 @@ export default function SecurityDepositReferenceCardPage() {
 							<h3 className="font-semibold text-foreground mb-2">
 								Normal Wear vs Damage
 							</h3>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								Faded paint, worn carpet, and minor scuffs are normal wear.
 								Holes in walls, stained carpets, and broken fixtures are damage.
 								Know the difference — courts do.

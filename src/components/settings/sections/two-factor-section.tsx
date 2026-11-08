@@ -45,7 +45,7 @@ export function TwoFactorSection() {
 										2FA is Enabled
 										<CheckCircle className="h-4 w-4 text-success" />
 									</p>
-									<p className="text-xs text-muted-foreground">
+									<p className="mb-0 text-xs text-muted-foreground">
 										Your account is protected with authenticator app
 									</p>
 								</div>
@@ -65,7 +65,7 @@ export function TwoFactorSection() {
 								</div>
 								<div>
 									<p className="text-sm font-medium">2FA is Not Enabled</p>
-									<p className="text-xs text-muted-foreground">
+									<p className="mb-0 text-xs text-muted-foreground">
 										Add an extra layer of security to your account
 									</p>
 								</div>

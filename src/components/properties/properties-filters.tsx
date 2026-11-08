@@ -25,7 +25,7 @@ export function EmptyProperties({ onAddProperty }: EmptyPropertiesProps) {
 			</EmptyMedia>
 			<EmptyHeader>
 				<EmptyTitle>No properties yet</EmptyTitle>
-				<EmptyDescription>
+				<EmptyDescription className="mb-0">
 					Add your first property to start managing your portfolio.
 				</EmptyDescription>
 			</EmptyHeader>
@@ -79,7 +79,9 @@ export function NoResultsFilter({ onClearFilters }: NoResultsFilterProps) {
 				<Search />
 			</EmptyMedia>
 			<EmptyHeader>
-				<EmptyDescription>No properties match your filters</EmptyDescription>
+				<EmptyDescription className="mb-0">
+					No properties match your filters
+				</EmptyDescription>
 			</EmptyHeader>
 			<div className="flex items-center gap-3 mt-2">
 				<Button variant="link" onClick={onClearFilters}>

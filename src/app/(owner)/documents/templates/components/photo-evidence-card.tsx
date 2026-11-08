@@ -59,7 +59,7 @@ export function PhotoEvidenceCard({
 						))}
 					</div>
 				) : (
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						Upload photos to attach to the inspection report.
 					</p>
 				)}

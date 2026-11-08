@@ -61,7 +61,7 @@ export function ForgotPasswordModal({
 					<>
 						<DialogHeader>
 							<DialogTitle>Reset Password</DialogTitle>
-							<DialogDescription>
+							<DialogDescription className="mb-0">
 								Enter your email address and we&apos;ll send you instructions to
 								reset your password.
 							</DialogDescription>
@@ -133,7 +133,7 @@ export function ForgotPasswordModal({
 							<DialogTitle className="text-center">
 								Check Your Email
 							</DialogTitle>
-							<DialogDescription className="text-center">
+							<DialogDescription className="mb-0 text-center">
 								We&apos;ve sent password reset instructions to:
 								<span className="block font-medium mt-2">{email}</span>
 							</DialogDescription>

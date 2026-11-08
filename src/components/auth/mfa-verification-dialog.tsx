@@ -114,7 +114,7 @@ export function MfaVerificationDialog({
 						<Shield className="size-5 text-primary" />
 						Two-Factor Authentication
 					</DialogTitle>
-					<DialogDescription>
+					<DialogDescription className="mb-0">
 						Enter the 6-digit code from your authenticator app to complete sign
 						in
 					</DialogDescription>
@@ -145,7 +145,7 @@ export function MfaVerificationDialog({
 
 					{error && (
 						<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-center">
-							<p className="text-sm text-destructive-text">{error}</p>
+							<p className="mb-0 text-sm text-destructive-text">{error}</p>
 						</div>
 					)}
 

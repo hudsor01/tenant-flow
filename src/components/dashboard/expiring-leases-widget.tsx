@@ -64,7 +64,7 @@ export function ExpiringLeasesWidget() {
 			</CardHeader>
 			<CardContent>
 				{leases.length === 0 ? (
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						You&apos;re all caught up. New reminders will appear here 60 days
 						before each lease ends.
 					</p>

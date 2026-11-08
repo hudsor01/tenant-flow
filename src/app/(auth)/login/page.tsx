@@ -285,7 +285,7 @@ function LoginPageContent() {
 							</div>
 						</div>
 						<div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm border border-border/50">
-							<p className="text-muted-foreground">
+							<p className="mb-0 text-muted-foreground">
 								<strong className="text-foreground">New to TenantFlow?</strong>{" "}
 								<Link
 									href="/pricing"

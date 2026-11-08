@@ -20,7 +20,7 @@ export function DashboardEmptyState() {
 					<Home className="w-8 h-8" />
 				</EmptyMedia>
 				<EmptyTitle>Welcome to TenantFlow</EmptyTitle>
-				<EmptyDescription>
+				<EmptyDescription className="mb-0">
 					Get started by adding your first property, then add tenants and create
 					leases to begin tracking your portfolio.
 				</EmptyDescription>

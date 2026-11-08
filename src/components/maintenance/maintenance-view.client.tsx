@@ -162,7 +162,7 @@ export function MaintenanceViewClient() {
 							</EmptyMedia>
 							<EmptyHeader>
 								<EmptyTitle>No maintenance requests for this unit</EmptyTitle>
-								<EmptyDescription>
+								<EmptyDescription className="mb-0">
 									{filterUnit?.unit_number
 										? `Unit ${filterUnit.unit_number} has no maintenance requests yet.`
 										: "This unit has no maintenance requests yet."}
@@ -184,7 +184,7 @@ export function MaintenanceViewClient() {
 							</EmptyMedia>
 							<EmptyHeader>
 								<EmptyTitle>No maintenance requests</EmptyTitle>
-								<EmptyDescription>
+								<EmptyDescription className="mb-0">
 									Log a request to track repairs, costs, and vendor assignments
 									for a unit.
 								</EmptyDescription>

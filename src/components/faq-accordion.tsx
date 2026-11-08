@@ -111,7 +111,7 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 				<div className="overflow-hidden">
 					<div className="px-6 pb-6">
 						<div className="border-t border-border pt-4">
-							<p className="text-muted-foreground leading-relaxed">
+							<p className="mb-0 text-muted-foreground leading-relaxed">
 								{faq.answer}
 							</p>
 						</div>

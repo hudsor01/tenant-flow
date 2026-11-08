@@ -225,7 +225,7 @@ export function InspectionRoomCard({
 										)}
 										{photo.caption && (
 											<div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1">
-												<p className="text-white text-xs truncate">
+												<p className="mb-0 text-white text-xs truncate">
 													{photo.caption}
 												</p>
 											</div>

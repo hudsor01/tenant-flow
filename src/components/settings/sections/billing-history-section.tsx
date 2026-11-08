@@ -90,7 +90,7 @@ export function BillingHistorySection() {
 					</div>
 				) : (
 					<div className="p-4 text-center">
-						<p className="text-sm text-muted-foreground">
+						<p className="mb-0 text-sm text-muted-foreground">
 							No billing history yet
 						</p>
 					</div>

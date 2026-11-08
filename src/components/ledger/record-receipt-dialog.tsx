@@ -178,7 +178,7 @@ export function RecordReceiptDialog({
 				>
 					<DialogHeader>
 						<DialogTitle>Record a payment received</DialogTitle>
-						<DialogDescription>
+						<DialogDescription className="mb-0">
 							Log money you have already received against a single charge.
 							Recording a partial payment is fine: add one receipt per payment.
 						</DialogDescription>

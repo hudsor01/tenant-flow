@@ -369,7 +369,7 @@ export function DocumentsVaultClient() {
 				<FolderArchive className="size-8 text-primary" />
 				<div>
 					<h1 className="typography-h2">Document Vault</h1>
-					<p className="text-muted-foreground">
+					<p className="mb-0 text-muted-foreground">
 						Every PDF or image attached to your portfolio, in one place.
 					</p>
 				</div>
@@ -453,7 +453,7 @@ export function DocumentsVaultClient() {
 					</CardTitle>
 					<div className="flex flex-wrap items-center gap-3">
 						{showRangeHeader && (
-							<p className="text-xs text-muted-foreground">
+							<p className="mb-0 text-xs text-muted-foreground">
 								Showing {pageStart + 1}-{pageEnd} of {totalCount}
 							</p>
 						)}
@@ -531,7 +531,7 @@ export function DocumentsVaultClient() {
 										? "No documents match your search."
 										: "No documents uploaded yet."}
 								</EmptyTitle>
-								<EmptyDescription>
+								<EmptyDescription className="mb-0">
 									{queryParam ||
 									entityType ||
 									categories.length > 0 ||

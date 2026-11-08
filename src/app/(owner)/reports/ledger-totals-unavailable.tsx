@@ -36,7 +36,7 @@ export function LedgerTotalsUnavailable({
 						<ReceiptText aria-hidden="true" />
 					</EmptyMedia>
 					<EmptyTitle>Ledger totals unavailable</EmptyTitle>
-					<EmptyDescription>
+					<EmptyDescription className="mb-0">
 						{description} Its totals aren&apos;t available yet. Try again later.
 					</EmptyDescription>
 				</EmptyHeader>

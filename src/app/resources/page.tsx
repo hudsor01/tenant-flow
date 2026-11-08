@@ -100,7 +100,7 @@ export default function ResourcesPage() {
 							Resources for <span className="hero-highlight">landlords</span>
 						</h1>
 
-						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
+						<p className="mb-0 text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
 							Setup guides, downloadable checklists, and reference material for
 							running your portfolio with TenantFlow.
 						</p>

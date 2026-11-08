@@ -52,7 +52,7 @@ export function TerminateLeaseDialog({
 			<AlertDialogContent className="sm:max-w-125">
 				<AlertDialogHeader>
 					<AlertDialogTitle>Terminate Lease</AlertDialogTitle>
-					<AlertDialogDescription>
+					<AlertDialogDescription className="mb-0">
 						This action will terminate the lease early and mark it as
 						TERMINATED. This action cannot be undone.
 					</AlertDialogDescription>
@@ -66,7 +66,7 @@ export function TerminateLeaseDialog({
 								<p className="typography-small text-destructive-text">
 									Early Termination Warning
 								</p>
-								<p className="text-muted-foreground">
+								<p className="mb-0 text-muted-foreground">
 									This lease will be marked as terminated immediately. Ensure
 									all financial settlements are complete before proceeding.
 								</p>

@@ -69,7 +69,7 @@ export function ScheduleDialog({
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Schedule Work</DialogTitle>
-					<DialogDescription>
+					<DialogDescription className="mb-0">
 						Select a date to schedule this maintenance work.
 					</DialogDescription>
 				</DialogHeader>

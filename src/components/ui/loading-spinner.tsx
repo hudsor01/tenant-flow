@@ -89,7 +89,9 @@ function LoadingSpinner({
 		>
 			<Loader2Icon className={cn(spinnerVariants({ size, variant }))} />
 			{text && (
-				<p className={cn(spinnerTextVariants({ size, variant }))}>{text}</p>
+				<p className={cn("mb-0", spinnerTextVariants({ size, variant }))}>
+					{text}
+				</p>
 			)}
 		</div>
 	);
@@ -110,7 +112,7 @@ function PageLoader({
 				<LoadingSpinner size="xl" variant="primary" />
 				<div className="space-y-2">
 					<p className="typography-large text-foreground">{text}</p>
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						This should only take a moment
 					</p>
 				</div>

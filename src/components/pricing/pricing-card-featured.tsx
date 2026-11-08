@@ -180,7 +180,7 @@ export function PricingCardFeatured({
 							</span>
 							<span className="text-muted-foreground font-medium">/mo</span>
 						</div>
-						<p className="text-sm text-muted-foreground mt-1">
+						<p className="text-sm text-muted-foreground mt-1 mb-0">
 							{billingCycle === "yearly"
 								? `Billed annually (${formatCurrency(plan.annualTotal, { maximumFractionDigits: 0, minimumFractionDigits: 0 })}/year)`
 								: "Billed monthly"}

@@ -57,7 +57,7 @@ export function PropertyImagesCreateSection({
 								? "Drop images here..."
 								: "Drag & drop images here, or click to browse"}
 						</p>
-						<p className="text-xs text-muted-foreground">
+						<p className="mb-0 text-xs text-muted-foreground">
 							JPG, PNG, WebP, or GIF (max 10MB each)
 						</p>
 					</div>
@@ -66,7 +66,7 @@ export function PropertyImagesCreateSection({
 						<p className="text-sm font-medium">
 							{filesWithStatus.length} image(s) selected
 						</p>
-						<p className="text-xs text-muted-foreground">
+						<p className="mb-0 text-xs text-muted-foreground">
 							{uploadingImages
 								? "Uploading..."
 								: "Click or drag to add more (max 10 total)"}

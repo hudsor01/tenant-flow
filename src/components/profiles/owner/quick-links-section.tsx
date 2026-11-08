@@ -23,7 +23,7 @@ export function QuickLinksSection() {
 						</div>
 						<div>
 							<p className="text-sm font-medium">Account Settings</p>
-							<p className="text-xs text-muted-foreground">
+							<p className="mb-0 text-xs text-muted-foreground">
 								Manage your account preferences
 							</p>
 						</div>
@@ -39,7 +39,7 @@ export function QuickLinksSection() {
 						</div>
 						<div>
 							<p className="text-sm font-medium">Billing</p>
-							<p className="text-xs text-muted-foreground">
+							<p className="mb-0 text-xs text-muted-foreground">
 								Plans and payment details
 							</p>
 						</div>
@@ -55,7 +55,7 @@ export function QuickLinksSection() {
 						</div>
 						<div>
 							<p className="text-sm font-medium">Security</p>
-							<p className="text-xs text-muted-foreground">
+							<p className="mb-0 text-xs text-muted-foreground">
 								Password and 2FA settings
 							</p>
 						</div>
@@ -71,7 +71,7 @@ export function QuickLinksSection() {
 						</div>
 						<div>
 							<p className="text-sm font-medium">Notifications</p>
-							<p className="text-xs text-muted-foreground">
+							<p className="mb-0 text-xs text-muted-foreground">
 								Manage notification preferences
 							</p>
 						</div>

@@ -81,7 +81,7 @@ export function PricingStatsGrid() {
 								<p className="mb-3 typography-h1 tracking-tight text-foreground">
 									{stat.value}
 								</p>
-								<p className="text-sm leading-relaxed text-muted-foreground">
+								<p className="mb-0 text-sm leading-relaxed text-muted-foreground">
 									{stat.description}
 								</p>
 							</div>
@@ -134,7 +134,7 @@ export function PricingFaqSection() {
 							<p className="text-base font-medium text-foreground">
 								Still unsure which plan fits best?
 							</p>
-							<p className="text-sm text-muted-foreground sm:text-base">
+							<p className="mb-0 text-sm text-muted-foreground sm:text-base">
 								Our team can walk through your portfolio and recommend the right
 								setup.
 							</p>
@@ -206,7 +206,9 @@ export function PricingCtaSection() {
 								<CheckCircle2 className="mt-1 h-5 w-5 text-success" />
 								<div>
 									<p className="font-medium text-foreground">{item.title}</p>
-									<p className="text-muted-foreground text-sm">{item.desc}</p>
+									<p className="mb-0 text-muted-foreground text-sm">
+										{item.desc}
+									</p>
 								</div>
 							</div>
 						))}

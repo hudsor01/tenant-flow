@@ -162,7 +162,7 @@ export function PricingCardStandard({
 					    displayed monthly rate become arithmetically inconsistent.
 					    The featured card has shipped this format since PR #725;
 					    standard now matches. */}
-					<p className="text-xs text-muted-foreground mt-1">
+					<p className="text-xs text-muted-foreground mt-1 mb-0">
 						{billingCycle === "yearly"
 							? `Billed annually (${formatCurrency(plan.annualTotal, { maximumFractionDigits: 0, minimumFractionDigits: 0 })}/year)`
 							: "Billed monthly"}

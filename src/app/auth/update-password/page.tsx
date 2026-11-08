@@ -95,7 +95,7 @@ function ExpiredLinkContent({ errorMessage }: { errorMessage: string }) {
 				</div>
 
 				<div className="bg-muted/30 border border-border rounded-xl p-4 text-sm text-muted-foreground">
-					<p>
+					<p className="mb-0">
 						Password reset links expire after 1 hour for security. You can
 						request a new one below.
 					</p>
@@ -189,7 +189,7 @@ export default function UpdatePasswordPage() {
 									<h2 className="text-foreground font-bold text-3xl">
 										Reset Link Issue
 									</h2>
-									<p className="text-muted-foreground text-lg leading-relaxed">
+									<p className="mb-0 text-muted-foreground text-lg leading-relaxed">
 										No worries — request a new password reset link below.
 									</p>
 								</>
@@ -198,7 +198,7 @@ export default function UpdatePasswordPage() {
 									<h2 className="text-foreground font-bold text-3xl">
 										Secure Your Account
 									</h2>
-									<p className="text-muted-foreground text-lg leading-relaxed">
+									<p className="mb-0 text-muted-foreground text-lg leading-relaxed">
 										Create a strong password to keep your property management
 										data safe and secure.
 									</p>
@@ -266,7 +266,7 @@ export default function UpdatePasswordPage() {
 
 					{/* Footer */}
 					<div className="text-center pt-4">
-						<p className="text-muted-foreground">
+						<p className="mb-0 text-muted-foreground">
 							Remember your password?{" "}
 							<Link
 								href="/login"

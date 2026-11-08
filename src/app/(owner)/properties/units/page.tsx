@@ -169,7 +169,9 @@ export default function UnitsPage() {
 					) : units.length === 0 ? (
 						<div className="flex flex-col items-center justify-center py-12">
 							<DoorOpen className="size-12 text-muted-foreground/50" />
-							<p className="mt-4 mb-0 text-muted-foreground">No units found.</p>
+							{/* mb-4: the 16px the base `p` margin gave above the button,
+							    declared (the column has no gap). */}
+							<p className="mt-4 mb-4 text-muted-foreground">No units found.</p>
 							<NewUnitButton properties={properties} />
 						</div>
 					) : (

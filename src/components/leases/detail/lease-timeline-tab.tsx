@@ -62,16 +62,16 @@ export function LeaseTimelineTab({ events }: LeaseTimelineTabProps) {
 													{formatRelativeTime(event.timestamp)}
 												</time>
 											</div>
-											<p className="text-sm text-muted-foreground mt-0.5">
+											<p className="text-sm text-muted-foreground mt-0.5 mb-0">
 												{event.description}
 											</p>
 											{event.actor && (
-												<p className="text-xs text-muted-foreground mt-1">
+												<p className="text-xs text-muted-foreground mt-1 mb-0">
 													by {event.actor}
 												</p>
 											)}
 											{index === events.length - 1 && (
-												<p className="text-xs text-muted-foreground mt-1">
+												<p className="text-xs text-muted-foreground mt-1 mb-0">
 													{formatDate(event.timestamp)}
 												</p>
 											)}
@@ -82,7 +82,7 @@ export function LeaseTimelineTab({ events }: LeaseTimelineTabProps) {
 						</div>
 					</div>
 				) : (
-					<p className="text-muted-foreground text-center py-6">
+					<p className="mb-0 text-muted-foreground text-center py-6">
 						No timeline events recorded yet
 					</p>
 				)}

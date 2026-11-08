@@ -24,7 +24,7 @@ export function SecuritySection({ onChangePassword }: SecuritySectionProps) {
 								<Key className="h-5 w-5 text-muted-foreground" />
 								<div>
 									<p className="text-sm font-medium">Password</p>
-									<p className="text-xs text-muted-foreground">
+									<p className="mb-0 text-xs text-muted-foreground">
 										Secure your account
 									</p>
 								</div>
@@ -41,7 +41,7 @@ export function SecuritySection({ onChangePassword }: SecuritySectionProps) {
 								<Shield className="h-5 w-5 text-muted-foreground" />
 								<div>
 									<p className="text-sm font-medium">Two-Factor Auth</p>
-									<p className="text-xs text-muted-foreground">
+									<p className="mb-0 text-xs text-muted-foreground">
 										Extra security layer
 									</p>
 								</div>

@@ -114,11 +114,11 @@ export function LeaseRow({
 					>
 						{lease.tenantName}
 					</button>
-					<p className="text-xs text-muted-foreground truncate">
+					<p className="mb-0 text-xs text-muted-foreground truncate">
 						{formatDate(lease.startDate, { fallback: "N/A" })} -{" "}
 						{formatDate(lease.endDate, { fallback: "N/A" })}
 					</p>
-					<p className="text-sm text-muted-foreground lg:hidden truncate">
+					<p className="mb-0 text-sm text-muted-foreground lg:hidden truncate">
 						{lease.propertyName}
 					</p>
 				</div>
@@ -128,7 +128,7 @@ export function LeaseRow({
 					<p className="text-sm text-foreground truncate">
 						{lease.propertyName}
 					</p>
-					<p className="text-xs text-muted-foreground">
+					<p className="mb-0 text-xs text-muted-foreground">
 						Unit {lease.unitNumber}
 					</p>
 				</div>

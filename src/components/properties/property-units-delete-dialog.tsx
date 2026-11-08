@@ -35,7 +35,7 @@ export function UnitDeleteDialog({
 			<AlertDialogContent>
 				<AlertDialogHeader>
 					<AlertDialogTitle>Delete Unit?</AlertDialogTitle>
-					<AlertDialogDescription>
+					<AlertDialogDescription className="mb-0">
 						Are you sure you want to delete unit{" "}
 						<strong>{deletingUnit?.unit_number}</strong>? This action cannot be
 						undone.

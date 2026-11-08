@@ -124,7 +124,7 @@ export function DocumentRow({
 							/>
 						)
 					) : (
-						<p className="text-sm text-muted-foreground p-4">
+						<p className="mb-0 text-sm text-muted-foreground p-4">
 							Preview unavailable.
 						</p>
 					)}

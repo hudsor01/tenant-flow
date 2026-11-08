@@ -70,7 +70,7 @@ export function SubscriptionCancelSection() {
 	if (status.isError || !status.data) {
 		return (
 			<section className="rounded-lg border bg-card p-6">
-				<p className="text-sm text-muted-foreground">
+				<p className="mb-0 text-sm text-muted-foreground">
 					Subscription status unavailable.{" "}
 					<button
 						type="button"
@@ -127,7 +127,7 @@ export function SubscriptionCancelSection() {
 						<Lock className="h-4 w-4" aria-hidden="true" />
 						Subscription Ended
 					</h3>
-					<p className="text-base font-medium mt-2">
+					<p className="text-base font-medium mt-2 mb-0">
 						Your plan ended on <strong>{endDate}</strong>
 					</p>
 					<p className="text-sm text-muted-foreground mt-2">
@@ -211,7 +211,7 @@ export function SubscriptionCancelSection() {
 							? "Reactivating..."
 							: "Reactivate Plan"}
 					</Button>
-					<p className="text-xs text-muted-foreground mt-4">
+					<p className="text-xs text-muted-foreground mt-4 mb-0">
 						Your data stays for 30 days after your plan ends per our privacy
 						policy.
 					</p>
@@ -243,7 +243,7 @@ export function SubscriptionCancelSection() {
 				<div className="flex items-center justify-between">
 					<div>
 						<p className="text-sm font-medium">Cancel Subscription</p>
-						<p className="text-xs text-muted-foreground">
+						<p className="mb-0 text-xs text-muted-foreground">
 							Your data stays for 30 days after cancellation. You can reactivate
 							anytime before your period ends.
 						</p>
@@ -260,7 +260,7 @@ export function SubscriptionCancelSection() {
 						<AlertDialogContent>
 							<AlertDialogHeader>
 								<AlertDialogTitle>Cancel your subscription?</AlertDialogTitle>
-								<AlertDialogDescription>
+								<AlertDialogDescription className="mb-0">
 									Your plan will stay active until <strong>{endDate}</strong>.
 									Your data stays for 30 days after that per our privacy policy.
 								</AlertDialogDescription>

@@ -220,12 +220,12 @@ export function InspectionPhotoUpload({
 					className="w-8 h-8 text-muted-foreground mx-auto mb-2"
 					aria-hidden="true"
 				/>
-				<p className="text-sm text-muted-foreground">
+				<p className="mb-0 text-sm text-muted-foreground">
 					{isDragActive
 						? "Drop photos here"
 						: "Drag photos here or click to select"}
 				</p>
-				<p className="text-xs text-muted-foreground mt-1">
+				<p className="text-xs text-muted-foreground mt-1 mb-0">
 					JPEG, PNG, WebP up to 10MB each
 				</p>
 			</div>

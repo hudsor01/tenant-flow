@@ -24,7 +24,7 @@ export function ErrorPage({
 				<AlertCircle className="size-12 text-destructive" />
 				<div className="space-y-2">
 					<h2 className="typography-h4">Something went wrong</h2>
-					<p className="text-muted-foreground">
+					<p className="mb-0 text-muted-foreground">
 						An unexpected error occurred. Please try again.
 					</p>
 				</div>

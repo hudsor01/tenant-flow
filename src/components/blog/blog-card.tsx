@@ -48,7 +48,7 @@ export function BlogCard({ post, className }: BlogCardProps) {
 				</h3>
 
 				{post.excerpt && (
-					<p className="line-clamp-3 text-sm text-muted-foreground">
+					<p className="mb-0 line-clamp-3 text-sm text-muted-foreground">
 						{post.excerpt}
 					</p>
 				)}

@@ -55,7 +55,7 @@ export function PropertyPerformanceSection({
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						No performance data yet. Metrics will appear once you have recorded
 						rent, expenses, or leases for this property.
 					</p>

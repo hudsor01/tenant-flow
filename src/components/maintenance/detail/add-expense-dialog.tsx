@@ -86,7 +86,7 @@ export function AddExpenseDialog({
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Add Expense</DialogTitle>
-					<DialogDescription>
+					<DialogDescription className="mb-0">
 						Record an expense for this maintenance request.
 					</DialogDescription>
 				</DialogHeader>

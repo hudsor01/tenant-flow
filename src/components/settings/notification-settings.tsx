@@ -103,7 +103,7 @@ export function NotificationSettings() {
 								<Mail className="h-4 w-4 text-muted-foreground" />
 								<div>
 									<p className="text-sm font-medium">Email Notifications</p>
-									<p className="text-xs text-muted-foreground">
+									<p className="mb-0 text-xs text-muted-foreground">
 										Receive updates via email
 									</p>
 								</div>
@@ -130,7 +130,7 @@ export function NotificationSettings() {
 						<div className="flex items-center justify-between py-2 rounded-lg px-2 -mx-2">
 							<div>
 								<p className="text-sm font-medium">Maintenance Requests</p>
-								<p className="text-xs text-muted-foreground">
+								<p className="mb-0 text-xs text-muted-foreground">
 									When tenants submit new maintenance requests
 								</p>
 							</div>
@@ -147,7 +147,7 @@ export function NotificationSettings() {
 						<div className="flex items-center justify-between py-2 rounded-lg px-2 -mx-2">
 							<div>
 								<p className="text-sm font-medium">Lease Updates</p>
-								<p className="text-xs text-muted-foreground">
+								<p className="mb-0 text-xs text-muted-foreground">
 									Lease expirations, renewals, and signatures
 								</p>
 							</div>
@@ -164,7 +164,7 @@ export function NotificationSettings() {
 						<div className="flex items-center justify-between py-2 rounded-lg px-2 -mx-2">
 							<div>
 								<p className="text-sm font-medium">General Notifications</p>
-								<p className="text-xs text-muted-foreground">
+								<p className="mb-0 text-xs text-muted-foreground">
 									System updates and announcements
 								</p>
 							</div>

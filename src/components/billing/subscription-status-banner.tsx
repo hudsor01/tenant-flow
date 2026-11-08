@@ -34,7 +34,7 @@ export function SubscriptionStatusBanner() {
 		return (
 			<div className="flex items-center gap-3 rounded-lg border border-info/30 bg-info/10 px-4 py-3 text-sm text-info-text">
 				<Info className="size-5 shrink-0" />
-				<p className="flex-1">
+				<p className="mb-0 flex-1">
 					Start your subscription to unlock all property management features.
 				</p>
 				<Link
@@ -65,7 +65,7 @@ export function SubscriptionStatusBanner() {
 		return (
 			<div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary-text">
 				<Clock className="size-5 shrink-0" />
-				<p className="flex-1">{message}</p>
+				<p className="mb-0 flex-1">{message}</p>
 				<Link
 					href="/billing/plans?source=trial_banner"
 					className="shrink-0 font-medium underline underline-offset-4 hover:text-foreground"
@@ -86,7 +86,7 @@ export function SubscriptionStatusBanner() {
 		return (
 			<div className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning-text">
 				<AlertTriangle className="size-5 shrink-0" />
-				<p className="flex-1">
+				<p className="mb-0 flex-1">
 					Your subscription payment failed. Please update your payment method to
 					avoid losing access when your subscription is canceled.
 				</p>
@@ -107,7 +107,7 @@ export function SubscriptionStatusBanner() {
 	return (
 		<div className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive-text">
 			<Lock className="size-5 shrink-0" />
-			<p className="flex-1">
+			<p className="mb-0 flex-1">
 				Your subscription is inactive. Premium features are disabled until your
 				subscription is renewed.
 			</p>

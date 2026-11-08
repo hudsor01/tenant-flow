@@ -318,7 +318,9 @@ function AppShellFrame({
 					    layout. */}
 					<footer className="border-t border-border/60 bg-background/40 px-4 lg:px-6 py-4">
 						<div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-							<p>&copy; {new Date().getFullYear()} TenantFlow</p>
+							<p className="mb-0">
+								&copy; {new Date().getFullYear()} TenantFlow
+							</p>
 							<nav className="flex items-center gap-4" aria-label="App footer">
 								<Link
 									href="/help"

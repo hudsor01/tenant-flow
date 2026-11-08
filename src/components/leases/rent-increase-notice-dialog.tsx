@@ -215,7 +215,7 @@ export function RentIncreaseNoticeDialog({
 			<DialogContent className="sm:max-w-md">
 				<DialogHeader>
 					<DialogTitle>Generate rent-increase notice</DialogTitle>
-					<DialogDescription>
+					<DialogDescription className="mb-0">
 						Creates a printable PDF notice for this lease. Delivery and state-
 						specific notice-period rules are your responsibility.
 					</DialogDescription>

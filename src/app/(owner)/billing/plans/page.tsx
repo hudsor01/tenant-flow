@@ -238,7 +238,7 @@ export default function BillingPlansPage() {
 							<p className="font-medium text-foreground">
 								Current Plan: {currentPlan.name}
 							</p>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								{currentPlan.price === 0
 									? "Free"
 									: `${formatCurrency(currentPlan.price, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/month`}
@@ -268,7 +268,7 @@ export default function BillingPlansPage() {
 			</div>
 
 			<div className="mt-12 text-center">
-				<p className="text-sm text-muted-foreground">
+				<p className="mb-0 text-sm text-muted-foreground">
 					Need help choosing a plan?{" "}
 					<Link
 						href="/contact"
@@ -277,7 +277,7 @@ export default function BillingPlansPage() {
 						Contact our sales team
 					</Link>
 				</p>
-				<p className="text-xs text-muted-foreground mt-2">
+				<p className="text-xs text-muted-foreground mt-2 mb-0">
 					New accounts include a 14-day free trial. Cancel anytime.
 				</p>
 			</div>

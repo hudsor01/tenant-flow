@@ -261,7 +261,7 @@ function MaintenanceActionsCell({ request }: { request: MaintenanceListRow }) {
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Request</AlertDialogTitle>
-						<AlertDialogDescription>
+						<AlertDialogDescription className="mb-0">
 							Permanently delete "{request.title ?? request.description}"? This
 							action cannot be undone.
 						</AlertDialogDescription>
