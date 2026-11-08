@@ -27,10 +27,11 @@ const formatAmountOrDash = (amount?: number | null) =>
 
 // The term grids step on the step's own width, never the viewport's: at 320px
 // a fixed three-column grid left 44.66px a term, so $1,500.00 (80.66px) ran
-// into the next term. One column until two terms of 9rem fit beside the
-// 1.5rem indent, three for the financial terms once three do; a value wraps
-// inside its term (a long property name is one unbroken word) (66.2-39 fix
-// round 4, Part 8e).
+// into the next term. One column until the step is 20rem (two terms of
+// 8.75rem beside the 1.5rem indent), the financial terms three from 30rem
+// (8.83rem each): at the 25 widths measured from 320 to 1600 no label wraps
+// and each row's values sit at one y. A value wraps inside its term (a long
+// property name is one unbroken word) (66.2-39 fix round 4, Part 8e).
 const TERMS =
 	"grid grid-cols-1 gap-4 pl-6 @min-[20rem]/review-step:grid-cols-2";
 const TERMS_3 = `${TERMS} @min-[30rem]/review-step:grid-cols-3`;
