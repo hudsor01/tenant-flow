@@ -165,7 +165,7 @@ describe("SearchPage (server component)", () => {
 
 		render(await SearchPage({ searchParams: Promise.resolve({ q: "zzzzz" }) }));
 
-		expect(screen.getByText(/No results for/)).toBeInTheDocument();
+		expect(screen.getByText("No matching articles")).toBeInTheDocument();
 		expect(screen.queryByTestId("blog-card")).not.toBeInTheDocument();
 	});
 

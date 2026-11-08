@@ -120,7 +120,10 @@ export default async function SearchPage({
 							<EmptyMedia variant="icon">
 								<Search />
 							</EmptyMedia>
-							<EmptyTitle>No results for &ldquo;{query}&rdquo;</EmptyTitle>
+							{/* The search box above shows the query. The title does not
+							    repeat it: anyone can link here with any ?q=, so a title
+							    quoting it would show their sentence on tenantflow.app. */}
+							<EmptyTitle>No matching articles</EmptyTitle>
 							<EmptyDescription className="mb-0">
 								We couldn&rsquo;t find any articles matching your search. Try a
 								different keyword.
