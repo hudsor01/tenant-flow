@@ -99,7 +99,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 	const { tenant, unit } = lease;
 
 	return (
-		<div className="space-y-6">
+		<div className="@container/lease-detail space-y-6">
 			{/* Header with status and actions */}
 			<LeaseHeader
 				lease={lease}
@@ -111,10 +111,14 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 				isCancelling={cancelSignature.isPending}
 			/>
 
-			{/* Main content grid */}
-			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+			{/* Main content grid. Its columns step on the page's own width, not
+			    the viewport's: at lg with the rail expanded the sidebar column
+			    was 210px, and its Maintenance Requests button's label ran
+			    8.69px past the button (66.2-39 fix round 4, Part 8e). Three
+			    columns from 56rem, where the sidebar holds 18rem. */}
+			<div className="grid grid-cols-1 gap-6 @min-[56rem]/lease-detail:grid-cols-3">
 				{/* Left column - Main details */}
-				<div className="lg:col-span-2 space-y-6">
+				<div className="@min-[56rem]/lease-detail:col-span-2 space-y-6">
 					{/* Key metrics: 16px tiles, py-4 on the Card and px-4 on its
 					    content (the v4 Card pads itself; a v3 p-4 here added to
 					    it). mb-0: each figure is its tile's last child. The columns

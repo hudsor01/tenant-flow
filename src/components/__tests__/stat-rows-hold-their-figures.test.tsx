@@ -140,7 +140,7 @@ const NOT_STAT_ROWS: { file: string; classString: string; reason: string }[] = [
 	},
 	{
 		file: "src/components/leases/detail/lease-details.client.tsx",
-		classString: "grid grid-cols-1 gap-6 lg:grid-cols-3",
+		classString: "grid grid-cols-1 gap-6 @min-[56rem]/lease-detail:grid-cols-3",
 		reason:
 			"the page's columns; the metrics and the ledger strip inside step on their own containers",
 	},
@@ -204,13 +204,13 @@ const REVIEWED: { file: string; classString: string; reason: string }[] = [
 	},
 	{
 		file: "src/components/leases/detail/lease-details.client.tsx",
-		classString: "grid grid-cols-1 gap-6 lg:grid-cols-3",
+		classString: "grid grid-cols-1 gap-6 @min-[56rem]/lease-detail:grid-cols-3",
 		reason:
-			"the page's two-thirds and one-third columns; the metrics inside step on their own container",
+			"the page's two-thirds and one-third columns, stepping on the page's own width (Part 8e); the metrics inside step on their own container",
 	},
 	{
 		file: "src/components/leases/detail/lease-details-skeleton.tsx",
-		classString: "grid grid-cols-1 gap-6 lg:grid-cols-3",
+		classString: "grid grid-cols-1 gap-6 @min-[56rem]/lease-detail:grid-cols-3",
 		reason: "the skeleton of the page's two columns, not a stat row",
 	},
 	{
