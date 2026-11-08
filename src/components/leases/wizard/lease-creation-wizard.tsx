@@ -26,7 +26,6 @@ import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
-import { cn } from "#lib/utils";
 import type {
 	LeaseDetailsStepData,
 	SelectionStepData,
@@ -309,12 +308,11 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 				</CardContent>
 			</Card>
 
-			<div
-				className={cn(
-					"flex items-center",
-					isFirstStep ? "justify-end" : "justify-between",
-				)}
-			>
+			{/* The step controls wrap: at 320px Previous and Create Draft Lease
+			    (180.45px, which buttons never shrink) did not fit one line, and
+			    the page scrolled sideways to 341px. The forward control keeps the
+			    right edge on its own line (66.2-39 fix round 4, Part 8e). */}
+			<div className="flex flex-wrap items-center gap-2">
 				{!isFirstStep && (
 					<Button
 						type="button"
@@ -330,6 +328,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 				{!isLastStep ? (
 					<Button
 						type="button"
+						className="ml-auto"
 						onClick={goToNextStep}
 						disabled={createLeaseMutation.isPending}
 					>
@@ -339,6 +338,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 				) : (
 					<Button
 						type="button"
+						className="ml-auto"
 						onClick={handleSubmit}
 						disabled={createLeaseMutation.isPending}
 					>
