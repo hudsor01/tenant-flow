@@ -59,11 +59,21 @@ export function MaintenanceHeaderCard({
 
 	return (
 		<Card>
-			<CardHeader className="flex-row items-start justify-between gap-4">
-				<div className="space-y-2">
+			{/* The title and its actions share one row that wraps: the header
+			    primitive is a grid, so this header's `flex-row justify-between`
+			    did nothing, the actions sat on their own row, and that row's
+			    max-content (299.91px: the status select, Edit and Export) sized
+			    the grid's only column past the card at 320-336px (the page 341px
+			    wide). The title takes the row's free space from 16rem; below
+			    that the actions wrap under it, and wrap themselves (66.2-39 fix
+			    round 4, Part 8e). */}
+			<CardHeader className="flex flex-wrap items-start justify-between gap-4">
+				<div className="min-w-0 flex-1 basis-64 space-y-2">
 					<CardTitle className="flex items-center gap-2 text-xl">
-						<Wrench className="size-5 text-primary" />
-						{request.title ?? request.description ?? "Maintenance Request"}
+						<Wrench className="size-5 shrink-0 text-primary" />
+						<span className="min-w-0 wrap-break-word">
+							{request.title ?? request.description ?? "Maintenance Request"}
+						</span>
 					</CardTitle>
 					<div className="flex flex-wrap gap-2">
 						<Badge className={`${statusConfig.className} gap-1`}>
@@ -75,7 +85,7 @@ export function MaintenanceHeaderCard({
 						</Badge>
 					</div>
 				</div>
-				<div className="flex items-center gap-2">
+				<div className="flex flex-wrap items-center gap-2">
 					<StatusSelect
 						currentStatus={request.status as MaintenanceStatus}
 						maintenanceId={request.id}

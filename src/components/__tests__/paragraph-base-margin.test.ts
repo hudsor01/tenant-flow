@@ -192,10 +192,6 @@ const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
 		2,
 		"020a436558ff1ec2e8d0699b97a819a3f2f81836",
 	],
-	"src/components/maintenance/detail/expenses-card.tsx": [
-		5,
-		"2aecc2d6ec7af0646f6427b0ecb7df330f81662f",
-	],
 	"src/components/maintenance/maintenance-form.client.tsx": [
 		1,
 		"f92f0f37db5108ebf8a91ee14469025a1a8ffc1b",

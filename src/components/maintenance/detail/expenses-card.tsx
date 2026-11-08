@@ -26,7 +26,12 @@ export function ExpensesCard({
 
 	return (
 		<Card>
-			<CardHeader className="flex-row items-center justify-between">
+			{/* The header primitive is a grid, so `flex-row justify-between`
+			    alone did nothing and Add Expense sat under the title; it is a
+			    flex row that wraps (66.2-39 fix round 4, Part 8e). mb-0 below
+			    on each paragraph that ends a block or is a flex item: the base
+			    margin added 16px inside the row or under the empty state. */}
+			<CardHeader className="flex flex-wrap items-center justify-between gap-3">
 				<div>
 					<CardTitle className="text-base">Expenses</CardTitle>
 					<CardDescription>
@@ -39,7 +44,7 @@ export function ExpensesCard({
 				{expenses.length === 0 ? (
 					<div className="text-center py-8 text-muted-foreground">
 						<DollarSign className="size-8 mx-auto mb-2 opacity-50" />
-						<p>No expenses recorded yet</p>
+						<p className="mb-0">No expenses recorded yet</p>
 					</div>
 				) : (
 					<div className="space-y-3">
@@ -57,20 +62,20 @@ export function ExpensesCard({
 											{expense.description}
 										</p>
 									) : null}
-									<p className="text-sm text-muted-foreground">
+									<p className="mb-0 text-sm text-muted-foreground">
 										{expense.expense_date
 											? formatDate(expense.expense_date)
 											: "No date"}
 									</p>
 								</div>
-								<p className="font-medium">
+								<p className="mb-0 shrink-0 font-medium">
 									{formatCurrency(expense.amount ?? 0)}
 								</p>
 							</div>
 						))}
 						<div className="flex items-center justify-between pt-3 border-t">
-							<p className="font-medium">Total</p>
-							<p className="font-bold text-lg">
+							<p className="mb-0 font-medium">Total</p>
+							<p className="mb-0 font-bold text-lg">
 								{formatCurrency(totalExpenses)}
 							</p>
 						</div>
