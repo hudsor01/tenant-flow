@@ -18,7 +18,15 @@ import { boxOf } from "../../lib/measure";
  *    ENTIRE /dashboard subtree (D-03 — full-page sweep incl. app-shell chrome,
  *    not just the v2.0-added regions). Served by a local production build; auth
  *    and data still hit the prod Supabase project (no screenshot diffing).
- * 2. 375px page-level zero-horizontal-scroll probe (POLISH-06): body and html
+ *    axe's `incomplete` list is not asserted: it holds the pairs axe could not
+ *    measure, here the chart axes' tick text inside each Recharts SVG and the
+ *    command palette's shortcut glyph (16 nodes, how many ticks depending on
+ *    owner A's data; 66.2-39 fix round 4, Part 7), never a measured failure.
+ * 2. Chart focus indicator (WCAG 2.4.7): a Recharts surface reached by Tab
+ *    draws a 2px solid outline in the ring color, inset by its own width so an
+ *    overflow-hidden card cannot clip it. axe has no rule for a missing focus
+ *    indicator, so the computed outline is read.
+ * 3. 375px page-level zero-horizontal-scroll probe (POLISH-06): body and html
  *    scrollWidth <= viewport + 1. The locked FORCE_GRID_QUERY (max-width:1023px)
  *    in portfolio-data-table.tsx forces the portfolio table into grid mode below
  *    1024px, which satisfies this.
