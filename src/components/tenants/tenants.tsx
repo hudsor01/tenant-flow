@@ -208,14 +208,17 @@ export function Tenants({
 							Manage your tenant records
 						</p>
 					</div>
-					<div className="flex items-center gap-2">
+					{/* The actions wrap, and Add Tenant keeps its width: at 320 it
+					    shrank beside Import Tenants and its label ran 2.84px past
+					    it (66.2-39 fix round 4, Part 8e). */}
+					<div className="flex flex-wrap items-center gap-2">
 						<BulkImportDialog
 							config={tenantBulkImportConfig()}
 							triggerLabel="Import Tenants"
 						/>
 						<button
 							onClick={handleAddClick}
-							className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
+							className="inline-flex shrink-0 items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
 						>
 							<UserPlus className="w-4 h-4" />
 							Add Tenant

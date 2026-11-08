@@ -96,17 +96,23 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 				{header}
 
 				{/* Tenant Information */}
+				{/* Email and phone step on the card's own width: two fixed
+				    columns left each 112px at 320, and owner A's tenant's email
+				    ran 43px into the phone beside it (320-400). A value wraps
+				    inside its column, since an email is one unbroken word
+				    (66.2-39 fix round 4, Part 8e). */}
 				<CardLayout
 					title="Contact Information"
 					description="Tenant's contact details and emergency information"
+					className="@container/tenant-contact"
 				>
-					<div className="grid grid-cols-2 gap-4">
+					<div className="grid grid-cols-1 gap-4 @min-[30rem]/tenant-contact:grid-cols-2">
 						<div className="space-y-1">
 							<div className="text-muted-foreground flex items-center gap-2">
 								<Mail className="size-4" />
 								Email
 							</div>
-							<div className="font-medium">
+							<div className="font-medium wrap-break-word">
 								{tenant.email || "Not provided"}
 							</div>
 						</div>
@@ -116,7 +122,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 								<Phone className="size-4" />
 								Phone
 							</div>
-							<div className="font-medium">
+							<div className="font-medium wrap-break-word">
 								{tenant.phone || "Not provided"}
 							</div>
 						</div>
