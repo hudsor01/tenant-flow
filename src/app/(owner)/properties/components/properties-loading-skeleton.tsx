@@ -14,11 +14,13 @@ export function PropertiesLoadingSkeleton() {
 					<Skeleton className="h-10 w-32" />
 				</div>
 			</div>
-			{/* Stats skeleton */}
-			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-				{[1, 2, 3, 4].map((i) => (
-					<Skeleton key={i} className="h-28 rounded-lg" />
-				))}
+			{/* Stats skeleton: the stat row's columns (PropertyStatsSection). */}
+			<div className="@container/property-stats">
+				<div className="grid grid-cols-1 @min-[25rem]/property-stats:grid-cols-2 @min-[51rem]/property-stats:grid-cols-4 gap-4">
+					{[1, 2, 3, 4].map((i) => (
+						<Skeleton key={i} className="h-28 rounded-lg" />
+					))}
+				</div>
 			</div>
 			{/* Portfolio skeleton */}
 			<Skeleton className="h-96 rounded-lg" />

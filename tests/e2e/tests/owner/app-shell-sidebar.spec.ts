@@ -2235,22 +2235,107 @@ test.describe("CP-4 follow-up: dashboard layout at every rail state", () => {
 });
 
 /**
- * The /properties stat row at every rail state (66.2-39 fix round 4, Part 8b).
+ * The /properties stat row at every rail state (66.2-39 fix round 4, Parts 8b
+ * and 8c), with long figures.
  *
- * Each tile's figure row is bottom-aligned (`flex items-end`): the figure and
- * the icon share a foot. Occupied Rent's "/unit avg" sub-line sat inside that
- * row, in the figure's item, so the item stood a line taller than its
- * neighbours': its figure rode 4px above the other three tiles' figures and its
- * icon 12px below their icons, at every width (owner A on the served build:
- * figures 385 vs 389, icons 397 vs 385 at 1280). jsdom lays nothing out, so a
- * class-presence test passes either way: only the browser's boxes can tell.
+ * Part 8b: each tile's figure row was bottom-aligned (`flex items-end`), and
+ * Occupied Rent's "/unit avg" sub-line sat inside it, so its figure rode 4px
+ * above the other three tiles' figures and its icon 12px below theirs (owner A
+ * on the served build: figures 385 vs 389, icons 397 vs 385 at 1280).
+ *
+ * Part 8c: the figure did not fit its tile. At 390 owner A's $8,734.00
+ * (109.3px) stood in an 89px content box and pushed the icon, which could
+ * shrink, to 16x36 past the tile's edge; at 1024 with the rail expanded the
+ * icon shrank inside the padding. An owner's figure can be far longer than
+ * owner A's, so owner A's properties read is answered in the browser with
+ * units that make every tile's figure long: 1234 properties, 1234 occupied
+ * units (100%) and $1,234,567.00 of occupied rent. Each tile's figure must sit
+ * on one line inside its content box and each icon keep its declared size.
+ * jsdom lays nothing out, so a class-presence test passes either way: only the
+ * browser's boxes can tell.
  */
+
+/** The figure Occupied Rent must read once the long properties read lands. */
+const LONG_OCCUPIED_RENT = "$1,234,567.00";
+const LONG_COUNT = 1234;
+
+/**
+ * Answers owner A's properties-with-units read in the browser (a GET, never a
+ * write): production's own rows, each property's units replaced so the four
+ * tiles read 1234 properties, 100% occupancy and $1,234,567.00 of occupied
+ * rent. The counter is live.
+ */
+async function fulfillLongPropertyFigures(
+	page: Page,
+): Promise<{ answered: number }> {
+	const traffic = { answered: 0 };
+	await page.route("**/rest/v1/properties?*", async (route) => {
+		const request = route.request();
+		const select = new URL(request.url()).searchParams.get("select") ?? "";
+		if (request.method() !== "GET" || !select.includes("units(")) {
+			return route.fallback();
+		}
+		const response = await route.fetch();
+		const rows = (await response.json()) as {
+			id: string;
+			units?: Record<string, unknown>[];
+		}[];
+		const template = rows.flatMap((row) => row.units ?? [])[0];
+		if (rows.length === 0 || template === undefined) {
+			throw new Error(
+				"owner A's properties read returned no unit to lengthen: restore owner A's data",
+			);
+		}
+		const rent = Math.floor(1_234_567 / LONG_COUNT);
+		const out = rows.map((row) => ({ ...row, units: [] as unknown[] }));
+		for (let index = 0; index < LONG_COUNT; index += 1) {
+			const row = out[index % out.length] as (typeof out)[number];
+			row.units.push({
+				...template,
+				id: `8c0e0000-0000-4000-8000-${String(index).padStart(12, "0")}`,
+				property_id: row.id,
+				unit_number: `L${index}`,
+				status: "occupied",
+				rent_amount: index === 0 ? 1_234_567 - rent * (LONG_COUNT - 1) : rent,
+			});
+		}
+		const headers = { ...response.headers() };
+		// route.fetch() returns the decoded body; the encoding no longer applies.
+		delete headers["content-encoding"];
+		delete headers["content-length"];
+		const range = headers["content-range"];
+		if (range !== undefined) {
+			headers["content-range"] = range.replace(/\/\d+$/, `/${LONG_COUNT}`);
+		}
+		traffic.answered += 1;
+		return route.fulfill({
+			status: response.status(),
+			headers,
+			body: JSON.stringify(out),
+		});
+	});
+	return traffic;
+}
+
+interface TileFacts {
+	insetLeft: number;
+	insetRight: number;
+	figureText: string;
+	figureLineHeight: number;
+	figureScrollWidth: number;
+	figureClientWidth: number;
+	/** The icon chip's declared size (its `w-N`/`h-N`/`size-N` classes, in px). */
+	iconWidth: number | null;
+	iconHeight: number | null;
+}
+
 test.describe("/properties stat row at every rail state", () => {
-	test("each grid row's figures share a top, and so do its icons", async ({
+	test("each tile's long figure fits its tile, icons keep their size, and each grid row shares a top", async ({
 		page,
 	}) => {
-		test.setTimeout(120_000);
+		test.setTimeout(150_000);
 		const errors = await openShell(page);
+		const traffic = await fulfillLongPropertyFigures(page);
 		for (const cell of KPI_CELLS) {
 			await seedSidebarCookie(page, cell.collapsed ? "false" : "true");
 			await page.setViewportSize({ width: cell.width, height: cell.height });
@@ -2267,21 +2352,103 @@ test.describe("/properties stat row at every rail state", () => {
 				})
 				.locator(":scope > .grid > div");
 			await expect(tiles).toHaveCount(4);
-			// The sub-line is the only content that can lift a figure: without it
-			// (no units) this test could not fail, so its presence is the control.
+			// Controls: the long read reached the tiles, and the sub-line, the
+			// one content that can lift a figure (Part 8b), is there.
+			await expect(tiles.nth(3).locator("p.text-2xl")).toHaveText(
+				LONG_OCCUPIED_RENT,
+			);
+			await expect(tiles.nth(0).locator("p.text-2xl")).toHaveText(
+				String(LONG_COUNT),
+			);
 			await expect(tiles.nth(3).getByText("/unit avg")).toBeVisible();
+			const icon = tiles.locator("div.rounded-sm.flex");
 			const tileBoxes = await boxesOf(tiles, { min: 4 });
 			const figures = await boxesOf(tiles.locator("p.text-2xl"), { min: 4 });
-			const icons = await boxesOf(
-				tiles.locator(":scope > div.flex > div.rounded-sm"),
-				{ min: 4 },
+			const icons = await boxesOf(icon, { min: 4 });
+			const facts: TileFacts[] = await tiles.evaluateAll((nodes) =>
+				nodes.map((tile) => {
+					const style = getComputedStyle(tile);
+					const figure = tile.querySelector("p.text-2xl") as HTMLElement;
+					const chip = tile.querySelector("div.rounded-sm.flex");
+					const declared = (axis: "w" | "h"): number | null => {
+						for (const token of (chip?.getAttribute("class") ?? "").split(
+							/\s+/,
+						)) {
+							const match = new RegExp(
+								`^(?:${axis}|size)-(\\d+(?:\\.\\d+)?)$`,
+							).exec(token);
+							if (match) return Number(match[1]) * 4;
+						}
+						return null;
+					};
+					return {
+						insetLeft:
+							Number.parseFloat(style.borderLeftWidth) +
+							Number.parseFloat(style.paddingLeft),
+						insetRight:
+							Number.parseFloat(style.borderRightWidth) +
+							Number.parseFloat(style.paddingRight),
+						figureText: figure.textContent ?? "",
+						figureLineHeight: Number.parseFloat(
+							getComputedStyle(figure).lineHeight,
+						),
+						figureScrollWidth: figure.scrollWidth,
+						figureClientWidth: figure.clientWidth,
+						iconWidth: declared("w"),
+						iconHeight: declared("h"),
+					};
+				}),
 			);
-			record(`properties stat row ${where}`, { tileBoxes, figures, icons });
+			record(`properties stat row ${where}`, {
+				tileBoxes,
+				figures,
+				icons,
+				facts,
+			});
 			expect(figures).toHaveLength(4);
 			expect(icons).toHaveLength(4);
+			for (let index = 0; index < 4; index += 1) {
+				const tile = tileBoxes[index] as Box;
+				const figure = figures[index] as Box;
+				const chip = icons[index] as Box;
+				const fact = facts[index] as TileFacts;
+				const name = `${where}: tile ${index + 1} (${fact.figureText})`;
+				const contentLeft = tile.x + fact.insetLeft;
+				const contentRight = tile.x + tile.width - fact.insetRight;
+				expect
+					.soft(figure.x, `${name}: the figure starts inside the tile`)
+					.toBeGreaterThanOrEqual(contentLeft - 0.5);
+				expect
+					.soft(
+						figure.x + figure.width,
+						`${name}: the figure ends inside the tile`,
+					)
+					.toBeLessThanOrEqual(contentRight + 0.5);
+				expect
+					.soft(
+						fact.figureScrollWidth,
+						`${name}: the figure's text fits its box (scrollWidth vs clientWidth)`,
+					)
+					.toBeLessThanOrEqual(fact.figureClientWidth);
+				expect
+					.soft(figure.height, `${name}: the figure is one line`)
+					.toBeLessThanOrEqual(fact.figureLineHeight + 0.5);
+				expect(fact.iconWidth, `${name}: the icon declares a width`).not.toBe(
+					null,
+				);
+				expect
+					.soft(chip.width, `${name}: the icon keeps its declared width`)
+					.toBeGreaterThanOrEqual((fact.iconWidth ?? 0) - 0.5);
+				expect
+					.soft(chip.height, `${name}: the icon keeps its declared height`)
+					.toBeGreaterThanOrEqual((fact.iconHeight ?? 0) - 0.5);
+				expect
+					.soft(chip.x + chip.width, `${name}: the icon ends inside the tile`)
+					.toBeLessThanOrEqual(contentRight + 0.5);
+			}
 			for (let index = 1; index < 4; index += 1) {
 				const tile = tileBoxes[index] as Box;
-				// The first tile of the same grid row (two columns below lg).
+				// The first tile of the same grid row.
 				const first = tileBoxes.findIndex(
 					(other) => Math.abs(other.y - tile.y) <= 0.5,
 				);
@@ -2298,6 +2465,12 @@ test.describe("/properties stat row at every rail state", () => {
 				);
 			}
 		}
+		// A cell may render from the persisted query cache without a read; the
+		// figure controls above prove the long read reached every cell's tiles.
+		expect(
+			traffic.answered,
+			"the long properties read was answered",
+		).toBeGreaterThanOrEqual(1);
 		expect(errors).toEqual([]);
 	});
 });

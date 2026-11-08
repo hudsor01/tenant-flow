@@ -156,8 +156,12 @@ export function Properties({
 		return <EmptyProperties onAddProperty={onAddProperty} />;
 	}
 
+	// No padding of its own: the page's wrapper pads it (p-6 lg:p-8), as every
+	// owner page is padded once; a second p-6 lg:p-8 here inset the list 48px
+	// at 390 (64px from the edge where every other owner page starts at 40) and
+	// left its stat tiles 89px for a figure (66.2-39 fix round 4, Part 8c).
 	return (
-		<div className="p-6 lg:p-8 min-h-full bg-background">
+		<>
 			<PropertiesHeader onAddProperty={onAddProperty} />
 			<PropertyStatsSection summary={summary} />
 			<section className="bg-card border border-border rounded-sm overflow-hidden">
@@ -228,6 +232,6 @@ export function Properties({
 				onApplyTypeChange={setApplyBulkType}
 				onSubmit={handleBulkEditSubmit}
 			/>
-		</div>
+		</>
 	);
 }

@@ -176,9 +176,13 @@ describe("stat rows", () => {
 		expectTwoLineLabels("performance-stats");
 	});
 
-	// "Occupied Rent" wraps at 390 beside "Available" (measured: its figure
-	// 20 px lower, part Q).
-	it("keep the properties page's figures on one line when a label wraps", () => {
+	// Part Q reserved two lines for every label: "Occupied Rent" wrapped at 390
+	// beside "Available" and dropped its figure 20px. Since fix round 4, Part
+	// 8c, each icon sits beside its label and the columns step on the row's
+	// width, where no label wraps (Occupied Rent, 90.44px, beside a 36px icon
+	// in a tile of 192px or more), so no label reserves a second line; every
+	// icon keeps its size and every figure stays on one line.
+	it("keep the properties page's labels on one line beside icons that never shrink", () => {
 		render(
 			<PropertyStatsSection
 				summary={{
@@ -195,14 +199,21 @@ describe("stat rows", () => {
 		const label = [...document.querySelectorAll("p")].find(
 			(p) => p.textContent === "Occupied Rent",
 		);
-		const tiles = [
-			...(label?.closest(".grid")?.querySelectorAll(":scope > div") ?? []),
-		];
+		const grid = label?.closest(".grid");
+		expect(grid?.parentElement?.className.split(/\s+/)).toContain(
+			"@container/property-stats",
+		);
+		const tiles = [...(grid?.querySelectorAll(":scope > div") ?? [])];
 		expect(tiles).toHaveLength(4);
 		for (const tile of tiles) {
-			const tileLabel = tile.querySelector("p");
-			expect(tileLabel?.className ?? "").toContain("min-h-10");
-			expect(tileLabel?.className ?? "").toContain("lg:min-h-0");
+			const labelRow = tile.firstElementChild;
+			const [tileLabel, chip] = [...(labelRow?.children ?? [])];
+			expect(tileLabel?.className ?? "").not.toContain("min-h-10");
+			expect(chip?.className.split(/\s+/) ?? []).toContain("shrink-0");
+			const figure = tile.querySelector("p.text-2xl");
+			expect(figure?.className.split(/\s+/) ?? []).toContain(
+				"whitespace-nowrap",
+			);
 		}
 	});
 

@@ -44,12 +44,6 @@ function viewportRelease(classString: string): string | null {
 /** Rows whose viewport release was measured never to misalign them. */
 const REVIEWED: { file: string; release: string; reason: string }[] = [
 	{
-		file: "src/components/properties/property-stats-section.tsx",
-		release: `lg:${MIN_H}0`,
-		reason:
-			"its longest label, Occupied Rent (90.44px), fits from a 34.1rem row; the narrowest lg row is 43rem (1024px, rail expanded): no misalignment 320-1600px in either rail state",
-	},
-	{
 		file: "src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
 		release: `lg:${MIN_H}0`,
 		reason:
