@@ -18,15 +18,12 @@ export const metadata: Metadata = {
 	robots: "noindex, nofollow",
 };
 
-interface CheckoutSuccessPageProps {
-	searchParams: Promise<{ session_id?: string }>;
-}
-
-export default async function CheckoutSuccessPage({
-	searchParams,
-}: CheckoutSuccessPageProps) {
-	const { session_id } = await searchParams;
-
+/**
+ * Stripe Checkout's success URL. It carries `?session_id=`, which the page
+ * does not show: anyone can link here with any value, so printing it would
+ * put their text on tenantflow.app, and the id means nothing to an owner.
+ */
+export default function CheckoutSuccessPage() {
 	return (
 		<div className="container flex min-h-[60vh] items-center justify-center py-12">
 			<Card className="w-full max-w-md text-center">
@@ -41,15 +38,10 @@ export default async function CheckoutSuccessPage({
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						Thank you for subscribing to TenantFlow. You can manage your
 						subscription at any time from your billing settings.
 					</p>
-					{session_id && (
-						<p className="mt-4 text-xs text-muted-foreground">
-							Session: {session_id.slice(0, 20)}...
-						</p>
-					)}
 				</CardContent>
 				<CardFooter className="flex flex-col gap-2">
 					<Button asChild className="w-full">

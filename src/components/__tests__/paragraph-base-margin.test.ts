@@ -54,7 +54,6 @@ const DEFERRED: Record<string, number> = {
 	"src/app/(owner)/@modal/(.)maintenance/[id]/edit/page.tsx": 1,
 	"src/app/(owner)/analytics/financial/_components/breakdown-list.tsx": 1,
 	"src/app/(owner)/billing/checkout/cancel/page.tsx": 1,
-	"src/app/(owner)/billing/checkout/success/page.tsx": 2,
 	"src/app/(owner)/documents/templates/components/branding-editor.tsx": 1,
 	"src/app/(owner)/documents/templates/components/clauses-editor.tsx": 1,
 	"src/app/(owner)/documents/templates/maintenance-request/page.tsx": 1,
