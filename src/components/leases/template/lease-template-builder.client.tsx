@@ -271,7 +271,12 @@ export function LeaseTemplateBuilder() {
 						</Button>
 					</div>
 				</CardHeader>
-				<CardContent>
+				{/* The builder's panels are cards inside this card: below sm its
+				    content pads 12px, not 24, so the cards' own padding leaves their
+				    text room (at 320 a clause title, Maintenance Responsibilities,
+				    ran 17.42px past an 82px column, and the preview's heading
+				    15.14px past 138px; 66.2-39 fix round 4, Part 8e). */}
+				<CardContent className="px-3 sm:px-6">
 					<div className="grid grid-cols-1 gap-6 lg:grid-cols-[20rem_1fr]">
 						<aside className="space-y-6">
 							<ConfigurationPanel
