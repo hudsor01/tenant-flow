@@ -1,38 +1,15 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import {
-	AlertTriangle,
-	Clock,
-	Download,
-	Loader2,
-	Trash2,
-	Undo2,
-} from "lucide-react";
+import { AlertTriangle, Download, Loader2, Trash2, Undo2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { DeletionScheduledNotice } from "#components/settings/deletion-scheduled-notice";
 import { downloadAccountData } from "#components/settings/download-account-data";
 import { BlurFade } from "#components/ui/blur-fade";
 import { authKeys } from "#hooks/api/use-auth";
-import { formatCount } from "#lib/formatters/count";
 import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
-
-function formatDeletionDate(deletionRequestedAt: string): string {
-	const requestDate = new Date(deletionRequestedAt);
-	const deleteDate = new Date(requestDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-	return deleteDate.toLocaleDateString("en-US", {
-		year: "numeric",
-		month: "long",
-		day: "numeric",
-	});
-}
-
-function daysRemaining(deletionRequestedAt: string): number {
-	const requestDate = new Date(deletionRequestedAt);
-	const deleteDate = new Date(requestDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-	return Math.ceil((deleteDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-}
 
 export function AccountDataSection() {
 	const [confirmText, setConfirmText] = useState("");
@@ -148,35 +125,11 @@ export function AccountDataSection() {
 
 					{isPending ? (
 						<div className="space-y-4">
-							<div className="flex items-start gap-3 rounded-lg border border-warning/30 bg-warning/5 p-4">
-								<Clock
-									className="h-5 w-5 text-warning-text mt-0.5 shrink-0"
-									aria-hidden="true"
-								/>
-								<div>
-									<p className="text-sm font-medium text-warning-text">
-										Account scheduled for deletion
-									</p>
-									<p className="text-sm text-muted-foreground mt-1">
-										Your account will be permanently deleted on{" "}
-										<strong>
-											{formatDeletionDate(
-												deletionStatus.data!.deletion_requested_at!,
-											)}
-										</strong>
-										. You have{" "}
-										<strong>
-											{formatCount(
-												daysRemaining(
-													deletionStatus.data!.deletion_requested_at!,
-												),
-												"day",
-											)}
-										</strong>{" "}
-										remaining to cancel.
-									</p>
-								</div>
-							</div>
+							<DeletionScheduledNotice
+								deletionRequestedAt={
+									deletionStatus.data!.deletion_requested_at!
+								}
+							/>
 							<button
 								onClick={() => cancelDeletion.mutate()}
 								disabled={cancelDeletion.isPending}
@@ -217,10 +170,10 @@ export function AccountDataSection() {
 											aria-hidden="true"
 										/>
 										<div>
-											<p className="text-sm font-medium text-destructive-text">
+											<p className="mb-0 text-sm font-medium text-destructive-text">
 												This will schedule your account for deletion
 											</p>
-											<p className="text-sm text-muted-foreground mt-1">
+											<p className="text-sm text-muted-foreground mt-1 mb-0">
 												After 30 days, all your data will be permanently
 												anonymized. You can cancel anytime during the grace
 												period.
