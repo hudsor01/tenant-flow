@@ -21,10 +21,12 @@ import { toast } from "sonner";
 import { DocumentsSection } from "#components/documents/documents-section";
 import { Button } from "#components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { ConfirmDialog } from "#components/ui/confirm-dialog";
 import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
 import { useDeleteMaintenanceRequest } from "#hooks/api/use-maintenance";
 import { callGeneratePdfFromHtml } from "#hooks/api/use-report-mutations";
 import { formatLocalYmd } from "#lib/formatters/date";
+import { createLogger } from "#lib/frontend-logger";
 import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { downloadBlob } from "#lib/reports/download-blob";
 import { formatCurrency } from "#lib/utils/currency";
@@ -34,6 +36,8 @@ import { generateTimeline, spendToDate } from "./maintenance-utils";
 import { PhotosCard } from "./photos-card";
 import { TimelineCard } from "./timeline-card";
 import { buildWorkOrderHtml } from "./work-order-template";
+
+const logger = createLogger({ component: "MaintenanceDetails" });
 
 interface MaintenanceDetailsProps {
 	id: string;
@@ -125,6 +129,21 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	const spentToDate = spendToDate(expenses, formatLocalYmd(new Date()));
 
 	const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+	// Delete Request only opens the confirmation; the delete runs from its
+	// Delete, and the page leaves for the list only once it succeeded.
+	const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+	const handleConfirmDelete = async () => {
+		setConfirmDeleteOpen(false);
+		try {
+			await deleteMutation.mutateAsync(id);
+			router.push("/maintenance");
+		} catch (error) {
+			// The hook's onError raises the one error toast; only log here.
+			logger.error("Delete maintenance request failed", {
+				error: error instanceof Error ? error.message : String(error),
+			});
+		}
+	};
 	const handleDownloadWorkOrder = async () => {
 		if (!request) return;
 		setIsGeneratingPdf(true);
@@ -240,22 +259,22 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 							variant="outline"
 							className="w-full justify-start gap-2 text-destructive-text hover:text-destructive-text hover:bg-destructive/10 dark:hover:bg-destructive/20 dark:hover:text-destructive-text"
 							disabled={deleteMutation.isPending}
-							onClick={async () => {
-								if (
-									!confirm(
-										"Are you sure you want to delete this maintenance request? This cannot be undone.",
-									)
-								)
-									return;
-								await deleteMutation.mutateAsync(id);
-								router.push("/maintenance");
-							}}
+							onClick={() => setConfirmDeleteOpen(true)}
 						>
 							<Trash2 className="size-4" />
 							Delete Request
 						</Button>
 					</CardContent>
 				</Card>
+				<ConfirmDialog
+					open={confirmDeleteOpen}
+					onOpenChange={setConfirmDeleteOpen}
+					title={`Delete request "${request.title || request.description}"?`}
+					description="This permanently deletes the maintenance request with its expenses and photos. This can't be undone."
+					confirmText="Delete request"
+					loading={deleteMutation.isPending}
+					onConfirm={() => void handleConfirmDelete()}
+				/>
 			</div>
 		</div>
 	);
