@@ -6,21 +6,17 @@ import { polledRead } from "./measure";
  * scroll sideways at 320px. Content inside its own `overflow-x` container (a
  * data table, a markdown table) may scroll there; the document may not.
  *
- * The route lists are every page in `src/app` a visitor (public) or owner A
- * (owner) can reach, taken from the `page.tsx` tree. A page that only
- * redirects is covered through its target (`/analytics` → `/analytics/overview`,
- * `/settings/billing` → `/settings?tab=billing`), and a tab its URL names is
- * listed as its own route (`?tab=insights`, each settings tab), since the page
- * mounts only the tab the URL asks for. Not here, and why:
- * - `/admin/*`: owner A is not an admin, so the proxy sends it to /dashboard;
- * - `/auth/signout`: an action that ends the session, not a page;
- * - the `@modal/(.)…` intercepts: client-side overlays of the full-page twins
- *   listed here, which render the same form;
- * - `/sign/<token>` with a live token: no fixture mints one, so only its
- *   invalid-token state is covered; `/apply/<token>` is covered both ways;
- * - the detail and edit pages (`/properties/<id>`, `/leases/<id>/edit`, …):
- *   `owner-reflow-320.spec.ts` measures them on owner A's newest record of
- *   each kind, and a kind owner A has no record of skips its pages.
+ * The route lists are the pages in `src/app` a visitor (public) or owner A
+ * (owner) can reach at a fixed URL, taken from the `page.tsx` tree. A tab its
+ * URL names is listed as its own route (`?tab=insights`, each settings tab),
+ * since the page mounts only the tab the URL asks for. Every other page is in
+ * `REFLOW_UNLISTED_PAGES` below, with the spec that measures it or the reason
+ * nothing does, and `__tests__/reflow-route-accounting.test.ts` fails on a
+ * `page.tsx` in neither. The `@modal/(.)…` intercepts are client-side overlays
+ * of their full-page twins, which render the same form, so each is covered
+ * where its twin is. `/sign/<token>` with a live token has no fixture that
+ * mints one, so only its invalid-token state is covered; `/apply/<token>` is
+ * covered both ways.
  */
 export const REFLOW_WIDTH = 320;
 
@@ -102,6 +98,100 @@ export const OWNER_REFLOW_ROUTES = [
 	"/units",
 	"/units/new",
 ] as const;
+
+/** How a page the route lists do not name is covered, or why it is not. */
+type UnlistedPage =
+	/** A data-driven spec measures it; `marker` is the text in the spec that reaches it. */
+	| { measuredBy: string; marker: string }
+	/** The page only redirects, to a listed route. */
+	| { redirectsTo: string }
+	/** No spec measures it. */
+	| { notMeasured: string };
+
+/**
+ * Every `page.tsx` route the lists above do not name, keyed by its route
+ * pattern (route groups dropped, `[param]` kept). Held to the tree by
+ * `__tests__/reflow-route-accounting.test.ts`.
+ */
+export const REFLOW_UNLISTED_PAGES: Readonly<Record<string, UnlistedPage>> = {
+	"/admin": {
+		notMeasured: "owner A is not an admin, so the proxy sends it to /dashboard",
+	},
+	"/admin/analytics": {
+		notMeasured: "owner A is not an admin, so the proxy sends it to /dashboard",
+	},
+	"/admin/blog": {
+		notMeasured: "owner A is not an admin, so the proxy sends it to /dashboard",
+	},
+	"/auth/signout": {
+		notMeasured: "an action that ends the session, not a page",
+	},
+	"/analytics": { redirectsTo: "/analytics/overview" },
+	"/analytics/leases": { redirectsTo: "/leases?tab=insights" },
+	"/analytics/maintenance": { redirectsTo: "/maintenance?tab=insights" },
+	"/analytics/occupancy": { redirectsTo: "/properties?tab=insights" },
+	"/settings/billing": { redirectsTo: "/settings?tab=billing" },
+	// Their paths depend on data: one post and one category the blog index
+	// links, and every comparison page the compare index links.
+	"/blog/[slug]": {
+		measuredBy: "public/reflow-320.spec.ts",
+		marker: "main a[href^='/blog/']",
+	},
+	"/blog/category/[category]": {
+		measuredBy: "public/reflow-320.spec.ts",
+		marker: 'href.startsWith("/blog/category/")',
+	},
+	"/compare/[competitor]": {
+		measuredBy: "public/reflow-320.spec.ts",
+		marker: "main a[href^='/compare/']",
+	},
+	// The detail and edit pages, on owner A's newest record of each kind; a
+	// kind owner A has no record of skips its pages, with the reason.
+	"/properties/[id]": {
+		measuredBy: "owner-reflow-320.spec.ts",
+		marker: "`/properties/${id}`",
+	},
+	"/properties/[id]/edit": {
+		measuredBy: "owner-reflow-320.spec.ts",
+		marker: "`/properties/${id}/edit`",
+	},
+	"/tenants/[id]": {
+		measuredBy: "owner-reflow-320.spec.ts",
+		marker: "`/tenants/${id}`",
+	},
+	"/tenants/[id]/edit": {
+		measuredBy: "owner-reflow-320.spec.ts",
+		marker: "`/tenants/${id}/edit`",
+	},
+	"/leases/[id]": {
+		measuredBy: "owner-reflow-320.spec.ts",
+		marker: "`/leases/${id}`",
+	},
+	"/leases/[id]/edit": {
+		measuredBy: "owner-reflow-320.spec.ts",
+		marker: "`/leases/${id}/edit`",
+	},
+	"/maintenance/[id]": {
+		measuredBy: "owner-reflow-320.spec.ts",
+		marker: "`/maintenance/${id}`",
+	},
+	"/maintenance/[id]/edit": {
+		measuredBy: "owner-reflow-320.spec.ts",
+		marker: "`/maintenance/${id}/edit`",
+	},
+	"/units/[id]/edit": {
+		measuredBy: "owner-reflow-320.spec.ts",
+		marker: "`/units/${id}/edit`",
+	},
+	"/inspections/[id]": {
+		measuredBy: "owner-reflow-320.spec.ts",
+		marker: "`/inspections/${id}`",
+	},
+	"/applications/[id]": {
+		measuredBy: "owner-reflow-320.spec.ts",
+		marker: "`/applications/${id}`",
+	},
+};
 
 interface PageWidth {
 	scrollWidth: number;
