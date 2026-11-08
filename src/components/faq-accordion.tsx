@@ -86,7 +86,7 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 				onClick={onToggle}
 				aria-expanded={isOpen}
 				aria-controls={panelId}
-				className="flex w-full items-center justify-between p-6 text-left transition-colors hover:bg-muted/50 focus:outline-none focus:bg-muted/50"
+				className="flex w-full items-center justify-between p-6 text-left transition-colors hover:bg-muted/50 focus:outline-none focus:bg-muted/50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
 			>
 				<h3 className="text-foreground typography-large pr-4">
 					{faq.question}

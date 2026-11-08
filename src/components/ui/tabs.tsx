@@ -1,5 +1,14 @@
 "use client";
 
+/**
+ * Local divergences from the shadcn registry item, fix round 4, Part 5b
+ * (66.2-39; recorded in the divergence register):
+ * - focus ring `ring-ring`, opaque, where upstream draws `ring-ring/50`: the
+ *   half-alpha ring read 2.17-2.58:1 on the page, card and popover, under
+ *   WCAG 1.4.11's 3:1;
+ * - TabsContent, a tab stop, draws that ring on keyboard focus: upstream's
+ *   outline-none panel showed only the base 4px ring/20 halo (1.32:1).
+ */
 import { Tabs as TabsPrimitive } from "radix-ui";
 import type { ComponentProps } from "react";
 
@@ -48,7 +57,7 @@ function TabsTrigger({
 				// Active state - primary blue matching sidebar
 				"data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:font-semibold",
 				// Focus styles
-				"focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring",
+				"focus-visible:border-ring focus-visible:ring-ring focus-visible:outline-ring",
 				className,
 			)}
 			{...props}
@@ -63,7 +72,10 @@ function TabsContent({
 	return (
 		<TabsPrimitive.Content
 			data-slot="tabs-content"
-			className={cn("flex-1 outline-none", className)}
+			className={cn(
+				"flex-1 rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring",
+				className,
+			)}
 			{...props}
 		/>
 	);

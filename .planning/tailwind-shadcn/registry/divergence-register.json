@@ -380,6 +380,11 @@
      "what": "ChartConfig as a mapped type instead of Record, and getPayloadConfigFromPayload's payload typed Record<string, unknown> | undefined instead of unknown",
      "reason": "upstream drift not adopted (D-05)",
      "ref": "D-05"
+    },
+    {
+     "what": "a Pie's focused layer paints its sectors' stroke in the ring color ([&_.recharts-pie:focus-visible_.recharts-sector]:stroke-ring): the SVG group paints no outline, so keyboard focus showed only the base ring/20 halo (1.35:1)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 2.4.7; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },
@@ -1068,6 +1073,16 @@
      "what": "upstream orientation handling (orientation default, data-orientation, group/tabs and the vertical classes), the line variant with tabsListVariants and data-variant, the after: underline indicator, relative, text-foreground/60 and the dark active border-input/bg-input/30 are not adopted",
      "reason": "upstream drift not adopted (D-05)",
      "ref": "D-05"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "TabsContent draws a focus-visible ring (ring-[3px] ring-ring, rounded-md): upstream's outline-none tab panel, a tab stop, showed only the base 4px ring/20 halo (1.32:1)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 2.4.7; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },

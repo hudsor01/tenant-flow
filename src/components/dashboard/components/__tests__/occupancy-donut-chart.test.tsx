@@ -157,10 +157,23 @@ describe("OccupancyDonutChart", () => {
 		render(<OccupancyDonutChart units={populated} />);
 		const chart = document.querySelector('[data-slot="chart"]');
 		expect(chart).not.toBeNull();
-		const sectorRules = [...(chart?.classList ?? [])].filter(
-			(c) => c.includes(".recharts-sector") && c.includes(":stroke-"),
+		// The resting rule; the focus rule (a focused Pie paints its sectors'
+		// stroke in the ring color, 66.2-39 fix round 4, Part 5b) is apart.
+		const classes = [...(chart?.classList ?? [])];
+		const sectorRules = classes.filter(
+			(c) =>
+				c.includes(".recharts-sector") &&
+				c.includes(":stroke-") &&
+				!c.includes(":focus-visible"),
 		);
 		expect(sectorRules).toHaveLength(1);
+		expect(
+			classes.filter(
+				(c) =>
+					c.includes(".recharts-pie:focus-visible") &&
+					c.endsWith(":stroke-ring"),
+			),
+		).toHaveLength(1);
 		const designSystem = await loadProjectDesignSystem();
 		const css = designSystem.candidatesToCss(sectorRules)[0] ?? "";
 		const selector = css.slice(css.indexOf(" ") + 1, css.indexOf("{")).trim();

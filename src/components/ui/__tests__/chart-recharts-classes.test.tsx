@@ -165,14 +165,28 @@ describe(`ChartContainer's recharts rules against recharts ${installed.version}`
 				"svg.recharts-surface",
 			);
 			expect(surface?.getAttribute("tabindex")).toBe("0");
+			const rules = compiledRules(chart);
+			const count = () =>
+				rules.map(
+					({ selector }) => container.querySelectorAll(selector).length,
+				);
 			surface?.focus();
+			const onSurface = count();
+			// A Pie's own tab stop is its layer group: the pie focus rule
+			// paints its sectors' stroke (66.2-39 fix round 4, Part 5b).
+			const pie = container.querySelector<SVGGElement>(
+				'[data-probe="pie"] g.recharts-pie',
+			);
+			expect(pie?.getAttribute("tabindex")).toBe("0");
+			pie?.focus();
+			const onPie = count();
 			const reach = Object.fromEntries(
-				compiledRules(chart).map(({ candidate, selector }) => [
+				rules.map(({ candidate }, i) => [
 					candidate,
-					container.querySelectorAll(selector).length,
+					Math.max(onSurface[i] ?? 0, onPie[i] ?? 0),
 				]),
 			);
-			expect(Object.keys(reach)).toHaveLength(16);
+			expect(Object.keys(reach)).toHaveLength(17);
 			for (const [candidate, count] of Object.entries(reach)) {
 				expect(count, candidate).toBeGreaterThan(0);
 			}
