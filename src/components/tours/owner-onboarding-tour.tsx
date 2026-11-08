@@ -197,8 +197,8 @@ export function OwnerOnboardingTour({
 						<TourTitle>Welcome to TenantFlow</TourTitle>
 						<TourDescription className={isMobile ? "text-sm" : ""}>
 							{isMobile
-								? "View your portfolio overview: scheduled rent, occupancy, and tenant status."
-								: "Your property management dashboard gives you a complete overview of your portfolio. See scheduled rent, occupancy, and tenant status at a glance; scheduled rent, occupancy, and open maintenance each compare against 30 days ago."}
+								? "View your portfolio overview: scheduled rent, occupancy, active leases and open maintenance."
+								: "Your property management dashboard gives you a complete overview of your portfolio. See scheduled rent, occupancy, active leases and open maintenance at a glance; scheduled rent, occupancy and open maintenance each compare against 30 days ago."}
 						</TourDescription>
 					</TourHeader>
 				</TourStep>

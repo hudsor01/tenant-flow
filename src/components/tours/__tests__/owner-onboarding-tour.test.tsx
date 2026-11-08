@@ -134,15 +134,35 @@ describe("OwnerOnboardingTour step 5 (D-39)", () => {
 	// days or 6 months), today's occupancy and the quick actions. Its copy
 	// said to compare each metric against 30 days ago and named maintenance,
 	// neither of which it shows; the "30 days ago" chips are on step 1's tiles
-	// (cycle 2, F73).
+	// (cycle 2, F73). Step 1 spotlights the KPI row (scheduled rent,
+	// occupancy, active leases, open maintenance, properties, units) and the
+	// collection rate: no tenant figure, though its copy named "tenant status"
+	// (66.2-39 fix round 4, G40).
 	it("describes only what steps 1 and 2 spotlight", async () => {
 		const steps = await renderSteps({ isMobile: false, state: "expanded" });
 		const [stats, trends] = steps.map(
 			(step) => within(step).getByTestId("tour-description").textContent,
 		);
+		expect(stats).toMatch(
+			/scheduled rent, occupancy, active leases and open maintenance at a glance/,
+		);
 		expect(stats).toMatch(/compare against 30 days ago/);
+		expect(stats).not.toMatch(/tenant/i);
 		expect(trends).toMatch(/scheduled rent over the last 30 days or 6 months/);
 		expect(trends).toMatch(/occupied today/);
 		expect(trends).not.toMatch(/maintenance|compare/i);
+	});
+
+	it("names step 1's figures on a phone too, and no tenant figure", async () => {
+		// The tour picks its phone copy below 768px of window width.
+		const width = vi.spyOn(window, "innerWidth", "get").mockReturnValue(390);
+		const [stats] = (
+			await renderSteps({ isMobile: true, state: "expanded" })
+		).map((step) => within(step).getByTestId("tour-description").textContent);
+		width.mockRestore();
+		expect(stats).toBe(
+			"View your portfolio overview: scheduled rent, occupancy, active leases and open maintenance.",
+		);
+		expect(stats).not.toMatch(/tenant/i);
 	});
 });
