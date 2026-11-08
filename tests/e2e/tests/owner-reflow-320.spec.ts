@@ -80,8 +80,16 @@ for (const [group, paths] of ROUTE_GROUPS) {
 		test.setTimeout(30_000 + 30_000 * paths.length);
 		await signIn(page, context);
 		const failures: string[] = [];
+		// A control one route of the group measured is not opened again on
+		// another route of the same page (the settings tabs' routes).
+		const measured = new Set<string>();
 		for (const path of paths) {
-			failures.push(...(await reflowStateFailures(page, path)));
+			failures.push(
+				...(await reflowStateFailures(page, path, {
+					header: path === "/dashboard",
+					measured,
+				})),
+			);
 		}
 		expect(failures, failures.join("\n")).toEqual([]);
 	});
@@ -236,6 +244,36 @@ async function answerSyntheticRequest(
 	);
 }
 
+/**
+ * Answers owner A's lease read in the browser (a GET, never a write) with
+ * production's row lengthened and `ledger_start_date` set, so the page shows a
+ * tracked ledger and its Record receipt and Add line controls.
+ */
+async function answerLeaseAsTracked(page: Page, id: string): Promise<void> {
+	await page.route(
+		new RegExp(`/rest/v1/leases\\?.*id=eq\\.${id}`),
+		async (route) => {
+			if (route.request().method() !== "GET") return route.fallback();
+			const response = await route.fetch();
+			const tracked = (row: unknown) =>
+				row !== null && typeof row === "object"
+					? { ...row, ledger_start_date: "2026-01-01" }
+					: row;
+			const body = lengthenRead(await response.json());
+			const headers = { ...response.headers() };
+			delete headers["content-encoding"];
+			delete headers["content-length"];
+			return route.fulfill({
+				status: response.status(),
+				headers,
+				body: JSON.stringify(
+					Array.isArray(body) ? body.map(tracked) : tracked(body),
+				),
+			});
+		},
+	);
+}
+
 const records = new Map<string, NewestRecord>();
 let newestUnit: { id: string; property_id: string } | null = null;
 let setupFailure: string | null = "the id lookup has not run";
@@ -313,6 +351,12 @@ test.describe("detail and edit pages, and the flows", () => {
 						page.getByText(SYNTHETIC_REQUEST_TITLE).first(),
 					).toBeVisible();
 				}
+			}
+			if (route.table === "leases") {
+				// The ledger's receipt and line dialogs open only on a tracked
+				// lease: owner A's lease read, answered with a start date.
+				await answerLeaseAsTracked(page, id);
+				await expectReflowStates(page, `/leases/${id}`);
 			}
 		});
 	}

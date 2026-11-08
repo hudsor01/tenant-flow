@@ -273,7 +273,8 @@ export async function polledRead<T>(
  * every way the state fails at the viewport's width:
  *   - the document scrolls sideways;
  *   - an open overlay (dialog, sheet, menu, listbox, popover, tooltip) sits
- *     past the viewport, or scrolls sideways inside itself;
+ *     past the viewport (either axis: a fixed overlay does not scroll with
+ *     the page), or scrolls sideways inside itself;
  *   - a control sits past the viewport and no scroller it is in reaches it;
  *   - text runs past its own box where that box does not clip it (a fixed
  *     three-column grid left a lease term 44.66px, and $1,500.00 ran 36px into
@@ -345,16 +346,20 @@ function reflowSnapshot(arg: {
 	);
 	const headerReady =
 		!header || header.querySelector('[aria-label$=" user menu"]') !== null;
+	// An overlay that closed on its own (a tooltip losing focus) leaves the
+	// page's state to read.
+	const scope =
+		arg.scope === "overlay" && open.length === 0 ? "page" : arg.scope;
 	const settled =
 		!running &&
-		(arg.scope === "overlay"
+		(scope === "overlay"
 			? open.length > 0
 			: !!main &&
 				main.clientHeight > 0 &&
 				main.querySelector('[data-slot="skeleton"]') === null &&
 				headerReady);
 	const roots: Element[] =
-		arg.scope === "overlay"
+		scope === "overlay"
 			? open
 			: [
 					...(main ? [main] : []),
@@ -372,6 +377,13 @@ function reflowSnapshot(arg: {
 		if (r.left < -0.5 || r.right > cw + 0.5) {
 			problems.push(
 				`${label(o)} sits past the viewport (${r2(r.left)} to ${r2(r.right)})`,
+			);
+		}
+		// A fixed overlay does not scroll with the page: past the viewport's
+		// height, its ends are out of reach.
+		if (r.top < -0.5 || r.bottom > window.innerHeight + 0.5) {
+			problems.push(
+				`${label(o)} runs past the viewport's height (${r2(r.top)} to ${r2(r.bottom)} of ${window.innerHeight})`,
 			);
 		}
 		if (s.overflowX !== "visible" && o.scrollWidth > o.clientWidth + 1) {

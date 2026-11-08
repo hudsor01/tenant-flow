@@ -263,8 +263,9 @@ export function reflowFailures(
 export async function expectReflowStates(
 	page: Page,
 	path: string,
+	options: { header?: boolean } = {},
 ): Promise<void> {
-	const failures = await reflowStateFailures(page, path);
+	const failures = await reflowStateFailures(page, path, options);
 	expect(failures, failures.join("\n")).toEqual([]);
 }
 
@@ -276,6 +277,7 @@ export async function expectReflowStates(
 export async function reflowStateFailures(
 	page: Page,
 	path: string,
+	options: { header?: boolean; measured?: Set<string> } = {},
 ): Promise<string[]> {
 	await page.goto(path);
 	const main = page.locator("main").first();
@@ -289,7 +291,22 @@ export async function reflowStateFailures(
 		)
 		.toBe(true);
 	const failures = reflowFailures(path, await readReflow(page, "page"));
-	for (const state of await measureEachTrigger(page, { label: `${path} > ` })) {
+	const measured = options.measured ?? new Set<string>();
+	const states = await measureEachTrigger(page, {
+		label: `${path} > `,
+		measured,
+	});
+	if (options.header) {
+		// The app or site header's controls (the menus, the mobile sheet), once.
+		states.push(
+			...(await measureEachTrigger(page, {
+				label: `${path} header > `,
+				region: "body > div header, header",
+				measured,
+			})),
+		);
+	}
+	for (const state of states) {
 		failures.push(
 			...state.problems.map((problem) => `${state.state}: ${problem}`),
 		);

@@ -20,10 +20,14 @@ import { REFLOW_OVERLAYS, readReflow } from "./measure";
  *     `blockWrites` fulfills or aborts every other request that is not a read,
  *     so no write reaches production from a state the guard opens;
  *   - `measureEachTrigger` opens every dialog, sheet, menu, popover, select,
- *     tooltip, accordion, tab and view control the page shows (and one level
- *     inside an open dialog), one control per row column, and reads each state
- *     with `readReflow`; a control whose name says it deletes, sends, signs
- *     out or publishes is never pressed.
+ *     tooltip, accordion, tab and view control the page (or a region, the
+ *     header) shows, the controls a tab's panel adds, and one level inside an
+ *     open dialog, one control per row column or list item, and reads each
+ *     state with `readReflow`. A plain button (no ARIA trigger state) counts
+ *     only when its name starts with a verb that opens something and it is
+ *     outside a form: a `<button>` with no `type` is `type="submit"`, so the
+ *     element's `type` property cannot tell them apart. A control whose name
+ *     says it deletes, sends, signs out or publishes is never pressed.
  */
 
 /** Long values a read's string fields take, by key. */
@@ -255,7 +259,7 @@ function triggerQuery(arg: {
 	nth?: number;
 }): Trigger[] {
 	const OPENER =
-		/^(add|new|record|edit|view|schedule|reschedule|renew|rename|move out|rent increase|track|bulk|details|open|preview|manage|assign|change|set up|filter|filters|columns|show|more|select|choose|browse|customize|contact|see|learn|compare)\b/i;
+		/^(add|new|record|edit|view|schedule|reschedule|renew|rename|move out|rent increase|track|bulk|details|open|preview|manage|assign|change|set up|filter|filters|columns|show|more|select|choose|browse|customize|contact|see|learn|compare|start tracking|enable$)\b/i;
 	const keyOf = (el: Element) => {
 		const name = (
 			el.getAttribute("aria-label") ||
@@ -277,6 +281,10 @@ function triggerQuery(arg: {
 		let norm = name.replace(/\bfor\b.*$/i, "for …").replace(/\d+/g, "#");
 		if (kind === "checkbox" || el.getAttribute("role") === "checkbox") {
 			norm = row ? "" : el.closest('[data-slot="card"]') ? "card" : norm;
+		}
+		// A list's per-item control ("Rename Insurance"): one per verb.
+		if (el.closest("li, [role='listitem']") && /^\w+ \S/.test(norm)) {
+			norm = `item: ${norm.split(" ")[0]}`;
 		}
 		if (row) norm = `row cell ${cell}: ${norm}`;
 		return {
@@ -334,7 +342,10 @@ function triggerQuery(arg: {
 		if (
 			plain &&
 			(!arg.plain ||
-				(el as HTMLButtonElement).type === "submit" ||
+				// A file it builds or fetches (a PDF preview, an export) is a
+				// request, not a state.
+				/\b(pdf|download|export|print|generate)\b/i.test(trigger.name) ||
+				el.getAttribute("type") === "submit" ||
 				el.closest("form") ||
 				!OPENER.test(trigger.name))
 		) {
@@ -399,26 +410,50 @@ async function pressTrigger(
 	});
 	if (found.length === 0) return false;
 	const control = page.locator("[data-reflow-trigger]");
-	if (trigger.kind === "tooltip-trigger") await control.hover();
+	const home = page.url();
+	// A tooltip opens on focus as on hover, and focus is not intercepted by
+	// whatever sits over the trigger.
+	if (trigger.kind === "tooltip-trigger") await control.focus();
 	else await control.click();
+	// An ARIA trigger states what it opened; a plain button shows an overlay
+	// or navigates (an intercepted modal), or changed the page at once.
+	const aria = trigger.kind !== "button";
 	await expect
 		.poll(
 			() =>
-				page.evaluate((selector) => {
-					const el = document.querySelector("[data-reflow-trigger]");
-					return (
-						document.querySelectorAll(selector).length > 0 ||
-						el?.getAttribute("aria-expanded") === "true" ||
-						el?.getAttribute("aria-selected") === "true" ||
-						el?.getAttribute("aria-pressed") === "true" ||
-						/open/.test(el?.getAttribute("data-state") ?? "") ||
-						el?.getAttribute("data-state") === "on"
-					);
-				}, REFLOW_OVERLAYS),
-			{ timeout: 3000, intervals: FAST },
+				page.evaluate(
+					({ selector, home }) => {
+						const el = document.querySelector("[data-reflow-trigger]");
+						return (
+							document.querySelectorAll(selector).length > 0 ||
+							location.href !== home ||
+							el?.getAttribute("aria-expanded") === "true" ||
+							el?.getAttribute("aria-selected") === "true" ||
+							el?.getAttribute("aria-pressed") === "true" ||
+							/open/.test(el?.getAttribute("data-state") ?? "") ||
+							el?.getAttribute("data-state") === "on"
+						);
+					},
+					{ selector: REFLOW_OVERLAYS, home },
+				),
+			{ timeout: aria ? 3000 : 1000, intervals: FAST },
 		)
 		.toBe(true)
 		.catch(() => {});
+	if (page.url() !== home) {
+		// A navigation that opens a modal: wait for it, or for the page.
+		await expect
+			.poll(
+				() =>
+					page.evaluate(
+						(selector) => document.querySelectorAll(selector).length > 0,
+						REFLOW_OVERLAYS,
+					),
+				{ timeout: 1500, intervals: FAST },
+			)
+			.toBe(true)
+			.catch(() => {});
+	}
 	return true;
 }
 
@@ -431,18 +466,42 @@ async function pressTrigger(
  */
 export async function measureEachTrigger(
 	page: Page,
-	options: { label: string; root?: string | null } = { label: "" },
+	options: {
+		label: string;
+		root?: string | null;
+		/** The page's region to list controls in (main by default; the header). */
+		region?: string;
+		seen?: Set<string>;
+		/**
+		 * Controls already measured on this pathname by an earlier route of the
+		 * same test (`/settings?tab=billing` shows the tabs `/settings` did).
+		 */
+		measured?: Set<string>;
+	} = {
+		label: "",
+	},
 ): Promise<{ state: string; problems: string[] }[]> {
 	const root = options.root ?? null;
+	const scope = root ?? options.region ?? null;
 	const home = page.url();
 	const results: { state: string; problems: string[] }[] = [];
 	const triggers = await page.evaluate(triggerQuery, {
 		op: "list" as const,
-		root,
+		root: scope,
 		selector: TRIGGERS,
 		plain: root === null,
 	});
-	for (const trigger of triggers) {
+	// The keys measured on this page: a tab's panel opens only its own.
+	const seen = options.seen ?? new Set<string>();
+	const pathname = new URL(home).pathname;
+	const measured = options.measured ?? new Set<string>();
+	const fresh = triggers.filter(
+		(trigger) =>
+			!seen.has(trigger.key) && !measured.has(`${pathname}|${trigger.key}`),
+	);
+	for (const trigger of fresh) measured.add(`${pathname}|${trigger.key}`);
+	for (const trigger of fresh) seen.add(trigger.key);
+	for (const trigger of fresh) {
 		if (DESTRUCTIVE.test(trigger.name) || NAVIGATES.has(trigger.key)) continue;
 		const state = `${options.label}${trigger.kind} "${trigger.name}"`;
 		// A tab is put back by pressing the tab that was selected before it.
@@ -451,14 +510,14 @@ export async function measureEachTrigger(
 				? ((
 						await page.evaluate(triggerQuery, {
 							op: "selected" as const,
-							root,
+							root: scope,
 							selector: TRIGGERS,
 							key: trigger.key,
 							nth: trigger.nth,
 						})
 					)[0] ?? null)
 				: null;
-		if (!(await pressTrigger(page, trigger, root))) continue;
+		if (!(await pressTrigger(page, trigger, scope))) continue;
 		const overlay = await page.evaluate(overlayState, REFLOW_OVERLAYS);
 		if (!overlay.open && page.url() !== home) {
 			// It navigated: the page it reached is measured as its own route,
@@ -475,6 +534,17 @@ export async function measureEachTrigger(
 				...(await measureEachTrigger(page, {
 					label: `${state} > `,
 					root: '[role="dialog"], [role="alertdialog"]',
+					measured,
+				})),
+			);
+		}
+		if (selectedTab && !overlay.open && root === null) {
+			// The tab's panel: the controls it shows that the page did not.
+			results.push(
+				...(await measureEachTrigger(page, {
+					label: `${state} > `,
+					seen,
+					measured,
 				})),
 			);
 		}
@@ -491,7 +561,7 @@ export async function measureEachTrigger(
 			.catch(() => {});
 		const restored =
 			page.url() === home &&
-			(!selectedTab || (await pressTrigger(page, selectedTab, root)));
+			(!selectedTab || (await pressTrigger(page, selectedTab, scope)));
 		if (!restored) {
 			await page.goto(home);
 			await readReflow(page, "page");

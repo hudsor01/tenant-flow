@@ -40,7 +40,7 @@ for (const path of PUBLIC_REFLOW_ROUTES) {
 	test(`${path} and the states its controls open fit ${REFLOW_WIDTH}px`, async ({
 		page,
 	}) => {
-		await expectReflowStates(page, path);
+		await expectReflowStates(page, path, { header: path === "/" });
 	});
 }
 
