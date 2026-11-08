@@ -542,7 +542,7 @@ describe("no chart or meter mark reads a token under 3:1 on the card (66.2-39 VD
 				"} } });",
 			].join("\n");
 		expect(meterFillViolations(meter("bg-success"), css)).toEqual([
-			"success light: bg-success on the card 2.63:1",
+			"success light: bg-success on the card 2.62:1",
 			"success light: bg-success on bg-success/20 2.15:1",
 		]);
 		expect(meterFillViolations(meter("bg-success-text"), css)).toEqual([]);

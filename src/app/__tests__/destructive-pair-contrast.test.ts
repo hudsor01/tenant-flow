@@ -6,10 +6,12 @@
  * `bg-destructive/60` over the card), at 12-14px.
  *
  * The values are read from globals.css (`:root` and `.dark`) and converted
- * OKLCH -> OKLab -> linear sRGB, clipped to the sRGB gamut as the browser
- * paints it. Measured in Chrome (canvas readback, 66.2-39 fix round 1) the
- * light pair was 4.483:1 at `oklch(0.98 0.01 90)`, under AA; this conversion
- * reads 4.485 for the same values. `oklch(0.99 0.006 90)` measured 4.629:1.
+ * OKLCH -> OKLab -> linear sRGB, then painted as the browser paints them
+ * (`#test/utils/oklch-contrast`: clipped, at 8 bits per channel). Measured in
+ * Chrome (canvas readback, 66.2-39 fix round 1) the light pair was 4.483:1 at
+ * `oklch(0.98 0.01 90)`, under AA, and `oklch(0.99 0.006 90)` 4.629:1; this
+ * conversion reads both exactly (fix round 4, Part 8b; 4.485 and 4.616 before
+ * it painted at 8 bits).
  */
 
 import { readFileSync } from "node:fs";
