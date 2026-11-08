@@ -12,13 +12,28 @@ import { PUBLIC_REFLOW_ROUTES } from "../../lib/reflow";
  * and the faded CTA lines on /features (3.78:1), once the page was in the
  * theme under test and its in-view entrances had painted.
  *
- * Text inside an `aria-hidden` subtree is decoration (the how-it-works step
- * numbers, the feature cards' preview art), which 1.4.3 exempts, so it is left
- * out; axe itself measures it.
+ * The pages are `PUBLIC_REFLOW_ROUTES` and, as `reflow-320.spec.ts` reads
+ * them, the pages whose paths depend on data: one blog post and one blog
+ * category the blog index links, and every comparison page the compare index
+ * links. The open `/apply/<token>` form needs a seeded link, so only its
+ * invalid-token page is here; the rendered sweep measured the form.
  *
- * axe has no rule for WCAG 1.4.11 (control boundaries, focus indicators); the
- * unit guard `state-fill-contrast.test.ts` holds those, and the open, hover,
- * focus and validation states stay with the rendered sweep.
+ * Text inside an `aria-hidden` subtree is left out, and on these pages all of
+ * it is decoration, which 1.4.3 exempts: the separators between links and
+ * dates (`-`, `·`), the how-it-works step numerals, the /features cards'
+ * preview art, and the native `<select>` Radix keeps clipped to 1px for
+ * forms (measured on every page here at 1280 and 390, 66.2-39 fix round 4,
+ * Part 7).
+ *
+ * Only `violations` fail. axe's `incomplete` list holds the nodes it could not
+ * measure, never a measured failure: text over a gradient, over an image or
+ * another element, or beside a pseudo-element, 1 to 24 nodes on 15 of the 30
+ * pages (Part 7's count), so an empty-list check would fail on those pages
+ * every run. Those pairs are measured by the rendered sweep, and the tinted
+ * stacks by the unit guard `state-fill-contrast.test.ts`. axe has no rule for
+ * WCAG 1.4.11 (control boundaries, focus indicators); that guard holds those,
+ * and the open, hover, focus and validation states stay with the rendered
+ * sweep.
  */
 const THEME_KEY = "tenantflow-theme-mode";
 
@@ -72,43 +87,87 @@ async function revealAll(page: Page): Promise<void> {
 	await settle(page);
 }
 
+/** The page at `path` in `theme`, settled and scrolled through, has no axe color-contrast violation. */
+async function expectReadableText(
+	page: Page,
+	path: string,
+	theme: "light" | "dark",
+): Promise<void> {
+	await page.goto(path);
+	await settle(page);
+	await expect
+		.poll(() =>
+			page.evaluate(() => document.documentElement.classList.contains("dark")),
+		)
+		.toBe(theme === "dark");
+	await revealAll(page);
+	const { violations } = await new AxeBuilder({ page })
+		.withRules(["color-contrast"])
+		.exclude('[aria-hidden="true"]')
+		.analyze();
+	expect(
+		violations.flatMap((rule) =>
+			rule.nodes.map(
+				(node) =>
+					`${path}: ${node.target.join(" ")}: ${node.any[0]?.message ?? rule.help}`,
+			),
+		),
+	).toEqual([]);
+}
+
 for (const theme of ["light", "dark"] as const) {
 	test.describe(`text contrast (${theme})`, () => {
 		test.use({ colorScheme: theme });
 
+		test.beforeEach(async ({ page }) => {
+			await page.addInitScript(
+				([key, value]) => {
+					try {
+						localStorage.setItem(key, value);
+					} catch {}
+				},
+				[THEME_KEY, theme] as const,
+			);
+		});
+
 		for (const path of PUBLIC_REFLOW_ROUTES) {
 			test(`${path} has no text under 4.5:1 (${theme})`, async ({ page }) => {
-				await page.addInitScript(
-					([key, value]) => {
-						try {
-							localStorage.setItem(key, value);
-						} catch {}
-					},
-					[THEME_KEY, theme] as const,
-				);
-				await page.goto(path);
-				await settle(page);
-				await expect
-					.poll(() =>
-						page.evaluate(() =>
-							document.documentElement.classList.contains("dark"),
-						),
-					)
-					.toBe(theme === "dark");
-				await revealAll(page);
-				const { violations } = await new AxeBuilder({ page })
-					.withRules(["color-contrast"])
-					.exclude('[aria-hidden="true"]')
-					.analyze();
-				expect(
-					violations.flatMap((rule) =>
-						rule.nodes.map(
-							(node) =>
-								`${node.target.join(" ")}: ${node.any[0]?.message ?? rule.help}`,
-						),
-					),
-				).toEqual([]);
+				await expectReadableText(page, path, theme);
 			});
 		}
+
+		test(`a blog post, a blog category and every comparison page have no text under 4.5:1 (${theme})`, async ({
+			page,
+		}) => {
+			test.setTimeout(120_000);
+			await page.goto("/blog");
+			const postLinks = page.locator("main a[href^='/blog/']");
+			await expect
+				.poll(() => postLinks.count(), { timeout: 15_000 })
+				.toBeGreaterThan(0);
+			const blogLinks = await postLinks.evaluateAll((links) =>
+				links.map((a) => a.getAttribute("href") ?? ""),
+			);
+			const post = blogLinks.find(
+				(href) =>
+					!href.startsWith("/blog/category/") && href.split("/").length === 3,
+			);
+			const category = blogLinks.find((href) =>
+				href.startsWith("/blog/category/"),
+			);
+			await page.goto("/compare");
+			const comparePages = page.locator("main a[href^='/compare/']");
+			await expect
+				.poll(() => comparePages.count(), { timeout: 15_000 })
+				.toBeGreaterThan(0);
+			const compareLinks = await comparePages.evaluateAll((links) => [
+				...new Set(links.map((a) => a.getAttribute("href") ?? "")),
+			]);
+			expect(post, "the blog index links a post").toBeTruthy();
+			expect(category, "the blog index links a category").toBeTruthy();
+			for (const path of [post, category, ...compareLinks]) {
+				if (path) await expectReadableText(page, path, theme);
+			}
+		});
 	});
 }
