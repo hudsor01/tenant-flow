@@ -1046,6 +1046,11 @@
      "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
      "reason": "D-26 customization",
      "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "the unchecked track is bg-input in dark too, where upstream fades it to bg-input/80: the faded track read 2.61-2.65:1 against the page",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },
