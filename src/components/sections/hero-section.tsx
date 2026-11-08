@@ -48,7 +48,7 @@ export function HeroSection({
 						<div
 							className={
 								hasVisual
-									? "flex flex-col justify-center space-y-8"
+									? "@container flex flex-col justify-center space-y-8"
 									: "flex flex-col items-center space-y-8 max-w-4xl"
 							}
 						>

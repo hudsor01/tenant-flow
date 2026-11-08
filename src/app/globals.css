@@ -48,7 +48,7 @@
 	   ========================================================================== */
 
 	/* Level 1: Display - Marketing/Hero (impactful, fluid) */
-	--text-display-hero: clamp(3rem, 8vw, 5rem); /* 48-80px - main hero */
+	--text-display-hero: clamp(2.75rem, 8vw, 5rem); /* 44-80px - main hero */
 
 	/* Level 2: Title - App headings (clear, readable) */
 	--text-title-1: clamp(1.5rem, 3vw, 1.875rem); /* 24-30px - page titles */
@@ -677,8 +677,17 @@
    These utilities provide explicit responsive text classes.
    ========================================================================== */
 
+/*
+ * A hero headline's longest word fits its column (66.2-39 fix round 4, Part
+ * 8e): at 320 a 48px floor ran "spreadsheets" 11.11px and "management"
+ * 4.7px past a 272px column, and at 1024 the about hero's 80px "management"
+ * (5.77em) ran 13.16px past its 448px half of the page. The floor is 44px,
+ * and inside a container (the two-column hero's copy) the size is at most
+ * 16% of the container's width, where a 5.8em word fills 93% of it. With no
+ * container, cqi falls back to the viewport, and 16 of it never binds.
+ */
 @utility text-responsive-display-xl {
-	font-size: var(--text-display-hero);
+	font-size: min(var(--text-display-hero), 16cqi);
 	line-height: var(--leading-display);
 }
 
