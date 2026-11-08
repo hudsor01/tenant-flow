@@ -11,6 +11,11 @@
  * - the anchor hover fill is accent/25, not upstream's accent/50:
  *   muted-foreground descriptions read 3.43:1 (light) and 3.07:1 (dark) on the
  *   emerald accent/50.
+ *
+ * Fix round 4, Part 5b (66.2-39; recorded in the divergence register):
+ * - focus ring `ring-ring`, opaque, where upstream draws `ring-ring/50`: the
+ *   half-alpha ring read 2.17-2.58:1 on the page, card and popover, under
+ *   WCAG 1.4.11's 3:1.
  */
 import { cva, type VariantProps } from "class-variance-authority";
 import { Slot } from "radix-ui";
@@ -44,7 +49,7 @@ function ItemSeparator({
 }
 
 const itemVariants = cva(
-	"group/item flex items-center border border-transparent text-sm rounded-md transition-colors [a]:hover:bg-accent/25 [a]:transition-colors duration-100 flex-wrap outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+	"group/item flex items-center border border-transparent text-sm rounded-md transition-colors [a]:hover:bg-accent/25 [a]:transition-colors duration-100 flex-wrap outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px]",
 	{
 		variants: {
 			variant: {

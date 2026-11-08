@@ -28,16 +28,25 @@ import { cn } from "#lib/utils";
  * An svg inside a Button renders 16px unless it carries a size- class, so
  * callers size icons with size-N, never h-N w-N. The outline and dark surfaces
  * are the v4 ones: the owner kept them at CP-2 (66.2-38, "Keep v4").
+ *
+ * Fix round 4, Part 5b (66.2-39; recorded in the divergence register):
+ * - focus ring `ring-ring`, opaque, where upstream draws `ring-ring/50`: the
+ *   half-alpha ring read 2.17-2.58:1 on the page, card and popover, under
+ *   WCAG 1.4.11's 3:1;
+ * - destructive focus ring `ring-destructive-text` where upstream draws
+ *   `ring-destructive/20` (dark `/40`);
+ * - invalid focus ring `ring-destructive-text` where upstream draws
+ *   `ring-destructive/20` (dark `/40`), which read 1.43:1.
  */
 const buttonVariants = cva(
-	"inline-flex shrink-0 items-center justify-center gap-2 rounded-md typography-small whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+	"inline-flex shrink-0 items-center justify-center gap-2 rounded-md typography-small whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive-text [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 	{
 		variants: {
 			variant: {
 				default:
 					"bg-primary text-primary-foreground hover:bg-primary-text dark:hover:bg-primary/90",
 				destructive:
-					"bg-destructive text-destructive-foreground hover:bg-destructive-text dark:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
+					"bg-destructive text-destructive-foreground hover:bg-destructive-text dark:hover:bg-destructive/90 focus-visible:ring-destructive-text dark:bg-destructive/60",
 				outline:
 					"border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 dark:hover:text-foreground",
 				secondary:

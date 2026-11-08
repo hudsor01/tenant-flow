@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Local divergence from the shadcn registry item, fix round 4, Part 5b
+ * (66.2-39; recorded in the divergence register):
+ * - focus ring `ring-ring`, opaque, where upstream draws `ring-ring/50`: the
+ *   half-alpha ring read 2.17-2.58:1 on the page, card and popover, under
+ *   WCAG 1.4.11's 3:1.
+ */
 import { ChevronDownIcon } from "lucide-react";
 import { Accordion as AccordionPrimitive } from "radix-ui";
 import type { ComponentProps } from "react";
@@ -35,7 +42,7 @@ function AccordionTrigger({
 			<AccordionPrimitive.Trigger
 				data-slot="accordion-trigger"
 				className={cn(
-					"focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left typography-small transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180",
+					"focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left typography-small transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180",
 					className,
 				)}
 				{...props}

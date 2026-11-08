@@ -1,5 +1,14 @@
 "use client";
 
+/**
+ * Local divergence from the shadcn registry item, fix round 4, Part 5b
+ * (66.2-39; recorded in the divergence register):
+ * - focus ring `ring-ring`, opaque, where upstream draws `ring-ring/50`: the
+ *   half-alpha ring read 2.17-2.58:1 on the page, card and popover, under
+ *   WCAG 1.4.11's 3:1;
+ * - invalid focus ring `ring-destructive-text` where upstream draws
+ *   `ring-destructive/20` (dark `/40`), which read 1.43:1.
+ */
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps } from "react";
 import { Input } from "#components/ui/input";
@@ -21,10 +30,10 @@ function InputGroup({ className, ...props }: ComponentProps<"div">) {
 				"has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-end]]:flex-col has-[>[data-align=block-end]]:[&>input]:pt-3",
 
 				// Focus state.
-				"has-[>input:focus-visible]:border-ring has-[>input:focus-visible]:ring-ring/50 has-[>input:focus-visible]:ring-[3px]",
+				"has-[>input:focus-visible]:border-ring has-[>input:focus-visible]:ring-ring has-[>input:focus-visible]:ring-[3px]",
 
 				// Error state.
-				"has-[input[aria-invalid=true]]:ring-destructive/20 has-[input[aria-invalid=true]]:border-destructive dark:has-[input[aria-invalid=true]]:ring-destructive/40",
+				"has-[input[aria-invalid=true]]:ring-destructive-text has-[input[aria-invalid=true]]:border-destructive",
 
 				className,
 			)}

@@ -28,12 +28,11 @@ const DEFAULT_BUTTON_CLASSES = [
 	"outline-none",
 	"focus-visible:border-ring",
 	"focus-visible:ring-[3px]",
-	"focus-visible:ring-ring/50",
+	"focus-visible:ring-ring",
 	"disabled:pointer-events-none",
 	"disabled:opacity-50",
 	"aria-invalid:border-destructive",
-	"aria-invalid:ring-destructive/20",
-	"dark:aria-invalid:ring-destructive/40",
+	"aria-invalid:ring-destructive-text",
 	"[&_svg]:pointer-events-none",
 	"[&_svg]:shrink-0",
 	"[&_svg:not([class*='size-'])]:size-4",
@@ -131,7 +130,7 @@ describe("Button v4 contract (D-29)", () => {
 				"outline-none",
 				"focus-visible:border-ring",
 				"focus-visible:ring-[3px]",
-				"focus-visible:ring-ring/50",
+				"focus-visible:ring-ring",
 			);
 			for (const legacy of [
 				"focus-visible:ring-2",
@@ -149,8 +148,7 @@ describe("Button v4 contract (D-29)", () => {
 
 			expect(button).toHaveClass(
 				"aria-invalid:border-destructive",
-				"aria-invalid:ring-destructive/20",
-				"dark:aria-invalid:ring-destructive/40",
+				"aria-invalid:ring-destructive-text",
 			);
 		});
 	});
@@ -182,12 +180,11 @@ describe("Button v4 contract (D-29)", () => {
 				"text-destructive-foreground",
 				"hover:bg-destructive-text",
 				"dark:hover:bg-destructive/90",
-				"focus-visible:ring-destructive/20",
+				"focus-visible:ring-destructive-text",
 				"dark:bg-destructive/60",
-				"dark:focus-visible:ring-destructive/40",
 			);
 			expect(button).not.toHaveClass("text-white");
-			expect(button).not.toHaveClass("focus-visible:ring-ring/50");
+			expect(button).not.toHaveClass("focus-visible:ring-ring");
 		});
 
 		it("ghost adds the dark accent hover", () => {
@@ -313,12 +310,12 @@ describe("Button v4 contract (D-29)", () => {
 	});
 
 	describe("class list", () => {
-		it("renders exactly the 29 default classes with no duplicate or conflict", () => {
+		it("renders exactly the 28 default classes with no duplicate or conflict", () => {
 			render(<Button>Button</Button>);
 			const button = screen.getByRole("button");
 			const classList = button.className.split(" ");
 
-			expect(DEFAULT_BUTTON_CLASSES).toHaveLength(29);
+			expect(DEFAULT_BUTTON_CLASSES).toHaveLength(28);
 			expect([...classList].sort()).toEqual([...DEFAULT_BUTTON_CLASSES].sort());
 			expect(new Set(classList).size).toBe(classList.length);
 			expect(cn(button.className)).toBe(button.className);

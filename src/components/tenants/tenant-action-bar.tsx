@@ -67,7 +67,7 @@ export function TenantActionBar({
 				type="button"
 				onClick={onClose}
 				aria-label="Deselect all"
-				className="rounded-xs opacity-70 outline-none hover:opacity-100 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none p-1"
+				className="rounded-xs opacity-70 outline-none hover:opacity-100 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none p-1"
 			>
 				<X className="h-3.5 w-3.5" />
 			</button>

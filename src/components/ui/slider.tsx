@@ -6,6 +6,11 @@
  *
  * Local divergence (recorded in the divergence register): the thumb uses the
  * `bg-background` surface token in place of upstream's literal white fill.
+ *
+ * Fix round 4, Part 5b (66.2-39; recorded in the divergence register):
+ * - focus ring `ring-ring`, opaque, where upstream draws `ring-ring/50`: the
+ *   half-alpha ring read 2.17-2.58:1 on the page, card and popover, under
+ *   WCAG 1.4.11's 3:1.
  */
 import { Slider as SliderPrimitive } from "radix-ui";
 import { type ComponentProps, useMemo } from "react";
@@ -60,7 +65,7 @@ function Slider({
 				<SliderPrimitive.Thumb
 					data-slot="slider-thumb"
 					key={index}
-					className="block size-4 shrink-0 rounded-full border border-primary bg-background shadow-sm ring-ring/50 transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
+					className="block size-4 shrink-0 rounded-full border border-primary bg-background shadow-sm ring-ring transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
 				/>
 			))}
 		</SliderPrimitive.Root>

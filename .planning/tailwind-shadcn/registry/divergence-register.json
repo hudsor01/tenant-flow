@@ -15,6 +15,11 @@
      "what": "class token order in AccordionTrigger, its ChevronDownIcon and AccordionContent",
      "reason": "upstream drift not adopted (D-05)",
      "ref": "D-05"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },
@@ -139,6 +144,21 @@
      "what": "the default and destructive anchor hovers fill with bg-primary-text and bg-destructive-text in light, keeping /90 in dark (as Button); the success anchor hover is bg-success/12, not /15 (success-text 4.57:1 against 4.44:1)",
      "reason": "D-26 customization",
      "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "destructive variant focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },
@@ -242,6 +262,21 @@
      "what": "the outline and ghost variants add dark:hover:text-foreground: upstream's dark accent-foreground is near-white, this theme's is near-black (the dark accent is a bright emerald), so the dark hover label read 1.17:1 on input/50 (outline) and 2.63:1 on accent/50 (ghost); the CP-2 fills dark:hover:bg-input/50 and dark:hover:bg-accent/50 are kept",
      "reason": "D-26 customization",
      "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "destructive variant focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },
@@ -366,6 +401,16 @@
      "what": "class token order in the Checkbox root kept as written locally (upstream re-sorted the same tokens)",
      "reason": "upstream drift not adopted (D-05)",
      "ref": "D-05"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },
@@ -553,6 +598,16 @@
      "what": "class token order in InputGroup and inputGroupAddonVariants kept as written locally (upstream re-sorted the same tokens)",
      "reason": "upstream drift not adopted (D-05)",
      "ref": "D-05"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },
@@ -574,6 +629,16 @@
      "what": "class token order in InputOTPSlot and the caret line",
      "reason": "upstream drift not adopted (D-05)",
      "ref": "D-05"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },
@@ -585,6 +650,16 @@
      "what": "inputVariants cva with variant (default, invalid) and inputSize (default h-11, sm, lg, xl) props replaces the upstream h-9 three-string class list",
      "reason": "D-26 customization",
      "ref": "D-26"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },
@@ -616,6 +691,11 @@
      "what": "the anchor hover fill is accent/25, not upstream's accent/50: muted-foreground descriptions read 3.43:1 (light) and 3.07:1 (dark) on the emerald accent/50",
      "reason": "D-26 customization",
      "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },
@@ -699,6 +779,16 @@
      "what": "a focused item's icons (the selected check included) take text-accent-foreground through focus:[&_svg:not([class*='text-'])]:, so they do not stay muted-foreground on the emerald focus fill (1.86:1 light, 1.06:1 dark)",
      "reason": "D-26 customization",
      "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },
@@ -879,6 +969,11 @@
      "what": "Slider thumb uses bg-background instead of upstream's literal white fill utility, which the design-token drift test bans",
      "reason": "D-26 customization",
      "ref": "D-26; UI-SPEC Preserved Customizations"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },
@@ -926,6 +1021,11 @@
      "what": "class token order in the Switch root and thumb",
      "reason": "upstream drift not adopted (D-05)",
      "ref": "D-05"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },
@@ -979,6 +1079,16 @@
      "what": "class token order in the Textarea class string kept as written locally (upstream re-sorted the same tokens)",
      "reason": "upstream drift not adopted (D-05)",
      "ref": "D-05"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },
@@ -1016,6 +1126,16 @@
      "what": "the on-state hover fills with bg-primary-text in light (primary-foreground 6.84:1), keeping primary/90 in dark, instead of primary/90 in both (4.16:1 light)",
      "reason": "D-26 customization",
      "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   }

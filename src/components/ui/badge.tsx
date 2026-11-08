@@ -19,6 +19,15 @@
  *   bg-destructive-text in light, keeping /90 in dark (as Button); the success
  *   anchor hover is bg-success/12, not /15 (success-text 4.57:1 against
  *   4.44:1).
+ *
+ * Fix round 4, Part 5b (66.2-39; recorded in the divergence register):
+ * - focus ring `ring-ring`, opaque, where upstream draws `ring-ring/50`: the
+ *   half-alpha ring read 2.17-2.58:1 on the page, card and popover, under
+ *   WCAG 1.4.11's 3:1;
+ * - destructive focus ring `ring-destructive-text` where upstream draws
+ *   `ring-destructive/20` (dark `/40`);
+ * - invalid focus ring `ring-destructive-text` where upstream draws
+ *   `ring-destructive/20` (dark `/40`), which read 1.43:1.
  */
 import { cva, type VariantProps } from "class-variance-authority";
 import { Slot } from "radix-ui";
@@ -27,7 +36,7 @@ import type { ComponentProps } from "react";
 import { cn } from "#lib/utils";
 
 const badgeVariants = cva(
-	"inline-flex items-center justify-center border font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
+	"inline-flex items-center justify-center border font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive-text aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
 	{
 		variants: {
 			variant: {
@@ -37,7 +46,7 @@ const badgeVariants = cva(
 				secondary:
 					"border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
 				destructive:
-					"border-transparent bg-destructive text-destructive-foreground [a&]:hover:bg-destructive-text dark:[a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+					"border-transparent bg-destructive text-destructive-foreground [a&]:hover:bg-destructive-text dark:[a&]:hover:bg-destructive/90 focus-visible:ring-destructive-text dark:bg-destructive/60",
 				outline:
 					"text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
 				// Semantic status variants

@@ -43,18 +43,17 @@ const LEGACY_DESTRUCTIVE =
 // Signed symmetric difference, sorted: "+" = only on the current destructive Action,
 // "-" = only on the legacy `cn(buttonVariants(), LEGACY_DESTRUCTIVE)` composition.
 // VD-19: the dark fill and the destructive focus ring (+dark:bg-destructive/60,
-// +dark:focus-visible:ring-destructive/40, +focus-visible:ring-destructive/20,
-// -focus-visible:ring-ring/50). Part F: the light and dark hovers
+// +focus-visible:ring-destructive-text, -focus-visible:ring-ring; fix round 4,
+// Part 5b made both rings opaque). Part F: the light and dark hovers
 // (+hover:bg-destructive-text, -hover:bg-destructive/90, +dark:hover:bg-destructive/90,
 // -dark:hover:bg-primary/90).
 const DESTRUCTIVE_DELTA = [
 	"+dark:bg-destructive/60",
-	"+dark:focus-visible:ring-destructive/40",
 	"+dark:hover:bg-destructive/90",
-	"+focus-visible:ring-destructive/20",
+	"+focus-visible:ring-destructive-text",
 	"+hover:bg-destructive-text",
 	"-dark:hover:bg-primary/90",
-	"-focus-visible:ring-ring/50",
+	"-focus-visible:ring-ring",
 	"-hover:bg-destructive/90",
 ];
 
