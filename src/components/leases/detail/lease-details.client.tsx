@@ -115,7 +115,8 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 			    the viewport's: at lg with the rail expanded the sidebar column
 			    was 210px, and its Maintenance Requests button's label ran
 			    8.69px past the button (66.2-39 fix round 4, Part 8e). Three
-			    columns from 56rem, where the sidebar holds 18rem. */}
+			    columns from 56rem, where the sidebar is 282.67px (at 1280 with
+			    the rail expanded, 320px; at 1024, one column). */}
 			<div className="grid grid-cols-1 gap-6 @min-[56rem]/lease-detail:grid-cols-3">
 				{/* Left column - Main details */}
 				<div className="@min-[56rem]/lease-detail:col-span-2 space-y-6">
