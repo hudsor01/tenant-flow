@@ -545,6 +545,11 @@
      "what": "a focused item's icons take text-accent-foreground through focus:[&_svg:not([class*='text-'])]:, so they do not stay muted-foreground on the emerald focus fill (1.86:1 light, 1.06:1 dark)",
      "reason": "D-26 customization",
      "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "a focused destructive item paints bg-destructive with a destructive-foreground label and icons, where upstream paints destructive/10 (dark /20) under destructive text",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 2.4.7; 66.2-39 fix round 4 Part 5c (F1 gaps sweep)"
     }
    ]
   },

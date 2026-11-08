@@ -1052,3 +1052,62 @@ describe("a muted label inside a command item restates its label when selected (
 		).toEqual([]);
 	});
 });
+
+/**
+ * A focused menu item's only focus mark is its fill. The destructive variant
+ * painted destructive/10 (/20 dark), which read 1.19:1 light and 1.09:1 dark
+ * against the popover in the F1 gaps sweep (66.2-39 fix round 4, Part 5c, the
+ * "Delete Unit" items once they used the variant).
+ */
+describe("a focused destructive menu item shows its focus at 3:1 (66.2-39 fix round 4, Part 5c)", () => {
+	const source = readFileSync(
+		resolve(ROOT, "src/components/ui/dropdown-menu.tsx"),
+		"utf8",
+	);
+	const token = (re: RegExp): Paint | null => {
+		const m = re.exec(source);
+		return m
+			? { token: m[1] ?? "", alpha: m[2] ? Number(m[2]) / 100 : 1 }
+			: null;
+	};
+
+	it.each(["light", "dark"] as const)("%s", (theme) => {
+		const fill =
+			(theme === "dark"
+				? token(
+						/dark:data-\[variant=destructive\]:focus:bg-([a-z-]+)(?:\/(\d+))?/,
+					)
+				: null) ??
+			token(
+				/(?<!dark:)data-\[variant=destructive\]:focus:bg-([a-z-]+)(?:\/(\d+))?/,
+			);
+		const label = token(
+			/data-\[variant=destructive\]:focus:text-([a-z-]+)(?:\/(\d+))?/,
+		);
+		expect(fill, "the destructive item's focus fill").not.toBeNull();
+		expect(label, "the destructive item's focus label").not.toBeNull();
+		if (!fill || !label) return;
+		const mark = stackContrast(CSS, "popover", {
+			text: "focus fill",
+			state: "focus",
+			theme,
+			layers: [],
+			label: fill,
+		});
+		const text = stackContrast(CSS, "popover", {
+			text: "label",
+			state: "focus",
+			theme,
+			layers: [fill],
+			label,
+		});
+		expect(
+			mark,
+			`${theme} focus fill ${fill.token}/${fill.alpha * 100} against the popover`,
+		).toBeGreaterThanOrEqual(3);
+		expect(
+			text,
+			`${theme} label ${label.token} on the focus fill`,
+		).toBeGreaterThanOrEqual(4.5);
+	});
+});

@@ -13,7 +13,12 @@
  *   stay muted-foreground on the emerald focus fill (1.86:1 light, 1.06:1
  *   dark);
  * - Phase 19 trim: the portal, group, radio, shortcut and submenu parts are
- *   not exported, so their data-slots are absent.
+ *   not exported, so their data-slots are absent;
+ * - a focused destructive item paints a solid bg-destructive fill with a
+ *   destructive-foreground label and icons, where upstream paints
+ *   destructive/10 (/20 dark): that tint read 1.19:1 light and 1.09:1 dark
+ *   against the popover, under WCAG 1.4.11's 3:1 for the only focus mark
+ *   (66.2-39 fix round 4, Part 5c).
  */
 import { CheckIcon } from "lucide-react";
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
@@ -73,7 +78,7 @@ function DropdownMenuItem({
 			data-inset={inset}
 			data-variant={variant}
 			className={cn(
-				"relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-destructive-text data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive-text dark:data-[variant=destructive]:focus:bg-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground focus:[&_svg:not([class*='text-'])]:text-accent-foreground data-[variant=destructive]:*:[svg]:text-destructive!",
+				"relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-destructive-text data-[variant=destructive]:focus:bg-destructive data-[variant=destructive]:focus:text-destructive-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground focus:[&_svg:not([class*='text-'])]:text-accent-foreground data-[variant=destructive]:*:[svg]:text-destructive! data-[variant=destructive]:focus:*:[svg]:text-destructive-foreground!",
 				className,
 			)}
 			{...props}
