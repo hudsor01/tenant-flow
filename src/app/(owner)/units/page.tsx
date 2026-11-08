@@ -206,7 +206,7 @@ export default function UnitsPage() {
 							<DropdownMenuItem
 								disabled={unit.status === "occupied"}
 								onClick={() => handleDeleteClick(unit.id)}
-								className="text-destructive-text focus:text-destructive-text"
+								variant="destructive"
 							>
 								<Trash2 className="mr-2 size-4" />
 								Delete

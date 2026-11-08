@@ -108,11 +108,10 @@ export function UnitTableRow({ unit, onEdit, onDelete }: UnitTableRowProps) {
 						<DropdownMenuItem
 							onClick={() => onDelete(unit)}
 							disabled={status === "occupied"}
+							variant="destructive"
 							className={cn(
 								"gap-2",
-								status === "occupied"
-									? "opacity-50 cursor-not-allowed"
-									: "text-destructive-text focus:text-destructive-text",
+								status === "occupied" && "opacity-50 cursor-not-allowed",
 							)}
 						>
 							<Trash2 className="size-4" />

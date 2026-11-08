@@ -142,7 +142,8 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 
 							<DropdownMenuItem
 								onClick={() => setShowTerminateDialog(true)}
-								className="gap-2 text-destructive-text focus:text-destructive-text"
+								variant="destructive"
+								className="gap-2"
 							>
 								<X className="size-4" />
 								Terminate Lease
@@ -154,7 +155,8 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 
 					<DropdownMenuItem
 						onClick={() => setShowDeleteDialog(true)}
-						className="gap-2 text-destructive-text focus:text-destructive-text"
+						variant="destructive"
+						className="gap-2"
 					>
 						<Trash2 className="size-4" />
 						Delete

@@ -117,11 +117,10 @@ export function UnitActions({ unit }: UnitActionsProps) {
 						<DropdownMenuItem
 							onClick={() => setDeleteOpen(true)}
 							disabled={!canDelete}
+							variant="destructive"
 							className={cn(
 								"gap-2",
-								canDelete
-									? "cursor-pointer text-destructive-text focus:text-destructive-text"
-									: "opacity-50 cursor-not-allowed",
+								canDelete ? "cursor-pointer" : "opacity-50 cursor-not-allowed",
 							)}
 						>
 							<TrashIcon className="size-4" />
