@@ -97,7 +97,7 @@ export function BulkImportValidateStep<T>({
 				<div className="flex items-start gap-3 p-3 rounded-lg bg-warning/10 border border-warning/30">
 					<AlertTriangle className="size-4 text-warning shrink-0 mt-0.5" />
 					<div>
-						<p className="mb-0 typography-small text-warning-foreground">
+						<p className="mb-0 typography-small text-warning-text">
 							Too many rows
 						</p>
 						<p className="text-xs text-muted-foreground mt-0.5 mb-0">

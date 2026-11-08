@@ -90,7 +90,7 @@ export function ForgotPasswordModal({
 
 							<Alert className="border-info bg-info/10">
 								<Info className="size-4 text-info" />
-								<AlertDescription className="text-xs text-info-foreground">
+								<AlertDescription className="text-xs text-info-text">
 									For security reasons, we&apos;ll always show a success
 									message. If an account exists with this email, you&apos;ll
 									receive password reset instructions.
