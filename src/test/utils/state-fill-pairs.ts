@@ -314,11 +314,7 @@ export function classStrings(source: string): { text: string; line: number }[] {
 const STATE_SURFACES = ["background", "card", "popover"] as const;
 
 /** A token's linear sRGB in `theme`, following one `var(--x)` alias. */
-export function themeColor(
-	css: string,
-	theme: Theme,
-	token: string,
-): LinearRgb {
+function themeColor(css: string, theme: Theme, token: string): LinearRgb {
 	if (token === "white") return [1, 1, 1];
 	if (token === "black") return [0, 0, 0];
 	const body = themeBlock(css, theme);

@@ -14,8 +14,6 @@
  *     a CSV test pins, a selector a shell test resolves), each with the test
  *     file that reads it, which the guard checks. An entry whose export gains
  *     a production reader, or whose test stops reading it, fails.
- *   - `PENDING`: exports another fix-round-4 part removes or makes private;
- *     a line goes when its part lands.
  *   - `RATCHET`: the older exports, unread at d9c7329f0 too, file by file, as
  *     they stood when the guard landed; the list can only shrink.
  */
@@ -327,11 +325,6 @@ const TEST_SEAMS: readonly Seam[] = [
 	},
 ];
 
-/** Exports another fix-round-4 part removes or makes private. */
-const PENDING = `
-src/test/utils/state-fill-pairs.ts themeColor
-`;
-
 /**
  * The older unread exports: `path name name …`, one line per file. Remove a
  * name when its export gains a reader, goes private or goes.
@@ -554,16 +547,15 @@ describe("exports have readers", () => {
 		]);
 	});
 
-	it("finds no unread export outside the seams, the pending list and the ratchet", () => {
+	it("finds no unread export outside the seams and the ratchet", () => {
 		const records = scanRepo();
 		expect(records.length).toBeGreaterThan(2000);
 		const byKey = new Map(records.map((r) => [key(r), r]));
 		const seams = new Set(TEST_SEAMS.map(key));
-		const pending = new Set(pairs(PENDING));
 		const ratchet = new Set(pairs(RATCHET));
 		const unread = unreadExports(records, seams);
 		const unexpected = unread
-			.filter((r) => !pending.has(key(r)) && !ratchet.has(key(r)))
+			.filter((r) => !ratchet.has(key(r)))
 			.map(
 				(r) =>
 					`${r.file}:${r.line} ${r.name} (${r.testReaders.length > 0 ? `read only by tests: ${r.testReaders.join(", ")}` : r.usedInOwnModule ? "used only in its module: make it private" : "read by nothing: delete it"})`,
@@ -573,10 +565,10 @@ describe("exports have readers", () => {
 			`exports with no reader of the kind they need:\n${unexpected.join("\n")}`,
 		).toEqual([]);
 		const found = new Set(unread.map(key));
-		const stale = [...pending, ...ratchet].filter((k) => !found.has(k));
+		const stale = [...ratchet].filter((k) => !found.has(k));
 		expect(
 			stale,
-			`read, private or gone since the list was written; remove from PENDING or RATCHET:\n${stale.join("\n")}`,
+			`read, private or gone since the list was written; remove from RATCHET:\n${stale.join("\n")}`,
 		).toEqual([]);
 		const staleSeams = TEST_SEAMS.filter((seam) => {
 			const record = byKey.get(key(seam));
