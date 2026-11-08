@@ -118,7 +118,7 @@ export function PlanCard({
 								"flex items-start gap-2 text-sm",
 								feature.included
 									? "text-foreground"
-									: "text-muted-foreground/60 line-through",
+									: "text-muted-foreground line-through",
 							)}
 						>
 							<Check

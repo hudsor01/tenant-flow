@@ -312,22 +312,22 @@ function LoginPageContent() {
 
 						{/* Trust Indicators */}
 						<div className="text-center space-y-4 pt-4 border-t border-border/50">
-							<p className="text-muted-foreground/80 text-xs font-medium">
+							<p className="text-muted-foreground text-xs font-medium">
 								Built for landlords
 							</p>
 							<div className="flex-center flex-wrap gap-4 sm:gap-6 text-xs">
-								<div className="flex items-center gap-1.5 text-muted-foreground/70">
+								<div className="flex items-center gap-1.5 text-muted-foreground">
 									<Lock className="size-3" />
 									<span className="font-medium hidden sm:inline">
 										Encrypted at rest
 									</span>
 									<span className="font-medium sm:hidden">Secure</span>
 								</div>
-								<div className="flex items-center gap-1.5 text-muted-foreground/70">
+								<div className="flex items-center gap-1.5 text-muted-foreground">
 									<Zap className="size-3" />
 									<span className="font-medium">RLS isolation</span>
 								</div>
-								<div className="flex items-center gap-1.5 text-muted-foreground/70">
+								<div className="flex items-center gap-1.5 text-muted-foreground">
 									<Smartphone className="size-3" />
 									<span className="font-medium hidden sm:inline">
 										Mobile-friendly web

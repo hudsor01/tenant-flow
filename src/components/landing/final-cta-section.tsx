@@ -59,7 +59,7 @@ export function FinalCtaSection() {
 							</Button>
 						</div>
 
-						<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground/80 typography-small">
+						<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground typography-small">
 							{checkItems.map((item) => (
 								<div key={item} className="flex-start">
 									<Check className="size-4 text-primary mr-2" />

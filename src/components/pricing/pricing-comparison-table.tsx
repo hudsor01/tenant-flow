@@ -151,7 +151,7 @@ function FeatureCell({
 				)}
 			/>
 		) : (
-			<Minus className="size-5 text-muted-foreground/50 mx-auto" />
+			<Minus className="size-5 text-muted-foreground mx-auto" />
 		);
 	}
 	return (

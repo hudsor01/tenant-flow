@@ -32,7 +32,7 @@ export function TestimonialsSection() {
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
 				<BlurFade delay={0.2}>
 					<div className="text-center space-y-8">
-						<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground/60">
+						<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground">
 							<div className="flex items-center space-x-2">
 								<Star className="size-4 fill-current text-accent" />
 								<span className="font-medium">Built for landlords</span>

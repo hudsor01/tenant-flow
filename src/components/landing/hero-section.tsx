@@ -52,7 +52,7 @@ export function HeroSection() {
 							</Button>
 						</div>
 
-						<p className="mb-0 text-muted-foreground/80 typography-small">
+						<p className="mb-0 text-muted-foreground typography-small">
 							<Check className="size-4 inline text-primary mr-2" />
 							14-day free trial • No credit card required
 						</p>

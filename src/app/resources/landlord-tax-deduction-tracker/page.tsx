@@ -155,7 +155,7 @@ export default function TaxDeductionTrackerPage() {
 													</p>
 												</td>
 												<td className="p-3 text-right align-top">
-													<span className="text-sm text-muted-foreground/50">
+													<span className="text-sm text-muted-foreground">
 														$
 													</span>
 													<span className="inline-block w-20 border-b border-dashed border-muted-foreground/30" />
