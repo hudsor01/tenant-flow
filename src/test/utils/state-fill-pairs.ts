@@ -17,6 +17,12 @@
  * and its label is the text color the chain sets (else the resting text color,
  * else inherited). `dark:` forms override in dark, as the compiled order makes
  * them. A label-only state is measured against the resting fill.
+ *
+ * A class string cannot see the fills of the elements around it, so
+ * `renderedStacks` reads a rendered tree instead (66.2-39 fix round 4, F1,
+ * G32): for each element that shows text, the resting fills of it and its
+ * ancestors up to the root, composited in order, under its label, at rest and
+ * in each state of an element on that chain.
  */
 
 import {
@@ -371,4 +377,147 @@ export function worstStateContrast(
 		}
 	}
 	return { ratio, at };
+}
+
+/** One text element of a rendered tree, in one state and theme. */
+export interface StackPair {
+	/** The element's own text, for a failure message. */
+	text: string;
+	/** "rest", or `<tag>:<state chain>` of the element whose state paints it. */
+	state: string;
+	theme: Theme;
+	/** The fills under the text, outermost first. */
+	layers: Paint[];
+	/** null: no element on the chain sets a label; the page's `foreground`. */
+	label: Paint | null;
+}
+
+/** The resting fill and label one class string sets in `theme`. */
+function restingPaints(
+	classString: string,
+	colors: ReadonlySet<string>,
+	theme: Theme,
+): { fill: Paint | null | undefined; label: Paint | null | undefined } {
+	const found = {
+		light: { fill: undefined, label: undefined },
+		dark: { fill: undefined, label: undefined },
+	} as Record<
+		Theme,
+		{ fill: Paint | null | undefined; label: Paint | null | undefined }
+	>;
+	for (const token of classString.split(/\s+/).filter(Boolean)) {
+		const { variants, utility } = splitClass(token);
+		if (variants.some((v) => v !== "dark")) continue;
+		const slot = variants.includes("dark") ? found.dark : found.light;
+		const fill = colorOf(utility, "bg", colors);
+		if (fill !== undefined) slot.fill = fill;
+		const label = colorOf(utility, "text", colors);
+		if (label !== undefined) slot.label = label;
+	}
+	if (theme === "light") return found.light;
+	return {
+		fill: found.dark.fill !== undefined ? found.dark.fill : found.light.fill,
+		label:
+			found.dark.label !== undefined ? found.dark.label : found.light.label,
+	};
+}
+
+const OPACITY = new RegExp(`^${"op"}acity-`);
+const HIDDEN = new Set([`${"sr"}-only`, `${"hid"}den`, `${"in"}visible`]);
+
+/**
+ * Every text element under `root` as it paints: the resting fills of the
+ * element and its ancestors (from `root` down) composited in order, and the
+ * nearest label on that chain, at rest; then, for each element on the chain
+ * whose class string has a state chain (`statePairs`), that state's fill in
+ * place of the element's resting one and its label unless an element nearer
+ * the text sets its own. Text an element hides (the screen-reader-only,
+ * display-none or visibility-hidden class, on it or an ancestor) is skipped.
+ * A resting opacity utility on the chain throws: a faded layer is not a fill
+ * this composites.
+ */
+export function renderedStacks(
+	root: Element,
+	colors: ReadonlySet<string>,
+): StackPair[] {
+	const pairs: StackPair[] = [];
+	const classOf = (el: Element) => el.getAttribute("class") ?? "";
+	for (const el of [root, ...root.querySelectorAll("*")]) {
+		const text = [...el.childNodes]
+			.filter((node) => node.nodeType === 3)
+			.map((node) => node.textContent ?? "")
+			.join("")
+			.trim();
+		if (!text) continue;
+		const chain: Element[] = [];
+		for (let at: Element | null = el; at; at = at.parentElement) {
+			chain.unshift(at);
+			if (at === root) break;
+		}
+		const classes = chain.map(classOf);
+		if (classes.some((c) => c.split(/\s+/).some((t) => HIDDEN.has(t)))) {
+			continue;
+		}
+		const faded = classes.find((c) =>
+			c.split(/\s+/).some((t) => OPACITY.test(t)),
+		);
+		if (faded !== undefined) {
+			throw new Error(`"${text}" sits under a resting opacity: ${faded}`);
+		}
+		for (const theme of ["light", "dark"] as const) {
+			const rest = classes.map((c) => restingPaints(c, colors, theme));
+			/** The nearest label from index `from` down to `to` (inherit skips). */
+			const labelBetween = (from: number, to: number): Paint | null => {
+				for (let i = from; i >= to; i -= 1) {
+					const label = rest[i]?.label;
+					if (label) return label;
+				}
+				return null;
+			};
+			const layersWith = (index: number, fill: Paint | null | undefined) =>
+				rest
+					.map((r, i) => (i === index ? fill : r.fill))
+					.filter((f): f is Paint => f !== null && f !== undefined);
+			pairs.push({
+				text,
+				state: "rest",
+				theme,
+				layers: layersWith(-1, undefined),
+				label: labelBetween(chain.length - 1, 0),
+			});
+			chain.forEach((host, index) => {
+				for (const pair of statePairs(classes[index] ?? "", colors)) {
+					if (pair.theme !== theme) continue;
+					// A descendant variant paints a child, not this text's chain.
+					if (/\[&|\*/.test(pair.state)) continue;
+					pairs.push({
+						text,
+						state: `${host.tagName.toLowerCase()}:${pair.state}`,
+						theme,
+						layers: layersWith(index, pair.fill),
+						label:
+							labelBetween(chain.length - 1, index + 1) ??
+							pair.label ??
+							labelBetween(index - 1, 0),
+					});
+				}
+			});
+		}
+	}
+	return pairs;
+}
+
+/**
+ * The contrast of `pair`'s label over its layers composited on `surface` (a
+ * theme token: the page, a card), as `worstStateContrast` paints a layer.
+ */
+export function stackContrast(
+	css: string,
+	surface: string,
+	pair: StackPair,
+): number {
+	let bg = themeColor(css, pair.theme, surface);
+	for (const layer of pair.layers) bg = paintOver(css, pair.theme, layer, bg);
+	const label = pair.label ?? { token: "foreground", alpha: 1 };
+	return contrast(paintOver(css, pair.theme, label, bg), bg);
 }

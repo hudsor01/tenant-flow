@@ -28,20 +28,64 @@
  *   same element, given here and measured;
  * - NO_LABEL: the fill carries no text (a switch track, a carousel dot), or
  *   the state can never match (a Radix part that sets no `data-state`).
+ *
+ * A class string also cannot see the fills around its element: a tinted
+ * control inside a tinted section paints over both (66.2-39 fix round 4, F1,
+ * G32: the canceled subscription section's `bg-destructive/10` left the
+ * deletion notice's warning text at 4.40:1 and the Delete Account hover at
+ * 4.48, measured 4.38 / 4.46 in Chrome). `STACK_FIXTURES` renders the surfaces
+ * the F1 sweep found tinted inside a tint in this PR's files, and every text
+ * element in them, at rest and in each state on its chain, must clear 4.5:1
+ * over its composited fills (`renderedStacks`).
  */
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen } from "@testing-library/react";
+import { createElement, type ReactElement } from "react";
+import { describe, expect, it, vi } from "vitest";
+import { BalanceEquationCheck } from "#app/(owner)/reports/balance-sheet/balance-equation-check";
+import { SubscriptionCancelSection } from "#components/settings/sections/subscription-cancel-section";
+import { authKeys } from "#hooks/api/use-auth";
 import { buttonClasses, buttonSites } from "#test/utils/button-sites";
 import {
 	classStrings,
 	type Paint,
+	renderedStacks,
 	type StatePair,
+	stackContrast,
 	statePairs,
 	worstStateContrast,
 } from "#test/utils/state-fill-pairs";
 import { collectG7SourceTexts } from "#test/utils/tailwind-guards";
+
+// The canceled subscription section, rendered as Settings > Billing draws it
+// for a canceled plan: its subscription state from the billing hooks, the
+// GDPR actions inside it from a seeded deletion-status query.
+vi.mock("#hooks/api/use-billing", () => ({
+	useSubscriptionStatus: () => ({
+		data: {
+			subscriptionStatus: "canceled",
+			stripeCustomerId: "cus_test",
+			stripePriceId: "price_test",
+			currentPeriodEnd: "2026-10-15T12:00:00Z",
+			cancelAtPeriodEnd: false,
+		},
+		isLoading: false,
+		isError: false,
+		refetch: () => undefined,
+	}),
+}));
+vi.mock("#hooks/api/use-billing-mutations", () => ({
+	useCancelSubscriptionMutation: () => ({ mutate: () => undefined }),
+	useReactivateSubscriptionMutation: () => ({ mutate: () => undefined }),
+}));
+vi.mock("#lib/supabase/client", () => ({
+	createClient: () => {
+		throw new Error("the deletion status is seeded; nothing fetches");
+	},
+}));
 
 const ROOT = process.cwd();
 const CSS = readFileSync(resolve(ROOT, "src/app/globals.css"), "utf8");
@@ -256,5 +300,120 @@ describe("state fills keep their labels at 4.5:1 (66.2-39 fix round 1, part F)",
 			.filter((p) => p.theme === "light")
 			.map((p) => worstStateContrast(CSS, p).ratio);
 		expect(Math.min(...failing)).toBeLessThan(4.5);
+	});
+});
+
+/** The canceled section, with the account's deletion requested or not. */
+function canceledSection(deletionRequestedAt: string | null): ReactElement {
+	const client = new QueryClient({
+		defaultOptions: {
+			queries: { retry: false, staleTime: Number.POSITIVE_INFINITY },
+		},
+	});
+	client.setQueryData(authKeys.deletionStatus(), {
+		deletion_requested_at: deletionRequestedAt,
+	});
+	return createElement(
+		QueryClientProvider,
+		{ client },
+		createElement(SubscriptionCancelSection),
+	);
+}
+
+/**
+ * The surfaces where this PR's files put a tinted element inside a tint, with
+ * the theme surface each sits on and a text it must show (so a fixture that
+ * renders something else fails).
+ */
+const STACK_FIXTURES: {
+	name: string;
+	surface: string;
+	element: () => ReactElement;
+	shows: string;
+}[] = [
+	{
+		name: "canceled section, deletion not requested",
+		surface: "background",
+		element: () => canceledSection(null),
+		shows: "Delete Account",
+	},
+	{
+		name: "canceled section, deletion requested",
+		surface: "background",
+		element: () => canceledSection("2026-11-01T00:00:00Z"),
+		shows: "Account scheduled for deletion",
+	},
+	{
+		name: "balance check, balanced",
+		surface: "background",
+		element: () =>
+			createElement(BalanceEquationCheck, {
+				totalAssets: 100,
+				totalLiabilities: 40,
+				totalEquity: 60,
+				isBalanced: true,
+			}),
+		shows: "Balanced",
+	},
+	{
+		name: "balance check, unbalanced",
+		surface: "background",
+		element: () =>
+			createElement(BalanceEquationCheck, {
+				totalAssets: 100,
+				totalLiabilities: 40,
+				totalEquity: 50,
+				isBalanced: false,
+			}),
+		shows: "Unbalanced",
+	},
+];
+
+describe("text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1)", () => {
+	it.each(STACK_FIXTURES)("$name", async ({ element, surface, shows }) => {
+		const { container, unmount } = render(element());
+		await screen.findByText(shows);
+		const stacks = renderedStacks(container, COLORS);
+		expect(stacks.length).toBeGreaterThan(0);
+		const under = stacks
+			.map((pair) => ({ pair, ratio: stackContrast(CSS, surface, pair) }))
+			.filter(({ ratio }) => ratio < 4.5)
+			.map(
+				({ pair, ratio }) =>
+					`${pair.theme} ${pair.state} "${pair.text}" ${ratio.toFixed(2)} [${pair.layers.map((l) => `${l.token}/${Math.round(l.alpha * 100)}`).join(" > ")}] ${pair.label?.token ?? "inherited"}`,
+			);
+		unmount();
+		expect(under).toEqual([]);
+	});
+
+	it("reads the tint under the tint (the canceled section's notice and Delete hover)", async () => {
+		const pending = render(canceledSection("2026-11-01T00:00:00Z"));
+		await screen.findByText("Account scheduled for deletion");
+		const notice = renderedStacks(pending.container, COLORS).find(
+			(pair) =>
+				pair.text === "Account scheduled for deletion" &&
+				pair.theme === "light" &&
+				pair.state === "rest",
+		);
+		expect(notice?.layers.map((l) => l.token)).toEqual([
+			"destructive",
+			"warning",
+		]);
+		expect(notice?.label?.token).toBe("warning-text");
+		pending.unmount();
+		const idle = render(canceledSection(null));
+		await screen.findByText("Delete Account");
+		const hover = renderedStacks(idle.container, COLORS).find(
+			(pair) =>
+				pair.text === "Delete Account" &&
+				pair.theme === "light" &&
+				pair.state === "button:hover",
+		);
+		expect(hover?.layers.map((l) => l.token)).toEqual([
+			"destructive",
+			"destructive",
+		]);
+		expect(hover?.label?.token).toBe("destructive-text");
+		idle.unmount();
 	});
 });

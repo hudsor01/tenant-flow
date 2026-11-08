@@ -122,7 +122,7 @@ export function SubscriptionCancelSection() {
 		const dataDeleteDate = addDaysFormatted(currentPeriodEnd, 30);
 		return (
 			<BlurFade delay={0.55}>
-				<section className="rounded-lg border border-destructive/30 bg-destructive/10 p-6">
+				<section className="rounded-lg border border-destructive/30 bg-destructive/5 p-6">
 					<h3 className="mb-1 text-sm font-medium text-destructive-text uppercase tracking-wider flex items-center gap-2">
 						<Lock className="h-4 w-4" aria-hidden="true" />
 						Subscription Ended
