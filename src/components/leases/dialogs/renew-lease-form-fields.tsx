@@ -76,8 +76,11 @@ export function DateSelector({
 					className="flex-1"
 				/>
 			</div>
+			{/* The presets wrap: at 320-352 the three did not fit the dialog and
+			    +24 months sat past the viewport, to 354.33px (66.2-39 fix round 4,
+			    Part 8e). */}
 			{leaseEndDate && (
-				<div className="flex gap-2">
+				<div className="flex flex-wrap gap-2">
 					<Button
 						type="button"
 						variant="outline"
