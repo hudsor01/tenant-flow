@@ -1,5 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, type Locator, type Page, test } from "@playwright/test";
+import {
+	expect,
+	type Locator,
+	type Page,
+	type Route,
+	test,
+} from "@playwright/test";
 import { loginAsOwner } from "../../auth-helpers";
 import {
 	gotoAuthedDashboard,
@@ -2259,22 +2265,27 @@ test.describe("CP-4 follow-up: dashboard layout at every rail state", () => {
 const LONG_OCCUPIED_RENT = "$1,234,567.00";
 const LONG_COUNT = 1234;
 
+/** A read's answer: status, headers and body, ready for `route.fulfill`. */
+interface ReadAnswer {
+	status: number;
+	headers: Record<string, string>;
+	body: string;
+}
+
 /**
  * Answers owner A's properties-with-units read in the browser (a GET, never a
  * write): production's own rows, each property's units replaced so the four
  * tiles read 1234 properties, 100% occupancy and $1,234,567.00 of occupied
- * rent. The counter is live.
+ * rent. Production is read once; every later read gets the same answer, so a
+ * refetch still in flight when the test moves to the next cell holds no
+ * production response a navigation can dispose of. The counter is live.
  */
 async function fulfillLongPropertyFigures(
 	page: Page,
 ): Promise<{ answered: number }> {
 	const traffic = { answered: 0 };
-	await page.route("**/rest/v1/properties?*", async (route) => {
-		const request = route.request();
-		const select = new URL(request.url()).searchParams.get("select") ?? "";
-		if (request.method() !== "GET" || !select.includes("units(")) {
-			return route.fallback();
-		}
+	let answer: Promise<ReadAnswer> | null = null;
+	const lengthen = async (route: Route): Promise<ReadAnswer> => {
 		const response = await route.fetch();
 		const rows = (await response.json()) as {
 			id: string;
@@ -2307,12 +2318,18 @@ async function fulfillLongPropertyFigures(
 		if (range !== undefined) {
 			headers["content-range"] = range.replace(/\/\d+$/, `/${LONG_COUNT}`);
 		}
+		return { status: response.status(), headers, body: JSON.stringify(out) };
+	};
+	await page.route("**/rest/v1/properties?*", async (route) => {
+		const request = route.request();
+		const select = new URL(request.url()).searchParams.get("select") ?? "";
+		if (request.method() !== "GET" || !select.includes("units(")) {
+			return route.fallback();
+		}
+		answer ??= lengthen(route);
+		const ready = await answer;
 		traffic.answered += 1;
-		return route.fulfill({
-			status: response.status(),
-			headers,
-			body: JSON.stringify(out),
-		});
+		return route.fulfill(ready);
 	});
 	return traffic;
 }
