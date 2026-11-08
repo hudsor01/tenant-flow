@@ -16,10 +16,7 @@
  * - class token order in badgeVariants base and the destructive variant kept
  *   as written locally (upstream re-sorted the same tokens);
  * - the default and destructive anchor hovers fill with bg-primary-text and
- *   bg-destructive-text in light, keeping /90 in dark (as Button); the success
- *   anchor hover is bg-success/12, not the /15 of warning and info: success-text
- *   read 4.57:1 on it against 4.44:1 on /15 (token math since fix round 4
- *   darkened success-text: 5.16:1 and 5.01:1).
+ *   bg-destructive-text in light, keeping /90 in dark (as Button).
  *
  * Fix round 4, Part 5b (66.2-39; recorded in the divergence register):
  * - focus ring `ring-ring`, opaque, where upstream draws `ring-ring/50`: the
@@ -52,7 +49,7 @@ const badgeVariants = cva(
 					"text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
 				// Semantic status variants
 				success:
-					"border-success/20 bg-success/10 text-success-text [a&]:hover:bg-success/12",
+					"border-success/20 bg-success/10 text-success-text [a&]:hover:bg-success/15",
 				warning:
 					"border-warning/20 bg-warning/10 text-warning-text [a&]:hover:bg-warning/15",
 				info: "border-info/20 bg-info/10 text-info-text [a&]:hover:bg-info/15",

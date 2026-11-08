@@ -146,7 +146,7 @@
      "ref": "D-05"
     },
     {
-     "what": "the default and destructive anchor hovers fill with bg-primary-text and bg-destructive-text in light, keeping /90 in dark (as Button); the success anchor hover is bg-success/12, not the /15 of warning and info: success-text read 4.57:1 on it against 4.44:1 on /15 (token math since fix round 4 darkened success-text: 5.16:1 and 5.01:1)",
+     "what": "the default and destructive anchor hovers fill with bg-primary-text and bg-destructive-text in light, keeping /90 in dark (as Button)",
      "reason": "D-26 customization",
      "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
     },
