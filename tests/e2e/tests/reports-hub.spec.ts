@@ -40,7 +40,7 @@ import { ROUTES } from "./constants/routes";
  * out here and a repo-wide grep for it returns only real configuration.
  *
  * COVERAGE BUDGET: the config runs with `maxFailures: 0`, `retries: 2`,
- * `workers: 2` and `timeout: 30_000` under a 9-minute `globalTimeout` (the real
+ * `workers: 2` and `timeout: 30_000` under an 11-minute `globalTimeout` (the real
  * ceiling, inside a 15-minute job), so every route test does exactly three
  * things — navigate, prove it did not land on `/login`, prove the page's `<h1>`
  * rendered — and none asserts a figure, since owner A's own data is no

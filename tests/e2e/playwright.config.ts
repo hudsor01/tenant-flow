@@ -80,7 +80,7 @@ export default defineConfig({
 	// failures". 0 is Playwright's default: run everything, report everything.
 	maxFailures: process.env.CI ? 0 : 1,
 	// With maxFailures 0, a SYSTEMIC failure (broken build, dead auth) no
-	// longer stops after the first spec -- 137 tests x 3 attempts could run
+	// longer stops after the first spec -- every test x 3 attempts could run
 	// past the job's `timeout-minutes: 15`. GitHub then CANCELS the job
 	// mid-run: no Playwright summary, no honest end state. Playwright's
 	// globalTimeout ends the run itself ("timedout"), still calls every
@@ -88,13 +88,16 @@ export default defineConfig({
 	// log -- the only triage surface while nothing is uploaded -- and exits
 	// 1: a FAILED job with a cause, not a cancelled one, with budget left
 	// for the always() revoke step. The deadline is armed BEFORE the
-	// webServer plugin starts, so these 9 min include `next build && next
-	// start` (measured 58 s on CI) plus the suite (measured ~3 min for 137
-	// tests); the webServer `timeout: 240_000` below is a ceiling, not a
-	// measurement. Job budget: ~1 min setup + 9 min + revoke (<= 2.4 min
-	// worst case for one account), inside `timeout-minutes: 15`. 0 (the
-	// default) locally.
-	globalTimeout: process.env.CI ? 9 * 60_000 : 0,
+	// webServer plugin starts, so these 11 min include `next build && next
+	// start` plus the suite. Measured on CI at 3977aa58d (260 tests): 7.5 min,
+	// 72 s of it build and start; the 9 min this was then left 1.5 min of
+	// headroom, and the suite has grown since (313 tests at fix round 4,
+	// about 8.1 min by the same per-test cost). The webServer `timeout:
+	// 240_000` below is a ceiling, not a measurement. Job budget: setup
+	// (27 s measured) + 11 min + revoke (<= 2.4 min worst case for one
+	// account) = 13.9 min, inside `timeout-minutes: 15`. 0 (the default)
+	// locally.
+	globalTimeout: process.env.CI ? 11 * 60_000 : 0,
 	workers: process.env.CI ? 2 : 1, // Single worker locally for sequential debugging
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
