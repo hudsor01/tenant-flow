@@ -100,7 +100,9 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 									: "Not specified"}
 							</span>
 						</span>
-						<span className="text-border">·</span>
+						<span className="text-border" aria-hidden="true">
+							·
+						</span>
 						<Badge
 							variant="outline"
 							className={`border-0 text-xs px-2 py-0 ${getStatusBadgeClass(property.status)}`}
@@ -109,7 +111,9 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 						</Badge>
 						{property.created_at && (
 							<>
-								<span className="text-border">·</span>
+								<span className="text-border" aria-hidden="true">
+									·
+								</span>
 								<span>
 									Added{" "}
 									{new Date(property.created_at).toLocaleDateString("en-US", {

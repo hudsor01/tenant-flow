@@ -139,7 +139,10 @@ function StepCard({ step, index }: StepCardProps) {
 					>
 						<step.icon className="size-8" />
 					</div>
-					<span className={cn("typography-h1 opacity-20", colors.text)}>
+					<span
+						className={cn("typography-h1 opacity-20", colors.text)}
+						aria-hidden="true"
+					>
 						{step.number}
 					</span>
 				</div>

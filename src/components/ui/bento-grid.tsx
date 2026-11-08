@@ -59,7 +59,9 @@ const BentoCard = ({
 		)}
 	>
 		{/* Background content - positioned absolutely */}
-		<div className="absolute inset-0 overflow-hidden">{background}</div>
+		<div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+			{background}
+		</div>
 
 		{/* Gradient overlay for text readability - stronger fade at bottom */}
 		<div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-card from-25% via-card/80 via-45% to-transparent to-70%" />
