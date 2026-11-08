@@ -36,7 +36,7 @@ export function LeasesTableToolbar({
 					aria-label="Search leases"
 					value={searchQuery}
 					onChange={(e) => onSearchChange(e.target.value)}
-					className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+					className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-input rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
 				/>
 			</div>
 
@@ -57,7 +57,7 @@ export function LeasesTableToolbar({
 						onChange={(e) =>
 							onStatusFilterChange(e.target.value as StatusFilter)
 						}
-						className="appearance-none pl-3 pr-8 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all"
+						className="appearance-none pl-3 pr-8 py-2 text-sm bg-background border border-input rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all"
 					>
 						<option value="all">All Statuses</option>
 						<option value="active">{LEASE_STATUS_LABELS.active}</option>

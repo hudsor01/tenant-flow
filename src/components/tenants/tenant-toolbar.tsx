@@ -33,7 +33,7 @@ export function TenantToolbar({
 					placeholder="Search tenants..."
 					value={searchQuery}
 					onChange={(e) => onSearchChange(e.target.value)}
-					className="w-full pl-3 pr-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all h-9"
+					className="w-full pl-3 pr-3 py-2 text-sm bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all h-9"
 				/>
 			</div>
 
@@ -43,7 +43,7 @@ export function TenantToolbar({
 				onChange={(e) =>
 					onStatusFilterChange(e.target.value as TenantStatusFilter)
 				}
-				className="appearance-none px-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
+				className="appearance-none px-3 py-2 text-sm bg-background border border-input rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
 			>
 				<option value="all">All Statuses</option>
 				<option value="active">{LEASE_STATUS_LABELS.active}</option>

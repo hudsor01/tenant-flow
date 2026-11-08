@@ -59,7 +59,7 @@ export function PropertyCard({
 						<Checkbox
 							checked={isSelected ?? false}
 							onCheckedChange={() => onSelect(property.id)}
-							className="bg-background/80 border-border"
+							className="bg-background/80"
 							aria-label={`Select ${property.name}`}
 						/>
 					</div>

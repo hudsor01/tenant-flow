@@ -77,7 +77,7 @@ export function MaintenanceOverviewTab({
 								aria-label="Search maintenance requests"
 								value={searchQuery}
 								onChange={(e) => onSearchChange(e.target.value)}
-								className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all h-9"
+								className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all h-9"
 							/>
 						</div>
 

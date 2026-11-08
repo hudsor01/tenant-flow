@@ -12,7 +12,11 @@
  *   CommandSeparator, CommandItem and CommandShortcut;
  * - a selected item's icons take text-accent-foreground through
  *   data-[selected=true]:[&_svg:not([class*='text-'])]:, so they do not stay
- *   muted-foreground on the emerald fill (1.86:1 light, 1.06:1 dark).
+ *   muted-foreground on the emerald fill (1.86:1 light, 1.06:1 dark);
+ * - the CommandInput wrapper's bottom border, the field's only boundary, is
+ *   border-input (3:1, WCAG 1.4.11) and turns border-ring while the input has
+ *   focus, where upstream draws the 1.4:1 default border and no focus mark
+ *   (66.2-39 fix round 4, Part 5b).
  */
 import { Command as CommandPrimitive } from "cmdk";
 import { SearchIcon } from "lucide-react";
@@ -81,7 +85,7 @@ function CommandInput({
 	return (
 		<div
 			data-slot="command-input-wrapper"
-			className="flex h-11 items-center gap-2 border-b px-3"
+			className="flex h-11 items-center gap-2 border-b border-input px-3 focus-within:border-ring"
 		>
 			<SearchIcon className="size-4 shrink-0 opacity-50" />
 			<CommandPrimitive.Input

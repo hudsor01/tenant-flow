@@ -244,7 +244,7 @@ export function GeneralSettings() {
 									value={contactEmail}
 									onChange={(e) => setContactEmail(e.target.value)}
 									placeholder="contact@example.com"
-									className="h-10 flex-1 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+									className="h-10 flex-1 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 								/>
 							</div>
 						</div>
@@ -261,7 +261,7 @@ export function GeneralSettings() {
 									value={phone}
 									onChange={(e) => setPhone(e.target.value)}
 									placeholder="(555) 123-4567"
-									className="h-10 flex-1 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+									className="h-10 flex-1 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 								/>
 							</div>
 						</div>
@@ -288,7 +288,7 @@ export function GeneralSettings() {
 								id="preference-theme"
 								value={themeMode}
 								onChange={(e) => handleThemeChange(e.target.value)}
-								className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+								className="h-10 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 							>
 								<option value="system">System</option>
 								<option value="light">Light</option>
@@ -308,7 +308,7 @@ export function GeneralSettings() {
 								id="preference-density"
 								value={dataDensity}
 								onChange={(e) => handleDensityChange(e.target.value)}
-								className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+								className="h-10 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 							>
 								<option value="compact">Compact</option>
 								<option value="comfortable">Comfortable</option>
@@ -331,7 +331,7 @@ export function GeneralSettings() {
 								id="preference-timezone"
 								value={timezone}
 								onChange={(e) => setTimezone(e.target.value)}
-								className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+								className="h-10 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 							>
 								<option value="America/Los_Angeles">
 									America/Los_Angeles (PST)
@@ -354,7 +354,7 @@ export function GeneralSettings() {
 								id="preference-language"
 								value={language}
 								onChange={(e) => setLanguage(e.target.value)}
-								className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+								className="h-10 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 							>
 								<option value="en-US">English (US)</option>
 								<option value="es">Spanish (ES)</option>

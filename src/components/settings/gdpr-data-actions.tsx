@@ -210,7 +210,7 @@ export function GdprDataActions({
 									value={deleteConfirmText}
 									onChange={(e) => setDeleteConfirmText(e.target.value)}
 									placeholder="DELETE"
-									className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-destructive/20 focus:border-destructive transition-all"
+									className="h-10 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-destructive/20 focus:border-destructive transition-all"
 								/>
 							</div>
 							<div className="flex gap-3">

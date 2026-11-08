@@ -86,7 +86,7 @@ export function PasswordSection() {
 								value={currentPassword}
 								onChange={(e) => setCurrentPassword(e.target.value)}
 								autoComplete="current-password"
-								className="h-10 w-full rounded-lg border bg-background px-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+								className="h-10 w-full rounded-lg border border-input bg-background px-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 							/>
 							<button
 								type="button"
@@ -118,7 +118,7 @@ export function PasswordSection() {
 							onChange={(e) => setNewPassword(e.target.value)}
 							disabled={updatePassword.isPending}
 							autoComplete="new-password"
-							className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+							className="h-10 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 						/>
 						<p className="mb-0 text-xs text-muted-foreground">
 							Must be at least {VALIDATION_LIMITS.PASSWORD_MIN_LENGTH}{" "}
@@ -138,7 +138,7 @@ export function PasswordSection() {
 							value={confirmPassword}
 							onChange={(e) => setConfirmPassword(e.target.value)}
 							autoComplete="new-password"
-							className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+							className="h-10 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 						/>
 						{confirmPassword && newPassword !== confirmPassword && (
 							<p className="mb-0 text-xs text-destructive-text flex items-center gap-1">

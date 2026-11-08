@@ -194,7 +194,7 @@ export function AccountDataSection() {
 											value={confirmText}
 											onChange={(e) => setConfirmText(e.target.value)}
 											placeholder="DELETE"
-											className="w-full max-w-sm px-3 py-2 h-11 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-destructive/20 focus:border-destructive transition-all"
+											className="w-full max-w-sm px-3 py-2 h-11 text-sm rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-destructive/20 focus:border-destructive transition-all"
 										/>
 									</div>
 									<div className="flex gap-3">

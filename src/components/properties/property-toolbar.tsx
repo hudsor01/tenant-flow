@@ -58,7 +58,7 @@ export function PropertyToolbar({
 			<select
 				value={statusFilter}
 				onChange={(e) => onStatusFilterChange(e.target.value as StatusFilter)}
-				className="appearance-none px-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
+				className="appearance-none px-3 py-2 text-sm bg-background border border-input rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
 				aria-label="Filter by status"
 			>
 				<option value="all">All Statuses</option>
@@ -72,7 +72,7 @@ export function PropertyToolbar({
 				onChange={(e) =>
 					onTypeFilterChange(toPropertyTypeFilter(e.target.value))
 				}
-				className="appearance-none px-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
+				className="appearance-none px-3 py-2 text-sm bg-background border border-input rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
 				aria-label="Filter by property type"
 			>
 				<option value="all">All Types</option>
