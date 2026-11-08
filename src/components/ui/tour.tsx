@@ -341,6 +341,8 @@ interface Store {
 	) => void;
 	notify: () => void;
 	addStep: (stepData: StepData) => { id: string; index: number };
+	updateStep: (id: string, stepData: StepData) => void;
+	getStepIndex: (id: string) => number;
 	removeStep: (id: string) => void;
 }
 
@@ -714,6 +716,23 @@ function Tour(props: TourProps) {
 				store.notify();
 				return { id, index };
 			},
+			// 66.2-39 divergence from DiceUI, with getStepIndex and TourStep's
+			// registration: a step whose props change keeps its place. DiceUI
+			// removes the step and adds it again, at the end, and each step
+			// holds the index it was added at: the owner tour's steps 2-4 take
+			// their side from the 48rem breakpoint, so a viewport that crossed
+			// it on step 2 moved them behind step 5, and no step's held index
+			// matched the current one. The tour's spotlight stayed and its step
+			// went (1280 to 390 on step 2; 390x844 to 844x390 and back).
+			updateStep: (id, stepData) => {
+				const index = stepIdsMapRef.current.get(id);
+				if (index === undefined) return;
+				stateRef.current.steps = stateRef.current.steps.map((step, i) =>
+					i === index ? stepData : step,
+				);
+				store.notify();
+			},
+			getStepIndex: (id) => stepIdsMapRef.current.get(id) ?? -1,
 			removeStep: (id) => {
 				const index = stepIdsMapRef.current.get(id);
 				if (index === undefined) return;
@@ -906,7 +925,6 @@ function TourStep(props: TourStepProps) {
 
 	const stepRef = useRef<StepElement | null>(null);
 	const stepIdRef = useRef<string>("");
-	const stepOrderRef = useRef<number>(-1);
 	const isPointerInsideReactTreeRef = useRef(false);
 	const isFocusInsideReactTreeRef = useRef(false);
 
@@ -918,8 +936,10 @@ function TourStep(props: TourStepProps) {
 	const resolvedSideOffset = sideOffset ?? context.sideOffset;
 	const resolvedAlignOffset = alignOffset ?? context.alignOffset;
 
+	// Added once, in mount order, and updated in place when a prop changes
+	// (see the store's updateStep); removed on unmount.
 	useIsomorphicLayoutEffect(() => {
-		const { id, index } = store.addStep({
+		const stepData: StepData = {
 			target,
 			align,
 			alignOffset: resolvedAlignOffset,
@@ -934,13 +954,12 @@ function TourStep(props: TourStepProps) {
 			onStepEnter,
 			onStepLeave,
 			required,
-		});
-		stepIdRef.current = id;
-		stepOrderRef.current = index;
-
-		return () => {
-			store.removeStep(stepIdRef.current);
 		};
+		if (stepIdRef.current === "") {
+			stepIdRef.current = store.addStep(stepData).id;
+		} else {
+			store.updateStep(stepIdRef.current, stepData);
+		}
 	}, [
 		target,
 		side,
@@ -957,11 +976,19 @@ function TourStep(props: TourStepProps) {
 		onStepLeave,
 		store,
 	]);
+	useIsomorphicLayoutEffect(
+		() => () => {
+			store.removeStep(stepIdRef.current);
+			stepIdRef.current = "";
+		},
+		[store],
+	);
 
 	const stepData = steps[value];
 	const targetElement = stepData ? getTargetElement(stepData.target) : null;
 
-	const isCurrentStep = stepOrderRef.current === value;
+	const isCurrentStep =
+		stepIdRef.current !== "" && store.getStepIndex(stepIdRef.current) === value;
 
 	const middleware = useMemo(() => {
 		if (!stepData) return [];
