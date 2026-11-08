@@ -390,6 +390,30 @@ test.describe("Statement exports (66.2-39 VD-58)", () => {
 		]);
 	});
 
+	test("income statement: splits the ledger calls on the browser's month at a UTC month boundary", async ({
+		page,
+	}) => {
+		// 03:00 UTC on November 1 is 22:00 on October 31 in the browser's
+		// America/Chicago: the page opens on October while a UTC clock is in
+		// November, the hour in which a split on Node's month gave both calls
+		// `ledger.before`. Only the browser's Date is fixed (timers run), and at
+		// a time before the session was issued, so supabase-js never sees it
+		// expire and never refreshes it.
+		await page.clock.setFixedTime(new Date("2026-11-01T03:00:00Z"));
+		await answerStatementRpcs(page);
+		await gotoReport(page, ROUTES.REPORTS_INCOME_STATEMENT, "Income Statement");
+		const exportButton = await settledExportButton(page);
+		expect({
+			"Total Revenue": await statAmount(page, "Total Revenue"),
+			"Net Income": await statAmount(page, "Net Income"),
+		}).toEqual({ "Total Revenue": "1260.50", "Net Income": "1000.00" });
+		const { name } = await downloadCsv(page, exportButton);
+		expect(INCOME_STATEMENT_FILENAME.exec(name)?.slice(1)).toEqual([
+			"2026-10-01",
+			"2026-10-31",
+		]);
+	});
+
 	test("income statement: says the ledger totals are unavailable when the server returns none", async ({
 		page,
 	}) => {
@@ -498,8 +522,8 @@ const BEFORE_LEDGER_KEYS = {
 /**
  * The ledger as of a statement period's end and as of the day before it
  * starts (the replay fixture's March 31 and January 31), and the period's
- * expenses. Whichever period the page selects, the call with the later date
- * gets the end.
+ * expenses. Both statements open on the current month, so `answerStatementRpcs`
+ * gives `end` to the call dated in that month and `before` to the other.
  */
 const STATEMENT_LEDGER = {
 	end: {
@@ -534,6 +558,11 @@ const STATEMENT_LEDGER = {
  * on the current month, so the call as of a date in it (the month's last day)
  * gets `ledger.end` and the one before it (the previous month's last day)
  * `ledger.before`. With one `ledger` object, both calls get it.
+ *
+ * The current month is the browser's: the page picks it there, under the
+ * config's `timezoneId`. Read from Node's clock (UTC on CI), it ran a month
+ * ahead of the page from 00:00 to 05:00 UTC (06:00 in winter) on the 1st, so
+ * both calls got `ledger.before` and the export tests failed every retry.
  */
 async function answerStatementRpcs(
 	page: Page,
@@ -547,8 +576,10 @@ async function answerStatementRpcs(
 		headers: { "access-control-allow-origin": "*" },
 		body: JSON.stringify(body),
 	});
-	const now = new Date();
-	const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+	const monthStart = await page.evaluate(() => {
+		const now = new Date();
+		return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+	});
 	await page.route("**/rest/v1/rpc/get_billing_insights", (route) => {
 		if (!("end" in ledger)) return route.fulfill(json(ledger));
 		const asOf = String(route.request().postDataJSON()?.end_date_param ?? "");
