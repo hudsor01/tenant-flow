@@ -432,6 +432,15 @@ function restingPaints(
 const OPACITY = new RegExp(`^${"op"}acity-`);
 const HIDDEN = new Set([`${"sr"}-only`, `${"hid"}den`, `${"in"}visible`]);
 
+/** An inactive control, or the label of one (WCAG 1.4.3's exception). */
+function inactive(el: Element): boolean {
+	if (el.matches(':disabled, [aria-disabled="true"]')) return true;
+	if (el.tagName !== "LABEL") return false;
+	const id = el.getAttribute("for");
+	const control = id ? el.ownerDocument.getElementById(id) : null;
+	return control?.matches(':disabled, [aria-disabled="true"]') ?? false;
+}
+
 /**
  * Every text element under `root` as it paints: the resting fills of the
  * element and its ancestors (from `root` down) composited in order, and the
@@ -439,7 +448,10 @@ const HIDDEN = new Set([`${"sr"}-only`, `${"hid"}den`, `${"in"}visible`]);
  * whose class string has a state chain (`statePairs`), that state's fill in
  * place of the element's resting one and its label unless an element nearer
  * the text sets its own. Text an element hides (the screen-reader-only,
- * display-none or visibility-hidden class, on it or an ancestor) is skipped.
+ * display-none or visibility-hidden class, on it or an ancestor) is skipped,
+ * and so is the text of an inactive control (WCAG 1.4.3's exception): a
+ * disabled or aria-disabled element on the chain, or a label whose control is
+ * disabled (66.2-39 fix round 4, Part 5b, the signing consent label).
  * A resting opacity utility on the chain throws: a faded layer is not a fill
  * this composites.
  */
@@ -465,6 +477,7 @@ export function renderedStacks(
 		if (classes.some((c) => c.split(/\s+/).some((t) => HIDDEN.has(t)))) {
 			continue;
 		}
+		if (chain.some(inactive)) continue;
 		const faded = classes.find((c) =>
 			c.split(/\s+/).some((t) => OPACITY.test(t)),
 		);
