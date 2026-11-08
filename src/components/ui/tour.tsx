@@ -1448,6 +1448,7 @@ function TourArrow(props: TourArrowProps) {
 			}}
 		>
 			<svg
+				aria-hidden="true"
 				viewBox="0 0 30 10"
 				preserveAspectRatio="none"
 				width={width}

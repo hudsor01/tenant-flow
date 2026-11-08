@@ -1173,6 +1173,17 @@
      "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
+  },
+  "src/components/ui/tooltip.tsx": {
+   "item": "tooltip",
+   "plan": "66.2-21",
+   "divergences": [
+    {
+     "what": "TooltipPrimitive.Arrow carries aria-hidden=\"true\", where upstream leaves the arrow svg exposed: Chrome reads it as an unnamed image inside the tooltip",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.1.1; 66.2-39 fix round 4 Part 5c (F1 gaps sweep)"
+    }
+   ]
   }
  }
 }

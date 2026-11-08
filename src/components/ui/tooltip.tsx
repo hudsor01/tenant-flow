@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * shadcn new-york-v4 registry item `tooltip`.
+ *
+ * Local divergences (recorded in the divergence register):
+ * - TooltipPrimitive.Arrow is aria-hidden: the arrow is a bare svg, which
+ *   Chrome exposes inside the tooltip as an unnamed image (WCAG 1.1.1;
+ *   66.2-39 fix round 4, Part 5c).
+ */
 import { Tooltip as TooltipPrimitive } from "radix-ui";
 import type { ComponentProps } from "react";
 
@@ -46,7 +54,10 @@ function TooltipContent({
 				{...props}
 			>
 				{children}
-				<TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-foreground fill-foreground" />
+				<TooltipPrimitive.Arrow
+					aria-hidden="true"
+					className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-foreground fill-foreground"
+				/>
 			</TooltipPrimitive.Content>
 		</TooltipPrimitive.Portal>
 	);

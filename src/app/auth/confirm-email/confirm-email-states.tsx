@@ -36,6 +36,7 @@ export function ConfirmEmailImagePanel() {
 							<div className="absolute inset-0 bg-linear-to-r from-primary/50 to-primary/60 rounded-2xl blur-xl" />
 							<div className="relative w-full h-full bg-primary rounded-2xl flex-center border border-glass-light shadow-lg">
 								<svg
+									aria-hidden="true"
 									viewBox="0 0 24 24"
 									fill="none"
 									xmlns="http://www.w3.org/2000/svg"
@@ -89,6 +90,7 @@ export function ConfirmEmailMobileLogo() {
 			<div className="flex items-center space-x-3">
 				<div className="size-10 rounded-xl overflow-hidden bg-primary border border-border flex-center shadow-lg">
 					<svg
+						aria-hidden="true"
 						viewBox="0 0 24 24"
 						fill="none"
 						xmlns="http://www.w3.org/2000/svg"
