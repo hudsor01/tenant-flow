@@ -156,7 +156,10 @@ describe("SidebarProvider and Sidebar (desktop)", () => {
 		expect(outer).toHaveAttribute("data-collapsible", "offcanvas");
 	});
 
-	it("uses the lg breakpoint and renders no md: class", () => {
+	// The rail is a child of the Sidebar, which the mobile sheet renders too, so
+	// a narrower switch than lg shows it inside the sheet (66.2-39 fix round 4,
+	// G42).
+	it("uses the lg breakpoint and renders no sm: or md: class", () => {
 		const { container } = render(<Shell />);
 		const outer = getDesktopSidebar(container);
 		expect(outer).toHaveClass("hidden", "lg:block");
@@ -164,12 +167,13 @@ describe("SidebarProvider and Sidebar (desktop)", () => {
 			"hidden",
 			"lg:flex",
 		);
+		expect(getSlot(container, "sidebar-rail")).toHaveClass("hidden", "lg:flex");
 		const wrapper = getSlot(container, "sidebar-wrapper");
 		const all = [wrapper, ...wrapper.querySelectorAll("*")];
-		const mdClasses = all.flatMap((el) =>
-			Array.from(el.classList).filter((c) => c.startsWith("md:")),
+		const narrowClasses = all.flatMap((el) =>
+			Array.from(el.classList).filter((c) => /^(sm|md):/.test(c)),
 		);
-		expect(mdClasses).toEqual([]);
+		expect(narrowClasses).toEqual([]);
 	});
 
 	it("renders a single static panel with collapsible='none'", () => {

@@ -25,6 +25,7 @@ import {
 	within,
 } from "@testing-library/react";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
+import type { Container } from "postcss";
 import { StrictMode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -32,6 +33,7 @@ import {
 	SIDEBAR_TOUR_TRIGGER_SELECTOR,
 } from "#components/tours/sidebar-tour-target";
 import { MOBILE_MEDIA_QUERY } from "#hooks/use-mobile";
+import { compileCandidates, parseCss } from "#test/utils/tailwind-engine";
 import { AppShell } from "../app-shell";
 
 // Mock next/navigation
@@ -162,6 +164,102 @@ function getTrigger(container: HTMLElement): HTMLButtonElement {
 // Captures the trigger before opening: Radix hideOthers hides it from role
 // queries while the sheet is open. The first client render is the desktop
 // branch, so the click waits until the trigger reports the closed sheet.
+/** Pixels for a `<n>rem` or `<n>px` length (a 16px root font size). */
+function lengthPx(length: string): number {
+	const match = /^([\d.]+)(rem|px)$/.exec(length.trim());
+	if (!match?.[1]) throw new Error(`unreadable length: ${length}`);
+	return Number(match[1]) * (match[2] === "rem" ? 16 : 1);
+}
+
+/** Whether a viewport `width` meets a compiled `@media` condition. */
+function mediaMatches(params: string, width: number): boolean {
+	const min = /^\(min-width:\s*([^)]+)\)$/.exec(params);
+	if (min?.[1]) return width >= lengthPx(min[1]);
+	const notMin = /^not all and \(min-width:\s*([^)]+)\)$/.exec(params);
+	if (notMin?.[1]) return width < lengthPx(notMin[1]);
+	const max = /^\(max-width:\s*([^)]+)\)$/.exec(params);
+	if (max?.[1]) return width <= lengthPx(max[1]);
+	throw new Error(`unreadable media condition: ${params}`);
+}
+
+interface DisplayRule {
+	value: string;
+	media: string[];
+}
+
+/** The `display` declarations of `container`'s rules that match `element`. */
+function collectDisplayRules(
+	container: Container,
+	media: string[],
+	element: Element,
+	out: DisplayRule[],
+): void {
+	container.each((node) => {
+		if (node.type === "atrule") {
+			if (node.name !== "media") {
+				throw new Error(`unexpected @${node.name} inside @layer utilities`);
+			}
+			collectDisplayRules(node, [...media, node.params], element, out);
+			return;
+		}
+		if (node.type !== "rule" || node.selector.includes("::")) return;
+		node.each((child) => {
+			if (child.type === "rule" || child.type === "atrule") {
+				throw new Error(`unlowered nesting in ${node.selector}`);
+			}
+			if (child.type !== "decl" || child.prop !== "display") return;
+			if (element.matches(node.selector)) {
+				out.push({ value: child.value, media });
+			}
+		});
+	});
+}
+
+/**
+ * The `display` the compiled utilities give `element` at each viewport width:
+ * the last matching `display` declaration in `@layer utilities` whose media
+ * conditions hold (utilities share one specificity, so source order decides),
+ * compiled from the element's own classes by the project's Tailwind. jsdom
+ * applies no class CSS, so the cascade is resolved here.
+ */
+async function utilityDisplayAt(
+	element: Element,
+	widths: readonly number[],
+): Promise<Record<number, string>> {
+	const root = parseCss(await compileCandidates([...element.classList]));
+	const rules: DisplayRule[] = [];
+	root.each((node) => {
+		if (
+			node.type === "atrule" &&
+			node.name === "layer" &&
+			node.params === "utilities"
+		) {
+			collectDisplayRules(node, [], element, rules);
+		}
+	});
+	if (rules.length === 0) {
+		throw new Error("no utility sets the element's display");
+	}
+	return Object.fromEntries(
+		widths.map((width) => {
+			let value = "(none)";
+			for (const rule of rules) {
+				if (rule.media.every((params) => mediaMatches(params, width))) {
+					value = rule.value;
+				}
+			}
+			return [width, value];
+		}),
+	);
+}
+
+/** The first width that leaves the sheet mode: MOBILE_MEDIA_QUERY's bound. */
+function sheetBoundaryPx(): number {
+	const bound = /^\(width < ([^)]+)\)$/.exec(MOBILE_MEDIA_QUERY)?.[1];
+	if (!bound) throw new Error(`unreadable query: ${MOBILE_MEDIA_QUERY}`);
+	return lengthPx(bound);
+}
+
 async function openSheet(container: HTMLElement, user: UserEvent) {
 	const trigger = getTrigger(container);
 	await waitFor(() =>
@@ -393,6 +491,30 @@ describe("AppShell", () => {
 
 			expect(document.activeElement).not.toBe(trigger);
 		});
+
+		// The Sidebar renders its children in the sheet, so the rail the shell
+		// composes is in the open dialog too. Upstream's `sm:flex` showed it from
+		// 640 to 1023px: an 8px strip on the sheet's edge whose click closed the
+		// sheet, and a second "Toggle navigation menu" button (66.2-39 fix round
+		// 4, G42). Its display switch is the shell's own `lg` boundary now.
+		it("displays the rail in the open sheet at no sheet-mode width", async () => {
+			const user = userEvent.setup();
+			const { container } = render(<AppShell>Content</AppShell>);
+			const { dialog } = await openSheet(container, user);
+			const rail = dialog.querySelector('[data-slot="sidebar-rail"]');
+			if (!rail) throw new Error("the sheet renders no rail");
+			const boundary = sheetBoundaryPx();
+			const widths = [320, 639, 640, 767, 768, 900, boundary - 1];
+
+			expect(await utilityDisplayAt(rail, widths)).toEqual(
+				Object.fromEntries(widths.map((width) => [width, "none"])),
+			);
+			// Positive control: the same cascade shows the rail where the docked
+			// sidebar renders it.
+			expect(await utilityDisplayAt(rail, [boundary])).toEqual({
+				[boundary]: "flex",
+			});
+		}, 30_000);
 
 		it("shows one labelled 44px close button and keeps the sheet's own close hidden", async () => {
 			const user = userEvent.setup();

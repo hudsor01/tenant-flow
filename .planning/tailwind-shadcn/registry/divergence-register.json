@@ -749,7 +749,7 @@
      "ref": "CLAUDE.md rule 5; D-32 (V2)"
     },
     {
-     "what": "V3: lg:block on the outer desktop div and lg:flex on sidebar-container replace md:block / md:flex; useIsMobile matches (width < 64rem)",
+     "what": "V3: lg:block on the outer desktop div and lg:flex on sidebar-container replace md:block / md:flex, and lg:flex on SidebarRail replaces sm:flex, so the rail the mobile sheet also renders never shows there (66.2-39 fix round 4, G42); useIsMobile matches (width < 64rem)",
      "reason": "D-26 customization",
      "ref": "D-33 (V3)"
     },

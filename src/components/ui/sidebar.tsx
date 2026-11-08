@@ -26,8 +26,13 @@
  *       `w-(--sidebar-width-mobile)`. SidebarProvider no longer destructures
  *       `style`, so a caller's style still reaches the wrapper through props.
  *   V3  The mode switch is the `lg` breakpoint (D-33): `lg:block` and `lg:flex`
- *       replace the upstream `md:` pair, and useIsMobile from
- *       `#hooks/use-mobile` matches `(width < 64rem)`, the same boundary.
+ *       replace the upstream `md:` pair, SidebarRail's `lg:flex` replaces
+ *       upstream's `sm:flex`, and useIsMobile from `#hooks/use-mobile` matches
+ *       `(width < 64rem)`, the same boundary. The mobile sheet renders the
+ *       Sidebar's children, the rail included, so the rail's `sm:flex` showed
+ *       it there from 40 to 63.99rem: a strip on the sheet's edge whose click
+ *       closed the sheet, and a second "Toggle navigation menu" button
+ *       (66.2-39 fix round 4, G42).
  *   V4  Base-rule neutralizers (D-49): SidebarMenu and SidebarMenuSub cancel the
  *       globals.css list base rules on the list itself, and the two menu
  *       buttons add `no-underline` (details under D-49 below).
@@ -432,7 +437,7 @@ function SidebarRail({ className, ...props }: ComponentProps<"button">) {
 			onClick={toggleSidebar}
 			title="Toggle navigation menu"
 			className={cn(
-				"absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] hover:after:bg-sidebar-border sm:flex",
+				"absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] hover:after:bg-sidebar-border lg:flex",
 				"in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize",
 				"[[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize",
 				"group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:left-full hover:group-data-[collapsible=offcanvas]:bg-sidebar",
