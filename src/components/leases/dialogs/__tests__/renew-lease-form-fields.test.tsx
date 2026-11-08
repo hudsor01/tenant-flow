@@ -4,9 +4,10 @@
  *
  * The signed change amount is status-colored TEXT on the `bg-muted` summary
  * panel, so it uses the AA `-text` companions: a rent increase reads
- * `text-success-text` and a decrease `text-destructive-text`. Measured in
- * Chrome (painted, over the dialog `bg-background`), success-text on bg-muted
- * is 4.50:1 light / 9.88:1 dark and destructive-text 5.51:1 / 6.08:1. The
+ * `text-success-text` and a decrease `text-destructive-text`. On bg-muted
+ * success-text reads 5.09:1 light / 9.87:1 dark and destructive-text 5.51:1 /
+ * 6.08:1 (token math; Chrome, painted over the dialog `bg-background`, read
+ * success-text 4.50:1 light before fix round 4 darkened it). The
  * previous `text-accent-main` measured 2.96:1 light, and the decrease class
  * `text-error-main` was not a defined utility, so a decrease rendered in the
  * inherited color.

@@ -146,7 +146,7 @@
      "ref": "D-05"
     },
     {
-     "what": "the default and destructive anchor hovers fill with bg-primary-text and bg-destructive-text in light, keeping /90 in dark (as Button); the success anchor hover is bg-success/12, not /15 (success-text 4.57:1 against 4.44:1)",
+     "what": "the default and destructive anchor hovers fill with bg-primary-text and bg-destructive-text in light, keeping /90 in dark (as Button); the success anchor hover is bg-success/12, not the /15 of warning and info: success-text read 4.57:1 on it against 4.44:1 on /15 (token math since fix round 4 darkened success-text: 5.16:1 and 5.01:1)",
      "reason": "D-26 customization",
      "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
     },
@@ -264,7 +264,7 @@
      "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
     },
     {
-     "what": "the outline and ghost variants add dark:hover:text-foreground: upstream's dark accent-foreground is near-white, this theme's is near-black (the dark accent is a bright emerald), so the dark hover label read 1.17:1 on input/50 (outline) and 2.63:1 on accent/50 (ghost); the CP-2 fills dark:hover:bg-input/50 and dark:hover:bg-accent/50 are kept",
+     "what": "the outline and ghost variants add dark:hover:text-foreground: upstream's dark accent-foreground is near-white, this theme's is near-black (the dark accent is a bright emerald), so the dark hover label read 1.17:1 on input/50 (outline; 1.68:1 by token math since fix round 4 lightened --input) and 2.63:1 on accent/50 (ghost); the CP-2 fills dark:hover:bg-input/50 and dark:hover:bg-accent/50 are kept",
      "reason": "D-26 customization",
      "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
     },
@@ -1193,7 +1193,7 @@
      "ref": "Phase 19 (d825f7b6a)"
     },
     {
-     "what": "toggleVariants base uses inline-flex-center and typography-small, transition-all duration-200, and a primary on-state (bg-primary, text-primary-foreground, shadow-md, font-semibold, hover:bg-primary/90) in place of the upstream accent on-state; the outline variant hovers bg-muted and adds data-[state=on]:border-primary",
+     "what": "toggleVariants base uses inline-flex-center and typography-small, transition-all duration-200, and a primary on-state (bg-primary, text-primary-foreground, shadow-md, font-semibold, and its hover fill, recorded separately) in place of the upstream accent on-state; the outline variant hovers bg-muted and adds data-[state=on]:border-primary",
      "reason": "D-26 customization",
      "ref": "D-26; UI-SPEC §Preserved Customizations (typography-small, flex-center)"
     },

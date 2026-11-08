@@ -121,9 +121,10 @@ export function describeTrend(
  * - `stable` → `--color-muted-foreground`
  *
  * The stroke is a graphical object (WCAG 1.4.11, 3:1 on the card): the AA
- * companions read 5.23:1 / 5.48:1 light and 11.04:1 / 11.73:1 dark, where the
- * vivid `--color-success` / `--color-warning` fills read 2.62:1 / 2.18:1 on the
- * light card (66.2-39 VD-53).
+ * companions read 5.89:1 / 5.48:1 light and 11.07:1 / 11.74:1 dark (token
+ * math; success-text read 5.23:1 light in Chrome before fix round 4 darkened
+ * it), where the vivid `--color-success` / `--color-warning` fills read
+ * 2.62:1 / 2.18:1 on the light card (66.2-39 VD-53).
  *
  * `ChartContainer` (src/components/ui/chart.tsx) consumes the returned config
  * and injects a scoped `--color-spark` CSS variable, so the sparkline JSX

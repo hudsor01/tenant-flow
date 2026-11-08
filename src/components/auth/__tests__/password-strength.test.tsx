@@ -4,8 +4,9 @@
  *
  * A met rule read `text-accent`, the vivid fill token: 3.51:1 on the popover
  * in light mode, under AA for its 14px text. It uses the AA companion
- * `text-success-text`: 5.38:1 light / 11.57:1 dark on `bg-popover` (Chrome,
- * canvas readback). Unmet rules keep `text-muted-foreground`.
+ * `text-success-text`: 6.06:1 light / 11.58:1 dark on `bg-popover` (token
+ * math; Chrome read 5.38:1 light before fix round 4 darkened success-text).
+ * Unmet rules keep `text-muted-foreground`.
  */
 
 import { fireEvent, render, screen } from "@testing-library/react";

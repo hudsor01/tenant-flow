@@ -23,7 +23,8 @@ import { cn } from "#lib/utils";
  *   4.16:1 and 4.39:1; dark keeps the /90 hovers;
  * - outline and ghost add dark:hover:text-foreground: this theme's dark
  *   accent-foreground is near-black, so upstream's dark hover label read
- *   1.17:1 on input/50 and 2.63:1 on accent/50 (the CP-2 fills stay).
+ *   1.17:1 on input/50 (1.68:1 by token math since fix round 4 lightened
+ *   --input) and 2.63:1 on accent/50 (the CP-2 fills stay).
  *
  * An svg inside a Button renders 16px unless it carries a size- class, so
  * callers size icons with size-N, never h-N w-N. The outline and dark surfaces

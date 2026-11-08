@@ -8,9 +8,9 @@
  *   data-slot);
  * - toggleVariants base uses inline-flex-center and typography-small,
  *   transition-all duration-200, and a primary on-state (bg-primary,
- *   text-primary-foreground, shadow-md, font-semibold, hover:bg-primary/90) in
- *   place of the upstream accent on-state; the outline variant hovers bg-muted
- *   and adds data-[state=on]:border-primary;
+ *   text-primary-foreground, shadow-md, font-semibold, and the hover fill
+ *   below) in place of the upstream accent on-state; the outline variant
+ *   hovers bg-muted and adds data-[state=on]:border-primary;
  * - 44px targets: sizes default h-11 min-w-11, sm h-11 min-w-11, lg h-12
  *   min-w-12;
  * - the on-state hover fills with bg-primary-text in light (primary-foreground
