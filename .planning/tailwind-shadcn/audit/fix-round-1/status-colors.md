@@ -58,7 +58,7 @@ Each row is one distinct (classes, surface) pair; a row lists every file:line th
 | 2 | billing-settings.tsx:88 Trial badge | text (4.5) | `text-blue-700 dark:text-blue-300` / `bg-background` > `bg-card` > `bg-blue-100 dark:bg-blue-900/30` | `text-info-text` / `bg-background` > `bg-card` > `bg-info/10` | #1447e6 on #dbeafe = **5.6** | #0064b2 on #e1f0fb = **5.21** | #8ec5ff on #0d1a3a = **9.45** | #6cc3ff on #091b2c = **9.04** |
 | 3 | billing-settings.tsx:93,98 Past Due/Unpaid badge | text (4.5) | `text-amber-700 dark:text-amber-300` / `bg-background` > `bg-card` > `bg-amber-100 dark:bg-amber-900/30` | `text-warning-text` / `bg-background` > `bg-card` > `bg-warning/10` | #bb4d00 on #fef3c6 = **4.52** | #965900 on #f8f2e4 = **5.05** | #ffd230 on #2a1811 = **11.73** | #fbc044 on #1d1c14 = **10.36** |
 | 4 | billing-settings.tsx:102,110,117 Canceled/Expired badge | text (4.5) | `text-red-700 dark:text-red-300` / `bg-background` > `bg-card` > `bg-red-100 dark:bg-red-900/30` | `text-destructive-text` / `bg-background` > `bg-card` > `bg-destructive/10` | #c10007 on #ffe2e2 = **5.27** | #be000d on #f8e2e7 = **5.33** | #ffa2a2 on #2c1017 = **9.17** | #ff6762 on #1b0d14 = **6.61** |
-| 5 | subscription-cancel-section.tsx:125 Subscription Ended heading | text (4.5) | `text-red-800 dark:text-red-200` / `bg-background` > `bg-red-50 dark:bg-red-950/50` | `text-destructive-text` / `bg-background` > `bg-destructive/10` | #9f0712 on #fef2f2 = **7.64** | #be000d on #f7e1e4 = **5.27** | #ffc9c9 on #25090d = **12.86** | #ff6762 on #18090f = **6.79** |
+| 5 | subscription-cancel-section.tsx:125 Subscription Ended heading | text (4.5) | `text-red-800 dark:text-red-200` / `bg-background` > `bg-red-50 dark:bg-red-950/50` | `text-destructive-text` / `bg-background` > `bg-destructive/10` (fix round 4, `93377db22`: `bg-destructive/5`, #be000d on #f8edf0 = 5.75 light, #ff6762 on #0e0910 = 6.92 dark; section 9.2) | #9f0712 on #fef2f2 = **7.64** | #be000d on #f7e1e4 = **5.27** | #ffc9c9 on #25090d = **12.86** | #ff6762 on #18090f = **6.79** |
 | 6 | subscription-cancel-section.tsx:188 / account-data-section.tsx:193 / gdpr-data-actions.tsx:213 callout text | text (4.5) | `text-amber-700` / `bg-background` > `bg-card` > `bg-amber-500/5` | `text-warning-text` / `bg-background` > `bg-card` > `bg-warning/5` | #bb4d00 on #faf7f1 = **4.7** | #965900 on #f8f7f1 = **5.25** | #bb4d00 on #151515 = **3.63** | #fbc044 on #131415 = **11.18** |
 | 7 | subscription-cancel-section.tsx:184 / account-data-section.tsx:189 / gdpr-data-actions.tsx:209 Clock icon | nontext (3) | `text-amber-600` / `bg-background` > `bg-card` > `bg-amber-500/5` | `text-warning-text` / `bg-background` > `bg-card` > `bg-warning/5` | #e17100 on #faf7f1 = **2.99** | #965900 on #f8f7f1 = **5.25** | #e17100 on #151515 = **5.71** | #fbc044 on #131415 = **11.18** |
 | 8 | two-factor-section.tsx:64 Shield icon in circle | nontext (3) | `text-amber-600` / `bg-background` > `bg-card` > `bg-amber-50 dark:bg-amber-950/30` > `bg-amber-100 dark:bg-amber-900/30` | `text-warning-text` / `bg-background` > `bg-card` > `bg-warning/10` > `bg-warning/20` | #e17100 on #fef3c6 = **2.87** | #965900 on #f3e2b6 = **4.39** | #e17100 on #371a0c = **4.99** | #fbc044 on #433410 = **7.32** |
@@ -672,7 +672,7 @@ Result on `f48046894`: 287 class strings carry a state pair; 596 pairs (each in 
 | `accent-foreground`, no fill of its own (Calendar day button, dark hover over the ghost fill) | 1 | fixed: `dark:hover:text-foreground` (2.64 -> 6.64:1) |
 | inherited `muted-foreground` on `accent/50` (Item anchor hover) | 2 | fixed: `[a]:hover:bg-accent/25` (3.47 / 3.04 -> 4.69 / 5.59) |
 | inherited `muted-foreground` on `accent/30` (FileUploadDropzone hover and drag) | 1 | fixed: `accent/25` (4.36 -> 4.62) |
-| `success-text` on `success/15` (Badge success anchor hover) | 1 | fixed: `success/12` (4.45 -> 4.58) |
+| `success-text` on `success/15` (Badge success anchor hover) | 1 | fixed: `success/12` (4.45 -> 4.58). **Superseded by `ae038ed02`** (fix round 4): Part 5b darkened light `success-text`, so the hover is back at `/15`, as warning and info: 5.02 / 5.07 light (page / card), 9.33 / 8.98 dark (section 9.3) |
 | `primary/80` on the page (blog post link hover, x2) | 2 | fixed: `hover:text-primary-text/80` (3.58 -> 4.58 light, 5.30 -> 6.99 dark). Fix round 3 (`f9aa2dd8c`, F29, OD-16): on the post's real surfaces `/80` read 4.21 / 4.17 light; the hover keeps the full `text-primary-text` and adds an underline: 6.16 / 6.04 light, 9.30 / 8.80 dark |
 | `destructive` on `muted` (leases Terminate icon button) | 2 | fixed: `hover:text-destructive-text` (2.87 dark -> 6.08; the icon is the button's only content, so 3:1 applied and failed) |
 | `destructive` on `destructive/10` and on no fill (nine Trash2 icon buttons) | 13 | kept: icon-only, 3.13:1 at worst (dark card), over the 3:1 non-text minimum (ICON_ONLY). Fix round 3 (`7eafdd433`, F7, F58): that figure read each class string alone; on the merged Button classes four of these hovered destructive on the ghost variant's emerald accent fill in light (1.35:1), and in dark every one took the variant's neutral `text-foreground` hover. Each call site now twins its hover: icons 3.81 light on `destructive/10`, dark `destructive-text` 6.79 (ghost) / 6.44 (outline) (Chrome, the `81fdadd71` build) |
@@ -706,12 +706,12 @@ Same instrument as sections 2-6: each pair painted over white on a 1x1 canvas in
 | 11 | R3 calendar day dark hover (popover) | (dark only) | (dark only) | #040e08 on #016241 **2.64** | #ecf3f8 on #016241 6.64 |
 | 12 | Item anchor hover, muted text (card) | #575f66 on #7dcdad **3.47** | #575f66 on #bbe4d5 4.69 | #a2acb7 on #046647 **3.04** | #a2acb7 on #06392e 5.59 |
 | 13 | Dropzone hover/drag, muted text (background) | #575f66 on #aedeca **4.36** | #575f66 on #bbe2d3 4.62 | #a2acb7 on #034030 5.12 | #a2acb7 on #03362b 5.82 |
-| 14 | Badge success anchor hover (background) | #007b40 on #d4f0e5 **4.45** | #007b40 on #dbf2e8 4.58 | #4bdc95 on #03251a 9.33 | #4bdc95 on #041f18 9.86 |
+| 14 | Badge success anchor hover (background; superseded by `ae038ed02`: `/15` again, #007238 on #d4f0e5 5.02 light, section 9.3) | #007b40 on #d4f0e5 **4.45** | #007b40 on #dbf2e8 4.58 | #4bdc95 on #03251a 9.33 | #4bdc95 on #041f18 9.86 |
 | 15 | Toggle on hover (background) | #f4f9ff on #1873f1 **4.17** | #f4f9ff on #004fc4 6.81 | #0e1216 on #3d90ff 5.94 | #0e1216 on #3d90ff 5.94 |
 | 16 | Blog post link hover (background; fix round 3 makes it the full `text-primary-text` with an underline, 6.16 / 6.04 light and 9.30 / 8.80 dark on the post's surfaces, §7.2) | #3282f2 on #f9fafb **3.58** | #3271ce on #f9fafb 4.58 | #3781f3 on #040a11 5.3 | #649aed on #040a11 6.99 |
 | 17 | Leases Terminate icon hover (background) | #e7001e on #e5ecf1 3.99 | #be000d on #e5ecf1 5.51 | #c90000 on #141b24 **2.87** | #ff6762 on #141b24 6.08 |
 
-Before: all 17 rows fail in at least one theme. After: none; the worst label is 4.58:1 (the success badge anchor hover and the blog link hover, light).
+Before: all 17 rows fail in at least one theme. After: none; the worst label is 4.58:1 (the success badge anchor hover and the blog link hover, light). Fix round 4 moved one of these rows, the success badge anchor hover (row 14, section 9.3); the base anchor rule's hover, a different pair, is in section 9.2.
 
 ### 7.4 Guard
 
@@ -794,3 +794,103 @@ Each vivid token and its companion as a foreground on the card, the muted fill a
 | comparison-table icon text-success-text on bg-success/10 | #007b40 on #e0f3eb 4.66 | #4bdc95 on #041b17 10.19 |
 | comparison-table icon text-warning on bg-warning/10 | #e1a200 on #f7f1e1 **1.99** | #de9400 on #1a180f 7.06 |
 | comparison-table icon text-warning-text on bg-warning/10 | #965900 on #f7f1e1 5 | #fbc044 on #1a180f 10.77 |
+
+## 9. Fix round 4 (after perfect-PR cycle 3; measured on `ae038ed02`)
+
+Owner directive, 2026-11-07: text or UI below WCAG AA that a sweep finds is fixed wherever it is, never deferred, and the sweep is done in the rendered app. Fix round 4's Parts 5, 5b and 5c measured every text node's composited stack on the served build (Part 5b: 102 routes, light and dark, 1280 and 390, about 7,400 states; Part 5c: the states that sweep could not reach), and Part 8 re-measured each figure in 9.2 on `ae038ed02` with that part's own instrument. 9.1 and 9.3 use this file's: each pair painted on a 1x1 canvas in Chrome over white, under the compiled project CSS.
+
+### 9.1 Light `success-text` and `info-text` (`af72de1aa`)
+
+Part 5b's sweep read light `success-text` at 4.22-4.50:1 and `info-text` at 3.95:1 under a badge's 10% tint on a hovered row, a tinted card or an item's hover, so both darken in light only: `success-text` oklch L 0.5 -> 0.47 (painted #007b40 -> #007238), `info-text` L 0.48 -> 0.44 (#0064b2 -> #0057a5); dark is unchanged. Every light pair in sections 2 to 8 whose text or mark is one of the two is recomputed below: the new token painted in Chrome against the background each row recorded (the 48 rows that record a hex background give back their recorded ratio exactly from it with the old token), and a row that recorded no background scales by the luminance ratio, x1.128 for `success-text` and x1.192 for `info-text`, exact for any background lighter than the text. A surface a later round changed is measured in 9.2. On the four base surfaces: `success-text` 5.80 (page), 5.89 (card), 6.06 (popover), 5.08 (`muted`); `info-text` 6.91, 7.03, 7.22, 6.06 (the state-fill guard's token math, `oklch-contrast.ts`, reads 5.81, 5.89, 6.06, 5.09 and 6.90, 7.00, 7.20, 6.05). Every pair against its background rose and clears its minimum; the one pair between two marks, the donut's occupied and available wedges, fell from 1.34 to 1.19 and stays separated by its card-colored stroke (section 5 row 3).
+
+| Row | Site | Token | Background | Light, fix round 1 | Light, `ae038ed02` |
+|---|---|---|---|---|---|
+| §2 row 1 | billing-settings.tsx:83 Active badge | success-text | on #e1f4ee | 4.70 | 5.30 |
+| §2 row 2 | billing-settings.tsx:88 Trial badge | info-text | on #e1f0fb | 5.21 | 6.21 |
+| §2 row 9 | personal-info-section.tsx:181 CheckCircle icon | success-text | on #fafcfe | 5.23 | 5.89 |
+| §2 row 10 | subscription-status-banner.tsx:35 no-subscription banner | info-text | on #e0eff8 | 5.16 | 6.15 |
+| §2 row 19 | columns.tsx:48,131 / maintenance-utils.ts:42 Completed / aging<=3 | success-text | on #e1f4ee | 4.70 | 5.30 |
+| §2 row 24 | timeline-card.tsx:27 completed event icon | success-text | on #e1f4ee | 4.70 | 5.30 |
+| §2 row 27 | lease-detail-utils.ts:165,169 timeline sent/renewed icon | info-text | on #e1f0fb | 5.21 | 6.21 |
+| §2 row 28 | lease-detail-utils.ts:166-168 timeline signed/activated icon | success-text | on #e1f4ee | 4.70 | 5.30 |
+| §2 row 34 | lease-detail-utils.ts:198 Active badge | success-text | on #e1f4ee | 4.70 | 5.30 |
+| §2 row 43 | review-step.tsx:255 acknowledged CheckCircle2 icon | success-text | on #fafcfe | 5.23 | 5.89 |
+| §2 row 45 | review-step.tsx:263 Disclosure Acknowledged badge (outline -> Badge variant=success) | success-text | on #e1f4ee | 4.70 | 5.30 |
+| §2 row 46 | tenant-grid.tsx:76 Active badge | success-text | on #e1f4ee | 4.70 | 5.30 |
+| §2 row 47 | tenant-stats.tsx:50 Active value (32px bold StatValue) | success-text | on #fafcfe | 5.23 | 5.89 |
+| §2 row 49 | tenant-detail-sheet-tabs.tsx:164 Verified | success-text | on #fafcfe | 5.23 | 5.89 |
+| §2 row 51 | property-table-row.tsx:160 available badge | success-text | on #e1f4ee | 4.70 | 5.30 |
+| §2 row 53 | property-table-row.tsx:178 Full badge | info-text | on #e1f0fb | 5.21 | 6.21 |
+| §2 row 54 | property-table-row.tsx:191 revenue | success-text | on #fafcfe | 5.23 | 5.89 |
+| §2 row 55 | property-table-row.tsx:137 occupancy bar 100% | success-text | on #e5ecf1 | 4.50 | 5.08 |
+| §2 row 56 | property-table-row.tsx:139 occupancy bar >=80% | info-text | on #e5ecf1 | 5.08 | 6.06 |
+| §2 row 61 | property-units-table-config.ts:12 Occupied badge | info-text | on #e1f0fb | 5.21 | 6.21 |
+| §2 row 62 | property-units-table-config.ts:18 Available badge | success-text | on #e1f4ee | 4.70 | 5.30 |
+| §2 row 65 | property-select-card.tsx:105 DollarSign icon | success-text | on #fafcfe | 5.23 | 5.89 |
+| §2 row 66 | property-stats-section.tsx:85 DollarSign icon on tile | success-text | on #e1f4ee | 4.70 | 5.30 |
+| §2 row 67 | property-stats-section.tsx:85 DollarSign icon on hovered tile | success-text | on #c8eedf | 4.29 | 4.84 |
+| §2 row 75 | balance-equation-check.tsx:32 Balanced | success-text | on #e0f3eb | 4.66 | 5.25 |
+| §2 row 78 | balance-sheet/page.tsx:227 / cash-flow-stats.tsx:34 / income-statement-page-stats.tsx:36 / analytics-stat-cards.tsx:98 / financial-overview-stats.tsx:79 / performance-stat-cards.tsx:51 success stat value (32px bold StatValue) | success-text | on #fafcfe | 5.23 | 5.89 |
+| §2 row 81 | analytics-stat-cards.tsx:81,138 / expense-stats.tsx:88 change text (success) | success-text | on #fafcfe | 5.23 | 5.89 |
+| §2 row 84 | balance-sheet/page.tsx:303 / cash-flow-breakdown.tsx:44,66 / cash-flow-balance-summary.tsx:32 / income-statement-page-breakdowns.tsx:29,64 / income-statement-page-net-summary.tsx:33,65,82 / year-end-report-section.tsx:160,169 success amount (no dark pair) | success-text | on #fafcfe | 5.23 | 5.89 |
+| §2 row 87 | cash-flow-breakdown.tsx:30 / income-statement-page-breakdowns.tsx:29 inflow/revenue heading icon | success-text | on #fafcfe | 5.23 | 5.89 |
+| §2 row 89 | cash-flow-breakdown.tsx:51 inflow bar on track | success-text | on #e5ecf1 | 4.50 | 5.08 |
+| §2 row 93 | income-statement-page-breakdowns.tsx:44 revenue dot | success-text | on #fafcfe | 5.23 | 5.89 |
+| §2 row 95 | cash-flow-activity.tsx:23 operating value (text-2xl semibold) | success-text | on #e1f4ee | 4.70 | 5.30 |
+| §2 row 98 | expense-category-badge.tsx:16 utilities | info-text | on #e1f0fb | 5.21 | 6.21 |
+| §2 row 101 | expense-category-badge.tsx:21 management | success-text | on #e1f4ee | 4.70 | 5.30 |
+| §2 row 103 | tax-documents/page.tsx:173 income icon tile | success-text | on #e1f4ee | 4.70 | 5.30 |
+| §2 row 105 | tax-documents/page.tsx:205 net taxable icon tile | info-text | on #e1f0fb | 5.21 | 6.21 |
+| §4 row 2 | units/page.tsx:139 Needs attention caption (12px) | info-text | on #fafcfe | 5.89 | 7.03 |
+| §8.3 | text-success-text on card | success-text | on #fafcfe | 5.23 | 5.89 |
+| §8.3 | text-success-text on muted | success-text | on #e5ecf1 | 4.50 | 5.08 |
+| §8.3 | text-success-text on muted/30 section | success-text | on #f3f5f8 | 4.92 | 5.55 |
+| §8.3 | text-info-text on card | info-text | on #fafcfe | 5.89 | 7.03 |
+| §8.3 | text-info-text on muted | info-text | on #e5ecf1 | 5.08 | 6.06 |
+| §8.3 | text-info-text on muted/30 section | info-text | on #f3f5f8 | 5.55 | 6.62 |
+| §8.3 | text-success-text on card | success-text | on #fafcfe | 5.23 | 5.89 |
+| §8.3 | text-success-text on muted | success-text | on #e5ecf1 | 4.50 | 5.08 |
+| §8.3 | text-success-text on muted/30 section | success-text | on #f3f5f8 | 4.92 | 5.55 |
+| §8.3 | comparison-table icon text-success-text on bg-success/10 | success-text | on #e0f3eb | 4.66 | 5.25 |
+| §4 token table | success-text as a chart series, on the card | success-text | on #fafcfe | 5.23 | 5.89 |
+| §4 | six chart series moved to `var(--color-success-text)` (revenue, paid, monthly revenue, applications, renewals, completed), on the card | success-text | on #fafcfe | 5.23 | 5.89 |
+| §5 token table | occupied wedge, swatch and dot; up sparkline, on the card | success-text | on #fafcfe | 5.23 | 5.89 |
+| §5 row 3 | donut wedge against wedge (occupied `success-text` / available `primary-text`; #004fc4) | success-text | against #004fc4 | 1.34 | 1.19 (each wedge stays outlined in the card color and meets the card at 5.89 / 7.00) |
+| §5 rows 1, 10, 11, 15 | donut occupied wedge and swatch, units Occupied dot and caption, kpi-helpers up sparkline | success-text | on #fafcfe | 5.23 | 5.89 |
+| §6.3 row 1 | progress success indicator on the card | success-text | on #fafcfe | 5.23 | 5.89 |
+| §6.3 row 2 | progress success indicator on its `bg-success/20` track | success-text | on #c8eedf | 4.29 | 4.84 |
+| §6.3 rows 9, 14 | deposit card itemized dot; bulk-import completed separator (on `bg-muted/30`) | success-text | on #f3f5f8 | 4.92 | 5.55 |
+| §6.3 row 10 | deposit table itemized dot, even / odd row | success-text | (background as recorded; ratio scaled) | 5.14, 5.00 | 5.80, 5.64 |
+| §6.3 row 11 | deposit interest dot (`bg-info-text`), legend / even / odd | info-text | (background as recorded; ratio scaled) | 5.55, 5.80, 5.64 | 6.62, 6.92, 6.72 |
+| §6.3 row 13 | bulk-import completed step icon on its tint | success-text | (background as recorded; ratio scaled) | 4.26 | 4.81 |
+| §6.3 row 15 | hero trust-badge pulse dot (decorative) | success-text | (background as recorded; ratio scaled) | 4.46 | 5.03 |
+| §6.3 row 16 | lease signature success badge | success-text | on #e1f4ee | 4.70 | 5.30 |
+
+### 9.2 Pairs fix round 4 added or moved
+
+Measured by each part on the served build and re-measured by Part 8 on `ae038ed02` with the part's own probe: Part 5's harness of the rendered components for the canceled section and the History disc; Part 5b's rendered sweep (with Part 5c's corrected layer clip) for its rows, the lowest node per theme over the nodes Part 5b measured; Part 5c's gap-state probe for the menu, palette, ledger and new-password rows. Before values are the parts' measurements of the code before each commit. The sweep's other nodes in the same classes all pass (the lowest new ones: a `/properties/units` filter's "$" adornment 5.44 / 7.53, the dashboard's search field boundary 3.35 dark, a hovered trash icon on the accent fill 4.66 light, the CTA band's focus ring 3.66 / 5.03). Every pair clears its minimum (text 4.5, a control's boundary or focus mark 3:1).
+
+| Pair | Light | Dark | Commit |
+|---|---|---|---|
+| Canceled subscription section heading (section 2 row 5), `text-destructive-text` on `bg-destructive/5` (was `/10`) | 5.27 -> 5.75 (#be000d on #f8edf0) | 6.79 -> 6.92 (#ff6762 on #0e0910) | `93377db22` (Part 5, G32) |
+| its deletion notice's warning text, on `bg-warning/5` inside the section | 4.38 -> 4.75 (body 5.05 -> 5.47) | 11.08 -> 11.36 (body 8.14) | `93377db22` |
+| its Delete Account button, hovered (`hover:bg-destructive/10`) | 4.46 -> 4.84 | 6.47 -> 6.66 | `93377db22` |
+| lease History disc against the rail behind it (lower is the goal: the rail hidden) | 1.36-1.46 -> 1.00 | 1.36-1.46 -> 1.00 | `2c9129491` (Part 5, G18) |
+| base anchor hover, `primary` at 80% -> `primary-text` | 3.25 -> 6.04 | 4.50 -> 8.80 | `af72de1aa` (Part 5b) |
+| badge `-text` labels on their 10% tint over a hovered row, a tinted card or an item hover (lowest node) | 3.95 -> 4.72 | -> 5.99 | `af72de1aa` |
+| `--input` boundaries, 3:1 (WCAG 1.4.11): Input / Select trigger / Radix checkbox / Switch track | 1.72 / 1.72 / 1.40 / 1.78 -> 3.41 / 3.41 / 3.11 / 3.55 | 1.38 / 1.41 / 1.27 / 1.30 -> 3.43 / 3.43 / 3.09 / 3.45 | `af72de1aa`, `b648c8f43` (the dark track at full `bg-input`) |
+| raw fields, the command input, the new-password field: `border-border` -> `border-input` | 1.40 (the new-password field) -> 3.60 | 1.42 -> 3.45 | `fd773b713`, `d97a286fd` (Part 5c) |
+| native (UA-drawn) checkboxes, by their pixels | 3.81-4.42 | 4.70-5.25 | no change needed |
+| tinted notices: an `-foreground` label on its 10% tint -> the `-text` companion (forgot-password; bulk-import "Too many rows") | passing -> 6.17; 5.00 | 1.005 -> 9.32; 1.03 -> 10.79 | `e30353f74` (Part 5b) |
+| rich toasts: Sonner's palette -> the `-text` companions on a 10% tint over the popover (lowest) | 4.26 -> 5.53 | -> 6.85 | `2ad67e538` |
+| icon-only destructive buttons: vivid `destructive` -> `destructive-text`, rest and hover | 2.18 -> 5.00 | 2.88 -> 5.09 | `f8978e9ae` |
+| focus rings: `ring/50` -> opaque `ring-ring` (lowest node, against its surface) | 1.38 -> 5.15 | 1.09 -> 6.31 | `552d56931` |
+| command palette subtitles and shortcut on the selected accent fill: `muted-foreground` -> `accent-foreground` | 1.85 -> 4.66 | 1.06 -> 7.98 | `ae0a605bd` (Part 5c) |
+| hand-colored `destructive-text` menu items on the accent focus fill -> the destructive variant | 1.87 -> the variant (the next rows) | 1.16 -> the variant | `098de0896` |
+| the sort menu's checked mark, muted on the focus fill -> restated `accent-foreground` | 1.85 -> 4.66 | 1.07 -> 7.98 | `098de0896` |
+| a focused destructive item's fill against the popover: `destructive/10` (dark `/20`) -> solid `bg-destructive` with a `destructive-foreground` label | 1.19 -> 4.75 (label on it 4.63) | 1.09 -> 3.37 (label 5.20) | `08b8553fc` |
+| a voided ledger row's `muted-foreground` text: `opacity-60` dropped | 2.64 -> 6.31 | -> 8.41 | `7b5459d45` |
+
+### 9.3 The success badge's anchor hover (`ae038ed02`)
+
+Fix round 1 hovered a success badge link at `success/12` because `success-text` read 4.45:1 on `success/15` (section 7.2, 7.3 row 14). With 9.1's darker light `success-text` the reason is gone, so the hover is `/15` again, as warning and info (main session, `ae038ed02`): #007238 on #d4f0e5 5.02 over the page and on #d5f1e7 5.07 over a card in light, #4bdc95 on #03251a 9.33 and on #07281f 8.98 in dark; at rest (`success/10`) 5.25 / 5.30 and 10.19 / 9.80. For comparison the warning hover reads 4.83 / 4.88 and 9.96 / 9.58, the info hover 5.83 / 5.89 and 8.77 / 8.48. The state-fill guard's token math (`oklch-contrast.ts`, the figures in `ae038ed02`'s message) reads 5.01 / 5.08 and 9.44 / 9.07; the Chrome readback above is this file's instrument. This supersedes section 7.2's `success/12` row and 7.3 row 14.

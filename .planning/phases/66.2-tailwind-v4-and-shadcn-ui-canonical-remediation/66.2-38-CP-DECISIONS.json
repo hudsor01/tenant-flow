@@ -977,6 +977,24 @@
       "decidedBy": "owner",
       "ownerReply": "Keep v4 rings (Recommended)",
       "ownerReview": "closed",
+      "supersededBy": {
+        "round": "66.2-39 fix round 4",
+        "decidedBy": "main session",
+        "recordedAt": "2026-11-07",
+        "authority": "the owner's 2026-11-07 contrast directive: text or UI below WCAG AA contrast that a sweep finds is fixed, wherever it is, never deferred",
+        "what": "the ring color only: upstream's ring-ring/50 (and ring-destructive/20, dark /40, on destructive and invalid controls) read 2.17-2.58:1 (1.08-1.43:1) against the page, card and popover, under WCAG 1.4.11's 3:1, so every primitive's focus ring is opaque: ring-ring, and ring-destructive-text on destructive and invalid controls",
+        "kept": "the Button's 3px ring width and border-ring, and the sidebar rows' 2px ring-sidebar-ring (VD-34), which was already opaque",
+        "commits": [
+          "552d56931",
+          "2f54b8ad7",
+          "f6b286670"
+        ],
+        "vd": [
+          "VD-19",
+          "VD-161"
+        ],
+        "note": "defaultMeasured records the 66.2-38 reviewed head; its 'button.tsx non-comment lines contain focus-visible:ring-ring/50' check no longer holds, by this decision"
+      },
       "defaultMeasured": {
         "pass": true,
         "checks": [
