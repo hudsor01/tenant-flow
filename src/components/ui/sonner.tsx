@@ -12,7 +12,10 @@
  *   arbitrary properties on the toaster className (zero-tolerance rule 5),
  *   referencing the `--color-*` theme variables;
  * - a 4000 ms default duration, overridable through `toastOptions`;
- * - the caller className is merged with `cn`.
+ * - the caller className is merged with `cn`;
+ * - rich-color map: the success, info, warning and error toast variables
+ *   point at the AA `-text` companions on a 10% status tint over the popover
+ *   (Sonner's palette read 4.26 / 4.35:1 in light).
  */
 import {
 	CircleCheckIcon,
@@ -28,6 +31,15 @@ import { cn } from "#lib/utils";
 const TOAST_TOKEN_CLASSES =
 	"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!";
 
+/**
+ * The rich-color toasts (the root layout's `richColors`) in the status-badge
+ * treatment: the AA `-text` companion on a 10% tint of its status over the
+ * popover. Sonner's own palette put the label under 4.5:1 in light (success
+ * 4.26, error 4.35; 66.2-39 fix round 4, Part 5b).
+ */
+const TOAST_RICH_COLOR_CLASSES =
+	"[--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!";
+
 const TOAST_ICONS = {
 	success: <CircleCheckIcon className="size-4" />,
 	info: <InfoIcon className="size-4" />,
@@ -42,7 +54,7 @@ const Toaster = ({ className, toastOptions, ...props }: ToasterProps) => {
 	return (
 		<Sonner
 			theme={theme as NonNullable<ToasterProps["theme"]>}
-			className={cn(TOAST_TOKEN_CLASSES, className)}
+			className={cn(TOAST_TOKEN_CLASSES, TOAST_RICH_COLOR_CLASSES, className)}
 			icons={TOAST_ICONS}
 			toastOptions={{
 				...toastOptions,

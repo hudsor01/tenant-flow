@@ -905,6 +905,11 @@
      "what": "className and toastOptions are destructured and the caller className is merged with cn; the lucide icon map is a module constant (TOAST_ICONS, typed with satisfies) instead of an inline object",
      "reason": "D-26 customization",
      "ref": "D-26; D-04"
+    },
+    {
+     "what": "rich-color map: the success, info, warning and error toast variables point at the AA -text companions on a 10% status tint over the popover (Sonner's light palette read 4.26 / 4.35:1)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },
