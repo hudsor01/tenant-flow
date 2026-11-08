@@ -82,6 +82,11 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 
 	const dropzoneProps = useDropzone({
 		onDrop,
+		// The root is no tab stop: the Dropzone's "select files" button is its
+		// keyboard control (VD-41). With react-dropzone's default the focusable
+		// root and the button were two tab stops for one action (66.2-39 fix
+		// round 4, G44). A click anywhere on the root still opens the picker.
+		noKeyboard: true,
 		accept: allowedMimeTypes.reduce(
 			(acc, type) => ({ ...acc, [type]: [] }),
 			{},

@@ -207,7 +207,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 };
 
 const DropzoneEmptyState = ({ className }: { className?: string }) => {
-	const { maxFiles, maxFileSize, inputRef, isSuccess } = useDropzoneContext();
+	const { maxFiles, maxFileSize, open, isSuccess } = useDropzoneContext();
 
 	if (isSuccess) {
 		return null;
@@ -224,10 +224,17 @@ const DropzoneEmptyState = ({ className }: { className?: string }) => {
 				<p className="text-caption text-muted-foreground">
 					Drag and drop or{" "}
 					{/* A target inside a sentence (the WCAG 2.5.8 inline exception):
-					    the below-48rem 44px touch floor would grow the line box. */}
+					    the below-48rem 44px touch floor would grow the line box.
+					    It is the dropzone's keyboard control (the root is no tab
+					    stop) and opens the picker once: the click stops here, so
+					    the root's own click handler does not open it a second
+					    time (66.2-39 fix round 4, G44). */}
 					<button
 						type="button"
-						onClick={() => inputRef.current?.click()}
+						onClick={(event) => {
+							event.stopPropagation();
+							open();
+						}}
 						className="min-h-0 min-w-0 cursor-pointer text-primary-text underline underline-offset-4 transition-colors hover:text-foreground"
 					>
 						select {maxFiles === 1 ? `file` : "files"}
