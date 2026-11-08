@@ -195,10 +195,10 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 								<Link
 									key={cat.slug}
 									href={`/blog/category/${cat.slug}`}
-									className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+									className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
 								>
 									{categoryLabel(cat.slug)}
-									<span className="text-muted-foreground">
+									<span className="text-muted-foreground group-hover:text-inherit">
 										({cat.post_count})
 									</span>
 								</Link>

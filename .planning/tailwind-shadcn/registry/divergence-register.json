@@ -308,6 +308,21 @@
      "what": "the day button's dark hover label is text-foreground, not upstream's dark:hover:text-accent-foreground, which is near-black on this theme's emerald accent/50 hover (2.63:1)",
      "reason": "D-26 customization",
      "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "the day button's dark hover label (text-foreground) applies off the today cell only: today paints solid accent under the button, where text-foreground read 2.19:1 and the ghost hover's accent-foreground reads 8.01:1",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "the focused day's ring sits on a 2px background offset (ring-offset-2 ring-offset-background): on the today cell's solid accent the bare ring read 1.75:1",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
     }
    ]
   },
