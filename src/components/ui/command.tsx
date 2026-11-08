@@ -16,7 +16,10 @@
  * - the CommandInput wrapper's bottom border, the field's only boundary, is
  *   border-input (3:1, WCAG 1.4.11) and turns border-ring while the input has
  *   focus, where upstream draws the 1.4:1 default border and no focus mark
- *   (66.2-39 fix round 4, Part 5b).
+ *   (66.2-39 fix round 4, Part 5b);
+ * - CommandShortcut restates text-accent-foreground while its item is
+ *   selected (in-data-[selected=true]:): the muted label read 1.85:1 on the
+ *   selected item's emerald fill (66.2-39 fix round 4, Part 5c).
  */
 import { Command as CommandPrimitive } from "cmdk";
 import { SearchIcon } from "lucide-react";
@@ -178,7 +181,7 @@ function CommandShortcut({ className, ...props }: ComponentProps<"span">) {
 		<span
 			data-slot="command-shortcut"
 			className={cn(
-				"text-muted-foreground ml-auto text-xs tracking-widest",
+				"text-muted-foreground in-data-[selected=true]:text-accent-foreground ml-auto text-xs tracking-widest",
 				className,
 			)}
 			{...props}

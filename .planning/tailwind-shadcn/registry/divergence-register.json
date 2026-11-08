@@ -478,6 +478,11 @@
      "what": "the CommandInput wrapper's bottom border, the field's only boundary, is border-input (3:1) and turns border-ring while the input has focus (focus-within), where upstream draws the default border (1.4:1) and no focus mark",
      "reason": "D-26 customization",
      "ref": "WCAG 1.4.11 / 2.4.7; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "CommandShortcut restates text-accent-foreground while its item is selected (in-data-[selected=true]:), where upstream keeps text-muted-foreground on the selected item's accent fill (1.85:1)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.3; 66.2-39 fix round 4 Part 5c (F1 gaps sweep)"
     }
    ]
   },
@@ -1176,7 +1181,7 @@
   },
   "src/components/ui/tooltip.tsx": {
    "item": "tooltip",
-   "plan": "66.2-21",
+   "plan": "66.2-24",
    "divergences": [
     {
      "what": "TooltipPrimitive.Arrow carries aria-hidden=\"true\", where upstream leaves the arrow svg exposed: Chrome reads it as an unnamed image inside the tooltip",

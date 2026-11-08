@@ -972,3 +972,83 @@ describe("a rich-color toast keeps 4.5:1 (66.2-39 fix round 4, Part 5b)", () => 
 		expect(under).toEqual([]);
 	});
 });
+
+/**
+ * A command item paints its selected state on the emerald accent fill and
+ * restates its own label as accent-foreground. A muted label inside it (a
+ * subtitle, a shortcut hint) keeps muted-foreground unless it restates the
+ * selected label too, and muted-foreground on accent reads 1.85:1 (66.2-39 fix
+ * round 4, Part 5c, the command palette's property and tenant subtitles).
+ */
+const SELECTED_LABEL = "in-data-[selected=true]:text-accent-foreground";
+
+function mutedInsideCommandItems(): { checked: number; missing: string[] } {
+	const missing: string[] = [];
+	let checked = 0;
+	const files = collectG7SourceTexts(ROOT).filter(({ path }) =>
+		path.endsWith(".tsx"),
+	);
+	for (const { path, text } of files) {
+		const items = [
+			...text.matchAll(/<CommandItem\b([\s\S]*?)<\/CommandItem>/g),
+		];
+		for (const item of items) {
+			for (const el of (item[1] ?? "").matchAll(
+				/<(span|p|div|CommandShortcut)\b[^>]*>/g,
+			)) {
+				const tag = el[0];
+				const muted =
+					/text-muted-foreground/.test(tag) || el[1] === "CommandShortcut";
+				if (!muted) continue;
+				checked += 1;
+				const shortcutRestates =
+					el[1] === "CommandShortcut" && SHORTCUT_RESTATES;
+				if (!tag.includes(SELECTED_LABEL) && !shortcutRestates) {
+					const line = text
+						.slice(0, (item.index ?? 0) + item[0].indexOf(el[0]))
+						.split("\n").length;
+					missing.push(`${path}:${line} ${tag.slice(0, 90)}`);
+				}
+			}
+		}
+	}
+	return { checked, missing };
+}
+
+const SHORTCUT_RESTATES = readFileSync(
+	resolve(ROOT, "src/components/ui/command.tsx"),
+	"utf8",
+).includes(`"text-muted-foreground ${SELECTED_LABEL} `);
+
+describe("a muted label inside a command item restates its label when selected (66.2-39 fix round 4, Part 5c)", () => {
+	it("reads muted-foreground under 4.5:1 and accent-foreground at 4.5:1 on the selected fill, both themes", () => {
+		for (const theme of ["light", "dark"] as const) {
+			const pair = (label: string): StackPair => ({
+				text: "subtitle",
+				state: "item:data-[selected=true]",
+				theme,
+				layers: [{ token: "accent", alpha: 1 }],
+				label: { token: label, alpha: 1 },
+			});
+			expect(
+				stackContrast(CSS, "popover", pair("muted-foreground")),
+				`${theme} muted on accent`,
+			).toBeLessThan(4.5);
+			expect(
+				stackContrast(CSS, "popover", pair("accent-foreground")),
+				`${theme} accent-foreground on accent`,
+			).toBeGreaterThanOrEqual(4.5);
+		}
+	});
+
+	it("restates the selected label on every muted label inside a CommandItem", () => {
+		const { checked, missing } = mutedInsideCommandItems();
+		expect(checked, "muted labels found inside command items").toBeGreaterThan(
+			0,
+		);
+		expect(
+			missing,
+			"muted labels inside a CommandItem with no selected label",
+		).toEqual([]);
+	});
+});

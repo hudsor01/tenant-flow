@@ -69,7 +69,7 @@ export function AppShellSearch({
 								<Building2 className="w-4 h-4 text-muted-foreground" />
 								<span className="flex-1">{item.label}</span>
 								{item.subtitle && (
-									<span className="text-xs text-muted-foreground">
+									<span className="text-xs text-muted-foreground in-data-[selected=true]:text-accent-foreground">
 										{item.subtitle}
 									</span>
 								)}
@@ -88,7 +88,7 @@ export function AppShellSearch({
 								<Users className="w-4 h-4 text-muted-foreground" />
 								<span className="flex-1">{item.label}</span>
 								{item.subtitle && (
-									<span className="text-xs text-muted-foreground">
+									<span className="text-xs text-muted-foreground in-data-[selected=true]:text-accent-foreground">
 										{item.subtitle}
 									</span>
 								)}
