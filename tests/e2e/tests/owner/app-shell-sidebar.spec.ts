@@ -1388,6 +1388,15 @@ for (const viewport of SHEET_VIEWPORTS) {
 			expectNear(sheetBox.width, 288, "sheet width");
 			expectNear(sheetBox.x, 0, "sheet x");
 
+			// The rail is the docked sidebar's resize control (`hidden lg:flex`,
+			// 66.2-39 G42). The sheet mounts it with the rest of the sidebar's
+			// children, and it must take no box there: while it was `sm:flex` it
+			// showed from 640px as a full-height strip across the sheet's edge,
+			// and a click on it closed the sheet.
+			const sheetRail = page.locator(`${MOBILE_SHEET} ${RAIL}`);
+			await expect(sheetRail).toHaveCount(1);
+			await expect(sheetRail).toHaveCSS("display", "none");
+
 			await expect
 				.poll(() =>
 					sheet.evaluate((node) => node.contains(document.activeElement)),
