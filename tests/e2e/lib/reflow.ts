@@ -1,10 +1,14 @@
 import { expect, type Page } from "@playwright/test";
-import { polledRead } from "./measure";
+import { type ReflowReading, readReflow } from "./measure";
+import { measureEachTrigger } from "./reflow-states";
 
 /**
  * WCAG 1.4.10 Reflow at 320 CSS px (66.2-39 fix round 1, part F): no page may
  * scroll sideways at 320px. Content inside its own `overflow-x` container (a
- * data table, a markdown table) may scroll there; the document may not.
+ * data table, a markdown table) may scroll there; the document may not. Since
+ * fix round 4, Part 8e, the same holds for every state a page's visible
+ * controls open (`reflow-states.ts`), and no state may put a control or an
+ * overlay past the viewport or run text past its box (`readReflow`).
  *
  * The route lists are the pages in `src/app` a visitor (public) or owner A
  * (owner) can reach at a fixed URL, taken from the `page.tsx` tree. A tab its
@@ -13,8 +17,10 @@ import { polledRead } from "./measure";
  * `REFLOW_UNLISTED_PAGES` below, with the spec that measures it or the reason
  * nothing does, and `__tests__/reflow-route-accounting.test.ts` fails on a
  * `page.tsx` in neither. The `@modal/(.)…` intercepts are client-side overlays
- * of their full-page twins, which render the same form, so each is covered
- * where its twin is. `/sign/<token>` with a live token has no fixture that
+ * of their full-page twins, which render the same form: the twin is measured
+ * as its route, and the overlay as the dialog it opens in (the owner spec's
+ * intercepted modals, and each control that opens one). `/sign/<token>` with a
+ * live token has no fixture that
  * mints one, so only its invalid-token state is covered; `/apply/<token>` is
  * covered both ways.
  */
@@ -145,8 +151,9 @@ export const REFLOW_UNLISTED_PAGES: Readonly<Record<string, UnlistedPage>> = {
 		measuredBy: "public/reflow-320.spec.ts",
 		marker: "main a[href^='/compare/']",
 	},
-	// The detail and edit pages, on owner A's newest record of each kind; a
-	// kind owner A has no record of skips its pages, with the reason.
+	// The detail and edit pages, on owner A's newest record of each kind; the
+	// maintenance request, which owner A has none of, is a synthetic record
+	// answered in the browser.
 	"/properties/[id]": {
 		measuredBy: "owner-reflow-320.spec.ts",
 		marker: "`/properties/${id}`",
@@ -193,75 +200,6 @@ export const REFLOW_UNLISTED_PAGES: Readonly<Record<string, UnlistedPage>> = {
 	},
 };
 
-interface PageWidth {
-	scrollWidth: number;
-	clientWidth: number;
-	/**
-	 * The page's content landmark has a laid-out box, no loading skeleton and
-	 * no running entrance animation, and an app-shell header has its user menu
-	 * (it mounts once the user loads, and is part of the header's width).
-	 */
-	settled: boolean;
-}
-
-/**
- * Asserts the page at `path` has no document-level horizontal overflow once it
- * has hydrated and its content has replaced the loading skeleton. The read is
- * polled until that layout gate holds; the overflow itself is asserted after.
- */
-export async function expectNoPageOverflow(
-	page: Page,
-	path: string,
-): Promise<void> {
-	await page.goto(path);
-	const main = page.locator("main").first();
-	await expect
-		.poll(
-			() =>
-				main.evaluate((node) =>
-					Object.keys(node).some((key) => key.startsWith("__react")),
-				),
-			{ timeout: 20_000 },
-		)
-		.toBe(true);
-	const width = await polledRead<PageWidth>(
-		() =>
-			page.evaluate(() => {
-				const landmark = document.querySelector("main");
-				const running = document
-					.getAnimations()
-					.some(
-						(a) =>
-							a instanceof CSSAnimation &&
-							a.animationName === "enter" &&
-							a.playState === "running",
-					);
-				const header = document.querySelector(
-					"header:has([data-slot=sidebar-trigger])",
-				);
-				const headerReady =
-					!header ||
-					header.querySelector('[aria-label$=" user menu"]') !== null;
-				return {
-					scrollWidth: document.documentElement.scrollWidth,
-					clientWidth: document.documentElement.clientWidth,
-					settled:
-						!!landmark &&
-						landmark.clientHeight > 0 &&
-						landmark.querySelector('[data-slot="skeleton"]') === null &&
-						!running &&
-						headerReady,
-				};
-			}),
-		(value) => value.settled && value.clientWidth === REFLOW_WIDTH,
-		20_000,
-	);
-	expect(
-		width.scrollWidth,
-		`${path} scrolls sideways at ${width.clientWidth}px (document ${width.scrollWidth}px wide)`,
-	).toBeLessThanOrEqual(width.clientWidth);
-}
-
 /** What a lookup of owner A's newest record of one kind came back with. */
 export type NewestRecord =
 	| { state: "found"; id: string }
@@ -304,4 +242,57 @@ export function newestRecord(
 		};
 	}
 	return { state: "found", id };
+}
+
+/** A reading's problems as failure lines, labelled with the state. */
+export function reflowFailures(
+	state: string,
+	reading: ReflowReading,
+): string[] {
+	return reading.problems.map(
+		(problem) => `${state} at ${reading.clientWidth}px: ${problem}`,
+	);
+}
+
+/**
+ * Asserts that the page at `path`, and every state its visible controls open
+ * (`measureEachTrigger`), fits the viewport: no sideways scroll, no control or
+ * overlay past it, no text past its box (`readReflow`, 66.2-39 fix round 4,
+ * Part 8e). Every failing state is reported together.
+ */
+export async function expectReflowStates(
+	page: Page,
+	path: string,
+): Promise<void> {
+	const failures = await reflowStateFailures(page, path);
+	expect(failures, failures.join("\n")).toEqual([]);
+}
+
+/**
+ * The failure lines of the page at `path` and of every state its visible
+ * controls open (`expectReflowStates` asserts them; a test that walks several
+ * routes on one sign-in collects them and asserts once).
+ */
+export async function reflowStateFailures(
+	page: Page,
+	path: string,
+): Promise<string[]> {
+	await page.goto(path);
+	const main = page.locator("main").first();
+	await expect
+		.poll(
+			() =>
+				main.evaluate((node) =>
+					Object.keys(node).some((key) => key.startsWith("__react")),
+				),
+			{ timeout: 20_000 },
+		)
+		.toBe(true);
+	const failures = reflowFailures(path, await readReflow(page, "page"));
+	for (const state of await measureEachTrigger(page, { label: `${path} > ` })) {
+		failures.push(
+			...state.problems.map((problem) => `${state.state}: ${problem}`),
+		);
+	}
+	return failures;
 }

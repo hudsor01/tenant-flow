@@ -1,4 +1,4 @@
-import { expect, type Locator } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 /**
  * Canonical layout measurement for this suite.
@@ -265,4 +265,228 @@ export async function polledRead<T>(
 		throw new Error("polledRead: the poll resolved without ever reading");
 	}
 	return captured;
+}
+
+/**
+ * One reading of a page state for the reflow guard (`reflow.ts`), WCAG 1.4.10
+ * and the text-overrun class (66.2-39 fix round 4, Part 8e). `problems` names
+ * every way the state fails at the viewport's width:
+ *   - the document scrolls sideways;
+ *   - an open overlay (dialog, sheet, menu, listbox, popover, tooltip) sits
+ *     past the viewport, or scrolls sideways inside itself;
+ *   - a control sits past the viewport and no scroller it is in reaches it;
+ *   - text runs past its own box where that box does not clip it (a fixed
+ *     three-column grid left a lease term 44.66px, and $1,500.00 ran 36px into
+ *     the next term), or below it by more than a quarter of its font size
+ *     (glyphs past a tight line box are not an overrun).
+ * Visually hidden text (an `sr-only` box, through any variant), SVG and chart
+ * text are not read. `settled` is the layout gate the read polls on: the main
+ * landmark (or, for an overlay state, an open overlay) has a box, no skeleton
+ * remains, no finite animation is running and the app header has its user
+ * menu.
+ */
+export interface ReflowReading {
+	settled: boolean;
+	clientWidth: number;
+	scrollWidth: number;
+	problems: string[];
+}
+
+/** The open overlays a reflow reading measures, outermost only. */
+export const REFLOW_OVERLAYS =
+	'[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [data-radix-popper-content-wrapper] > *, [data-slot="tour-step"]';
+
+function reflowSnapshot(arg: {
+	scope: "page" | "overlay";
+	overlays: string;
+}): ReflowReading {
+	const doc = document.documentElement;
+	const cw = doc.clientWidth;
+	const r2 = (n: number) => Math.round(n * 100) / 100;
+	const shown = (el: Element) =>
+		el.getClientRects().length > 0 &&
+		el.checkVisibility({ opacityProperty: true, visibilityProperty: true });
+	const hidden = (el: Element) => {
+		for (let a: Element | null = el, i = 0; a && i < 6; a = a.parentElement) {
+			const s = getComputedStyle(a);
+			if ((s.clip && s.clip !== "auto") || s.clipPath.includes("inset(50%)")) {
+				return true;
+			}
+			const r = a.getBoundingClientRect();
+			if (s.position === "absolute" && r.width <= 1.01 && r.height <= 1.01) {
+				return true;
+			}
+			i += 1;
+		}
+		return false;
+	};
+	const label = (el: Element) => {
+		const slot = el.getAttribute("data-slot");
+		const role = el.getAttribute("role");
+		const text = (el.getAttribute("aria-label") || el.textContent || "")
+			.replace(/\s+/g, " ")
+			.trim()
+			.slice(0, 40);
+		return `${el.tagName.toLowerCase()}${slot ? `[${slot}]` : role ? `[${role}]` : ""} "${text}"`;
+	};
+	const open = [...document.querySelectorAll(arg.overlays)]
+		.filter(shown)
+		.filter((o, _, all) => !all.some((p) => p !== o && p.contains(o)));
+	const main = document.querySelector("main");
+	const running = document
+		.getAnimations()
+		.some(
+			(a) =>
+				a.playState === "running" &&
+				a.effect?.getComputedTiming().iterations !== Number.POSITIVE_INFINITY,
+		);
+	const header = document.querySelector(
+		"header:has([data-slot=sidebar-trigger])",
+	);
+	const headerReady =
+		!header || header.querySelector('[aria-label$=" user menu"]') !== null;
+	const settled =
+		!running &&
+		(arg.scope === "overlay"
+			? open.length > 0
+			: !!main &&
+				main.clientHeight > 0 &&
+				main.querySelector('[data-slot="skeleton"]') === null &&
+				headerReady);
+	const roots: Element[] =
+		arg.scope === "overlay"
+			? open
+			: [
+					...(main ? [main] : []),
+					...[...document.querySelectorAll("header")].filter(
+						(h) => !h.closest("main"),
+					),
+				];
+	const problems: string[] = [];
+	if (doc.scrollWidth > cw) {
+		problems.push(`the page scrolls sideways: ${doc.scrollWidth}px wide`);
+	}
+	for (const o of open) {
+		const r = o.getBoundingClientRect();
+		const s = getComputedStyle(o);
+		if (r.left < -0.5 || r.right > cw + 0.5) {
+			problems.push(
+				`${label(o)} sits past the viewport (${r2(r.left)} to ${r2(r.right)})`,
+			);
+		}
+		if (s.overflowX !== "visible" && o.scrollWidth > o.clientWidth + 1) {
+			problems.push(
+				`${label(o)} scrolls sideways inside (${o.scrollWidth}px in ${o.clientWidth}px)`,
+			);
+		}
+	}
+	const inScroller = (el: Element) => {
+		for (
+			let a = el.parentElement;
+			a && a !== document.body;
+			a = a.parentElement
+		) {
+			const s = getComputedStyle(a);
+			if (
+				(s.overflowX === "auto" || s.overflowX === "scroll") &&
+				a.scrollWidth > a.clientWidth + 1
+			) {
+				return true;
+			}
+		}
+		return false;
+	};
+	const CONTROL =
+		'a[href], button, input:not([type="hidden"]), select, textarea, [role="button"], [role="tab"], [role="combobox"], [role="menuitem"], [role="option"], [role="checkbox"], [role="switch"], [role="radio"], [role="slider"]';
+	const isBox = (el: Element) => {
+		const d = getComputedStyle(el).display;
+		return d !== "inline" && d !== "contents";
+	};
+	for (const root of roots) {
+		for (const el of root.querySelectorAll(CONTROL)) {
+			if (!shown(el) || hidden(el)) continue;
+			const r = el.getBoundingClientRect();
+			if (r.right <= cw + 0.5 && r.left >= -0.5) continue;
+			if (inScroller(el)) continue;
+			problems.push(
+				`${label(el)} sits past the viewport (${r2(r.left)} to ${r2(r.right)})`,
+			);
+		}
+		const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+		for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+			const text = (n.textContent ?? "").trim();
+			const parent = n.parentElement;
+			if (!text || !parent) continue;
+			if (
+				parent.closest(
+					"svg, script, style, noscript, .recharts-wrapper, [data-slot='chart']",
+				) ||
+				hidden(parent)
+			) {
+				continue;
+			}
+			let box: Element | null = parent;
+			while (box && !isBox(box)) box = box.parentElement;
+			if (!box) continue;
+			// Preserved whitespace at a line's end hangs past the box without
+			// ink (white-space: pre-wrap), so there only the words are read.
+			const words = getComputedStyle(parent).whiteSpace.startsWith("pre")
+				? [...(n.textContent ?? "").matchAll(/\S+/g)].map((m) => [
+						m.index,
+						m.index + m[0].length,
+					])
+				: [[0, (n.textContent ?? "").length]];
+			const rects = words
+				.flatMap(([start, end]) => {
+					const range = document.createRange();
+					range.setStart(n, start ?? 0);
+					range.setEnd(n, end ?? 0);
+					return [...range.getClientRects()];
+				})
+				.filter((r) => r.width > 0.5 && r.height > 0.5);
+			if (rects.length === 0) continue;
+			const b = box.getBoundingClientRect();
+			if (b.width <= 0) continue;
+			const s = getComputedStyle(box);
+			const left = b.left + Number.parseFloat(s.borderLeftWidth);
+			const right = b.right - Number.parseFloat(s.borderRightWidth);
+			const bottom = b.bottom - Number.parseFloat(s.borderBottomWidth);
+			const dx = Math.max(
+				Math.max(...rects.map((r) => r.right)) - right,
+				left - Math.min(...rects.map((r) => r.left)),
+			);
+			const dy = Math.max(...rects.map((r) => r.bottom)) - bottom;
+			const size = Number.parseFloat(getComputedStyle(parent).fontSize) || 16;
+			const overX = dx > 1 && s.overflowX === "visible";
+			const overY = dy > Math.max(4, size / 4) && s.overflowY === "visible";
+			if (!overX && !overY) continue;
+			problems.push(
+				`"${text.slice(0, 40)}" runs ${r2(overX ? dx : dy)}px ${overX ? "past" : "below"} its box, ${label(box)}`,
+			);
+		}
+	}
+	return {
+		settled,
+		clientWidth: cw,
+		scrollWidth: doc.scrollWidth,
+		problems: [...new Set(problems)],
+	};
+}
+
+/**
+ * The settled reflow reading of the page's current state (`ReflowReading`):
+ * `scope` "overlay" measures the open overlays, "page" the main landmark and
+ * the app header. Polled until the layout gate holds; the caller asserts
+ * `problems` after.
+ */
+export async function readReflow(
+	page: Page,
+	scope: "page" | "overlay",
+	timeout = 20_000,
+): Promise<ReflowReading> {
+	return polledRead(
+		() => page.evaluate(reflowSnapshot, { scope, overlays: REFLOW_OVERLAYS }),
+		(value) => value.settled,
+		timeout,
+	);
 }
