@@ -29,7 +29,9 @@
  * parameter when it is called or passed on a chain that starts at `z.`
  * (`z.string().email(...)`, `z.object({...}).refine(fn, { message })`; a chain
  * that starts at a schema variable is not followed), a deprecated export when
- * imported from its package, and `substr` when called as a method. Scope:
+ * imported from its package, and `substr` when called as a method. Comments
+ * count too: one that shows a deprecated TanStack Store or recharts export
+ * called (`useStore(`, `<Cell`) describes code that no longer exists. Scope:
  * every tracked `.ts`/`.tsx`/`.mts` file outside `node_modules`.
  */
 
@@ -433,6 +435,17 @@ function withoutComments(source: string): string {
 	return out;
 }
 
+/** Only `source`'s comments: code and strings blanked, newlines kept. */
+function commentText(source: string): string {
+	const code = withoutComments(source);
+	let out = "";
+	for (let i = 0; i < source.length; i++) {
+		const ch = source[i] ?? "";
+		out += ch === "\n" || code[i] !== ch ? ch : " ";
+	}
+	return out;
+}
+
 /** The names a file imports from `module` (`a`, `b as c` gives `a`, `b`). */
 function importedNames(source: string, module: RegExp): string[] {
 	const names: string[] = [];
@@ -625,6 +638,46 @@ describe("deprecated zod, TanStack Store, recharts and String APIs", () => {
 		expect(
 			hits,
 			`deprecated export(s) -- useSelector for useStore, the item's shape prop for Cell:\n${hits.join("\n")}`,
+		).toEqual([]);
+	});
+
+	// The import scan above cannot see prose. A comment that shows a deprecated
+	// export being called describes code that no longer exists: after 66.2-39
+	// moved add-tenant-form.tsx to useSelector, its test's docstring still said
+	// the fix read dirty "via `useStore(form.store, (s) => s.isDirty)`" (cycle
+	// 3, G35). A bare mention of the name (as above, or as history) is fine.
+	it("shows no deprecated TanStack Store or recharts export called in a comment", () => {
+		const exports = [
+			...DEPRECATED_STORE_EXPORTS,
+			...DEPRECATED_RECHARTS_EXPORTS,
+		];
+		// `name(` as a call, or `<Name` as a JSX element.
+		const called = new RegExp(
+			`${identifierSource(exports)}\\s*\\(|<(?:${alternation(exports)})(?![\\w$])`,
+		);
+		const planted = commentText(
+			"// reads dirty via `useStore(form.store, (s) => s.isDirty)`\n" +
+				"/* each slice is a <Cell fill={c} /> */\n" +
+				"const useStore = 1; // the `useStore` alias (useSelector)\n" +
+				'const s = "useStore(x)";\n',
+		);
+		expect(
+			planted.split("\n").filter((line) => called.test(line)),
+		).toHaveLength(2);
+		const hits: string[] = [];
+		for (const path of FILES) {
+			const source = readOrNull(path);
+			if (source === null) continue;
+			commentText(source)
+				.split("\n")
+				.forEach((line, index) => {
+					if (called.test(line))
+						hits.push(`${path}:${index + 1}  ${line.trim()}`);
+				});
+		}
+		expect(
+			hits,
+			`a comment shows a deprecated export called -- name the replacement (useSelector, the item's shape prop):\n${hits.join("\n")}`,
 		).toEqual([]);
 	});
 
