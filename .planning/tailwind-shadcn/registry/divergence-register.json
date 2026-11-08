@@ -66,6 +66,11 @@
      "what": "AlertDialogContent grid-cols-1 (a minmax(0, 1fr) column), the same bound as DialogContent, where upstream leaves the grid's implicit auto track",
      "reason": "D-26 customization",
      "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
+    },
+    {
+     "what": "AlertDialogContent max-h-[calc(100dvh-2rem)] and overflow-y-auto, where upstream sets no bound: centered on a fixed position with the page's scroll locked, a dialog taller than the viewport had no way to reach its ends (at 320x900 the record receipt dialog was 917.56px, 8.78px past the top and the bottom)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.10; 66.2-39 fix round 4 Part 8e (closure-reflow-states.tsv)"
     }
    ]
   },
@@ -544,6 +549,11 @@
      "what": "DialogContent grid-cols-1 (a minmax(0, 1fr) column) where upstream leaves the grid's implicit auto track: content wider than the dialog widened the track past max-w, so at 390x844 the bulk-import dialog's preview table drew the stepper and footer buttons 564px wide in a 308px body",
      "reason": "D-26 customization",
      "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
+    },
+    {
+     "what": "DialogContent max-h-[calc(100dvh-2rem)] and overflow-y-auto, where upstream sets no bound: centered on a fixed position with the page's scroll locked, a dialog taller than the viewport had no way to reach its ends (at 320x900 the record receipt dialog was 917.56px, 8.78px past the top and the bottom)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.10; 66.2-39 fix round 4 Part 8e (closure-reflow-states.tsv)"
     }
    ]
   },
