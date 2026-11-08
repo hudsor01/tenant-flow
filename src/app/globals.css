@@ -714,13 +714,22 @@
 	padding-top: var(--layout-navbar-spacing);
 }
 
+/* Reduced motion: an animation keeps 0.01ms, so the animationend that Radix
+   and Dice UI presence wait for still fires. A transition is 0s: nothing here
+   waits for transitionend, and an element that declares no transition has the
+   initial transition-property, all, so 0.01ms gave every such element a live
+   transition of every property. A script that wrote a size and read the box
+   back in the same task then read the old value until the next frame, and
+   Floating UI's size step skips its re-measure on exactly that read: an open
+   combobox at 320 resized to 328 sat 20px above the viewport, and an open tour
+   step lagged up to 16px behind its place (66.2-39 fix round 4, Part 8f). */
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,
 	*::after {
 		animation-duration: 0.01ms !important;
 		animation-iteration-count: 1 !important;
-		transition-duration: 0.01ms !important;
+		transition-duration: 0s !important;
 		scroll-behavior: auto !important;
 	}
 }

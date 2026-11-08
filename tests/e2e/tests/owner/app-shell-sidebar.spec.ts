@@ -58,8 +58,9 @@ import { tourProgressWriteBody } from "../../lib/tour-progress-write";
  * against production).
  */
 
-// The 200ms sheet and collapse transitions shrink to 0.01ms under the global
-// reduced-motion rule in globals.css (the dashboard-smoke posture). That shortens
+// The 200ms sheet animations shrink to 0.01ms, and the collapse's width
+// transition to 0s, under the global reduced-motion rule in globals.css (the
+// dashboard-smoke posture). That shortens
 // the race without removing it: until the next frame starts the sheet's entrance
 // it sits at its first keyframe, so every sheet open still goes through
 // `waitForSheetReady`.
