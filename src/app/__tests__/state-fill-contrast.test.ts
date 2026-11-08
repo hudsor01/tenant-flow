@@ -47,6 +47,7 @@ import { createElement, type ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { BalanceEquationCheck } from "#app/(owner)/reports/balance-sheet/balance-equation-check";
 import { SubscriptionCancelSection } from "#components/settings/sections/subscription-cancel-section";
+import { UNAVAILABLE_OUTLINE_BUTTON_CLASSES } from "#components/shared/unavailable-outline-button";
 import { authKeys } from "#hooks/api/use-auth";
 import { buttonClasses, buttonSites } from "#test/utils/button-sites";
 import {
@@ -294,6 +295,20 @@ describe("state fills keep their labels at 4.5:1 (66.2-39 fix round 1, part F)",
 			"focus:bg-accent [&_svg:not([class*='text-'])]:text-muted-foreground focus:[&_svg:not([class*='text-'])]:text-accent-foreground",
 		).find((p) => p.state.includes("[&_svg") && p.theme === "dark");
 		expect(iconOnFocus?.fill).toEqual({ token: "accent", alpha: 1 });
+		// An unavailable outline Button restates its inherited label under the
+		// pointer: the merged string's aria-disabled hover reads inherited, not
+		// the variant's hover:text-accent-foreground (66.2-39 fix round 4, G15).
+		const unavailableHover = pairsOf(
+			buttonClasses(
+				"outline",
+				"sm",
+				`gap-1.5 ${UNAVAILABLE_OUTLINE_BUTTON_CLASSES}`,
+			),
+		).filter((p) => p.state === "aria-disabled:hover");
+		expect(unavailableHover.map((p) => [p.theme, p.fill, p.label])).toEqual([
+			["light", { token: "background", alpha: 1 }, null],
+			["dark", { token: "input", alpha: 0.3 }, null],
+		]);
 		const failing = pairsOf(
 			"bg-primary text-primary-foreground hover:bg-primary/90",
 		)

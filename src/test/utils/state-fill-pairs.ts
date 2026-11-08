@@ -17,6 +17,8 @@
  * and its label is the text color the chain sets (else the resting text color,
  * else inherited). `dark:` forms override in dark, as the compiled order makes
  * them. A label-only state is measured against the resting fill.
+ * The text keywords `inherit` and `current` set no color of their own: the
+ * label they name is the inherited one.
  *
  * A class string cannot see the fills of the elements around it, so
  * `renderedStacks` reads a rendered tree instead (66.2-39 fix round 4, F1,
@@ -130,7 +132,12 @@ function colorOf(
 	const bare = utility.replace(/^!|!$/g, "");
 	if (!bare.startsWith(head)) return undefined;
 	const [name = "", alphaText] = bare.slice(head.length).split("/");
-	if (KEYWORD.has(name)) return name === "transparent" ? null : undefined;
+	if (KEYWORD.has(name)) {
+		// The inherit and current text keywords name the inherited label; a
+		// fill keyword other than transparent is no color this reads.
+		if (name === "transparent") return null;
+		return prefix === "text" ? null : undefined;
+	}
 	if (!colors.has(name) && !FIXED.has(name)) return undefined;
 	let alpha = 1;
 	if (alphaText !== undefined) {
