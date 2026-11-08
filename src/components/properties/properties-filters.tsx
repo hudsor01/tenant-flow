@@ -117,28 +117,31 @@ export function useBulkHandlers(
 		}
 	};
 
-	const handleBulkDelete = async () => {
-		if (selectedRows.size === 0) return;
-		// STATE-05: only delete ids still present in the active list, so a stale
-		// phantom selection (already soft-deleted) can't be re-targeted.
+	// STATE-05: only ids still present in the active list, so a stale phantom
+	// selection (already soft-deleted) can't be re-targeted. Read when the
+	// confirmation opens, so its copy names the rows the delete acts on.
+	const bulkDeleteTargets = (): string[] =>
+		selectedRows.size === 0
+			? []
+			: intersectSelection(
+					selectedRows,
+					properties.map((p) => p.id),
+				);
+
+	// Runs only from the confirmation's Delete. The ids are the ones it named,
+	// intersected again with the list as it is now, so a property that left the
+	// list while the dialog was open is not re-targeted.
+	const handleBulkDelete = async (confirmedIds: readonly string[]) => {
 		const ids = intersectSelection(
-			selectedRows,
+			confirmedIds,
 			properties.map((p) => p.id),
 		);
 		if (ids.length === 0) return;
-		const label = ids.length === 1 ? "property" : "properties";
-		const confirmed =
-			typeof window === "undefined"
-				? true
-				: window.confirm(
-						`Delete ${ids.length} ${label}? This will mark the ${label} as inactive.`,
-					);
-		if (!confirmed) return;
 		clearSelection();
 		await Promise.allSettled(
 			ids.map((id) => deletePropertyMutation.mutateAsync(id)),
 		);
 	};
 
-	return { handleBulkEditOpen, handleBulkDelete };
+	return { handleBulkEditOpen, bulkDeleteTargets, handleBulkDelete };
 }

@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { ConfirmDialog } from "#components/ui/confirm-dialog";
 import {
 	useDeletePropertyMutation,
 	useUpdatePropertyMutation,
 } from "#hooks/api/use-property-mutations";
 import { toPropertyType } from "#lib/constants/status-types";
+import { formatCount } from "#lib/formatters/count";
 import { intersectSelection } from "#lib/intersect-selection";
 import {
 	type PropertyStatusFilter,
@@ -74,13 +76,31 @@ export function Properties({
 	const deletePropertyMutation = useDeletePropertyMutation();
 	const updatePropertyMutation = useUpdatePropertyMutation();
 
-	const { handleBulkEditOpen, handleBulkDelete } = useBulkHandlers(
-		selectedRows,
-		properties,
-		openBulkEdit,
-		deletePropertyMutation,
-		clearSelection,
-	);
+	const { handleBulkEditOpen, bulkDeleteTargets, handleBulkDelete } =
+		useBulkHandlers(
+			selectedRows,
+			properties,
+			openBulkEdit,
+			deletePropertyMutation,
+			clearSelection,
+		);
+	// The action bar's Delete only opens the confirmation, with the ids it will
+	// act on (and the one property's name); the delete runs from its Delete.
+	// The ids outlive the close, so the copy holds while the dialog fades out.
+	const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+	const [bulkDelete, setBulkDelete] = useState<{
+		ids: string[];
+		name: string | null;
+	}>({ ids: [], name: null });
+	const openBulkDelete = () => {
+		const ids = bulkDeleteTargets();
+		if (ids.length === 0) return;
+		const only =
+			ids.length === 1 ? properties.find((p) => p.id === ids[0]) : undefined;
+		setBulkDelete({ ids, name: only?.name || null });
+		setBulkDeleteOpen(true);
+	};
+	const bulkDeleteCount = bulkDelete.ids.length;
 
 	// STATE-05: reconcile the selection against the fetched (active) property
 	// list. `properties` excludes inactive rows, so a soft-deleted id drops out
@@ -213,7 +233,26 @@ export function Properties({
 				totalCount={filteredProperties.length}
 				onClear={clearSelection}
 				onBulkEdit={handleBulkEditOpen}
-				onBulkDelete={handleBulkDelete}
+				onBulkDelete={openBulkDelete}
+			/>
+			<ConfirmDialog
+				open={bulkDeleteOpen}
+				// Cancel keeps the selection: nothing was deleted.
+				onOpenChange={setBulkDeleteOpen}
+				title={`Delete ${formatCount(bulkDeleteCount, "property", "properties")}?`}
+				description={`This marks ${
+					bulkDelete.name
+						? `"${bulkDelete.name}"`
+						: `the ${formatCount(bulkDeleteCount, "selected property", "selected properties")}`
+				} as inactive, so ${
+					bulkDeleteCount === 1 ? "it leaves" : "they leave"
+				} your property list.`}
+				confirmText="Delete"
+				loading={deletePropertyMutation.isPending}
+				onConfirm={() => {
+					setBulkDeleteOpen(false);
+					void handleBulkDelete(bulkDelete.ids);
+				}}
 			/>
 			<PropertyBulkEditDialog
 				open={isBulkEditOpen}
