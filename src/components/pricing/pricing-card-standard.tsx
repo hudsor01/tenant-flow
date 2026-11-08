@@ -140,7 +140,13 @@ export function PricingCardStandard({
 					<h3 className="text-xl font-bold text-foreground mb-1">
 						{plan.name}
 					</h3>
-					<p className="text-sm text-muted-foreground">{plan.description}</p>
+					{/* Four lines at lg, where Starter and Max stand in one row: Max's
+					    description takes four at 1024 and three from 1152 beside
+					    Starter's two, and put its price 40 and 20px lower (66.2-39
+					    fix round 4, Part 8c). */}
+					<p className="text-sm text-muted-foreground lg:min-h-[4lh]">
+						{plan.description}
+					</p>
 				</div>
 
 				{/* Price — CONS-09: whitespace-nowrap keeps `$XX` + `/mo` on the

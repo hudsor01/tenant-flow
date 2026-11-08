@@ -59,8 +59,12 @@ export function PlanCard({
 	return (
 		<Card
 			variant={isMostPopular ? "pricingPopular" : "pricing"}
+			// Each card's header, body and footer are rows of the plans grid
+			// (subgrid), so a row of cards shares them: every price sits at one
+			// y whatever its description's lines (66.2-39 fix round 4, Part 8c:
+			// a description one line longer put its card's price 20px lower).
 			className={cn(
-				"relative flex flex-col",
+				"relative row-span-3 grid grid-rows-subgrid",
 				isCurrentPlan && "border-primary/50 bg-primary/5",
 			)}
 		>
