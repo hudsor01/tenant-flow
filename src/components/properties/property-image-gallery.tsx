@@ -154,8 +154,12 @@ export function PropertyImageGallery({
 							)}
 
 							{/* Delete button (editable mode, hover state) */}
+							{/* type="button": on the edit page the gallery sits inside the
+							    property form, where an untyped button submits it (66.2-39
+							    fix round 4, Part 8f). */}
 							{editable && (
 								<Button
+									type="button"
 									variant="destructive"
 									size="icon"
 									className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity h-8 w-8"

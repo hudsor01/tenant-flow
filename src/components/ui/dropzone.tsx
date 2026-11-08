@@ -163,8 +163,14 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 							)}
 						</div>
 
+						{/* 66.2-39 divergence from the Supabase UI dropzone (fix round 4,
+						    Part 8f): this button and Upload files are type="button". The
+						    property edit page renders the dropzone inside its form, where
+						    an untyped button submits it: removing a file or uploading
+						    saved the form too. */}
 						{!loading && !isSuccessfullyUploaded && (
 							<Button
+								type="button"
 								size="icon"
 								variant="link"
 								aria-label={`Remove ${file.name}`}
@@ -187,6 +193,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 			{files.length > 0 && !exceedMaxFiles && (
 				<div className="mt-2">
 					<Button
+						type="button"
 						variant="outline"
 						onClick={onUpload}
 						disabled={files.some((file) => file.errors.length !== 0) || loading}
