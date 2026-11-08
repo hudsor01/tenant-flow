@@ -40,14 +40,18 @@ export function LeaseTimelineTab({ events }: LeaseTimelineTabProps) {
 
 								return (
 									<div key={event.id} className="relative flex gap-4 pl-2">
-										{/* Icon */}
-										<div
-											className={cn(
-												"relative z-10 flex items-center justify-center w-8 h-8 rounded-full shrink-0",
-												colorClass,
-											)}
-										>
-											<Icon className="w-4 h-4" />
+										{/* Icon: an opaque disc over the rail, so the rail stops at
+										    its edge, with the event's tint on a layer inside it (a
+										    tint alone lets the rail show through). */}
+										<div className="relative z-10 w-8 h-8 rounded-full shrink-0 bg-card">
+											<div
+												className={cn(
+													"flex items-center justify-center size-full rounded-full",
+													colorClass,
+												)}
+											>
+												<Icon className="w-4 h-4" />
+											</div>
 										</div>
 
 										{/* Content */}

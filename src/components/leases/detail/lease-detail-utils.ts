@@ -163,7 +163,11 @@ export function getTimelineIcon(type: LeaseTimelineEvent["type"]) {
 	return iconMap[type] || Clock;
 }
 
-/** Get color classes for timeline event type */
+/**
+ * The text color and tint of a timeline event's icon. The History tab paints
+ * the tint on a layer inside an opaque `bg-card` disc: a tint alone lets the
+ * rail behind the discs show through.
+ */
 export function getTimelineColor(type: LeaseTimelineEvent["type"]) {
 	const colorMap = {
 		created: "text-muted-foreground bg-muted",
