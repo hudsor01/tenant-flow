@@ -4,8 +4,9 @@
  * This page is shown when a user clicks the password reset link from their email.
  * Supabase automatically handles the token exchange when the user lands on this page.
  *
- * If the token is expired or invalid, Supabase appends error info to the URL hash.
- * We detect this and show an error state with a recovery option.
+ * If the token is expired or invalid, the auth callback (or Supabase) appends
+ * error info to the URL hash. We detect this and show an error state with a
+ * recovery option.
  */
 
 "use client";
@@ -23,6 +24,30 @@ import { createClient } from "#lib/supabase/client";
 
 type PageState = "loading" | "valid" | "error";
 
+const EXPIRED_OR_INVALID = "This link has expired or is invalid.";
+
+/**
+ * The copy for each reset-link error code the hash can carry: `access_denied`
+ * from the auth callback's failure redirect (`failureRedirectPath`), and
+ * Supabase's own `error_code` for an expired one-time token. The hash's
+ * `error_description` is never shown: anyone can write a link to this page,
+ * so its text would let them put any sentence on tenantflow.app.
+ */
+const RESET_LINK_ERRORS: Readonly<Record<string, string>> = {
+	access_denied: EXPIRED_OR_INVALID,
+	otp_expired: EXPIRED_OR_INVALID,
+};
+
+/** The fixed copy for the hash's error, by `error_code`, then `error`. */
+function resetLinkErrorMessage(params: URLSearchParams): string {
+	for (const code of [params.get("error_code"), params.get("error")]) {
+		if (code !== null && Object.hasOwn(RESET_LINK_ERRORS, code)) {
+			return RESET_LINK_ERRORS[code] ?? EXPIRED_OR_INVALID;
+		}
+	}
+	return "This link could not be used.";
+}
+
 function useResetTokenStatus(): { state: PageState; errorMessage: string } {
 	const [state, setState] = useState<PageState>("loading");
 	const [errorMessage, setErrorMessage] = useState("");
@@ -30,18 +55,11 @@ function useResetTokenStatus(): { state: PageState; errorMessage: string } {
 	useEffect(() => {
 		let ignore = false;
 
-		// Supabase appends error info to the URL hash when a reset link is invalid/expired
+		// A failed reset link lands here with its error in the URL hash,
 		// e.g. #error=access_denied&error_description=...
-		const hash = window.location.hash.substring(1);
-		const params = new URLSearchParams(hash);
-		const error = params.get("error");
-		const errorDescription = params.get("error_description");
-
-		if (error) {
-			const message =
-				errorDescription?.replace(/\+/g, " ") ||
-				"This link has expired or is invalid.";
-			setErrorMessage(message);
+		const params = new URLSearchParams(window.location.hash.substring(1));
+		if (params.get("error") || params.get("error_code")) {
+			setErrorMessage(resetLinkErrorMessage(params));
 			setState("error");
 			return;
 		}

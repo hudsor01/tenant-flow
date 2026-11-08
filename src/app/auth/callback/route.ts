@@ -52,7 +52,8 @@ export function successRedirectPath(type: ValidOtpType, next: string): string {
  * user-facing page whose error is surfaced (no self-redirect to /auth/callback,
  * which has no page).
  *   - signup/email → confirm-email with an invalid-token banner
- *   - recovery → update-password error hash (its ExpiredLinkContent renders it)
+ *   - recovery → update-password error hash (the page shows fixed copy for its
+ *     error code, never the hash's description)
  *   - magiclink/invite → login with the link_expired code (AUTH-04 surfaces it)
  *   - email_change → settings with a failed flag (AUTH-01)
  */
