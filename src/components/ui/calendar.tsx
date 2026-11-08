@@ -24,9 +24,9 @@
  * - focus ring `ring-ring`, opaque, where upstream draws `ring-ring/50`: the
  *   half-alpha ring read 2.17-2.58:1 on the page, card and popover, under
  *   WCAG 1.4.11's 3:1;
- * - the dark hover label above applies off the today cell only: today paints
- *   solid accent, where text-foreground read 2.19:1; the ghost hover's
- *   accent-foreground reads 8.01:1 there;
+ * - the today cell restates accent-foreground as its button's hover label: it
+ *   paints solid accent under the button, where the dark hover label above
+ *   (and the ghost Button's own) read 2.19:1; accent-foreground reads 8.01:1;
  * - the focused day's ring sits on a 2px background offset: on the today
  *   cell's solid accent the bare ring read 1.75:1.
  */
@@ -145,7 +145,7 @@ function Calendar({
 				range_middle: cn("rounded-none", defaultClassNames.range_middle),
 				range_end: cn("rounded-r-md bg-accent", defaultClassNames.range_end),
 				today: cn(
-					"bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none",
+					"bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none [&>button]:hover:text-accent-foreground",
 					defaultClassNames.today,
 				),
 				outside: cn(
@@ -236,11 +236,7 @@ function CalendarDayButton({
 			data-range-end={modifiers.range_end}
 			data-range-middle={modifiers.range_middle}
 			className={cn(
-				"data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-offset-2 group-data-[focused=true]/day:ring-offset-background data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
-				// Off the today cell only: today paints solid accent under the
-				// button, where the dark ghost hover's own label (foreground) read
-				// 2.19:1 and accent-foreground reads 8.01:1 (fix round 4, Part 5b).
-				!modifiers.today && "dark:hover:text-foreground",
+				"data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring dark:hover:text-foreground flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-offset-2 group-data-[focused=true]/day:ring-offset-background data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
 				defaultClassNames.day,
 				className,
 			)}
