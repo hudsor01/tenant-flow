@@ -24,10 +24,26 @@ import { REFLOW_OVERLAYS, readReflow } from "./measure";
  *     header) shows, the controls a tab's panel adds, and one level inside an
  *     open dialog, one control per row column or list item, and reads each
  *     state with `readReflow`. A plain button (no ARIA trigger state) counts
- *     only when its name starts with a verb that opens something and it is
- *     outside a form: a `<button>` with no `type` is `type="submit"`, so the
- *     element's `type` property cannot tell them apart. A control whose name
- *     says it deletes, sends, signs out or publishes is never pressed.
+ *     only when its name starts with a verb that opens something (a plan
+ *     card's Upgrade or Downgrade opens the plan dialog on /billing/plans;
+ *     /pricing's Start free opens the subscribe dialog for a visitor, and
+ *     the public spec is signed out) and it is outside a form: a `<button>`
+ *     with no `type` is `type="submit"`, so the element's `type` property
+ *     cannot tell them apart. A control whose name says it deletes, sends,
+ *     signs out or publishes is never pressed, with one exception (Part 8f):
+ *     an ARIA dialog trigger (`aria-haspopup="dialog"` or a `dialog-trigger`
+ *     / `alert-dialog-trigger` slot) opens its confirmation, since pressing
+ *     it opens a dialog and nothing else; nothing inside an `alertdialog` is
+ *     ever pressed. A tooltip trigger is focused, never pressed, whatever its
+ *     name.
+ *
+ * Controls are pressed only when they open a state. A control whose press only issues a
+ * request is not a state, so it is never pressed: one that builds or fetches
+ * a file (pdf, download, export, print, generate), and the billing-portal
+ * controls Manage Plan, Manage Subscription and View All Invoices, each a
+ * POST to the billing-portal Edge Function and then a navigation away from
+ * the app (66.2-39 fix round 4, Part 8f, a main-session decision).
+ * `blockWrites` stays the boundary for anything pressed.
  */
 
 /** Long values a read's string fields take, by key. */
@@ -162,6 +178,95 @@ export async function blockWrites(
 	return traffic;
 }
 
+/**
+ * The page reads the session cookie's user with `set` merged in (a verified
+ * MFA factor): `getAuthenticatorAssuranceLevel` reads the stored session, and
+ * @supabase/ssr stores it in `document.cookie`. Only the page's reads change;
+ * the cookie the browser sends is the real one, so the proxy sees owner A as
+ * it is. `listFactors` reads the user over the network, so GET /auth/v1/user is
+ * answered with production's user and the same fields.
+ */
+export async function withSessionUser(
+	context: BrowserContext,
+	set: Record<string, unknown>,
+): Promise<void> {
+	await context.addInitScript((fields) => {
+		const native = Object.getOwnPropertyDescriptor(
+			Document.prototype,
+			"cookie",
+		);
+		if (!native?.get || !native.set) return;
+		const read = native.get;
+		const write = native.set;
+		const token = /^sb-.+-auth-token(\.\d+)?$/;
+		const index = (name: string) => Number(name.match(/\.(\d+)$/)?.[1] ?? -1);
+		Object.defineProperty(Document.prototype, "cookie", {
+			configurable: true,
+			get(this: Document) {
+				const raw: string = read.call(this);
+				const jar = raw
+					.split("; ")
+					.filter(Boolean)
+					.map((c) => [
+						c.slice(0, c.indexOf("=")),
+						c.slice(c.indexOf("=") + 1),
+					]);
+				const parts = jar
+					.filter(([name]) => token.test(name ?? ""))
+					.sort((a, b) => index(a[0] ?? "") - index(b[0] ?? ""));
+				const key = parts[0]?.[0]?.replace(/\.\d+$/, "");
+				if (!key) return raw;
+				const encoded = parts
+					.map(([, value]) => decodeURIComponent(value ?? ""))
+					.join("")
+					.replace(/^base64-/, "");
+				const bytes = Uint8Array.from(
+					atob(encoded.replace(/-/g, "+").replace(/_/g, "/")),
+					(ch) => ch.charCodeAt(0),
+				);
+				const session = JSON.parse(new TextDecoder().decode(bytes));
+				session.user = { ...session.user, ...fields };
+				let binary = "";
+				for (const byte of new TextEncoder().encode(JSON.stringify(session))) {
+					binary += String.fromCharCode(byte);
+				}
+				const value = `base64-${btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")}`;
+				const chunks =
+					value.length <= 3180
+						? [[key, value]]
+						: Array.from({ length: Math.ceil(value.length / 3180) }, (_, i) => [
+								`${key}.${i}`,
+								value.slice(i * 3180, (i + 1) * 3180),
+							]);
+				return [...jar.filter(([name]) => !token.test(name ?? "")), ...chunks]
+					.map(([name, v]) => `${name}=${v}`)
+					.join("; ");
+			},
+			set(this: Document, value: string) {
+				write.call(this, value);
+			},
+		});
+	}, set);
+	await context.route(/\.supabase\.co\/auth\/v1\/user(\?|$)/, async (route) => {
+		if (route.request().method() !== "GET") return route.fallback();
+		try {
+			const response = await route.fetch();
+			const user = (await response.json()) as Record<string, unknown>;
+			const headers = { ...response.headers() };
+			delete headers["content-encoding"];
+			delete headers["content-length"];
+			await route.fulfill({
+				status: response.status(),
+				headers,
+				body: JSON.stringify({ ...user, ...set }),
+			});
+		} catch {
+			// The page moved on (or the read failed): nothing to answer.
+			await route.abort("failed").catch(() => {});
+		}
+	});
+}
+
 interface ReadAnswer {
 	status: number;
 	headers: Record<string, string>;
@@ -236,9 +341,22 @@ const FAST = [25, 50, 100, 250];
 const TRIGGERS =
 	'[aria-haspopup]:not([aria-haspopup="false"]), [aria-expanded], [data-slot$="-trigger"], [role="tab"], [data-slot="toggle-group-item"], [aria-pressed], button';
 
-/** A control the guard never presses: it deletes, sends, signs out or publishes. */
+/**
+ * A control the guard never presses: it deletes, sends, signs out or
+ * publishes. An ARIA dialog trigger with such a name opens its confirmation
+ * (`opensDialog`); a tooltip trigger is focused.
+ */
 const DESTRUCTIVE =
 	/\b(delete|remove|sign ?out|log ?out|send|publish|terminate|cancel subscription|deactivate|archive|discard|revoke|decline|reject)\b/i;
+
+/** Whether pressing the trigger only opens a dialog (an ARIA dialog trigger). */
+function opensDialog(trigger: Trigger): boolean {
+	return (
+		trigger.popup === "dialog" ||
+		trigger.kind === "dialog-trigger" ||
+		trigger.kind === "alert-dialog-trigger"
+	);
+}
 
 /**
  * The in-page half of the trigger driver, one function so the key a control
@@ -259,7 +377,7 @@ function triggerQuery(arg: {
 	nth?: number;
 }): Trigger[] {
 	const OPENER =
-		/^(add|new|record|edit|view|schedule|reschedule|renew|rename|move out|rent increase|track|bulk|details|open|preview|manage|assign|change|set up|filter|filters|columns|show|more|select|choose|browse|customize|contact|see|learn|compare|start tracking|enable$)\b/i;
+		/^(add|new|record|edit|view|schedule|reschedule|renew|rename|move out|rent increase|track|bulk|details|open|preview|manage|assign|change|set up|filter|filters|columns|show|more|select|choose|browse|customize|contact|see|learn|compare|start tracking|enable$|upgrade$|downgrade$|start free$)\b/i;
 	const keyOf = (el: Element) => {
 		const name = (
 			el.getAttribute("aria-label") ||
@@ -342,9 +460,12 @@ function triggerQuery(arg: {
 		if (
 			plain &&
 			(!arg.plain ||
-				// A file it builds or fetches (a PDF preview, an export) is a
-				// request, not a state.
+				// A file it builds or fetches (a PDF preview, an export), or the
+				// billing portal it opens, is a request, not a state.
 				/\b(pdf|download|export|print|generate)\b/i.test(trigger.name) ||
+				/^(manage plan|manage subscription|view all invoices)$/i.test(
+					trigger.name,
+				) ||
 				el.getAttribute("type") === "submit" ||
 				el.closest("form") ||
 				!OPENER.test(trigger.name))
@@ -361,6 +482,7 @@ function overlayState(selector: string): {
 	open: boolean;
 	popper: boolean;
 	dialog: boolean;
+	alert: boolean;
 } {
 	const open = [...document.querySelectorAll(selector)].filter(
 		(o) => o.getClientRects().length > 0,
@@ -375,6 +497,7 @@ function overlayState(selector: string): {
 				(o.getAttribute("role") === "dialog" ||
 					o.getAttribute("role") === "alertdialog"),
 		),
+		alert: open.some((o) => o.getAttribute("role") === "alertdialog"),
 	};
 }
 
@@ -502,7 +625,14 @@ export async function measureEachTrigger(
 	for (const trigger of fresh) measured.add(`${pathname}|${trigger.key}`);
 	for (const trigger of fresh) seen.add(trigger.key);
 	for (const trigger of fresh) {
-		if (DESTRUCTIVE.test(trigger.name) || NAVIGATES.has(trigger.key)) continue;
+		if (NAVIGATES.has(trigger.key)) continue;
+		if (
+			DESTRUCTIVE.test(trigger.name) &&
+			!opensDialog(trigger) &&
+			trigger.kind !== "tooltip-trigger"
+		) {
+			continue;
+		}
 		const state = `${options.label}${trigger.kind} "${trigger.name}"`;
 		// A tab is put back by pressing the tab that was selected before it.
 		const selectedTab =
@@ -529,7 +659,8 @@ export async function measureEachTrigger(
 		}
 		const reading = await readReflow(page, overlay.open ? "overlay" : "page");
 		results.push({ state, problems: reading.problems });
-		if (overlay.dialog && root === null) {
+		// A confirmation (an alertdialog) is read, and nothing in it pressed.
+		if (overlay.dialog && !overlay.alert && root === null) {
 			results.push(
 				...(await measureEachTrigger(page, {
 					label: `${state} > `,
