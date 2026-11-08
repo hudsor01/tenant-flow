@@ -56,7 +56,10 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 	return (
 		<Card className="relative">
 			<CardHeader className="pb-2">
-				<div className="flex items-start justify-between gap-2">
+				{/* The CardHeader is a grid: min-w-0 lets its one column shrink, so a
+				    long vendor name truncates where it pushed the actions, and the
+				    page, to 631px at 320 (66.2-39 fix round 4, Part 8f). */}
+				<div className="flex min-w-0 items-start justify-between gap-2">
 					<div className="flex-1 min-w-0">
 						<h3 className="font-semibold truncate">{vendor.name}</h3>
 						<Badge variant="secondary" className="mt-1 text-xs capitalize">
