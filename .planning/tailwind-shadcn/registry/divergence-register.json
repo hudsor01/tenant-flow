@@ -472,6 +472,11 @@
      "what": "ComboboxContent max-h-(--dice-available-height), max-w-(--dice-available-width) and overflow-x-hidden overflow-y-auto where the Dice UI source declares max-h-fit and overflow-hidden: the lease wizard's property list opened 778px tall above its input at 1280x800, 378px of it above the viewport, and 11 of its 24 options could not take a pointer",
      "reason": "D-26 customization",
      "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
+    },
+    {
+     "what": "ComboboxContent w-max (width: max-content), which the Dice UI source does not set: the positioner places the list by top and left, and an absolutely positioned box's shrink-to-fit width is the room right of its left edge, so the list's width followed wherever it last sat (opened at 480 and again at 320, 268px wide at x 51.63; 1280 to 390 while open, 325px at x 65 where a fresh page opens it 390px wide at x 0)",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 8f (overlay viewport-change sweep; Floating UI computePosition initial layout)"
     }
    ]
   },

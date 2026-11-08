@@ -10,7 +10,14 @@
  *   scrolls, where the Dice UI source declares `max-h-fit overflow-hidden`:
  *   the lease wizard's property list opened 778px tall above its input at
  *   1280x800, 378px of it above the viewport, and 11 of its 24 options could
- *   not take a pointer (66.2-39 fix round 4, Part 5d).
+ *   not take a pointer (66.2-39 fix round 4, Part 5d);
+ * - ComboboxContent is `w-max`, Floating UI's rule for a floating element
+ *   placed by top/left: an absolute box's shrink-to-fit width is the room
+ *   right of its left edge, so the list's width followed wherever it last
+ *   sat. Opened at 480 and again at 320, it was 268px wide at x 51.63; after
+ *   1280 to 390 with it open, 325px at x 65, where a page loaded at that
+ *   width opens it at 0 and the viewport's width (66.2-39 fix round 4,
+ *   Part 8f).
  */
 import * as ComboboxPrimitive from "@diceui/combobox";
 import { Check, ChevronDown } from "lucide-react";
@@ -94,7 +101,7 @@ function ComboboxContent({
 				data-slot="combobox-content"
 				sideOffset={sideOffset}
 				className={cn(
-					"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--dice-available-height) max-w-(--dice-available-width) min-w-(--dice-anchor-width) origin-(--dice-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=closed]:animate-out data-[state=open]:animate-in",
+					"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--dice-available-height) w-max max-w-(--dice-available-width) min-w-(--dice-anchor-width) origin-(--dice-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=closed]:animate-out data-[state=open]:animate-in",
 					className,
 				)}
 				{...props}
