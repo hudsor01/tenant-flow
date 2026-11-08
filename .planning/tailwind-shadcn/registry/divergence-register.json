@@ -714,6 +714,11 @@
      "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
      "reason": "D-26 customization",
      "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "the InputOTP container overflow-clip with a 4px overflow-clip-margin: input-otp widens its transparent input 40px past the slots (room for a password manager's badge) when the point it probes near the row's right edge is not the row (the slots always cover it) and it measures room in the nearest box that clips; the widened input ran past the MFA dialog, which scrolls (302px in 286px at 320, at 320-400). The row is now that box, so the input keeps the row's width (238px at 320, 350px at 1280) and a badge, if one shows, sits over the last slot, as wherever input-otp finds no room; the 4px margin keeps the slots' 3px focus ring",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 8f (states sweep; input-otp 1.5.0 pushPasswordManagerStrategy increase-width)"
     }
    ]
   },
