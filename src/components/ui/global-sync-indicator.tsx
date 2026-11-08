@@ -14,7 +14,10 @@
  *   (WCAG 1.4.13, 2.1.1). Its name is its visible text ("Saved", "Syncing...",
  *   "Syncing (2)"), held in a plain `span`; in compact mode (or below sm with
  *   `compactBelowSm`) the saved text is sr-only and still names it.
- *   It has no action, so Enter and Space do nothing beyond what focus shows.
+ *   It has no action of its own. Enter and Space still dismiss the tooltip
+ *   focus opened: on a native button either key fires a click, and Radix's
+ *   TooltipTrigger closes the tooltip on click. The next focus or hover opens
+ *   it again.
  * - The same text is mirrored into a visually hidden `role="status"` live
  *   region beside the trigger, which stays mounted across the state switch,
  *   so "Syncing..." and the return to "Saved" are announced. It cannot sit in

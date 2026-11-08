@@ -12,7 +12,14 @@
  * button holds no live region, and its text sits in a role-free span.
  */
 
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import {
+	act,
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GlobalSyncIndicator } from "#components/ui/global-sync-indicator";
 import { TooltipProvider } from "#components/ui/tooltip";
@@ -109,4 +116,30 @@ describe("GlobalSyncIndicator", () => {
 		}
 		expect(content.querySelectorAll("p")).toHaveLength(0);
 	});
+
+	// The trigger runs no action, but Enter and Space fire a click on a native
+	// button, and Radix's TooltipTrigger closes the tooltip on click (66.2-39
+	// fix round 4, G43).
+	it.each([
+		["Enter", "{Enter}"],
+		["Space", " "],
+	])(
+		"dismisses the focus-opened tooltip on %s and keeps focus",
+		async (_key, press) => {
+			const user = userEvent.setup();
+			renderIndicator();
+			const trigger = screen.getByRole("button", { name: "Saved" });
+
+			await user.tab();
+			expect(document.activeElement).toBe(trigger);
+			expect(await screen.findByRole("tooltip")).toHaveTextContent(
+				"All changes saved to TenantFlow.",
+			);
+
+			await user.keyboard(press);
+
+			await waitFor(() => expect(screen.queryByRole("tooltip")).toBeNull());
+			expect(document.activeElement).toBe(trigger);
+		},
+	);
 });
