@@ -240,7 +240,7 @@ export function ReviewStep({
 							<FileText className="h-4 w-4 text-muted-foreground" />
 							<h4 className="font-medium">Property Rules</h4>
 						</div>
-						<p className="text-sm pl-6 whitespace-pre-wrap">
+						<p className="mb-0 text-sm pl-6 whitespace-pre-wrap">
 							{data.property_rules}
 						</p>
 					</div>

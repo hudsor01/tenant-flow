@@ -22,7 +22,11 @@
  * The scan reads every non-test .tsx under src, with the components of
  * `src/components/ui` read as the boxes they render (`componentBoxes`), and the
  * base rule itself from globals.css (`computeParagraphCascade`'s probe), so
- * the premise is checked, not assumed. Lists are held by
+ * the premise is checked, not assumed. A paragraph whose margin reaches its
+ * component's root is followed to the component's JSX call sites in the other
+ * files (`crossFileHits`, 66.2-39 fix round 4, Part 8b): the bulk import's
+ * "Closing automatically" note broke the stepper's flex column from another
+ * file, which only Part 5c's rendered sweep had seen. Lists are held by
  * `list-base-rule-neutralized.test.ts`, which requires every list to cancel
  * all four base list values whatever its container.
  *
@@ -45,6 +49,7 @@ import {
 	type ComponentBox,
 	componentBoxes,
 	createBoxReader,
+	crossFileHits,
 } from "#test/utils/base-margin-sites";
 import { computeParagraphCascade } from "#test/utils/base-rule-cascade";
 import { gitBlobId } from "#test/utils/git-blob";
@@ -449,11 +454,80 @@ describe("paragraphs carry no base margin where it breaks declared spacing", () 
 		);
 	});
 
+	it("follows a margin that reaches a component's root to its callers", () => {
+		const step = {
+			path: "src/step.tsx",
+			source: `export function Step({ done }: { done: boolean }) {
+				return (
+					<div className="space-y-5">
+						<div role="status">{done && <p className="text-xs">closing</p>}</div>
+					</div>
+				);
+			}`,
+		};
+		const caller = (wrapper: string) => ({
+			path: "src/stepper.tsx",
+			source: `import { Step } from "./step";
+			export function Stepper() {
+				return ${wrapper};
+			}`,
+		});
+		const found = (wrapper: string) =>
+			crossFileHits([step, caller(wrapper)], components, box).map(
+				(h) => `${h.file}:${h.line}:${h.shape} ${h.via}`,
+			);
+		expect(
+			found(
+				`<div className="flex flex-col gap-4"><div><Step done /></div></div>`,
+			),
+		).toEqual([
+			"src/step.tsx:4:d last child of <div> > last child of <div> > root of <Step>, rendered at src/stepper.tsx:3 as last child of <div> > flex or grid item of <div>",
+		]);
+		expect(
+			found(`<div className="space-y-4"><Step done /><footer /></div>`),
+		).toEqual([]);
+		expect(found(`<div><Step done /><p>after</p></div>`)).toEqual([]);
+		// One of a ternary's branches always follows, so the note is never last.
+		expect(
+			crossFileHits(
+				[
+					{
+						path: "src/panel.tsx",
+						source: `export function Panel({ busy }: { busy: boolean }) {
+							return (
+								<div className="space-y-4">
+									<p className="text-xs">Recent</p>
+									{busy ? <span>...</span> : <ul />}
+								</div>
+							);
+						}`,
+					},
+					{
+						path: "src/page.tsx",
+						source: `import { Panel } from "./panel";
+						export function Page() { return <section className="p-6"><Panel busy /></section>; }`,
+					},
+				],
+				components,
+				box,
+			),
+		).toEqual([]);
+	});
+
 	it("leaves no hit outside the deferred files", () => {
 		const offenders: Record<string, number> = {};
 		const lines: string[] = [];
-		for (const file of collect(join(ROOT, "src"))) {
-			const hits = scan(file, readFileSync(join(ROOT, file), "utf8"));
+		const files = collect(join(ROOT, "src"));
+		const sources = files.map((path) => ({
+			path,
+			source: readFileSync(join(ROOT, path), "utf8"),
+		}));
+		const across = crossFileHits(sources, components, box);
+		for (const { path: file, source } of sources) {
+			const hits = [
+				...scan(file, source),
+				...across.filter((h) => h.file === file),
+			];
 			if (hits.length === 0) continue;
 			offenders[file] = hits.length;
 			if (DEFERRED[file]?.[0] !== hits.length) {

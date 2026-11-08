@@ -117,7 +117,7 @@ export function BulkImportConfirmStep({
 						{...(onRetryFailed ? { onRetryFailed } : {})}
 					/>
 					{willAutoClose && (
-						<p className="text-xs text-muted-foreground mt-2 text-center">
+						<p className="mt-2 mb-0 text-xs text-muted-foreground text-center">
 							Closing automatically…
 						</p>
 					)}

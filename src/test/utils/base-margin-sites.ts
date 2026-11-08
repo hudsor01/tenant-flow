@@ -45,8 +45,9 @@
  * component's children as its last content, its class strings resolved
  * through `cva` defaults and merged with the caller's as `cn` merges them.
  * Any other component is a box this scan cannot see, and the walk stops
- * there, as it does at a component's root (its callers are elsewhere): the
- * rendered sweep (class M2 of the round-4 plan) is the check for those.
+ * there: the rendered sweep (class M2 of the round-4 plan) is the check for
+ * those. At a component's root the per-file walk stops too, and
+ * `crossFileHits` (below) takes the margin on to the component's callers.
  */
 
 import postcss from "postcss";
@@ -786,6 +787,35 @@ interface Slot {
 	node: Node | null;
 	conditional: boolean;
 	repeated: boolean;
+	/**
+	 * A branch of a ternary that renders an element whichever way it goes
+	 * (`a ? <A /> : b ? <B /> : <C />`): conditional as a sibling, but one of
+	 * its branches is always there.
+	 */
+	alwaysOne?: boolean;
+	/** The ternary whose branch this is: its other branches never render beside it. */
+	branchOf?: Node;
+}
+
+/** Whether `expression` renders an element on every branch. */
+function alwaysRendersElement(expression: Node): boolean {
+	const n = unwrap(expression);
+	if (n.type === "JSXElement") return true;
+	if (n.type === "JSXFragment") {
+		return ((n.children as Node[]) ?? []).some(
+			(c) =>
+				c.type === "JSXElement" ||
+				(c.type === "JSXExpressionContainer" &&
+					alwaysRendersElement(c.expression as Node)),
+		);
+	}
+	if (n.type === "ConditionalExpression") {
+		return (
+			alwaysRendersElement(n.consequent as Node) &&
+			alwaysRendersElement(n.alternate as Node)
+		);
+	}
+	return false;
 }
 
 function callbackJsx(call: Node): Node[] {
@@ -824,10 +854,17 @@ function slotsOf(
 				if (n.operator !== "&&") expression(n.left as Node, true, rep);
 				expression(n.right as Node, true, rep);
 				return;
-			case "ConditionalExpression":
+			case "ConditionalExpression": {
+				const from = out.length;
 				expression(n.consequent as Node, true, rep);
 				expression(n.alternate as Node, true, rep);
+				const always = alwaysRendersElement(n);
+				for (const slot of out.slice(from)) {
+					slot.branchOf = n;
+					if (always) slot.alwaysOne = true;
+				}
 				return;
+			}
 			case "CallExpression": {
 				const returned = callbackJsx(n);
 				if (returned.length === 0) {
@@ -1003,6 +1040,17 @@ function placementOf(node: Node, parents: Node[]): Placement | null {
 
 function mayBeLast(placement: Placement, ctx: Context): boolean {
 	const after = placement.slots.slice(placement.index + 1);
+	const own = placement.slots[placement.index]?.branchOf;
+	if (
+		after.some(
+			(s) =>
+				s.alwaysOne &&
+				s.kind === "element" &&
+				(own === undefined || s.branchOf !== own),
+		)
+	) {
+		return false;
+	}
 	return after.every((s) => {
 		if (s.conditional || s.kind === "unknown") return true;
 		if (s.kind === "text") return false;
@@ -1058,7 +1106,10 @@ function leak(
 ): string | null {
 	if (depth > 12) return null;
 	const placement = placementOf(node, parents);
-	if (!placement) return null;
+	if (!placement) {
+		const root = componentRoot(parents);
+		return root ? `${ROOT_MARK}${root}` : null;
+	}
 	const parentParents = parents.slice(0, parents.lastIndexOf(placement.parent));
 	const parent = elementInfo(placement.parent, ctx);
 	if (!parent || parent.style.inline) return null;
@@ -1091,7 +1142,24 @@ export function baseMarginHits(
 	components: ReadonlyMap<string, ComponentBox>,
 	box: (classes: string[]) => BoxStyle,
 ): BaseMarginHit[] {
-	if (!/<[A-Za-z.]*[\s>]/.test(source)) return [];
+	return scanFile(file, source, components, box)?.hits ?? [];
+}
+
+interface FileScan {
+	program: Node;
+	ctx: Context;
+	hits: BaseMarginHit[];
+	/** Paragraphs whose margin reaches their component's bottom edge (`ROOT_MARK` in `via`). */
+	reaches: BaseMarginHit[];
+}
+
+function scanFile(
+	file: string,
+	source: string,
+	components: ReadonlyMap<string, ComponentBox>,
+	box: (classes: string[]) => BoxStyle,
+): FileScan | null {
+	if (!/<[A-Za-z.]*[\s>]/.test(source)) return null;
 	const program = parse(file, source);
 	const ctx: Context = {
 		file,
@@ -1106,21 +1174,28 @@ export function baseMarginHits(
 	};
 	const isParagraph = (name: string) =>
 		name === "p" || (!/^[a-z]/.test(name) && components.get(name)?.tag === "p");
-	const lineOf = (index: number) => source.slice(0, index).split("\n").length;
 	const hits: BaseMarginHit[] = [];
+	const reaches: BaseMarginHit[] = [];
 	const visit = (node: Node, parents: Node[]) => {
 		if (
 			node.type === "JSXElement" &&
 			isParagraph(jsxName((node.openingElement as Node).name))
 		) {
 			const hit = paragraphHit({ node, parents }, ctx);
-			if (hit) hits.push({ file, line: lineOf(node.start), ...hit });
+			if (hit) {
+				const record = { file, line: lineOf(source, node.start), ...hit };
+				(hit.via.includes(ROOT_MARK) ? reaches : hits).push(record);
+			}
 		}
 		const next = [...parents, node];
 		for (const c of childNodes(node)) visit(c, next);
 	};
 	visit(program, []);
-	return hits;
+	return { program, ctx, hits, reaches };
+}
+
+function lineOf(source: string, index: number): number {
+	return source.slice(0, index).split("\n").length;
 }
 
 function paragraphHit(
@@ -1133,7 +1208,11 @@ function paragraphHit(
 	if (style.outOfFlow || style.inline) return null;
 	if (style.marginBottom !== null) return null;
 	const placement = placementOf(walk.node, walk.parents);
-	if (!placement) return null;
+	if (!placement) {
+		const root = componentRoot(walk.parents);
+		if (!root || style.marginBottomWhenLast !== null) return null;
+		return { shape: "d", via: `${ROOT_MARK}${root}` };
+	}
 	for (const ancestor of ancestorsOf(walk)) {
 		const info = elementInfo(ancestor.node, ctx);
 		if (info?.style.descendantMargin || info?.style.unseen) return null;
@@ -1171,4 +1250,238 @@ function paragraphHit(
 	return outer
 		? { shape: "d", via: `last child of <${parent.name}> > ${outer}` }
 		: null;
+}
+
+// ---------------------------------------------------------------------------
+// Across files (66.2-39 fix round 4, Part 8b).
+//
+// The walk above stops at a component's root: where the margin goes from
+// there depends on where the component is rendered, which is another file.
+// Part 5c's rendered sweep found the case the per-file scan cannot see: the
+// bulk import's "Closing automatically" note is the last child of
+// `BulkImportConfirmStep`'s root, and the stepper renders that component as
+// the only child of a `StepperContent`, a flex item of `StepperRoot`.
+// `crossFileHits` follows such a reach to every JSX call site of the
+// component in the files it is given (named and default imports resolved
+// through the `#` subpath aliases and relative paths, and calls in the same
+// file) and runs the same walk from the call site, through further component
+// roots up to four levels. The root must be one element: a component that
+// returns a fragment places its children in the caller's box one by one, and
+// the walk does not follow it. A component rendered by reference (a config
+// value, a prop) and a page or layout Next renders have no JSX call site to
+// follow; the rendered sweep is the check for those.
+
+/** Marks a margin that reached a component's bottom edge: the callers decide where it lands. */
+const ROOT_MARK = "\u0000root:";
+
+/**
+ * The component whose returned root is the element these `parents` hold, or
+ * null: the chain must reach a named function through conditionals, a
+ * `return` and parentheses only (a fragment or a `.map()` breaks it).
+ */
+function componentRoot(parents: Node[]): string | null {
+	for (let i = parents.length - 1; i >= 0; i -= 1) {
+		const p = parents[i] as Node;
+		if (p.type === "JSXFragment" || p.type === "CallExpression") return null;
+		if (PASS_THROUGH.has(p.type)) continue;
+		const id = p.id as Node | undefined;
+		if (
+			(p.type === "FunctionDeclaration" || p.type === "VariableDeclarator") &&
+			id?.type === "Identifier" &&
+			/^[A-Z]/.test(String(id.name))
+		) {
+			return String(id.name);
+		}
+		return null;
+	}
+	return null;
+}
+
+const ALIASES: readonly [string, string][] = [
+	["#app/", "src/app/"],
+	["#components/", "src/components/"],
+	["#lib/", "src/lib/"],
+	["#hooks/", "src/hooks/"],
+	["#stores/", "src/stores/"],
+	["#types/", "src/types/"],
+	["#providers/", "src/providers/"],
+	["#config/", "src/config/"],
+];
+
+/** The repo path an import specifier names, among `known`, or null. */
+function resolveImport(
+	from: string,
+	specifier: string,
+	known: ReadonlySet<string>,
+): string | null {
+	let base: string | null = null;
+	for (const [alias, dir] of ALIASES) {
+		if (specifier.startsWith(alias)) base = dir + specifier.slice(alias.length);
+	}
+	if (specifier.startsWith(".")) {
+		const parts = from.split("/").slice(0, -1);
+		for (const part of specifier.split("/")) {
+			if (part === "..") parts.pop();
+			else if (part !== ".") parts.push(part);
+		}
+		base = parts.join("/");
+	}
+	if (base === null) return null;
+	for (const candidate of [base, `${base}.tsx`, `${base}/index.tsx`]) {
+		if (known.has(candidate)) return candidate;
+	}
+	return null;
+}
+
+interface CallSite {
+	file: string;
+	node: Node;
+	parents: Node[];
+	ctx: Context;
+}
+
+/** Default-exported component names of a program. */
+function defaultExport(program: Node): string | null {
+	for (const statement of (program.body as Node[]) ?? []) {
+		if (statement.type !== "ExportDefaultDeclaration") continue;
+		const d = statement.declaration as Node;
+		if (d.type === "Identifier") return String(d.name);
+		const id = d.id as Node | undefined;
+		if (id?.type === "Identifier") return String(id.name);
+	}
+	return null;
+}
+
+/**
+ * Hits the per-file scan cannot see: a paragraph whose margin reaches its
+ * component's root, placed by the component's callers in a box it breaks.
+ * Each paragraph is reported once, at its own line, with the first call site
+ * that breaks a box.
+ */
+export function crossFileHits(
+	sources: readonly { path: string; source: string }[],
+	components: ReadonlyMap<string, ComponentBox>,
+	box: (classes: string[]) => BoxStyle,
+): BaseMarginHit[] {
+	const scans = new Map<string, FileScan>();
+	for (const { path, source } of sources) {
+		const scan = scanFile(path, source, components, box);
+		if (scan) scans.set(path, scan);
+	}
+	const known = new Set(scans.keys());
+	// "<defining file>#<component>" -> its JSX call sites
+	const calls = new Map<string, CallSite[]>();
+	const defaults = new Map<string, string>();
+	for (const [file, scan] of scans) {
+		const name = defaultExport(scan.program);
+		if (name) defaults.set(file, name);
+	}
+	for (const [file, scan] of scans) {
+		const bindings = new Map<string, string>();
+		for (const statement of (scan.program.body as Node[]) ?? []) {
+			if (statement.type !== "ImportDeclaration") continue;
+			const target = resolveImport(
+				file,
+				String((statement.source as Node).value),
+				known,
+			);
+			if (!target) continue;
+			for (const s of (statement.specifiers as Node[]) ?? []) {
+				const local = String((s.local as Node).name);
+				if (s.type === "ImportSpecifier") {
+					bindings.set(local, `${target}#${String((s.imported as Node).name)}`);
+				} else if (s.type === "ImportDefaultSpecifier") {
+					const name = defaults.get(target);
+					if (name) bindings.set(local, `${target}#${name}`);
+				}
+			}
+		}
+		const visit = (node: Node, parents: Node[]) => {
+			if (node.type === "JSXElement") {
+				const name = jsxName((node.openingElement as Node).name);
+				if (/^[A-Z][A-Za-z0-9]*$/.test(name)) {
+					const key = bindings.get(name) ?? `${file}#${name}`;
+					const list = calls.get(key) ?? [];
+					list.push({ file, node, parents, ctx: scan.ctx });
+					calls.set(key, list);
+				}
+			}
+			const next = [...parents, node];
+			for (const c of childNodes(node)) visit(c, next);
+		};
+		visit(scan.program, []);
+	}
+
+	const found = new Map<string, BaseMarginHit>();
+	interface Reach {
+		hit: BaseMarginHit;
+		/** The file whose component the margin reached the root of. */
+		at: string;
+		depth: number;
+	}
+	const queue: Reach[] = [];
+	for (const [file, scan] of scans) {
+		for (const hit of scan.reaches) queue.push({ hit, at: file, depth: 0 });
+	}
+	while (queue.length > 0) {
+		const reach = queue.shift() as Reach;
+		const mark = reach.hit.via.indexOf(ROOT_MARK);
+		const component = reach.hit.via.slice(mark + ROOT_MARK.length);
+		const before = reach.hit.via.slice(0, mark);
+		// The paragraph itself is the root: the caller's box places it directly.
+		// A ui component whose host is a paragraph is read at each call site by
+		// the per-file scan already, with the caller's classes merged in.
+		const isRoot = mark === 0 && reach.depth === 0;
+		if (isRoot && reach.at.startsWith("src/components/ui/")) continue;
+		for (const site of calls.get(`${reach.at}#${component}`) ?? []) {
+			const key = `${reach.hit.file}:${reach.hit.line}`;
+			if (found.has(key)) break;
+			const placement = placementOf(site.node, site.parents);
+			const parent = placement ? elementInfo(placement.parent, site.ctx) : null;
+			if (isRoot && parent?.style.childMargin) continue;
+			// The caller's own classes land on the root paragraph (the component
+			// forwards them): a declared bottom margin there is the paragraph's.
+			if (isRoot) {
+				const opening = site.node.openingElement as Node;
+				const caller = classParts(
+					attributeValue(opening, "className"),
+					site.ctx.lookup,
+				);
+				if (site.ctx.box([...caller.always]).marginBottom !== null) continue;
+			}
+			if (
+				ancestorsOf({ node: site.node, parents: site.parents }).some((a) => {
+					const info = elementInfo(a.node, site.ctx);
+					return info?.style.descendantMargin || info?.style.unseen;
+				})
+			) {
+				continue;
+			}
+			const outer = leak(site.node, site.parents, site.ctx, 0);
+			if (!outer) continue;
+			if (isRoot && /vertical space child/.test(outer)) continue;
+			const where = `${before}root of <${component}>, rendered at ${site.file}:${lineOf(site.ctx.source, site.node.start)} as `;
+			if (outer.includes(ROOT_MARK)) {
+				if (reach.depth < 4) {
+					queue.push({
+						hit: { ...reach.hit, via: `${where}${outer}` },
+						at: site.file,
+						depth: reach.depth + 1,
+					});
+				}
+				continue;
+			}
+			const shape: BaseMarginShape = !isRoot
+				? "d"
+				: /^flex or grid item/.test(outer)
+					? "a"
+					: /^collapses with/.test(outer)
+						? "c"
+						: /^last child of <[^>]+>, which holds it in$/.test(outer)
+							? "b"
+							: "d";
+			found.set(key, { ...reach.hit, shape, via: `${where}${outer}` });
+		}
+	}
+	return [...found.values()];
 }
