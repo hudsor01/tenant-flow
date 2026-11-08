@@ -33,10 +33,11 @@
  * control inside a tinted section paints over both (66.2-39 fix round 4, F1,
  * G32: the canceled subscription section's `bg-destructive/10` left the
  * deletion notice's warning text at 4.40:1 and the Delete Account hover at
- * 4.48, measured 4.38 / 4.46 in Chrome). `STACK_FIXTURES` renders the surfaces
- * the F1 sweep found tinted inside a tint in this PR's files, and every text
- * element in them, at rest and in each state on its chain, must clear 4.5:1
- * over its composited fills (`renderedStacks`).
+ * 4.48, measured 4.38 / 4.46 in Chrome). `STACK_FIXTURES` renders the tinted
+ * stacks of this PR's files that the F1 sweep read under 4.5:1 or nearest it
+ * (the canceled section; the balance check, 4.66 at its closest), and every
+ * text element in them, at rest and in each state on its chain, must clear
+ * 4.5:1 over its composited fills (`renderedStacks`).
  */
 
 import { readFileSync } from "node:fs";
@@ -336,9 +337,9 @@ function canceledSection(deletionRequestedAt: string | null): ReactElement {
 }
 
 /**
- * The surfaces where this PR's files put a tinted element inside a tint, with
- * the theme surface each sits on and a text it must show (so a fixture that
- * renders something else fails).
+ * The tinted stacks of this PR's files the F1 sweep read under 4.5:1 or
+ * nearest it, with the theme surface each sits on and a text it must show (so
+ * a fixture that renders something else fails).
  */
 const STACK_FIXTURES: {
 	name: string;
