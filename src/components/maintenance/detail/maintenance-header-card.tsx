@@ -97,7 +97,7 @@ export function MaintenanceHeaderCard({
 					</Button>
 				</div>
 			</CardHeader>
-			<CardContent className="space-y-6">
+			<CardContent className="@container/maintenance-header space-y-6">
 				{/* Description */}
 				<section className="space-y-2">
 					<h2 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
@@ -111,11 +111,17 @@ export function MaintenanceHeaderCard({
 				{/* Location & Schedule. mb-0 on every line in these boxes and the
 				    cost boxes below: the base `p` margin stood 16px between the
 				    property and its unit and 16px under each box's last line,
-				    inside its p-4. */}
-				<section className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				    inside its p-4. These boxes and the cost boxes step on the
+				    card's own width, never the viewport's (the page's columns and
+				    the rail set it), at one width, so the two rows always have the
+				    same columns: two once two boxes are 16.5rem wide, where the
+				    Scheduled Date label and its Schedule button (227.81px) share a
+				    line and each cost box holds $1,234,567.89 (115.38px) (66.2-39
+				    fix round 4, Part 8d). */}
+				<section className="grid grid-cols-1 gap-4 @min-[34rem]/maintenance-header:grid-cols-2">
 					<div className="rounded-lg border bg-muted/30 p-4">
 						<div className="flex items-center gap-2 text-muted-foreground text-sm">
-							<MapPin className="size-4" />
+							<MapPin className="size-4 shrink-0" />
 							Location
 						</div>
 						<p className="mt-1 mb-0 font-medium">
@@ -131,7 +137,7 @@ export function MaintenanceHeaderCard({
 					<div className="rounded-lg border bg-muted/30 p-4">
 						<div className="flex items-center justify-between">
 							<div className="flex items-center gap-2 text-muted-foreground text-sm">
-								<Calendar className="size-4" />
+								<Calendar className="size-4 shrink-0" />
 								Scheduled Date
 							</div>
 							<ScheduleDialog
@@ -157,13 +163,13 @@ export function MaintenanceHeaderCard({
 				</section>
 
 				{/* Cost Summary */}
-				<section className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				<section className="grid grid-cols-1 gap-4 @min-[34rem]/maintenance-header:grid-cols-2">
 					<div className="rounded-lg border bg-muted/30 p-4">
 						<div className="flex items-center gap-2 text-muted-foreground text-sm">
-							<DollarSign className="size-4" />
+							<DollarSign className="size-4 shrink-0" />
 							Estimated Cost
 						</div>
-						<p className="mt-1 mb-0 font-medium text-lg">
+						<p className="mt-1 mb-0 whitespace-nowrap font-medium text-lg">
 							{request.estimated_cost
 								? formatCurrency(request.estimated_cost)
 								: "-"}
@@ -171,10 +177,10 @@ export function MaintenanceHeaderCard({
 					</div>
 					<div className="rounded-lg border bg-muted/30 p-4">
 						<div className="flex items-center gap-2 text-muted-foreground text-sm">
-							<DollarSign className="size-4" />
+							<DollarSign className="size-4 shrink-0" />
 							Spent to Date
 						</div>
-						<p className="mt-1 mb-0 font-medium text-lg">
+						<p className="mt-1 mb-0 whitespace-nowrap font-medium text-lg">
 							{spentToDate > 0 ? formatCurrency(spentToDate) : "-"}
 						</p>
 					</div>

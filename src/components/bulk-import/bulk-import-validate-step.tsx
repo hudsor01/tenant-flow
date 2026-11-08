@@ -108,50 +108,59 @@ export function BulkImportValidateStep<T>({
 				</div>
 			)}
 
-			{/* Validation Summary */}
-			<div className="grid grid-cols-2 gap-3">
-				<div
-					className={cn(
-						"card-standard p-3 flex items-center gap-3",
-						validCount > 0 ? "bg-success/5 border-success/20" : "bg-muted/30",
-					)}
-				>
-					<div className="icon-container-sm bg-success/10 text-success">
-						<CheckCircle2 className="size-4" />
-					</div>
-					<div>
-						<p className="text-lg font-bold text-success-text">{validCount}</p>
-						<p className="mb-0 text-xs text-muted-foreground">Valid rows</p>
-					</div>
-				</div>
-				<div
-					className={cn(
-						"card-standard p-3 flex items-center gap-3",
-						hasErrors
-							? "bg-destructive/5 border-destructive/20"
-							: "bg-muted/30",
-					)}
-				>
+			{/* Validation Summary. The columns step on the summary's own width,
+			    never the viewport's (66.2-39 fix round 4, Part 8d): one until two
+			    tiles are 10rem wide, where each holds its chip and its longest
+			    label, Errors found, on one line, so the two figures stay on one
+			    line (two columns at 352px wrapped one label and put the figures
+			    8px apart). The chips keep their size. */}
+			<div className="@container/import-validation">
+				<div className="grid grid-cols-1 @min-[20.75rem]/import-validation:grid-cols-2 gap-3">
 					<div
 						className={cn(
-							"icon-container-sm",
-							hasErrors
-								? "bg-destructive/10 text-destructive"
-								: "bg-muted text-muted-foreground",
+							"card-standard p-3 flex items-center gap-3",
+							validCount > 0 ? "bg-success/5 border-success/20" : "bg-muted/30",
 						)}
 					>
-						<AlertTriangle className="size-4" />
+						<div className="icon-container-sm shrink-0 bg-success/10 text-success">
+							<CheckCircle2 className="size-4" />
+						</div>
+						<div>
+							<p className="whitespace-nowrap text-lg font-bold text-success-text">
+								{validCount}
+							</p>
+							<p className="mb-0 text-xs text-muted-foreground">Valid rows</p>
+						</div>
 					</div>
-					<div>
-						<p
+					<div
+						className={cn(
+							"card-standard p-3 flex items-center gap-3",
+							hasErrors
+								? "bg-destructive/5 border-destructive/20"
+								: "bg-muted/30",
+						)}
+					>
+						<div
 							className={cn(
-								"text-lg font-bold",
-								hasErrors ? "text-destructive-text" : "text-muted-foreground",
+								"icon-container-sm shrink-0",
+								hasErrors
+									? "bg-destructive/10 text-destructive"
+									: "bg-muted text-muted-foreground",
 							)}
 						>
-							{errorCount}
-						</p>
-						<p className="mb-0 text-xs text-muted-foreground">Errors found</p>
+							<AlertTriangle className="size-4" />
+						</div>
+						<div>
+							<p
+								className={cn(
+									"whitespace-nowrap text-lg font-bold",
+									hasErrors ? "text-destructive-text" : "text-muted-foreground",
+								)}
+							>
+								{errorCount}
+							</p>
+							<p className="mb-0 text-xs text-muted-foreground">Errors found</p>
+						</div>
 					</div>
 				</div>
 			</div>

@@ -67,10 +67,25 @@ const FAQS = [
 export function PricingStatsGrid() {
 	return (
 		<section className="section-spacing animate-in fade-in duration-700 delay-150">
-			<div className="mx-auto max-w-7xl px-6 lg:px-8">
-				<div className="grid grid-cols-1 gap-8 text-left sm:grid-cols-3">
-					{STATS.map((stat) => (
-						<Card key={stat.label} variant="stat">
+			{/* The columns step on the section's own width, never the viewport's:
+			    one until two cards are 11.5rem wide, each holding its label
+			    (DOCUMENT VAULT, 130.41px) and figure (Per-entity, 130.03px at
+			    30px) on one line, then Landlords under the first two, all three
+			    in a row from where three are (66.2-39 fix round 4, Part 8d: three
+			    at 640px wrapped Document Vault and set its figure 20px below the
+			    other two). */}
+			<div className="@container/pricing-stats mx-auto max-w-7xl px-6 lg:px-8">
+				<div className="grid grid-cols-1 gap-8 text-left @min-[25rem]/pricing-stats:grid-cols-2 @min-[38.5rem]/pricing-stats:grid-cols-3">
+					{STATS.map((stat, index) => (
+						<Card
+							key={stat.label}
+							variant="stat"
+							className={
+								index === STATS.length - 1
+									? "@min-[25rem]/pricing-stats:col-span-2 @min-[38.5rem]/pricing-stats:col-span-1"
+									: undefined
+							}
+						>
 							<div className="relative">
 								<div className="mb-4 typography-h2 text-primary">
 									<stat.icon className="h-8 w-8" />
@@ -78,7 +93,7 @@ export function PricingStatsGrid() {
 								<p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">
 									{stat.label}
 								</p>
-								<p className="mb-3 typography-h1 tracking-tight text-foreground">
+								<p className="mb-3 whitespace-nowrap typography-h1 tracking-tight text-foreground">
 									{stat.value}
 								</p>
 								<p className="mb-0 text-sm leading-relaxed text-muted-foreground">

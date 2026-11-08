@@ -47,11 +47,22 @@ const CENT_TOLERANCE = 0.005;
  */
 const PERIOD_LABEL = "this month";
 
+/**
+ * The strip's columns step on its own width, never the viewport's (66.2-39
+ * fix round 4, Part 8d): one column until two tiles are 10.5rem wide, each
+ * holding $1,234,567.00 (130.44px) in its 134px, then Outstanding under the
+ * first two, all three in a row from where three are. The error state keeps
+ * the same columns.
+ */
+const SUMMARY_GRID =
+	"grid grid-cols-1 gap-4 @min-[22rem]/reports-summary:grid-cols-2 @min-[33.5rem]/reports-summary:grid-cols-3";
+
 function MetricCard({
 	icon: Icon,
 	label,
 	value,
 	valueClassName,
+	className,
 }: {
 	icon: LucideIcon;
 	label: string;
@@ -60,6 +71,8 @@ function MetricCard({
 	// `| undefined` is required under `exactOptionalPropertyTypes`: the two
 	// conditional tiles below pass `undefined` for the neutral default.
 	valueClassName?: string | undefined;
+	/** The tile's own classes: its span in the strip's grid. */
+	className?: string | undefined;
 }) {
 	// The v4 Card pads itself (py-6) and CardContent pads its sides (px-6): a
 	// 16px tile sets py-4 on the Card and px-4 here, not a v3 p-4 on top of
@@ -67,10 +80,10 @@ function MetricCard({
 	// where the base `p` margin would stand under it (and make the loaded
 	// tile 16px taller than its skeleton).
 	return (
-		<Card className="py-4">
+		<Card className={cn("py-4", className)}>
 			<CardContent className="px-4">
 				<div className="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
-					<Icon className="h-4 w-4" aria-hidden="true" />
+					<Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
 					{label}
 				</div>
 				{value === null ? (
@@ -78,7 +91,7 @@ function MetricCard({
 				) : (
 					<p
 						className={cn(
-							"mb-0 text-xl font-semibold tabular-nums leading-snug",
+							"mb-0 whitespace-nowrap text-xl font-semibold tabular-nums leading-snug",
 							valueClassName,
 						)}
 					>
@@ -110,12 +123,14 @@ export function ReportsSummaryStrip() {
 	if (isError || (!data && !isPending)) {
 		return (
 			<div
-				className="grid grid-cols-1 gap-4 sm:grid-cols-3"
+				className="@container/reports-summary"
 				data-testid="reports-summary-strip"
 			>
-				<p className="mb-0 text-sm text-muted-foreground">
-					Couldn&apos;t load this month&apos;s collection figures.
-				</p>
+				<div className={SUMMARY_GRID}>
+					<p className="mb-0 text-sm text-muted-foreground">
+						Couldn&apos;t load this month&apos;s collection figures.
+					</p>
+				</div>
 			</div>
 		);
 	}
@@ -135,7 +150,10 @@ export function ReportsSummaryStrip() {
 	const outstanding = data ? Math.max(0, data.scheduled - data.collected) : 0;
 
 	return (
-		<div data-testid="reports-summary-strip">
+		<div
+			className="@container/reports-summary"
+			data-testid="reports-summary-strip"
+		>
 			{/*
 			 * Caption is the bare period and nothing else. An earlier draft
 			 * prefixed it with a rent-facilitation verb phrase and tripped
@@ -149,7 +167,7 @@ export function ReportsSummaryStrip() {
 			<p className="mb-2 text-sm capitalize text-muted-foreground">
 				{PERIOD_LABEL}
 			</p>
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+			<div className={SUMMARY_GRID}>
 				<MetricCard
 					icon={CalendarClock}
 					label="Scheduled"
@@ -166,6 +184,7 @@ export function ReportsSummaryStrip() {
 				<MetricCard
 					icon={Clock}
 					label="Outstanding"
+					className="@min-[22rem]/reports-summary:col-span-2 @min-[33.5rem]/reports-summary:col-span-1"
 					value={data ? formatCurrency(outstanding) : null}
 					valueClassName={
 						data && outstanding > CENT_TOLERANCE

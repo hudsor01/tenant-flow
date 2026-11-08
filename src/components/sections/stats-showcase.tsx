@@ -49,7 +49,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 				className,
 			)}
 		>
-			<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+			<div className="@container/showcase-stats max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 				<div className="text-center mb-16 max-w-3xl mx-auto">
 					<BlurFade delay={0.1}>
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4 leading-tight">
@@ -63,13 +63,17 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 					</BlurFade>
 				</div>
 
-				<div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+				{/* The columns step on the section's own width, never the
+				    viewport's: one until two cards are 10rem wide (two at 320 left
+				    each 70px, and every label wrapped onto three lines), four from
+				    where four are (66.2-39 fix round 4, Part 8d). */}
+				<div className="grid grid-cols-1 @min-[22rem]/showcase-stats:grid-cols-2 @min-[46rem]/showcase-stats:grid-cols-4 gap-8">
 					{stats.map((stat, index) => (
 						<BlurFade key={stat.label} delay={0.2 + index * 0.1}>
 							<div className="relative">
 								<div className="showcase-card">
 									<div className="relative z-10">
-										<div className="text-3xl lg:typography-h1 text-primary-text mb-2 tracking-tight">
+										<div className="whitespace-nowrap text-3xl lg:typography-h1 text-primary-text mb-2 tracking-tight">
 											{stat.prefix}
 											<NumberTicker
 												value={stat.value}

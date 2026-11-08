@@ -1,6 +1,7 @@
 /**
  * @vitest-environment jsdom
- * A stat tile holds its figure (66.2-39 fix round 4, Part 8c, VD-171, VD-175).
+ * A stat tile holds its figure (66.2-39 fix round 4, Parts 8c and 8d, VD-171,
+ * VD-175).
  *
  * Measured on the served build with owner A's figures and with long figures
  * answered in the browser ($1,234,567.00, 100%, 1,234): the /properties tiles
@@ -55,6 +56,15 @@ const CUSTOM_ROWS = [
 	"src/app/(owner)/analytics/overview/page.tsx",
 	"src/app/(owner)/properties/units/page.tsx",
 	"src/app/(owner)/loading.tsx",
+	"src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx",
+	"src/app/(owner)/reports/reports-summary-strip.tsx",
+	"src/components/bulk-import/bulk-import-validate-step.tsx",
+	"src/components/bulk-import/bulk-import-result-panel.tsx",
+	"src/components/maintenance/detail/maintenance-header-card.tsx",
+	"src/components/sections/stats-showcase.tsx",
+	"src/app/about/page.tsx",
+	"src/app/compare/[competitor]/page.tsx",
+	"src/app/pricing/pricing-content.tsx",
 ];
 
 /**
@@ -120,6 +130,29 @@ const REVIEWED: { file: string; classString: string; reason: string }[] = [
 			"grid grid-cols-1 gap-4 p-6 pb-0 @min-[20.25rem]/chart-card:grid-cols-2 lg:@min-[38.5rem]/chart-card:grid-cols-4",
 		reason:
 			"four columns need the lg viewport AND a 38.5rem card (the overview places it in a narrow column, where four overflowed); the step below it is the card's own",
+	},
+	{
+		file: "src/app/about/page.tsx",
+		classString: "grid grid-cols-1 xl:grid-cols-2 gap-16 items-center",
+		reason: "the mission section's copy beside its list, not a stat row",
+	},
+	{
+		file: "src/app/compare/[competitor]/page.tsx",
+		classString:
+			"grid grid-cols-1 gap-3 pl-0 mt-0 mb-0 [&>li]:mb-0 sm:grid-cols-2",
+		reason: "a list of reasons to switch (text items), not a stat row",
+	},
+	{
+		file: "src/app/pricing/pricing-content.tsx",
+		classString: "grid grid-cols-1 gap-4 lg:grid-cols-2",
+		reason: "the FAQ accordions, not a stat row",
+	},
+	{
+		file: "src/app/pricing/pricing-content.tsx",
+		classString:
+			"grid grid-cols-1 gap-10 overflow-hidden rounded-3xl border border-border/60 bg-card/70 p-10 shadow-sm backdrop-blur md:grid-cols-[1.3fr_1fr] md:p-12",
+		reason:
+			"the closing call to action's copy beside its buttons, not a stat row",
 	},
 ];
 

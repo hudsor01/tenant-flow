@@ -144,7 +144,7 @@ function StatCard({
 	return (
 		<div
 			className={cn(
-				"p-3 rounded-lg flex items-center gap-3",
+				"p-3 rounded-lg flex items-start gap-3",
 				active
 					? tone === "success"
 						? "bg-success/10"
@@ -154,7 +154,7 @@ function StatCard({
 		>
 			<div
 				className={cn(
-					"icon-container-sm",
+					"icon-container-sm shrink-0",
 					active
 						? tone === "success"
 							? "bg-success/20 text-success"
@@ -167,7 +167,7 @@ function StatCard({
 			<div>
 				<p
 					className={cn(
-						"text-xl font-bold",
+						"whitespace-nowrap text-xl font-bold",
 						active
 							? tone === "success"
 								? "text-success-text"
@@ -202,20 +202,27 @@ function ResultStats({
 	const failedLabel = showCumulative
 		? `${result.failed === 1 ? "Row" : "Rows"} still failing this batch`
 		: `${result.failed === 1 ? "Row" : "Rows"} failed`;
+	// The columns step on the panel's own width, never the viewport's: one
+	// until two tiles are 10rem wide (66.2-39 fix round 4, Part 8d). Each
+	// tile's figure sits at its top, so a label that wraps ("Rows still
+	// failing this batch", a plural entity's "(total)") never moves it off its
+	// neighbour's line: centred, the two counts sat 8px apart from 408 to 488px.
 	return (
-		<div className="grid grid-cols-2 gap-3">
-			<StatCard
-				tone="success"
-				count={importedCount}
-				label={importedLabel}
-				icon="check"
-			/>
-			<StatCard
-				tone="destructive"
-				count={result.failed}
-				label={failedLabel}
-				icon="x"
-			/>
+		<div className="@container/import-result">
+			<div className="grid grid-cols-1 @min-[20.75rem]/import-result:grid-cols-2 gap-3">
+				<StatCard
+					tone="success"
+					count={importedCount}
+					label={importedLabel}
+					icon="check"
+				/>
+				<StatCard
+					tone="destructive"
+					count={result.failed}
+					label={failedLabel}
+					icon="x"
+				/>
+			</div>
 		</div>
 	);
 }

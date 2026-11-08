@@ -221,7 +221,7 @@ export default function AboutPage() {
 
 			{/* Stats Section */}
 			<section className="section-spacing">
-				<div className="max-w-7xl mx-auto px-6 lg:px-8">
+				<div className="@container/about-stats max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.5}>
 						<div className="text-center mb-16 space-y-4">
 							<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground">
@@ -233,14 +233,19 @@ export default function AboutPage() {
 							</p>
 						</div>
 
-						<div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+						{/* The columns step on the section's own width, never the
+						    viewport's: one until two tiles are 10rem wide, each holding
+						    its figure on one line (two at 320 left each 54px: Private
+						    ran 7.67px past it, 14-day and E-Sign broke at the hyphen), four
+						    from where four are (66.2-39 fix round 4, Part 8d). */}
+						<div className="grid grid-cols-1 @min-[22rem]/about-stats:grid-cols-2 @min-[46rem]/about-stats:grid-cols-4 gap-8">
 							{stats.map((stat, index) => (
 								<BlurFade key={stat.label} delay={0.6 + index * 0.1}>
 									<div className="text-center bg-card rounded-2xl p-8 border border-border/50">
 										<div className="mb-4 flex justify-center">
 											<stat.Icon className="size-8 text-primary" aria-hidden />
 										</div>
-										<div className="typography-h2 text-primary-text mb-2">
+										<div className="whitespace-nowrap typography-h2 text-primary-text mb-2">
 											{stat.number}
 										</div>
 										<div className="text-muted-foreground">{stat.label}</div>
