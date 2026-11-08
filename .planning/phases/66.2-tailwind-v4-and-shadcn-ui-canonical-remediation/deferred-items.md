@@ -92,13 +92,14 @@ Out-of-scope discoveries logged by executors. Each entry names the plan that fou
 
 ## 66.2-39 (fix round 3, Part 6b): heading subtitles with the base margin in files this PR does not change
 
-- **Files:** `src/app/(owner)/reports/generate/page.tsx`, `src/app/marketing-home.tsx`, `src/app/pricing/page.tsx`, `src/components/error-boundary/error-fallback.tsx`, one each (the ratchet in `src/components/__tests__/heading-block-paragraph-margin.test.ts`).
+- **Files:** `src/app/(owner)/reports/generate/page.tsx`, `src/app/marketing-home.tsx`, `src/app/pricing/page.tsx`, `src/components/error-boundary/error-fallback.tsx`, one each (the ratchet in `src/components/__tests__/heading-block-paragraph-margin.test.ts`; since fix round 4, `e86105e85`, in the `DEFERRED` ratchet of `src/components/__tests__/paragraph-base-margin.test.ts`, which replaced it).
 - **Observed:** a heading's `<p>` subtitle inside a flex item keeps the 16px `@layer base` paragraph margin (the G2h shape `df80082ec` fixed in 37 places in this PR's files, VD-142).
 - **Why deferred:** the files are not in this PR; the guard holds them as a ratchet, so the count can only fall.
 
 ## 66.2-39 (fix round 3, Parts 6b and 7): comments that cite another file by line, in files this PR does not change
 
 - **Observed:** A1 at `81fdadd71` finds 28 such cites, none in a file this PR changes: `.github` 1, `scripts` 2 (two comment lines of `seed-test-users.ts`, citing `tests/e2e/auth-helpers.ts` and `dashboard-rpc-helpers.ts`), `src` 4 (`stripe-webhook-signature.test.ts`, `seo-title-separator-drift.test.ts`, `auth/layout.tsx`, `application-status-badge.tsx`), `supabase/functions` 3, `supabase/migrations` 17, `tests` 1. Parts 6b and 7 found the `src` and `scripts` ones stale; `supabase/functions/_shared/rate-limit.ts`'s and `apply-token/index.ts`'s still name the right lines. Also `src/proxy.ts` (twice) and `src/lib/supabase/middleware.ts` cite `app-render.js:167-168`, where Next 16.4.3 no longer parses the request CSP (it does so in `parse-request-headers` through `getScriptNonceFromHeader`).
+- **Re-run in fix round 4** (Part 7, on `d998fd122`, after every other part's moves): the same 28 cites in 23 files, none of them in this PR (`git diff --quiet d9c7329f0` on each).
 - **Why deferred:** the files are not in this PR. Applied migration files are history and are not rewritten.
 
 ## 66.2-39 (fix round 3, Part 6b): the new-inspection form's lease list
@@ -130,19 +131,75 @@ Out-of-scope discoveries logged by executors. Each entry names the plan that fou
 
 - `src/app/(owner)/properties/units/page.tsx`: `NewUnitButton` gets the properties from `propertyQueries.list()` (the 50 newest), so a new unit cannot be put on the 51st property.
 - `propertyQueries.selectOptions`, `tenantQueries.listForLease` and `unitQueries.availableByProperty` set no `.limit()` / `.range()` (CLAUDE.md's data-access rule: PostgREST truncates at 1000 rows).
-- `src/components/documents/documents-vault.client.tsx`: the card header's "Showing X-Y of N" `<p>` is a flex item with the 16px base paragraph margin.
 - **Why deferred:** each line is identical at `d9c7329f0` and this PR does not make it wrong (the scope rule above).
+- **Fixed since:** the documents vault's "Showing X-Y of N" `<p>`, a flex item with the 16px base margin, listed here before, carries `mb-0` since fix round 4 (`784d704f4`, OD-C3-1).
 
 ## 66.2-39 (fix round 3, Part 7b): base-rule and cap defects in files this PR does not change
 
 - The list ratchet in `src/components/__tests__/list-base-rule-neutralized.test.ts`: lists the base `ul, ol` / `li` rules still reach in `src/app/privacy/page.tsx` (11), `src/app/security-policy/page.tsx` (6), `src/app/terms/page.tsx` (16), `dashboard-activity-card.tsx`, `layout/footer.tsx`, `leases/template/state-rule-summary.tsx`, `notification-popover-list.tsx`, `notifications-inbox.client.tsx` and `ui/field.tsx`'s `FieldError` (1 each).
-- `src/components/ui/dialog.tsx`: `DialogDescription` renders a bare `<p>`, so every dialog description carries the 16px base margin below it.
 - `src/components/units/unit-form.client.tsx`: the edit form's property picker reads `propertyQueries.list({ limit: 100 })`, so a unit on the 101st property, or on a deleted one, opens with no property.
-- Exported names in `src/types` that no other tracked file under `src`, `supabase/functions`, `scripts` or `tests` names (raw counts at `81fdadd71`, a type used only in its own file's signatures included): `financial-statements.ts` 27, `core.ts` 26, `domain.ts` 16, `relations.ts` 15, `notifications.ts` 15, `sections/maintenance.ts` 14, `analytics.ts` 13, `stats.ts` 12, `stripe.ts` 9, `frontend.ts` 6, `data-table.ts` 6, `activity.ts` 5, and 1-3 in eight more.
-- **Why deferred:** none of these files is in this PR (`api-contracts.ts`, which is, lost its 43 unimported exports in `fc4fdd3dc` and is guarded).
+- **Why deferred:** none of these files is in this PR (rechecked on `ae038ed02`).
+- **Moved** (fix round 4, Part 8, cycle-3 G67): the `DialogDescription` and `src/types` items listed here before sit in files this PR changes; they are the next entry.
+
+## 66.2-39 (fix round 3, Part 7b; corrected in fix round 4): lines as at `d9c7329f0` in files this PR changes
+
+- `src/components/ui/dialog.tsx` (in this PR since fix round 4's `7947dde7c`): `DialogDescription` renders a bare `<p>`, as at `d9c7329f0`, so a description carries the 16px base margin below it. Every call site in this PR's files sets `mb-0` (`784d704f4`, OD-C3-1); the dialogs in files this PR does not change keep the margin (the next round-4 entry).
+- Exported names in `src/types` that no other tracked file under `src`, `supabase/functions`, `scripts` or `tests` names, the round-4 guards that list names by design excluded (`exports-have-readers.test.ts` and its util, the two duplicate-type ratchets), counted on `ae038ed02`: in files this PR changes, `core.ts` 26, `financial-statements.ts` 20, `analytics.ts` 13, `stats.ts` 12, `frontend.ts` 6, `data-table.ts` 6, `activity.ts` 4, `sections/tenants.ts` 2, `sections/dashboard.ts` 2, `sections/maintenance.ts` 1, `sections/inspections.ts` 1, `database-rpc.ts` 1; in files it does not, `domain.ts` 16, `relations.ts` 15, `notifications.ts` 15, `stripe.ts` 9, `file-upload.ts` 3, `auth.ts` 3, `lease-generator.types.ts` 2, `sections/compare.ts` 1. The dead exports this PR edited in place were deleted in fix round 4 (`3c4cf6466`: the `DetailedQuery*` and `MaintenanceQuery*` shapes, `sections/maintenance.ts` but `TimelineEvent`, core's `MaintenanceCostSummary`, `DashboardActivity`), and `src/lib/__tests__/exports-have-readers.test.ts` holds the rest in its `RATCHET`, so the count can only fall.
+- **Why deferred:** each line is as at `d9c7329f0` and this PR does not make it wrong (the scope rule). `api-contracts.ts` lost its 43 unimported exports in `fc4fdd3dc` and is guarded.
 
 ## 66.2-39 (fix round 3, Part 6d): the tour footer's step counter wraps from tablet width up
 
 - **Measured** (re-freeze 3 on `b7f25511b`, the tour probe on the capture build): at 1280x800, 1280x720 and 900x800 the footer row is 286px wide and its step counter ("1 / 5") takes 7.88x60 px, one character per line; at 390x844 and 375x812 it is 28.47x20, one line. The counter, Skip, Previous and Next share the row and need more width than it has.
 - **Why deferred:** the footer row's content and the counter are DiceUI's as at `d9c7329f0` (this PR changed only the last step's accessible name and, in Part 6d, the footer's `shrink-0`, a height rule), so it is not a defect this PR makes; fixing it needs a layout decision (stack the counter, drop it, or widen the step), its own change.
 
+## 66.2-39 (fix round 4): what this round defers, and what it may not
+
+- **Scope:** the scope rule above stands. OD-C3-1 (owner, 2026-11-07) narrows it for class M: every base-margin paragraph and list in this PR's files is fixed, and only sites in files it does not change are listed below, held by ratchets. The owner's 2026-11-07 directive takes contrast out of it entirely: text or UI under WCAG AA is fixed wherever it is, never deferred, so no contrast item is listed (Part 5's seven, `forgot-password-modal.tsx:93` to `testimonials-section.tsx:38/:41`, were fixed by Part 5b). The main session extended that principle to the other classes the rendered sweeps found, user-visible accessibility (1.1.1), rendering and functional defects and URL-text spoofing, so Part 5c's four defects (the tenant edit Save, the wizard combobox, the vault date range at 390, the category toast's raw message) were fixed by Part 5d and are not listed either.
+- Every entry below was checked against `ae038ed02`: a later part's commit fixed none of them.
+
+## 66.2-39 (fix round 4, Parts 6, 5b, 5c, 5d): base-margin sites in files this PR does not change (OD-C3-1)
+
+- **The parsed guard's ratchet:** `DEFERRED` in `src/components/__tests__/paragraph-base-margin.test.ts` (shapes a-d, `#test/utils/base-margin-sites`): 83 hits in 55 files on `ae038ed02`; a new hit fails, and so does a fixed one until its entry goes. Not deferred: two of those files became files this PR changes in fix round 4 after the ratchet was written (`src/components/auth/two-factor-setup-steps.tsx`, 5 hits, `8aff69588`; `src/components/ui/bento-grid.tsx`, 1, `642a083bd`), so under OD-C3-1 their hits are fixes owed, reported by Part 8, not follow-ups.
+- **Seen only in the rendered sweeps (M2), in files this PR does not change** (Part 6's 85 routes at 1280 and 390, Part 5b's 2,454 opened states, Part 5c's gap states; source lines as the probes attributed them): `analytics/financial/_components/breakdown-list.tsx:24`; `billing/checkout/cancel/page.tsx:35`; `documents/templates/components/branding-editor.tsx:100` and the four template pages (`maintenance-request` and `property-inspection` `:14`, `rental-application` and `tenant-notice` `:12`); `reports/generate/page.tsx:123`; `reports/report-hub-tile.tsx:44`; `tenants/components/move-out-dialog.tsx:51`; `marketing-home.tsx:60`; `pricing/page.tsx:60`; `sign/[token]/page.tsx:102`, `:123`; `stripe/success/page.tsx:45`; `applications/application-decline-dialog.tsx:78`; `bulk-import/bulk-import-dialog.tsx:77`; `dashboard/dashboard-activity-card.tsx:90`, `:135`; `data-table/data-table-pagination.tsx:58`; `inspections/inspection-detail.client.tsx:241-242`; `leases/template/state-rule-summary.tsx:30`; `leases/wizard/terms-step.tsx:167`, `:210`, `:230`, `:249`; `ledger/add-line-dialog.tsx:138`, `ledger-date-field.tsx:111`, `ledger-table.tsx:147`, `track-since-dialog.tsx:121`, `:148`; `maintenance/maintenance-form.client.tsx:88`; `notifications/notification-popover-list.tsx:96` (the list's `ul` base margin; it renders since owner A has notifications, Part 5d) and `notifications-inbox.client.tsx:103`, `:111`, `:119`; `onboarding/onboarding-step-complete.tsx:25` and `onboarding-step-welcome.tsx`; `properties/add-unit-panel.tsx:139`, `:223`, `edit-unit-panel.tsx:143`, `property-form-success-state.tsx:15`; `settings/category-create-dialog.tsx:118`, `category-delete-dialog.tsx:74`, `category-rename-dialog.tsx:56`; `tenants/add-tenant-property-fields.tsx:35`; `ui/field.tsx:78`, `:133` (`FieldDescription`, `FieldError`'s list), reached through `lib/forms/fields/icon-input-field.tsx:56` (also `record-receipt-dialog.tsx:231`'s description, a file this PR changes, rendered by this one) and `switch-field.tsx:37`. Full rows: the parts' `closure-M2*.tsv` (scratch).
+- **Not deferred:** `src/components/bulk-import/bulk-import-confirm-step.tsx:121` ("Closing automatically…", shape d through the stepper), which Part 5c recorded as a non-PR file; the file is in this PR (`784d704f4` among others), so it is a fix owed, reported by Part 8.
+- **Why deferred:** OD-C3-1 bounds the fix to this PR's files; D-B (removing the base rules) is their own PR.
+
+## 66.2-39 (fix round 4, Part 2): dead code, unread fields and fixtures, as at `d9c7329f0`
+
+- **Unread page-shape fields:** 36 older fields of `src/types/sections/*.ts`, `analytics-page-data.ts`, `reports.ts` and `financial-statements.ts` that nothing reads, unread at `d9c7329f0` too (Part 2's B3 closure); the fields this PR's diff touched were dropped (`8f5556028`).
+- **Dead code in files this PR touched, outside `src/types`:** `LeaseActionButtons` (`src/components/leases/lease-action-buttons.tsx`, no importer; the only reader of `useDeleteLeaseOptimisticMutation`, so the chain is dead), `LoadingTimeoutWrapper`, `getDashboardPercentage`, `registerZodSchema`, `urlSchema`, `safeIntegerSchema`, and `transformDashboardData` (a locked D-10 seam). The exports guard (`exports-have-readers.test.ts`) holds them in its ratchet.
+- **MSW fixtures:** the legacy flat shapes of `get_dashboard_stats`, `get_lease_stats` and `get_maintenance_stats` (`src/test/mocks/msw/handlers/rpc.ts`) map to zeros; the `get_user_profile` handler has no caller; `/auth/v1/token` (`supabase-auth.ts`) is read by no test (supabase-js refreshes only a stored session); a tenant create cannot run through MSW (it needs a stored session).
+- **A duplicate pair:** `UserProfileOwnerData` and `profile-card.tsx`'s `OwnerProfile`, the same shape under two names, as at `d9c7329f0`.
+- **Why deferred:** each is as at `d9c7329f0` and this PR does not make it wrong.
+
+## 66.2-39 (fix round 4, Parts 3 and 5): figures, states and tests as at `d9c7329f0`
+
+- `src/components/dashboard/chart-area-interactive.tsx:205`, `:208`: the Scheduled Margin prints `profitMargin.toFixed(1)` and colors by `profitMargin >= 0`, so a margin just below zero reads "-0.0%" in warning (the net beside it was fixed, `5c44099d1`).
+- `src/components/leases/rent-increase-notice-dialog.tsx:61`: "-0.0%" and "-$0.00" for a change that rounds to zero.
+- `src/components/ui/calendar.tsx:91`, `:96`: react-day-picker's bounded previous and next buttons are `aria-disabled` only (`aria-disabled:opacity-50`), so the ghost hover still paints on them (lines as at `d9c7329f0`'s `:61`, `:66`).
+- `src/components/settings/__tests__/categories-settings.test.tsx:422`: the absence check looks for `Delete "Warranty"` with straight quotes, where the dialog title prints curly ones (`&ldquo;`), so it cannot fail.
+- Shape coincidences the duplicate-shape guard ratchets: `ExpenseCategoryTotal` and `MaintenanceCostBreakdownEntry`; `MonthlyData` (an unread export) and `MonthlyFinancialMetric`.
+- `src/app/(owner)/properties/units/components/unit-actions.tsx`: the Delete `AlertDialogAction` closes the dialog before the delete finishes.
+- `src/components/dashboard/components/__tests__/portfolio-data-table.test.tsx:221` (DT-05 never toggles) and `src/components/data-table/__tests__/data-table-column-header.test.tsx:175` ("sorts" is never checked): tests that cannot fail as titled.
+- The financial analytics skeleton (`src/app/(owner)/analytics/financial/_components/financial-analytics-skeleton.tsx`) lays out at `lg:grid-cols-4` where the page does at `xl:`, and omits the payment summary and the second chart row.
+- The maintenance timeline's disc (`src/components/maintenance/detail/timeline-card.tsx`) is translucent, so the rail shows through it, as at `d9c7329f0` (the lease History tab's disc was fixed, `2c9129491`).
+- **Why deferred:** each line is as at `d9c7329f0` and this PR does not make it wrong.
+
+## 66.2-39 (fix round 4, Part 4): motion and the dropzone, as at `d9c7329f0`
+
+- `NumberTicker` commits its start value 0 first under reduced motion at 22 call sites that pass no `startValue` (the KPI tiles were fixed, `146710b61`).
+- `src/components/ui/dropzone.tsx`: the Remove and "Upload files" buttons sit inside the dropzone root, so their click bubbles to the root and opens the file picker too (unchanged by `c7da0d673`, which made the select button the one tab stop).
+- **Why deferred:** both are as at `d9c7329f0`, and this PR does not make them wrong.
+
+## 66.2-39 (fix round 4, Parts 1 and 7): comments that state a wrong count or source, as at `d9c7329f0`
+
+- `supabase/functions/n8n-blog-ingest/index.ts:66`: names `marketing-copy-landlord-only.test.ts` as the "banlist source"; the blog gate's banlist is its own list, held to the generator and trigger copies by `banlist-parity.test.ts` (as `_shared/blog-banlist.ts` now says, `1ca107619`).
+- `src/hooks/api/query-keys/application-keys.ts:100`: "forty-one columns"; `rental_applications` has 46 (41 is `RentalApplicationRow` after its five omitted audit columns).
+- `src/app/(owner)/settings/__tests__/settings-page.test.tsx:301`: names the tab "My Data" its id; the id is `data` and "My Data" its label.
+- `src/components/applications/application-detail.tsx:371`: "a 26-field record"; the record has 27 applicant fields (Part 7's A2 verifier: 5 + 7 + 6 + 3 + 6).
+- **Why deferred:** each line is as at `d9c7329f0` and this PR does not make it wrong.
+
+## 66.2-39 (fix round 4, Part 8): planning history that describes an earlier state
+
+- `66.2-32-PLAN.md:160` and `66.2-32-SUMMARY.md:77` (the rail's `sm:flex`, `lg:flex` since `0d33ede5f`), `66.2-31-PLAN.md:128` (the reduced-motion hook's old shape, `146710b61`), `66.2-29-SUMMARY.md:343` and `.planning/tailwind-shadcn/research/shadcn-component-audit.md:93` (the animated trend indicator, deleted in `a905908cb`).
+- **Kept on purpose:** plans, summaries and research are point-in-time records of their wave, as the audit snapshots are (the fix-round-3 Part 6c entry above); the UI-SPEC, the PR body and this file carry the current state.
