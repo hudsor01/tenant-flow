@@ -136,7 +136,7 @@ export function LedgerTableRow({
 	const amountClass = cn("text-right tabular-nums", isVoided && "line-through");
 
 	return (
-		<TableRow className={cn(isVoided && "text-muted-foreground opacity-60")}>
+		<TableRow className={cn(isVoided && "text-muted-foreground")}>
 			<TableCell className="whitespace-nowrap">
 				{formatEntryDate(entry.entryDate)}
 			</TableCell>

@@ -54,9 +54,11 @@ import { ForgotPasswordModal } from "#components/auth/forgot-password-modal";
 import { PlanCard } from "#components/billing/plan-card";
 import { BulkImportValidateStep } from "#components/bulk-import/bulk-import-validate-step";
 import { SignLeaseForm } from "#components/leases/sign-lease-form";
+import { LedgerTableRow } from "#components/ledger/ledger-table-row";
 import { SubscriptionCancelSection } from "#components/settings/sections/subscription-cancel-section";
 import { UNAVAILABLE_OUTLINE_BUTTON_CLASSES } from "#components/shared/unavailable-outline-button";
 import { Item } from "#components/ui/item";
+import type { LedgerEntryRow } from "#hooks/api/query-keys/rent-ledger-keys";
 import { authKeys } from "#hooks/api/use-auth";
 import { buttonClasses, buttonSites } from "#test/utils/button-sites";
 import {
@@ -337,6 +339,20 @@ function canceledSection(deletionRequestedAt: string | null): ReactElement {
  * nearest it, with the theme surface each sits on and a text it must show (so
  * a fixture that renders something else fails).
  */
+const VOIDED_LEDGER_ENTRY: LedgerEntryRow = {
+	id: "5c0e0000-0000-4000-8000-000000000006",
+	kind: "charge",
+	type: "manual_charge",
+	amount: 40,
+	entryDate: "2026-11-06",
+	dueDate: "2026-11-06",
+	reversesId: null,
+	chargeId: null,
+	receiptsSum: 0,
+	description: "Key replacement",
+	method: null,
+};
+
 const STACK_FIXTURES: {
 	name: string;
 	surface: string;
@@ -459,6 +475,28 @@ const STACK_FIXTURES: {
 				),
 			),
 		shows: "New",
+	},
+	// The F1 gaps sweep (66.2-39 fix round 4, Part 5c): a reversed entry and
+	// its reversal, read 2.64:1 light under the row's opacity-60.
+	{
+		name: "a voided ledger row (read 2.64 under its row's fade)",
+		surface: "background",
+		element: () =>
+			createElement(
+				"table",
+				null,
+				createElement(
+					"tbody",
+					null,
+					createElement(LedgerTableRow, {
+						entry: VOIDED_LEDGER_ENTRY,
+						runningBalance: 1590,
+						state: null,
+						isVoided: true,
+					}),
+				),
+			),
+		shows: "Key replacement",
 	},
 	...deductionCategories.map((cat) => ({
 		name: `tax worksheet, ${cat.category} (read 3.79-4.36 light)`,
