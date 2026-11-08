@@ -207,7 +207,9 @@ function LabeledInput(
 				{...inputProps}
 				className={cn("h-9 text-sm", inputProps.className)}
 			/>
-			{helpText ? <p className="text-muted-foreground">{helpText}</p> : null}
+			{helpText ? (
+				<p className="mb-0 text-muted-foreground">{helpText}</p>
+			) : null}
 		</div>
 	);
 }
