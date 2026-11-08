@@ -328,6 +328,16 @@
      "what": "the focused day's ring sits on a 2px background offset (ring-offset-2 ring-offset-background): on the today cell's solid accent the bare ring read 1.75:1",
      "reason": "D-26 customization",
      "ref": "WCAG 1.4.11; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "--cell-size is 44px ([--cell-size:--spacing(11)], upstream 32px): the Button's 44px floor (min-h-11 with aspect-square) already made every day 44px, so the caption inset and nav buttons match it; below md the root pads p-1 (md:p-3 as upstream), and the root is max-w-full beside w-fit: at 320 the month was 353.7px in a 318px popover, which scrolled sideways",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.10; 66.2-39 fix round 4 Part 8e (closure-reflow-states.tsv)"
+    },
+    {
+     "what": "the weekday, week_number_header, week_number and day cells add p-0 border-0 bg-transparent (the day cell border-0): the globals.css @layer base th/td rules gave the weekday cells 16px side padding, a muted fill and a bottom border, and every day cell a bottom border; upstream assumes no table base rules",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 8e (rendered sweep: the month was 329.7px at every width)"
     }
    ]
   },

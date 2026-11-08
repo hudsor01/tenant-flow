@@ -29,6 +29,17 @@
  *   (and the ghost Button's own) read 2.19:1; accent-foreground reads 8.01:1;
  * - the focused day's ring sits on a 2px background offset: on the today
  *   cell's solid accent the bare ring read 1.75:1.
+ *
+ * Fix round 4, Part 8e (66.2-39; recorded in the divergence register):
+ * - `--cell-size` is 44px, not 32: the Button's 44px floor (`min-h-11`, with
+ *   `aspect-square`) already makes every day 44px, and the caption's inset
+ *   and the nav buttons now match it; below md the root pads 4px, not 12, and
+ *   it is at most its container's width (`max-w-full`): at 320 the month was
+ *   353.7px in a 318px popover, which scrolled sideways (WCAG 1.4.10);
+ * - the weekday, week-number and day cells cancel the `@layer base` table
+ *   rules (`p-0 border-0 bg-transparent`): their 16px side padding made each
+ *   weekday 46-50px wide, so the month was 329.7px at every width, and the
+ *   header painted muted cells with a border under them and under each week.
  */
 import {
 	ChevronDownIcon,
@@ -64,7 +75,7 @@ function Calendar({
 		<DayPicker
 			showOutsideDays={showOutsideDays}
 			className={cn(
-				"bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
+				"bg-background group/calendar p-1 md:p-3 [--cell-size:--spacing(11)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
 				String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
 				String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
 				className,
@@ -76,7 +87,7 @@ function Calendar({
 				...formatters,
 			}}
 			classNames={{
-				root: cn("w-fit", defaultClassNames.root),
+				root: cn("w-fit max-w-full", defaultClassNames.root),
 				months: cn(
 					"flex gap-4 flex-col md:flex-row relative",
 					defaultClassNames.months,
@@ -122,20 +133,20 @@ function Calendar({
 				month_grid: "w-full border-collapse",
 				weekdays: cn("flex", defaultClassNames.weekdays),
 				weekday: cn(
-					"text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] select-none",
+					"text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] select-none p-0 border-0 bg-transparent",
 					defaultClassNames.weekday,
 				),
 				week: cn("flex w-full mt-2", defaultClassNames.week),
 				week_number_header: cn(
-					"select-none w-(--cell-size)",
+					"select-none w-(--cell-size) p-0 border-0 bg-transparent",
 					defaultClassNames.week_number_header,
 				),
 				week_number: cn(
-					"text-[0.8rem] select-none text-muted-foreground",
+					"text-[0.8rem] select-none text-muted-foreground p-0 border-0",
 					defaultClassNames.week_number,
 				),
 				day: cn(
-					"relative w-full h-full p-0 text-center first:[&[data-selected=true]_button]:rounded-l-md last:[&[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none",
+					"relative w-full h-full p-0 border-0 text-center first:[&[data-selected=true]_button]:rounded-l-md last:[&[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none",
 					defaultClassNames.day,
 				),
 				range_start: cn(
