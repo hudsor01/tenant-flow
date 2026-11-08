@@ -121,21 +121,24 @@ export function MfaVerificationDialog({
 				</DialogHeader>
 				<DialogBody className="space-y-6">
 					<div className="flex-center py-4">
+						{/* The six slots share the row (44px each from sm, where the row
+						    is 360px), so the code fits a narrow dialog: fixed 44px slots made
+						    a 360px row that ran past a 390px screen. */}
 						<InputOTP
 							maxLength={6}
 							value={code}
 							onChange={handleCodeChange}
 							disabled={isVerifying}
 							autoFocus
-							containerClassName="gap-4"
+							containerClassName="w-full max-w-90 gap-2 sm:gap-4"
 						>
-							<InputOTPGroup className="gap-2.5 *:data-[slot=input-otp-slot]:h-14 *:data-[slot=input-otp-slot]:w-11 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border *:data-[slot=input-otp-slot]:text-xl">
+							<InputOTPGroup className="min-w-0 flex-1 gap-2.5 *:data-[slot=input-otp-slot]:h-12 *:data-[slot=input-otp-slot]:w-auto *:data-[slot=input-otp-slot]:min-w-0 *:data-[slot=input-otp-slot]:flex-1 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border *:data-[slot=input-otp-slot]:text-xl sm:*:data-[slot=input-otp-slot]:h-14">
 								<InputOTPSlot index={0} />
 								<InputOTPSlot index={1} />
 								<InputOTPSlot index={2} />
 							</InputOTPGroup>
 							<InputOTPSeparator />
-							<InputOTPGroup className="gap-2.5 *:data-[slot=input-otp-slot]:h-14 *:data-[slot=input-otp-slot]:w-11 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border *:data-[slot=input-otp-slot]:text-xl">
+							<InputOTPGroup className="min-w-0 flex-1 gap-2.5 *:data-[slot=input-otp-slot]:h-12 *:data-[slot=input-otp-slot]:w-auto *:data-[slot=input-otp-slot]:min-w-0 *:data-[slot=input-otp-slot]:flex-1 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border *:data-[slot=input-otp-slot]:text-xl sm:*:data-[slot=input-otp-slot]:h-14">
 								<InputOTPSlot index={3} />
 								<InputOTPSlot index={4} />
 								<InputOTPSlot index={5} />

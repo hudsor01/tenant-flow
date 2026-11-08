@@ -447,6 +447,11 @@
      "what": "the local Dice UI ComboboxLabel, ComboboxCancel, ComboboxBadgeList, ComboboxBadgeItem, ComboboxLoading, ComboboxGroup, ComboboxGroupLabel and ComboboxSeparator parts removed",
      "reason": "Phase 19 trim",
      "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "ComboboxContent max-h-(--dice-available-height), max-w-(--dice-available-width) and overflow-x-hidden overflow-y-auto where the Dice UI source declares max-h-fit and overflow-hidden: the lease wizard's property list opened 778px tall above its input at 1280x800, 378px of it above the viewport, and 11 of its 24 options could not take a pointer",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
     }
    ]
   },
@@ -550,6 +555,11 @@
      "what": "a focused destructive item paints bg-destructive with a destructive-foreground label and icons, where upstream paints destructive/10 (dark /20) under destructive text",
      "reason": "D-26 customization",
      "ref": "WCAG 1.4.11 / 2.4.7; 66.2-39 fix round 4 Part 5c (F1 gaps sweep)"
+    },
+    {
+     "what": "DropdownMenuContent max-w-(--radix-dropdown-menu-content-available-width) beside upstream's height bound, so no menu box runs past the viewport's side (the overlay rule the select's 414.4px list broke)",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
     }
    ]
   },
@@ -747,6 +757,11 @@
      "what": "class token order in PopoverContent",
      "reason": "upstream drift not adopted (D-05)",
      "ref": "D-05"
+    },
+    {
+     "what": "PopoverContent max-h-(--radix-popover-content-available-height), max-w-(--radix-popover-content-available-width) and overflow-y-auto, where upstream sets no bound: the document vault's date-range calendar opened 777.5px tall in the 444px above its trigger at 390x844 and its category filter 1251px tall at 1280x800",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
     }
    ]
   },
@@ -819,6 +834,16 @@
      "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
      "reason": "D-26 customization",
      "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "SelectContent max-w-(--radix-select-content-available-width) beside upstream's height bound: /applications' unit filter stood 414.4px wide at x=10 in a 390px viewport",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
+    },
+    {
+     "what": "SelectTrigger min-w-11 max-w-full: upstream's w-fit with whitespace-nowrap grew to the selected label, so the Add Unit dialog's property trigger stood 285px wide in a 150px column at 390, 94px past the viewport; the definite minimum keeps the cap in grid and flex cells, where an automatic minimum keeps the text's width",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
     }
    ]
   },

@@ -10,7 +10,18 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "#components/ui/popover";
+import { useMediaQuery } from "#hooks/use-media-query";
 import { cn } from "#lib/utils";
+
+/**
+ * Where the calendar lays two months side by side: its months row is
+ * `flex-col md:flex-row`, so below Tailwind's `md` (48rem) a second month
+ * stacks under the first. Stacked, the two months stood 777.5px tall in the
+ * 444px above the trigger at 390x844 and pushed the month navigation and the
+ * first weeks off screen (66.2-39 fix round 4, Part 5d), so the picker shows
+ * one month there.
+ */
+const TWO_MONTHS_QUERY = "(width >= 48rem)";
 
 export interface DateRangePickerProps {
 	value: { from: Date | undefined; to: Date | undefined };
@@ -36,6 +47,7 @@ export function DateRangePicker({
 	className,
 }: DateRangePickerProps) {
 	const [open, setOpen] = useState(false);
+	const twoMonths = useMediaQuery(TWO_MONTHS_QUERY);
 	const hasRange = value.from !== undefined || value.to !== undefined;
 
 	const label = (() => {
@@ -76,7 +88,7 @@ export function DateRangePicker({
 								to: range?.to,
 							});
 						}}
-						numberOfMonths={2}
+						numberOfMonths={twoMonths ? 2 : 1}
 					/>
 				</PopoverContent>
 			</Popover>

@@ -105,7 +105,10 @@ export function BulkImportStepper<T>({
 								<StepperIndicator className={indicatorCls}>
 									<step.icon className="size-4" />
 								</StepperIndicator>
-								<div className="flex flex-col items-start ml-3">
+								{/* Below sm the three steps' text does not fit beside their
+								    indicators (564px in a 308px dialog body at 390): it stays the
+								    triggers' accessible names, out of sight. */}
+								<div className="flex flex-col items-start ml-3 max-sm:sr-only">
 									<StepperTitle className="text-sm font-semibold">
 										{step.title}
 									</StepperTitle>

@@ -1,3 +1,17 @@
+/**
+ * Dice UI combobox on `@diceui/combobox` (the new-york-v4 registry's combobox
+ * is a different Base UI component and is not adopted).
+ *
+ * Local divergences (recorded in the divergence register):
+ * - the Dice UI label, cancel, badge, loading, group and separator parts are
+ *   removed (Phase 19 trim);
+ * - ComboboxContent is bounded by the space the positioner measures around
+ *   it (`--dice-available-height` and `--dice-available-width`) and the list
+ *   scrolls, where the Dice UI source declares `max-h-fit overflow-hidden`:
+ *   the lease wizard's property list opened 778px tall above its input at
+ *   1280x800, 378px of it above the viewport, and 11 of its 24 options could
+ *   not take a pointer (66.2-39 fix round 4, Part 5d).
+ */
 import * as ComboboxPrimitive from "@diceui/combobox";
 import { Check, ChevronDown } from "lucide-react";
 import type { ComponentProps } from "react";
@@ -80,7 +94,7 @@ function ComboboxContent({
 				data-slot="combobox-content"
 				sideOffset={sideOffset}
 				className={cn(
-					"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-fit min-w-(--dice-anchor-width) origin-(--dice-transform-origin) overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=closed]:animate-out data-[state=open]:animate-in",
+					"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--dice-available-height) max-w-(--dice-available-width) min-w-(--dice-anchor-width) origin-(--dice-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=closed]:animate-out data-[state=open]:animate-in",
 					className,
 				)}
 				{...props}
