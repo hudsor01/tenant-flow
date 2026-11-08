@@ -53,6 +53,8 @@ const CUSTOM_ROWS = [
 	"src/app/(owner)/reports/income-statement/income-statement-page-loading.tsx",
 	"src/app/(owner)/reports/expenses/page.tsx",
 	"src/app/(owner)/analytics/overview/page.tsx",
+	"src/app/(owner)/properties/units/page.tsx",
+	"src/app/(owner)/loading.tsx",
 ];
 
 /**

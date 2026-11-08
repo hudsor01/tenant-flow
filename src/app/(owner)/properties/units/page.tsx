@@ -96,49 +96,61 @@ export default function UnitsPage() {
 
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-			{/* Units Metrics Cards */}
-			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-4">
-				<div className="p-4 rounded-lg border bg-card shadow-sm">
-					<div className="flex-between mb-2">
-						<h3 className="text-muted-foreground font-medium">Total Units</h3>
-						<div className="size-2 rounded-full bg-muted-foreground" />
+			{/* Units Metrics Cards. The columns step on the row's own width, never
+			    the viewport's (the rail changes it): one column until two tiles
+			    are 10.5rem wide, four from where four are (66.2-39 fix round 4,
+			    Part 8d). A 10.5rem tile holds its longest label, Maintenance
+			    (116.09px), beside its dot, so no label wraps and drops its figure
+			    below its neighbours', and each figure (1234) and the line under
+			    it (100.0% occupancy) on one line. The dots never shrink. */}
+			<div className="@container/unit-stats px-4 lg:px-6">
+				<div className="grid grid-cols-1 @min-[22rem]/unit-stats:grid-cols-2 @min-[45rem]/unit-stats:grid-cols-4 gap-4">
+					<div className="p-4 rounded-lg border bg-card shadow-sm">
+						<div className="flex-between gap-2 mb-2">
+							<h3 className="text-muted-foreground font-medium">Total Units</h3>
+							<div className="size-2 shrink-0 rounded-full bg-muted-foreground" />
+						</div>
+						<div className="whitespace-nowrap typography-h3">{totalUnits}</div>
+						<p className="text-caption text-muted-foreground mt-1 mb-0">
+							Across all properties
+						</p>
 					</div>
-					<div className="typography-h3">{totalUnits}</div>
-					<p className="text-caption text-muted-foreground mt-1 mb-0">
-						Across all properties
-					</p>
-				</div>
 
-				<div className="p-4 rounded-lg border bg-card shadow-sm">
-					<div className="flex-between mb-2">
-						<h3 className="text-muted-foreground font-medium">Occupied</h3>
-						<div className="size-2 rounded-full bg-success-text" />
+					<div className="p-4 rounded-lg border bg-card shadow-sm">
+						<div className="flex-between gap-2 mb-2">
+							<h3 className="text-muted-foreground font-medium">Occupied</h3>
+							<div className="size-2 shrink-0 rounded-full bg-success-text" />
+						</div>
+						<div className="whitespace-nowrap typography-h3">
+							{occupiedCount}
+						</div>
+						<div className="text-xs mt-1 text-success-text">
+							{occupancyRate.toFixed(1)}% occupancy
+						</div>
 					</div>
-					<div className="typography-h3">{occupiedCount}</div>
-					<div className="text-xs mt-1 text-success-text">
-						{occupancyRate.toFixed(1)}% occupancy
-					</div>
-				</div>
 
-				<div className="p-4 rounded-lg border bg-card shadow-sm">
-					<div className="flex-between mb-2">
-						<h3 className="text-muted-foreground font-medium">Vacant</h3>
-						<div className="size-2 rounded-full bg-primary-text" />
+					<div className="p-4 rounded-lg border bg-card shadow-sm">
+						<div className="flex-between gap-2 mb-2">
+							<h3 className="text-muted-foreground font-medium">Vacant</h3>
+							<div className="size-2 shrink-0 rounded-full bg-primary-text" />
+						</div>
+						<div className="whitespace-nowrap typography-h3">{vacantCount}</div>
+						<div className="text-xs mt-1 text-muted-foreground">
+							Available now
+						</div>
 					</div>
-					<div className="typography-h3">{vacantCount}</div>
-					<div className="text-xs mt-1 text-muted-foreground">
-						Available now
-					</div>
-				</div>
 
-				<div className="p-4 rounded-lg border bg-card shadow-sm">
-					<div className="flex-between mb-2">
-						<h3 className="text-muted-foreground font-medium">Maintenance</h3>
-						<div className="size-2 rounded-full bg-destructive-text" />
-					</div>
-					<div className="typography-h3">{maintenanceCount}</div>
-					<div className="text-xs mt-1 text-destructive-text">
-						Needs attention
+					<div className="p-4 rounded-lg border bg-card shadow-sm">
+						<div className="flex-between gap-2 mb-2">
+							<h3 className="text-muted-foreground font-medium">Maintenance</h3>
+							<div className="size-2 shrink-0 rounded-full bg-destructive-text" />
+						</div>
+						<div className="whitespace-nowrap typography-h3">
+							{maintenanceCount}
+						</div>
+						<div className="text-xs mt-1 text-destructive-text">
+							Needs attention
+						</div>
 					</div>
 				</div>
 			</div>
