@@ -87,13 +87,17 @@ export default function ExpensesPage() {
 					</div>
 					<Skeleton className="h-10 w-24" />
 				</div>
-				<div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-					{[1, 2, 3].map((i) => (
-						<Skeleton
-							key={i}
-							className={`h-24 rounded-lg ${i === 3 ? "col-span-2 lg:col-span-1" : ""}`}
-						/>
-					))}
+				{/* The stat row's columns and spans (ExpenseStats; 66.2-39 fix
+				    round 4, Part 8c), so the loaded row does not reflow. */}
+				<div className="@container/expense-stats mb-6">
+					<div className="grid grid-cols-1 @min-[31rem]/expense-stats:grid-cols-2 @min-[47rem]/expense-stats:grid-cols-3 gap-4">
+						{[1, 2, 3].map((i) => (
+							<Skeleton
+								key={i}
+								className={`h-24 rounded-lg ${i === 3 ? "@min-[31rem]/expense-stats:col-span-2 @min-[47rem]/expense-stats:col-span-1" : ""}`}
+							/>
+						))}
+					</div>
 				</div>
 				<Skeleton className="h-12 w-full mb-4 rounded-lg" />
 				<div className="space-y-2">

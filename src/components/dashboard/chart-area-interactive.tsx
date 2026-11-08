@@ -99,7 +99,7 @@ export function ChartAreaInteractive({
 			<CardHeader className="flex flex-col items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
 				<div className="grid flex-1 gap-1 text-center sm:text-left">
 					<CardTitle className="flex items-center gap-2">
-						<DollarSign className="size-5" />
+						<DollarSign className="size-5 shrink-0" />
 						Scheduled Rent & Expenses
 					</CardTitle>
 					<CardDescription>
@@ -169,19 +169,25 @@ export function ChartAreaInteractive({
 
 			{/* Summary metrics: four columns only when the card itself is wide
 			    enough for four amounts (the analytics overview places it in a
-			    narrow column, where four overflowed). mb-0 on each figure: the
-			    last child of a grid item, where the base `p` margin stays inside
-			    the cell, 16px under the row. */}
-			<div className="grid grid-cols-2 gap-4 p-6 pb-0 lg:@xl/chart-card:grid-cols-4">
+			    narrow column, where four overflowed), and two only once two are,
+			    each cell as wide as "Scheduled Margin" (128.05px), the longest
+			    label, so no label wraps and drops its figure a line below its
+			    neighbour's (66.2-39 fix round 4, Part 8c: at 320 two columns
+			    gave each figure 87px; at 1536 with the rail expanded four gave
+			    the label 122.5px and its figure sat 27px lower). mb-0 on each
+			    figure: the last child of a grid item, where the base `p` margin
+			    stays inside the cell, 16px under the row. No figure wraps, and
+			    the trend icon keeps its size. */}
+			<div className="grid grid-cols-1 gap-4 p-6 pb-0 @min-[20.25rem]/chart-card:grid-cols-2 lg:@min-[38.5rem]/chart-card:grid-cols-4">
 				<div className="space-y-1">
 					<p className="text-muted-foreground">Scheduled Rent</p>
-					<p className="mb-0 typography-large text-success-text">
+					<p className="mb-0 whitespace-nowrap typography-large text-success-text">
 						{formatCurrency(totalRevenue, WHOLE_DOLLARS)}
 					</p>
 				</div>
 				<div className="space-y-1">
 					<p className="text-muted-foreground">Total Expenses</p>
-					<p className="mb-0 typography-large text-warning-text">
+					<p className="mb-0 whitespace-nowrap typography-large text-warning-text">
 						{formatCurrency(totalExpenses, WHOLE_DOLLARS)}
 					</p>
 				</div>
@@ -189,14 +195,14 @@ export function ChartAreaInteractive({
 					<p className="text-muted-foreground">Scheduled Net</p>
 					<p
 						className={cn(
-							"mb-0 flex items-center gap-1 typography-large",
+							"mb-0 flex items-center gap-1 whitespace-nowrap typography-large",
 							shownNet >= 0 ? "text-success-text" : "text-warning-text",
 						)}
 					>
 						{shownNet >= 0 ? (
-							<TrendingUp className="size-4" />
+							<TrendingUp className="size-4 shrink-0" />
 						) : (
-							<TrendingDown className="size-4" />
+							<TrendingDown className="size-4 shrink-0" />
 						)}
 						{formatCurrency(shownNet, WHOLE_DOLLARS)}
 					</p>
@@ -205,7 +211,7 @@ export function ChartAreaInteractive({
 					<p className="text-muted-foreground">Scheduled Margin</p>
 					<p
 						className={cn(
-							"mb-0 typography-large",
+							"mb-0 whitespace-nowrap typography-large",
 							profitMargin >= 0 ? "text-success-text" : "text-warning-text",
 						)}
 					>

@@ -54,18 +54,30 @@ export function OwnerPaymentSummary({
 		},
 	];
 
+	// The columns step on the row's own width, never the viewport's (66.2-39
+	// fix round 4, Part 8c): one until two cards hold the longest label on one
+	// line and $1,234,567.00, four from where four do. Four at lg with the rail
+	// expanded wrapped "Late fees cumulative" beside one-line labels and put
+	// its figure 20px below theirs (1024-1088px).
 	return (
-		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-			{figures.map((figure) => (
-				<Card key={figure.label}>
-					<CardHeader>
-						<CardDescription>{figure.label}</CardDescription>
-						<CardTitle className={cn("typography-h3", figure.className)}>
-							{figure.value ?? <Skeleton className="h-lh w-24" />}
-						</CardTitle>
-					</CardHeader>
-				</Card>
-			))}
+		<div className="@container/payment-summary">
+			<div className="grid grid-cols-1 gap-4 @min-[24.5rem]/payment-summary:grid-cols-2 @min-[49.5rem]/payment-summary:grid-cols-4">
+				{figures.map((figure) => (
+					<Card key={figure.label}>
+						<CardHeader>
+							<CardDescription>{figure.label}</CardDescription>
+							<CardTitle
+								className={cn(
+									"typography-h3 whitespace-nowrap",
+									figure.className,
+								)}
+							>
+								{figure.value ?? <Skeleton className="h-lh w-24" />}
+							</CardTitle>
+						</CardHeader>
+					</Card>
+				))}
+			</div>
 		</div>
 	);
 }

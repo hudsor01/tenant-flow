@@ -44,9 +44,14 @@ function expectTwoLineLabels(container?: string) {
 		}
 		expect(classes).toContain(`@4xl/${container}:min-h-0`);
 		expect(classes).not.toContain("lg:min-h-0");
-		// The row's grid (the tile is a grid of its own).
+		// The row's grid (the tile is a grid of its own) sits in the named
+		// container: a container query styles only its descendants, and the
+		// grid's columns step on it too (66.2-39 fix round 4, Part 8c).
 		const row = label.closest("[data-slot=stat]")?.parentElement?.parentElement;
-		expect(row?.className.split(/\s+/)).toContain(`@container/${container}`);
+		expect(row?.className.split(/\s+/)).toContain("grid");
+		expect(row?.parentElement?.className.split(/\s+/)).toContain(
+			`@container/${container}`,
+		);
 	}
 }
 

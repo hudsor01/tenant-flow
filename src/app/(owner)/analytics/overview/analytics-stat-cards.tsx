@@ -180,101 +180,105 @@ export function AnalyticsStatCards({
 		// Q, VD-117). The release keys on the grid's width: with the rail
 		// expanded, "Open Maintenance" (117.56px) wraps beside one-line labels
 		// from 1088 to 1176px, where a release at lg put its figure 20px lower
-		// (fix round 4, K1). Four columns fit the longest label from 53rem.
-		<div className="@container/analytics-stats grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-			<BlurFade delay={0.2} className="h-full">
-				<Stat className="relative h-full content-start overflow-hidden">
-					<BorderBeam
-						size={100}
-						duration={10}
-						colorFrom="var(--color-primary)"
-						colorTo="oklch(from var(--color-primary) l c h / 0.3)"
-					/>
-					<StatLabel className="min-h-10 @4xl/analytics-stats:min-h-0">
-						Occupancy Rate
-					</StatLabel>
-					<StatValue className="flex items-baseline gap-0.5">
-						<NumberTicker
-							value={occupancyRate}
-							duration={1500}
-							decimalPlaces={1}
-						/>
-						<span className="text-lg">%</span>
-					</StatValue>
-					<StatIndicator variant="icon" color="primary">
-						<Building2 />
-					</StatIndicator>
-					<OccupancyChange trends={trends} />
-				</Stat>
-			</BlurFade>
-
-			<BlurFade delay={0.3} className="h-full">
-				<Stat className="relative h-full content-start overflow-hidden">
-					<StatLabel className="min-h-10 @4xl/analytics-stats:min-h-0">
-						Active Tenants
-					</StatLabel>
-					<StatValue className="flex items-baseline">
-						<NumberTicker value={activeTenants} duration={1500} />
-					</StatValue>
-					<StatIndicator variant="icon" color="success">
-						<Users />
-					</StatIndicator>
-				</Stat>
-			</BlurFade>
-
-			<BlurFade delay={0.4} className="h-full">
-				<Stat className="relative h-full content-start overflow-hidden">
-					<BorderBeam
-						size={100}
-						duration={12}
-						colorFrom="var(--color-success)"
-						colorTo="oklch(from var(--color-success) l c h / 0.3)"
-					/>
-					<StatLabel className="min-h-10 @4xl/analytics-stats:min-h-0">
-						Scheduled Rent
-					</StatLabel>
-					<StatValue className="flex items-baseline gap-0.5 text-success-text">
-						<NumberTicker
-							value={monthlyRevenue}
-							duration={1500}
-							currency
-							symbolClassName="text-lg mr-0.5"
-						/>
-					</StatValue>
-					<StatIndicator variant="icon" color="success">
-						<DollarSign />
-					</StatIndicator>
-					<RevenueChange trends={trends} />
-					{scheduledMargin > 0 && (
-						<StatDescription>
-							{scheduledMargin.toFixed(1)}% scheduled margin
-						</StatDescription>
-					)}
-				</Stat>
-			</BlurFade>
-
-			<BlurFade delay={0.5} className="h-full">
-				<Stat className="relative h-full content-start overflow-hidden">
-					{openMaintenance > 3 && (
+		// (fix round 4, K1). Four columns fit the longest label from 53rem. The
+		// columns step on the row's width too (Part 8c): one until two tiles hold
+		// $1,234,567 (its longest figure), four from where four do.
+		<div className="@container/analytics-stats mb-8">
+			<div className="grid grid-cols-1 @min-[27rem]/analytics-stats:grid-cols-2 @min-[54.5rem]/analytics-stats:grid-cols-4 gap-4">
+				<BlurFade delay={0.2} className="h-full">
+					<Stat className="relative h-full content-start overflow-hidden">
 						<BorderBeam
-							size={80}
-							duration={6}
-							colorFrom="var(--color-warning)"
-							colorTo="oklch(from var(--color-warning) l c h / 0.3)"
+							size={100}
+							duration={10}
+							colorFrom="var(--color-primary)"
+							colorTo="oklch(from var(--color-primary) l c h / 0.3)"
 						/>
-					)}
-					<StatLabel className="min-h-10 @4xl/analytics-stats:min-h-0">
-						Open Maintenance
-					</StatLabel>
-					<StatValue className="flex items-baseline text-warning-text">
-						<NumberTicker value={openMaintenance} duration={1000} />
-					</StatValue>
-					<StatIndicator variant="icon" color="warning">
-						<Wrench />
-					</StatIndicator>
-					<MaintenanceChange trend={maintenanceTrend} />
-				</Stat>
-			</BlurFade>
+						<StatLabel className="min-h-10 @4xl/analytics-stats:min-h-0">
+							Occupancy Rate
+						</StatLabel>
+						<StatValue className="flex items-baseline gap-0.5">
+							<NumberTicker
+								value={occupancyRate}
+								duration={1500}
+								decimalPlaces={1}
+							/>
+							<span className="text-lg">%</span>
+						</StatValue>
+						<StatIndicator variant="icon" color="primary">
+							<Building2 />
+						</StatIndicator>
+						<OccupancyChange trends={trends} />
+					</Stat>
+				</BlurFade>
+
+				<BlurFade delay={0.3} className="h-full">
+					<Stat className="relative h-full content-start overflow-hidden">
+						<StatLabel className="min-h-10 @4xl/analytics-stats:min-h-0">
+							Active Tenants
+						</StatLabel>
+						<StatValue className="flex items-baseline">
+							<NumberTicker value={activeTenants} duration={1500} />
+						</StatValue>
+						<StatIndicator variant="icon" color="success">
+							<Users />
+						</StatIndicator>
+					</Stat>
+				</BlurFade>
+
+				<BlurFade delay={0.4} className="h-full">
+					<Stat className="relative h-full content-start overflow-hidden">
+						<BorderBeam
+							size={100}
+							duration={12}
+							colorFrom="var(--color-success)"
+							colorTo="oklch(from var(--color-success) l c h / 0.3)"
+						/>
+						<StatLabel className="min-h-10 @4xl/analytics-stats:min-h-0">
+							Scheduled Rent
+						</StatLabel>
+						<StatValue className="flex items-baseline gap-0.5 text-success-text">
+							<NumberTicker
+								value={monthlyRevenue}
+								duration={1500}
+								currency
+								symbolClassName="text-lg mr-0.5"
+							/>
+						</StatValue>
+						<StatIndicator variant="icon" color="success">
+							<DollarSign />
+						</StatIndicator>
+						<RevenueChange trends={trends} />
+						{scheduledMargin > 0 && (
+							<StatDescription>
+								{scheduledMargin.toFixed(1)}% scheduled margin
+							</StatDescription>
+						)}
+					</Stat>
+				</BlurFade>
+
+				<BlurFade delay={0.5} className="h-full">
+					<Stat className="relative h-full content-start overflow-hidden">
+						{openMaintenance > 3 && (
+							<BorderBeam
+								size={80}
+								duration={6}
+								colorFrom="var(--color-warning)"
+								colorTo="oklch(from var(--color-warning) l c h / 0.3)"
+							/>
+						)}
+						<StatLabel className="min-h-10 @4xl/analytics-stats:min-h-0">
+							Open Maintenance
+						</StatLabel>
+						<StatValue className="flex items-baseline text-warning-text">
+							<NumberTicker value={openMaintenance} duration={1000} />
+						</StatValue>
+						<StatIndicator variant="icon" color="warning">
+							<Wrench />
+						</StatIndicator>
+						<MaintenanceChange trend={maintenanceTrend} />
+					</Stat>
+				</BlurFade>
+			</div>
 		</div>
 	);
 }

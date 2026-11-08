@@ -47,7 +47,7 @@ const REVIEWED: { file: string; release: string; reason: string }[] = [
 		file: "src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
 		release: `lg:${MIN_H}0`,
 		reason:
-			"two columns until xl (tiles 336px or wider at lg), four from xl, where the narrowest row (59rem) holds Scheduled Margin (113.09px) from 51.8rem: no misalignment 320-1600px in either rail state",
+			"its columns step on the row's own width (66.2-39 fix round 4, Part 8c): two from 29rem, four from 58rem, where each tile is 220px or wider and Scheduled Margin (113.09px) fits beside the 32px indicator: no label wraps at lg in either rail state",
 	},
 ];
 

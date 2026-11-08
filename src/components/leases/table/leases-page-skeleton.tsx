@@ -15,17 +15,22 @@ export function LeasesPageSkeleton() {
 				</div>
 			</BlurFade>
 
-			{/* Stats Skeleton */}
-			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-				{[1, 2, 3, 4].map((i) => (
-					<div key={i} className="bg-card border border-border rounded-sm p-4">
-						<Skeleton className="h-4 w-24 mb-2" />
-						<div className="flex items-end justify-between">
+			{/* Stats Skeleton: the stat row's columns and tile (LeasesStatCards). */}
+			<div className="@container/lease-stats mb-6">
+				<div className="grid grid-cols-1 @min-[21rem]/lease-stats:grid-cols-2 @min-[43rem]/lease-stats:grid-cols-4 gap-4">
+					{[1, 2, 3, 4].map((i) => (
+						<div
+							key={i}
+							className="bg-card border border-border rounded-sm p-4"
+						>
+							<div className="flex items-start justify-between gap-2 mb-2">
+								<Skeleton className="h-4 w-24" />
+								<Skeleton className="h-9 w-9 shrink-0 rounded-sm" />
+							</div>
 							<Skeleton className="h-8 w-12" />
-							<Skeleton className="h-9 w-9 rounded-sm" />
 						</div>
-					</div>
-				))}
+					))}
+				</div>
 			</div>
 
 			{/* Table Skeleton */}

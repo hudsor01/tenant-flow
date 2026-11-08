@@ -117,56 +117,66 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 				<div className="lg:col-span-2 space-y-6">
 					{/* Key metrics: 16px tiles, py-4 on the Card and px-4 on its
 					    content (the v4 Card pads itself; a v3 p-4 here added to
-					    it). mb-0: each figure is its tile's last child. */}
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-						<Card className="py-4">
-							<CardContent className="px-4">
-								<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
-									<DollarSign className="w-4 h-4" />
-									Monthly Rent
-								</div>
-								<p className="mb-0 text-xl font-semibold tabular-nums">
-									{formatCurrency(lease.rent_amount)}
-								</p>
-							</CardContent>
-						</Card>
-						<Card className="py-4">
-							<CardContent className="px-4">
-								<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
-									<CreditCard className="w-4 h-4" />
-									Security Deposit
-								</div>
-								<p className="mb-0 text-xl font-semibold tabular-nums">
-									{formatCurrency(lease.security_deposit)}
-								</p>
-							</CardContent>
-						</Card>
-						<Card className="py-4">
-							<CardContent className="px-4">
-								<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
-									<CalendarDays className="w-4 h-4" />
-									Payment Day
-								</div>
-								<p className="mb-0 text-xl font-semibold">
-									{lease.payment_day
-										? `${lease.payment_day}${getOrdinalSuffix(lease.payment_day)} of month`
-										: "N/A"}
-								</p>
-							</CardContent>
-						</Card>
-						<Card className="py-4">
-							<CardContent className="px-4">
-								<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
-									<Clock className="w-4 h-4" />
-									Grace Period
-								</div>
-								<p className="mb-0 text-xl font-semibold">
-									{lease.grace_period_days
-										? formatCount(lease.grace_period_days, "day")
-										: "None"}
-								</p>
-							</CardContent>
-						</Card>
+					    it). mb-0: each figure is its tile's last child. The columns
+					    step on this column's own width, which the rail and the
+					    sidebar beside it set (66.2-39 fix round 4, Part 8c): two
+					    once a tile holds Security Deposit's label on one line and
+					    $1,234,567.00 (130.44px), four once four do. At lg the grid
+					    put four in two-thirds of the page: at 1024 with the rail
+					    expanded a tile held 109px, owner A's $1,500.00 overflowed
+					    it, and Security Deposit wrapped, shrinking its icon to 11px
+					    and dropping its figure 20px below the others'. */}
+					<div className="@container/lease-metrics">
+						<div className="grid grid-cols-1 gap-4 @min-[22.5rem]/lease-metrics:grid-cols-2 @min-[45.5rem]/lease-metrics:grid-cols-4">
+							<Card className="py-4">
+								<CardContent className="px-4">
+									<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+										<DollarSign className="w-4 h-4 shrink-0" />
+										Monthly Rent
+									</div>
+									<p className="mb-0 whitespace-nowrap text-xl font-semibold tabular-nums">
+										{formatCurrency(lease.rent_amount)}
+									</p>
+								</CardContent>
+							</Card>
+							<Card className="py-4">
+								<CardContent className="px-4">
+									<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+										<CreditCard className="w-4 h-4 shrink-0" />
+										Security Deposit
+									</div>
+									<p className="mb-0 whitespace-nowrap text-xl font-semibold tabular-nums">
+										{formatCurrency(lease.security_deposit)}
+									</p>
+								</CardContent>
+							</Card>
+							<Card className="py-4">
+								<CardContent className="px-4">
+									<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+										<CalendarDays className="w-4 h-4 shrink-0" />
+										Payment Day
+									</div>
+									<p className="mb-0 whitespace-nowrap text-xl font-semibold">
+										{lease.payment_day
+											? `${lease.payment_day}${getOrdinalSuffix(lease.payment_day)} of month`
+											: "N/A"}
+									</p>
+								</CardContent>
+							</Card>
+							<Card className="py-4">
+								<CardContent className="px-4">
+									<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+										<Clock className="w-4 h-4 shrink-0" />
+										Grace Period
+									</div>
+									<p className="mb-0 whitespace-nowrap text-xl font-semibold">
+										{lease.grace_period_days
+											? formatCount(lease.grace_period_days, "day")
+											: "None"}
+									</p>
+								</CardContent>
+							</Card>
+						</div>
 					</div>
 
 					{/* Tabbed content */}

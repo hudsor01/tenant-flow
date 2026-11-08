@@ -94,49 +94,59 @@ export function ExpenseStats({
 	monthlyAvg,
 	yearOverYear,
 }: ExpenseStatsProps) {
+	// The columns step on the row's own width, never the viewport's (66.2-39
+	// fix round 4, Part 8c): one until two tiles hold $1,234,567.00, then the
+	// year over year tile under the first two, all three in a row from where
+	// three do. Two columns at 320 gave each tile 78px, and owner A's $0.00
+	// (80.36px) ran past it.
 	return (
-		<div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-			<BlurFade delay={0.15} className="h-full">
-				<Stat className="relative h-full content-start overflow-hidden">
-					{totalExpenses > 0 && (
-						<BorderBeam
-							size={80}
-							duration={10}
-							colorFrom="var(--color-destructive)"
-							colorTo="oklch(from var(--color-destructive) l c h / 0.3)"
-						/>
-					)}
-					<StatLabel>Total Expenses</StatLabel>
-					<StatValue className="flex items-baseline text-destructive-text">
-						{formatCurrency(totalExpenses)}
-					</StatValue>
-					<StatIndicator variant="icon" color="destructive">
-						<TrendingDown />
-					</StatIndicator>
-					<StatDescription>year to date</StatDescription>
-				</Stat>
-			</BlurFade>
+		<div className="@container/expense-stats mb-6">
+			<div className="grid grid-cols-1 @min-[31rem]/expense-stats:grid-cols-2 @min-[47rem]/expense-stats:grid-cols-3 gap-4">
+				<BlurFade delay={0.15} className="h-full">
+					<Stat className="relative h-full content-start overflow-hidden">
+						{totalExpenses > 0 && (
+							<BorderBeam
+								size={80}
+								duration={10}
+								colorFrom="var(--color-destructive)"
+								colorTo="oklch(from var(--color-destructive) l c h / 0.3)"
+							/>
+						)}
+						<StatLabel>Total Expenses</StatLabel>
+						<StatValue className="flex items-baseline text-destructive-text">
+							{formatCurrency(totalExpenses)}
+						</StatValue>
+						<StatIndicator variant="icon" color="destructive">
+							<TrendingDown />
+						</StatIndicator>
+						<StatDescription>year to date</StatDescription>
+					</Stat>
+				</BlurFade>
 
-			<BlurFade delay={0.2} className="h-full">
-				<Stat className="relative h-full content-start overflow-hidden">
-					<StatLabel>Monthly Average</StatLabel>
-					<StatValue className="flex items-baseline">
-						{formatCurrency(monthlyAvg)}
-					</StatValue>
-					<StatIndicator variant="icon" color="primary">
-						<Calendar />
-					</StatIndicator>
-					{/* monthly_average: the trailing 12 months, this month included,
+				<BlurFade delay={0.2} className="h-full">
+					<Stat className="relative h-full content-start overflow-hidden">
+						<StatLabel>Monthly Average</StatLabel>
+						<StatValue className="flex items-baseline">
+							{formatCurrency(monthlyAvg)}
+						</StatValue>
+						<StatIndicator variant="icon" color="primary">
+							<Calendar />
+						</StatIndicator>
+						{/* monthly_average: the trailing 12 months, this month included,
 					    zero-filled (get_expense_summary), not the year to date. */}
-					<StatDescription>per month, last 12 months</StatDescription>
-				</Stat>
-			</BlurFade>
+						<StatDescription>per month, last 12 months</StatDescription>
+					</Stat>
+				</BlurFade>
 
-			{/* Its window ("vs Jan 1 to Nov 2, 2025") gets the row to itself
-			    below lg, beside no half-width neighbour. */}
-			<BlurFade delay={0.25} className="col-span-2 h-full lg:col-span-1">
-				<YearOverYearTile yearOverYear={yearOverYear} />
-			</BlurFade>
+				{/* Its window ("vs Jan 1 to Nov 2, 2025") gets a row to itself
+				    in two columns, beside no half-width neighbour. */}
+				<BlurFade
+					delay={0.25}
+					className="h-full @min-[31rem]/expense-stats:col-span-2 @min-[47rem]/expense-stats:col-span-1"
+				>
+					<YearOverYearTile yearOverYear={yearOverYear} />
+				</BlurFade>
+			</div>
 		</div>
 	);
 }

@@ -33,10 +33,13 @@ export function IncomeStatementPageNetSummary({
 						</span>
 					</div>
 				</div>
-				<div className="flex items-center justify-between p-4 mt-4 bg-primary/5 rounded-lg">
+				{/* The figure drops under its label, whole, when the two do not fit
+				    on one line (66.2-39 fix round 4, Part 8c: at 320,
+				    -$1,000,000.00 ran past the box). */}
+				<div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 p-4 mt-4 bg-primary/5 rounded-lg">
 					<span className="font-medium text-foreground">Net Income</span>
 					<span
-						className={`text-xl font-bold tabular-nums ${netIncome >= 0 ? "text-success-text" : "text-destructive-text"}`}
+						className={`whitespace-nowrap text-xl font-bold tabular-nums ${netIncome >= 0 ? "text-success-text" : "text-destructive-text"}`}
 					>
 						{netIncome > 0 ? "+" : ""}
 						{formatCurrency(netIncome)}

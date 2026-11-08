@@ -16,7 +16,7 @@ import { cn } from "#lib/utils";
 
 export function HeroDashboardMockup({ className }: { className?: string }) {
 	return (
-		<div className={cn("relative", className)}>
+		<div className={cn("@container/hero-mockup relative", className)}>
 			<div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border bg-card">
 				<div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border-b border-border">
 					<div className="flex gap-1.5">
@@ -53,7 +53,11 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 						</div>
 					</div>
 
-					<div className="grid grid-cols-4 gap-3">
+					{/* Two columns until four cards hold an icon and its trend side by
+					    side, on the mockup's own width (66.2-39 fix round 4, Part 8c):
+					    four at 320 left a trend 28.5px, and "+12%" (29.09px) ran past
+					    its card. */}
+					<div className="grid grid-cols-2 @min-[27rem]/hero-mockup:grid-cols-4 gap-3">
 						<StatCard
 							label="Properties"
 							value="12"

@@ -3,14 +3,24 @@ import type { ComponentProps } from "react";
 
 import { cn } from "#lib/utils";
 
+/**
+ * A stat tile: the label and its indicator share the first row, and the value
+ * spans the tile below them (66.2-39 fix round 4, Part 8c). The indicator used
+ * to span the label and value rows, so a value had the tile's width less the
+ * indicator's 48px, and a longer one pushed the indicator past the tile (owner
+ * A's $7,500, 101.2px, in the overview's 126px tile at 1024 with the rail
+ * expanded). A row of stats keeps every tile at least as wide as its longest
+ * value: its columns step on the row's own width (a named container), never
+ * the viewport's.
+ */
 function Stat({ className, ...props }: ComponentProps<"div">) {
 	return (
 		<div
 			data-slot="stat"
 			className={cn(
-				"grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 rounded-lg border bg-card p-4 text-card-foreground shadow-sm",
-				"**:data-[slot=stat-label]:col-span-1 **:data-[slot=stat-value]:col-span-1",
-				"**:data-[slot=stat-indicator]:col-start-2 **:data-[slot=stat-indicator]:row-span-2 **:data-[slot=stat-indicator]:row-start-1 **:data-[slot=stat-indicator]:self-start",
+				"grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1 rounded-lg border bg-card p-4 text-card-foreground shadow-sm",
+				"**:data-[slot=stat-label]:col-span-1 **:data-[slot=stat-value]:col-span-2",
+				"**:data-[slot=stat-indicator]:col-start-2 **:data-[slot=stat-indicator]:row-start-1 **:data-[slot=stat-indicator]:self-start",
 				"**:data-[slot=stat-description]:col-span-2 **:data-[slot=stat-separator]:col-span-2 **:data-[slot=stat-trend]:col-span-2",
 				className,
 			)}
@@ -85,7 +95,10 @@ function StatValue({ className, ...props }: ComponentProps<"div">) {
 	return (
 		<div
 			data-slot="stat-value"
-			className={cn("typography-stat font-semibold", className)}
+			className={cn(
+				"typography-stat font-semibold whitespace-nowrap",
+				className,
+			)}
 			{...props}
 		/>
 	);

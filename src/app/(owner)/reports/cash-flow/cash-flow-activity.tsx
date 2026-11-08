@@ -7,6 +7,9 @@ import { formatCurrency } from "#lib/utils/currency";
  *
  * mb-0 on each tile's figure and label: the tile is a padded box, so the base
  * `p` margin would stand under the label and widen the 4px between the two.
+ * Each tile is a container, and its figure is 20px below 12.5rem (66.2-39 fix
+ * round 4, Part 8c): at 320 the tile holds 158px and -$1,234,567.00 is 165.97px
+ * at 24px.
  */
 interface CashFlowActivityProps {
 	netOperatingCash: number;
@@ -24,16 +27,16 @@ export function CashFlowActivity({
 					Cash Flow by Activity
 				</h3>
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<div className="text-center p-4 bg-success/10 rounded-lg">
-						<p className="mb-0 text-2xl font-semibold text-success-text tabular-nums">
+					<div className="@container/activity-tile text-center p-4 bg-success/10 rounded-lg">
+						<p className="mb-0 whitespace-nowrap text-xl @min-[12.5rem]/activity-tile:text-2xl font-semibold text-success-text tabular-nums">
 							{formatCurrency(netOperatingCash)}
 						</p>
 						<p className="mt-1 mb-0 text-sm text-muted-foreground">
 							Operating Activities
 						</p>
 					</div>
-					<div className="text-center p-4 bg-primary/5 rounded-lg">
-						<p className="mb-0 text-2xl font-semibold text-foreground tabular-nums">
+					<div className="@container/activity-tile text-center p-4 bg-primary/5 rounded-lg">
+						<p className="mb-0 whitespace-nowrap text-xl @min-[12.5rem]/activity-tile:text-2xl font-semibold text-foreground tabular-nums">
 							{formatCurrency(netFinancingCash)}
 						</p>
 						<p className="mt-1 mb-0 text-sm text-muted-foreground">

@@ -15,10 +15,17 @@ export function CashFlowLoading() {
 				</div>
 			</div>
 			<Skeleton className="h-24 rounded-lg mb-8" />
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-				{[1, 2, 3].map((i) => (
-					<Skeleton key={i} className="h-28 rounded-lg" />
-				))}
+			{/* The stat row's columns and spans (66.2-39 fix round 4, Part 8c), so
+			    the loaded row does not reflow. */}
+			<div className="@container/cash-flow-stats mb-8">
+				<div className="grid grid-cols-1 @min-[33rem]/cash-flow-stats:grid-cols-2 @min-[50rem]/cash-flow-stats:grid-cols-3 gap-4">
+					{[1, 2, 3].map((i) => (
+						<Skeleton
+							key={i}
+							className={`h-28 rounded-lg ${i === 3 ? "@min-[33rem]/cash-flow-stats:col-span-2 @min-[50rem]/cash-flow-stats:col-span-1" : ""}`}
+						/>
+					))}
+				</div>
 			</div>
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				{[1, 2].map((i) => (

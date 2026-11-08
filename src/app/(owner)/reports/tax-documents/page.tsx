@@ -61,10 +61,15 @@ export default function TaxDocumentsPage() {
 					</div>
 					<Skeleton className="h-10 w-32" />
 				</div>
-				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-					{[1, 2, 3].map((i) => (
-						<Skeleton key={i} className="h-24 rounded-lg" />
-					))}
+				<div className="@container/tax-totals mb-6">
+					<div className="grid grid-cols-1 @min-[29.5rem]/tax-totals:grid-cols-2 @min-[44.5rem]/tax-totals:grid-cols-3 gap-4">
+						{[1, 2, 3].map((i) => (
+							<Skeleton
+								key={i}
+								className={`h-24 rounded-lg ${i === 3 ? "@min-[29.5rem]/tax-totals:col-span-2 @min-[44.5rem]/tax-totals:col-span-1" : ""}`}
+							/>
+						))}
+					</div>
 				</div>
 				<div className="space-y-4">
 					{[1, 2, 3].map((i) => (
@@ -213,52 +218,59 @@ export default function TaxDocumentsPage() {
 					<BlurFade delay={0.15}>
 						{/* mb-0 on every figure and label: each pair is a flex item, so
 						    the base `p` margin would stay inside it and add 16px
-						    between the two and 16px under the label. */}
-						<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-							<div className="p-4 rounded-lg border border-border bg-card">
-								<div className="flex items-center gap-3">
-									<div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
-										<TrendingUp className="w-5 h-5 text-success-text" />
-									</div>
-									<div>
-										<p className="mb-0 text-xl font-semibold tabular-nums">
-											{formatCurrency(data.totals.totalIncome)}
-										</p>
-										<p className="mb-0 text-sm text-muted-foreground">
-											Rent Received
-										</p>
-									</div>
-								</div>
-							</div>
-
-							<div className="p-4 rounded-lg border border-border bg-card">
-								<div className="flex items-center gap-3">
-									<div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
-										<TrendingDown className="w-5 h-5 text-destructive-text" />
-									</div>
-									<div>
-										<p className="mb-0 text-xl font-semibold tabular-nums">
-											{formatCurrency(data.totals.totalExpenses)}
-										</p>
-										<p className="mb-0 text-sm text-muted-foreground">
-											Operating Expenses
-										</p>
+						    between the two and 16px under the label. The columns step
+						    on the row's own width (66.2-39 fix round 4, Part 8c): one
+						    until two tiles hold the icon and -$1,234,567.00 side by
+						    side, the third under the first two, all three in a row
+						    from where three do; the icon never shrinks and no figure
+						    wraps. */}
+						<div className="@container/tax-totals mb-6">
+							<div className="grid grid-cols-1 @min-[29.5rem]/tax-totals:grid-cols-2 @min-[44.5rem]/tax-totals:grid-cols-3 gap-4">
+								<div className="p-4 rounded-lg border border-border bg-card">
+									<div className="flex items-center gap-3">
+										<div className="w-10 h-10 shrink-0 rounded-lg bg-success/10 flex items-center justify-center">
+											<TrendingUp className="w-5 h-5 text-success-text" />
+										</div>
+										<div>
+											<p className="mb-0 whitespace-nowrap text-xl font-semibold tabular-nums">
+												{formatCurrency(data.totals.totalIncome)}
+											</p>
+											<p className="mb-0 text-sm text-muted-foreground">
+												Rent Received
+											</p>
+										</div>
 									</div>
 								</div>
-							</div>
 
-							<div className="p-4 rounded-lg border border-border bg-card">
-								<div className="flex items-center gap-3">
-									<div className="w-10 h-10 rounded-lg bg-info/10 flex items-center justify-center">
-										<Calendar className="w-5 h-5 text-info-text" />
+								<div className="p-4 rounded-lg border border-border bg-card">
+									<div className="flex items-center gap-3">
+										<div className="w-10 h-10 shrink-0 rounded-lg bg-destructive/10 flex items-center justify-center">
+											<TrendingDown className="w-5 h-5 text-destructive-text" />
+										</div>
+										<div>
+											<p className="mb-0 whitespace-nowrap text-xl font-semibold tabular-nums">
+												{formatCurrency(data.totals.totalExpenses)}
+											</p>
+											<p className="mb-0 text-sm text-muted-foreground">
+												Operating Expenses
+											</p>
+										</div>
 									</div>
-									<div>
-										<p className="mb-0 text-xl font-semibold tabular-nums">
-											{formatCurrency(data.totals.netIncome)}
-										</p>
-										<p className="mb-0 text-sm text-muted-foreground">
-											Net Income
-										</p>
+								</div>
+
+								<div className="p-4 rounded-lg border border-border bg-card @min-[29.5rem]/tax-totals:col-span-2 @min-[44.5rem]/tax-totals:col-span-1">
+									<div className="flex items-center gap-3">
+										<div className="w-10 h-10 shrink-0 rounded-lg bg-info/10 flex items-center justify-center">
+											<Calendar className="w-5 h-5 text-info-text" />
+										</div>
+										<div>
+											<p className="mb-0 whitespace-nowrap text-xl font-semibold tabular-nums">
+												{formatCurrency(data.totals.netIncome)}
+											</p>
+											<p className="mb-0 text-sm text-muted-foreground">
+												Net Income
+											</p>
+										</div>
 									</div>
 								</div>
 							</div>

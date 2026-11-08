@@ -35,10 +35,12 @@ export function PropertyPerformanceSection({
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-						{Array.from({ length: 4 }).map((_, i) => (
-							<Skeleton key={i} className="h-24 w-full" />
-						))}
+					<div className="@container/property-performance">
+						<div className="grid grid-cols-1 @min-[25rem]/property-performance:grid-cols-2 @min-[51rem]/property-performance:grid-cols-4 gap-4">
+							{Array.from({ length: 4 }).map((_, i) => (
+								<Skeleton key={i} className="h-24 w-full" />
+							))}
+						</div>
 					</div>
 				</CardContent>
 			</Card>
@@ -117,29 +119,37 @@ export function PropertyPerformanceSection({
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-					{metrics.map((metric) => {
-						const Icon = metric.icon;
-						return (
-							<div
-								key={metric.label}
-								className="rounded-lg border border-border bg-card p-4"
-							>
-								<div className="flex items-center justify-between mb-2">
-									<span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-										{metric.label}
-									</span>
-									<Icon
-										className={`size-4 ${metric.tone}`}
-										aria-hidden="true"
-									/>
+				{/* The columns step on the card's own width, never the viewport's
+				    (66.2-39 fix round 4, Part 8c): one until two tiles hold the
+				    longest figure, four from where four do; the icon never
+				    shrinks and no figure wraps. */}
+				<div className="@container/property-performance">
+					<div className="grid grid-cols-1 @min-[25rem]/property-performance:grid-cols-2 @min-[51rem]/property-performance:grid-cols-4 gap-4">
+						{metrics.map((metric) => {
+							const Icon = metric.icon;
+							return (
+								<div
+									key={metric.label}
+									className="rounded-lg border border-border bg-card p-4"
+								>
+									<div className="flex items-center justify-between mb-2">
+										<span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+											{metric.label}
+										</span>
+										<Icon
+											className={`size-4 shrink-0 ${metric.tone}`}
+											aria-hidden="true"
+										/>
+									</div>
+									<div
+										className={`whitespace-nowrap text-2xl font-semibold ${metric.tone}`}
+									>
+										{metric.value}
+									</div>
 								</div>
-								<div className={`text-2xl font-semibold ${metric.tone}`}>
-									{metric.value}
-								</div>
-							</div>
-						);
-					})}
+							);
+						})}
+					</div>
 				</div>
 			</CardContent>
 		</Card>

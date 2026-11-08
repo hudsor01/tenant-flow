@@ -132,10 +132,12 @@ export function MaintenanceViewClient() {
 					</div>
 					<Skeleton className="h-10 w-32" />
 				</div>
-				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-					{[1, 2, 3, 4].map((i) => (
-						<Skeleton key={i} className="h-28 rounded-lg" />
-					))}
+				<div className="@container/maintenance-stats mb-6">
+					<div className="grid grid-cols-1 @min-[21rem]/maintenance-stats:grid-cols-2 @min-[43rem]/maintenance-stats:grid-cols-4 gap-4">
+						{[1, 2, 3, 4].map((i) => (
+							<Skeleton key={i} className="h-28 rounded-lg" />
+						))}
+					</div>
 				</div>
 				<div className="flex gap-3 mb-6">
 					{[1, 2, 3, 4].map((i) => (
@@ -225,78 +227,82 @@ export function MaintenanceViewClient() {
 				</div>
 			</BlurFade>
 
-			{/* Stats */}
-			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-				<BlurFade delay={0.15}>
-					<Stat className="relative overflow-hidden">
-						{openCount > 0 && (
-							<BorderBeam
-								size={80}
-								duration={8}
-								colorFrom="var(--color-warning)"
-								colorTo="oklch(from var(--color-warning) l c h / 0.3)"
-							/>
-						)}
-						<StatLabel>Open</StatLabel>
-						{/* warning/success stat numbers use -text companions: at 32px (typography-stat)
+			{/* Stats: the columns step on the row's own width, never the
+			    viewport's (66.2-39 fix round 4, Part 8c): one until two tiles
+			    hold a four-digit count, four from where four do. */}
+			<div className="@container/maintenance-stats mb-6">
+				<div className="grid grid-cols-1 @min-[21rem]/maintenance-stats:grid-cols-2 @min-[43rem]/maintenance-stats:grid-cols-4 gap-4">
+					<BlurFade delay={0.15}>
+						<Stat className="relative overflow-hidden">
+							{openCount > 0 && (
+								<BorderBeam
+									size={80}
+									duration={8}
+									colorFrom="var(--color-warning)"
+									colorTo="oklch(from var(--color-warning) l c h / 0.3)"
+								/>
+							)}
+							<StatLabel>Open</StatLabel>
+							{/* warning/success stat numbers use -text companions: at 32px (typography-stat)
 						    text-warning/text-success measure 2.18/2.62:1 on the stat's card in light,
 						    below the AA-large 3:1 bar; the Urgent stat below keeps vivid
 						    text-destructive (4.62/3.21:1 light/dark, clears it). */}
-						<StatValue className="flex items-baseline text-warning-text">
-							<NumberTicker value={openCount} duration={800} />
-						</StatValue>
-						<StatIndicator variant="icon" color="warning">
-							<Clock />
-						</StatIndicator>
-						<StatDescription>awaiting action</StatDescription>
-					</Stat>
-				</BlurFade>
-				<BlurFade delay={0.2}>
-					<Stat className="relative overflow-hidden">
-						<StatLabel>In Progress</StatLabel>
-						<StatValue className="flex items-baseline">
-							<NumberTicker value={inProgressCount} duration={800} />
-						</StatValue>
-						<StatIndicator variant="icon" color="primary">
-							<AlertTriangle />
-						</StatIndicator>
-						<StatDescription>being worked on</StatDescription>
-					</Stat>
-				</BlurFade>
-				<BlurFade delay={0.25}>
-					<Stat className="relative overflow-hidden">
-						<StatLabel>Completed</StatLabel>
-						<StatValue className="flex items-baseline text-success-text">
-							<NumberTicker value={completedCount} duration={800} />
-						</StatValue>
-						<StatIndicator variant="icon" color="success">
-							<CheckCircle />
-						</StatIndicator>
-						<StatDescription>this month</StatDescription>
-					</Stat>
-				</BlurFade>
-				<BlurFade delay={0.3}>
-					<Stat className="relative overflow-hidden">
-						{urgentCount > 0 && (
-							<BorderBeam
-								size={80}
-								duration={4}
-								colorFrom="var(--color-destructive)"
-								colorTo="oklch(from var(--color-destructive) l c h / 0.3)"
-							/>
-						)}
-						<StatLabel>Urgent</StatLabel>
-						<StatValue className="flex items-baseline text-destructive">
-							<NumberTicker value={urgentCount} duration={800} />
-						</StatValue>
-						<StatIndicator variant="icon" color="destructive">
-							<Wrench />
-						</StatIndicator>
-						<StatDescription>
-							{urgentCount > 0 ? "needs attention" : "all clear"}
-						</StatDescription>
-					</Stat>
-				</BlurFade>
+							<StatValue className="flex items-baseline text-warning-text">
+								<NumberTicker value={openCount} duration={800} />
+							</StatValue>
+							<StatIndicator variant="icon" color="warning">
+								<Clock />
+							</StatIndicator>
+							<StatDescription>awaiting action</StatDescription>
+						</Stat>
+					</BlurFade>
+					<BlurFade delay={0.2}>
+						<Stat className="relative overflow-hidden">
+							<StatLabel>In Progress</StatLabel>
+							<StatValue className="flex items-baseline">
+								<NumberTicker value={inProgressCount} duration={800} />
+							</StatValue>
+							<StatIndicator variant="icon" color="primary">
+								<AlertTriangle />
+							</StatIndicator>
+							<StatDescription>being worked on</StatDescription>
+						</Stat>
+					</BlurFade>
+					<BlurFade delay={0.25}>
+						<Stat className="relative overflow-hidden">
+							<StatLabel>Completed</StatLabel>
+							<StatValue className="flex items-baseline text-success-text">
+								<NumberTicker value={completedCount} duration={800} />
+							</StatValue>
+							<StatIndicator variant="icon" color="success">
+								<CheckCircle />
+							</StatIndicator>
+							<StatDescription>this month</StatDescription>
+						</Stat>
+					</BlurFade>
+					<BlurFade delay={0.3}>
+						<Stat className="relative overflow-hidden">
+							{urgentCount > 0 && (
+								<BorderBeam
+									size={80}
+									duration={4}
+									colorFrom="var(--color-destructive)"
+									colorTo="oklch(from var(--color-destructive) l c h / 0.3)"
+								/>
+							)}
+							<StatLabel>Urgent</StatLabel>
+							<StatValue className="flex items-baseline text-destructive">
+								<NumberTicker value={urgentCount} duration={800} />
+							</StatValue>
+							<StatIndicator variant="icon" color="destructive">
+								<Wrench />
+							</StatIndicator>
+							<StatDescription>
+								{urgentCount > 0 ? "needs attention" : "all clear"}
+							</StatDescription>
+						</Stat>
+					</BlurFade>
+				</div>
 			</div>
 
 			{/* DASH-18: unit-scope indicator when filtered via ?unit_id= */}

@@ -66,21 +66,26 @@ function SummaryCard({
 	label,
 	value,
 	isLoading,
+	className,
 }: {
 	label: string;
 	value: string;
 	isLoading: boolean;
+	/** The card's own classes: its span in the summary's grid. */
+	className?: string;
 }) {
 	// The Card's own py-6 pads it: a pt-6 here doubled the top to 48px. mb-0:
 	// CardContent is a flex item, so the base `p` margin would stay inside it,
 	// under the label and between the figure and its label.
 	return (
-		<Card>
+		<Card className={className}>
 			<CardContent>
 				{isLoading ? (
 					<Skeleton className="h-8 w-32 mb-1" />
 				) : (
-					<p className="mb-0 text-2xl font-semibold">{value}</p>
+					<p className="mb-0 whitespace-nowrap text-2xl font-semibold">
+						{value}
+					</p>
 				)}
 				<p className="mt-1 mb-0 text-sm text-muted-foreground">{label}</p>
 			</CardContent>
@@ -145,34 +150,41 @@ export function YearEndReportSection({
 				{ledgerUnavailable ? (
 					<LedgerTotalsUnavailableCard year={year} />
 				) : (
-					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-						<SummaryCard
-							label="Rent Received"
-							value={
-								yearEndData
-									? formatCurrency(yearEndData.rentReceived)
-									: UNAVAILABLE
-							}
-							isLoading={isLoadingYearEnd}
-						/>
-						<SummaryCard
-							label="Operating Expenses"
-							value={
-								yearEndData
-									? formatCurrency(yearEndData.operatingExpenses)
-									: UNAVAILABLE
-							}
-							isLoading={isLoadingYearEnd}
-						/>
-						<SummaryCard
-							label="Net Income"
-							value={
-								yearEndData
-									? formatCurrency(yearEndData.netIncome)
-									: UNAVAILABLE
-							}
-							isLoading={isLoadingYearEnd}
-						/>
+					// The columns step on the summary's own width, never the
+					// viewport's (66.2-39 fix round 4, Part 8c): one until two cards
+					// hold -$1,234,567.00 (165.97px), Net Income under the first
+					// two, all three in a row from where three do.
+					<div className="@container/year-end-summary">
+						<div className="grid grid-cols-1 @min-[28.5rem]/year-end-summary:grid-cols-2 @min-[43rem]/year-end-summary:grid-cols-3 gap-4">
+							<SummaryCard
+								label="Rent Received"
+								value={
+									yearEndData
+										? formatCurrency(yearEndData.rentReceived)
+										: UNAVAILABLE
+								}
+								isLoading={isLoadingYearEnd}
+							/>
+							<SummaryCard
+								label="Operating Expenses"
+								value={
+									yearEndData
+										? formatCurrency(yearEndData.operatingExpenses)
+										: UNAVAILABLE
+								}
+								isLoading={isLoadingYearEnd}
+							/>
+							<SummaryCard
+								label="Net Income"
+								value={
+									yearEndData
+										? formatCurrency(yearEndData.netIncome)
+										: UNAVAILABLE
+								}
+								isLoading={isLoadingYearEnd}
+								className="@min-[28.5rem]/year-end-summary:col-span-2 @min-[43rem]/year-end-summary:col-span-1"
+							/>
+						</div>
 					</div>
 				)}
 

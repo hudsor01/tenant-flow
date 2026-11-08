@@ -182,60 +182,69 @@ function BalanceSheetFigures({ view }: { view: BalanceSheetView }) {
 	const { totalAssets, totalLiabilities, totalEquity, isBalanced } = view;
 	return (
 		<>
-			{/* Summary Stats */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-				<BlurFade delay={0.15}>
-					<Stat className="relative overflow-hidden">
-						<BorderBeam
-							size={100}
-							duration={10}
-							colorFrom="var(--color-success)"
-							colorTo="oklch(from var(--color-success) l c h / 0.3)"
-						/>
-						<StatLabel>Total Assets</StatLabel>
-						<StatValue className="flex items-baseline text-success-text">
-							{formatCurrency(totalAssets)}
-						</StatValue>
-						<StatIndicator variant="icon" color="success">
-							<Building2 />
-						</StatIndicator>
-						<StatDescription>what you own</StatDescription>
-					</Stat>
-				</BlurFade>
-
-				<BlurFade delay={0.2}>
-					<Stat className="relative overflow-hidden">
-						<StatLabel>Total Liabilities</StatLabel>
-						<StatValue className="flex items-baseline text-destructive-text">
-							{formatCurrency(totalLiabilities)}
-						</StatValue>
-						<StatIndicator variant="icon" color="destructive">
-							<CreditCard />
-						</StatIndicator>
-						<StatDescription>what you owe</StatDescription>
-					</Stat>
-				</BlurFade>
-
-				<BlurFade delay={0.25}>
-					<Stat className="relative overflow-hidden">
-						{totalEquity > 0 && (
+			{/* Summary Stats: the columns step on the row's own width, never the
+			    viewport's (66.2-39 fix round 4, Part 8c): one until two tiles
+			    hold a figure as long as -$1,234,567.00, then the third tile under
+			    the first two, all three in a row from where three do. A tile under
+			    16rem (one column at 320) sets its figure at 24px. */}
+			<div className="@container/balance-stats mb-8">
+				<div className="grid grid-cols-1 @min-[33rem]/balance-stats:grid-cols-2 @min-[50rem]/balance-stats:grid-cols-3 gap-4">
+					<BlurFade delay={0.15}>
+						<Stat className="@container/stat relative overflow-hidden">
 							<BorderBeam
 								size={100}
-								duration={12}
-								colorFrom="var(--color-primary)"
-								colorTo="oklch(from var(--color-primary) l c h / 0.3)"
+								duration={10}
+								colorFrom="var(--color-success)"
+								colorTo="oklch(from var(--color-success) l c h / 0.3)"
 							/>
-						)}
-						<StatLabel>Total Equity</StatLabel>
-						<StatValue className="flex items-baseline">
-							{formatCurrency(totalEquity)}
-						</StatValue>
-						<StatIndicator variant="icon" color="primary">
-							<Wallet />
-						</StatIndicator>
-						<StatDescription>net worth</StatDescription>
-					</Stat>
-				</BlurFade>
+							<StatLabel>Total Assets</StatLabel>
+							<StatValue className="flex items-baseline text-2xl leading-none @min-[16rem]/stat:text-stat text-success-text">
+								{formatCurrency(totalAssets)}
+							</StatValue>
+							<StatIndicator variant="icon" color="success">
+								<Building2 />
+							</StatIndicator>
+							<StatDescription>what you own</StatDescription>
+						</Stat>
+					</BlurFade>
+
+					<BlurFade delay={0.2}>
+						<Stat className="@container/stat relative overflow-hidden">
+							<StatLabel>Total Liabilities</StatLabel>
+							<StatValue className="flex items-baseline text-2xl leading-none @min-[16rem]/stat:text-stat text-destructive-text">
+								{formatCurrency(totalLiabilities)}
+							</StatValue>
+							<StatIndicator variant="icon" color="destructive">
+								<CreditCard />
+							</StatIndicator>
+							<StatDescription>what you owe</StatDescription>
+						</Stat>
+					</BlurFade>
+
+					<BlurFade
+						className="@min-[33rem]/balance-stats:col-span-2 @min-[50rem]/balance-stats:col-span-1"
+						delay={0.25}
+					>
+						<Stat className="@container/stat relative overflow-hidden">
+							{totalEquity > 0 && (
+								<BorderBeam
+									size={100}
+									duration={12}
+									colorFrom="var(--color-primary)"
+									colorTo="oklch(from var(--color-primary) l c h / 0.3)"
+								/>
+							)}
+							<StatLabel>Total Equity</StatLabel>
+							<StatValue className="flex items-baseline text-2xl leading-none @min-[16rem]/stat:text-stat">
+								{formatCurrency(totalEquity)}
+							</StatValue>
+							<StatIndicator variant="icon" color="primary">
+								<Wallet />
+							</StatIndicator>
+							<StatDescription>net worth</StatDescription>
+						</Stat>
+					</BlurFade>
+				</div>
 			</div>
 
 			{/* Balance Equation Check */}

@@ -59,14 +59,17 @@ function AnalyticsSkeleton() {
 					<Skeleton className="h-10 w-24" />
 				</div>
 			</div>
-			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-				{Array.from({ length: 4 }).map((_, i) => (
-					<div key={i} className="rounded-sm border bg-card p-4 shadow-sm">
-						<Skeleton className="h-4 w-24 mb-2" />
-						<Skeleton className="h-8 w-20 mb-2" />
-						<Skeleton className="h-4 w-16" />
-					</div>
-				))}
+			{/* The stat row's columns (66.2-39 fix round 4, Part 8c), so the loaded row does not reflow (AnalyticsStatCards). */}
+			<div className="@container/analytics-stats mb-8">
+				<div className="grid grid-cols-1 @min-[27rem]/analytics-stats:grid-cols-2 @min-[54.5rem]/analytics-stats:grid-cols-4 gap-4">
+					{Array.from({ length: 4 }).map((_, i) => (
+						<div key={i} className="rounded-sm border bg-card p-4 shadow-sm">
+							<Skeleton className="h-4 w-24 mb-2" />
+							<Skeleton className="h-8 w-20 mb-2" />
+							<Skeleton className="h-4 w-16" />
+						</div>
+					))}
+				</div>
 			</div>
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 				<div className="bg-card border border-border rounded-lg p-6">

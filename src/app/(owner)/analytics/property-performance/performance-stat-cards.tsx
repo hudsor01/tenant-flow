@@ -26,107 +26,110 @@ export function PerformanceStatCards({ metrics }: PerformanceStatCardsProps) {
 	// expanded, "Average occupancy" (122.19px) and its neighbours wrap beside
 	// one-line "Rent received" from 1056 to 1200px, where a release at lg put
 	// the figures 20px apart (fix round 4, K1). Four columns fit the longest
-	// label from 54.1rem.
+	// label from 54.1rem. The columns step on the row's width too (Part 8c):
+	// one until two tiles hold its longest figure, four from where four do.
 	return (
-		<div className="@container/performance-stats grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-			<BlurFade delay={0.2} className="h-full">
-				<Stat className="relative h-full content-start overflow-hidden">
-					<BorderBeam
-						size={100}
-						duration={10}
-						colorFrom="var(--color-primary)"
-						colorTo="oklch(from var(--color-primary) l c h / 0.3)"
-					/>
-					<StatLabel className="min-h-10 @4xl/performance-stats:min-h-0">
-						Total properties
-					</StatLabel>
-					<StatValue className="flex items-baseline">
-						<NumberTicker value={metrics.totalProperties} duration={1500} />
-					</StatValue>
-					<StatIndicator variant="icon" color="primary">
-						<Building2 />
-					</StatIndicator>
-					<StatDescription>Tracked in workspace</StatDescription>
-				</Stat>
-			</BlurFade>
-
-			<BlurFade delay={0.3} className="h-full">
-				<Stat className="relative h-full content-start overflow-hidden">
-					<BorderBeam
-						size={100}
-						duration={12}
-						colorFrom="var(--color-success)"
-						colorTo="oklch(from var(--color-success) l c h / 0.3)"
-					/>
-					<StatLabel className="min-h-10 @4xl/performance-stats:min-h-0">
-						Average occupancy
-					</StatLabel>
-					<StatValue className="flex items-baseline gap-0.5 text-success-text">
-						<NumberTicker
-							value={metrics.averageOccupancy}
-							duration={1500}
-							decimalPlaces={1}
+		<div className="@container/performance-stats mb-8">
+			<div className="grid grid-cols-1 @min-[27rem]/performance-stats:grid-cols-2 @min-[54.5rem]/performance-stats:grid-cols-4 gap-4">
+				<BlurFade delay={0.2} className="h-full">
+					<Stat className="relative h-full content-start overflow-hidden">
+						<BorderBeam
+							size={100}
+							duration={10}
+							colorFrom="var(--color-primary)"
+							colorTo="oklch(from var(--color-primary) l c h / 0.3)"
 						/>
-						<span className="text-lg">%</span>
-					</StatValue>
-					<StatIndicator variant="icon" color="success">
-						<TrendingUp />
-					</StatIndicator>
-					<StatTrend trend="neutral">
-						<span className="text-muted-foreground">
-							{formatNumber(metrics.occupiedUnits)} of{" "}
-							{formatNumber(metrics.totalUnits)} occupied
-						</span>
-					</StatTrend>
-				</Stat>
-			</BlurFade>
-
-			<BlurFade delay={0.4} className="h-full">
-				<Stat className="relative h-full content-start overflow-hidden">
-					<StatLabel className="min-h-10 @4xl/performance-stats:min-h-0">
-						Best performer
-					</StatLabel>
-					<StatValue className="flex items-baseline text-base font-semibold truncate">
-						{metrics.bestPerformer ?? "-"}
-					</StatValue>
-					<StatIndicator variant="icon" color="info">
-						<Home />
-					</StatIndicator>
-					<StatDescription>Highest occupancy rate</StatDescription>
-				</Stat>
-			</BlurFade>
-
-			<BlurFade delay={0.5} className="h-full">
-				<Stat className="relative h-full content-start overflow-hidden">
-					<StatLabel className="min-h-10 @4xl/performance-stats:min-h-0">
-						Rent received
-					</StatLabel>
-					{metrics.rentReceived === null ? (
-						<StatValue className="flex items-baseline text-base font-semibold text-muted-foreground">
-							Unavailable
+						<StatLabel className="min-h-10 @4xl/performance-stats:min-h-0">
+							Total properties
+						</StatLabel>
+						<StatValue className="flex items-baseline">
+							<NumberTicker value={metrics.totalProperties} duration={1500} />
 						</StatValue>
-					) : (
-						<StatValue className="flex items-baseline gap-0.5">
+						<StatIndicator variant="icon" color="primary">
+							<Building2 />
+						</StatIndicator>
+						<StatDescription>Tracked in workspace</StatDescription>
+					</Stat>
+				</BlurFade>
+
+				<BlurFade delay={0.3} className="h-full">
+					<Stat className="relative h-full content-start overflow-hidden">
+						<BorderBeam
+							size={100}
+							duration={12}
+							colorFrom="var(--color-success)"
+							colorTo="oklch(from var(--color-success) l c h / 0.3)"
+						/>
+						<StatLabel className="min-h-10 @4xl/performance-stats:min-h-0">
+							Average occupancy
+						</StatLabel>
+						<StatValue className="flex items-baseline gap-0.5 text-success-text">
 							<NumberTicker
-								value={metrics.rentReceived}
+								value={metrics.averageOccupancy}
 								duration={1500}
-								currency
-								symbolClassName="text-lg mr-0.5"
+								decimalPlaces={1}
 							/>
+							<span className="text-lg">%</span>
 						</StatValue>
-					)}
-					<StatIndicator variant="icon" color="success">
-						<DollarSign />
-					</StatIndicator>
-					<StatDescription>
-						{metrics.rentReceivedWindow
-							? formatDateWindow(metrics.rentReceivedWindow)
-							: metrics.rentReceived === null
-								? "Ledger totals pending"
-								: "Last 30 days"}
-					</StatDescription>
-				</Stat>
-			</BlurFade>
+						<StatIndicator variant="icon" color="success">
+							<TrendingUp />
+						</StatIndicator>
+						<StatTrend trend="neutral">
+							<span className="text-muted-foreground">
+								{formatNumber(metrics.occupiedUnits)} of{" "}
+								{formatNumber(metrics.totalUnits)} occupied
+							</span>
+						</StatTrend>
+					</Stat>
+				</BlurFade>
+
+				<BlurFade delay={0.4} className="h-full">
+					<Stat className="relative h-full content-start overflow-hidden">
+						<StatLabel className="min-h-10 @4xl/performance-stats:min-h-0">
+							Best performer
+						</StatLabel>
+						<StatValue className="flex items-baseline text-base font-semibold truncate">
+							{metrics.bestPerformer ?? "-"}
+						</StatValue>
+						<StatIndicator variant="icon" color="info">
+							<Home />
+						</StatIndicator>
+						<StatDescription>Highest occupancy rate</StatDescription>
+					</Stat>
+				</BlurFade>
+
+				<BlurFade delay={0.5} className="h-full">
+					<Stat className="relative h-full content-start overflow-hidden">
+						<StatLabel className="min-h-10 @4xl/performance-stats:min-h-0">
+							Rent received
+						</StatLabel>
+						{metrics.rentReceived === null ? (
+							<StatValue className="flex items-baseline text-base font-semibold text-muted-foreground">
+								Unavailable
+							</StatValue>
+						) : (
+							<StatValue className="flex items-baseline gap-0.5">
+								<NumberTicker
+									value={metrics.rentReceived}
+									duration={1500}
+									currency
+									symbolClassName="text-lg mr-0.5"
+								/>
+							</StatValue>
+						)}
+						<StatIndicator variant="icon" color="success">
+							<DollarSign />
+						</StatIndicator>
+						<StatDescription>
+							{metrics.rentReceivedWindow
+								? formatDateWindow(metrics.rentReceivedWindow)
+								: metrics.rentReceived === null
+									? "Ledger totals pending"
+									: "Last 30 days"}
+						</StatDescription>
+					</Stat>
+				</BlurFade>
+			</div>
 		</div>
 	);
 }

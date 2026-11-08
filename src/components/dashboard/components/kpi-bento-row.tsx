@@ -37,10 +37,14 @@ const KpiSparkline = dynamic(
 
 // The grid is the `kpi-bento` inline-size container its tiles query. A
 // container query matches ancestors only, so nothing on this element may use a
-// `@…/kpi-bento:` variant: the gap stays a fixed `gap-4` at every width.
+// `@…/kpi-bento:` variant: the gap stays a fixed `gap-4` at every width. A tile
+// is never narrower than 14.5rem, where its value has 182px inside the 56rem
+// row's 24px padding: the ticker's $1,234,567 is 176.61px (66.2-39 fix round
+// 4, Part 8c; at 180px, six tiles in the 1280px row with the rail collapsed
+// left a value 134px).
 const GRID_CLASSES = cn(
 	"@container/kpi-bento grid gap-4",
-	"grid-cols-[repeat(auto-fit,minmax(180px,1fr))]",
+	"grid-cols-[repeat(auto-fit,minmax(14.5rem,1fr))]",
 );
 
 function TrendArrow({ direction }: { direction: "up" | "down" | "stable" }) {
@@ -327,32 +331,28 @@ function KpiTile({ tile }: { tile: KpiTileConfig }) {
 		) : null;
 	return (
 		<Stat
-			className="h-full @4xl/kpi-bento:p-6 transition-colors duration-200"
+			className="h-full content-start @4xl/kpi-bento:p-6 transition-colors duration-200"
 			// A generic div cannot be named, so the narrated label needs a role
 			// that can (66.2-39).
 			role="group"
 			aria-label={ariaLabel}
 		>
-			{/* The label and the value share one wrapping row, and the value never
-			    breaks: when a tile is too narrow for both side by side, the whole
-			    value drops below its label instead of splitting "$" from the number
-			    (CP-4 follow-up). At widths where both fit, the row renders exactly
-			    as the stat's 1fr/auto grid columns did. */}
-			<div
-				data-slot="kpi-heading"
-				className="col-span-2 flex flex-wrap justify-between gap-x-4 gap-y-1"
-			>
-				<StatLabel>{tile.label}</StatLabel>
-				<StatValue className="whitespace-nowrap">
-					<KpiNumberTicker
-						value={tile.value}
-						decimalPlaces={tile.decimalPlaces}
-						duration={800}
-						currency={tile.currency ?? false}
-					/>
-					{tile.suffix ? <span aria-hidden="true">{tile.suffix}</span> : null}
-				</StatValue>
-			</div>
+			{/* The label, then the value on a line of its own across the tile,
+			    never broken (CP-4 follow-up: "$" stays with its number). A row
+			    the two shared, wrapping when they did not fit, put one tile's
+			    value a line below its neighbours' (owner A at 1024px: Scheduled
+			    Rent's at 181 beside Occupancy's at 157; 66.2-39 fix round 4,
+			    Part 8c). */}
+			<StatLabel>{tile.label}</StatLabel>
+			<StatValue>
+				<KpiNumberTicker
+					value={tile.value}
+					decimalPlaces={tile.decimalPlaces}
+					duration={800}
+					currency={tile.currency ?? false}
+				/>
+				{tile.suffix ? <span aria-hidden="true">{tile.suffix}</span> : null}
+			</StatValue>
 			{trendChip}
 			{tile.description ? (
 				<StatDescription>{tile.description}</StatDescription>

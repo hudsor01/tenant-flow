@@ -10,10 +10,13 @@ export function LeaseDetailsSkeleton() {
 					<Skeleton className="h-9 w-24" />
 				</div>
 			</div>
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				{[1, 2, 3, 4].map((i) => (
-					<Skeleton key={i} className="h-24" />
-				))}
+			{/* The stat row's columns (66.2-39 fix round 4, Part 8c), so the loaded row does not reflow (the lease page's key metrics). */}
+			<div className="@container/lease-metrics">
+				<div className="grid grid-cols-1 @min-[22.5rem]/lease-metrics:grid-cols-2 @min-[45.5rem]/lease-metrics:grid-cols-4 gap-4">
+					{[1, 2, 3, 4].map((i) => (
+						<Skeleton key={i} className="h-24" />
+					))}
+				</div>
 			</div>
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				<div className="lg:col-span-2">

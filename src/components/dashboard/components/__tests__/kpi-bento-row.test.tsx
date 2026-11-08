@@ -360,10 +360,11 @@ describe("KpiBentoRow", () => {
 
 	// CP-4 follow-up: a narrow tile used to split "$" from "7,500" because the
 	// prefix and the ticker were separate inline boxes in the stat's 1fr/auto
-	// grid row. The label and the value now share one wrapping row and the
-	// value never breaks, so a value that does not fit beside its label drops
-	// below it whole.
-	it("puts each label and its non-wrapping value in one wrapping row", () => {
+	// grid row; the value never breaks. Part 8c (66.2-39 fix round 4): the
+	// label and the value shared one wrapping row, so a tile whose value did
+	// not fit beside its label put it a line below its neighbours' values. The
+	// value now has a line of its own under the label in every tile.
+	it("puts each label above its non-wrapping value, both children of the stat", () => {
 		stubMatchMedia(true);
 		render(
 			<KpiBentoRow
@@ -377,27 +378,13 @@ describe("KpiBentoRow", () => {
 		expect(items).toHaveLength(6);
 		for (const item of items) {
 			const stat = item.querySelector('[data-slot="stat"]');
-			const row = stat?.querySelector(':scope > [data-slot="kpi-heading"]');
-			expect(row, "heading row is a direct child of the stat").not.toBeNull();
-			const rowTokens = row?.className.split(/\s+/) ?? [];
-			for (const token of [
-				"col-span-2",
-				"flex",
-				"flex-wrap",
-				"justify-between",
-				"gap-x-4",
-				"gap-y-1",
-			]) {
-				expect(rowTokens).toContain(token);
-			}
-			const children = Array.from(row?.children ?? []);
-			expect(children.map((child) => child.getAttribute("data-slot"))).toEqual([
-				"stat-label",
-				"stat-value",
-			]);
-			expect(children[1]?.className.split(/\s+/)).toContain(
-				"whitespace-nowrap",
+			const slots = Array.from(stat?.children ?? []).map((child) =>
+				child.getAttribute("data-slot"),
 			);
+			expect(slots.slice(0, 2)).toEqual(["stat-label", "stat-value"]);
+			expect(stat?.querySelector('[data-slot="kpi-heading"]')).toBeNull();
+			const value = stat?.querySelector(':scope > [data-slot="stat-value"]');
+			expect(value?.className.split(/\s+/)).toContain("whitespace-nowrap");
 		}
 		const revenueValue = items[0]?.querySelector('[data-slot="stat-value"]');
 		expect(revenueValue?.textContent).toBe("$14,250");
