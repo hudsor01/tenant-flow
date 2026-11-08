@@ -18,14 +18,15 @@ import {
 	tenantsCsvFilename,
 } from "../tenants-csv";
 
-const { handleMutationErrorMock } = vi.hoisted(() => ({
+const { handleMutationErrorMock, actionBar } = vi.hoisted(() => ({
 	handleMutationErrorMock: vi.fn(),
+	/** The props the selection bar last rendered with. */
+	actionBar: { props: {} as Record<string, unknown> },
 }));
 
-let actionBarProps: Record<string, unknown> = {};
 vi.mock("../tenant-action-bar", () => ({
 	TenantActionBar: (props: Record<string, unknown>) => {
-		actionBarProps = props;
+		actionBar.props = props;
 		return null;
 	},
 }));
@@ -87,7 +88,7 @@ async function renderTenants(tenants: TenantItem[] = TENANTS) {
 beforeEach(() => {
 	createdBlobs.length = 0;
 	clickedDownloads.length = 0;
-	actionBarProps = {};
+	actionBar.props = {};
 	vi.spyOn(URL, "createObjectURL").mockImplementation((blob) => {
 		createdBlobs.push(blob as Blob);
 		return "blob:tenants";
@@ -160,7 +161,7 @@ describe("tenants page Export controls", () => {
 	it("the selection bar's Export downloads only the selected tenants and keeps them selected", async () => {
 		useTenantsStore.setState({ selectedIds: new Set(["t2"]) });
 		await renderTenants();
-		(actionBarProps.onExport as () => void)();
+		(actionBar.props.onExport as () => void)();
 		const rows = parse((await createdBlobs[0]?.text()) ?? "");
 		expect(rows.slice(1).map((r) => r[1])).toEqual(["grace@example.com"]);
 		expect([...useTenantsStore.getState().selectedIds]).toEqual(["t2"]);

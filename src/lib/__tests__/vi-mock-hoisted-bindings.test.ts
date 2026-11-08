@@ -5,11 +5,11 @@
  * the file's imports and declarations, so a factory that names a plain
  * `const` works only while nothing calls it before the declaration runs.
  *
- * 66.2-39 fix round 4 (G37): the PR added six such bindings in five files
+ * 66.2-39 fix round 4 (G37): the PR added seven such bindings in six files
  * (app-shell-sections' pathname and router mocks, label-in-name's pathname
- * mock, property-type-rendering's update mock, and two fixtures); they are
- * hoisted now, and a seventh the PR added waits in `PENDING`. The scan covers every tracked `*.test.ts(x)` that calls
- * `vi.mock`: a top-level `const`/`let`/`var` that is not `vi.hoisted(…)`
+ * mock, property-type-rendering's update mock, two fixtures, and
+ * tenant-exports' captured action-bar props); they are hoisted now. The scan
+ * covers every tracked `*.test.ts(x)` that calls `vi.mock`: a top-level `const`/`let`/`var` that is not `vi.hoisted(…)`
  * (awaited or not), referred to inside a `vi.mock(path, factory)` factory and
  * not redeclared there. `RATCHET` lists the older bindings, file by file, as
  * they stood when the scan landed; the list can only shrink.
@@ -157,14 +157,6 @@ function unhoistedMockBindings(path: string, source: string): string[] {
 }
 
 /**
- * Added by the PR in a file another fix-round-4 part owns, which hoists it:
- * remove the line when it does.
- */
-const PENDING = `
-src/components/tenants/__tests__/tenant-exports.test.tsx actionBarProps
-`;
-
-/**
  * The older bindings: `path name name …`, one line per file. Remove a name
  * when its binding moves into `vi.hoisted` (or out of the factory).
  */
@@ -305,10 +297,7 @@ describe("vi.mock factories read only vi.hoisted bindings", () => {
 				found.push(`${path} ${name}`);
 			}
 		}
-		const ratchet = new Set([
-			...ratchetPairs(RATCHET),
-			...ratchetPairs(PENDING),
-		]);
+		const ratchet = new Set(ratchetPairs(RATCHET));
 		const added = found.filter((pair) => !ratchet.has(pair));
 		expect(
 			added,
@@ -318,7 +307,7 @@ describe("vi.mock factories read only vi.hoisted bindings", () => {
 		const stale = [...ratchet].filter((pair) => !present.has(pair));
 		expect(
 			stale,
-			`hoisted or gone since the ratchet was written; remove them from RATCHET or PENDING:\n${stale.join("\n")}`,
+			`hoisted or gone since the ratchet was written; remove them from RATCHET:\n${stale.join("\n")}`,
 		).toEqual([]);
 	});
 });
