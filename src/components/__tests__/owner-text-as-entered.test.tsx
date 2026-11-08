@@ -2,12 +2,13 @@
  * Text an owner entered renders as entered (66.2-39 fix round 1, part P).
  *
  * The expenses page's breakdown ran each vendor name through a first-letter
- * capitalizer ("acme plumbing" read "Acme plumbing"), keyed by a style map of
- * category names no vendor has. The sweep of case transforms over first-party
- * UI found two more owner values altered on screen: a lease's utilities, shown
- * as stored with CSS `capitalize` ("lawn_care" read "Lawn_care", a utility the
- * owner typed was re-cased), and a unit number inside the unit menu's upper-case
- * heading ("apt b" read "APT B").
+ * capitalizer ("acme plumbing" read "Acme plumbing"), and styled it from a map
+ * keyed on category names: a vendor named exactly like a key took that key's
+ * style, every other vendor the map's default. The sweep of case transforms
+ * over first-party UI found two more owner values altered on screen: a lease's
+ * utilities, shown as stored with CSS `capitalize` ("lawn_care" read
+ * "Lawn_care", a utility the owner typed was re-cased), and a unit number
+ * inside the unit menu's upper-case heading ("apt b" read "APT B").
  *
  * The guard reads every non-test .tsx under src/app and src/components and
  * fails on a `capitalize` / `uppercase` / `lowercase` class (or an h5/h6, which
