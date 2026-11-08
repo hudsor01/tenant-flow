@@ -288,6 +288,12 @@ describe("paragraphs carry no base margin where it breaks declared spacing", () 
 				`<div className="p-4"><p className="text-sm">a</p><Button /></div>`,
 			),
 		).toEqual([]);
+		expect(
+			shapes(`<DialogHeader className="sr-only">
+				<DialogTitle>Title</DialogTitle>
+				<DialogDescription>never seen</DialogDescription>
+			</DialogHeader>`),
+		).toEqual([]);
 		expect(shapes(`<Unknown><p className="text-sm">a</p></Unknown>`)).toEqual(
 			[],
 		);

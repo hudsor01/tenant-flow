@@ -27,8 +27,9 @@
  * A paragraph is exempt when its own class string, its parent's child
  * variant or an ancestor's descendant variant declares its bottom margin,
  * when a vertical space utility on its parent gives it one (any child but
- * the last), and when it is out of flow (absolutely or fixed positioned,
- * not displayed, screen-reader only) or inline.
+ * the last), when it is out of flow (absolutely or fixed positioned, not
+ * displayed, screen-reader only) or inline, and when an ancestor is not
+ * displayed or screen-reader only (nothing in it is seen).
  *
  * WHAT IT READS. Every paragraph element of a source, parsed with oxc
  * (through `rolldown/utils`, as `button-sites.ts` parses): a `<p>`, or a
@@ -289,6 +290,8 @@ export interface BoxStyle {
 	outOfFlow: boolean;
 	/** Not displayed under a width or container query: absent at some widths. */
 	hiddenAtWidth: boolean;
+	/** Not displayed, or clipped to nothing (screen-reader only): nothing in it is seen. */
+	unseen: boolean;
 	inline: boolean;
 	/** Holds a last child's bottom margin in. */
 	holdsMargin: boolean;
@@ -442,6 +445,7 @@ export function createBoxReader(
 			flexOrGrid: false,
 			outOfFlow: false,
 			hiddenAtWidth: false,
+			unseen: false,
 			inline: false,
 			holdsMargin: false,
 			marginTop: null,
@@ -452,6 +456,7 @@ export function createBoxReader(
 			descendantMargin: false,
 		};
 		let position: string | null = null;
+		let clipped = false;
 		let paddingBottom: number | null = null;
 		let borderBottom: number | null = null;
 		let overflow: string | null = null;
@@ -463,6 +468,7 @@ export function createBoxReader(
 			for (const [prop, value] of effect.rest) {
 				if (prop === "display") style.display = value;
 				if (prop === "position") position = value;
+				if (prop === "clip-path") clipped = value === "inset(50%)";
 				if (
 					prop === "overflow" ||
 					prop === "overflow-y" ||
@@ -510,6 +516,7 @@ export function createBoxReader(
 			position === "fixed" ||
 			style.display === "none";
 		style.inline = style.display === "inline";
+		style.unseen = style.display === "none" || (clipped && style.outOfFlow);
 		const nonZero = (n: number | null) => n !== null && n !== 0;
 		style.holdsMargin =
 			nonZero(paddingBottom) ||
@@ -1128,7 +1135,8 @@ function paragraphHit(
 	const placement = placementOf(walk.node, walk.parents);
 	if (!placement) return null;
 	for (const ancestor of ancestorsOf(walk)) {
-		if (elementInfo(ancestor.node, ctx)?.style.descendantMargin) return null;
+		const info = elementInfo(ancestor.node, ctx);
+		if (info?.style.descendantMargin || info?.style.unseen) return null;
 	}
 	const parent = elementInfo(placement.parent, ctx);
 	if (!parent || parent.style.inline) return null;
