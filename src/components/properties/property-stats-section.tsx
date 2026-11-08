@@ -77,26 +77,25 @@ export function PropertyStatsSection({ summary }: PropertyStatsSectionProps) {
 							Occupied Rent
 						</p>
 					</div>
+					{/* The sub-line sits below the figure row, not in it: as an item of
+					    the bottom-aligned row it lifted this figure 4px above the other
+					    three and dropped the icon 12px below theirs. */}
 					<div className="flex items-end justify-between">
-						<div>
-							<p className="mb-0 text-2xl font-bold text-foreground">
-								{formatCurrency(summary.totalMonthlyRevenue)}
-							</p>
-							{summary.totalUnits > 0 && (
-								<p className="mb-0 text-xs text-muted-foreground">
-									{formatCurrency(
-										Math.round(
-											summary.totalMonthlyRevenue / summary.totalUnits,
-										),
-									)}
-									/unit avg
-								</p>
-							)}
-						</div>
+						<p className="mb-0 text-2xl font-bold text-foreground">
+							{formatCurrency(summary.totalMonthlyRevenue)}
+						</p>
 						<div className="w-9 h-9 rounded-sm bg-success/10 flex items-center justify-center">
 							<DollarSign className="w-4 h-4 text-success-text" />
 						</div>
 					</div>
+					{summary.totalUnits > 0 && (
+						<p className="mb-0 text-xs text-muted-foreground">
+							{formatCurrency(
+								Math.round(summary.totalMonthlyRevenue / summary.totalUnits),
+							)}
+							/unit avg
+						</p>
+					)}
 				</div>
 			</div>
 		</section>

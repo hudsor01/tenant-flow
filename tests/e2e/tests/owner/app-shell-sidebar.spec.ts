@@ -2233,3 +2233,71 @@ test.describe("CP-4 follow-up: dashboard layout at every rail state", () => {
 		});
 	}
 });
+
+/**
+ * The /properties stat row at every rail state (66.2-39 fix round 4, Part 8b).
+ *
+ * Each tile's figure row is bottom-aligned (`flex items-end`): the figure and
+ * the icon share a foot. Occupied Rent's "/unit avg" sub-line sat inside that
+ * row, in the figure's item, so the item stood a line taller than its
+ * neighbours': its figure rode 4px above the other three tiles' figures and its
+ * icon 12px below their icons, at every width (owner A on the served build:
+ * figures 385 vs 389, icons 397 vs 385 at 1280). jsdom lays nothing out, so a
+ * class-presence test passes either way: only the browser's boxes can tell.
+ */
+test.describe("/properties stat row at every rail state", () => {
+	test("each grid row's figures share a top, and so do its icons", async ({
+		page,
+	}) => {
+		test.setTimeout(120_000);
+		const errors = await openShell(page);
+		for (const cell of KPI_CELLS) {
+			await seedSidebarCookie(page, cell.collapsed ? "false" : "true");
+			await page.setViewportSize({ width: cell.width, height: cell.height });
+			await page.goto("/properties");
+			await waitForHydration(page, TRIGGER);
+			const where = cellLabel(cell);
+			const tiles = page
+				.locator("section", {
+					has: page.getByRole("heading", {
+						level: 2,
+						name: "Overview",
+						exact: true,
+					}),
+				})
+				.locator(":scope > .grid > div");
+			await expect(tiles).toHaveCount(4);
+			// The sub-line is the only content that can lift a figure: without it
+			// (no units) this test could not fail, so its presence is the control.
+			await expect(tiles.nth(3).getByText("/unit avg")).toBeVisible();
+			const tileBoxes = await boxesOf(tiles, { min: 4 });
+			const figures = await boxesOf(tiles.locator("p.text-2xl"), { min: 4 });
+			const icons = await boxesOf(
+				tiles.locator(":scope > div.flex > div.rounded-sm"),
+				{ min: 4 },
+			);
+			record(`properties stat row ${where}`, { tileBoxes, figures, icons });
+			expect(figures).toHaveLength(4);
+			expect(icons).toHaveLength(4);
+			for (let index = 1; index < 4; index += 1) {
+				const tile = tileBoxes[index] as Box;
+				// The first tile of the same grid row (two columns below lg).
+				const first = tileBoxes.findIndex(
+					(other) => Math.abs(other.y - tile.y) <= 0.5,
+				);
+				if (first === index) continue;
+				expectNearSoft(
+					(figures[index] as Box).y,
+					(figures[first] as Box).y,
+					`${where}: tile ${index + 1}'s figure top`,
+				);
+				expectNearSoft(
+					(icons[index] as Box).y,
+					(icons[first] as Box).y,
+					`${where}: tile ${index + 1}'s icon top`,
+				);
+			}
+		}
+		expect(errors).toEqual([]);
+	});
+});
