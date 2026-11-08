@@ -171,7 +171,16 @@ Out-of-scope discoveries logged by executors. Each entry names the plan that fou
 - **Dead code in files this PR touched, outside `src/types`:** `LeaseActionButtons` (`src/components/leases/lease-action-buttons.tsx`, no importer; the only reader of `useDeleteLeaseOptimisticMutation`, so the chain is dead), `LoadingTimeoutWrapper`, `getDashboardPercentage`, `registerZodSchema`, `urlSchema`, `safeIntegerSchema`, and `transformDashboardData` (a locked D-10 seam). The exports guard (`exports-have-readers.test.ts`) holds them in its ratchet.
 - **MSW fixtures:** the legacy flat shapes of `get_dashboard_stats`, `get_lease_stats` and `get_maintenance_stats` (`src/test/mocks/msw/handlers/rpc.ts`) map to zeros; the `get_user_profile` handler has no caller; `/auth/v1/token` (`supabase-auth.ts`) is read by no test (supabase-js refreshes only a stored session); a tenant create cannot run through MSW (it needs a stored session).
 - **A duplicate pair:** `UserProfileOwnerData` and `profile-card.tsx`'s `OwnerProfile`, the same shape under two names, as at `d9c7329f0`.
+- **An unreachable stats block (Part 8d):** `src/components/profiles/owner/profile-card.tsx:130` renders the properties and units counts only when `profile.owner_profile` is set, and no queryFn sets it: `PROFILE_SELECT` (`src/hooks/api/use-profile.ts`) reads no such column, `mapUserProfile` returns no such key, and `git grep owner_profile -- src` finds only the two fields typed with the pair above (`api-contracts.ts:30`, `profile-card.tsx:23`), the card's three reads and two test fixtures that set it by hand, at `42d01789a` and at `d9c7329f0` alike. The block's Stat row is checked by the stat-row guard but cannot render.
 - **Why deferred:** each is as at `d9c7329f0` and this PR does not make it wrong.
+
+## 66.2-39 (fix round 4, Part 8d): overflows outside the stat-row class, as at `d9c7329f0`
+
+Measured on the served build (`50d797f06`'s code), 320-1600 in 8px steps, light and dark, owner A; each line identical at `d9c7329f0` and not a stat row, so a follow-up under the scope line:
+- `src/components/leases/wizard/review-step.tsx:109`: the review's Financial Terms are a fixed `grid-cols-3` with `pl-6`; at 320 each term is 44.66px and owner A's $1,500.00 (80.66px at 18px) runs into the next term (a long rent, $999,999.00, 101.13px), from 320 to 480, and the three terms' figures sit apart at 352-424.
+- `src/components/leases/wizard/lease-creation-wizard.tsx`: the wizard's Create Draft Lease button (180.45px, `shrink-0`) puts the page 21px past 320 (`scrollWidth` 341).
+- `src/components/maintenance/detail/maintenance-header-card.tsx:62`: the header's title and its actions (status select, Edit, Export) share a row that does not wrap: the page is 341px wide at 320-336.
+- **Why deferred:** the scope line; the stat-row class is held by `stat-rows-hold-their-figures.test.tsx`, which these are not.
 
 ## 66.2-39 (fix round 4, Parts 3 and 5): figures, states and tests as at `d9c7329f0`
 
