@@ -62,8 +62,11 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 		form.handleSubmit();
 	};
 
+	// w-full: CardFooter is a flex row, so without it this row shrank to its
+	// buttons (237.5px at the footer's left edge), its justify-end did nothing
+	// and its rule ran under the buttons only.
 	const footer = (
-		<div className="flex justify-end gap-4 pt-6 border-t">
+		<div className="flex w-full justify-end gap-4 pt-6 border-t">
 			<Button type="button" variant="outline" onClick={() => router.back()}>
 				Cancel
 			</Button>

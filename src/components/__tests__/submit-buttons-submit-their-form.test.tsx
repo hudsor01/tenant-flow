@@ -27,6 +27,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TenantEditForm } from "#app/(owner)/tenants/components/tenant-edit-form.client";
 import { AddTenantForm } from "#components/tenants/add-tenant-form";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
+import { compileCandidates, parseCss } from "#test/utils/tailwind-engine";
 import { DEFAULT_TENANT } from "#test/utils/test-data";
 
 const mocks = vi.hoisted(() => ({
@@ -50,6 +51,32 @@ vi.mock("#hooks/api/use-tenant-mutations", () => ({
 }));
 
 const TENANT_ID = "7b1f4a0e-0000-4000-8000-000000000001";
+
+/**
+ * The unconditional `@layer utilities` declarations the element's own classes
+ * give it, compiled by the project's Tailwind (jsdom applies no class CSS).
+ */
+async function utilityRules(element: Element): Promise<Map<string, string>> {
+	const root = parseCss(await compileCandidates([...element.classList]));
+	const out = new Map<string, string>();
+	root.walkAtRules("layer", (layer) => {
+		if (layer.params !== "utilities") return;
+		layer.each((node) => {
+			if (node.type !== "rule") return;
+			let matches = false;
+			try {
+				matches = element.matches(node.selector);
+			} catch {
+				matches = false;
+			}
+			if (!matches) return;
+			node.walkDecls((d) => {
+				out.set(d.prop, d.value);
+			});
+		});
+	});
+	return out;
+}
 
 function asButton(element: HTMLElement): HTMLButtonElement {
 	if (!(element instanceof HTMLButtonElement)) {
@@ -116,6 +143,16 @@ describe("a submit button submits the form it renders with", () => {
 			expect(save.type).toBe("submit");
 			expect(save.form).toBe(forms[0]);
 		});
+
+		it("the action row fills CardLayout's flex footer, so its justify-end puts the buttons right", async () => {
+			const { save } = await renderTenantEditForm();
+			const row = save.parentElement;
+			if (!row) throw new Error("Save Changes has no row");
+			expect(row.parentElement?.getAttribute("data-slot")).toBe("card-footer");
+			const rules = await utilityRules(row);
+			expect(rules.get("justify-content")).toBe("flex-end");
+			expect(rules.get("width")).toBe("100%");
+		}, 60_000);
 
 		it("clicking Save Changes sends the update", async () => {
 			const { save } = await renderTenantEditForm();
