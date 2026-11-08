@@ -273,7 +273,7 @@
 		[data-slot="button"]
 	):hover {
 		text-decoration-color: currentColor;
-		color: color-mix(in oklch, var(--color-primary) 80%, transparent);
+		color: var(--color-primary-text);
 	}
 
 	ul,
@@ -422,7 +422,10 @@
 	--card: oklch(0.99 0.003 240);
 	--card-foreground: oklch(0.2 0.02 245);
 	--border: oklch(0.88 0.01 245);
-	--input: oklch(0.8 0.015 245);
+	/* A control's boundary (input, select, checkbox, switch track): 3:1 on the
+	   page, card, popover and muted surfaces (WCAG 1.4.11; 66.2-39 fix round 4,
+	   Part 5b; was 0.8, 1.57-1.86:1). */
+	--input: oklch(0.615 0.015 245);
 	--ring: oklch(0.5 0.2 257);
 	--primary: oklch(0.54 0.23 257);
 	--primary-foreground: oklch(0.98 0.01 255);
@@ -448,13 +451,17 @@
 	 * are tuned for fills, not text: at light-mode lightness they fail WCAG AA on a
 	 * near-white card (success ~2.6:1, warning ~2.2:1); --color-destructive only
 	 * scrapes by (~4.6:1). These darker-in-light / lighter-in-dark companions are
-	 * theme-aware and clear AA with headroom in both themes.
+	 * theme-aware and clear AA with headroom in both themes. A status badge's
+	 * 10% tint also lands on a hovered row, a tinted card or an item's accent
+	 * hover, so success and info sit darker than the bare card needs (the F1
+	 * rendered sweep read success 4.22-4.50:1 at L 0.5 and info 3.95:1 at
+	 * L 0.48 there; 66.2-39 fix round 4, Part 5b).
 	 */
-	--success-text: oklch(0.5 0.15 158);
+	--success-text: oklch(0.47 0.15 158);
 	--warning-text: oklch(0.52 0.13 72);
 	--destructive-text: oklch(0.5 0.21 27);
 	--primary-text: oklch(0.46 0.2 257);
-	--info-text: oklch(0.48 0.17 240);
+	--info-text: oklch(0.44 0.17 240);
 	--info: oklch(0.62 0.19 240);
 	--info-foreground: oklch(0.18 0.02 240);
 	--chart-1: oklch(0.63 0.22 259);
@@ -474,7 +481,7 @@
 	--card: oklch(0.16 0.02 255);
 	--card-foreground: oklch(0.96 0.01 240);
 	--border: oklch(0.3 0.015 255);
-	--input: oklch(0.3 0.01 255);
+	--input: oklch(0.515 0.01 255);
 	--ring: oklch(0.72 0.22 259);
 	--primary: oklch(0.72 0.22 259);
 	--primary-foreground: oklch(0.18 0.01 250);
