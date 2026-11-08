@@ -387,13 +387,16 @@ function DetailCard({
 							 * gap-1` wrapper above, and a flex item establishes an
 							 * independent formatting context, so a base bottom margin is
 							 * added to the item's height instead of collapsing out of it
-							 * (§D-3). The grid's own `gap-3` then stacks on top of it.
+							 * (§D-3). The grid's own `gap-3` then stacks on top of it. A
+							 * value wraps inside its cell: an email is one unbroken word,
+							 * and at 320-328 owner A's applicant's ran 9.09px past it
+							 * (66.2-39 fix round 4, Part 8e).
 							 */}
 							<dd
 								className={
 									field.value === null
 										? "text-sm text-muted-foreground mb-0"
-										: "text-sm text-foreground mb-0"
+										: "text-sm text-foreground mb-0 wrap-break-word"
 								}
 							>
 								{field.value ?? NOT_PROVIDED}

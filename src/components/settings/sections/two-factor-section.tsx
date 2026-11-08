@@ -34,10 +34,14 @@ export function TwoFactorSection() {
 						Two-Factor Authentication
 					</h3>
 
+					{/* Each status row wraps its button under the text when they do
+					    not fit one line: at 320-400 the button shrank under its
+					    label and Enable ran 11.78px past it (66.2-39 fix round 4,
+					    Part 8e). */}
 					{is2FAEnabled ? (
-						<div className="flex items-center justify-between p-4 rounded-lg bg-success/5 border border-success/20">
+						<div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-lg bg-success/5 border border-success/20">
 							<div className="flex items-center gap-3">
-								<div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
+								<div className="w-10 h-10 shrink-0 rounded-full bg-success/10 flex items-center justify-center">
 									<Shield className="h-5 w-5 text-success" />
 								</div>
 								<div>
@@ -51,16 +55,16 @@ export function TwoFactorSection() {
 								</div>
 							</div>
 							<button
-								className="px-3 py-1.5 text-sm font-medium text-destructive-text hover:bg-destructive/10 rounded-lg transition-colors"
+								className="shrink-0 px-3 py-1.5 text-sm font-medium text-destructive-text hover:bg-destructive/10 rounded-lg transition-colors"
 								onClick={() => setShow2FADisable(true)}
 							>
 								Disable
 							</button>
 						</div>
 					) : (
-						<div className="flex items-center justify-between p-4 rounded-lg bg-warning/10 border border-warning/30">
+						<div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-lg bg-warning/10 border border-warning/30">
 							<div className="flex items-center gap-3">
-								<div className="w-10 h-10 rounded-full bg-warning/20 flex items-center justify-center">
+								<div className="w-10 h-10 shrink-0 rounded-full bg-warning/20 flex items-center justify-center">
 									<Shield className="h-5 w-5 text-warning-text" />
 								</div>
 								<div>
@@ -71,7 +75,7 @@ export function TwoFactorSection() {
 								</div>
 							</div>
 							<button
-								className="px-3 py-1.5 text-sm font-medium text-primary-text border border-primary/20 rounded-lg hover:bg-primary/10 transition-colors"
+								className="shrink-0 px-3 py-1.5 text-sm font-medium text-primary-text border border-primary/20 rounded-lg hover:bg-primary/10 transition-colors"
 								onClick={() => setShow2FASetup(true)}
 							>
 								Enable

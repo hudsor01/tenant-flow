@@ -192,8 +192,12 @@ export default function AnalyticsPage() {
 										key={property.property_id}
 										delay={0.8 + index * 0.05}
 									>
-										<div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/20">
-											<div className="flex min-w-0 items-center gap-3">
+										{/* The occupancy badge wraps under the property when the
+										    two do not fit one line: at 320-384 the name's column
+										    was left too narrow for its figures, and $7,500.00/mo
+										    ran 10.19px past it (66.2-39 fix round 4, Part 8e). */}
+										<div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg bg-muted/20">
+											<div className="flex min-w-0 flex-1 basis-48 items-center gap-3">
 												<div className="size-10 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
 													<Building2 className="w-5 h-5 text-primary" />
 												</div>

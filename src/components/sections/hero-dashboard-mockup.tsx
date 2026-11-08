@@ -159,7 +159,7 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 								View all <ChevronRight className="size-3" />
 							</span>
 						</div>
-						<div className="space-y-2">
+						<div className="@container/activity space-y-2">
 							<ActivityItem
 								avatar="JC"
 								name="Jamie Carter"
@@ -300,9 +300,12 @@ function ActivityItem({
 		info: "bg-info/10 text-info-text",
 	};
 
+	// The tag and the time stack until the list holds them beside the text:
+	// at 320 the three in one row left the text 37.55px, and "submitted"
+	// (53.98px) ran into the tag (66.2-39 fix round 4, Part 8e).
 	return (
 		<div className="flex items-center gap-3 p-2 rounded-lg">
-			<div className="size-7 rounded-full bg-primary/10 flex-center text-primary-text text-xs font-medium">
+			<div className="size-7 shrink-0 rounded-full bg-primary/10 flex-center text-primary-text text-xs font-medium">
 				{avatar}
 			</div>
 			<div className="flex-1 min-w-0">
@@ -311,12 +314,19 @@ function ActivityItem({
 					<span className="text-muted-foreground"> {action}</span>
 				</div>
 			</div>
-			<span
-				className={cn("text-xs px-2 py-0.5 rounded-full", statusColors[status])}
-			>
-				{amount}
-			</span>
-			<span className="text-xs text-muted-foreground">{time}</span>
+			<div className="flex shrink-0 flex-col items-end gap-1 @min-[16rem]/activity:flex-row @min-[16rem]/activity:items-center @min-[16rem]/activity:gap-3">
+				<span
+					className={cn(
+						"text-xs px-2 py-0.5 rounded-full whitespace-nowrap",
+						statusColors[status],
+					)}
+				>
+					{amount}
+				</span>
+				<span className="text-xs text-muted-foreground whitespace-nowrap">
+					{time}
+				</span>
+			</div>
 		</div>
 	);
 }
