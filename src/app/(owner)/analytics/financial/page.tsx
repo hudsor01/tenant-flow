@@ -125,30 +125,28 @@ export default function FinancialAnalyticsPage() {
 						</div>
 					</BlurFade>
 
-					<div className="space-y-6">
-						<BlurFade delay={0.7}>
-							<div className="bg-card border border-border rounded-lg p-6">
-								<div className="flex items-center justify-between mb-4">
-									<div>
-										<h3 className="font-medium text-foreground">
-											Expense Breakdown
-										</h3>
-										{/* get_expense_summary's categories are vendor names, over
-										    its default period: January 1 through today. */}
-										<p className="mb-0 text-sm text-muted-foreground">
-											By vendor, year to date
-										</p>
-									</div>
-									<PieChart className="w-5 h-5 text-muted-foreground" />
+					<BlurFade delay={0.7}>
+						<div className="bg-card border border-border rounded-lg p-6">
+							<div className="flex items-center justify-between mb-4">
+								<div>
+									<h3 className="font-medium text-foreground">
+										Expense Breakdown
+									</h3>
+									{/* get_expense_summary's categories are vendor names, over
+									    its default period: January 1 through today. */}
+									<p className="mb-0 text-sm text-muted-foreground">
+										By vendor, year to date
+									</p>
 								</div>
-								<BreakdownList
-									title="Vendors"
-									rows={breakdown.expenses}
-									detailsHref="/reports/expenses"
-								/>
+								<PieChart className="w-5 h-5 text-muted-foreground" />
 							</div>
-						</BlurFade>
-					</div>
+							<BreakdownList
+								title="Vendors"
+								rows={breakdown.expenses}
+								detailsHref="/reports/expenses"
+							/>
+						</div>
+					</BlurFade>
 				</div>
 
 				{/* Charts Row 2: Scheduled Net & Lease Profitability */}
