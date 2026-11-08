@@ -133,7 +133,7 @@ export function ActiveSessionsSection() {
 												)
 											}
 											disabled={revokeSession.isPending || bulkPending}
-											className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+											className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive-text transition-colors disabled:opacity-50"
 											aria-label={
 												session.is_current
 													? "Sign out this device (you will be signed out)"

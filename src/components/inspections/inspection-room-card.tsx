@@ -135,7 +135,7 @@ export function InspectionRoomCard({
 					size="sm"
 					onClick={handleDelete}
 					disabled={deleteRoom.isPending}
-					className="shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/10 dark:hover:text-destructive-text"
+					className="shrink-0 text-muted-foreground hover:text-destructive-text hover:bg-destructive/10 dark:hover:bg-destructive/10 dark:hover:text-destructive-text"
 					aria-label={`Delete room ${room.room_name}`}
 				>
 					<Trash2 className="w-4 h-4" aria-hidden="true" />

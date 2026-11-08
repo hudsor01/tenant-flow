@@ -656,15 +656,6 @@ const VIVID_TEXT_REVIEWED: Record<
 		reason: string;
 	}
 > = {
-	"src/components/settings/sections/active-sessions-section.tsx": {
-		kinds: ["text"],
-		reason:
-			"the sign-out button shows only a LogOut or Loader2 icon (an icon ternary); its name is its aria-label",
-	},
-	"src/components/tenants/tenant-table-row.tsx": {
-		kinds: ["text"],
-		reason: "the delete button shows only a Trash2 icon; its text is sr-only",
-	},
 	"src/components/sections/how-it-works.tsx": {
 		kinds: ["config"],
 		reason:

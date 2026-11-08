@@ -113,20 +113,6 @@ interface Reviewed {
 }
 
 const ICON_ONLY: Reviewed[] = [
-	...[
-		"src/app/(owner)/properties/property-details.client.tsx",
-		"src/components/settings/sections/active-sessions-section.tsx",
-		"src/components/tenants/tenant-grid.tsx",
-		"src/components/tenants/tenant-table-row.tsx",
-		"src/components/inspections/inspection-room-card.tsx",
-		"src/components/maintenance/table/columns.tsx",
-		"src/components/maintenance/vendors-page.client.tsx",
-		"src/components/properties/property-table-row.tsx",
-	].map((file) => ({
-		file,
-		token: "hover:text-destructive",
-		reason: "a Trash2 icon button named by aria-label or sr-only text",
-	})),
 	{
 		file: "src/components/leases/table/leases-table-columns.tsx",
 		token: "hover:text-primary",

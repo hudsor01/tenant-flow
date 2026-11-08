@@ -125,7 +125,7 @@ export function TenantTableRow({
 					<Button
 						variant="ghost"
 						size="icon"
-						className="h-8 w-8 min-h-8 min-w-8 text-destructive hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/10 dark:hover:text-destructive-text"
+						className="h-8 w-8 min-h-8 min-w-8 text-destructive-text hover:text-destructive-text hover:bg-destructive/10 dark:hover:bg-destructive/10 dark:hover:text-destructive-text"
 						onClick={() => onDelete(tenant.id)}
 					>
 						<Trash2 className="h-4 w-4" />

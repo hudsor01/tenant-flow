@@ -226,7 +226,7 @@ export function PropertyTableRow({
 								variant="ghost"
 								size="icon"
 								onClick={() => onDelete?.(property.id)}
-								className="size-8 hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/10 dark:hover:text-destructive-text focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+								className="size-8 hover:text-destructive-text hover:bg-destructive/10 dark:hover:bg-destructive/10 dark:hover:text-destructive-text focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
 								aria-label={`Delete ${property.name}`}
 							>
 								<Trash2 className="w-4 h-4" />

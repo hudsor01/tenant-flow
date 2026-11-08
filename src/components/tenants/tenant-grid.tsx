@@ -141,7 +141,7 @@ function TenantCard({
 					</button>
 					<button
 						onClick={onDelete}
-						className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+						className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive-text transition-colors"
 						aria-label="Delete tenant"
 						title="Delete"
 					>

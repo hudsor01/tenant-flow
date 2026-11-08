@@ -136,7 +136,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					<Button
 						variant="outline"
 						size="sm"
-						className="min-h-11 text-destructive hover:text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 dark:hover:text-destructive-text"
+						className="min-h-11 text-destructive-text hover:text-destructive-text hover:bg-destructive/10 dark:hover:bg-destructive/20 dark:hover:text-destructive-text"
 						onClick={() => setDeleteOpen(true)}
 						aria-label="Delete property"
 					>
