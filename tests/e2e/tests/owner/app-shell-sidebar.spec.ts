@@ -7,6 +7,7 @@ import {
 } from "../../lib/authed-dashboard";
 import { type Box, boxesOf, boxOf, polledRead } from "../../lib/measure";
 import { waitForSheetReady } from "../../lib/sheet-ready";
+import { tourProgressWriteBody } from "../../lib/tour-progress-write";
 
 /**
  * The canonical owner Sidebar in a real browser — Phase 66.2 wave 6, UI-SPEC
@@ -147,8 +148,8 @@ interface TourProgressTraffic {
 /**
  * Answers every `user_tour_progress` request locally, so none reaches
  * production. GET answers with a completed row, so the tour never opens over a
- * test that is not about it; any other method answers 201 with an empty body.
- * The counters are live.
+ * test that is not about it; any other method answers 201 with the written
+ * row, as PostgREST would (`tourProgressWriteBody`). The counters are live.
  */
 async function fulfillTourProgressAsCompleted(
 	page: Page,
@@ -177,8 +178,12 @@ async function fulfillTourProgressAsCompleted(
 		traffic.writes += 1;
 		await route.fulfill({
 			status: 201,
+			contentType: "application/json",
 			headers: { "access-control-allow-origin": "*" },
-			body: "",
+			body: tourProgressWriteBody(
+				route.request().url(),
+				route.request().postDataJSON(),
+			),
 		});
 	});
 	return traffic;
@@ -1586,8 +1591,9 @@ const TOUR_STORAGE_KEY = "tenantflow:tour-progress";
 /**
  * Answers every `user_tour_progress` request locally, as "not started": GET
  * answers 200 `[]` (postgrest-js `maybeSingle()` maps an empty array to null)
- * and every other method 201 with an empty body ("persisted"), so the tour
- * opens and no production row is written. Install it BEFORE `loginAsOwner`.
+ * and every other method 201 with the written row, as PostgREST would
+ * (`tourProgressWriteBody`), so the tour opens, each write succeeds in the
+ * client and no production row is written. Install it BEFORE `loginAsOwner`.
  * The counters are live.
  */
 async function answerTourProgressAsNotStarted(
@@ -1608,8 +1614,12 @@ async function answerTourProgressAsNotStarted(
 		traffic.writes += 1;
 		await route.fulfill({
 			status: 201,
+			contentType: "application/json",
 			headers: { "access-control-allow-origin": "*" },
-			body: "",
+			body: tourProgressWriteBody(
+				route.request().url(),
+				route.request().postDataJSON(),
+			),
 		});
 	});
 	return traffic;
