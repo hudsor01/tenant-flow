@@ -3,9 +3,9 @@
  *
  * It rendered three quick actions and a "View all" link as real `<button>`s with
  * no handler: four keyboard stops on `/`, `/about` and `/faq` that did nothing
- * (and, under the coarse-pointer touch-target rule, a 44px-tall "View all"). They
- * are plain elements now, styled exactly as before at rest, without hover
- * feedback that promised a click.
+ * (and, under the touch-target floor below 48rem (D-08), a 44px-tall "View
+ * all"). They are plain elements now, styled exactly as before at rest, without
+ * hover feedback that promised a click.
  */
 
 import { render, screen } from "@testing-library/react";
