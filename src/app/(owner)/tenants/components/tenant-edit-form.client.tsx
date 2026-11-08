@@ -4,6 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Phone, Save, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ChangeEvent, SubmitEvent } from "react";
+import { useId } from "react";
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
 import { Field, FieldError, FieldLabel } from "#components/ui/field";
@@ -24,6 +25,9 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 	const { data: tenant } = useSuspenseQuery(tenantQueries.detail(id));
 	const router = useRouter();
 	const updateMutation = useUpdateTenantMutation();
+	// CardLayout renders `footer` in its CardFooter, outside the <form> below, so
+	// the Save button names the form it submits (the HTML `form` attribute).
+	const formId = useId();
 
 	const form = useAppForm({
 		defaultValues: {
@@ -65,6 +69,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 			</Button>
 			<Button
 				type="submit"
+				form={formId}
 				disabled={updateMutation.isPending}
 				className="flex items-center gap-2"
 			>
@@ -80,7 +85,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 			description="Update emergency contact information"
 			footer={footer}
 		>
-			<form onSubmit={handleSubmit} className="space-y-6">
+			<form id={formId} onSubmit={handleSubmit} className="space-y-6">
 				<form.AppField name="emergency_contact_name">
 					{(field) => (
 						<field.IconInputField
