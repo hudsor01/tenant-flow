@@ -1,8 +1,9 @@
 /**
- * The units page's error box holds the p-4 it declares (66.2-39 fix round 3,
- * G2): its message is the box's last child, where the base `p` margin cannot
- * collapse past the padding, so it stood 16px under the text (33px to the
- * box's edge in Chrome instead of 17).
+ * The units page's error box holds the padding it declares (66.2-39 fix round
+ * 3, G2): its message is the box's last child, where the base `p` margin
+ * cannot collapse past the padding, so it stood 16px under the text (33px to
+ * the box's edge in Chrome instead of 17). Since fix round 4 (G4) the box is
+ * the shared `OwnerErrorBox` (p-6), as on every owner list and edit page.
  */
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";

@@ -26,6 +26,7 @@ import {
 } from "#components/leases/table/lease-utils";
 import { LeasesPageSkeleton } from "#components/leases/table/leases-page-skeleton";
 import { LeasesTable } from "#components/leases/table/leases-table";
+import { OwnerErrorBox } from "#components/shared/owner-error-box";
 import { BlurFade } from "#components/ui/blur-fade";
 import {
 	Empty,
@@ -211,14 +212,10 @@ export default function LeasesPage() {
 	if (error) {
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
-				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
-					<h2 className="text-lg font-semibold text-destructive-text mb-2">
-						Error Loading Leases
-					</h2>
-					{/* mb-0: the box's last child, where the base `p` margin cannot
-					    collapse past its p-6. */}
-					<p className="mb-0 text-muted-foreground">Failed to load leases</p>
-				</div>
+				<OwnerErrorBox
+					title="Error Loading Leases"
+					message="Failed to load leases"
+				/>
 			</div>
 		);
 	}
@@ -232,7 +229,7 @@ export default function LeasesPage() {
 					</EmptyMedia>
 					<EmptyHeader>
 						<EmptyTitle>No leases yet</EmptyTitle>
-						<EmptyDescription>
+						<EmptyDescription className="mb-0">
 							Create a lease between one of your properties and a tenant record
 							to start tracking dates, rent, and deposits.
 						</EmptyDescription>

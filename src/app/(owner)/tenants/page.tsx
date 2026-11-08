@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { OwnerErrorBox } from "#components/shared/owner-error-box";
 import { Tenants } from "#components/tenants/tenants";
 import {
 	AlertDialog,
@@ -106,12 +107,10 @@ export default function TenantsPage() {
 	if (error) {
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
-				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
-					<h2 className="text-lg font-semibold text-destructive-text mb-2">
-						Error Loading Tenants
-					</h2>
-					<p className="text-muted-foreground">Failed to load tenants</p>
-				</div>
+				<OwnerErrorBox
+					title="Error Loading Tenants"
+					message="Failed to load tenants"
+				/>
 			</div>
 		);
 	}
@@ -139,7 +138,7 @@ export default function TenantsPage() {
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Tenant</AlertDialogTitle>
-						<AlertDialogDescription>
+						<AlertDialogDescription className="mb-0">
 							This will mark the tenant as inactive and remove them from active
 							listings. Their data will be retained for legal compliance. Are
 							you sure you want to continue?
@@ -174,7 +173,7 @@ export default function TenantsPage() {
 							Delete {bulkDeleteIds?.length ?? 0} tenant
 							{(bulkDeleteIds?.length ?? 0) === 1 ? "" : "s"}
 						</AlertDialogTitle>
-						<AlertDialogDescription>
+						<AlertDialogDescription className="mb-0">
 							This will mark the selected tenants as inactive and remove them
 							from active listings. Their data will be retained for legal
 							compliance. Any tenant with an active lease will be skipped and

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { use } from "react";
 import { PropertyForm } from "#components/properties/property-form.client";
 import { MobilePropertyForm } from "#components/properties/property-form.mobile";
+import { OwnerErrorBox } from "#components/shared/owner-error-box";
 import { Button } from "#components/ui/button";
 import { Skeleton } from "#components/ui/skeleton";
 import { propertyQueries } from "#hooks/api/query-keys/property-keys";
@@ -40,12 +41,10 @@ export default function EditPropertyPage({
 	if (error) {
 		return (
 			<div className="space-y-6">
-				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
-					<h2 className="text-lg font-semibold text-destructive-text mb-2">
-						Error Loading Property
-					</h2>
-					<p className="text-muted-foreground">Failed to load property</p>
-				</div>
+				<OwnerErrorBox
+					title="Error Loading Property"
+					message="Failed to load property"
+				/>
 			</div>
 		);
 	}
@@ -69,7 +68,9 @@ export default function EditPropertyPage({
 				</Button>
 				<div>
 					<h1 className="typography-h2 tracking-tight">Edit Property</h1>
-					<p className="text-muted-foreground">Update property information</p>
+					<p className="mb-0 text-muted-foreground">
+						Update property information
+					</p>
 				</div>
 			</div>
 			<div className="hidden md:block">

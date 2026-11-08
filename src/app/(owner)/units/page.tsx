@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { DataTable } from "#components/data-table/data-table";
 import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
+import { OwnerErrorBox } from "#components/shared/owner-error-box";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -231,12 +232,10 @@ export default function UnitsPage() {
 	if (error) {
 		return (
 			<div className="p-6 lg:p-8">
-				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-					<h2 className="typography-large text-destructive-text">
-						Error Loading Units
-					</h2>
-					<p className="mb-0 text-muted-foreground">Failed to load units</p>
-				</div>
+				<OwnerErrorBox
+					title="Error Loading Units"
+					message="Failed to load units"
+				/>
 			</div>
 		);
 	}
@@ -285,7 +284,7 @@ export default function UnitsPage() {
 							<Home />
 						</EmptyMedia>
 						<EmptyTitle>No units found</EmptyTitle>
-						<EmptyDescription>
+						<EmptyDescription className="mb-0">
 							Get started by creating your first unit
 						</EmptyDescription>
 					</EmptyHeader>
@@ -304,7 +303,7 @@ export default function UnitsPage() {
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete unit</AlertDialogTitle>
-						<AlertDialogDescription>
+						<AlertDialogDescription className="mb-0">
 							Are you sure you want to delete this unit? This action cannot be
 							undone.
 						</AlertDialogDescription>

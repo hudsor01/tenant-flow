@@ -9,6 +9,7 @@ import {
 	PropertyInsightsSkeleton,
 } from "#components/analytics/property-insights-section";
 import { Properties } from "#components/properties/properties";
+import { OwnerErrorBox } from "#components/shared/owner-error-box";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -121,12 +122,10 @@ export default function PropertiesPage() {
 	if (error) {
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
-				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
-					<h2 className="text-lg font-semibold text-destructive-text mb-2">
-						Error Loading Properties
-					</h2>
-					<p className="text-muted-foreground">Failed to load properties</p>
-				</div>
+				<OwnerErrorBox
+					title="Error Loading Properties"
+					message="Failed to load properties"
+				/>
 			</div>
 		);
 	}
@@ -171,7 +170,7 @@ export default function PropertiesPage() {
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Property</AlertDialogTitle>
-						<AlertDialogDescription>
+						<AlertDialogDescription className="mb-0">
 							Are you sure you want to delete this property? This action cannot
 							be undone.
 						</AlertDialogDescription>
