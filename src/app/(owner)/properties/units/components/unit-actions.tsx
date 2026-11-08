@@ -182,7 +182,7 @@ export function UnitActions({ unit }: UnitActionsProps) {
 						>
 							{isDeleting ? (
 								<div className="flex items-center gap-2">
-									<div className="size-4 animate-spin rounded-full border-2 border-muted border-t-foreground" />
+									<div className="size-4 animate-spin rounded-full border-2 border-destructive-foreground/30 border-t-destructive-foreground" />
 									<span>Deleting...</span>
 								</div>
 							) : (
