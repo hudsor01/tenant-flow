@@ -156,4 +156,28 @@ describe("MultiSelectChips", () => {
 		fireEvent.click(screen.getByLabelText(/clear selection/i));
 		expect(onChange).toHaveBeenCalledWith([]);
 	});
+
+	it("names its listbox and makes the options its own children (66.2-39 fix round 4, Part 8h)", async () => {
+		// A list's items between the listbox and its options, and no name on the
+		// listbox, failed axe's aria-required-children, aria-required-parent,
+		// listitem and aria-input-field-name on the vault's category filter.
+		const user = userEvent.setup();
+		render(
+			<MultiSelectChips
+				options={OPTIONS}
+				value={["lease"]}
+				onChange={vi.fn()}
+				aria-label="Filter by category"
+			/>,
+		);
+		await user.click(
+			screen.getByRole("button", { name: /\(Filter by category\)$/ }),
+		);
+		const listbox = await screen.findByRole("listbox", {
+			name: "Filter by category",
+		});
+		expect(
+			[...listbox.children].map((child) => child.getAttribute("role")),
+		).toEqual(["option", "option", "option"]);
+	});
 });

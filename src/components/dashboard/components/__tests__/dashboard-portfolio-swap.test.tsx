@@ -193,11 +193,17 @@ describe("dashboard portfolio swap", () => {
 		});
 
 		await user.click(screen.getByRole("button", { name: /^presets$/i }));
+		// The name field is in the dialog the menu's "Save current view…" item
+		// opens (a menu holds only menu items).
+		await user.click(
+			await screen.findByRole("menuitem", { name: "Save current view…" }),
+		);
 		await user.type(
-			await screen.findByLabelText("Preset name"),
+			await screen.findByRole("textbox", { name: "Preset name" }),
 			"Active high rent",
 		);
 		await user.click(screen.getByRole("button", { name: /save preset/i }));
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
 		const preset =
 			useDashboardPresetsStore.getState().presets["Active high rent"];

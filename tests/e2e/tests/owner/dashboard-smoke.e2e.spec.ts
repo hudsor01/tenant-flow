@@ -328,11 +328,15 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 
 		// Save a uniquely-named preset.
 		const presetName = `smoke-${Date.now()}`;
+		// The name field is in the dialog the menu's "Save current view…" item
+		// opens; saving closes it.
 		await page.getByRole("button", { name: "Presets" }).click();
+		await page.getByRole("menuitem", { name: "Save current view…" }).click();
 		await page.getByLabel("Preset name").fill(presetName);
 		await page.getByRole("button", { name: "Save preset" }).click();
-		// Close the menu so the next interactions are unobstructed.
-		await page.keyboard.press("Escape");
+		await expect(
+			page.getByRole("dialog", { name: "Save current view" }),
+		).toHaveCount(0);
 
 		// Clear the filter and confirm the param is gone. The preset-save Zustand
 		// write can re-render/remount the toolbar right as fill() lands, dropping

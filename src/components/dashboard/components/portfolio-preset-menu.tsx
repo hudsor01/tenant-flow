@@ -17,6 +17,14 @@ import { portfolioColumns } from "#components/dashboard/components/portfolio-col
 import type { PortfolioRow } from "#components/dashboard/dashboard-types";
 import { Button } from "#components/ui/button";
 import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "#components/ui/dialog";
+import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
@@ -25,6 +33,7 @@ import {
 	DropdownMenuTrigger,
 } from "#components/ui/dropdown-menu";
 import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
 import { getSortingStateParser } from "#lib/parsers";
 import {
 	type DashboardViewSnapshot,
@@ -87,6 +96,11 @@ function toPortfolioSort(sort: SortingState): PortfolioSort {
  * presets-store column visibility; applying writes the snapshot BACK to the same
  * nuqs keys + `setColumnVisibility`. The store itself never touches the URL —
  * this component owns the nuqs read/write on both paths.
+ *
+ * The name field lives in a dialog the menu's "Save current view…" item opens:
+ * a menu holds only menu items, and the field and its save button inside it
+ * failed axe's `aria-required-children` on the open menu (66.2-39 fix round 4,
+ * Part 8h).
  */
 export function PortfolioPresetMenu() {
 	const { listPresets, savePreset, applyPreset, deletePreset } =
@@ -99,6 +113,7 @@ export function PortfolioPresetMenu() {
 	);
 	const [urlState, setUrlState] = useQueryStates(urlStateParsers);
 	const [name, setName] = useState("");
+	const [saveOpen, setSaveOpen] = useState(false);
 
 	const presets = listPresets();
 
@@ -123,6 +138,7 @@ export function PortfolioPresetMenu() {
 		if (!trimmed) return;
 		savePreset(trimmed, collectSnapshot());
 		setName("");
+		setSaveOpen(false);
 	}
 
 	function handleApply(presetName: string) {
@@ -147,70 +163,100 @@ export function PortfolioPresetMenu() {
 	}
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant="outline" size="sm" className="gap-2">
-					<Bookmark aria-hidden="true" className="size-4" />
-					Presets
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-64">
-				<DropdownMenuLabel>Save current view</DropdownMenuLabel>
-				<div className="flex items-center gap-2 px-2 py-1.5">
-					<Input
-						inputSize="sm"
-						aria-label="Preset name"
-						placeholder="Preset name"
-						value={name}
-						onChange={(event) => setName(event.target.value)}
-						onKeyDown={(event) => {
-							if (event.key === "Enter") {
-								event.preventDefault();
-								handleSave();
-							}
-						}}
-					/>
-					<Button
-						type="button"
-						size="sm"
-						aria-label="Save preset"
-						disabled={!name.trim()}
-						onClick={handleSave}
-					>
-						<Save aria-hidden="true" className="size-4" />
+		<>
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button variant="outline" size="sm" className="gap-2">
+						<Bookmark aria-hidden="true" className="size-4" />
+						Presets
 					</Button>
-				</div>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end" className="w-64">
+					<DropdownMenuItem onSelect={() => setSaveOpen(true)}>
+						<Save aria-hidden="true" className="size-4" />
+						Save current view…
+					</DropdownMenuItem>
 
-				{presets.length > 0 && (
-					<>
-						<DropdownMenuSeparator />
-						<DropdownMenuLabel>Saved presets</DropdownMenuLabel>
-						{presets.map((preset) => (
-							// Apply and delete are two menu items in one row, so the arrow
-							// keys reach both (a button inside the item was mouse-only).
-							<div key={preset.name} className="flex items-center">
-								<DropdownMenuItem
-									onSelect={() => handleApply(preset.name)}
-									className="min-w-0 flex-1"
-								>
-									<span className="truncate">{preset.name}</span>
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									aria-label={`Delete preset ${preset.name}`}
-									onSelect={(event) => {
-										// Keep the menu open, as the inline delete did.
-										event.preventDefault();
-										deletePreset(preset.name);
-									}}
-									className="shrink-0"
-								>
-									<Trash2 aria-hidden="true" className="size-4" />
-								</DropdownMenuItem>
-							</div>
-						))}
-					</>
-				)}
-			</DropdownMenuContent>
-		</DropdownMenu>
+					{presets.length > 0 && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuLabel>Saved presets</DropdownMenuLabel>
+							{presets.map((preset) => (
+								// Apply and delete are two menu items in one row, so the arrow
+								// keys reach both (a button inside the item was mouse-only).
+								<div key={preset.name} className="flex items-center">
+									<DropdownMenuItem
+										onSelect={() => handleApply(preset.name)}
+										className="min-w-0 flex-1"
+									>
+										<span className="truncate">{preset.name}</span>
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										aria-label={`Delete preset ${preset.name}`}
+										onSelect={(event) => {
+											// Keep the menu open, as the inline delete did.
+											event.preventDefault();
+											deletePreset(preset.name);
+										}}
+										className="shrink-0"
+									>
+										<Trash2 aria-hidden="true" className="size-4" />
+									</DropdownMenuItem>
+								</div>
+							))}
+						</>
+					)}
+				</DropdownMenuContent>
+			</DropdownMenu>
+			<Dialog
+				open={saveOpen}
+				onOpenChange={(open) => {
+					setSaveOpen(open);
+					if (!open) setName("");
+				}}
+			>
+				<DialogContent className="sm:max-w-sm">
+					<DialogHeader>
+						<DialogTitle>Save current view</DialogTitle>
+						<DialogDescription className="mb-0">
+							Saves the table's filters, sort, page and visible columns under a
+							name you can apply again from Presets.
+						</DialogDescription>
+					</DialogHeader>
+					<form
+						id="save-preset-form"
+						className="space-y-2"
+						onSubmit={(event) => {
+							event.preventDefault();
+							handleSave();
+						}}
+					>
+						<Label htmlFor="preset-name">Preset name</Label>
+						<Input
+							id="preset-name"
+							value={name}
+							onChange={(event) => setName(event.target.value)}
+							autoFocus
+						/>
+					</form>
+					<DialogFooter>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => setSaveOpen(false)}
+						>
+							Cancel
+						</Button>
+						<Button
+							type="submit"
+							form="save-preset-form"
+							disabled={!name.trim()}
+						>
+							Save preset
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+		</>
 	);
 }

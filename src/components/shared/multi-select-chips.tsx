@@ -92,43 +92,45 @@ export function MultiSelectChips<T extends string>({
 					</Button>
 				</PopoverTrigger>
 				<PopoverContent className="w-56 p-1" align="start">
-					<ul
+					{/* The options are the listbox's own children, and the listbox is
+					    named: a list's items between them failed axe's
+					    aria-required-children, aria-required-parent and listitem, and
+					    the unnamed listbox aria-input-field-name (66.2-39 fix round 4,
+					    Part 8h). */}
+					<div
 						role="listbox"
 						aria-multiselectable="true"
-						className="flex flex-col gap-0.5 pl-0 mt-0 mb-0 [&>li]:mb-0"
+						aria-label={ariaLabel ?? placeholder}
+						className="flex flex-col gap-0.5"
 					>
 						{options.map((opt) => {
 							const checked = selected.has(opt.value);
 							return (
-								<li key={opt.value}>
-									<button
-										type="button"
-										role="option"
-										aria-selected={checked}
-										onClick={() => toggle(opt.value)}
-										className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-muted focus:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-									>
-										{/* The checkbox's look, not a checkbox: Radix's renders a
+								<button
+									key={opt.value}
+									type="button"
+									role="option"
+									aria-selected={checked}
+									onClick={() => toggle(opt.value)}
+									className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-muted focus:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+								>
+									{/* The checkbox's look, not a checkbox: Radix's renders a
 										    <button>, and this row is already the control. */}
-										<span
-											aria-hidden="true"
-											data-state={checked ? "checked" : "unchecked"}
-											className="flex-center size-4 shrink-0 rounded-sm border border-input shadow-xs transition-shadow dark:bg-input/30 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary"
-										>
-											{checked && <CheckIcon className="size-3.5" />}
-										</span>
-										<span className="flex-1 text-left">{opt.label}</span>
-										{checked && (
-											<Check
-												className="size-4 text-primary"
-												aria-hidden="true"
-											/>
-										)}
-									</button>
-								</li>
+									<span
+										aria-hidden="true"
+										data-state={checked ? "checked" : "unchecked"}
+										className="flex-center size-4 shrink-0 rounded-sm border border-input shadow-xs transition-shadow dark:bg-input/30 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary"
+									>
+										{checked && <CheckIcon className="size-3.5" />}
+									</span>
+									<span className="flex-1 text-left">{opt.label}</span>
+									{checked && (
+										<Check className="size-4 text-primary" aria-hidden="true" />
+									)}
+								</button>
 							);
 						})}
-					</ul>
+					</div>
 					{/* Footer affordances — popover auto-closes on outside click,
 					    but explicit "Clear" + "Done" make the multi-select pattern
 					    discoverable for keyboard users and screen readers. */}
