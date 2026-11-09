@@ -7,6 +7,7 @@ import {
 	X,
 } from "lucide-react";
 import { Badge } from "#components/ui/badge";
+import { ScrollRegion } from "#components/ui/scroll-region";
 import { formatBytes } from "#lib/format-bytes";
 import { formatCount } from "#lib/formatters/count";
 import { cn } from "#lib/utils";
@@ -196,7 +197,7 @@ export function BulkImportValidateStep<T>({
 			{/* Enhanced Preview Table */}
 			{parsedData.length > 0 ? (
 				<div className="card-standard overflow-hidden">
-					<div className="overflow-x-auto max-h-72">
+					<ScrollRegion className="overflow-x-auto max-h-72">
 						<table className="w-full text-sm">
 							<thead className="bg-muted/60 sticky top-0 z-10">
 								<tr>
@@ -270,7 +271,7 @@ export function BulkImportValidateStep<T>({
 								))}
 							</tbody>
 						</table>
-					</div>
+					</ScrollRegion>
 				</div>
 			) : (
 				<div className="card-standard p-8 text-center">

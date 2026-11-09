@@ -2,6 +2,7 @@ import { ArrowRight, Check, Crown, Minus, X } from "lucide-react";
 import Link from "next/link";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Button } from "#components/ui/button";
+import { ScrollRegion } from "#components/ui/scroll-region";
 import { cn } from "#lib/utils";
 
 interface ComparisonTableProps {
@@ -108,7 +109,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 				</BlurFade>
 
 				<BlurFade delay={0.2}>
-					<div className="overflow-x-auto">
+					<ScrollRegion className="overflow-x-auto">
 						<table className="w-full min-w-160">
 							<thead>
 								<tr>
@@ -183,7 +184,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 								))}
 							</tbody>
 						</table>
-					</div>
+					</ScrollRegion>
 				</BlurFade>
 
 				{/* CTA */}

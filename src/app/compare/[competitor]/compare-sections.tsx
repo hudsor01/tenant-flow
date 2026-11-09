@@ -1,6 +1,7 @@
 import { ArrowRight, Check, Minus, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { Button } from "#components/ui/button";
+import { ScrollRegion } from "#components/ui/scroll-region";
 import type { CompetitorData, FeatureSupport } from "#types/sections/compare";
 
 function FeatureIcon({ support }: { support: FeatureSupport }) {
@@ -117,7 +118,7 @@ export function FeatureTable({ data }: { data: CompetitorData }) {
 				<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-center mb-16">
 					Feature-by-Feature Comparison
 				</h2>
-				<div className="overflow-x-auto rounded-xl border border-border">
+				<ScrollRegion className="overflow-x-auto rounded-xl border border-border">
 					<table className="w-full">
 						<thead>
 							<tr className="border-b border-border bg-muted/50">
@@ -165,7 +166,7 @@ export function FeatureTable({ data }: { data: CompetitorData }) {
 							))}
 						</tbody>
 					</table>
-				</div>
+				</ScrollRegion>
 			</div>
 		</section>
 	);

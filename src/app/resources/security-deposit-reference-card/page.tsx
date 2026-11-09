@@ -6,6 +6,7 @@ import { PageLayout } from "#components/layout/page-layout";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { PrintButton } from "#components/shared/print-button";
 import { Button } from "#components/ui/button";
+import { ScrollRegion } from "#components/ui/scroll-region";
 import { RESOURCE_TO_BLOGS } from "#lib/content-links";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
@@ -568,7 +569,7 @@ export default function SecurityDepositReferenceCardPage() {
 				</div>
 
 				{/* Table */}
-				<div className="overflow-x-auto rounded-xl border border-border">
+				<ScrollRegion className="overflow-x-auto rounded-xl border border-border">
 					<table className="w-full text-sm">
 						<thead>
 							<tr className="bg-muted/50 border-b border-border">
@@ -642,7 +643,7 @@ export default function SecurityDepositReferenceCardPage() {
 							))}
 						</tbody>
 					</table>
-				</div>
+				</ScrollRegion>
 
 				{/* Disclaimer */}
 				<div className="mt-8 rounded-xl border border-warning/20 bg-warning/10 p-6">
