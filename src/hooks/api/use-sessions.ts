@@ -58,10 +58,13 @@ const sessionMutationFactories = {
 					(currentSessionId !== null && currentSessionId === input.id);
 
 				if (isOwnCurrentSession) {
-					// Current session: signOut() handles both the server-side delete
-					// (gotrue removes the auth.sessions row) and the client-side
-					// cleanup (clears localStorage tokens + cookies + caches).
-					const { error } = await supabase.auth.signOut();
+					// Current session: signOut({ scope: "local" }) deletes this
+					// session server-side (gotrue removes its auth.sessions row) and
+					// clears the client (localStorage tokens + cookies + caches). The
+					// default scope is "global", which ended EVERY session of the user,
+					// while the row and its confirmation sign out this device only
+					// (66.2-39 fix round 4, Part 8h).
+					const { error } = await supabase.auth.signOut({ scope: "local" });
 					if (error) throw error;
 					return { success: true, message: "Session terminated" };
 				}
@@ -95,7 +98,7 @@ const sessionMutationFactories = {
 					? decodeSessionIdFromAccessToken(postSession.access_token)
 					: null;
 				if (postCurrent !== null && postCurrent === input.id) {
-					await supabase.auth.signOut();
+					await supabase.auth.signOut({ scope: "local" });
 				}
 
 				return { success: true, message: "Session terminated" };

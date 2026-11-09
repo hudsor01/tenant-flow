@@ -217,6 +217,10 @@ describe("useRevokeSessionMutation - current session fast-path", () => {
 
 		expect(res).toEqual({ success: true, message: "Session terminated" });
 		expect(mockSignOut).toHaveBeenCalledTimes(1);
+		// This device only: signOut()'s default scope is "global", which ended
+		// every session of the account while the confirmation said this device
+		// (66.2-39 fix round 4, Part 8h).
+		expect(mockSignOut).toHaveBeenCalledWith({ scope: "local" });
 		expect(mockRpc).not.toHaveBeenCalled();
 		expect(mockGetUser).not.toHaveBeenCalled();
 	});
@@ -258,6 +262,10 @@ describe("useRevokeSessionMutation - current session fast-path", () => {
 
 		expect(res).toEqual({ success: true, message: "Session terminated" });
 		expect(mockSignOut).toHaveBeenCalledTimes(1);
+		// This device only: signOut()'s default scope is "global", which ended
+		// every session of the account while the confirmation said this device
+		// (66.2-39 fix round 4, Part 8h).
+		expect(mockSignOut).toHaveBeenCalledWith({ scope: "local" });
 		expect(mockRpc).not.toHaveBeenCalled();
 		expect(mockGetUser).not.toHaveBeenCalled();
 	});
@@ -328,6 +336,7 @@ describe("useRevokeSessionMutation - non-current RPC path", () => {
 		expect(mockRpc).toHaveBeenCalledTimes(1);
 		expect(mockSignOut).toHaveBeenCalledTimes(1);
 		expect(callOrder).toEqual(["rpc", "signOut"]);
+		expect(mockSignOut).toHaveBeenCalledWith({ scope: "local" });
 	});
 
 	it("rejects with the RPC error when revoke_user_session fails", async () => {

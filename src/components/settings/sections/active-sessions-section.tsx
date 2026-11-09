@@ -175,12 +175,12 @@ export function ActiveSessionsSection() {
 				title={
 					pendingRevoke?.isCurrent
 						? "Sign out of this device?"
-						: "Sign out the other device?"
+						: `Sign out ${pendingRevoke?.deviceLabel ?? "the other device"}?`
 				}
 				description={
 					pendingRevoke?.isCurrent
-						? `You are about to sign yourself out of ${pendingRevoke.deviceLabel}. You'll need to log in again to continue.`
-						: `Sign out of ${pendingRevoke?.deviceLabel ?? "this device"}? The session will be revoked immediately and that device will need to log in again.`
+						? `This ends your session on ${pendingRevoke.deviceLabel}, and you sign in again to continue. Your other devices stay signed in.`
+						: "Its session ends now, and that device has to sign in again."
 				}
 				confirmText={
 					pendingRevoke?.isCurrent ? "Sign me out" : "Revoke session"
@@ -195,7 +195,7 @@ export function ActiveSessionsSection() {
 					if (!open && !bulkPending) setBulkOpen(false);
 				}}
 				title="Sign out all other devices?"
-				description={`This will revoke ${otherSessions.length} other ${otherSessions.length === 1 ? "session" : "sessions"} immediately. Each device will need to log in again.`}
+				description={`This ends the other ${otherSessions.length === 1 ? "session" : `${otherSessions.length} sessions`} now. Each device has to sign in again.`}
 				confirmText="Sign out all others"
 				onConfirm={() => {
 					void confirmBulkRevoke();
