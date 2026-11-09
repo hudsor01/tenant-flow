@@ -115,6 +115,9 @@ describe("a URL value never reaches the page as text", () => {
 	});
 
 	it("/billing/checkout/success does not print ?session_id=", async () => {
+		// No signed-in user: the card reads no status and says the plan is
+		// being activated (Part 8m).
+		mockGetUser.mockResolvedValue({ data: { user: null } });
 		const { default: CheckoutSuccessPage } = await import(
 			"#app/(owner)/billing/checkout/success/page"
 		);
@@ -122,10 +125,10 @@ describe("a URL value never reaches the page as text", () => {
 		const page: (props: {
 			searchParams: Promise<{ session_id?: string }>;
 		}) => ReactElement | Promise<ReactElement> = CheckoutSuccessPage;
-		render(
+		renderWithQueryClient(
 			await page({ searchParams: Promise.resolve({ session_id: SENTENCE }) }),
 		);
-		expect(screen.getByText("Subscription Activated!")).toBeInTheDocument();
+		expect(screen.getByText("Activating your plan")).toBeInTheDocument();
 		expect(document.body.textContent).not.toContain(SENTENCE.slice(0, 20));
 	});
 });

@@ -1,7 +1,9 @@
 /**
- * Source of truth for route prefixes that require authentication.
- * Imported by proxy.ts (middleware gate) and robots.ts (disallow list).
- * Never edit this file without updating both consumers.
+ * Source of truth for route prefixes that require authentication, and for
+ * the subscription statuses the proxy admits to them.
+ * Imported by proxy.ts (middleware gate) and robots.ts (disallow list); the
+ * checkout success page reads the admitted statuses.
+ * Never edit this file without updating its consumers.
  */
 
 /**
@@ -25,6 +27,20 @@ export function matchesAnyRoutePrefix(
 ): boolean {
 	return prefixes.some((prefix) => matchesRoutePrefix(pathname, prefix));
 }
+
+/**
+ * The subscription statuses the proxy admits to a private route (its step 7;
+ * Settings is exempt whatever the status). `past_due` is admitted so a
+ * delinquent owner keeps access during Stripe's dunning/retry window (the
+ * grace period promised in the dunning email and banner) and can reach the
+ * in-app payment fix. When Stripe exhausts its retries it emits
+ * `customer.subscription.updated`→`unpaid` or `.deleted`→`canceled`, and the
+ * gate then locks the owner out. Read by `proxy.ts` and by the checkout
+ * success page, which offers the dashboard only once the owner's status is
+ * one of these (66.2-39 fix round 4, Part 8m).
+ */
+export const PROXY_ADMITTED_SUBSCRIPTION_STATUSES: ReadonlySet<string> =
+	new Set(["active", "trialing", "past_due"]);
 
 export const PRIVATE_ROUTE_PREFIXES = [
 	"/admin",

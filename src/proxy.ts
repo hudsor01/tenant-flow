@@ -6,27 +6,17 @@ import {
 	matchesAnyRoutePrefix,
 	matchesRoutePrefix,
 	PRIVATE_ROUTE_PREFIXES,
+	PROXY_ADMITTED_SUBSCRIPTION_STATUSES,
 } from "#lib/routes/private-routes";
 import { requiresMfaStepUp } from "#lib/supabase/mfa-assurance";
 import { updateSession } from "#lib/supabase/middleware";
 import type { Database } from "#types/supabase";
 
-/**
- * Stripe subscription statuses that grant dashboard access.
- *
- * `past_due` is admitted so a delinquent owner keeps access during Stripe's
- * dunning/retry window (the grace period promised in the dunning email +
- * banner) and can reach the in-app payment-fix surface. When Stripe exhausts
- * its retries it emits `customer.subscription.updated`→`unpaid` or
- * `.deleted`→`canceled`, and the gate then locks the owner out. `unpaid`,
- * `canceled`, `expired`, etc. stay locked out of every private route except
- * Settings (`SUBSCRIPTION_EXEMPT_PREFIXES`); they recover via /billing/plans.
- */
-const ACTIVE_SUBSCRIPTION_STATUSES = new Set([
-	"active",
-	"trialing",
-	"past_due",
-]);
+// The statuses step 7 admits are `PROXY_ADMITTED_SUBSCRIPTION_STATUSES`
+// (`#lib/routes/private-routes`, shared with the checkout success page):
+// `active`, `trialing` and `past_due`. `unpaid`, `canceled`, `expired`, etc.
+// stay locked out of every private route except Settings
+// (`SUBSCRIPTION_EXEMPT_PREFIXES`); they recover via /billing/plans.
 
 /**
  * Private routes a signed-in owner reaches whatever their subscription
@@ -394,7 +384,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 	// lapsed owner still passes sign-in, MFA and the read to reach it.
 	if (!gateRow.is_admin && !isAdminRoute && !isSubscriptionExempt(pathname)) {
 		const status = gateRow.subscription_status;
-		if (!status || !ACTIVE_SUBSCRIPTION_STATUSES.has(status)) {
+		if (!status || !PROXY_ADMITTED_SUBSCRIPTION_STATUSES.has(status)) {
 			return withCsp(
 				redirectWithCookies(new URL("/pricing", request.url), supabaseResponse),
 			);
