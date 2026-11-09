@@ -20,6 +20,10 @@
  * (`src/test/`, anything under `tests/`) or `vitest.config.ts`; every other
  * file is production code.
  *
+ * A module's exports include what it re-exports (`export { a } from "…"`,
+ * `export * from "…"`, `export * as ns from "…"`, an imported binding
+ * exported), each held to a reader of its own like a declared export.
+ *
  * The declaring modules are the non-test `.ts`/`.tsx` files under `src/`,
  * `scripts/`, `supabase/functions/_shared/` and `tests/e2e/lib/`, less the
  * generated `src/types/supabase.ts`, `.d.ts` files, and the files Next.js
@@ -206,13 +210,31 @@ function topLevelDeclarations(program: Node): Map<string, Node> {
 	return out;
 }
 
-/** The module's own exports (`export <declaration>`, `export { a as b }`, `export default`). */
+/**
+ * The module's own exports: `export <declaration>`, `export { a as b }`,
+ * `export default`, and its re-exports (`export { a } from "…"`, `export * as
+ * ns from "…"`, an imported binding exported). A re-export is an export of
+ * this module like any other and needs a reader of its own: a file that only
+ * passes a name on keeps it alive for nothing (66.2-39 fix round 4, Part 8j).
+ * `export * from "…"` names no export here; `starReexportTargets` expands it.
+ */
 function localExports(file: ParsedFile): LocalExport[] {
 	const declarations = topLevelDeclarations(file.program);
 	const out: LocalExport[] = [];
 	for (const statement of file.module.staticExports) {
 		for (const entry of statement.entries) {
-			if (entry.moduleRequest) continue;
+			if (entry.moduleRequest) {
+				if (entry.exportName.kind !== "Name" || !entry.exportName.name)
+					continue;
+				out.push({
+					name: entry.exportName.name,
+					local: entry.importName.name ?? entry.exportName.name,
+					start: statement.start,
+					isType: entry.isType,
+					declaration: null,
+				});
+				continue;
+			}
 			const name =
 				entry.exportName.kind === "Default" ? "default" : entry.exportName.name;
 			if (!name) continue;
@@ -227,6 +249,35 @@ function localExports(file: ParsedFile): LocalExport[] {
 					(declaration !== null && TYPE_DECLARATION.test(declaration.type)),
 				declaration,
 			});
+		}
+	}
+	return out;
+}
+
+/** The modules a file re-exports whole (`export * from "…"`), resolved, with the statement's start. */
+function starReexportTargets(
+	file: ParsedFile,
+	files: ReadonlySet<string>,
+	aliases: ReadonlyMap<string, string>,
+): { target: string | null; start: number }[] {
+	const out: { target: string | null; start: number }[] = [];
+	for (const statement of file.module.staticExports) {
+		for (const entry of statement.entries) {
+			if (
+				entry.moduleRequest &&
+				entry.importName.kind === "AllButDefault" &&
+				entry.exportName.kind !== "Name"
+			) {
+				out.push({
+					target: resolveSpecifier(
+						entry.moduleRequest.value,
+						file.path,
+						files,
+						aliases,
+					),
+					start: statement.start,
+				});
+			}
 		}
 	}
 	return out;
@@ -596,10 +647,46 @@ export function scanExportReaders(input: ExportScanInput): ExportReaders[] {
 		readersOf.set(key, entry);
 	}
 
+	const byPath = new Map(parsed.map((file) => [file.path, file]));
+	/** Every name a module exports, its `export *` targets' names included (no default). */
+	const exportedNames = (
+		path: string,
+		seen: Set<string> = new Set(),
+	): { name: string; isType: boolean }[] => {
+		const file = byPath.get(path);
+		if (!file || seen.has(path)) return [];
+		seen.add(path);
+		return [
+			...localExports(file).map((e) => ({ name: e.name, isType: e.isType })),
+			...starReexportTargets(file, fileSet, aliases).flatMap(({ target }) =>
+				target === null ? [] : exportedNames(target, seen),
+			),
+		].filter((e) => e.name !== "default");
+	};
+
 	const out: ExportReaders[] = [];
 	for (const file of parsed) {
 		if (!isDeclaringModule(file.path)) continue;
-		const exports = localExports(file);
+		const own = localExports(file);
+		const ownNames = new Set(own.map((e) => e.name));
+		const starred: LocalExport[] = starReexportTargets(
+			file,
+			fileSet,
+			aliases,
+		).flatMap(({ target, start }) =>
+			target === null
+				? []
+				: exportedNames(target)
+						.filter((e) => !ownNames.has(e.name))
+						.map((e) => ({
+							name: e.name,
+							local: e.name,
+							start,
+							isType: e.isType,
+							declaration: null,
+						})),
+		);
+		const exports = [...own, ...starred];
 		const counts = referenceCounts(file);
 		const signatureNames = new Map<string, Set<string>>();
 		for (const e of exports) {

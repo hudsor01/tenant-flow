@@ -15,7 +15,9 @@
  *     file that reads it, which the guard checks. An entry whose export gains
  *     a production reader, or whose test stops reading it, fails.
  *   - `RATCHET`: the older exports, unread at d9c7329f0 too, file by file, as
- *     they stood when the guard landed; the list can only shrink.
+ *     they stood when the guard landed, and the re-exports unread at
+ *     d9c7329f0 that it found once it read re-exports (Part 8j); the list can
+ *     only shrink.
  */
 
 import { execFileSync } from "node:child_process";
@@ -328,6 +330,13 @@ const TEST_SEAMS: readonly Seam[] = [
 /**
  * The older unread exports: `path name name …`, one line per file. Remove a
  * name when its export gains a reader, goes private or goes.
+ *
+ * The scan read no re-export until 66.2-39 fix round 4, Part 8j; the nine it
+ * then found were unread at d9c7329f0 too and joined here with that reason:
+ * `stepper-context.tsx`'s ActivationMode, Direction, Orientation and
+ * ROOT_NAME, `stepper.tsx`'s StepperContent, StepperNext, StepperPrev and
+ * useStepper (the vendored stepper's barrel), and `use-supabase-upload.ts`'s
+ * UseSupabaseUploadOptions.
  */
 const RATCHET = `
 scripts/fb-append-post.ts CalendarEntry DAILY_SLOTS dayAfter lintFbCopy mapCalendarEntry nextFreeSlot renderCalendarDoc slotSortKey
@@ -363,8 +372,9 @@ src/components/ui/card.tsx CardAction
 src/components/ui/file-upload/types.ts FileUploadClearProps FileUploadItemContextValue FileUploadItemDeleteProps FileUploadItemMetadataProps FileUploadItemPreviewProps FileUploadItemProgressProps FileUploadItemProps FileUploadListProps
 src/components/ui/loading-spinner.tsx LoadingDots PageLoader
 src/components/ui/number-ticker.tsx default
+src/components/ui/stepper-context.tsx ActivationMode Direction Orientation ROOT_NAME
 src/components/ui/stepper-types.ts GetDataStateFn GetFocusIntentFn
-src/components/ui/stepper.tsx StepperProps
+src/components/ui/stepper.tsx StepperContent StepperNext StepperPrev StepperProps useStepper
 src/components/ui/table.tsx TableCaption TableFooter
 src/config/pricing.ts PRICING_PLANS UsageMetrics checkPlanLimits getPricingPlan getRecommendedUpgrade getStripePriceId getTrialConfig hasTrial
 src/env.ts Env
@@ -387,6 +397,7 @@ src/hooks/api/use-owner-dashboard.ts DashboardActivityData mapDashboardActivityR
 src/hooks/api/use-owner-emergency-contact.ts OwnerEmergencyContact OwnerEmergencyContactInput
 src/hooks/api/use-owner-notification-settings.ts OwnerNotificationSettingsUpdate
 src/hooks/api/use-sessions.ts RevokeSessionInput
+src/hooks/use-supabase-upload.ts UseSupabaseUploadOptions
 src/lib/constants/lease-signature-errors.ts LeaseSignatureErrorCategory LeaseSignatureErrorCode
 src/lib/constants/status-types.ts CacheInvalidationReason CacheableEntityType CustomerInvoiceStatus DocumentType ErrorSeverity LateFeeType LeaseType PermissionType ProcessStatus ReminderStatus ReminderType RequestStatus Result SecurityMonitoringEventType SortDirection Status TimePeriod UploadStatus UserRole
 src/lib/forms/form-hook.tsx withFieldGroup
@@ -543,6 +554,43 @@ describe("exports have readers", () => {
 			"src/lib/a.ts\ttestOnly",
 			"src/lib/b.ts\tuse",
 			"src/test/h.ts\tunusedHelper",
+		]);
+	});
+
+	it("holds each re-export to a reader of its own", () => {
+		// A file that passes a name on (`export { a } from`, an imported binding
+		// exported, `export *`, `export * as`) exports it: the vendored stepper's
+		// four re-exports had no reader and the scan skipped them (66.2-39 fix
+		// round 4, Part 8j).
+		const unread = scanFixture({
+			"src/lib/a.ts": [
+				"export const one = 1;",
+				"export const two = 2;",
+				"export const three = 3;",
+				"export interface Row { id: string }",
+				"export const four = 4;",
+			].join("\n"),
+			"src/lib/barrel.ts": [
+				'export { one, two as renamed } from "./a";',
+				'import { three } from "./a";',
+				"export { three };",
+				'export type { Row } from "./a";',
+				'export * from "./c";',
+				'export * as everything from "./d";',
+			].join("\n"),
+			"src/lib/c.ts":
+				"export const starred = 1;\nexport const starredRead = 2;",
+			"src/lib/d.ts": "export const dee = 1;",
+			"src/app/x/page.tsx":
+				'import { renamed, starredRead } from "#lib/barrel";\nexport default function Page() { return [renamed, starredRead]; }',
+		});
+		expect(unread).toEqual([
+			"src/lib/a.ts\tfour",
+			"src/lib/barrel.ts\tRow",
+			"src/lib/barrel.ts\teverything",
+			"src/lib/barrel.ts\tone",
+			"src/lib/barrel.ts\tstarred",
+			"src/lib/barrel.ts\tthree",
 		]);
 	});
 
