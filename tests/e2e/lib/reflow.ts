@@ -59,6 +59,12 @@ export const OWNER_REFLOW_ROUTES = [
 	"/analytics/overview",
 	"/analytics/property-performance",
 	"/applications",
+	// A confirmation page, not an action: nothing happens on load. Owner A's
+	// signed-in state (its "Sign Out" and "Cancel" are never pressed:
+	// `reflow-states.ts` presses no control whose name signs out, and a plain
+	// button only when its name opens something). It was left out as "an
+	// action that ends the session" (66.2-39 fix round 4, Part 8m).
+	"/auth/signout",
 	"/billing/checkout/cancel",
 	"/billing/checkout/success",
 	"/billing/plans",
@@ -127,9 +133,6 @@ export const REFLOW_UNLISTED_PAGES: Readonly<Record<string, UnlistedPage>> = {
 	},
 	"/admin/blog": {
 		notMeasured: "owner A is not an admin, so the proxy sends it to /dashboard",
-	},
-	"/auth/signout": {
-		notMeasured: "an action that ends the session, not a page",
 	},
 	"/analytics": { redirectsTo: "/analytics/overview" },
 	"/analytics/leases": { redirectsTo: "/leases?tab=insights" },
