@@ -51,6 +51,9 @@
  *
  * Part 8o (main session): the trial-ending email's subject said "ends in 3
  * days" to owners with less time left.
+ *
+ * Part 8o (main session): the no-subscription banner promised that a
+ * subscription would "unlock all" features, though the plans differ.
  */
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -376,7 +379,11 @@ describe("no copy claims a deletion, a retention limit or an export the code doe
 		// of them (Part 8l).
 		/premium features are disabled/i,
 		/unlock premium features/i,
-		/unlock all features/i,
+		// Any subscription or plan that unlocks "all" or "every" feature,
+		// wherever the plans differ: it read "unlock all features", and the
+		// no-subscription banner "unlock all property management features"
+		// (main session, Part 8o).
+		/unlock(?:s|ing)? (?:all|every)\b/i,
 		/full access to all features/i,
 		/all premium features/i,
 		// Records are edited in the app with a plan or trial; after it ends

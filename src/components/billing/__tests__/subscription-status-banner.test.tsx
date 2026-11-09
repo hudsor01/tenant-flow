@@ -44,6 +44,9 @@ describe("SubscriptionStatusBanner", () => {
 		).not.toBeInTheDocument();
 	});
 
+	// Main session, Part 8o: it said a subscription would "unlock all property
+	// management features", but the plans differ (Starter has no e-signature).
+	// The proxy opens every owner page to a plan, so the copy says that.
 	it("renders info banner when subscription is null (no stripe customer)", () => {
 		mockUseSubscriptionStatus.mockReturnValue({
 			data: null,
@@ -52,7 +55,12 @@ describe("SubscriptionStatusBanner", () => {
 
 		render(<SubscriptionStatusBanner />);
 
-		expect(screen.getByText(/start your subscription/i)).toBeInTheDocument();
+		expect(
+			screen.getByText(
+				"Start your subscription to use the rest of TenantFlow.",
+			),
+		).toBeInTheDocument();
+		expect(screen.queryByText(/\ball\b|unlock/i)).toBeNull();
 		const link = screen.getByRole("link", { name: /view plans/i });
 		expect(link).toHaveAttribute("href", "/pricing");
 	});

@@ -48,11 +48,14 @@ export function SubscriptionStatusBanner() {
 
 	// No subscription at all — user needs to subscribe. Only render when
 	// the query SUCCEEDED with no subscription on file (genuine new-user
-	// state), not when the lookup couldn't resolve a status.
+	// state), not when the lookup couldn't resolve a status. Settings is open
+	// to it, and every other owner page needs a plan (the proxy); the plans
+	// differ (Starter has no e-signature), so the copy promises the rest of the
+	// app, not every feature (main session, 66.2-39 fix round 4, Part 8o).
 	if (!subscription || subscription.subscriptionStatus === null) {
 		return (
 			<StatusBanner tone="info" icon={Info} href="/pricing" action="View plans">
-				Start your subscription to unlock all property management features.
+				Start your subscription to use the rest of TenantFlow.
 			</StatusBanner>
 		);
 	}
@@ -185,7 +188,9 @@ const BANNER_TONES = {
  * The plan-trial copies hold it too, every day count from 1 to 14, measured
  * at every 2px from 352 to 520: worded "when it ends", the copies of 102 to
  * 104 characters ran 4 lines beside the link where the grid held 2, at
- * 410-416 (66.2-39 fix round 4, Part 8n).
+ * 410-416 (66.2-39 fix round 4, Part 8n). The no-subscription copy holds it
+ * too, measured at every 2px from 320 to 520 and at 768, 1024, 1280 and 1600
+ * (Part 8o).
  */
 function StatusBanner({
 	tone,
