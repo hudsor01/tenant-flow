@@ -48,6 +48,7 @@ function StepperTrigger(props: ButtonProps) {
 	const value = useStore((state) => state.value);
 	const itemValue = itemContext.value;
 	const stepState = useStore((state) => state.steps.get(itemValue));
+	const hasContent = useStore((state) => state.contents.has(itemValue));
 	const activationMode = context.activationMode;
 	const orientation = context.orientation;
 	const loop = context.loop;
@@ -221,7 +222,7 @@ function StepperTrigger(props: ButtonProps) {
 			id={triggerId}
 			role="tab"
 			type="button"
-			aria-controls={contentId}
+			aria-controls={hasContent ? contentId : undefined}
 			aria-current={isActive ? "step" : undefined}
 			aria-describedby={`${titleId} ${descriptionId}`}
 			aria-posinset={stepPosition}

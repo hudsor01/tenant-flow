@@ -12,9 +12,11 @@ import {
 	INDICATOR_NAME,
 	SEPARATOR_NAME,
 	TITLE_NAME,
+	useIsomorphicLayoutEffect,
 	useStepperContext,
 	useStepperItemContext,
 	useStore,
+	useStoreContext,
 } from "./stepper-context";
 import { getDataState, getId } from "./stepper-utils";
 
@@ -193,12 +195,24 @@ function StepperContent(props: StepperContentProps) {
 	} = props;
 
 	const context = useStepperContext(CONTENT_NAME);
+	const store = useStoreContext(CONTENT_NAME);
 	const value = useStore((state) => state.value);
 
 	const contentId = getId(context.id, "content", valueProp);
 	const triggerId = getId(context.id, "trigger", valueProp);
+	const rendered = valueProp === value || forceMount;
 
-	if (valueProp !== value && !forceMount) return null;
+	// The trigger names this panel in aria-controls only while it is rendered:
+	// a step's content mounts only while the step is active, and the lease
+	// wizard renders none, so a constant aria-controls named an absent id
+	// (axe aria-valid-attr-value; 66.2-39 fix round 4, Part 8h).
+	useIsomorphicLayoutEffect(() => {
+		if (!rendered) return;
+		store.addContent(valueProp);
+		return () => store.removeContent(valueProp);
+	}, [rendered, valueProp]);
+
+	if (!rendered) return null;
 
 	const ContentPrimitive = asChild ? Slot.Slot : "div";
 

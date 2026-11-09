@@ -70,6 +70,7 @@ function StepperRoot(props: StepperRootProps) {
 	const listenersRef = useLazyRef(() => new Set<() => void>());
 	const stateRef = useLazyRef<StoreState>(() => ({
 		steps: new Map(),
+		contents: new Set(),
 		value: value ?? defaultValue ?? "",
 	}));
 	const propsRef = useAsRef({
@@ -119,12 +120,22 @@ function StepperRoot(props: StepperRootProps) {
 				completed,
 				disabled: stepDisabled,
 			};
-			stateRef.current.steps.set(stepValue, newStep);
+			// A new Map, not set() on the old one: selectors that return `steps`
+			// (the triggers' aria-posinset, the separators' last-step check) saw
+			// the same reference after a step registered, so useSyncExternalStore
+			// and the React Compiler's memo kept the empty map's answers: every
+			// trigger read aria-posinset 0 (66.2-39 fix round 4, Part 8h).
+			stateRef.current.steps = new Map(stateRef.current.steps).set(
+				stepValue,
+				newStep,
+			);
 			propsRef.current.onValueAdd?.(stepValue);
 			storeRef.current.notify();
 		},
 		removeStep: (stepValue) => {
-			stateRef.current.steps.delete(stepValue);
+			const steps = new Map(stateRef.current.steps);
+			steps.delete(stepValue);
+			stateRef.current.steps = steps;
 			propsRef.current.onValueRemove?.(stepValue);
 			storeRef.current.notify();
 		},
@@ -136,12 +147,29 @@ function StepperRoot(props: StepperRootProps) {
 					completed,
 					disabled: stepDisabled,
 				};
-				stateRef.current.steps.set(stepValue, updatedStep);
+				stateRef.current.steps = new Map(stateRef.current.steps).set(
+					stepValue,
+					updatedStep,
+				);
 				if (completed !== step.completed) {
 					propsRef.current.onValueComplete?.(stepValue, completed);
 				}
 				storeRef.current.notify();
 			}
+		},
+		addContent: (contentValue) => {
+			if (stateRef.current.contents.has(contentValue)) return;
+			stateRef.current.contents = new Set(stateRef.current.contents).add(
+				contentValue,
+			);
+			storeRef.current.notify();
+		},
+		removeContent: (contentValue) => {
+			if (!stateRef.current.contents.has(contentValue)) return;
+			const contents = new Set(stateRef.current.contents);
+			contents.delete(contentValue);
+			stateRef.current.contents = contents;
+			storeRef.current.notify();
 		},
 		notify: () => {
 			for (const cb of listenersRef.current) cb();

@@ -47,7 +47,10 @@ export interface StepState {
 }
 
 export interface StoreState {
+	/** Replaced, never changed in place: a selector that returns it then sees each change. */
 	steps: Map<string, StepState>;
+	/** The step values whose StepperContent is rendered (what a trigger's aria-controls can name). */
+	contents: ReadonlySet<string>;
 	value: string;
 }
 
@@ -64,6 +67,8 @@ export interface Store {
 	addStep: (value: string, completed: boolean, disabled: boolean) => void;
 	removeStep: (value: string) => void;
 	setStep: (value: string, completed: boolean, disabled: boolean) => void;
+	addContent: (value: string) => void;
+	removeContent: (value: string) => void;
 }
 
 // Item data for focus management
