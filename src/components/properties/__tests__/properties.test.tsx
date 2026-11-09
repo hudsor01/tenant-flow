@@ -114,7 +114,7 @@ describe("Properties state wiring (STATE-05)", () => {
 		expect(within(dialog).getByText("Delete 2 properties?")).toBeVisible();
 		expect(
 			within(dialog).getByText(
-				"This marks the 2 selected properties as inactive, so they leave your property list.",
+				"This marks the 2 selected properties as inactive, so they leave your property list. Their units and leases are kept.",
 			),
 		).toBeVisible();
 		expect(deleteMutateAsync).not.toHaveBeenCalled();
@@ -127,7 +127,7 @@ describe("Properties state wiring (STATE-05)", () => {
 		expect(within(dialog).getByText("Delete 1 property?")).toBeVisible();
 		expect(
 			within(dialog).getByText(
-				'This marks "Property p1" as inactive, so it leaves your property list.',
+				'This marks "Property p1" as inactive, so it leaves your property list. Its units and leases are kept.',
 			),
 		).toBeVisible();
 	});

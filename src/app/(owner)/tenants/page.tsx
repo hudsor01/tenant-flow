@@ -45,6 +45,10 @@ export default function TenantsPage() {
 		transformToTenantItem(tenant, totalPaidByTenant),
 	);
 
+	// The single delete's confirmation names its tenant.
+	const tenantToDeleteName =
+		tenants.find((tenant) => tenant.id === tenantToDelete)?.fullName ?? null;
+
 	// Get selected tenant detail
 	const selectedTenant = (() => {
 		if (!selectedTenantId) return undefined;
@@ -137,11 +141,17 @@ export default function TenantsPage() {
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete Tenant</AlertDialogTitle>
+						<AlertDialogTitle>
+							{tenantToDeleteName
+								? `Delete tenant ${tenantToDeleteName}?`
+								: "Delete this tenant?"}
+						</AlertDialogTitle>
+						{/* A soft delete (status 'inactive'), refused for a tenant on an
+						    active lease (useDeleteTenantMutation). */}
 						<AlertDialogDescription className="mb-0">
-							This will mark the tenant as inactive and remove them from active
-							listings. Their data will be retained for legal compliance. Are
-							you sure you want to continue?
+							This marks the tenant as inactive, so they leave your tenant list.
+							Their leases are kept. A tenant on an active lease can't be
+							deleted.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
@@ -171,13 +181,12 @@ export default function TenantsPage() {
 					<AlertDialogHeader>
 						<AlertDialogTitle>
 							Delete {bulkDeleteIds?.length ?? 0} tenant
-							{(bulkDeleteIds?.length ?? 0) === 1 ? "" : "s"}
+							{(bulkDeleteIds?.length ?? 0) === 1 ? "" : "s"}?
 						</AlertDialogTitle>
 						<AlertDialogDescription className="mb-0">
-							This will mark the selected tenants as inactive and remove them
-							from active listings. Their data will be retained for legal
-							compliance. Any tenant with an active lease will be skipped and
-							show an error. Are you sure you want to continue?
+							This marks the selected tenants as inactive, so they leave your
+							tenant list. Their leases are kept. A tenant on an active lease is
+							skipped, with an error.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

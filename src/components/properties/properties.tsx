@@ -245,8 +245,10 @@ export function Properties({
 						? `"${bulkDelete.name}"`
 						: `the ${formatCount(bulkDeleteCount, "selected property", "selected properties")}`
 				} as inactive, so ${
-					bulkDeleteCount === 1 ? "it leaves" : "they leave"
-				} your property list.`}
+					bulkDeleteCount === 1
+						? "it leaves your property list. Its units and leases are kept."
+						: "they leave your property list. Their units and leases are kept."
+				}`}
 				confirmText="Delete"
 				loading={deletePropertyMutation.isPending}
 				onConfirm={() => {

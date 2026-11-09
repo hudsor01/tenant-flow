@@ -406,10 +406,10 @@ export function DocumentsSection({
 				onOpenChange={(open) => {
 					if (!open) setPendingDelete(null);
 				}}
-				title="Remove document?"
-				description={`This permanently deletes "${
+				title={`Remove document "${
 					pendingDelete?.title ?? pendingDelete?.file_path ?? "this document"
-				}" and its stored file. This can't be undone.`}
+				}"?`}
+				description="This permanently deletes the document and its stored file. This can't be undone."
 				confirmText="Remove"
 				loading={deleteMutation.isPending}
 				onConfirm={() => {

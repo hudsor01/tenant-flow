@@ -147,27 +147,29 @@ export function UnitActions({ unit }: UnitActionsProps) {
 							<TrashIcon className="size-6 text-destructive" />
 						</div>
 						<AlertDialogTitle className="text-center typography-large">
-							Delete Unit {unit.unit_number}?
+							Delete unit {unit.unit_number}?
 						</AlertDialogTitle>
+						{/* A soft delete (status 'inactive'), not a permanent one. */}
 						<AlertDialogDescription className="mb-0 text-center text-muted-foreground">
-							This action cannot be undone. The unit will be permanently removed
-							from your property management system.
-							{unit.status === "occupied" && (
-								<div
-									className={cn(
-										cardVariants({ variant: "default" }),
-										"mt-4 p-3 border-destructive/20 bg-destructive/5",
-									)}
-								>
-									<div className="flex items-center gap-2 text-destructive-text">
-										<AlertTriangle className="size-4" />
-										<span className="font-medium text-sm">
-											This unit is currently occupied and cannot be deleted.
-										</span>
-									</div>
-								</div>
-							)}
+							This marks the unit as inactive, so it leaves your unit lists. Its
+							lease history is kept.
 						</AlertDialogDescription>
+						{/* Beside the description, not in it: the description is a <p>. */}
+						{unit.status === "occupied" && (
+							<div
+								className={cn(
+									cardVariants({ variant: "default" }),
+									"p-3 border-destructive/20 bg-destructive/5",
+								)}
+							>
+								<div className="flex items-center gap-2 text-destructive-text">
+									<AlertTriangle className="size-4" />
+									<span className="font-medium text-sm">
+										This unit is occupied, so it can't be deleted.
+									</span>
+								</div>
+							</div>
+						)}
 					</AlertDialogHeader>
 					<AlertDialogFooter className="flex gap-3">
 						<AlertDialogCancel disabled={isDeleting} className="flex-1">

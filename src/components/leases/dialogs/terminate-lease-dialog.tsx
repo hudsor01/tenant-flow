@@ -51,10 +51,12 @@ export function TerminateLeaseDialog({
 		<AlertDialog open={open} onOpenChange={onOpenChange}>
 			<AlertDialogContent className="sm:max-w-125">
 				<AlertDialogHeader>
-					<AlertDialogTitle>Terminate Lease</AlertDialogTitle>
+					<AlertDialogTitle>Terminate this lease?</AlertDialogTitle>
+					{/* lease_status 'terminated' and end_date today; the lease's edit page
+					    can still change both, so nothing here is permanent. */}
 					<AlertDialogDescription className="mb-0">
-						This action will terminate the lease early and mark it as
-						TERMINATED. This action cannot be undone.
+						This ends the lease today: its status becomes Terminated and its end
+						date is set to today's date.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<div className="space-y-6">

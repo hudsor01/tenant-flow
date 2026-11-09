@@ -228,7 +228,11 @@ export function OwnerEmergencyContactSection() {
 			<ConfirmDialog
 				open={confirmOpen}
 				onOpenChange={setConfirmOpen}
-				title="Remove emergency contact?"
+				title={
+					contact?.name
+						? `Remove ${contact.name} as your emergency contact?`
+						: "Remove your emergency contact?"
+				}
 				description="This clears the saved name, phone, and relationship."
 				confirmText="Remove"
 				loading={isDeleting}

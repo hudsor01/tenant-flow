@@ -212,10 +212,10 @@ export function PropertyImageGallery({
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete Image</AlertDialogTitle>
+						<AlertDialogTitle>Delete this image?</AlertDialogTitle>
 						<AlertDialogDescription className="mb-0">
-							Are you sure you want to delete this image? This action cannot be
-							undone.
+							This permanently deletes the image from the property's gallery.
+							This can't be undone.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

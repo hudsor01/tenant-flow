@@ -285,8 +285,11 @@ describe("SubscriptionCancelSection", () => {
 		expect(screen.getByText("Cancel your subscription?")).toBeInTheDocument();
 		// Description contains the formatted end date (June 15, 2026 from '2026-06-15T12:00:00Z')
 		expect(
-			screen.getByText(/your plan will stay active until/i),
+			screen.getByText(/your plan stays active until/i),
 		).toBeInTheDocument();
+		// Nothing deletes an owner's data when a plan ends (66.2-39 fix round 4,
+		// Part 8h): the copy no longer claims a 30-day deletion.
+		expect(screen.queryByText(/30 days/)).not.toBeInTheDocument();
 		expect(
 			screen.getByRole("button", { name: /keep my plan/i }),
 		).toBeInTheDocument();

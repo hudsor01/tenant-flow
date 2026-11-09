@@ -271,9 +271,9 @@ describe("PropertyImageGallery Component", () => {
 				await waitFor(() => {
 					expect(screen.getByRole("alertdialog")).toBeInTheDocument();
 				});
-				expect(screen.getByText(/delete image/i)).toBeInTheDocument();
+				expect(screen.getByText("Delete this image?")).toBeInTheDocument();
 				expect(
-					screen.getByText(/this action cannot be undone/i),
+					screen.getByText(/permanently deletes the image/i),
 				).toBeInTheDocument();
 			}
 		});

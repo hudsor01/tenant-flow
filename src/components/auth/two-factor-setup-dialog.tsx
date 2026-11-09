@@ -186,11 +186,14 @@ export function DisableTwoFactorDialog({
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2 text-destructive-text">
 						<ShieldOff className="size-5" />
-						Disable Two-Factor Authentication
+						Disable two-factor authentication?
 					</DialogTitle>
+					{/* mfa.unenroll deletes the factor: turning 2FA on again means a new
+					    QR scan. */}
 					<DialogDescription className="mb-0">
-						Are you sure you want to disable 2FA? This will make your account
-						less secure.
+						Signing in will ask only for your password, and the codes from your
+						authenticator app stop working. To turn it on again, you set it up
+						again.
 					</DialogDescription>
 				</DialogHeader>
 				<DialogFooter>

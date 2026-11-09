@@ -172,11 +172,13 @@ export function LeaseHeader({
 							</AlertDialogTrigger>
 							<AlertDialogContent>
 								<AlertDialogHeader>
-									<AlertDialogTitle>Cancel Signature Request?</AlertDialogTitle>
+									<AlertDialogTitle>
+										Cancel the signature request?
+									</AlertDialogTitle>
 									<AlertDialogDescription className="mb-0">
-										This will revert the lease to draft status. Any pending
-										signatures will be lost and you will need to send a new
-										signature request.
+										The lease goes back to draft, the tenant's signing link
+										stops working, and any signature already given is cleared.
+										To get it signed, send a new request.
 									</AlertDialogDescription>
 								</AlertDialogHeader>
 								<AlertDialogFooter>

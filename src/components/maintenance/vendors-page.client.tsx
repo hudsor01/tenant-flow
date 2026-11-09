@@ -81,11 +81,15 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 							</AlertDialogTrigger>
 							<AlertDialogContent>
 								<AlertDialogHeader>
-									<AlertDialogTitle>Remove vendor?</AlertDialogTitle>
+									<AlertDialogTitle>
+										Delete vendor "{vendor.name}"?
+									</AlertDialogTitle>
+									{/* A hard delete; maintenance_requests.vendor_id is ON DELETE
+									    SET NULL, so the requests stay and lose the vendor. */}
 									<AlertDialogDescription className="mb-0">
-										This will remove <strong>{vendor.name}</strong> from your
-										vendor list. Existing maintenance requests with this vendor
-										will retain their assignment.
+										This permanently deletes the vendor from your vendor list.
+										Maintenance requests assigned to them are kept and become
+										unassigned. This can't be undone.
 									</AlertDialogDescription>
 								</AlertDialogHeader>
 								<AlertDialogFooter>
@@ -94,7 +98,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 										onClick={() => deleteMutation.mutate(vendor.id)}
 										variant="destructive"
 									>
-										Remove
+										Delete vendor
 									</AlertDialogAction>
 								</AlertDialogFooter>
 							</AlertDialogContent>

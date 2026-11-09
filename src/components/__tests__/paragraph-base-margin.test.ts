@@ -112,10 +112,6 @@ const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
 		1,
 		"74de3ec2156c1275f875684e57cb3000bca0d05e",
 	],
-	"src/app/(owner)/tenants/components/move-out-dialog.tsx": [
-		1,
-		"e08c7ff46eb21d08abbd4e1bab5412891cc6681e",
-	],
 	"src/app/auth/confirm-email/loading.tsx": [
 		1,
 		"0b2dbc8d536722f4b448b00f7eae79a2e2d7d2a3",
@@ -147,10 +143,6 @@ const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
 	"src/components/admin/gate-conversion-table.tsx": [
 		1,
 		"5b5e8a8b111d06fcbb5e168f2f96dd50cdb661ef",
-	],
-	"src/components/applications/application-decline-dialog.tsx": [
-		1,
-		"0a59fe3e5340276d8d7ef53e4e3e284a612d0686",
 	],
 	"src/components/bulk-import/bulk-import-dialog.tsx": [
 		1,
@@ -227,10 +219,6 @@ const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
 	"src/components/settings/category-create-dialog.tsx": [
 		2,
 		"d6bc4d7202d01814a4b7cbd75f85e1530d986212",
-	],
-	"src/components/settings/category-delete-dialog.tsx": [
-		1,
-		"055ec3ccd245a77cbaffefd75d89e04e7f6b9e43",
 	],
 	"src/components/settings/category-rename-dialog.tsx": [
 		1,

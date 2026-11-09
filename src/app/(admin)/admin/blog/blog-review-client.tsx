@@ -125,10 +125,12 @@ function BlogReviewRow({ draft }: { draft: BlogReviewItem }) {
 			<AlertDialog open={confirmReject} onOpenChange={setConfirmReject}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Reject this draft?</AlertDialogTitle>
+						<AlertDialogTitle>Reject "{draft.title}"?</AlertDialogTitle>
+						{/* rejectBlogPost sets status 'archived'; this screen has no way
+						    to bring an archived post back. */}
 						<AlertDialogDescription className="mb-0">
-							Rejecting archives this post. It cannot be undone from this
-							screen.
+							This archives the draft, so it is never published. This screen
+							can't bring it back.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

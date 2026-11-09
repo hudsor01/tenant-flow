@@ -108,6 +108,10 @@ export default function PropertiesPage() {
 		setPropertyToDelete(propertyId);
 	};
 
+	// The confirmation names the property it deletes.
+	const propertyToDeleteName =
+		properties.find((p) => p.id === propertyToDelete)?.name ?? null;
+
 	const confirmDelete = () => {
 		if (propertyToDelete) {
 			deleteProperty(propertyToDelete);
@@ -169,10 +173,16 @@ export default function PropertiesPage() {
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete Property</AlertDialogTitle>
+						<AlertDialogTitle>
+							{propertyToDeleteName
+								? `Delete property "${propertyToDeleteName}"?`
+								: "Delete this property?"}
+						</AlertDialogTitle>
+						{/* A soft delete (status 'inactive'): the property leaves the
+						    list, and nothing cascades to its units or leases. */}
 						<AlertDialogDescription className="mb-0">
-							Are you sure you want to delete this property? This action cannot
-							be undone.
+							This marks the property as inactive, so it leaves your property
+							list. Its units and leases are kept.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

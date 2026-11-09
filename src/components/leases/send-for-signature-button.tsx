@@ -210,17 +210,22 @@ export function SendForSignatureButton({
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>
-						{isResend ? "Resend Signature Request" : "Send Lease for Signature"}
-					</DialogTitle>
-					<DialogDescription className="mb-0">
 						{isResend
 							? tenantName
-								? `Resend the signature request to ${tenantName}. This will create a fresh signing request.`
-								: "Resend the signature request. This will create a fresh signing request."
+								? `Resend the signature request to ${tenantName}?`
+								: "Resend the signature request?"
 							: tenantName
-								? `Send this lease to ${tenantName} for review and signature.`
-								: "Send this lease to the tenant for review and signature."}{" "}
-						You can include an optional message.
+								? `Send the lease to ${tenantName} for signature?`
+								: "Send the lease for signature?"}
+					</DialogTitle>
+					{/* send: pending_signature, which locks the lease's rent, dates, unit,
+					    tenant and text until the request is signed or cancelled; resend:
+					    the previous link is revoked and a new one emailed. */}
+					<DialogDescription className="mb-0">
+						{isResend
+							? `TenantFlow emails ${tenantName ?? "the tenant"} a new signing link, and the link sent before stops working.`
+							: `TenantFlow emails ${tenantName ?? "the tenant"} a link to review and sign the lease. While the request is open, its rent, dates, unit and tenant can't be changed.`}{" "}
+						You can add a message.
 					</DialogDescription>
 				</DialogHeader>
 

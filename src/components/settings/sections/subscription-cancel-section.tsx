@@ -243,9 +243,11 @@ export function SubscriptionCancelSection() {
 				<div className="flex items-center justify-between">
 					<div>
 						<p className="text-sm font-medium">Cancel Subscription</p>
+						{/* Nothing deletes an owner's data when a plan ends: the proxy sends a
+						    lapsed account to /pricing, and its records stay. */}
 						<p className="mb-0 text-xs text-muted-foreground">
-							Your data stays for 30 days after cancellation. You can reactivate
-							anytime before your period ends.
+							Your properties, tenants and leases are kept after your plan ends.
+							You can reactivate anytime before your period ends.
 						</p>
 					</div>
 					<AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -261,8 +263,10 @@ export function SubscriptionCancelSection() {
 							<AlertDialogHeader>
 								<AlertDialogTitle>Cancel your subscription?</AlertDialogTitle>
 								<AlertDialogDescription className="mb-0">
-									Your plan will stay active until <strong>{endDate}</strong>.
-									Your data stays for 30 days after that per our privacy policy.
+									Your plan stays active until <strong>{endDate}</strong>, and
+									you can reactivate it until then. After that, you choose a
+									plan to open the app again; your properties, tenants and
+									leases are kept.
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter>

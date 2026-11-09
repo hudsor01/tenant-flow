@@ -321,7 +321,7 @@ describe("CategoriesSettings", () => {
 		await user.click(button);
 		expect(
 			await screen.findByRole("dialog", {
-				name: "Delete \u201cWarranty\u201d",
+				name: "Delete category \u201cWarranty\u201d?",
 			}),
 		).toBeInTheDocument();
 	});

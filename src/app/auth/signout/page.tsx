@@ -93,9 +93,11 @@ export default function SignOutPage() {
 
 	return (
 		<div className="flex min-h-screen items-center justify-center p-4">
+			{/* supabase.auth.signOut() defaults to the global scope: every session
+			    of the account ends, on every device. */}
 			<CardLayout
-				title="Sign Out"
-				description="Are you sure you want to sign out?"
+				title="Sign out of TenantFlow?"
+				description="This signs you out here and on every other device where you are signed in."
 			>
 				<div className="space-y-4">
 					{signOut.isError && (

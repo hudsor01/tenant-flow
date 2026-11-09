@@ -69,11 +69,14 @@ export function CategoryDeleteDialog({
 		<Dialog open={target !== null} onOpenChange={onOpenChange}>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Delete &ldquo;{target?.label}&rdquo;</DialogTitle>
-					<DialogDescription>
-						Documents currently tagged with this category will be reassigned to
-						the category you pick below. This change is atomic — every affected
-						document is updated in a single transaction.
+					<DialogTitle>
+						Delete category &ldquo;{target?.label}&rdquo;?
+					</DialogTitle>
+					{/* reassign_document_category moves the documents and deletes the
+					    category in one transaction. */}
+					<DialogDescription className="mb-0">
+						This deletes the category. The documents tagged with it move to the
+						category you pick below, all in one step.
 					</DialogDescription>
 				</DialogHeader>
 				<div className="space-y-1">

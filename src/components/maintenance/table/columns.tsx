@@ -260,10 +260,13 @@ function MaintenanceActionsCell({ request }: { request: MaintenanceListRow }) {
 				</AlertDialogTrigger>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete Request</AlertDialogTitle>
+						<AlertDialogTitle>
+							Delete request "{request.title ?? request.description}"?
+						</AlertDialogTitle>
+						{/* A hard delete: its expenses and photos cascade with it. */}
 						<AlertDialogDescription className="mb-0">
-							Permanently delete "{request.title ?? request.description}"? This
-							action cannot be undone.
+							This permanently deletes the maintenance request with its expenses
+							and photos. This can't be undone.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

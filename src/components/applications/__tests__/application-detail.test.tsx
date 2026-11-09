@@ -787,7 +787,7 @@ describe("ApplicationDetail — delete is confirmed before anything happens", ()
 
 		const dialog = await screen.findByRole("alertdialog");
 		const copy = dialog.textContent ?? "";
-		expect(copy).toContain("This cannot be undone.");
+		expect(copy).toContain("This can't be undone.");
 		expect(copy).not.toContain("tenant record");
 		expect(copy).not.toContain("Dana Reyes");
 	});

@@ -172,11 +172,14 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 			<AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete Property?</AlertDialogTitle>
+						<AlertDialogTitle>
+							Delete property "{property.name}"?
+						</AlertDialogTitle>
+						{/* A soft delete (status 'inactive'): it does not cascade to the
+						    units, and the app has no way to restore it. */}
 						<AlertDialogDescription className="mb-0">
-							Are you sure you want to delete <strong>{property.name}</strong>?
-							This will also delete all units associated with this property.
-							This action cannot be undone.
+							This marks the property as inactive, so it leaves your property
+							list. Its units and leases are kept.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

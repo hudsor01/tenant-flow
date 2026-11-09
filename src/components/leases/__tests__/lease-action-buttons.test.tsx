@@ -322,9 +322,12 @@ describe("LeaseActionButtons", () => {
 			// AlertDialog should open with correct content
 			await waitFor(() => {
 				expect(screen.getByRole("alertdialog")).toBeInTheDocument();
-				expect(screen.getByText(/delete lease/i)).toBeInTheDocument();
-				expect(screen.getByText(/cannot be undone/i)).toBeInTheDocument();
-				expect(screen.getByText(/payment records/i)).toBeInTheDocument();
+				expect(screen.getByText("Delete this lease?")).toBeInTheDocument();
+				// A soft delete: the rent ledger is kept, nothing is permanent.
+				expect(
+					screen.getByText(/Its rent ledger and documents are kept/),
+				).toBeInTheDocument();
+				expect(screen.queryByText(/cannot be undone/i)).not.toBeInTheDocument();
 			});
 		});
 

@@ -244,6 +244,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 			</div>
 
 			<MoveOutDialog
+				tenantName={tenant.name || null}
 				open={moveOutDialogOpen}
 				onOpenChange={setMoveOutDialogOpen}
 				moveOutDate={moveOutDate}

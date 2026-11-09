@@ -54,6 +54,9 @@ export default function UnitsPage() {
 	} = useQuery(unitQueries.list({ limit: 100 }));
 
 	const units = unitsResponse?.data ?? [];
+	// The confirmation names the unit it deletes.
+	const unitToDeleteNumber =
+		units.find((unit) => unit.id === deleteunit_id)?.unit_number ?? null;
 
 	const handleDeleteClick = (unit_id: string) => {
 		setDeleteunit_id(unit_id);
@@ -302,10 +305,15 @@ export default function UnitsPage() {
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete unit</AlertDialogTitle>
+						<AlertDialogTitle>
+							{unitToDeleteNumber
+								? `Delete unit ${unitToDeleteNumber}?`
+								: "Delete this unit?"}
+						</AlertDialogTitle>
+						{/* A soft delete (status 'inactive'), not a permanent one. */}
 						<AlertDialogDescription className="mb-0">
-							Are you sure you want to delete this unit? This action cannot be
-							undone.
+							This marks the unit as inactive, so it leaves your unit lists. Its
+							lease history is kept.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

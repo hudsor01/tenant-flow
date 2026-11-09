@@ -120,11 +120,14 @@ const TENANT_GONE_HELPER =
  * implying otherwise would stop owners from deleting anything.
  */
 const DELETE_COPY = {
-	title: "Delete application",
+	title: "Delete this application?",
 	description:
-		"This permanently deletes the application and the reason you recorded for your decision. TenantFlow keeps applications for two years so you can show why a decision was made. This cannot be undone.",
+		"This permanently deletes the application and the reason you recorded for your decision. TenantFlow keeps applications for two years so you can show why a decision was made. This can't be undone.",
 	confirmText: "Delete",
 } as const;
+
+/** The actions menu's item that opens the delete confirmation. */
+const DELETE_MENU_LABEL = "Delete application";
 
 /** §B-8, the anonymized banner. */
 const ANONYMIZED_COPY = {
@@ -613,7 +616,7 @@ function DetailHeader({
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end">
 						<DropdownMenuItem onSelect={onDelete}>
-							{DELETE_COPY.title}
+							{DELETE_MENU_LABEL}
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>

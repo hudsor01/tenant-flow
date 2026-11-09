@@ -167,10 +167,13 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 			<AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete Lease</AlertDialogTitle>
+						<AlertDialogTitle>Delete this lease?</AlertDialogTitle>
+						{/* A soft delete (lease_status 'inactive'): the rent ledger stays;
+						    only a hard delete would cascade to it. */}
 						<AlertDialogDescription className="mb-0">
-							Are you sure you want to delete this lease? This action cannot be
-							undone and will remove all associated payment records.
+							This marks the lease as inactive, so it leaves your lease list.
+							Its rent ledger and documents are kept, and an active lease's unit
+							shows as available again.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
