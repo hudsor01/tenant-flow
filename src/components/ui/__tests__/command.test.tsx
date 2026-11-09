@@ -5,6 +5,10 @@
  * The input wrapper is a direct child of the Command root, so the dialog's 48px rule must be the
  * upstream depth-1 form `**:data-[slot=command-input-wrapper]:h-12`; the wrapper's own `h-11`
  * (the 44px row outside the dialog) stays.
+ *
+ * CommandDialog hands its `label` to the Command: cmdk names the input by the
+ * Command's visually hidden label, which was empty, so the palette's input had
+ * only its placeholder for a name (66.2-39 fix round 4, Part 8h).
  */
 
 import { screen } from "@testing-library/react";
@@ -51,6 +55,20 @@ describe("CommandDialog", () => {
 
 		expect(
 			screen.getByRole("dialog", { name: "Command Palette" }),
+		).toBeInTheDocument();
+	});
+
+	it("names its input by the label it is given", () => {
+		render(
+			<CommandDialog open label="Search pages and actions">
+				<CommandInput placeholder="Search pages and actions..." />
+				<CommandList>
+					<CommandEmpty>No results found.</CommandEmpty>
+				</CommandList>
+			</CommandDialog>,
+		);
+		expect(
+			screen.getByRole("combobox", { name: "Search pages and actions" }),
 		).toBeInTheDocument();
 	});
 });

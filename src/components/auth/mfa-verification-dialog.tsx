@@ -125,6 +125,7 @@ export function MfaVerificationDialog({
 						    is 360px), so the code fits a narrow dialog: fixed 44px slots made
 						    a 360px row that ran past a 390px screen. */}
 						<InputOTP
+							aria-label="6-digit code"
 							maxLength={6}
 							value={code}
 							onChange={handleCodeChange}

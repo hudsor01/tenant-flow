@@ -19,7 +19,11 @@
  *   (66.2-39 fix round 4, Part 5b);
  * - CommandShortcut restates text-accent-foreground while its item is
  *   selected (in-data-[selected=true]:): the muted label read 1.85:1 on the
- *   selected item's emerald fill (66.2-39 fix round 4, Part 5c).
+ *   selected item's emerald fill (66.2-39 fix round 4, Part 5c);
+ * - CommandDialog takes a `label`, which it hands to its Command: cmdk names
+ *   the input by the Command's visually hidden label (aria-labelledby), and
+ *   with none that label was empty, so the palette's input had only its
+ *   placeholder for a name (66.2-39 fix round 4, Part 8h).
  */
 import { Command as CommandPrimitive } from "cmdk";
 import { SearchIcon } from "lucide-react";
@@ -53,6 +57,7 @@ function Command({
 function CommandDialog({
 	title = "Command Palette",
 	description = "Search for a command to run...",
+	label,
 	children,
 	className,
 	showCloseButton = true,
@@ -60,6 +65,8 @@ function CommandDialog({
 }: ComponentProps<typeof Dialog> & {
 	title?: string;
 	description?: string;
+	/** The input's name (cmdk labels the input by the Command's label). */
+	label?: string;
 	className?: string;
 	showCloseButton?: boolean;
 }) {
@@ -73,7 +80,10 @@ function CommandDialog({
 				className={cn("overflow-hidden p-0", className)}
 				showCloseButton={showCloseButton}
 			>
-				<Command className="**:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
+				<Command
+					{...(label === undefined ? {} : { label })}
+					className="**:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
+				>
 					{children}
 				</Command>
 			</DialogContent>

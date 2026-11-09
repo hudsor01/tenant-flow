@@ -54,7 +54,12 @@ export function AppShellSearch({
 	onSignOut,
 }: AppShellSearchProps) {
 	return (
-		<CommandDialog open={open} onOpenChange={onOpenChange} className="max-w-xl">
+		<CommandDialog
+			open={open}
+			onOpenChange={onOpenChange}
+			className="max-w-xl"
+			label="Search pages and actions"
+		>
 			<CommandInput placeholder="Search pages and actions..." />
 			<CommandList>
 				<CommandEmpty>No results found.</CommandEmpty>

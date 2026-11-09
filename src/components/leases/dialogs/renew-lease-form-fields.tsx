@@ -174,7 +174,10 @@ export function RentAdjustment({
 	return (
 		<div className="space-y-3">
 			<div className="flex-between">
-				<Label className="text-muted-foreground text-xs font-medium uppercase tracking-[0.01em]">
+				<Label
+					htmlFor="new-rent"
+					className="text-muted-foreground text-xs font-medium uppercase tracking-[0.01em]"
+				>
 					Rent Adjustment
 				</Label>
 				<Button type="button" variant="outline" size="sm" onClick={onToggle}>

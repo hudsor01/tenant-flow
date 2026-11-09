@@ -240,10 +240,6 @@ const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
 		1,
 		"e46314e9018fe6dd8f4599cb2c49cb1da0359c6a",
 	],
-	"src/components/tenants/tenant-table.tsx": [
-		1,
-		"9b4c24194c0917fb90b26c5159cd1b80c7bcf6fd",
-	],
 	"src/lib/forms/fields/icon-input-field.tsx": [
 		1,
 		"48e5d8e2af3d01041d584671741115dd4a33a01d",

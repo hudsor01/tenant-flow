@@ -513,6 +513,11 @@
      "what": "CommandShortcut restates text-accent-foreground while its item is selected (in-data-[selected=true]:), where upstream keeps text-muted-foreground on the selected item's accent fill (1.85:1)",
      "reason": "D-26 customization",
      "ref": "WCAG 1.4.3; 66.2-39 fix round 4 Part 5c (F1 gaps sweep)"
+    },
+    {
+     "what": "CommandDialog takes a label and hands it to its Command, where upstream passes none: cmdk names the input by the Command's visually hidden label (aria-labelledby), which was empty, so the palette's input had only its placeholder for a name",
+     "reason": "D-26 customization",
+     "ref": "WCAG 4.1.2 / 3.3.2; 66.2-39 fix round 4 Part 8h (static control-name sweep)"
     }
    ]
   },
