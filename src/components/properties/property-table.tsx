@@ -171,6 +171,7 @@ export function PropertyTable({
 								role="columnheader"
 							>
 								<Checkbox
+									aria-label="Select all properties"
 									checked={
 										selectedRows.size === properties.length &&
 										properties.length > 0

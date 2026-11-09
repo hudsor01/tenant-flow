@@ -62,6 +62,7 @@ export function PropertyTableRow({
 				role="cell"
 			>
 				<Checkbox
+					aria-label={`Select ${property.name}`}
 					checked={isSelected}
 					onCheckedChange={() => onSelectRow(property.id)}
 				/>
