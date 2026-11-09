@@ -197,6 +197,8 @@ export interface TenantWithLeaseInfo {
 	emergency_contact_relationship: string | null;
 	identity_verified: boolean | null;
 	ssn_last_four: string | null;
+	move_out_date: string | null;
+	move_out_reason: string | null;
 	updated_at: string | null;
 	name: string | null;
 	email: string | null;

@@ -8,7 +8,7 @@
  * - PostgREST direct via supabase-js (no apiRequest calls)
  *
  * Schema notes:
- * - tenants table: id, owner_user_id, name, email, phone, emergency_contact_*, identity_verified, ssn_last_four
+ * - tenants table: id, owner_user_id, name, email, phone, emergency_contact_*, identity_verified, ssn_last_four, move_out_date, move_out_reason
  * - Landlord-only model: tenants are owner-managed records, not authenticated users
  */
 
@@ -23,7 +23,7 @@ import type { TenantPostgrestRow } from "./tenant-mappers";
 import { mapTenantRow } from "./tenant-mappers";
 
 const TENANT_BASE_SELECT =
-	"id, owner_user_id, first_name, last_name, name, email, phone, status, created_at, updated_at, date_of_birth, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, ssn_last_four";
+	"id, owner_user_id, first_name, last_name, name, email, phone, status, created_at, updated_at, date_of_birth, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, ssn_last_four, move_out_date, move_out_reason";
 
 /** Flat tenant option for lease-wizard selection (records, not auth users). */
 interface LeaseTenantOption {

@@ -1002,6 +1002,8 @@ describe("transformLease (LEASE-01 list embed shape)", () => {
 		emergency_contact_relationship: null,
 		identity_verified: null,
 		ssn_last_four: null,
+		move_out_date: null,
+		move_out_reason: null,
 		created_at: "2025-01-01T00:00:00Z",
 		updated_at: "2025-01-01T00:00:00Z",
 	};

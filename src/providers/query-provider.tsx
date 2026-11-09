@@ -316,7 +316,11 @@ const QUERY_CACHE_KEY = "tenantflow-query-cache";
 // financialQueries.balanceSheet's asOfDate, .cashFlow's and .incomeStatement's
 // period, and reportAnalyticsQueries.yearEnd's year. A v7 entry would carry
 // them until the refetch landed.
-const QUERY_CACHE_BUSTER = "tenantflow-cache-v8";
+// v9: tenantQueries' rows (list, allTenants, withLease, detail) carry
+// `move_out_date` and `move_out_reason`, the record "Mark as moved out" now
+// saves. A v8 entry would show a moved-out tenant with no move-out record
+// until the refetch landed.
+const QUERY_CACHE_BUSTER = "tenantflow-cache-v9";
 const QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24; // 24 hours
 
 declare global {

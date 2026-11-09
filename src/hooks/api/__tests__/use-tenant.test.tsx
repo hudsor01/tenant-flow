@@ -153,6 +153,8 @@ const mockTenant = {
 	emergency_contact_relationship: null,
 	identity_verified: null,
 	ssn_last_four: null,
+	move_out_date: null,
+	move_out_reason: null,
 };
 
 const mockTenantWithLease = {
