@@ -32,10 +32,14 @@ import userEvent from "@testing-library/user-event";
 import { createElement, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { toastError } = vi.hoisted(() => ({ toastError: vi.fn() }));
+const { toastError, router } = vi.hoisted(() => ({
+	toastError: vi.fn(),
+	router: { push: vi.fn(), replace: vi.fn(), back: vi.fn() },
+}));
 vi.mock("sonner", () => ({
 	toast: { error: toastError, success: vi.fn() },
 }));
+vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
 import SignOutPage from "#app/auth/signout/page";
 import { AuthStoreProvider } from "#providers/auth-provider";
@@ -151,6 +155,8 @@ beforeEach(() => {
 	stubFetch();
 	seedSession();
 	toastError.mockClear();
+	router.push.mockClear();
+	router.replace.mockClear();
 });
 
 afterEach(() => {
@@ -331,11 +337,14 @@ describe("/auth/signout, with the real auth-js and AuthProvider", () => {
 		expect(screen.getByRole("button", { name: /^sign in$/i })).toBeVisible();
 	});
 
-	it("success says Signed Out", async () => {
+	// Part 8l: a success lands on /login at once, once; no timer.
+	it("success lands on /login once", async () => {
 		renderPage();
 		await pressSignOut(/^sign out$/i);
 
-		expect(await screen.findByText("Signed Out")).toBeInTheDocument();
+		await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/login"));
+		expect(router.replace).toHaveBeenCalledTimes(1);
+		expect(router.push).not.toHaveBeenCalled();
 		expect(logouts()).toEqual([
 			"POST /auth/v1/logout?scope=others",
 			"POST /auth/v1/logout?scope=local",

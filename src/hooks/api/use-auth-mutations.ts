@@ -9,6 +9,7 @@
  */
 
 import { mutationOptions, useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { logger } from "#lib/frontend-logger";
 import {
 	handleMutationError,
@@ -124,9 +125,17 @@ const authMutationFactories = {
 /**
  * Sign out mutation with comprehensive cache clearing.
  *
+ * Every "Sign out" (the shell's menu and command palette, the profile page,
+ * `/auth/signout`) lands on `/login` as soon as it succeeds, once, after the
+ * auth data is cleared (main session, Part 8l): one landing for one action,
+ * and no timed redirect, which is a time limit the owner cannot turn off or
+ * extend (WCAG 2.2.1).
+ *
  * A failure is shown as a toast (the shell's menu and command palette, the
- * profile page). `/auth/signout` passes `toastOnError: false`: it shows the
- * failure in the page, beside its retry.
+ * profile page), and an incomplete sign-out, whose browser is signed out,
+ * lands on `/login` too, the toast going with it. `/auth/signout` passes
+ * `toastOnError: false`: it shows the failure and the incomplete outcome in
+ * the page, beside its retry or its Sign In.
  */
 export function useSignOutMutation({
 	toastOnError = true,
@@ -134,6 +143,7 @@ export function useSignOutMutation({
 	toastOnError?: boolean;
 } = {}) {
 	const { clearAuthData } = useAuthCacheUtils();
+	const router = useRouter();
 
 	return useMutation({
 		...authMutationFactories.logout(),
@@ -142,18 +152,21 @@ export function useSignOutMutation({
 			logger.info("User signed out successfully - all cache cleared", {
 				action: "sign_out_success",
 			});
+			router.replace("/login");
 		},
 		onError: (error) => {
 			// The browser is signed out after an incomplete sign-out too: clear
 			// what a success clears, so the next user of this browser inherits
 			// nothing.
-			if (error instanceof SignOutIncompleteError) clearAuthData();
+			const incomplete = error instanceof SignOutIncompleteError;
+			if (incomplete) clearAuthData();
 			if (toastOnError) {
 				handleMutationError(
 					error,
 					"Sign out",
-					error instanceof SignOutIncompleteError ? undefined : SIGN_OUT_FAILED,
+					incomplete ? undefined : SIGN_OUT_FAILED,
 				);
+				if (incomplete) router.replace("/login");
 				return;
 			}
 			logger.error("Sign out failed", {

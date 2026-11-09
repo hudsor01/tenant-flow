@@ -13,10 +13,16 @@ import { AuthStoreProvider } from "#providers/auth-provider";
 import type { UserProfile } from "#types/api-contracts";
 
 // Mock next/navigation
-const mockPush = vi.fn();
+const { mockPush, mockReplace, mockSignOut, mockGetUser } = vi.hoisted(() => ({
+	mockPush: vi.fn(),
+	mockReplace: vi.fn(),
+	mockSignOut: vi.fn(),
+	mockGetUser: vi.fn(),
+}));
 vi.mock("next/navigation", () => ({
 	useRouter: () => ({
 		push: mockPush,
+		replace: mockReplace,
 		refresh: vi.fn(),
 	}),
 }));
@@ -53,7 +59,8 @@ vi.mock("#lib/supabase/client", () => ({
 				}, 0);
 				return { data: { subscription: { unsubscribe: vi.fn() } } };
 			}),
-			signOut: vi.fn().mockResolvedValue({ error: null }),
+			getUser: mockGetUser,
+			signOut: mockSignOut,
 		},
 	}),
 }));
@@ -114,19 +121,15 @@ vi.mock("#hooks/api/use-profile-avatar-mutations", () => ({
 	}),
 }));
 
-// Mock use-auth hooks
-const mockSignOut = vi.fn();
+// Mock use-auth hooks. "Sign out" runs the real useSignOutMutation against
+// the client stub above (66.2-39 fix round 4, Part 8l: it owns the landing).
 const mockChangePassword = vi.fn();
 vi.mock("#hooks/api/use-auth-mutations", async () => {
 	const actual = await vi.importActual<
 		typeof import("#hooks/api/use-auth-mutations")
 	>("#hooks/api/use-auth-mutations");
 	return {
-		SignOutIncompleteError: actual.SignOutIncompleteError,
-		useSignOutMutation: () => ({
-			mutateAsync: mockSignOut,
-			isPending: false,
-		}),
+		...actual,
 		useChangePasswordMutation: () => ({
 			mutateAsync: mockChangePassword,
 			isPending: false,
@@ -174,6 +177,11 @@ describe("Owner Profile Page", () => {
 		vi.clearAllMocks();
 		mockProfileData = mockOwnerProfile;
 		mockPush.mockClear();
+		mockGetUser.mockResolvedValue({
+			data: { user: { id: "test-user-id", email: "owner@test.com" } },
+			error: null,
+		});
+		mockSignOut.mockResolvedValue({ error: null });
 
 		originalMatchMedia = window.matchMedia;
 		window.matchMedia = vi.fn().mockImplementation((query) => ({
@@ -316,31 +324,10 @@ describe("Owner Profile Page", () => {
 		);
 	});
 
-	it("handles sign out action", async () => {
+	// 66.2-39 fix round 4, Part 8l: every "Sign out" lands on /login with
+	// router.replace as soon as it succeeds, once (useSignOutMutation).
+	it("lands on /login once after a successful sign out", async () => {
 		const user = userEvent.setup();
-		mockSignOut.mockResolvedValueOnce(undefined);
-
-		render(
-			<TestWrapper>
-				<OwnerProfilePage />
-			</TestWrapper>,
-		);
-
-		await waitFor(() => {
-			expect(screen.getByText("Sign Out")).toBeInTheDocument();
-		});
-
-		await user.click(screen.getByText("Sign Out"));
-
-		expect(mockSignOut).toHaveBeenCalled();
-		await waitFor(() => expect(mockPush).toHaveBeenCalledWith("/login"));
-	});
-
-	// 66.2-39 fix round 4, Part 8k: the mutation's onError shows the toast; the
-	// page decides only where the owner goes.
-	it("stays on the page after a failed first request, whose session is kept", async () => {
-		const user = userEvent.setup();
-		mockSignOut.mockRejectedValueOnce(new Error("Failed to fetch"));
 
 		render(
 			<TestWrapper>
@@ -349,19 +336,39 @@ describe("Owner Profile Page", () => {
 		);
 		await user.click(await screen.findByText("Sign Out"));
 
-		await waitFor(() => expect(mockSignOut).toHaveBeenCalled());
-		expect(mockPush).not.toHaveBeenCalledWith("/login");
+		await waitFor(() => expect(mockReplace).toHaveBeenCalled());
+		expect(mockReplace).toHaveBeenCalledTimes(1);
+		expect(mockReplace).toHaveBeenCalledWith("/login");
+		expect(mockPush).not.toHaveBeenCalled();
+		expect(mockSignOut.mock.calls).toEqual([
+			[{ scope: "others" }],
+			[{ scope: "local" }],
+		]);
+	});
+
+	// Part 8k: the mutation's onError shows the toast.
+	it("stays on the page after a failed first request, whose session is kept", async () => {
+		const user = userEvent.setup();
+		mockSignOut.mockResolvedValueOnce({ error: new Error("Failed to fetch") });
+
+		render(
+			<TestWrapper>
+				<OwnerProfilePage />
+			</TestWrapper>,
+		);
+		await user.click(await screen.findByText("Sign Out"));
+
+		await waitFor(() => expect(mockSignOut).toHaveBeenCalledTimes(1));
+		expect(mockReplace).not.toHaveBeenCalled();
+		expect(mockPush).not.toHaveBeenCalled();
 		expect(screen.getByText("Sign Out")).toBeInTheDocument();
 	});
 
-	it("goes to sign in after a failed second request, whose browser session is gone", async () => {
+	it("lands on /login once after a failed second request, whose browser session is gone", async () => {
 		const user = userEvent.setup();
-		const { SignOutIncompleteError } = await import(
-			"#hooks/api/use-auth-mutations"
-		);
-		mockSignOut.mockRejectedValueOnce(
-			new SignOutIncompleteError(new Error("server error")),
-		);
+		mockSignOut
+			.mockResolvedValueOnce({ error: null })
+			.mockResolvedValueOnce({ error: new Error("server error") });
 
 		render(
 			<TestWrapper>
@@ -370,7 +377,10 @@ describe("Owner Profile Page", () => {
 		);
 		await user.click(await screen.findByText("Sign Out"));
 
-		await waitFor(() => expect(mockPush).toHaveBeenCalledWith("/login"));
+		await waitFor(() => expect(mockReplace).toHaveBeenCalled());
+		expect(mockReplace).toHaveBeenCalledTimes(1);
+		expect(mockReplace).toHaveBeenCalledWith("/login");
+		expect(mockPush).not.toHaveBeenCalled();
 	});
 
 	it("navigates to settings page from quick links", async () => {

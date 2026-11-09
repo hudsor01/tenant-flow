@@ -172,7 +172,7 @@ src/app/(owner)/@modal/(.)units/new/page.test.tsx mockBack unitFormProps
 src/app/(owner)/documents/__tests__/recent-documents-panel.test.tsx mockUseDocumentCategories mockUseQuery
 src/app/(owner)/documents/templates/components/template-definition.test.ts mockInvalidateQueries mockToastError mockToastSuccess
 src/app/(owner)/leases/page.test.tsx lastTableProps pushMock useLeaseListMock
-src/app/(owner)/profile/__tests__/profile-page.test.tsx mockChangePassword mockProfileData mockPush mockRemoveAvatar mockSignOut mockUpdatePhone mockUpdateProfile mockUploadAvatar
+src/app/(owner)/profile/__tests__/profile-page.test.tsx mockChangePassword mockProfileData mockRemoveAvatar mockUpdatePhone mockUpdateProfile mockUploadAvatar
 src/app/(owner)/tenants/new/page.test.tsx mockUseQuery scenario
 src/components/applications/__tests__/application-detail.test.tsx pushSpy
 src/components/applications/__tests__/application-queue.test.tsx mockUseQuery
