@@ -8,7 +8,6 @@ interface GoogleButtonProps extends ComponentProps<typeof Button> {
 	isLoading?: boolean;
 	loadingText?: string;
 	children?: ReactNode;
-	showTrustIndicators?: boolean;
 	mode?: "login" | "signup";
 	ref?: Ref<HTMLButtonElement>;
 }
@@ -18,7 +17,6 @@ export function GoogleButton({
 	isLoading = false,
 	loadingText = "Connecting...",
 	children = "Continue with Google",
-	showTrustIndicators = false,
 	mode = "login",
 	ref,
 	...props
@@ -70,11 +68,6 @@ export function GoogleButton({
 								? loadingText || defaultLoadingText
 								: children || defaultText}
 						</span>
-						{showTrustIndicators && !isLoading && (
-							<span className="text-caption text-muted-foreground leading-none mt-0.5">
-								Secure OAuth 2.0 authentication
-							</span>
-						)}
 					</div>
 				</div>
 
@@ -87,23 +80,6 @@ export function GoogleButton({
 					)}
 				/>
 			</Button>
-
-			{showTrustIndicators && (
-				<div className="flex-center gap-4 mt-2 text-caption text-muted-foreground">
-					<div className="flex items-center gap-1">
-						<div className="size-2 rounded-full bg-primary" />
-						<span>Encrypted</span>
-					</div>
-					<div className="flex items-center gap-1">
-						<div className="size-2 rounded-full bg-primary" />
-						<span>No password needed</span>
-					</div>
-					<div className="flex items-center gap-1">
-						<div className="size-2 rounded-full bg-primary" />
-						<span>One-click access</span>
-					</div>
-				</div>
-			)}
 		</div>
 	);
 }
