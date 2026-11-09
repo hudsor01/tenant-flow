@@ -106,7 +106,16 @@ describe("SubscriptionStatusBanner", () => {
 
 		render(<SubscriptionStatusBanner />);
 
-		expect(screen.getByText(/payment failed/i)).toBeInTheDocument();
+		// Stripe's failed-payment setting decides whether its retries end in
+		// unpaid or canceled, and both lock the owner out: the copy says what is
+		// true either way (main session, Part 8m). It said access was lost "when
+		// your subscription is canceled".
+		expect(
+			screen.getByText(
+				"Your subscription payment failed. Update your payment method to keep access.",
+			),
+		).toBeInTheDocument();
+		expect(screen.queryByText(/canceled/i)).toBeNull();
 		const link = screen.getByRole("link", { name: /update billing/i });
 		expect(link).toHaveAttribute("href", "/settings?tab=billing");
 	});
@@ -251,6 +260,87 @@ describe("SubscriptionStatusBanner", () => {
 		expect(screen.getByText(LAPSED_COPY)).toBeInTheDocument();
 		const link = screen.getByRole("link", { name: /reactivate/i });
 		expect(link).toHaveAttribute("href", "/billing/plans");
+	});
+
+	// Main session, Part 8m: at 320 the lapsed banner's text ran 8 lines in a
+	// 144px column beside the icon and the link. All four banners share one
+	// layout: a grid that puts the link under the text, beside the icon, until
+	// the banner is 22rem wide, where the row with the link beside the text is
+	// no taller (measured on the rendered banners), and the row from there.
+	it("lays every banner out once: the link under the text until 22rem, then beside it", () => {
+		const states: [string, unknown, RegExp][] = [
+			["null", null, /view plans/i],
+			[
+				"trialing",
+				{
+					subscriptionStatus: "trialing",
+					stripeCustomerId: null,
+					stripePriceId: null,
+					currentPeriodEnd: null,
+					cancelAtPeriodEnd: false,
+					trialEndsAt: null,
+				},
+				/upgrade/i,
+			],
+			[
+				"past_due",
+				{
+					subscriptionStatus: "past_due",
+					stripeCustomerId: "cus_123",
+					stripePriceId: null,
+					currentPeriodEnd: null,
+					cancelAtPeriodEnd: false,
+					trialEndsAt: null,
+				},
+				/update billing/i,
+			],
+			[
+				"canceled",
+				{
+					subscriptionStatus: "canceled",
+					stripeCustomerId: "cus_123",
+					stripePriceId: null,
+					currentPeriodEnd: null,
+					cancelAtPeriodEnd: false,
+					trialEndsAt: null,
+				},
+				/reactivate/i,
+			],
+		];
+		const layouts = new Set<string>();
+		for (const [label, data, name] of states) {
+			cleanup();
+			mockUseSubscriptionStatus.mockReturnValue({ data, isLoading: false });
+			render(<SubscriptionStatusBanner />);
+			const link = screen.getByRole("link", { name });
+			const banner = link.parentElement as HTMLElement;
+			const classes = banner.className.split(/\s+/);
+			for (const cls of [
+				"grid",
+				"grid-cols-[auto_1fr]",
+				"gap-x-3",
+				"gap-y-2",
+				"@min-[22rem]/status-banner:flex",
+			]) {
+				expect(classes, `${label}: ${cls}`).toContain(cls);
+			}
+			expect(classes, label).not.toContain("flex");
+			expect(link.className.split(/\s+/), label).toContain("col-start-2");
+			expect(
+				(banner.parentElement as HTMLElement).className.split(/\s+/),
+				label,
+			).toContain("@container/status-banner");
+			// One class set: the layout classes are the same on all four.
+			layouts.add(
+				classes
+					.filter(
+						(c) =>
+							!/^(border|bg|text)-(info|primary|warning|destructive)/.test(c),
+					)
+					.join(" "),
+			);
+		}
+		expect([...layouts]).toHaveLength(1);
 	});
 
 	// The base `a` rule (globals.css) colors a text link primary, which beat the

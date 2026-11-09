@@ -363,6 +363,11 @@ describe("no copy claims a deletion, a retention limit or an export the code doe
 		// Records are edited in the app with a plan or trial; after it ends
 		// only Settings is open (owner, 2026-11-09, Part 8l).
 		/records directly through the platform/i,
+		// Stripe's failed-payment setting decides whether its retries end in
+		// unpaid or canceled, and both lock the owner out, so no copy ties the
+		// lock to a cancellation alone (main session, Part 8m).
+		/when your subscription is cancell?ed/i,
+		/losing access when/i,
 	];
 
 	function sources(dir: string): string[] {

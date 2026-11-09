@@ -1,8 +1,16 @@
 "use client";
 
-import { AlertTriangle, Clock, Info, Lock } from "lucide-react";
+import {
+	AlertTriangle,
+	Clock,
+	Info,
+	Lock,
+	type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { useSubscriptionStatus } from "#hooks/api/use-billing";
+import { cn } from "#lib/utils";
 
 /**
  * SubscriptionStatusBanner — shows warning/lock banner for subscription issues.
@@ -22,6 +30,8 @@ import { useSubscriptionStatus } from "#hooks/api/use-billing";
  * inherit. In the rendered app "Reactivate" read 3.99:1 (primary on
  * destructive/10) and "Upgrade" 4.13:1 (primary on primary/10), light theme
  * (66.2-39 fix round 4, Part 8i).
+ *
+ * The four banners share one layout (`StatusBanner`).
  */
 export function SubscriptionStatusBanner() {
 	const { data: subscription, isLoading, isError } = useSubscriptionStatus();
@@ -40,18 +50,9 @@ export function SubscriptionStatusBanner() {
 	// state), not when the lookup couldn't resolve a status.
 	if (!subscription || subscription.subscriptionStatus === null) {
 		return (
-			<div className="flex items-center gap-3 rounded-lg border border-info/30 bg-info/10 px-4 py-3 text-sm text-info-text">
-				<Info className="size-5 shrink-0" />
-				<p className="mb-0 flex-1">
-					Start your subscription to unlock all property management features.
-				</p>
-				<Link
-					href="/pricing"
-					className="shrink-0 font-medium text-info-text underline underline-offset-4 hover:text-foreground"
-				>
-					View plans
-				</Link>
-			</div>
+			<StatusBanner tone="info" icon={Info} href="/pricing" action="View plans">
+				Start your subscription to unlock all property management features.
+			</StatusBanner>
 		);
 	}
 
@@ -71,16 +72,14 @@ export function SubscriptionStatusBanner() {
 					: `${daysLeft} ${dayWord} left in your trial — upgrade to keep access.`;
 
 		return (
-			<div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary-text">
-				<Clock className="size-5 shrink-0" />
-				<p className="mb-0 flex-1">{message}</p>
-				<Link
-					href="/billing/plans?source=trial_banner"
-					className="shrink-0 font-medium text-primary-text underline underline-offset-4 hover:text-foreground"
-				>
-					Upgrade
-				</Link>
-			</div>
+			<StatusBanner
+				tone="primary"
+				icon={Clock}
+				href="/billing/plans?source=trial_banner"
+				action="Upgrade"
+			>
+				{message}
+			</StatusBanner>
 		);
 	}
 
@@ -89,22 +88,21 @@ export function SubscriptionStatusBanner() {
 		return null;
 	}
 
-	// Past due: yellow warning
+	// Past due: yellow warning. Stripe's failed-payment setting decides
+	// whether its retries end in `unpaid` or `canceled`, and the proxy locks
+	// out both, so the copy names neither: it tied the lock to a cancellation
+	// alone (main session, 66.2-39 fix round 4, Part 8m).
 	if (status === "past_due") {
 		return (
-			<div className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning-text">
-				<AlertTriangle className="size-5 shrink-0" />
-				<p className="mb-0 flex-1">
-					Your subscription payment failed. Please update your payment method to
-					avoid losing access when your subscription is canceled.
-				</p>
-				<Link
-					href="/settings?tab=billing"
-					className="shrink-0 font-medium text-warning-text underline underline-offset-4 hover:text-foreground"
-				>
-					Update billing
-				</Link>
-			</div>
+			<StatusBanner
+				tone="warning"
+				icon={AlertTriangle}
+				href="/settings?tab=billing"
+				action="Update billing"
+			>
+				Your subscription payment failed. Update your payment method to keep
+				access.
+			</StatusBanner>
 		);
 	}
 
@@ -116,19 +114,81 @@ export function SubscriptionStatusBanner() {
 	// Settings and the plan pages, and the banner shows on Settings too
 	// (66.2-39 fix round 4, Part 8l).
 	return (
-		<div className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive-text">
-			<Lock className="size-5 shrink-0" />
-			<p className="mb-0 flex-1">
-				Your subscription is inactive. Other pages need an active plan; Settings
-				stays open so you can download your data, request account deletion or
-				resubscribe.
-			</p>
-			<Link
-				href="/billing/plans"
-				className="shrink-0 font-medium text-destructive-text underline underline-offset-4 hover:text-foreground"
+		<StatusBanner
+			tone="destructive"
+			icon={Lock}
+			href="/billing/plans"
+			action="Reactivate"
+		>
+			Your subscription is inactive. Other pages need an active plan; Settings
+			stays open so you can download your data, request account deletion or
+			resubscribe.
+		</StatusBanner>
+	);
+}
+
+/** Each banner's colors: its border, fill and AA -text color, which its link repeats. */
+const BANNER_TONES = {
+	info: { banner: "border-info/30 bg-info/10", text: "text-info-text" },
+	primary: {
+		banner: "border-primary/30 bg-primary/10",
+		text: "text-primary-text",
+	},
+	warning: {
+		banner: "border-warning/30 bg-warning/10",
+		text: "text-warning-text",
+	},
+	destructive: {
+		banner: "border-destructive/30 bg-destructive/10",
+		text: "text-destructive-text",
+	},
+} as const;
+
+/**
+ * The one layout of the four banners. Narrow, the link sits under the text,
+ * beside the icon, so the text uses the width beside the icon: at 320 the
+ * lapsed banner's text ran 8 lines in a 144px column beside the icon and the
+ * link (main session, 66.2-39 fix round 4, Part 8m). From a 22rem banner the
+ * row with the link beside the text is no taller than the text with the link
+ * under it, for every banner's copy (measured on the rendered banners: the
+ * lapsed one from 348px, the past_due one from 340px), and the layout is the
+ * row it always was. The banner's own width decides, through its container.
+ */
+function StatusBanner({
+	tone,
+	icon: Icon,
+	href,
+	action,
+	children,
+}: {
+	tone: keyof typeof BANNER_TONES;
+	icon: LucideIcon;
+	href: string;
+	action: string;
+	children: ReactNode;
+}) {
+	const colors = BANNER_TONES[tone];
+	return (
+		<div className="@container/status-banner">
+			<div
+				className={cn(
+					"grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 rounded-lg border px-4 py-3 text-sm @min-[22rem]/status-banner:flex",
+					colors.banner,
+					colors.text,
+				)}
 			>
-				Reactivate
-			</Link>
+				<Icon className="size-5 shrink-0" />
+				<p className="mb-0 flex-1">{children}</p>
+				<Link
+					href={href}
+					className={cn(
+						"col-start-2 justify-self-start shrink-0 font-medium underline underline-offset-4 hover:text-foreground",
+						colors.text,
+					)}
+				>
+					{action}
+				</Link>
+			</div>
 		</div>
 	);
 }
