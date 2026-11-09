@@ -12,7 +12,7 @@ import { describe, expect, it, vi } from "vitest";
 import { NavbarMobileMenu } from "#components/layout/navbar/navbar-mobile-menu";
 import { DEFAULT_NAV_ITEMS } from "#components/layout/navbar/types";
 
-function renderMenu(pathname: string) {
+function renderMenu(pathname: string, isAuthenticated = false) {
 	return render(
 		<NavbarMobileMenu
 			isOpen
@@ -22,10 +22,32 @@ function renderMenu(pathname: string) {
 			pathname={pathname}
 			ctaText="Start free trial"
 			ctaHref="/signup"
-			isAuthenticated={false}
+			isAuthenticated={isAuthenticated}
 		/>,
 	);
 }
+
+// Owner, 2026-11-09 (66.2-39 fix round 4, Part 8k): Settings is the one owner
+// page a lapsed subscription reaches; the proxy sends that owner to /pricing.
+describe("NavbarMobileMenu signed in", () => {
+	it("links to Settings beside Dashboard", () => {
+		renderMenu("/pricing", true);
+		expect(screen.getByRole("link", { name: /^Settings$/ })).toHaveAttribute(
+			"href",
+			"/settings",
+		);
+		expect(screen.getByRole("link", { name: /^Dashboard/ })).toHaveAttribute(
+			"href",
+			"/dashboard",
+		);
+	});
+
+	it("shows neither to a signed-out visitor", () => {
+		renderMenu("/pricing");
+		expect(screen.queryByRole("link", { name: /^Settings$/ })).toBeNull();
+		expect(screen.queryByRole("link", { name: /^Dashboard/ })).toBeNull();
+	});
+});
 
 describe("NavbarMobileMenu aria-current", () => {
 	it('marks the exact page "page"', () => {

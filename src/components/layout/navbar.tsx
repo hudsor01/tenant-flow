@@ -100,9 +100,20 @@ export function Navbar({
 				<div className="flex items-center space-x-4">
 					<div className="hidden sm:flex items-center gap-3">
 						{isAuthenticated ? (
-							<Button asChild size="default">
-								<Link href="/dashboard">Dashboard</Link>
-							</Button>
+							<>
+								{/* Settings is the one owner page a lapsed subscription still
+								    reaches (owner, 2026-11-09; proxy.ts), and the proxy sends
+								    that owner here, to /pricing, from every other one. */}
+								<Link
+									href="/settings"
+									className="px-4 py-2 text-foreground/70 hover:text-foreground rounded-md border border-transparent hover:border-border/50 transition-colors duration-fast text-base font-medium"
+								>
+									Settings
+								</Link>
+								<Button asChild size="default">
+									<Link href="/dashboard">Dashboard</Link>
+								</Button>
+							</>
 						) : (
 							<>
 								<Link

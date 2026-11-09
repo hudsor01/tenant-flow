@@ -117,14 +117,25 @@ export function NavbarMobileMenu({
 						<div className="my-2 border-t border-border/50" />
 
 						{isAuthenticated ? (
-							<Link
-								href="/dashboard"
-								onClick={() => onClose()}
-								className="flex items-center justify-center w-full px-6 py-3 mt-2 bg-primary text-primary-foreground font-medium text-sm rounded-md hover:bg-primary-text dark:hover:bg-primary/90 transition-colors duration-fast"
-							>
-								Dashboard
-								<ArrowRight className="ml-2 size-4" />
-							</Link>
+							<>
+								{/* The one owner page a lapsed subscription still reaches
+								    (owner, 2026-11-09), as in the desktop bar. */}
+								<Link
+									href="/settings"
+									onClick={() => onClose()}
+									className="block px-4 py-3 text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors duration-fast"
+								>
+									Settings
+								</Link>
+								<Link
+									href="/dashboard"
+									onClick={() => onClose()}
+									className="flex items-center justify-center w-full px-6 py-3 mt-2 bg-primary text-primary-foreground font-medium text-sm rounded-md hover:bg-primary-text dark:hover:bg-primary/90 transition-colors duration-fast"
+								>
+									Dashboard
+									<ArrowRight className="ml-2 size-4" />
+								</Link>
+							</>
 						) : (
 							<>
 								<Link
