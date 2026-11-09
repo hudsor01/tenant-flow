@@ -1,9 +1,9 @@
 {
  "meta": {
   "tailwindVersion": "4.3.3",
-  "scannedFiles": 940,
-  "candidates": 16018,
-  "bundleBytes": 2853891
+  "scannedFiles": 945,
+  "candidates": 16512,
+  "bundleBytes": 2866733
  },
  "results": {
   "otp-setup": {
@@ -230,7 +230,7 @@
     "dataSlotCount": 10,
     "slots": [
      {
-      "width": 44,
+      "width": 42.3,
       "height": 56,
       "fontSize": "20px",
       "borderWidths": [
@@ -247,7 +247,7 @@
       ]
      },
      {
-      "width": 44,
+      "width": 42.3,
       "height": 56,
       "fontSize": "20px",
       "borderWidths": [
@@ -264,7 +264,7 @@
       ]
      },
      {
-      "width": 44,
+      "width": 42.3,
       "height": 56,
       "fontSize": "20px",
       "borderWidths": [
@@ -281,7 +281,7 @@
       ]
      },
      {
-      "width": 44,
+      "width": 42.3,
       "height": 56,
       "fontSize": "20px",
       "borderWidths": [
@@ -298,7 +298,7 @@
       ]
      },
      {
-      "width": 44,
+      "width": 42.3,
       "height": 56,
       "fontSize": "20px",
       "borderWidths": [
@@ -315,7 +315,7 @@
       ]
      },
      {
-      "width": 44,
+      "width": 42.3,
       "height": 56,
       "fontSize": "20px",
       "borderWidths": [
@@ -338,7 +338,7 @@
     "dataSlotCount": 10,
     "slots": [
      {
-      "width": 44,
+      "width": 42.3,
       "height": 56,
       "fontSize": "20px",
       "borderWidths": [
@@ -355,7 +355,7 @@
       ]
      },
      {
-      "width": 44,
+      "width": 42.3,
       "height": 56,
       "fontSize": "20px",
       "borderWidths": [
@@ -372,7 +372,7 @@
       ]
      },
      {
-      "width": 44,
+      "width": 42.3,
       "height": 56,
       "fontSize": "20px",
       "borderWidths": [
@@ -389,7 +389,7 @@
       ]
      },
      {
-      "width": 44,
+      "width": 42.3,
       "height": 56,
       "fontSize": "20px",
       "borderWidths": [
@@ -406,7 +406,7 @@
       ]
      },
      {
-      "width": 44,
+      "width": 42.3,
       "height": 56,
       "fontSize": "20px",
       "borderWidths": [
@@ -423,7 +423,7 @@
       ]
      },
      {
-      "width": 44,
+      "width": 42.3,
       "height": 56,
       "fontSize": "20px",
       "borderWidths": [
@@ -3380,7 +3380,7 @@
       "focus": {
        "focusVisible": true,
        "outlineStyle": "none",
-       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449902 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
        "borderColor": [
         0,
         91,
@@ -3426,7 +3426,7 @@
       "focus": {
        "focusVisible": true,
        "outlineStyle": "none",
-       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.577 0.222045 0.103541 / 0.2) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.21 27) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
        "borderColor": [
         0,
         91,
@@ -3472,7 +3472,7 @@
       "focus": {
        "focusVisible": true,
        "outlineStyle": "none",
-       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449902 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
        "borderColor": [
         0,
         91,
@@ -3518,7 +3518,7 @@
       "focus": {
        "focusVisible": true,
        "outlineStyle": "none",
-       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449902 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
        "borderColor": [
         0,
         91,
@@ -3564,7 +3564,7 @@
       "focus": {
        "focusVisible": true,
        "outlineStyle": "none",
-       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449902 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
        "borderColor": [
         0,
         91,
@@ -3610,7 +3610,7 @@
       "focus": {
        "focusVisible": true,
        "outlineStyle": "none",
-       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449902 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
        "borderColor": [
         0,
         91,
@@ -3684,9 +3684,9 @@
       1
      ],
      "input": [
-      182,
-      191,
-      199,
+      125,
+      134,
+      141,
       1
      ],
      "destructive": [
@@ -3742,7 +3742,7 @@
       "focus": {
        "focusVisible": true,
        "outlineStyle": "none",
-       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
        "borderColor": [
         67,
         159,
@@ -3788,7 +3788,7 @@
       "focus": {
        "focusVisible": true,
        "outlineStyle": "none",
-       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 0.209909 0.116354 / 0.4) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.71 0.19 25) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
        "borderColor": [
         67,
         159,
@@ -3812,15 +3812,15 @@
       "flexShrink": "0",
       "borderTopWidth": 1,
       "borderColor": [
-       42,
-       46,
-       51,
+       100,
+       104,
+       109,
        1
       ],
       "bg": [
-       43,
-       46,
-       50,
+       99,
+       103,
+       109,
        0.302
       ],
       "color": [
@@ -3830,11 +3830,11 @@
        1
       ],
       "boxShadowRest": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
-      "contrast": 16.39,
+      "contrast": 13.59,
       "focus": {
        "focusVisible": true,
        "outlineStyle": "none",
-       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
        "borderColor": [
         67,
         159,
@@ -3843,9 +3843,9 @@
        ]
       },
       "hoverBg": [
-       42,
-       46,
-       52,
+       100,
+       104,
+       110,
        0.502
       ]
      },
@@ -3880,7 +3880,7 @@
       "focus": {
        "focusVisible": true,
        "outlineStyle": "none",
-       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
        "borderColor": [
         67,
         159,
@@ -3926,7 +3926,7 @@
       "focus": {
        "focusVisible": true,
        "outlineStyle": "none",
-       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
        "borderColor": [
         67,
         159,
@@ -3972,7 +3972,7 @@
       "focus": {
        "focusVisible": true,
        "outlineStyle": "none",
-       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+       "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
        "borderColor": [
         67,
         159,
@@ -4046,9 +4046,9 @@
       1
      ],
      "input": [
-      42,
-      46,
-      51,
+      100,
+      104,
+      109,
       1
      ],
      "destructive": [
@@ -4068,7 +4068,7 @@
   },
   "toast-default": {
    "light": {
-    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
     "toasterInlineNormalBg": "",
     "toastBg": [
      255,
@@ -4131,7 +4131,7 @@
     "iconWidth": null
    },
    "dark": {
-    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
     "toasterInlineNormalBg": "",
     "toastBg": [
      3,
@@ -4196,24 +4196,24 @@
   },
   "toast-success": {
    "light": {
-    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
     "toasterInlineNormalBg": "",
     "toastBg": [
-     236,
-     253,
-     243,
+     233,
+     248,
+     239,
      1
     ],
     "toastColor": [
      0,
-     138,
-     46,
+     114,
+     56,
      1
     ],
     "toastBorderColor": [
-     191,
-     252,
-     217,
+     188,
+     234,
+     208,
      1
     ],
     "toastRadius": "8px",
@@ -4264,24 +4264,24 @@
     "iconWidth": 16
    },
    "dark": {
-    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
     "toasterInlineNormalBg": "",
     "toastBg": [
-     0,
-     31,
-     15,
+     5,
+     20,
+     18,
      1
     ],
     "toastColor": [
-     89,
-     243,
-     166,
+     75,
+     220,
+     149,
      1
     ],
     "toastBorderColor": [
-     0,
-     61,
-     28,
+     7,
+     52,
+     32,
      1
     ],
     "toastRadius": "8px",
@@ -4334,24 +4334,24 @@
   },
   "toast-error": {
    "light": {
-    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
     "toasterInlineNormalBg": "",
     "toastBg": [
      255,
-     240,
-     240,
+     235,
+     233,
      1
     ],
     "toastColor": [
-     230,
+     190,
      0,
-     0,
+     13,
      1
     ],
     "toastBorderColor": [
      255,
-     224,
-     225,
+     195,
+     189,
      1
     ],
     "toastRadius": "8px",
@@ -4402,24 +4402,24 @@
     "iconWidth": 16
    },
    "dark": {
-    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
     "toasterInlineNormalBg": "",
     "toastBg": [
-     45,
-     6,
-     7,
+     19,
+     10,
+     13,
      1
     ],
     "toastColor": [
      255,
-     158,
-     161,
+     103,
+     98,
      1
     ],
     "toastBorderColor": [
-     77,
-     4,
-     8,
+     55,
+     14,
+     15,
      1
     ],
     "toastRadius": "8px",
@@ -4472,7 +4472,7 @@
   },
   "toast-loading": {
    "light": {
-    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
     "toasterInlineNormalBg": "",
     "toastBg": [
      255,
@@ -4538,10 +4538,10 @@
      "size-4",
      "animate-spin"
     ],
-    "iconWidth": 23
+    "iconWidth": 22
    },
    "dark": {
-    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+    "toasterClass": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
     "toasterInlineNormalBg": "",
     "toastBg": [
      3,

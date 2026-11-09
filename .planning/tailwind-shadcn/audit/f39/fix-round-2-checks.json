@@ -341,8 +341,8 @@
 			"measured": {
 				"src/lib/__tests__/breadcrumbs.test.ts": {
 					"status": "passed",
-					"numTests": 30,
-					"numPassed": 30,
+					"numTests": 31,
+					"numPassed": 31,
 					"missingTitles": []
 				}
 			},
@@ -373,8 +373,8 @@
 			"measured": {
 				"src/lib/__tests__/no-deprecated-library-api.test.ts": {
 					"status": "passed",
-					"numTests": 10,
-					"numPassed": 10,
+					"numTests": 11,
+					"numPassed": 11,
 					"missingTitles": []
 				}
 			},
@@ -475,8 +475,8 @@
 			"measured": {
 				"src/app/__tests__/state-fill-contrast.test.ts": {
 					"status": "passed",
-					"numTests": 5,
-					"numPassed": 5,
+					"numTests": 39,
+					"numPassed": 39,
 					"missingTitles": []
 				}
 			},
@@ -578,8 +578,8 @@
 			],
 			"measured": {
 				"status": "passed",
-				"numTests": 6,
-				"numPassed": 6,
+				"numTests": 9,
+				"numPassed": 9,
 				"missingTitles": []
 			},
 			"group": "fr2-sweep-partition"

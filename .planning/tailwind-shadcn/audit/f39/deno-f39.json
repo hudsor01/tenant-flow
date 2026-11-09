@@ -1,58 +1,58 @@
 {
-  "tree": "852158ab4 (code state at measurement; carried to b7f25511b: supabase/functions unchanged since)",
-  "check": {
-    "command": "deno check --no-lock --node-modules-dir=none --allow-import=deno.land:443,jsr.io:443,esm.sh:443,raw.esm.sh:443,cdn.jsdelivr.net:443,raw.githubusercontent.com:443,gist.githubusercontent.com:443,cdn.sheetjs.com:443 --import-map=supabase/functions/deno.json supabase/functions/<fn>/index.ts",
-    "exits": {
-      "apply-token": 0,
-      "auth-email-send": 0,
-      "download-documents-zip": 0,
-      "export-report": 0,
-      "export-user-data": 0,
-      "generate-pdf": 0,
-      "lease-signature": 0,
-      "n8n-blog-ingest": 0,
-      "newsletter-subscribe": 0,
-      "resend-webhook": 0,
-      "send-contact-email": 0,
-      "send-lease-reminders": 0,
-      "sign-lease-token": 0,
-      "stripe-billing-portal": 0,
-      "stripe-cancel-subscription": 0,
-      "stripe-checkout": 0,
-      "stripe-webhooks": 0
-    },
-    "testFiles": {
-      "tests/export-report-test.ts": 0,
-      "tests/generate-pdf-test.ts": 0
-    }
-  },
-  "testCommand": "deno test --no-lock --node-modules-dir=none --allow-all --no-check --import-map=supabase/functions/deno.json supabase/functions/tests/<file> (--node-modules-dir=none is required here: without it every file fails at import, \"Could not find a matching package for npm:@sentry/deno@9 in the node_modules directory\")",
-  "tests": {
-    "send-lease-reminders-test.ts": {
-      "passed": 25,
-      "failed": 0
-    },
-    "lease-signature-metering-test.ts": {
-      "passed": 5,
-      "failed": 0
-    },
-    "lease-signing-test.ts": {
-      "passed": 12,
-      "failed": 0
-    },
-    "rate-limit-sentry-test.ts": {
-      "passed": 2,
-      "failed": 0
-    },
-    "export-report-test.ts": {
-      "passed": 16,
-      "failed": 0
-    },
-    "generate-pdf-test.ts": {
-      "passed": 9,
-      "failed": 0
-    }
-  },
-  "denoVersion": "deno 2.9.8",
-  "lockfiles": "no deno.lock created at the repo root; the tracked supabase/functions/deno.lock unchanged (git status clean after the run)"
+	"tree": "7f6fcc67c (codeStateSha)",
+	"check": {
+		"command": "deno check --no-lock --node-modules-dir=none --allow-import=deno.land:443,jsr.io:443,esm.sh:443,raw.esm.sh:443,cdn.jsdelivr.net:443,raw.githubusercontent.com:443,gist.githubusercontent.com:443,cdn.sheetjs.com:443 --import-map=supabase/functions/deno.json supabase/functions/<fn>/index.ts",
+		"exits": {
+			"apply-token": 0,
+			"auth-email-send": 0,
+			"download-documents-zip": 0,
+			"export-report": 0,
+			"export-user-data": 0,
+			"generate-pdf": 0,
+			"lease-signature": 0,
+			"n8n-blog-ingest": 0,
+			"newsletter-subscribe": 0,
+			"resend-webhook": 0,
+			"send-contact-email": 0,
+			"send-lease-reminders": 0,
+			"sign-lease-token": 0,
+			"stripe-billing-portal": 0,
+			"stripe-cancel-subscription": 0,
+			"stripe-checkout": 0,
+			"stripe-webhooks": 0
+		},
+		"testFiles": {
+			"tests/export-report-test.ts": 0,
+			"tests/generate-pdf-test.ts": 0
+		}
+	},
+	"testCommand": "deno test --no-lock --node-modules-dir=none --allow-all --no-check --import-map=supabase/functions/deno.json supabase/functions/tests/<file> (--node-modules-dir=none is required here: without it every file fails at import, \"Could not find a matching package for npm:@sentry/deno@9 in the node_modules directory\")",
+	"tests": {
+		"send-lease-reminders-test.ts": {
+			"passed": 25,
+			"failed": 0
+		},
+		"lease-signature-metering-test.ts": {
+			"passed": 5,
+			"failed": 0
+		},
+		"lease-signing-test.ts": {
+			"passed": 12,
+			"failed": 0
+		},
+		"rate-limit-sentry-test.ts": {
+			"passed": 2,
+			"failed": 0
+		},
+		"export-report-test.ts": {
+			"passed": 17,
+			"failed": 0
+		},
+		"generate-pdf-test.ts": {
+			"passed": 9,
+			"failed": 0
+		}
+	},
+	"denoVersion": "deno 2.9.8",
+	"lockfiles": "no deno.lock created at the repo root; the tracked supabase/functions/deno.lock unchanged (git status clean after the run)"
 }

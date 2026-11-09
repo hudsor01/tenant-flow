@@ -1,18 +1,18 @@
 {
-	"command": "bun .planning/tailwind-shadcn/audit/with-env.mjs ./node_modules/.bin/playwright test --config <scratch>/rf3b/e2e/pw-3062-ci.config.mts (cwd = worktree; wrapper = the base config's smoke, public and owner-axe projects; retries 0; traces off; list reporter; no webServer) against next start -p 3062",
-	"tree": "b7f25511b (codeStateSha)",
-	"build": "capture-3062 (NEXT_PUBLIC_APP_URL=http://localhost:3062, VERCEL_ENV=preview), build id _Nnp0e_wFsNWRbPU8NSYu",
+	"command": "bun <scratch>/ppr/e2e/run-ci.ts <log> (Playwright --config <scratch>/ppr/e2e/pw-3062-ci.config.mts (cwd = worktree; wrapper = the base config's smoke, public and owner-axe projects; retries 0; traces off; list reporter; no webServer) against next start -p 3062",
+	"tree": "7f6fcc67c (codeStateSha)",
+	"build": "capture-3062 (7f6fcc67c, build id WoItmD_8ZdXkh65M-ysB_, served on :3062)",
 	"exit": 0,
 	"total": {
-		"passed": 257,
+		"passed": 281,
 		"failed": 0,
-		"skipped": 3
+		"skipped": 2
 	},
 	"projects": {
 		"owner-axe": {
-			"passed": 131,
+			"passed": 111,
 			"failed": 0,
-			"skipped": 2
+			"skipped": 1
 		},
 		"smoke": {
 			"passed": 7,
@@ -20,18 +20,17 @@
 			"skipped": 0
 		},
 		"public": {
-			"passed": 119,
+			"passed": 163,
 			"failed": 0,
 			"skipped": 1
 		}
 	},
 	"reporterTotals": [
-		"3 skipped",
-		"257 passed (7.2m)"
+		"2 skipped",
+		"281 passed (8.9m)"
 	],
 	"skipped": [
 		"[owner-axe] tests/e2e/tests/notifications.spec.ts › Notification center smoke (Phase 52) › mark-all-read clears the unread badge when unread present",
-		"[owner-axe] tests/e2e/tests/owner-reflow-320.spec.ts › detail and edit pages › owner A's newest maintenance request: its pages do not scroll sideways at 320px",
 		"[public] tests/e2e/tests/public/seo-smoke.spec.ts › SEO Smoke Tests › canonical tag on tenantflow-vs-buildium points at /compare/buildium (Blocker-#1)"
 	],
 	"failed": [],
@@ -53,7 +52,7 @@
 			]
 		},
 		"tests/e2e/tests/owner/app-shell-sidebar.spec.ts": {
-			"passed": 31,
+			"passed": 32,
 			"failed": 0,
 			"skipped": 0,
 			"projects": [
@@ -84,16 +83,24 @@
 				"owner-axe"
 			]
 		},
-		"tests/e2e/tests/owner-reflow-320.spec.ts": {
-			"passed": 54,
+		"tests/e2e/tests/owner/properties-table-a11y.e2e.spec.ts": {
+			"passed": 2,
 			"failed": 0,
-			"skipped": 1,
+			"skipped": 0,
+			"projects": [
+				"owner-axe"
+			]
+		},
+		"tests/e2e/tests/owner-reflow-320.spec.ts": {
+			"passed": 30,
+			"failed": 0,
+			"skipped": 0,
 			"projects": [
 				"owner-axe"
 			]
 		},
 		"tests/e2e/tests/reports-hub.spec.ts": {
-			"passed": 18,
+			"passed": 19,
 			"failed": 0,
 			"skipped": 0,
 			"projects": [
@@ -133,7 +140,7 @@
 			]
 		},
 		"tests/e2e/tests/public/reflow-320.spec.ts": {
-			"passed": 27,
+			"passed": 24,
 			"failed": 0,
 			"skipped": 0,
 			"projects": [
@@ -149,7 +156,7 @@
 			]
 		},
 		"tests/e2e/tests/public/routing-aliases.spec.ts": {
-			"passed": 7,
+			"passed": 8,
 			"failed": 0,
 			"skipped": 0,
 			"projects": [
@@ -160,6 +167,14 @@
 			"passed": 22,
 			"failed": 0,
 			"skipped": 1,
+			"projects": [
+				"public"
+			]
+		},
+		"tests/e2e/tests/public/text-contrast-axe.spec.ts": {
+			"passed": 46,
+			"failed": 0,
+			"skipped": 0,
 			"projects": [
 				"public"
 			]

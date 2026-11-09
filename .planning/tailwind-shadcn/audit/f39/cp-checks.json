@@ -39,7 +39,7 @@
 			"name": "light button: default focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
 			"pass": true,
 			"expected": "0px 0px 0px 3px",
-			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449902 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
 		},
 		{
 			"cp": "CP-2",
@@ -47,7 +47,7 @@
 			"name": "light button: destructive focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
 			"pass": true,
 			"expected": "0px 0px 0px 3px",
-			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.577 0.222045 0.103541 / 0.2) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.21 27) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
 		},
 		{
 			"cp": "CP-2",
@@ -55,7 +55,7 @@
 			"name": "light button: outline focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
 			"pass": true,
 			"expected": "0px 0px 0px 3px",
-			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449902 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
 		},
 		{
 			"cp": "CP-2",
@@ -63,7 +63,7 @@
 			"name": "light button: secondary focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
 			"pass": true,
 			"expected": "0px 0px 0px 3px",
-			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449902 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
 		},
 		{
 			"cp": "CP-2",
@@ -71,7 +71,7 @@
 			"name": "light button: ghost focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
 			"pass": true,
 			"expected": "0px 0px 0px 3px",
-			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449902 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
 		},
 		{
 			"cp": "CP-2",
@@ -79,7 +79,7 @@
 			"name": "light button: link focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
 			"pass": true,
 			"expected": "0px 0px 0px 3px",
-			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449902 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
 		},
 		{
 			"cp": "CP-2",
@@ -87,7 +87,7 @@
 			"name": "dark button: default focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
 			"pass": true,
 			"expected": "0px 0px 0px 3px",
-			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
 		},
 		{
 			"cp": "CP-2",
@@ -95,7 +95,7 @@
 			"name": "dark button: destructive focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
 			"pass": true,
 			"expected": "0px 0px 0px 3px",
-			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 0.209909 0.116354 / 0.4) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.71 0.19 25) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
 		},
 		{
 			"cp": "CP-2",
@@ -103,7 +103,7 @@
 			"name": "dark button: outline focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
 			"pass": true,
 			"expected": "0px 0px 0px 3px",
-			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
 		},
 		{
 			"cp": "CP-2",
@@ -111,7 +111,7 @@
 			"name": "dark button: secondary focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
 			"pass": true,
 			"expected": "0px 0px 0px 3px",
-			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
 		},
 		{
 			"cp": "CP-2",
@@ -119,7 +119,7 @@
 			"name": "dark button: ghost focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
 			"pass": true,
 			"expected": "0px 0px 0px 3px",
-			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
 		},
 		{
 			"cp": "CP-2",
@@ -127,7 +127,7 @@
 			"name": "dark button: link focus.boxShadow has the 0px 0px 0px 3px ring (D-29)",
 			"pass": true,
 			"expected": "0px 0px 0px 3px",
-			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			"measured": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
 		},
 		{
 			"cp": "CP-2",

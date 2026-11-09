@@ -1,21 +1,21 @@
 {
-	"tree": "b7f25511b (codeStateSha)",
-	"numTotalTests": 114159,
-	"numPassedTests": 114159,
+	"tree": "7f6fcc67c (codeStateSha)",
+	"numTotalTests": 114699,
+	"numPassedTests": 114699,
 	"numFailedTests": 0,
-	"numTotalTestSuites": 8163,
-	"numFiles": 491,
+	"numTotalTestSuites": 8318,
+	"numFiles": 554,
 	"coverage": {
-		"statements": 74.5,
-		"branches": 66.14,
-		"functions": 73.19,
-		"lines": 76.44
+		"statements": 76.79,
+		"branches": 68.6,
+		"functions": 74.94,
+		"lines": 78.67
 	},
 	"coverageCounts": {
-		"statements": "12524/16810",
-		"branches": "8668/13105",
-		"functions": "3465/4734",
-		"lines": "11778/15408"
+		"statements": "14378/18723",
+		"branches": "10187/14849",
+		"functions": "3780/5044",
+		"lines": "13426/17066"
 	},
 	"thresholds": {
 		"statements": 64,
@@ -2001,8 +2001,8 @@
 		{
 			"name": "scripts/mutation-sweep.test.ts",
 			"status": "passed",
-			"numTests": 6,
-			"numPassed": 6,
+			"numTests": 9,
+			"numPassed": 9,
 			"tests": [
 				{
 					"title": "the mutation sweep's shards lists every row once, in order, with no shard set",
@@ -2026,6 +2026,18 @@
 				},
 				{
 					"title": "the mutation sweep's shards fails a shard that holds no row",
+					"status": "passed"
+				},
+				{
+					"title": "the mutation sweep's shards gives the fullest shard a timeout of at least twice its runtime",
+					"status": "passed"
+				},
+				{
+					"title": "the sweep's comments .github/workflows/mutation-sweep.yml writes no current row count",
+					"status": "passed"
+				},
+				{
+					"title": "the sweep's comments scripts/mutation-sweep.sh writes no current row count",
 					"status": "passed"
 				}
 			]
@@ -2676,8 +2688,8 @@
 		{
 			"name": "src/app/__tests__/marketing-copy-landlord-only.test.ts",
 			"status": "passed",
-			"numTests": 105895,
-			"numPassed": 105895,
+			"numTests": 106032,
+			"numPassed": 106032,
 			"tests": []
 		},
 		{
@@ -2793,6 +2805,22 @@
 			]
 		},
 		{
+			"name": "src/app/__tests__/reduced-motion-transitions.test.ts",
+			"status": "passed",
+			"numTests": 2,
+			"numPassed": 2,
+			"tests": [
+				{
+					"title": "the reduced-motion rule makes a transition 0s, so no element transitions a property it never declared",
+					"status": "passed"
+				},
+				{
+					"title": "the reduced-motion rule keeps an animation at 0.01ms, so animationend still fires",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/app/__tests__/scheduled-rent-not-revenue.test.ts",
 			"status": "passed",
 			"numTests": 5,
@@ -2879,8 +2907,8 @@
 		{
 			"name": "src/app/__tests__/seo-title-separator-drift.test.ts",
 			"status": "passed",
-			"numTests": 272,
-			"numPassed": 272,
+			"numTests": 269,
+			"numPassed": 269,
 			"tests": [
 				{
 					"title": "SEO-01: title-separator drift guard src/app/error.tsx every title uses the canonical pipe separator (no spaced em-dash/hyphen)",
@@ -2948,10 +2976,6 @@
 				},
 				{
 					"title": "SEO-01: title-separator drift guard src/app/about/page.tsx every title uses the canonical pipe separator (no spaced em-dash/hyphen)",
-					"status": "passed"
-				},
-				{
-					"title": "SEO-01: title-separator drift guard src/app/actions/auth.ts every title uses the canonical pipe separator (no spaced em-dash/hyphen)",
 					"status": "passed"
 				},
 				{
@@ -3283,10 +3307,6 @@
 					"status": "passed"
 				},
 				{
-					"title": "SEO-01: title-separator drift guard src/app/pricing/cancel/page.tsx every title uses the canonical pipe separator (no spaced em-dash/hyphen)",
-					"status": "passed"
-				},
-				{
 					"title": "SEO-01: title-separator drift guard src/app/resources/landlord-tax-deduction-tracker/page.tsx every title uses the canonical pipe separator (no spaced em-dash/hyphen)",
 					"status": "passed"
 				},
@@ -3308,14 +3328,6 @@
 				},
 				{
 					"title": "SEO-01: title-separator drift guard src/app/sign/[token]/sign-context.ts every title uses the canonical pipe separator (no spaced em-dash/hyphen)",
-					"status": "passed"
-				},
-				{
-					"title": "SEO-01: title-separator drift guard src/app/stripe/cancel/page.tsx every title uses the canonical pipe separator (no spaced em-dash/hyphen)",
-					"status": "passed"
-				},
-				{
-					"title": "SEO-01: title-separator drift guard src/app/stripe/success/page.tsx every title uses the canonical pipe separator (no spaced em-dash/hyphen)",
 					"status": "passed"
 				},
 				{
@@ -3687,6 +3699,10 @@
 					"status": "passed"
 				},
 				{
+					"title": "SEO-01: title-separator drift guard src/app/(owner)/tenants/components/move-out-record.tsx every title uses the canonical pipe separator (no spaced em-dash/hyphen)",
+					"status": "passed"
+				},
+				{
 					"title": "SEO-01: title-separator drift guard src/app/(owner)/tenants/components/move-out-validation.ts every title uses the canonical pipe separator (no spaced em-dash/hyphen)",
 					"status": "passed"
 				},
@@ -3975,8 +3991,8 @@
 		{
 			"name": "src/app/__tests__/state-fill-contrast.test.ts",
 			"status": "passed",
-			"numTests": 5,
-			"numPassed": 5,
+			"numTests": 39,
+			"numPassed": 39,
 			"tests": [
 				{
 					"title": "state fills keep their labels at 4.5:1 (66.2-39 fix round 1, part F) measures every state pair in shipped src",
@@ -3996,6 +4012,142 @@
 				},
 				{
 					"title": "state fills keep their labels at 4.5:1 (66.2-39 fix round 1, part F) reads the pairs the way the cascade paints them (fixtures)",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) canceled section, deletion not requested",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) canceled section, deletion requested",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) balance check, balanced",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) balance check, unbalanced",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) forgot-password notice (dark read 1.03)",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) bulk import, too many rows (dark read 1…",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) confirm-email expired-link banner (ligh…",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) signing consent hint (read 2.64 under i…",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) the current plan's success badge on its…",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) a new application's info badge on its h…",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) a voided ledger row (read 2.64 under it…",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) tax worksheet, Mortgage & Financing (re…",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) tax worksheet, Property Expenses (read …",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) tax worksheet, Repairs & Maintenance (r…",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) tax worksheet, Depreciation (read 3.79-…",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) tax worksheet, Professional Services (r…",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) tax worksheet, Travel & Auto (read 3.79…",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) tax worksheet, Other Deductions (read 3…",
+					"status": "passed"
+				},
+				{
+					"title": "text inside a tint keeps 4.5:1 over every fill under it (66.2-39 fix round 4, F1) reads the tint under the tint (the canceled section's notice and Delete hover)",
+					"status": "passed"
+				},
+				{
+					"title": "a faded resting label keeps 4.5:1 (66.2-39 fix round 4, Part 5b) measures every faded resting label in shipped src",
+					"status": "passed"
+				},
+				{
+					"title": "a faded resting label keeps 4.5:1 (66.2-39 fix round 4, Part 5b) leaves no faded label under 4.5:1, either theme",
+					"status": "passed"
+				},
+				{
+					"title": "a faded resting label keeps 4.5:1 (66.2-39 fix round 4, Part 5b) keeps every reviewed mark live",
+					"status": "passed"
+				},
+				{
+					"title": "control boundaries and focus indicators hold 3:1 (WCAG 1.4.11; 66.2-39 fix round 4, Part 5b) draws the input token, every control's boundary, at 3:1 on each surface",
+					"status": "passed"
+				},
+				{
+					"title": "control boundaries and focus indicators hold 3:1 (WCAG 1.4.11; 66.2-39 fix round 4, Part 5b) gives every focus state a ring, outline, border or fill at 3:1 on each surface",
+					"status": "passed"
+				},
+				{
+					"title": "a focus-visible outline after outline-none names its style (66.2-39 fix round 4, Part 5b) restores the outline style wherever a string hides the outline and draws one",
+					"status": "passed"
+				},
+				{
+					"title": "a hovered text link keeps 4.5:1 (66.2-39 fix round 4, Part 5b) paints the base link hover in a token that clears 4.5:1 on each surface",
+					"status": "passed"
+				},
+				{
+					"title": "a rich-color toast keeps 4.5:1 (66.2-39 fix round 4, Part 5b) success",
+					"status": "passed"
+				},
+				{
+					"title": "a rich-color toast keeps 4.5:1 (66.2-39 fix round 4, Part 5b) info",
+					"status": "passed"
+				},
+				{
+					"title": "a rich-color toast keeps 4.5:1 (66.2-39 fix round 4, Part 5b) warning",
+					"status": "passed"
+				},
+				{
+					"title": "a rich-color toast keeps 4.5:1 (66.2-39 fix round 4, Part 5b) error",
+					"status": "passed"
+				},
+				{
+					"title": "a muted label inside a command item restates its label when selected (66.2-39 fix round 4, Part 5c) reads muted-foreground under 4.5:1 and accent-foreground at 4.5:1 on the selected fill, both themes",
+					"status": "passed"
+				},
+				{
+					"title": "a muted label inside a command item restates its label when selected (66.2-39 fix round 4, Part 5c) restates the selected label on every muted label inside a CommandItem",
+					"status": "passed"
+				},
+				{
+					"title": "a focused destructive menu item shows its focus at 3:1 (66.2-39 fix round 4, Part 5c) light",
+					"status": "passed"
+				},
+				{
+					"title": "a focused destructive menu item shows its focus at 3:1 (66.2-39 fix round 4, Part 5c) dark",
 					"status": "passed"
 				}
 			]
@@ -4432,6 +4584,58 @@
 				},
 				{
 					"title": "G10 no shipped source reaches the default color palette (66.2-39) passes the token forms and honors an exemption",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/app/__tests__/url-text-is-never-shown.test.tsx",
+			"status": "passed",
+			"numTests": 8,
+			"numPassed": 8,
+			"tests": [
+				{
+					"title": "a URL value never reaches the page as text /auth/update-password with the auth callback's failure hash shows fixed copy",
+					"status": "passed"
+				},
+				{
+					"title": "a URL value never reaches the page as text /auth/update-password with a crafted description shows fixed copy",
+					"status": "passed"
+				},
+				{
+					"title": "a URL value never reaches the page as text /auth/update-password with Supabase's expired-token code shows fixed copy",
+					"status": "passed"
+				},
+				{
+					"title": "a URL value never reaches the page as text /auth/update-password with an unknown error shows fixed copy",
+					"status": "passed"
+				},
+				{
+					"title": "a URL value never reaches the page as text /search does not quote ?q= in its no-results title; the search box holds it",
+					"status": "passed"
+				},
+				{
+					"title": "a URL value never reaches the page as text /billing/checkout/success does not print ?session_id=",
+					"status": "passed"
+				},
+				{
+					"title": "every URL read is reviewed finds the reads (the scan is not vacuous)",
+					"status": "passed"
+				},
+				{
+					"title": "every URL read is reviewed matches REVIEWED file for file and read for read",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/app/(auth)/login/__tests__/login-mfa-cancel.test.tsx",
+			"status": "passed",
+			"numTests": 1,
+			"numPassed": 1,
+			"tests": [
+				{
+					"title": "login: cancelling the two-factor challenge signs out this session only (scope local), never every session",
 					"status": "passed"
 				}
 			]
@@ -4875,11 +5079,27 @@
 					"status": "passed"
 				},
 				{
-					"title": "stat rows keep the properties page's figures on one line when a label wraps",
+					"title": "stat rows keep the properties page's labels on one line beside icons that never shrink",
 					"status": "passed"
 				},
 				{
 					"title": "stat rows hold the maintenance insights' two chart cards to one height",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/app/(owner)/analytics/financial/_components/__tests__/financial-analytics-skeleton.test.tsx",
+			"status": "passed",
+			"numTests": 2,
+			"numPassed": 2,
+			"tests": [
+				{
+					"title": "the financial analytics first chart row is the chart beside one card, the breakdown as the grid's own item",
+					"status": "passed"
+				},
+				{
+					"title": "the financial analytics first chart row loads as the same chart beside one card",
 					"status": "passed"
 				}
 			]
@@ -4981,10 +5201,82 @@
 			]
 		},
 		{
+			"name": "src/app/(owner)/billing/checkout/cancel/page.test.tsx",
+			"status": "passed",
+			"numTests": 1,
+			"numPassed": 1,
+			"tests": [
+				{
+					"title": "CheckoutCancelPage offers Try Again and billing settings, both reachable whatever the plan",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/app/(owner)/billing/checkout/success/page.test.tsx",
+			"status": "passed",
+			"numTests": 13,
+			"numPassed": 13,
+			"tests": [
+				{
+					"title": "/billing/checkout/success before the status is admitted: says the plan is being activated, offers Billing Settings, no dashboard",
+					"status": "passed"
+				},
+				{
+					"title": "/billing/checkout/success once a read says the status is admitted: the dashboard link, and the reads stop",
+					"status": "passed"
+				},
+				{
+					"title": "/billing/checkout/success active, which the proxy admits, offers the dashboard",
+					"status": "passed"
+				},
+				{
+					"title": "/billing/checkout/success trialing, which the proxy admits, offers the dashboard",
+					"status": "passed"
+				},
+				{
+					"title": "/billing/checkout/success past_due, which the proxy admits, offers the dashboard",
+					"status": "passed"
+				},
+				{
+					"title": "/billing/checkout/success unpaid, which the proxy does not admit, never offers it",
+					"status": "passed"
+				},
+				{
+					"title": "/billing/checkout/success canceled, which the proxy does not admit, never offers it",
+					"status": "passed"
+				},
+				{
+					"title": "/billing/checkout/success incomplete, which the proxy does not admit, never offers it",
+					"status": "passed"
+				},
+				{
+					"title": "/billing/checkout/success paused, which the proxy does not admit, never offers it",
+					"status": "passed"
+				},
+				{
+					"title": "/billing/checkout/success expired, which the proxy does not admit, never offers it",
+					"status": "passed"
+				},
+				{
+					"title": "/billing/checkout/success null, which the proxy does not admit, never offers it",
+					"status": "passed"
+				},
+				{
+					"title": "/billing/checkout/success does not trust a status cached before the page loaded",
+					"status": "passed"
+				},
+				{
+					"title": "/billing/checkout/success when the bound runs out: says activation is taking longer than usual, keeps Billing Settings, stops reading",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/app/(owner)/billing/plans/page.test.tsx",
 			"status": "passed",
-			"numTests": 8,
-			"numPassed": 8,
+			"numTests": 18,
+			"numPassed": 18,
 			"tests": [
 				{
 					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing routes a past_due live subscriber to the billing PORTAL, never a second checkout",
@@ -4992,6 +5284,46 @@
 				},
 				{
 					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing shows the Manage Subscription button for a live subscriber whose plan is unresolved (legacy/comp price id)",
+					"status": "passed"
+				},
+				{
+					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing names a unpaid subscription whose plan is unresolved by its status, not as active",
+					"status": "passed"
+				},
+				{
+					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing names a past_due subscription whose plan is unresolved by its status, not as active",
+					"status": "passed"
+				},
+				{
+					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing names a paused subscription whose plan is unresolved by its status, not as active",
+					"status": "passed"
+				},
+				{
+					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing names a active subscription's known plan with its status: You are currently on the Growth plan",
+					"status": "passed"
+				},
+				{
+					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing names a trialing subscription's known plan with its status: You are currently on the Growth plan",
+					"status": "passed"
+				},
+				{
+					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing names a past_due subscription's known plan with its status: Your Growth subscription is past due",
+					"status": "passed"
+				},
+				{
+					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing names a unpaid subscription's known plan with its status: Your Growth subscription is unpaid",
+					"status": "passed"
+				},
+				{
+					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing names a paused subscription's known plan with its status: Your Growth subscription is paused",
+					"status": "passed"
+				},
+				{
+					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing names a incomplete subscription's known plan with its status: Your Growth subscription is incomplete",
+					"status": "passed"
+				},
+				{
+					"title": "BillingPlansPage — BILL-01 portal-vs-checkout routing goes back to billing settings, which an owner whose plan has lapsed still reaches",
 					"status": "passed"
 				},
 				{
@@ -5056,6 +5388,18 @@
 				},
 				{
 					"title": "DashboardContent branch render (POLISH-07) never co-renders the skeleton and the empty state (content state)",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/app/(owner)/dashboard/__tests__/dashboard-page-portfolio-rows.test.tsx",
+			"status": "passed",
+			"numTests": 1,
+			"numPassed": 1,
+			"tests": [
+				{
+					"title": "the dashboard page's portfolio rows pass each property's rendered fields, and not its occupancy rate",
 					"status": "passed"
 				}
 			]
@@ -5413,6 +5757,18 @@
 			]
 		},
 		{
+			"name": "src/app/(owner)/documents/templates/components/dynamic-form-control-names.test.tsx",
+			"status": "passed",
+			"numTests": 1,
+			"numPassed": 1,
+			"tests": [
+				{
+					"title": "the template form's controls are each named by their visible label",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/app/(owner)/documents/templates/components/maintenance-request-template.test.tsx",
 			"status": "passed",
 			"numTests": 1,
@@ -5671,8 +6027,8 @@
 		{
 			"name": "src/app/(owner)/profile/__tests__/profile-page.test.tsx",
 			"status": "passed",
-			"numTests": 16,
-			"numPassed": 16,
+			"numTests": 18,
+			"numPassed": 18,
 			"tests": [
 				{
 					"title": "Owner Profile Page displays owner profile information",
@@ -5695,7 +6051,15 @@
 					"status": "passed"
 				},
 				{
-					"title": "Owner Profile Page handles sign out action",
+					"title": "Owner Profile Page lands on /login once after a successful sign out",
+					"status": "passed"
+				},
+				{
+					"title": "Owner Profile Page stays on the page after a failed first request, whose session is kept",
+					"status": "passed"
+				},
+				{
+					"title": "Owner Profile Page lands on /login once after a failed second request, whose browser session is gone",
 					"status": "passed"
 				},
 				{
@@ -5736,6 +6100,22 @@
 				},
 				{
 					"title": "Profile Dark Mode applies light mode styles when dark class is not present",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/app/(owner)/properties/__tests__/property-delete-confirmation.test.tsx",
+			"status": "passed",
+			"numTests": 2,
+			"numPassed": 2,
+			"tests": [
+				{
+					"title": "a property's delete confirmation on the property's page names it and claims no cascade or permanence",
+					"status": "passed"
+				},
+				{
+					"title": "a property's delete confirmation on the properties list names it and claims no permanence",
 					"status": "passed"
 				}
 			]
@@ -5784,6 +6164,18 @@
 				},
 				{
 					"title": "the units table's property line prints no property line for a unit with no property row",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/app/(owner)/properties/units/components/__tests__/unit-actions-spinner.test.tsx",
+			"status": "passed",
+			"numTests": 1,
+			"numPassed": 1,
+			"tests": [
+				{
+					"title": "the Delete Unit deleting state spins in the destructive fill's own foreground",
 					"status": "passed"
 				}
 			]
@@ -6015,8 +6407,8 @@
 		{
 			"name": "src/app/(owner)/reports/__tests__/income-statement-export.test.tsx",
 			"status": "passed",
-			"numTests": 10,
-			"numPassed": 10,
+			"numTests": 12,
+			"numPassed": 12,
 			"tests": [
 				{
 					"title": "income statement Export is a named button whose name holds its visible text",
@@ -6036,6 +6428,14 @@
 				},
 				{
 					"title": "income statement Export prints a zero figure unsigned in the net summary, as the CSV writes it (cycle 2, F15)",
+					"status": "passed"
+				},
+				{
+					"title": "income statement Export prints each share and the margin as the CSV writes them: a margin just below zero",
+					"status": "passed"
+				},
+				{
+					"title": "income statement Export prints each share and the margin as the CSV writes them: a credit's share just below zero",
 					"status": "passed"
 				},
 				{
@@ -6119,8 +6519,8 @@
 		{
 			"name": "src/app/(owner)/reports/__tests__/report-tile-spacing.test.tsx",
 			"status": "passed",
-			"numTests": 3,
-			"numPassed": 3,
+			"numTests": 4,
+			"numPassed": 4,
 			"tests": [
 				{
 					"title": "report tiles hold their declared spacing cash flow's activity tiles",
@@ -6128,6 +6528,10 @@
 				},
 				{
 					"title": "report tiles hold their declared spacing the tax documents' summary cards and vendor rows",
+					"status": "passed"
+				},
+				{
+					"title": "report tiles hold their declared spacing the tax documents' error card",
 					"status": "passed"
 				},
 				{
@@ -6359,8 +6763,8 @@
 		{
 			"name": "src/app/(owner)/reports/__tests__/reports-summary-strip.test.tsx",
 			"status": "passed",
-			"numTests": 9,
-			"numPassed": 9,
+			"numTests": 10,
+			"numPassed": 10,
 			"tests": [
 				{
 					"title": "ReportsSummaryStrip renders exactly the three locked labels",
@@ -6392,6 +6796,10 @@
 				},
 				{
 					"title": "ReportsSummaryStrip renders inline fallback copy on error and still returns a container",
+					"status": "passed"
+				},
+				{
+					"title": "ReportsSummaryStrip leaves no base paragraph margin under the error message",
 					"status": "passed"
 				},
 				{
@@ -6704,6 +7112,58 @@
 				},
 				{
 					"title": "Settings Page - Mobile Responsiveness page has proper padding for different screen sizes",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/app/(owner)/tenants/components/__tests__/move-out-dialog.test.tsx",
+			"status": "passed",
+			"numTests": 3,
+			"numPassed": 3,
+			"tests": [
+				{
+					"title": "MoveOutDialog bounds the notes and states the bound under the field",
+					"status": "passed"
+				},
+				{
+					"title": "MoveOutDialog offers the shared list of reasons, in its order",
+					"status": "passed"
+				},
+				{
+					"title": "MoveOutDialog says the date, reason and notes are saved",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/app/(owner)/tenants/components/__tests__/move-out-record.test.tsx",
+			"status": "passed",
+			"numTests": 6,
+			"numPassed": 6,
+			"tests": [
+				{
+					"title": "MoveOutRecord shows the date, the reason's label and the notes",
+					"status": "passed"
+				},
+				{
+					"title": "MoveOutRecord reads each slug as its label from the shared list",
+					"status": "passed"
+				},
+				{
+					"title": "MoveOutRecord shows a 2,000-character reason's notes in full",
+					"status": "passed"
+				},
+				{
+					"title": "MoveOutRecord shows a reason whose slug is not in the list as written",
+					"status": "passed"
+				},
+				{
+					"title": "MoveOutRecord shows a date it cannot read as written",
+					"status": "passed"
+				},
+				{
+					"title": "MoveOutRecord renders nothing when neither is set",
 					"status": "passed"
 				}
 			]
@@ -7064,6 +7524,30 @@
 				},
 				{
 					"title": "failureRedirectPath routes email_change failure to settings with a failed flag",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/app/auth/signout/__tests__/signout-page.test.tsx",
+			"status": "passed",
+			"numTests": 4,
+			"numPassed": 4,
+			"tests": [
+				{
+					"title": "/auth/signout a successful sign-out lands on /login once",
+					"status": "passed"
+				},
+				{
+					"title": "/auth/signout no timer navigates after a successful sign-out (fake timers, 10 s)",
+					"status": "passed"
+				},
+				{
+					"title": "/auth/signout an arrival with no session says so, offers Sign In and never navigates on its own",
+					"status": "passed"
+				},
+				{
+					"title": "/auth/signout centers every state at the other auth pages' width (max-w-md)",
 					"status": "passed"
 				}
 			]
@@ -7475,8 +7959,8 @@
 		{
 			"name": "src/app/robots.test.ts",
 			"status": "passed",
-			"numTests": 11,
-			"numPassed": 11,
+			"numTests": 17,
+			"numPassed": 17,
 			"tests": [
 				{
 					"title": "robots() every proxy PRIVATE_ROUTE_PREFIX appears in wildcard AND every AI-bot disallow (drift guard)",
@@ -7520,6 +8004,30 @@
 				},
 				{
 					"title": "/apply is public by absence (D-13/D-14) but /applications IS gated, at the route and at a detail id",
+					"status": "passed"
+				},
+				{
+					"title": "every robots-only path is served /api has a src/app route",
+					"status": "passed"
+				},
+				{
+					"title": "every robots-only path is served /auth/callback has a src/app route",
+					"status": "passed"
+				},
+				{
+					"title": "every robots-only path is served /auth/confirm-email has a src/app route",
+					"status": "passed"
+				},
+				{
+					"title": "every robots-only path is served /auth/signout has a src/app route",
+					"status": "passed"
+				},
+				{
+					"title": "every robots-only path is served /auth/update-password has a src/app route",
+					"status": "passed"
+				},
+				{
+					"title": "every robots-only path is served /monitoring is still the Sentry tunnel",
 					"status": "passed"
 				}
 			]
@@ -7699,8 +8207,8 @@
 		{
 			"name": "src/components/__tests__/billing-auth-lists-base-rules.test.tsx",
 			"status": "passed",
-			"numTests": 10,
-			"numPassed": 10,
+			"numTests": 9,
+			"numPassed": 9,
 			"tests": [
 				{
 					"title": "the billing, auth and marketing lists cancel the base list rules the password checklist",
@@ -7724,10 +8232,6 @@
 				},
 				{
 					"title": "the billing, auth and marketing lists cancel the base list rules the confirm-email steps, and each step's title and line",
-					"status": "passed"
-				},
-				{
-					"title": "the billing, auth and marketing lists cancel the base list rules the checkout-cancelled panel's list",
 					"status": "passed"
 				},
 				{
@@ -7769,6 +8273,82 @@
 			]
 		},
 		{
+			"name": "src/components/__tests__/confirmation-copy-voice.test.ts",
+			"status": "passed",
+			"numTests": 3,
+			"numPassed": 3,
+			"tests": [
+				{
+					"title": "the scan finds the question in every shape of copy (fixtures) reads JSX text wrapped across lines, strings and templates, not comments",
+					"status": "passed"
+				},
+				{
+					"title": "no copy in src asks \"Are you sure\" reads the app's copy",
+					"status": "passed"
+				},
+				{
+					"title": "no copy in src asks \"Are you sure\" finds none",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/__tests__/controls-have-accessible-names.test.ts",
+			"status": "passed",
+			"numTests": 6,
+			"numPassed": 6,
+			"tests": [
+				{
+					"title": "the scan names each control shape (fixtures) finds a control with no name, and one whose Label renders in another branch",
+					"status": "passed"
+				},
+				{
+					"title": "the scan names each control shape (fixtures) leaves every named shape alone",
+					"status": "passed"
+				},
+				{
+					"title": "the scan names each control shape (fixtures) follows a wrapper to its call sites",
+					"status": "passed"
+				},
+				{
+					"title": "every control in src has a name reads the controls the app renders",
+					"status": "passed"
+				},
+				{
+					"title": "every control in src has a name leaves no control unnamed",
+					"status": "passed"
+				},
+				{
+					"title": "every control in src has a name keeps each named-elsewhere entry a live site",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/__tests__/dialog-rows-fit-narrow-screens.test.tsx",
+			"status": "passed",
+			"numTests": 4,
+			"numPassed": 4,
+			"tests": [
+				{
+					"title": "a dialog's content never widens the dialog DialogContent and AlertDialogContent declare one minmax(0, 1fr) column",
+					"status": "passed"
+				},
+				{
+					"title": "rows inside a dialog fit a phone-width dialog the two-factor setup's code row shares its width between the six slots",
+					"status": "passed"
+				},
+				{
+					"title": "rows inside a dialog fit a phone-width dialog the sign-in verification's code row shares its width between the six slots",
+					"status": "passed"
+				},
+				{
+					"title": "rows inside a dialog fit a phone-width dialog the bulk-import stepper's step text is screen-reader only below sm, shown from sm",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/components/__tests__/generic-name-sweep.test.tsx",
 			"status": "passed",
 			"numTests": 2,
@@ -7801,21 +8381,29 @@
 			]
 		},
 		{
-			"name": "src/components/__tests__/heading-block-paragraph-margin.test.ts",
+			"name": "src/components/__tests__/icon-only-values-have-text.test.tsx",
 			"status": "passed",
-			"numTests": 3,
-			"numPassed": 3,
+			"numTests": 5,
+			"numPassed": 5,
 			"tests": [
 				{
-					"title": "heading subtitles carry no base paragraph margin rests on the globals.css rule it guards against",
+					"title": "icons that are a cell's only content carry a text alternative (WCAG 1.1.1) pricing comparison table (/pricing)",
 					"status": "passed"
 				},
 				{
-					"title": "heading subtitles carry no base paragraph margin leaves no bare subtitle in a flex item outside the deferred files",
+					"title": "icons that are a cell's only content carry a text alternative (WCAG 1.1.1) features comparison table (/features)",
 					"status": "passed"
 				},
 				{
-					"title": "heading subtitles carry no base paragraph margin finds both shapes and skips a subtitle that declares its margin",
+					"title": "icons that are a cell's only content carry a text alternative (WCAG 1.1.1) compare feature table (/compare/buildium)",
+					"status": "passed"
+				},
+				{
+					"title": "icons that are a cell's only content carry a text alternative (WCAG 1.1.1) compare feature table (/compare/appfolio)",
+					"status": "passed"
+				},
+				{
+					"title": "icons that are a cell's only content carry a text alternative (WCAG 1.1.1) compare feature table (/compare/rentredi)",
 					"status": "passed"
 				}
 			]
@@ -7860,6 +8448,22 @@
 				},
 				{
 					"title": "each record is named instead leads a billing history row with its date, never the invoice id",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/__tests__/inline-svg-names.test.ts",
+			"status": "passed",
+			"numTests": 2,
+			"numPassed": 2,
+			"tests": [
+				{
+					"title": "every hand-written svg is hidden or named (WCAG 1.1.1; 66.2-39 fix round 4, Part 5c) finds the svgs it rules on",
+					"status": "passed"
+				},
+				{
+					"title": "every hand-written svg is hidden or named (WCAG 1.1.1; 66.2-39 fix round 4, Part 5c) leaves no svg the accessibility tree exposes without a name",
 					"status": "passed"
 				}
 			]
@@ -7915,8 +8519,8 @@
 		{
 			"name": "src/components/__tests__/list-base-rule-neutralized.test.ts",
 			"status": "passed",
-			"numTests": 3,
-			"numPassed": 3,
+			"numTests": 4,
+			"numPassed": 4,
 			"tests": [
 				{
 					"title": "every list cancels the base ul, ol and li rules rests on the globals.css rules it guards against",
@@ -7927,7 +8531,31 @@
 					"status": "passed"
 				},
 				{
+					"title": "every list cancels the base ul, ol and li rules defers only files left as they were at the PR's base",
+					"status": "passed"
+				},
+				{
 					"title": "every list cancels the base ul, ol and li rules reads both className forms and flags each open value",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/__tests__/menu-item-focus-labels.test.ts",
+			"status": "passed",
+			"numTests": 3,
+			"numPassed": 3,
+			"tests": [
+				{
+					"title": "a menu item keeps its label and icons legible on its focus fill (66.2-39 fix round 4, Part 5c) finds the menu items it rules on",
+					"status": "passed"
+				},
+				{
+					"title": "a menu item keeps its label and icons legible on its focus fill (66.2-39 fix round 4, Part 5c) colors a destructive item only through the destructive variant",
+					"status": "passed"
+				},
+				{
+					"title": "a menu item keeps its label and icons legible on its focus fill (66.2-39 fix round 4, Part 5c) restates recolored icons as accent-foreground on focus",
 					"status": "passed"
 				}
 			]
@@ -7948,6 +8576,34 @@
 				},
 				{
 					"title": "hover affordances sit on controls keeps every reviewed entry live",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/__tests__/no-native-browser-dialogs.test.ts",
+			"status": "passed",
+			"numTests": 5,
+			"numPassed": 5,
+			"tests": [
+				{
+					"title": "the scan finds each native dialog shape (fixtures) a bare global call or reference, and a read on a global object",
+					"status": "passed"
+				},
+				{
+					"title": "the scan finds each native dialog shape (fixtures) leaves a local binding of the same name, and names that are not reads",
+					"status": "passed"
+				},
+				{
+					"title": "the scan finds each native dialog shape (fixtures) a local in one scope does not hide the global in another",
+					"status": "passed"
+				},
+				{
+					"title": "no native browser dialog in the app scans the app's sources (the scan is not vacuous)",
+					"status": "passed"
+				},
+				{
+					"title": "no native browser dialog in the app asks through the app's own dialogs: no confirm, alert or prompt",
 					"status": "passed"
 				}
 			]
@@ -8017,6 +8673,78 @@
 			]
 		},
 		{
+			"name": "src/components/__tests__/paragraph-base-margin.test.ts",
+			"status": "passed",
+			"numTests": 7,
+			"numPassed": 7,
+			"tests": [
+				{
+					"title": "paragraphs carry no base margin where it breaks declared spacing rests on the globals.css rule it guards against",
+					"status": "passed"
+				},
+				{
+					"title": "paragraphs carry no base margin where it breaks declared spacing reads the ui components as the boxes they render",
+					"status": "passed"
+				},
+				{
+					"title": "paragraphs carry no base margin where it breaks declared spacing finds each shape, through a component and a conditional",
+					"status": "passed"
+				},
+				{
+					"title": "paragraphs carry no base margin where it breaks declared spacing passes a paragraph whose margin is declared or cannot break anything",
+					"status": "passed"
+				},
+				{
+					"title": "paragraphs carry no base margin where it breaks declared spacing follows a margin that reaches a component's root to its callers",
+					"status": "passed"
+				},
+				{
+					"title": "paragraphs carry no base margin where it breaks declared spacing leaves no hit outside the deferred files",
+					"status": "passed"
+				},
+				{
+					"title": "paragraphs carry no base margin where it breaks declared spacing defers only files left as they were at the PR's base",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/__tests__/paragraph-margin-pins.test.tsx",
+			"status": "passed",
+			"numTests": 7,
+			"numPassed": 7,
+			"tests": [
+				{
+					"title": "the cycle-3 base-margin findings hold their declared spacing G12: the cash flow balance figures, each the last child of a flex item",
+					"status": "passed"
+				},
+				{
+					"title": "the cycle-3 base-margin findings hold their declared spacing G20: the renew dialog's two notes, flex items of a padded box",
+					"status": "passed"
+				},
+				{
+					"title": "the cycle-3 base-margin findings hold their declared spacing G21: the lead paint disclosure's title and body",
+					"status": "passed"
+				},
+				{
+					"title": "the cycle-3 base-margin findings hold their declared spacing G22: each clause section's subtitle, ahead of its 12px list gap",
+					"status": "passed"
+				},
+				{
+					"title": "the cycle-3 base-margin findings hold their declared spacing G23: the properties tiles' labels and figures, flex items of their rows",
+					"status": "passed"
+				},
+				{
+					"title": "the cycle-3 base-margin findings hold their declared spacing G24: the profile's four read-only values, flex items beside their icons",
+					"status": "passed"
+				},
+				{
+					"title": "the cycle-3 base-margin findings hold their declared spacing G31: each feature card's description, the last child of its p-6 card",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/components/__tests__/providers.test.tsx",
 			"status": "passed",
 			"numTests": 2,
@@ -8028,6 +8756,150 @@
 				},
 				{
 					"title": "Providers keeps the ThemeProvider props that the CSP script hash depends on",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/__tests__/raw-field-boundary.test.ts",
+			"status": "passed",
+			"numTests": 2,
+			"numPassed": 2,
+			"tests": [
+				{
+					"title": "a native text field draws its boundary in the input token (WCAG 1.4.11; 66.2-39 fix round 4, Part 5c) finds the native fields it rules on",
+					"status": "passed"
+				},
+				{
+					"title": "a native text field draws its boundary in the input token (WCAG 1.4.11; 66.2-39 fix round 4, Part 5c) leaves no native text field with a border-border boundary",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/__tests__/reservation-release-keys-on-the-row.test.ts",
+			"status": "passed",
+			"numTests": 4,
+			"numPassed": 4,
+			"tests": [
+				{
+					"title": "stat label reservations release on the row's width leave no viewport release outside the reviewed rows",
+					"status": "passed"
+				},
+				{
+					"title": "stat label reservations release on the row's width keeps every reviewed row live",
+					"status": "passed"
+				},
+				{
+					"title": "stat label reservations release on the row's width reads a release the way the class string writes it (fixtures)",
+					"status": "passed"
+				},
+				{
+					"title": "stat label reservations release on the row's width extracts and compiles each row's container and its 56rem release",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/__tests__/stat-rows-hold-their-figures.test.tsx",
+			"status": "passed",
+			"numTests": 7,
+			"numPassed": 7,
+			"tests": [
+				{
+					"title": "stat tiles hold their figures give a Stat value the tile's width, under its label and indicator, unwrapped",
+					"status": "passed"
+				},
+				{
+					"title": "stat tiles hold their figures finds the stat rows in the source, and only where the list cannot",
+					"status": "passed"
+				},
+				{
+					"title": "stat tiles hold their figures step every stat row's columns on its own container, never the viewport",
+					"status": "passed"
+				},
+				{
+					"title": "stat tiles hold their figures keeps every reviewed grid live",
+					"status": "passed"
+				},
+				{
+					"title": "stat tiles hold their figures never lets a stat row's sized icon shrink",
+					"status": "passed"
+				},
+				{
+					"title": "stat tiles hold their figures reads a viewport step and a shrinkable icon the way a class string writes them (fixtures)",
+					"status": "passed"
+				},
+				{
+					"title": "stat tiles hold their figures reads a stat row from JSX the way the source writes one (fixtures)",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/__tests__/submit-buttons-inside-a-form.test.ts",
+			"status": "passed",
+			"numTests": 4,
+			"numPassed": 4,
+			"tests": [
+				{
+					"title": "every submit button sits inside the form it submits, or names it finds the submit buttons (the scan is not vacuous)",
+					"status": "passed"
+				},
+				{
+					"title": "every submit button sits inside the form it submits, or names it renders no submit button through a slot, a variable or a portal out of its form",
+					"status": "passed"
+				},
+				{
+					"title": "every submit button sits inside the form it submits, or names it renders a submit button at a component's root only where every caller wraps it in a <form>",
+					"status": "passed"
+				},
+				{
+					"title": "every submit button sits inside the form it submits, or names it keeps RENDERED_INSIDE_A_FORM current (each file still renders its submit button at a root)",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/__tests__/submit-buttons-submit-their-form.test.tsx",
+			"status": "passed",
+			"numTests": 5,
+			"numPassed": 5,
+			"tests": [
+				{
+					"title": "a submit button submits the form it renders with TenantEditForm (Save Changes rendered in CardLayout's footer) Save Changes belongs to the tenant form",
+					"status": "passed"
+				},
+				{
+					"title": "a submit button submits the form it renders with TenantEditForm (Save Changes rendered in CardLayout's footer) the action row fills CardLayout's flex footer, so its justify-end puts the buttons right",
+					"status": "passed"
+				},
+				{
+					"title": "a submit button submits the form it renders with TenantEditForm (Save Changes rendered in CardLayout's footer) clicking Save Changes sends the update",
+					"status": "passed"
+				},
+				{
+					"title": "a submit button submits the form it renders with AddTenantForm (no <form> of its own before the fix) Add Tenant belongs to the tenant form",
+					"status": "passed"
+				},
+				{
+					"title": "a submit button submits the form it renders with AddTenantForm (no <form> of its own before the fix) Enter in a field submits the form",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/__tests__/untyped-buttons-outside-forms.test.ts",
+			"status": "passed",
+			"numTests": 2,
+			"numPassed": 2,
+			"tests": [
+				{
+					"title": "no button without a type sits in a form finds the untyped buttons (the scan is not vacuous)",
+					"status": "passed"
+				},
+				{
+					"title": "no button without a type sits in a form leaves no untyped button where a form holds it, in its file or through its callers",
 					"status": "passed"
 				}
 			]
@@ -8653,22 +9525,6 @@
 			]
 		},
 		{
-			"name": "src/components/auth/__tests__/google-button.test.tsx",
-			"status": "passed",
-			"numTests": 2,
-			"numPassed": 2,
-			"tests": [
-				{
-					"title": "GoogleButton trust indicators reads the caption under the label in the full muted-foreground token",
-					"status": "passed"
-				},
-				{
-					"title": "GoogleButton trust indicators reads the indicator row in the full muted-foreground token",
-					"status": "passed"
-				}
-			]
-		},
-		{
 			"name": "src/components/auth/__tests__/password-strength.test.tsx",
 			"status": "passed",
 			"numTests": 1,
@@ -8697,13 +9553,37 @@
 			]
 		},
 		{
+			"name": "src/components/auth/__tests__/two-factor-setup-enroll-once.test.tsx",
+			"status": "passed",
+			"numTests": 2,
+			"numPassed": 2,
+			"tests": [
+				{
+					"title": "TwoFactorSetupDialog enrollment posts one enrollment per opening when it fails, and keeps the error up",
+					"status": "passed"
+				},
+				{
+					"title": "TwoFactorSetupDialog enrollment posts again when it is closed and opened again",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/components/auth/__tests__/update-password-form.test.tsx",
 			"status": "passed",
-			"numTests": 1,
-			"numPassed": 1,
+			"numTests": 3,
+			"numPassed": 3,
 			"tests": [
 				{
 					"title": "UpdatePasswordForm saving state draws the spinner arc in the primary-foreground token",
+					"status": "passed"
+				},
+				{
+					"title": "UpdatePasswordForm says how the password is kept as a one-way hash",
+					"status": "passed"
+				},
+				{
+					"title": "UpdatePasswordForm says how the password is kept and no source in src says a password is encrypted",
 					"status": "passed"
 				}
 			]
@@ -8711,8 +9591,8 @@
 		{
 			"name": "src/components/billing/__tests__/subscription-status-banner.test.tsx",
 			"status": "passed",
-			"numTests": 13,
-			"numPassed": 13,
+			"numTests": 19,
+			"numPassed": 19,
 			"tests": [
 				{
 					"title": "SubscriptionStatusBanner renders nothing when loading",
@@ -8755,6 +9635,22 @@
 					"status": "passed"
 				},
 				{
+					"title": "SubscriptionStatusBanner tells a trial of a chosen plan what happens at its end (432000000 ms left)",
+					"status": "passed"
+				},
+				{
+					"title": "SubscriptionStatusBanner tells a trial of a chosen plan what happens at its end (43200000 ms left)",
+					"status": "passed"
+				},
+				{
+					"title": "SubscriptionStatusBanner tells a trial of a chosen plan what happens at its end (-172800000 ms left)",
+					"status": "passed"
+				},
+				{
+					"title": "SubscriptionStatusBanner tells a trial of a chosen plan what happens at its end (null ms left)",
+					"status": "passed"
+				},
+				{
 					"title": "SubscriptionStatusBanner renders destructive lock banner when status is unpaid",
 					"status": "passed"
 				},
@@ -8764,6 +9660,14 @@
 				},
 				{
 					"title": "SubscriptionStatusBanner renders destructive lock banner when status is expired (trial lapsed)",
+					"status": "passed"
+				},
+				{
+					"title": "SubscriptionStatusBanner lays every banner out once: the link under the text until 22rem, then beside it",
+					"status": "passed"
+				},
+				{
+					"title": "SubscriptionStatusBanner gives each banner link its banner's -text color, which the base link rule would override",
 					"status": "passed"
 				}
 			]
@@ -9191,11 +10095,23 @@
 		{
 			"name": "src/components/dashboard/__tests__/scheduled-rent-charts.test.tsx",
 			"status": "passed",
-			"numTests": 6,
-			"numPassed": 6,
+			"numTests": 9,
+			"numPassed": 9,
 			"tests": [
 				{
 					"title": "the scheduled rent and expenses chart holds its figures and error lines to the spacing they declare",
+					"status": "passed"
+				},
+				{
+					"title": "the scheduled rent and expenses chart prints and colors a net of 2000 less 2000.4 as $0",
+					"status": "passed"
+				},
+				{
+					"title": "the scheduled rent and expenses chart prints and colors a net of 2000 less 1999.6 as $0",
+					"status": "passed"
+				},
+				{
+					"title": "the scheduled rent and expenses chart prints and colors a net of 2000 less 2000.5 as -$1",
 					"status": "passed"
 				},
 				{
@@ -9327,7 +10243,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "KpiBentoRow puts each label and its non-wrapping value in one wrapping row",
+					"title": "KpiBentoRow puts each label above its non-wrapping value, both children of the stat",
 					"status": "passed"
 				},
 				{
@@ -9717,6 +10633,18 @@
 			]
 		},
 		{
+			"name": "src/components/dashboard/components/__tests__/portfolio-preset-menu-roles.test.tsx",
+			"status": "passed",
+			"numTests": 1,
+			"numPassed": 1,
+			"tests": [
+				{
+					"title": "the Presets menu owns only menu items, and saves through a labelled dialog field",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/components/dashboard/components/__tests__/revenue-area-chart.test.tsx",
 			"status": "passed",
 			"numTests": 13,
@@ -9791,7 +10719,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "transformDashboardData falls back to 0 when prop.open_maintenance is undefined (optional field)",
+					"title": "transformDashboardData reads open_maintenance as the fetcher sets it, with no fallback of its own",
 					"status": "passed"
 				},
 				{
@@ -10197,6 +11125,26 @@
 			]
 		},
 		{
+			"name": "src/components/inspections/__tests__/inspection-room-card.test.tsx",
+			"status": "passed",
+			"numTests": 3,
+			"numPassed": 3,
+			"tests": [
+				{
+					"title": "InspectionRoomCard delete confirmation opens the confirmation on the trash button, and deletes nothing",
+					"status": "passed"
+				},
+				{
+					"title": "InspectionRoomCard delete confirmation deletes the room once, only from the confirmation's Delete room",
+					"status": "passed"
+				},
+				{
+					"title": "InspectionRoomCard delete confirmation deletes nothing on Cancel",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/components/layout/__tests__/footer.test.tsx",
 			"status": "passed",
 			"numTests": 2,
@@ -10215,8 +11163,8 @@
 		{
 			"name": "src/components/layout/__tests__/navbar.test.tsx",
 			"status": "passed",
-			"numTests": 4,
-			"numPassed": 4,
+			"numTests": 5,
+			"numPassed": 5,
 			"tests": [
 				{
 					"title": "Navbar — auth CTA branch renders Sign In + Start free synchronously when no auth cookie (cold-start fast-path)",
@@ -10232,6 +11180,10 @@
 				},
 				{
 					"title": "Navbar — auth CTA branch renders Dashboard when cookie present and query resolves with a session",
+					"status": "passed"
+				},
+				{
+					"title": "Navbar — auth CTA branch links a signed-in visitor to Settings beside Dashboard, and a signed-out one to neither",
 					"status": "passed"
 				}
 			]
@@ -10283,9 +11235,17 @@
 		{
 			"name": "src/components/layout/navbar/__tests__/navbar-mobile-menu.test.tsx",
 			"status": "passed",
-			"numTests": 3,
-			"numPassed": 3,
+			"numTests": 5,
+			"numPassed": 5,
 			"tests": [
+				{
+					"title": "NavbarMobileMenu signed in links to Settings beside Dashboard",
+					"status": "passed"
+				},
+				{
+					"title": "NavbarMobileMenu signed in shows neither to a signed-out visitor",
+					"status": "passed"
+				},
 				{
 					"title": "NavbarMobileMenu aria-current marks the exact page \"page\"",
 					"status": "passed"
@@ -10392,114 +11352,6 @@
 				},
 				{
 					"title": "DownloadSignedLeaseButton renders nothing when no document is available yet",
-					"status": "passed"
-				}
-			]
-		},
-		{
-			"name": "src/components/leases/__tests__/lease-action-buttons.test.tsx",
-			"status": "passed",
-			"numTests": 25,
-			"numPassed": 25,
-			"tests": [
-				{
-					"title": "LeaseActionButtons Rendering renders View button",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Rendering renders dropdown menu trigger",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Rendering renders status badge",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Dropdown Menu - Status Conditional Items shows Send for Signature for draft leases",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Dropdown Menu - Status Conditional Items shows Sign as Owner for pending_signature leases without owner signature",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Dropdown Menu - Status Conditional Items hides Sign as Owner when owner has already signed",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Dropdown Menu - Status Conditional Items shows active lease actions (Renew, Terminate) for active leases",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Dropdown Menu - Status Conditional Items always shows Delete menu item regardless of status",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Delete Flow - AlertDialog Outside DropdownMenu clicking Delete opens AlertDialog (not nested in dropdown)",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Delete Flow - AlertDialog Outside DropdownMenu AlertDialog has Cancel and Delete buttons",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Delete Flow - AlertDialog Outside DropdownMenu Cancel button closes AlertDialog and allows reopening",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Delete Flow - AlertDialog Outside DropdownMenu Delete button in dialog runs mutation, shows success toast, and closes dialog",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons View Button View button opens view dialog",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Active Lease Actions Renew Lease opens dialog",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Active Lease Actions Terminate Lease opens dialog",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Accessibility dropdown trigger is keyboard accessible",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Accessibility AlertDialog can be closed with Escape key",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Accessibility AlertDialog has proper ARIA attributes",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Status Badge Display renders the pending_signature status as Pending Signature",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Status Badge Display renders the active status as Active",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Status Badge Display renders the draft status as Draft",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Status Badge Display renders the terminated status as Terminated",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Status Badge Display renders the expired status as Expired",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Status Badge Display renders the ended status as Ended",
-					"status": "passed"
-				},
-				{
-					"title": "LeaseActionButtons Status Badge Display displays raw status for unrecognized statuses",
 					"status": "passed"
 				}
 			]
@@ -11053,6 +11905,18 @@
 			]
 		},
 		{
+			"name": "src/components/leases/detail/__tests__/lease-timeline-disc.test.tsx",
+			"status": "passed",
+			"numTests": 1,
+			"numPassed": 1,
+			"tests": [
+				{
+					"title": "the lease timeline's event discs paint an opaque disc over the rail for every event type",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/components/leases/detail/lease-sidebar.test.tsx",
 			"status": "passed",
 			"numTests": 1,
@@ -11087,8 +11951,8 @@
 		{
 			"name": "src/components/leases/dialogs/__tests__/renew-lease-form-fields.test.tsx",
 			"status": "passed",
-			"numTests": 6,
-			"numPassed": 6,
+			"numTests": 7,
+			"numPassed": 7,
 			"tests": [
 				{
 					"title": "RentAdjustment change value colors a rent increase with the AA success text token",
@@ -11099,19 +11963,23 @@
 					"status": "passed"
 				},
 				{
-					"title": "RentAdjustment change value prints the change to 1100 as +$100.00 (10.0%)",
+					"title": "RentAdjustment change value prints the change to 1100 as +$100.00 (10.0%) in text-success-text",
 					"status": "passed"
 				},
 				{
-					"title": "RentAdjustment change value prints the change to 900 as -$100.00 (-10.0%)",
+					"title": "RentAdjustment change value prints the change to 900 as -$100.00 (-10.0%) in text-destructive-text",
 					"status": "passed"
 				},
 				{
-					"title": "RentAdjustment change value prints the change to 1000.004 as $0.00 (0.0%)",
+					"title": "RentAdjustment change value prints the change to 1000.004 as $0.00 (0.0%) in text-success-text",
 					"status": "passed"
 				},
 				{
-					"title": "RentAdjustment change value prints the change to 999.996 as $0.00 (0.0%)",
+					"title": "RentAdjustment change value prints the change to 999.996 as $0.00 (0.0%) in text-success-text",
+					"status": "passed"
+				},
+				{
+					"title": "RentAdjustment change value prints the change to 999.99 as -$0.01 (0.0%) in text-destructive-text",
 					"status": "passed"
 				}
 			]
@@ -12021,6 +12889,30 @@
 			]
 		},
 		{
+			"name": "src/components/maintenance/__tests__/maintenance-sortable-card-roles.test.tsx",
+			"status": "passed",
+			"numTests": 1,
+			"numPassed": 1,
+			"tests": [
+				{
+					"title": "a maintenance board card is a link, not a button wrapped around one",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/maintenance/__tests__/maintenance-tenant-option-names.test.tsx",
+			"status": "passed",
+			"numTests": 1,
+			"numPassed": 1,
+			"tests": [
+				{
+					"title": "the maintenance form's tenant options each read a name",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/components/maintenance/__tests__/vendor-form-dialog.test.tsx",
 			"status": "passed",
 			"numTests": 3,
@@ -12036,6 +12928,30 @@
 				},
 				{
 					"title": "VendorFormDialog PROP-05: create branch still omits empty optional fields creating with empty email/phone/notes omits those keys (no forced null)",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/maintenance/detail/__tests__/maintenance-details-delete.test.tsx",
+			"status": "passed",
+			"numTests": 4,
+			"numPassed": 4,
+			"tests": [
+				{
+					"title": "MaintenanceDetails delete confirmation opens the confirmation on Delete Request, and deletes nothing",
+					"status": "passed"
+				},
+				{
+					"title": "MaintenanceDetails delete confirmation deletes once from the confirmation's Delete request, then leaves for the list",
+					"status": "passed"
+				},
+				{
+					"title": "MaintenanceDetails delete confirmation deletes nothing on Cancel",
+					"status": "passed"
+				},
+				{
+					"title": "MaintenanceDetails delete confirmation stays on the request when the delete fails",
 					"status": "passed"
 				}
 			]
@@ -12747,15 +13663,31 @@
 		{
 			"name": "src/components/properties/__tests__/properties.test.tsx",
 			"status": "passed",
-			"numTests": 2,
-			"numPassed": 2,
+			"numTests": 6,
+			"numPassed": 6,
 			"tests": [
 				{
 					"title": "Properties state wiring (STATE-05) prunes a phantom selected id absent from the fetched list",
 					"status": "passed"
 				},
 				{
-					"title": "Properties state wiring (STATE-05) bulk delete only targets still-listed property ids",
+					"title": "Properties state wiring (STATE-05) opens the confirmation on the action bar's Delete, and deletes nothing",
+					"status": "passed"
+				},
+				{
+					"title": "Properties state wiring (STATE-05) names the one property it will delete",
+					"status": "passed"
+				},
+				{
+					"title": "Properties state wiring (STATE-05) deletes each still-listed property once, only from the confirmation's Delete",
+					"status": "passed"
+				},
+				{
+					"title": "Properties state wiring (STATE-05) deletes nothing on Cancel, and keeps the selection",
+					"status": "passed"
+				},
+				{
+					"title": "Properties state wiring (STATE-05) skips a named property that left the list while the confirmation was open",
 					"status": "passed"
 				}
 			]
@@ -12955,7 +13887,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "PropertyImageDropzone Component File Selection offers 'select files' as a keyboard-operable button that opens the file input",
+					"title": "PropertyImageDropzone Component File Selection offers 'select files' as a keyboard-operable button that opens the file picker",
 					"status": "passed"
 				},
 				{
@@ -13144,6 +14076,18 @@
 				},
 				{
 					"title": "the properties table's Property column is at least its columns' floors wide, and names each property in full",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/properties/__tests__/property-table-checkbox-names.test.tsx",
+			"status": "passed",
+			"numTests": 1,
+			"numPassed": 1,
+			"tests": [
+				{
+					"title": "the properties table's selection checkboxes name the select-all's scope and each row's property",
 					"status": "passed"
 				}
 			]
@@ -13457,13 +14401,101 @@
 			]
 		},
 		{
+			"name": "src/components/settings/__tests__/account-deletion-claims.test.tsx",
+			"status": "passed",
+			"numTests": 18,
+			"numPassed": 18,
+			"tests": [
+				{
+					"title": "the account-deletion copy is what the job does reads the job from the ledger's newest bodies",
+					"status": "passed"
+				},
+				{
+					"title": "the account-deletion copy is what the job does the request only stamps the date, so it never refuses for a lease or a payment",
+					"status": "passed"
+				},
+				{
+					"title": "the account-deletion copy is what the job does the nightly job runs once the request is 30 days old and retries a failure",
+					"status": "passed"
+				},
+				{
+					"title": "the account-deletion copy is what the job does waits while a lease is active",
+					"status": "passed"
+				},
+				{
+					"title": "the account-deletion copy is what the job does removes the profile's name, email, phone and photo",
+					"status": "passed"
+				},
+				{
+					"title": "the account-deletion copy is what the job does marks the properties inactive and deletes notifications and applications",
+					"status": "passed"
+				},
+				{
+					"title": "the account-deletion copy is what the job does keeps the leases, tenants, expenses, rent records, sign-in and emergency contact",
+					"status": "passed"
+				},
+				{
+					"title": "both Danger Zones say it AccountDataSection: the intro and the confirmation",
+					"status": "passed"
+				},
+				{
+					"title": "both Danger Zones say it GdprDataActions standalone: the intro and the confirmation",
+					"status": "passed"
+				},
+				{
+					"title": "both Danger Zones say it GdprDataActions inline: the confirmation",
+					"status": "passed"
+				},
+				{
+					"title": "the export copy names what export-user-data returns lists the function's tables and nothing it leaves out",
+					"status": "passed"
+				},
+				{
+					"title": "the legal pages say what the deletion job and the export do the privacy policy's deleted accounts are what the job removes and keeps",
+					"status": "passed"
+				},
+				{
+					"title": "the legal pages say what the deletion job and the export do the privacy policy's export is the function's tables",
+					"status": "passed"
+				},
+				{
+					"title": "the legal pages say what the deletion job and the export do Settings' export and deletion request are open whatever the subscription, as the proxy does",
+					"status": "passed"
+				},
+				{
+					"title": "the legal pages say what the deletion job and the export do privacy 7.2 says what can still be edited after a plan or trial ends, as Settings does",
+					"status": "passed"
+				},
+				{
+					"title": "the legal pages say what the deletion job and the export do deletion is a request that runs after 30 days, in both documents",
+					"status": "passed"
+				},
+				{
+					"title": "no copy claims a deletion, a retention limit or an export the code does not do finds none in src, the legal pages included",
+					"status": "passed"
+				},
+				{
+					"title": "no copy claims a deletion, a retention limit or an export the code does not do finds none in supabase/functions, the emails included",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/components/settings/__tests__/billing-settings.test.tsx",
 			"status": "passed",
-			"numTests": 16,
-			"numPassed": 16,
+			"numTests": 39,
+			"numPassed": 39,
 			"tests": [
 				{
 					"title": "BillingSettings empty-state branches renders the active-with-plan branch (Growth)",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings empty-state branches labels a active plan's period end",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings empty-state branches labels a trialing plan's period end",
 					"status": "passed"
 				},
 				{
@@ -13476,10 +14508,6 @@
 				},
 				{
 					"title": "BillingSettings empty-state branches renders the unknown-priceId branch and logs the unrecoverable state to Sentry",
-					"status": "passed"
-				},
-				{
-					"title": "BillingSettings empty-state branches renders the resubscribe branch for past_due subscriptions",
 					"status": "passed"
 				},
 				{
@@ -13507,7 +14535,11 @@
 					"status": "passed"
 				},
 				{
-					"title": "BillingSettings empty-state branches renders the no-subscription branch (Upgrade to unlock copy)",
+					"title": "BillingSettings empty-state branches renders the past_due branch: keep access by updating the payment method",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings empty-state branches renders the no-subscription branch (other pages need a plan)",
 					"status": "passed"
 				},
 				{
@@ -13524,6 +14556,90 @@
 				},
 				{
 					"title": "BillingSettings empty-state branches classifies non-Error thrown values via String() coercion",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title active with a known plan: the plan's name, the status beside it",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title trialing with a known plan: the plan's name, the status beside it",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title past_due with a known plan: the plan's name, the status beside it",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title unpaid with a known plan: the plan's name, the status beside it",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title paused with a known plan: the plan's name, the status beside it",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title incomplete with a known plan: the plan's name, the status beside it",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title canceled with a known plan: the plan's name, the status beside it",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title incomplete_expired with a known plan: the plan's name, the status beside it",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title expired with a known plan: the plan's name, the status beside it",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title null with a known plan: the plan's name, the status beside it",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title lets the badge wrap under a long title, so the row never pushes the buttons out",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title active with no known plan: Active subscription",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title trialing with no known plan: Free trial",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title past_due with no known plan: Your subscription",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title unpaid with no known plan: Your subscription",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title paused with no known plan: Your subscription",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title incomplete with no known plan: Your subscription",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title canceled with no known plan: No plan",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title incomplete_expired with no known plan: No plan",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title expired with no known plan: No plan",
+					"status": "passed"
+				},
+				{
+					"title": "BillingSettings plan title null with no known plan: No plan",
 					"status": "passed"
 				}
 			]
@@ -13588,6 +14704,46 @@
 				},
 				{
 					"title": "CategoriesSettings reorder rollback: onError restores the snapshot taken in onMutate (cycle-1 M-7)",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/settings/__tests__/category-rename-error-toast.test.tsx",
+			"status": "passed",
+			"numTests": 2,
+			"numPassed": 2,
+			"tests": [
+				{
+					"title": "a failed category rename toasts copy, never the mapper's diagnostic toasts the generic copy when the updated row has no slug",
+					"status": "passed"
+				},
+				{
+					"title": "a failed category rename toasts copy, never the mapper's diagnostic still toasts the success copy for a well-formed row (positive control)",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/settings/__tests__/deletion-scheduled-notice.test.tsx",
+			"status": "passed",
+			"numTests": 4,
+			"numPassed": 4,
+			"tests": [
+				{
+					"title": "DeletionScheduledNotice names the earliest date the job runs and the days until it, 30 days after the request",
+					"status": "passed"
+				},
+				{
+					"title": "DeletionScheduledNotice says the deletion is due, not a negative count, once the date has passed",
+					"status": "passed"
+				},
+				{
+					"title": "DeletionScheduledNotice leaves no base paragraph margin on either line",
+					"status": "passed"
+				},
+				{
+					"title": "DeletionScheduledNotice is the notice both Danger Zones render, with no copy of its helpers",
 					"status": "passed"
 				}
 			]
@@ -13845,10 +15001,34 @@
 			]
 		},
 		{
+			"name": "src/components/shared/__tests__/date-range-picker-months.test.tsx",
+			"status": "passed",
+			"numTests": 4,
+			"numPassed": 4,
+			"tests": [
+				{
+					"title": "the date-range picker shows two months only where they sit side by side shows one month on a 390px screen",
+					"status": "passed"
+				},
+				{
+					"title": "the date-range picker shows two months only where they sit side by side shows one month just below md (767px)",
+					"status": "passed"
+				},
+				{
+					"title": "the date-range picker shows two months only where they sit side by side shows two months from md (768px)",
+					"status": "passed"
+				},
+				{
+					"title": "the date-range picker shows two months only where they sit side by side asks for the compiled theme's md breakpoint",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/components/shared/__tests__/export-buttons.test.tsx",
 			"status": "passed",
-			"numTests": 8,
-			"numPassed": 8,
+			"numTests": 9,
+			"numPassed": 9,
 			"tests": [
 				{
 					"title": "ExportButtons renders one button per format, labelled Export Excel, PDF and CSV",
@@ -13872,6 +15052,10 @@
 				},
 				{
 					"title": "ExportButtons turns the 402 into the reports Upgrade toast, not a generic error",
+					"status": "passed"
+				},
+				{
+					"title": "ExportButtons turns a past-due owner's 402 into the Billing Settings toast, not an upgrade",
 					"status": "passed"
 				},
 				{
@@ -13971,8 +15155,8 @@
 		{
 			"name": "src/components/shared/__tests__/multi-select-chips.test.tsx",
 			"status": "passed",
-			"numTests": 8,
-			"numPassed": 8,
+			"numTests": 9,
+			"numPassed": 9,
 			"tests": [
 				{
 					"title": "MultiSelectChips renders the placeholder when nothing is selected",
@@ -14004,6 +15188,26 @@
 				},
 				{
 					"title": "MultiSelectChips top-right X button (visible when something is selected) clears the selection",
+					"status": "passed"
+				},
+				{
+					"title": "MultiSelectChips names its listbox and makes the options its own children (66.2-39 fix round 4, Part 8h)",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/shared/__tests__/owner-error-box.test.tsx",
+			"status": "passed",
+			"numTests": 2,
+			"numPassed": 2,
+			"tests": [
+				{
+					"title": "the owner error box renders its title and a message with no base paragraph margin",
+					"status": "passed"
+				},
+				{
+					"title": "the owner error box is the box every owner list and edit page renders on a failed load",
 					"status": "passed"
 				}
 			]
@@ -14197,10 +15401,42 @@
 			]
 		},
 		{
+			"name": "src/components/shell/__tests__/app-shell-sign-out.test.tsx",
+			"status": "passed",
+			"numTests": 6,
+			"numPassed": 6,
+			"tests": [
+				{
+					"title": "the shell's Sign out, from the user menu lands on /login once, after the auth data is cleared",
+					"status": "passed"
+				},
+				{
+					"title": "the shell's Sign out, from the user menu stays after a failed first request, whose session is kept",
+					"status": "passed"
+				},
+				{
+					"title": "the shell's Sign out, from the user menu lands on /login after a failed second request, whose browser is signed out",
+					"status": "passed"
+				},
+				{
+					"title": "the shell's Sign out, from the command palette lands on /login once, after the auth data is cleared",
+					"status": "passed"
+				},
+				{
+					"title": "the shell's Sign out, from the command palette stays after a failed first request, whose session is kept",
+					"status": "passed"
+				},
+				{
+					"title": "the shell's Sign out, from the command palette lands on /login after a failed second request, whose browser is signed out",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/components/shell/__tests__/app-shell.test.tsx",
 			"status": "passed",
-			"numTests": 47,
-			"numPassed": 47,
+			"numTests": 48,
+			"numPassed": 48,
 			"tests": [
 				{
 					"title": "AppShell basic rendering should render children content",
@@ -14268,6 +15504,10 @@
 				},
 				{
 					"title": "AppShell mobile navigation sheet does not focus the trigger when the first render switches into sheet mode",
+					"status": "passed"
+				},
+				{
+					"title": "AppShell mobile navigation sheet displays the rail in the open sheet at no sheet-mode width",
 					"status": "passed"
 				},
 				{
@@ -14795,8 +16035,8 @@
 		{
 			"name": "src/components/tenants/__tests__/tenant-exports.test.tsx",
 			"status": "passed",
-			"numTests": 7,
-			"numPassed": 7,
+			"numTests": 11,
+			"numPassed": 11,
 			"tests": [
 				{
 					"title": "buildTenantsCsv writes one row per tenant with the table's fields, formulas neutralized",
@@ -14808,6 +16048,22 @@
 				},
 				{
 					"title": "tenants page Export controls the quick action downloads the tenants the list shows",
+					"status": "passed"
+				},
+				{
+					"title": "tenants page Export controls the quick action downloads only the tenants the search shows",
+					"status": "passed"
+				},
+				{
+					"title": "tenants page Export controls the quick action downloads only the tenants the status filter shows",
+					"status": "passed"
+				},
+				{
+					"title": "tenants page Export controls the quick action is off while the list shows no tenant",
+					"status": "passed"
+				},
+				{
+					"title": "tenants page Export controls the quick action is on while the list shows a tenant",
 					"status": "passed"
 				},
 				{
@@ -14911,8 +16167,8 @@
 		{
 			"name": "src/components/tours/__tests__/owner-onboarding-tour.test.tsx",
 			"status": "passed",
-			"numTests": 5,
-			"numPassed": 5,
+			"numTests": 6,
+			"numPassed": 6,
 			"tests": [
 				{
 					"title": "OwnerOnboardingTour step 5 (D-39) targets the rail on the right with the desktop copy when docked and expanded",
@@ -14932,6 +16188,10 @@
 				},
 				{
 					"title": "OwnerOnboardingTour step 5 (D-39) describes only what steps 1 and 2 spotlight",
+					"status": "passed"
+				},
+				{
+					"title": "OwnerOnboardingTour step 5 (D-39) names step 1's figures on a phone too, and no tenant figure",
 					"status": "passed"
 				}
 			]
@@ -15020,142 +16280,6 @@
 				},
 				{
 					"title": "ConfirmDialog variant forwarding loading disables both buttons",
-					"status": "passed"
-				}
-			]
-		},
-		{
-			"name": "src/components/ui/__tests__/animated-trend-indicator.test.tsx",
-			"status": "passed",
-			"numTests": 32,
-			"numPassed": 32,
-			"tests": [
-				{
-					"title": "AnimatedTrendIndicator Value Display should display positive value with percentage by default",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Value Display should display negative value as absolute with percentage",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Value Display should display zero value with percentage",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Value Display should format value without percentage when showPercentage is false",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Value Display should hide value when showValue is false",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Value Display should round to one decimal place",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Icon Selection should render ArrowUpRight icon for positive values",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Icon Selection should render ArrowDownRight icon for negative values",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Icon Selection should render Minus icon for zero value",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Color Classes should apply success color for positive values",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Color Classes should apply destructive color for negative values",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Color Classes should apply muted-foreground color for zero value",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Size Variants should apply small size classes by default",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Size Variants should apply medium size classes when size is md",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Size Variants should apply large size classes when size is lg",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Animation Classes should apply slide-in-from-bottom animation for positive values",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Animation Classes should apply slide-in-from-top animation for negative values",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Animation Classes should apply fade-in animation for zero value",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Animation Classes should apply animation delay when provided",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Animation Classes should have zero delay by default",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Accessibility should have aria-label for positive value",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Accessibility is an image named by its trend",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Accessibility should have aria-label for negative value",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Accessibility should have aria-label for zero value",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Accessibility should have aria-label with formatted number when not percentage",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Custom Styling should apply custom className",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Custom Styling should merge custom className with default classes",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Edge Cases should handle very small positive values",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Edge Cases should handle very small negative values",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Edge Cases should handle large values",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Edge Cases should handle large negative values",
-					"status": "passed"
-				},
-				{
-					"title": "AnimatedTrendIndicator Edge Cases should handle decimal precision correctly",
 					"status": "passed"
 				}
 			]
@@ -15327,8 +16451,8 @@
 		{
 			"name": "src/components/ui/__tests__/button-caller-states.test.ts",
 			"status": "passed",
-			"numTests": 4,
-			"numPassed": 4,
+			"numTests": 6,
+			"numPassed": 6,
 			"tests": [
 				{
 					"title": "a caller's Button colors hold in both themes (66.2-39 F7) flags an untwinned caller class and passes a twinned one (fixtures)",
@@ -15340,6 +16464,14 @@
 				},
 				{
 					"title": "a caller's Button colors hold in both themes (66.2-39 F7) leaves a Slot child's own classes free of state colors in shipped src",
+					"status": "passed"
+				},
+				{
+					"title": "a caller's Button colors hold in both themes (66.2-39 F7) cancels the variant's hover on an aria-disabled Button (fixtures)",
+					"status": "passed"
+				},
+				{
+					"title": "a caller's Button colors hold in both themes (66.2-39 F7) cancels the variant's hover on every aria-disabled Button in shipped src",
 					"status": "passed"
 				},
 				{
@@ -15385,6 +16517,38 @@
 			]
 		},
 		{
+			"name": "src/components/ui/__tests__/calendar-day-label.test.tsx",
+			"status": "passed",
+			"numTests": 1,
+			"numPassed": 1,
+			"tests": [
+				{
+					"title": "a calendar day's name holds the day number the button shows",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/ui/__tests__/card-header-flex-is-live.test.ts",
+			"status": "passed",
+			"numTests": 3,
+			"numPassed": 3,
+			"tests": [
+				{
+					"title": "CardHeader flex classes (66.2-39 fix round 4, Part 8e) reads the CardHeader sites",
+					"status": "passed"
+				},
+				{
+					"title": "CardHeader flex classes (66.2-39 fix round 4, Part 8e) gives every CardHeader with flex classes a flex display",
+					"status": "passed"
+				},
+				{
+					"title": "CardHeader flex classes (66.2-39 fix round 4, Part 8e) catches flex classes on the grid, at a variant too (the check is not vacuous)",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/components/ui/__tests__/chart-legend-labels.test.ts",
 			"status": "passed",
 			"numTests": 1,
@@ -15423,7 +16587,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "ChartContainer recharts stroke selectors (D-28, C2) carries the 5 attribute-presence selectors and no attribute-value selector",
+					"title": "ChartContainer recharts stroke selectors (D-28, C2) carries the four presence selectors, the sector's not-a-var() selector and no equality selector",
 					"status": "passed"
 				},
 				{
@@ -15459,7 +16623,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "ChartContainer recharts stroke selectors (D-28, C2) extracts the 5 selector candidates and no attribute-value candidate",
+					"title": "ChartContainer recharts stroke selectors (D-28, C2) extracts the four presence candidates, the sector's not-a-var() candidate and no equality candidate",
 					"status": "passed"
 				},
 				{
@@ -15497,13 +16661,29 @@
 			]
 		},
 		{
-			"name": "src/components/ui/__tests__/command.test.tsx",
+			"name": "src/components/ui/__tests__/combobox-aria.test.tsx",
 			"status": "passed",
 			"numTests": 1,
 			"numPassed": 1,
 			"tests": [
 				{
+					"title": "the combobox names its trigger, and links its input and trigger to the named list",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/ui/__tests__/command.test.tsx",
+			"status": "passed",
+			"numTests": 2,
+			"numPassed": 2,
+			"tests": [
+				{
 					"title": "CommandDialog applies the upstream wrapper rule and keeps the wrapper's own height",
+					"status": "passed"
+				},
+				{
+					"title": "CommandDialog names its input by the label it is given",
 					"status": "passed"
 				}
 			]
@@ -15577,10 +16757,30 @@
 			]
 		},
 		{
+			"name": "src/components/ui/__tests__/dropzone.test.tsx",
+			"status": "passed",
+			"numTests": 3,
+			"numPassed": 3,
+			"tests": [
+				{
+					"title": "Dropzone with react-dropzone has one tab stop, the select button, and a root that is none",
+					"status": "passed"
+				},
+				{
+					"title": "Dropzone with react-dropzone opens the picker once per activation of the select button",
+					"status": "passed"
+				},
+				{
+					"title": "Dropzone with react-dropzone still opens the picker once on a click anywhere on the root",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/components/ui/__tests__/global-sync-indicator.test.tsx",
 			"status": "passed",
-			"numTests": 5,
-			"numPassed": 5,
+			"numTests": 7,
+			"numPassed": 7,
 			"tests": [
 				{
 					"title": "GlobalSyncIndicator names a focusable button trigger 'Saved' and keeps the text in a status region",
@@ -15601,6 +16801,26 @@
 				{
 					"title": "GlobalSyncIndicator opens the tooltip on keyboard focus, with no p inside it",
 					"status": "passed"
+				},
+				{
+					"title": "GlobalSyncIndicator dismisses the focus-opened tooltip on Enter and keeps focus",
+					"status": "passed"
+				},
+				{
+					"title": "GlobalSyncIndicator dismisses the focus-opened tooltip on Space and keeps focus",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/ui/__tests__/input-otp-row-clip.test.tsx",
+			"status": "passed",
+			"numTests": 1,
+			"numPassed": 1,
+			"tests": [
+				{
+					"title": "the InputOTP row clips its overflow 4px out, so the widened input never widens the box around it",
+					"status": "passed"
 				}
 			]
 		},
@@ -15616,6 +16836,18 @@
 				},
 				{
 					"title": "InputOTP data-slots merges a consumer className onto a slot and keeps size-11",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/ui/__tests__/item-roles.test.tsx",
+			"status": "passed",
+			"numTests": 1,
+			"numPassed": 1,
+			"tests": [
+				{
+					"title": "Item roles are list items inside a group and roleless outside one",
 					"status": "passed"
 				}
 			]
@@ -15743,7 +16975,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "Button v4 contract (D-29) class list renders exactly the 29 default classes with no duplicate or conflict",
+					"title": "Button v4 contract (D-29) class list renders exactly the 28 default classes with no duplicate or conflict",
 					"status": "passed"
 				}
 			]
@@ -15800,6 +17032,34 @@
 				},
 				{
 					"title": "NumberTicker currency renders a plain number without currency",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/ui/__tests__/overlay-content-bounds.test.tsx",
+			"status": "passed",
+			"numTests": 5,
+			"numPassed": 5,
+			"tests": [
+				{
+					"title": "every overlay list fits the space beside its trigger, and scrolls PopoverContent is bounded by --radix-popover-content-available-height and --radix-popover-content-available-width and scrolls",
+					"status": "passed"
+				},
+				{
+					"title": "every overlay list fits the space beside its trigger, and scrolls SelectContent is bounded by --radix-select-content-available-height and --radix-select-content-available-width and scrolls",
+					"status": "passed"
+				},
+				{
+					"title": "every overlay list fits the space beside its trigger, and scrolls DropdownMenuContent is bounded by --radix-dropdown-menu-content-available… and --radix-dropdown-menu-content-available… and scrolls",
+					"status": "passed"
+				},
+				{
+					"title": "every overlay list fits the space beside its trigger, and scrolls ComboboxContent is bounded by --dice-available-height and --dice-available-width and scrolls",
+					"status": "passed"
+				},
+				{
+					"title": "every overlay list fits the space beside its trigger, and scrolls SelectTrigger is capped at its container's width, with a definite minimum so the cap holds in grid and flex cells",
 					"status": "passed"
 				}
 			]
@@ -15953,6 +17213,26 @@
 			]
 		},
 		{
+			"name": "src/components/ui/__tests__/scroll-region.test.tsx",
+			"status": "passed",
+			"numTests": 3,
+			"numPassed": 3,
+			"tests": [
+				{
+					"title": "ScrollRegion is a tab stop while its content overflows",
+					"status": "passed"
+				},
+				{
+					"title": "ScrollRegion is no tab stop while its content fits",
+					"status": "passed"
+				},
+				{
+					"title": "ScrollRegion is the table's container",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/components/ui/__tests__/sheet.test.tsx",
 			"status": "passed",
 			"numTests": 5,
@@ -16003,7 +17283,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "SidebarProvider and Sidebar (desktop) uses the lg breakpoint and renders no md: class",
+					"title": "SidebarProvider and Sidebar (desktop) uses the lg breakpoint and renders no sm: or md: class",
 					"status": "passed"
 				},
 				{
@@ -16217,6 +17497,30 @@
 			]
 		},
 		{
+			"name": "src/components/ui/__tests__/stepper-trigger-aria.test.tsx",
+			"status": "passed",
+			"numTests": 4,
+			"numPassed": 4,
+			"tests": [
+				{
+					"title": "the stepper's store hands a selector a new steps map after each step registers",
+					"status": "passed"
+				},
+				{
+					"title": "the stepper's triggers state their position in the step set",
+					"status": "passed"
+				},
+				{
+					"title": "the stepper's triggers name in aria-controls only the panel that is rendered",
+					"status": "passed"
+				},
+				{
+					"title": "the stepper's triggers render a separator after every step but the last",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/components/ui/__tests__/table.test.tsx",
 			"status": "passed",
 			"numTests": 14,
@@ -16296,6 +17600,18 @@
 				},
 				{
 					"title": "Tooltip (new-york-v4) marks the trigger with the tooltip-trigger data-slot",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/components/ui/__tests__/tour-step-order.test.tsx",
+			"status": "passed",
+			"numTests": 1,
+			"numPassed": 1,
+			"tests": [
+				{
+					"title": "a tour step whose props change stays the current step, in its place",
 					"status": "passed"
 				}
 			]
@@ -16749,17 +18065,49 @@
 			]
 		},
 		{
+			"name": "src/hooks/__tests__/use-reduced-motion-consumers.test.tsx",
+			"status": "passed",
+			"numTests": 6,
+			"numPassed": 6,
+			"tests": [
+				{
+					"title": "useReducedMotion consumers commit the reduced branch first KpiBentoRow: the tiles' first commit after the skeleton holds their figures",
+					"status": "passed"
+				},
+				{
+					"title": "useReducedMotion consumers commit the reduced branch first KpiBentoRow: a row mounted with its data commits no BlurFade and its figures first",
+					"status": "passed"
+				},
+				{
+					"title": "useReducedMotion consumers commit the reduced branch first CollectionRateKpi: the first commit prints the rate, not a ticker at 0",
+					"status": "passed"
+				},
+				{
+					"title": "useReducedMotion consumers commit the reduced branch first RevenueAreaChart: every commit that holds the series holds it static",
+					"status": "passed"
+				},
+				{
+					"title": "useReducedMotion consumers commit the reduced branch first OccupancyDonutChart: every commit that holds the pie holds it static",
+					"status": "passed"
+				},
+				{
+					"title": "useReducedMotion consumers commit the reduced branch first NumberTicker: started at its value, it commits the value first and schedules no frame",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/hooks/__tests__/use-reduced-motion.test.ts",
 			"status": "passed",
-			"numTests": 4,
-			"numPassed": 4,
+			"numTests": 5,
+			"numPassed": 5,
 			"tests": [
 				{
 					"title": "useReducedMotion returns false when prefers-reduced-motion: no-preference",
 					"status": "passed"
 				},
 				{
-					"title": "useReducedMotion returns true when prefers-reduced-motion: reduce is active",
+					"title": "useReducedMotion returns true when prefers-reduced-motion: reduce is active, from the first render",
 					"status": "passed"
 				},
 				{
@@ -16768,6 +18116,10 @@
 				},
 				{
 					"title": "useReducedMotion removes the change listener on unmount",
+					"status": "passed"
+				},
+				{
+					"title": "useReducedMotion renders the server snapshot, false, and hydrates it under reduce without a mismatch",
 					"status": "passed"
 				}
 			]
@@ -17277,17 +18629,153 @@
 			]
 		},
 		{
+			"name": "src/hooks/api/__tests__/sign-out-real-auth-js.test.tsx",
+			"status": "passed",
+			"numTests": 21,
+			"numPassed": 21,
+			"tests": [
+				{
+					"title": "useSignOutMutation, with the real auth-js a failing first request keeps the session and throws, and a retry sends again",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation, with the real auth-js success sends scope=others, then scope=local, and removes the session",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation, with the real auth-js asks the server for the user first, then sends the two logouts",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation, with the real auth-js a session another device already ended (403 session_not_found) is the incomplete outcome, with no logout sent",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation, with the real auth-js a JWT the server rejects (401) is the same outcome, and the rejected session is removed",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation, with the real auth-js a getUser() failure that is not an ended session (500) is left to the logouts",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation, with the real auth-js a rejected fetch (offline) keeps the session and throws",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation, with the real auth-js a failing second request is SignOutIncompleteError, after auth-js removed the session",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation, with the real auth-js runs offline at once (networkMode always), never paused until the browser is back",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation, with the real auth-js toasts a failure where the page has no inline error, and only there",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation, with the real auth-js toasts the incomplete sign-out with what ended and how to end the rest",
+					"status": "passed"
+				},
+				{
+					"title": "/auth/signout, with the real auth-js and AuthProvider a failed first request shows the error, keeps the session, and Try Again sends again",
+					"status": "passed"
+				},
+				{
+					"title": "/auth/signout, with the real auth-js and AuthProvider a failed second request never says Signed Out, though auth-js removed the session",
+					"status": "passed"
+				},
+				{
+					"title": "/auth/signout, with the real auth-js and AuthProvider a session ended on the server after the page loaded says so in the page, never Signed Out",
+					"status": "passed"
+				},
+				{
+					"title": "/auth/signout, with the real auth-js and AuthProvider an arrival whose session already ended reads as signed out on this browser, and claims nothing else",
+					"status": "passed"
+				},
+				{
+					"title": "/auth/signout, with the real auth-js and AuthProvider success lands on /login once",
+					"status": "passed"
+				},
+				{
+					"title": "the session row's Sign out this device, with the real auth-js a successful sign-out of this device clears the session and lands on /login once",
+					"status": "passed"
+				},
+				{
+					"title": "the session row's Sign out this device, with the real auth-js a successful revoke of another session stays on Settings and keeps this one",
+					"status": "passed"
+				},
+				{
+					"title": "the session row's Sign out this device, with the real auth-js a failed sign-out of this device clears the session, shows the incomplete outcome and lands on /login",
+					"status": "passed"
+				},
+				{
+					"title": "the session row's Sign out this device, with the real auth-js runs offline at once: this device's row fails to the incomplete outcome",
+					"status": "passed"
+				},
+				{
+					"title": "the session row's Sign out this device, with the real auth-js a failed revoke of another session keeps this one, restores its row, and a retry sends again",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/hooks/api/__tests__/tour-progress-e2e-answer.test.ts",
+			"status": "passed",
+			"numTests": 2,
+			"numPassed": 2,
+			"tests": [
+				{
+					"title": "the sidebar spec's answer to a tour progress write is the written row's selected columns, which updateTourProgress returns",
+					"status": "passed"
+				},
+				{
+					"title": "the sidebar spec's answer to a tour progress write an empty 201 body, the old answer, rejects an in-progress write in the client",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/hooks/api/__tests__/use-auth-mutations.test.tsx",
 			"status": "passed",
-			"numTests": 8,
-			"numPassed": 8,
+			"numTests": 15,
+			"numPassed": 15,
 			"tests": [
 				{
 					"title": "useSignOutMutation calls clearAuthData on success",
 					"status": "passed"
 				},
 				{
-					"title": "useSignOutMutation logs and sets isError when signOut errors (clearAuthData not called)",
+					"title": "useSignOutMutation toasts and sets isError when the first request errors (clearAuthData not called)",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation only logs the failure when the caller shows it in the page (toastOnError: false)",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation clears the auth data after a failed second request, whose browser session is gone",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation, a session already ended on the server 403 session_not_found: no 'others' request, the browser is signed out, incomplete",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation, a session already ended on the server 401: no 'others' request, the browser is signed out, incomplete",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation, a session already ended on the server 403: no 'others' request, the browser is signed out, incomplete",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation, a session already ended on the server a 5xx from getUser() is left to the two logouts",
+					"status": "passed"
+				},
+				{
+					"title": "useSignOutMutation, a session already ended on the server a 404 (the user is gone, and every session with it) from getUser() is left to the two logouts",
 					"status": "passed"
 				},
 				{
@@ -17487,8 +18975,8 @@
 		{
 			"name": "src/hooks/api/__tests__/use-lease.test.tsx",
 			"status": "passed",
-			"numTests": 37,
-			"numPassed": 37,
+			"numTests": 39,
+			"numPassed": 39,
 			"tests": [
 				{
 					"title": "Query Hooks leaseQueries.detail should query leases table by ID",
@@ -17504,10 +18992,6 @@
 				},
 				{
 					"title": "Query Hooks useLeaseList should query leases with filters when provided",
-					"status": "passed"
-				},
-				{
-					"title": "Query Hooks leaseQueries.stats should call get_lease_stats RPC for aggregated counts",
 					"status": "passed"
 				},
 				{
@@ -17596,6 +19080,18 @@
 				},
 				{
 					"title": "Mutation Hooks signature mutation error handling surfaces the Edge Function error message on a non-ok response",
+					"status": "passed"
+				},
+				{
+					"title": "Mutation Hooks signature mutation error handling titles a past-due Growth owner's refusal for billing, not an upgrade",
+					"status": "passed"
+				},
+				{
+					"title": "Mutation Hooks signature mutation error handling titles a plan without e-sign as an upgrade, since no limit was reached",
+					"status": "passed"
+				},
+				{
+					"title": "Mutation Hooks signature mutation error handling keeps the meter's over-cap title, which names no reason",
 					"status": "passed"
 				},
 				{
@@ -18003,8 +19499,8 @@
 		{
 			"name": "src/hooks/api/__tests__/use-sessions.test.tsx",
 			"status": "passed",
-			"numTests": 17,
-			"numPassed": 17,
+			"numTests": 19,
+			"numPassed": 19,
 			"tests": [
 				{
 					"title": "useUserSessions maps get_user_sessions rows and flags the current session via decoded JWT",
@@ -18023,7 +19519,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "useRevokeSessionMutation - current session fast-path rejects when signOut on the current session errors",
+					"title": "useRevokeSessionMutation - current session fast-path rejects with SignOutIncompleteError when signOut on the current session errors",
 					"status": "passed"
 				},
 				{
@@ -18059,11 +19555,19 @@
 					"status": "passed"
 				},
 				{
-					"title": "useRevokeSessionMutation - optimistic cache onError restores context.previous and forwards the error to handleMutationError",
+					"title": "useRevokeSessionMutation - optimistic cache a failed sign-out of this device clears the auth data, says so and lands on /login, restoring no row",
 					"status": "passed"
 				},
 				{
-					"title": "useRevokeSessionMutation - optimistic cache onSuccess reports success via handleMutationSuccess",
+					"title": "useRevokeSessionMutation - optimistic cache a successful sign-out of this device clears the auth data and lands on /login once",
+					"status": "passed"
+				},
+				{
+					"title": "useRevokeSessionMutation - optimistic cache the defense-in-depth sign-out after the RPC lands on /login too",
+					"status": "passed"
+				},
+				{
+					"title": "useRevokeSessionMutation - optimistic cache another session's revoke reports success via handleMutationSuccess and stays",
 					"status": "passed"
 				},
 				{
@@ -18079,8 +19583,8 @@
 		{
 			"name": "src/hooks/api/__tests__/use-tenant.test.tsx",
 			"status": "passed",
-			"numTests": 15,
-			"numPassed": 15,
+			"numTests": 16,
+			"numPassed": 16,
 			"tests": [
 				{
 					"title": "Query Hooks tenantQueries.detail should query tenants table by ID",
@@ -18128,6 +19632,10 @@
 				},
 				{
 					"title": "Mutation Hooks useDeleteTenantMutation should block deletion when tenant has active lease",
+					"status": "passed"
+				},
+				{
+					"title": "Mutation Hooks useMarkTenantAsMovedOutMutation (TEN-06) saves the status, the move-out date and the trimmed reason in one UPDATE",
 					"status": "passed"
 				},
 				{
@@ -18879,11 +20387,15 @@
 		{
 			"name": "src/hooks/api/query-keys/lease-mutation-options.test.ts",
 			"status": "passed",
-			"numTests": 3,
-			"numPassed": 3,
+			"numTests": 4,
+			"numPassed": 4,
 			"tests": [
 				{
 					"title": "callLeaseSignatureEdgeFunction over-cap 402 handling preserves the 402 upgrade_url as a PaywallError (over-cap e-sign block)",
+					"status": "passed"
+				},
+				{
+					"title": "callLeaseSignatureEdgeFunction over-cap 402 handling carries the tier gate's reason, and drops one it does not write",
 					"status": "passed"
 				},
 				{
@@ -19739,8 +21251,8 @@
 		{
 			"name": "src/lib/__tests__/breadcrumbs.test.ts",
 			"status": "passed",
-			"numTests": 30,
-			"numPassed": 30,
+			"numTests": 31,
+			"numPassed": 31,
 			"tests": [
 				{
 					"title": "generateBreadcrumbs basic path handling should return empty array for root path",
@@ -19771,7 +21283,11 @@
 					"status": "passed"
 				},
 				{
-					"title": "generateBreadcrumbs label mapping should capitalize unknown segments",
+					"title": "generateBreadcrumbs label mapping labels an unnamed segment as a record, never with the URL's text",
+					"status": "passed"
+				},
+				{
+					"title": "generateBreadcrumbs label mapping names every static segment of an owner page",
 					"status": "passed"
 				},
 				{
@@ -19997,6 +21513,30 @@
 			]
 		},
 		{
+			"name": "src/lib/__tests__/exports-have-readers.test.ts",
+			"status": "passed",
+			"numTests": 4,
+			"numPassed": 4,
+			"tests": [
+				{
+					"title": "exports have readers reads imports, not words, and holds each kind of module to its reader",
+					"status": "passed"
+				},
+				{
+					"title": "exports have readers holds each re-export to a reader of its own",
+					"status": "passed"
+				},
+				{
+					"title": "exports have readers finds no unread export outside the seams and the ratchet",
+					"status": "passed"
+				},
+				{
+					"title": "exports have readers names, for each seam, a test that reads it",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/lib/__tests__/format-bytes.test.ts",
 			"status": "passed",
 			"numTests": 8,
@@ -20135,8 +21675,8 @@
 		{
 			"name": "src/lib/__tests__/mutation-error-handler.test.ts",
 			"status": "passed",
-			"numTests": 24,
-			"numPassed": 24,
+			"numTests": 36,
+			"numPassed": 36,
 			"tests": [
 				{
 					"title": "handleMutationError — plan-limit detection routes properties trigger error to upgrade toast with parsed source",
@@ -20144,6 +21684,10 @@
 				},
 				{
 					"title": "handleMutationError — plan-limit detection routes units trigger error with the units source tag",
+					"status": "passed"
+				},
+				{
+					"title": "handleMutationError — plan-limit detection never shows the trigger's plan_limit_exceeded message, whatever the DETAIL says",
 					"status": "passed"
 				},
 				{
@@ -20191,11 +21735,39 @@
 					"status": "passed"
 				},
 				{
-					"title": "handleMutationError — leaky SQLSTATE → friendly copy (UIX-04) keeps a non-leaky code's raw message verbatim",
+					"title": "handleMutationError — leaky SQLSTATE → friendly copy (UIX-04) keeps an author RAISE message verbatim under every SQLSTATE the migrations raise with",
+					"status": "passed"
+				},
+				{
+					"title": "handleMutationError — leaky SQLSTATE → friendly copy (UIX-04) never shows Postgres's own text under any other SQLSTATE (66.2-39 fix round 4, Part 5d)",
 					"status": "passed"
 				},
 				{
 					"title": "handleMutationError — leaky SQLSTATE → friendly copy (UIX-04) keeps a message with no code verbatim",
+					"status": "passed"
+				},
+				{
+					"title": "userFacingErrorMessage — a failed fetch, as each library passes it on (fix round 4, G62) shows the network copy for postgrest-js's, auth-js's and storage-js's errors (Failed to fetch)",
+					"status": "passed"
+				},
+				{
+					"title": "userFacingErrorMessage — a failed fetch, as each library passes it on (fix round 4, G62) shows the network copy for postgrest-js's, auth-js's and storage-js's errors (NetworkError when attempting to fetch resource.)",
+					"status": "passed"
+				},
+				{
+					"title": "userFacingErrorMessage — a failed fetch, as each library passes it on (fix round 4, G62) shows the network copy for postgrest-js's, auth-js's and storage-js's errors (Load failed)",
+					"status": "passed"
+				},
+				{
+					"title": "userFacingErrorMessage — a failed fetch, as each library passes it on (fix round 4, G62) shows the network copy for postgrest-js's FetchError prefix (an error with no name)",
+					"status": "passed"
+				},
+				{
+					"title": "userFacingErrorMessage — a failed fetch, as each library passes it on (fix round 4, G62) toasts the network copy for a mutation whose PostgREST call failed offline",
+					"status": "passed"
+				},
+				{
+					"title": "userFacingErrorMessage — a failed fetch, as each library passes it on (fix round 4, G62) keeps other text verbatim: the match is the whole message",
 					"status": "passed"
 				},
 				{
@@ -20212,6 +21784,22 @@
 				},
 				{
 					"title": "userFacingErrorMessage — the one sanitizer (66.2-39 part I) keeps author copy verbatim and falls back when there is no message",
+					"status": "passed"
+				},
+				{
+					"title": "userFacingErrorMessage — a message that names code is never shown (66.2-39 fix round 4, Part 5d) shows the fallback for a DiagnosticError (a boundary mapper's shape check)",
+					"status": "passed"
+				},
+				{
+					"title": "userFacingErrorMessage — a message that names code is never shown (66.2-39 fix round 4, Part 5d) shows the fallback for a JavaScript runtime fault, the network copy still for a failed fetch",
+					"status": "passed"
+				},
+				{
+					"title": "userFacingErrorMessage — a message that names code is never shown (66.2-39 fix round 4, Part 5d) shows the fallback for an HTML page passed on as a PostgREST message",
+					"status": "passed"
+				},
+				{
+					"title": "userFacingErrorMessage — a message that names code is never shown (66.2-39 fix round 4, Part 5d) maps supabase-js's own Edge Function errors to copy",
 					"status": "passed"
 				},
 				{
@@ -20263,8 +21851,8 @@
 		{
 			"name": "src/lib/__tests__/no-deprecated-library-api.test.ts",
 			"status": "passed",
-			"numTests": 10,
-			"numPassed": 10,
+			"numTests": 11,
+			"numPassed": 11,
 			"tests": [
 				{
 					"title": "deprecated library APIs (read from the installed declarations) reads the deprecations the installed versions declare",
@@ -20303,7 +21891,59 @@
 					"status": "passed"
 				},
 				{
+					"title": "deprecated zod, TanStack Store, recharts and String APIs shows no deprecated TanStack Store or recharts export called in a comment",
+					"status": "passed"
+				},
+				{
 					"title": "deprecated zod, TanStack Store, recharts and String APIs calls no deprecated String.prototype method",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/lib/__tests__/no-duplicate-exported-type-names.test.ts",
+			"status": "passed",
+			"numTests": 2,
+			"numPassed": 2,
+			"tests": [
+				{
+					"title": "exported type names are unique in src counts a name once per file, across files only",
+					"status": "passed"
+				},
+				{
+					"title": "exported type names are unique in src adds no duplicate beyond the ratchet, and keeps the ratchet current",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/lib/__tests__/no-duplicate-type-shapes.test.ts",
+			"status": "passed",
+			"numTests": 2,
+			"numPassed": 2,
+			"tests": [
+				{
+					"title": "no declaration repeats a src/types type member for member groups same-member declarations with a src/types one (fixtures)",
+					"status": "passed"
+				},
+				{
+					"title": "no declaration repeats a src/types type member for member adds no shared shape beyond the ratchet, and keeps the ratchet current",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/lib/__tests__/no-enabled-matcher-beside-aria-disabled.test.ts",
+			"status": "passed",
+			"numTests": 2,
+			"numPassed": 2,
+			"tests": [
+				{
+					"title": "no enabled matcher beside aria-disabled (66.2-39 D1) flags the matchers in a test that reaches an aria-disabled module (fixtures)",
+					"status": "passed"
+				},
+				{
+					"title": "no enabled matcher beside aria-disabled (66.2-39 D1) leaves none in src",
 					"status": "passed"
 				}
 			]
@@ -20833,6 +22473,30 @@
 			]
 		},
 		{
+			"name": "src/lib/__tests__/thrown-error-messages-are-reviewed.test.ts",
+			"status": "passed",
+			"numTests": 4,
+			"numPassed": 4,
+			"tests": [
+				{
+					"title": "every plain Error thrown in src carries copy, or never reaches a screen finds the plain Error throws (the scan is not vacuous)",
+					"status": "passed"
+				},
+				{
+					"title": "every plain Error thrown in src carries copy, or never reaches a screen throws a DiagnosticError, not a plain Error, for every message not reviewed as copy",
+					"status": "passed"
+				},
+				{
+					"title": "every plain Error thrown in src carries copy, or never reaches a screen throws a SERVER entry only from a server-only module",
+					"status": "passed"
+				},
+				{
+					"title": "every plain Error thrown in src carries copy, or never reaches a screen keeps REVIEWED current (every entry is still thrown somewhere)",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/lib/__tests__/timing-safe.test.ts",
 			"status": "passed",
 			"numTests": 6,
@@ -20860,6 +22524,22 @@
 				},
 				{
 					"title": "timingSafeEqualStr returns false when only the final byte differs",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/lib/__tests__/vi-mock-hoisted-bindings.test.ts",
+			"status": "passed",
+			"numTests": 2,
+			"numPassed": 2,
+			"tests": [
+				{
+					"title": "vi.mock factories read only vi.hoisted bindings flags each shape it describes, and passes the hoisted ones",
+					"status": "passed"
+				},
+				{
+					"title": "vi.mock factories read only vi.hoisted bindings finds no binding outside the ratchet, and every ratchet entry still there",
 					"status": "passed"
 				}
 			]
@@ -21105,6 +22785,34 @@
 			]
 		},
 		{
+			"name": "src/lib/constants/__tests__/move-out-reason.test.ts",
+			"status": "passed",
+			"numTests": 5,
+			"numPassed": 5,
+			"tests": [
+				{
+					"title": "the move-out reason keeps the longest slug, its separator and a full note within the column's limit",
+					"status": "passed"
+				},
+				{
+					"title": "the move-out reason saves the slug alone, or the slug and the trimmed notes",
+					"status": "passed"
+				},
+				{
+					"title": "the move-out reason reads each slug back as its label, with its notes",
+					"status": "passed"
+				},
+				{
+					"title": "the move-out reason shows a reason whose slug is not in the list whole, as written",
+					"status": "passed"
+				},
+				{
+					"title": "the move-out reason is the one list: no other source names a move-out slug or its own label",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/lib/constants/__tests__/property-type-labels.test.ts",
 			"status": "passed",
 			"numTests": 16,
@@ -21319,8 +23027,8 @@
 		{
 			"name": "src/lib/formatters/__tests__/formatters.test.ts",
 			"status": "passed",
-			"numTests": 6,
-			"numPassed": 6,
+			"numTests": 7,
+			"numPassed": 7,
 			"tests": [
 				{
 					"title": "date formatters formats dates with short and long styles",
@@ -21344,6 +23052,10 @@
 				},
 				{
 					"title": "numeric formatters formats numbers with compact notation",
+					"status": "passed"
+				},
+				{
+					"title": "formatFixed writes toFixed's digits, a negative that rounds to zero unsigned",
 					"status": "passed"
 				}
 			]
@@ -22507,8 +24219,8 @@
 		{
 			"name": "src/lib/supabase/__tests__/middleware-routing.test.ts",
 			"status": "passed",
-			"numTests": 34,
-			"numPassed": 34,
+			"numTests": 89,
+			"numPassed": 89,
 			"tests": [
 				{
 					"title": "proxy routing public routes bypasses auth check for /login",
@@ -22623,7 +24335,7 @@
 					"status": "passed"
 				},
 				{
-					"title": "proxy routing subscription gate redirects user without subscription on /settings (non-allowlisted)",
+					"title": "proxy routing subscription gate lets a user without subscription reach /settings, after the users read (owner, 2026-11-09)",
 					"status": "passed"
 				},
 				{
@@ -22640,6 +24352,226 @@
 				},
 				{
 					"title": "proxy routing subscription gate redirects to /login AND captures missing-row to Sentry when public.users row is absent",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a canceled owner passes on /settings",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a canceled owner passes on /settings/billing",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a unpaid owner passes on /settings",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a unpaid owner passes on /settings/billing",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a expired owner passes on /settings",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a expired owner passes on /settings/billing",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a incomplete owner passes on /settings",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a incomplete owner passes on /settings/billing",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a incomplete_expired owner passes on /settings",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a incomplete_expired owner passes on /settings/billing",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a paused owner passes on /settings",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a paused owner passes on /settings/billing",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a null owner passes on /settings",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a null owner passes on /settings/billing",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a canceled owner is still sent to /pricing from /dashboard",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a canceled owner is still sent to /pricing from /profile",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a canceled owner is still sent to /pricing from /settingsx",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a canceled owner is still sent to /pricing from /settings-old",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed an active owner passes on /settings, as before",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed an active owner passes on /dashboard, as before",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed signing in still applies to /settings",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed the MFA step-up still applies to /settings",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing Settings for an owner whose subscription has lapsed a failed users read on /settings still goes to /login (fail-secure)",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary /billing/plansx gets the users read and the subscription gate",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary /billing/checkoutx gets the users read and the subscription gate",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary /billing/plans-old gets the users read and the subscription gate",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary /billing/plans keeps passing with no users read",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary /billing/plans/x keeps passing with no users read",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary /billing/checkout keeps passing with no users read",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary /billing/checkout/success keeps passing with no users read",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary a private /administration is not an admin route (fixture prefix)",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary /blogx is not the blog: its session is refreshed",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the nonce CSP does not apply to /loginx",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the nonce CSP does not apply to /authx",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the nonce CSP does not apply to /auth-help",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the nonce CSP does not apply to /dashboardx",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the nonce CSP applies to /login",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the nonce CSP applies to /auth",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the nonce CSP applies to /auth/signout",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the proxy runs on /monitoring: false",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the proxy runs on /monitoring?o=1&p=2: false",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the proxy runs on /monitoring/x: false",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the proxy runs on /monitoringx: true",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the proxy runs on /_next/static/chunks/main.js: false",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the proxy runs on /_next/staticx: true",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the proxy runs on /_next/image?url=%2Fa.png&w=64&q=75: false",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the proxy runs on /_next/imagex: true",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the proxy runs on /favicon.ico: false",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the proxy runs on /faviconxico: true",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the proxy runs on /api: false",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the proxy runs on /api/og/blog/x: false",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the proxy runs on /apix: true",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the proxy runs on /logo.png: false",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the proxy runs on /dashboard: true",
+					"status": "passed"
+				},
+				{
+					"title": "proxy routing route prefixes match on a path-segment boundary the proxy runs on /settings: true",
 					"status": "passed"
 				},
 				{
@@ -24407,7 +26339,7 @@
 			"numPassed": 1,
 			"tests": [
 				{
-					"title": "QUERY_CACHE_BUSTER is past v1 to v6, whose entries have the old shapes",
+					"title": "QUERY_CACHE_BUSTER is past v1 to v8, whose entries have the old shapes",
 					"status": "passed"
 				}
 			]
@@ -24613,6 +26545,62 @@
 			]
 		},
 		{
+			"name": "src/test/__tests__/msw-handlers-contract.test.ts",
+			"status": "passed",
+			"numTests": 12,
+			"numPassed": 12,
+			"tests": [
+				{
+					"title": "the maintenance MSW handlers against the maintenance mappers serve the list a row that maps to DEFAULT_MAINTENANCE_REQUEST",
+					"status": "passed"
+				},
+				{
+					"title": "the maintenance MSW handlers against the maintenance mappers serve the detail one row, with the tenant's email and phone",
+					"status": "passed"
+				},
+				{
+					"title": "the maintenance MSW handlers against the maintenance mappers answer a create with the request's own columns",
+					"status": "passed"
+				},
+				{
+					"title": "the maintenance MSW handlers against the maintenance mappers answer an update with the detail's row, which replaces the cached detail",
+					"status": "passed"
+				},
+				{
+					"title": "the maintenance MSW handlers against the maintenance mappers answer a delete with no row",
+					"status": "passed"
+				},
+				{
+					"title": "the unit handlers against the unit queries serve the list each unit with its property's name",
+					"status": "passed"
+				},
+				{
+					"title": "the unit handlers against the unit queries serve a detail read one unit",
+					"status": "passed"
+				},
+				{
+					"title": "the unit handlers against the unit queries answer a create and an update with the unit",
+					"status": "passed"
+				},
+				{
+					"title": "the lease handlers against the lease queries serve the list the lease row",
+					"status": "passed"
+				},
+				{
+					"title": "the lease handlers against the lease queries serve a detail read the lease with its tenant and its unit's property",
+					"status": "passed"
+				},
+				{
+					"title": "the property and tenant handlers against their queries serve the property list, a detail read and a create",
+					"status": "passed"
+				},
+				{
+					"title": "the property and tenant handlers against their queries serve the tenant list, a detail read and an update",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "src/test/__tests__/msw-smoke.test.ts",
 			"status": "passed",
 			"numTests": 5,
@@ -24680,6 +26668,22 @@
 				},
 				{
 					"title": "src/types/api-contracts.ts exports only what another file imports flags an export no file imports, and counts alias, relative and multi-line imports",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "src/types/__tests__/tenant-row-not-hand-kept.test.ts",
+			"status": "passed",
+			"numTests": 2,
+			"numPassed": 2,
+			"tests": [
+				{
+					"title": "the tenants Row is read from the generated type, never copied reads the Row's columns, the two the generator added included",
+					"status": "passed"
+				},
+				{
+					"title": "the tenants Row is read from the generated type, never copied no hand-written type in src/types declares a tenants-only column",
 					"status": "passed"
 				}
 			]
@@ -25340,6 +27344,58 @@
 				},
 				{
 					"title": "7. the uniform failure shape survives the HTTP layer the valid response is built field-by-field, never spread",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "supabase/functions/__tests__/billing-email-claims.test.ts",
+			"status": "passed",
+			"numTests": 11,
+			"numPassed": 11,
+			"tests": [
+				{
+					"title": "the failed-payment email says what Stripe's Revenue recovery settings and the gates do: retried, paused, canceled if every retry fails",
+					"status": "passed"
+				},
+				{
+					"title": "the failed-payment email ties the features to the first failure, not the cancellation, and names no retry count, duration or invoice",
+					"status": "passed"
+				},
+				{
+					"title": "the failed-payment email names only what the gates stop while past due",
+					"status": "passed"
+				},
+				{
+					"title": "the trial-ending email states both outcomes, since Stripe sends it whether or not a payment method is on file",
+					"status": "passed"
+				},
+				{
+					"title": "the trial-ending email no longer tells every owner to add a payment method",
+					"status": "passed"
+				},
+				{
+					"title": "the trial-ending email rests on the carry-over trial's cancel-without-a-card setting",
+					"status": "passed"
+				},
+				{
+					"title": "the trial-ending email takes its subject and first line from the trial-end leaf, and sends nothing for a trial that is over",
+					"status": "passed"
+				},
+				{
+					"title": "the trial end, named so no reader misreads the day names the date and time in UTC, with the zone written out",
+					"status": "passed"
+				},
+				{
+					"title": "the trial end, named so no reader misreads the day puts the end in the subject and the first line, and reads 'is ending' with no date",
+					"status": "passed"
+				},
+				{
+					"title": "the trial end, named so no reader misreads the day warns only while the trial is still running",
+					"status": "passed"
+				},
+				{
+					"title": "the terms' Failed Payments passage says what the email says: retried, the paid features paused at once, canceled if every attempt fails",
 					"status": "passed"
 				}
 			]
@@ -26117,6 +28173,42 @@
 			]
 		},
 		{
+			"name": "supabase/functions/__tests__/tier-gate-decision.test.ts",
+			"status": "passed",
+			"numTests": 7,
+			"numPassed": 7,
+			"tests": [
+				{
+					"title": "tierGateRefusal admits an entitled plan whose subscription the gate admits",
+					"status": "passed"
+				},
+				{
+					"title": "tierGateRefusal refuses a past-due Growth or Max owner with Billing Settings, not an upgrade",
+					"status": "passed"
+				},
+				{
+					"title": "tierGateRefusal names the subscription, not the plan, for every other status an entitled plan is refused with",
+					"status": "passed"
+				},
+				{
+					"title": "tierGateRefusal sends a plan without the feature to the plans page whatever the status",
+					"status": "passed"
+				},
+				{
+					"title": "tierGateRefusal writes only the reasons it lists",
+					"status": "passed"
+				},
+				{
+					"title": "tier-gate.ts answers with the leaf's refusal builds its 402 body from tierGateRefusal, with no message of its own",
+					"status": "passed"
+				},
+				{
+					"title": "tier-gate.ts answers with the leaf's refusal admits active and trialing only, so a past-due owner is refused",
+					"status": "passed"
+				}
+			]
+		},
+		{
 			"name": "tests/e2e/lib/__tests__/application-seed-reuse.test.ts",
 			"status": "passed",
 			"numTests": 9,
@@ -26215,7 +28307,7 @@
 			"numPassed": 4,
 			"tests": [
 				{
-					"title": "newestRecord returns the newest record's id",
+					"title": "newestRecord returns the newest record's id: the first row of the created_at-descending lookup",
 					"status": "passed"
 				},
 				{
@@ -26228,6 +28320,30 @@
 				},
 				{
 					"title": "newestRecord fails when the response is not a rows array or the row has no id",
+					"status": "passed"
+				}
+			]
+		},
+		{
+			"name": "tests/e2e/lib/__tests__/reflow-route-accounting.test.ts",
+			"status": "passed",
+			"numTests": 4,
+			"numPassed": 4,
+			"tests": [
+				{
+					"title": "reflow route accounting reads the page tree",
+					"status": "passed"
+				},
+				{
+					"title": "reflow route accounting covers every page: listed, measured by a named spec, a redirect, or a reason",
+					"status": "passed"
+				},
+				{
+					"title": "reflow route accounting catches a page with no entry and an entry the tree contradicts (the audit is not vacuous)",
+					"status": "passed"
+				},
+				{
+					"title": "reflow route accounting lands a listed URL on the most specific page, as the router does",
 					"status": "passed"
 				}
 			]

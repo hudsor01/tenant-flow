@@ -1,149 +1,149 @@
 {
-  "command": "bash scripts/mutation-sweep.sh",
-  "tree": "852158ab4 (code state at measurement; carried to b7f25511b: scripts, src/lib and mutation-sweep.yml unchanged since)",
-  "exit": 0,
-  "rows": 185,
-  "caught": 185,
-  "vacuous": 0,
-  "notApplied": 0,
-  "restored": true,
-  "seconds": 414,
-  "shardCommand": "SWEEP_SHARD=i SWEEP_SHARDS=8 bash scripts/mutation-sweep.sh, i = 1..8 in turn (the CI matrix runs them as 8 jobs)",
-  "shards": [
-    {
-      "shard": 1,
-      "of": 8,
-      "rows": 24,
-      "caught": 24,
-      "vacuous": 0,
-      "notApplied": 0,
-      "restored": true,
-      "exit": 0,
-      "seconds": 56,
-      "treeCleanAfter": true
-    },
-    {
-      "shard": 2,
-      "of": 8,
-      "rows": 23,
-      "caught": 23,
-      "vacuous": 0,
-      "notApplied": 0,
-      "restored": true,
-      "exit": 0,
-      "seconds": 53,
-      "treeCleanAfter": true
-    },
-    {
-      "shard": 3,
-      "of": 8,
-      "rows": 23,
-      "caught": 23,
-      "vacuous": 0,
-      "notApplied": 0,
-      "restored": true,
-      "exit": 0,
-      "seconds": 54,
-      "treeCleanAfter": true
-    },
-    {
-      "shard": 4,
-      "of": 8,
-      "rows": 23,
-      "caught": 23,
-      "vacuous": 0,
-      "notApplied": 0,
-      "restored": true,
-      "exit": 0,
-      "seconds": 53,
-      "treeCleanAfter": true
-    },
-    {
-      "shard": 5,
-      "of": 8,
-      "rows": 23,
-      "caught": 23,
-      "vacuous": 0,
-      "notApplied": 0,
-      "restored": true,
-      "exit": 0,
-      "seconds": 53,
-      "treeCleanAfter": true
-    },
-    {
-      "shard": 6,
-      "of": 8,
-      "rows": 23,
-      "caught": 23,
-      "vacuous": 0,
-      "notApplied": 0,
-      "restored": true,
-      "exit": 0,
-      "seconds": 53,
-      "treeCleanAfter": true
-    },
-    {
-      "shard": 7,
-      "of": 8,
-      "rows": 23,
-      "caught": 23,
-      "vacuous": 0,
-      "notApplied": 0,
-      "restored": true,
-      "exit": 0,
-      "seconds": 54,
-      "treeCleanAfter": true
-    },
-    {
-      "shard": 8,
-      "of": 8,
-      "rows": 23,
-      "caught": 23,
-      "vacuous": 0,
-      "notApplied": 0,
-      "restored": true,
-      "exit": 0,
-      "seconds": 53,
-      "treeCleanAfter": true
-    }
-  ],
-  "shardTotals": {
-    "rows": 185,
-    "caught": 185,
-    "vacuous": 0,
-    "notApplied": 0
-  },
-  "listing": {
-    "command": "SWEEP_LIST=1 [SWEEP_SHARD=i SWEEP_SHARDS=8] bash scripts/mutation-sweep.sh (touches nothing)",
-    "exits": {
-      "all": 0,
-      "shards": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ]
-    },
-    "rows": 185,
-    "union": 185,
-    "disjoint": true,
-    "nonEmpty": true,
-    "equalsUnsharded": true,
-    "perShard": [
-      24,
-      23,
-      23,
-      23,
-      23,
-      23,
-      23,
-      23
-    ],
-    "rowRule": "row r runs in shard ((r - 1) mod 8) + 1",
-    "ruleHolds": true
-  }
+	"command": "bash scripts/mutation-sweep.sh",
+	"tree": "7f6fcc67c (codeStateSha)",
+	"exit": 0,
+	"rows": 185,
+	"caught": 185,
+	"vacuous": 0,
+	"notApplied": 0,
+	"restored": true,
+	"seconds": 546,
+	"shardCommand": "SWEEP_SHARD=i SWEEP_SHARDS=8 bash scripts/mutation-sweep.sh, i = 1..8 in turn (the CI matrix runs them as 8 jobs)",
+	"shards": [
+		{
+			"shard": 1,
+			"of": 8,
+			"rows": 24,
+			"caught": 24,
+			"vacuous": 0,
+			"notApplied": 0,
+			"restored": true,
+			"exit": 0,
+			"seconds": 73,
+			"treeCleanAfter": true
+		},
+		{
+			"shard": 2,
+			"of": 8,
+			"rows": 23,
+			"caught": 23,
+			"vacuous": 0,
+			"notApplied": 0,
+			"restored": true,
+			"exit": 0,
+			"seconds": 70,
+			"treeCleanAfter": true
+		},
+		{
+			"shard": 3,
+			"of": 8,
+			"rows": 23,
+			"caught": 23,
+			"vacuous": 0,
+			"notApplied": 0,
+			"restored": true,
+			"exit": 0,
+			"seconds": 70,
+			"treeCleanAfter": true
+		},
+		{
+			"shard": 4,
+			"of": 8,
+			"rows": 23,
+			"caught": 23,
+			"vacuous": 0,
+			"notApplied": 0,
+			"restored": true,
+			"exit": 0,
+			"seconds": 71,
+			"treeCleanAfter": true
+		},
+		{
+			"shard": 5,
+			"of": 8,
+			"rows": 23,
+			"caught": 23,
+			"vacuous": 0,
+			"notApplied": 0,
+			"restored": true,
+			"exit": 0,
+			"seconds": 71,
+			"treeCleanAfter": true
+		},
+		{
+			"shard": 6,
+			"of": 8,
+			"rows": 23,
+			"caught": 23,
+			"vacuous": 0,
+			"notApplied": 0,
+			"restored": true,
+			"exit": 0,
+			"seconds": 70,
+			"treeCleanAfter": true
+		},
+		{
+			"shard": 7,
+			"of": 8,
+			"rows": 23,
+			"caught": 23,
+			"vacuous": 0,
+			"notApplied": 0,
+			"restored": true,
+			"exit": 0,
+			"seconds": 70,
+			"treeCleanAfter": true
+		},
+		{
+			"shard": 8,
+			"of": 8,
+			"rows": 23,
+			"caught": 23,
+			"vacuous": 0,
+			"notApplied": 0,
+			"restored": true,
+			"exit": 0,
+			"seconds": 70,
+			"treeCleanAfter": true
+		}
+	],
+	"shardTotals": {
+		"rows": 185,
+		"caught": 185,
+		"vacuous": 0,
+		"notApplied": 0
+	},
+	"listing": {
+		"command": "SWEEP_LIST=1 [SWEEP_SHARD=i SWEEP_SHARDS=8] bash scripts/mutation-sweep.sh (touches nothing)",
+		"exits": {
+			"all": 0,
+			"shards": [
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0
+			]
+		},
+		"rows": 185,
+		"union": 185,
+		"disjoint": true,
+		"nonEmpty": true,
+		"equalsUnsharded": true,
+		"perShard": [
+			24,
+			23,
+			23,
+			23,
+			23,
+			23,
+			23,
+			23
+		],
+		"rowRule": "row r runs in shard ((r - 1) mod 8) + 1",
+		"ruleHolds": true
+	}
 }

@@ -1,26 +1,1296 @@
 {
-  "method": "component-probes.mjs on HEAD (b7f25511b, f39) and on the previous FROZEN head 36972318f (its code set in this worktree, same session), every leaf of results compared; source-echo fields would be inputs (none differ); a field that also changes between same-session repeats of HEAD is noise (it varies on one tree), never a change of the code",
-  "baseline": "36972318f",
-  "head": "b7f25511b (codeStateSha)",
-  "probes": 26,
-  "diffs": [],
-  "noise": [
-    {
-      "id": "toast-loading",
-      "field": "dark.iconWidth",
-      "old": 23,
-      "head": 22,
-      "kind": "measured",
-      "class": "noise",
-      "repeatValues": [
-        22,
-        22,
-        23,
-        22,
-        23,
-        23
-      ],
-      "evidence": "the loading toast spinner rotates while it is measured, so its icon box reads 22 or 23 px by frame: six same-session repeats of component-probes.mjs --only toast-loading on b7f25511b read both values for this field; no fix-round-3 path touches sonner.tsx, loading-spinner.tsx or the probe"
-    }
-  ]
+	"method": "component-probes.mjs on HEAD (7f6fcc67c, f39) and on the previous FROZEN head 3977aa58d (its code set in this worktree, same session), every leaf of results compared; source-echo fields would be inputs (none differ); a field that also changes between three same-session repeats of HEAD is noise",
+	"baseline": "3977aa58d",
+	"head": "7f6fcc67c (codeStateSha)",
+	"probes": 26,
+	"diffs": [
+		{
+			"id": "button",
+			"field": "dark.refs.input",
+			"old": [
+				42,
+				46,
+				51,
+				1
+			],
+			"head": [
+				100,
+				104,
+				109,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-160"
+			],
+			"ref": "af72de1aa (--input L 0.8 -> 0.615 light, 0.3 -> 0.515 dark)",
+			"repeatValues": [
+				[
+					100,
+					104,
+					109,
+					1
+				],
+				[
+					100,
+					104,
+					109,
+					1
+				],
+				[
+					100,
+					104,
+					109,
+					1
+				]
+			]
+		},
+		{
+			"id": "button",
+			"field": "dark.variants.default.focus.boxShadow",
+			"old": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"head": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-161"
+			],
+			"ref": "552d56931 (the primitives' focus rings opaque: ring-ring, ring-destructive-text)",
+			"repeatValues": [
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			]
+		},
+		{
+			"id": "button",
+			"field": "dark.variants.destructive.focus.boxShadow",
+			"old": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 0.209909 0.116354 / 0.4) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"head": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.71 0.19 25) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-161"
+			],
+			"ref": "552d56931 (the primitives' focus rings opaque: ring-ring, ring-destructive-text)",
+			"repeatValues": [
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.71 0.19 25) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.71 0.19 25) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.71 0.19 25) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			]
+		},
+		{
+			"id": "button",
+			"field": "dark.variants.ghost.focus.boxShadow",
+			"old": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"head": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-161"
+			],
+			"ref": "552d56931 (the primitives' focus rings opaque: ring-ring, ring-destructive-text)",
+			"repeatValues": [
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			]
+		},
+		{
+			"id": "button",
+			"field": "dark.variants.link.focus.boxShadow",
+			"old": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"head": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-161"
+			],
+			"ref": "552d56931 (the primitives' focus rings opaque: ring-ring, ring-destructive-text)",
+			"repeatValues": [
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			]
+		},
+		{
+			"id": "button",
+			"field": "dark.variants.outline.bg",
+			"old": [
+				43,
+				46,
+				50,
+				0.302
+			],
+			"head": [
+				99,
+				103,
+				109,
+				0.302
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-160"
+			],
+			"ref": "af72de1aa (--input L 0.8 -> 0.615 light, 0.3 -> 0.515 dark)",
+			"repeatValues": [
+				[
+					99,
+					103,
+					109,
+					0.302
+				],
+				[
+					99,
+					103,
+					109,
+					0.302
+				],
+				[
+					99,
+					103,
+					109,
+					0.302
+				]
+			]
+		},
+		{
+			"id": "button",
+			"field": "dark.variants.outline.borderColor",
+			"old": [
+				42,
+				46,
+				51,
+				1
+			],
+			"head": [
+				100,
+				104,
+				109,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-160"
+			],
+			"ref": "af72de1aa (--input L 0.8 -> 0.615 light, 0.3 -> 0.515 dark)",
+			"repeatValues": [
+				[
+					100,
+					104,
+					109,
+					1
+				],
+				[
+					100,
+					104,
+					109,
+					1
+				],
+				[
+					100,
+					104,
+					109,
+					1
+				]
+			]
+		},
+		{
+			"id": "button",
+			"field": "dark.variants.outline.contrast",
+			"old": 16.39,
+			"head": 13.59,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-160"
+			],
+			"ref": "af72de1aa (--input L 0.8 -> 0.615 light, 0.3 -> 0.515 dark)",
+			"repeatValues": [
+				13.59,
+				13.59,
+				13.59
+			]
+		},
+		{
+			"id": "button",
+			"field": "dark.variants.outline.focus.boxShadow",
+			"old": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+			"head": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-161"
+			],
+			"ref": "552d56931 (the primitives' focus rings opaque: ring-ring, ring-destructive-text)",
+			"repeatValues": [
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+			]
+		},
+		{
+			"id": "button",
+			"field": "dark.variants.outline.hoverBg",
+			"old": [
+				42,
+				46,
+				52,
+				0.502
+			],
+			"head": [
+				100,
+				104,
+				110,
+				0.502
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-160"
+			],
+			"ref": "af72de1aa (--input L 0.8 -> 0.615 light, 0.3 -> 0.515 dark)",
+			"repeatValues": [
+				[
+					100,
+					104,
+					110,
+					0.502
+				],
+				[
+					100,
+					104,
+					110,
+					0.502
+				],
+				[
+					100,
+					104,
+					110,
+					0.502
+				]
+			]
+		},
+		{
+			"id": "button",
+			"field": "dark.variants.secondary.focus.boxShadow",
+			"old": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.72 -0.0419779 -0.215958 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"head": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-161"
+			],
+			"ref": "552d56931 (the primitives' focus rings opaque: ring-ring, ring-destructive-text)",
+			"repeatValues": [
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.72 0.22 259) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			]
+		},
+		{
+			"id": "button",
+			"field": "light.refs.input",
+			"old": [
+				182,
+				191,
+				199,
+				1
+			],
+			"head": [
+				125,
+				134,
+				141,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-160"
+			],
+			"ref": "af72de1aa (--input L 0.8 -> 0.615 light, 0.3 -> 0.515 dark)",
+			"repeatValues": [
+				[
+					125,
+					134,
+					141,
+					1
+				],
+				[
+					125,
+					134,
+					141,
+					1
+				],
+				[
+					125,
+					134,
+					141,
+					1
+				]
+			]
+		},
+		{
+			"id": "button",
+			"field": "light.variants.default.focus.boxShadow",
+			"old": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449902 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"head": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-161"
+			],
+			"ref": "552d56931 (the primitives' focus rings opaque: ring-ring, ring-destructive-text)",
+			"repeatValues": [
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			]
+		},
+		{
+			"id": "button",
+			"field": "light.variants.destructive.focus.boxShadow",
+			"old": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.577 0.222045 0.103541 / 0.2) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"head": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.21 27) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-161"
+			],
+			"ref": "552d56931 (the primitives' focus rings opaque: ring-ring, ring-destructive-text)",
+			"repeatValues": [
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.21 27) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.21 27) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.21 27) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			]
+		},
+		{
+			"id": "button",
+			"field": "light.variants.ghost.focus.boxShadow",
+			"old": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449902 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"head": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-161"
+			],
+			"ref": "552d56931 (the primitives' focus rings opaque: ring-ring, ring-destructive-text)",
+			"repeatValues": [
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			]
+		},
+		{
+			"id": "button",
+			"field": "light.variants.link.focus.boxShadow",
+			"old": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449902 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"head": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-161"
+			],
+			"ref": "552d56931 (the primitives' focus rings opaque: ring-ring, ring-destructive-text)",
+			"repeatValues": [
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			]
+		},
+		{
+			"id": "button",
+			"field": "light.variants.outline.focus.boxShadow",
+			"old": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449902 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+			"head": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-161"
+			],
+			"ref": "552d56931 (the primitives' focus rings opaque: ring-ring, ring-destructive-text)",
+			"repeatValues": [
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+			]
+		},
+		{
+			"id": "button",
+			"field": "light.variants.secondary.focus.boxShadow",
+			"old": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.5 -0.0449902 -0.194874 / 0.5) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"head": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-161"
+			],
+			"ref": "552d56931 (the primitives' focus rings opaque: ring-ring, ring-destructive-text)",
+			"repeatValues": [
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+				"rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.5 0.2 257) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+			]
+		},
+		{
+			"id": "otp-mfa",
+			"field": "dark.slots[0].width",
+			"old": 44,
+			"head": 42.3,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-166"
+			],
+			"ref": "8aff69588 (the MFA code row: six slots share a row capped at 360px, w-auto flex-1)",
+			"repeatValues": [
+				42.3,
+				42.3,
+				42.3
+			]
+		},
+		{
+			"id": "otp-mfa",
+			"field": "dark.slots[1].width",
+			"old": 44,
+			"head": 42.3,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-166"
+			],
+			"ref": "8aff69588 (the MFA code row: six slots share a row capped at 360px, w-auto flex-1)",
+			"repeatValues": [
+				42.3,
+				42.3,
+				42.3
+			]
+		},
+		{
+			"id": "otp-mfa",
+			"field": "dark.slots[2].width",
+			"old": 44,
+			"head": 42.3,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-166"
+			],
+			"ref": "8aff69588 (the MFA code row: six slots share a row capped at 360px, w-auto flex-1)",
+			"repeatValues": [
+				42.3,
+				42.3,
+				42.3
+			]
+		},
+		{
+			"id": "otp-mfa",
+			"field": "dark.slots[3].width",
+			"old": 44,
+			"head": 42.3,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-166"
+			],
+			"ref": "8aff69588 (the MFA code row: six slots share a row capped at 360px, w-auto flex-1)",
+			"repeatValues": [
+				42.3,
+				42.3,
+				42.3
+			]
+		},
+		{
+			"id": "otp-mfa",
+			"field": "dark.slots[4].width",
+			"old": 44,
+			"head": 42.3,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-166"
+			],
+			"ref": "8aff69588 (the MFA code row: six slots share a row capped at 360px, w-auto flex-1)",
+			"repeatValues": [
+				42.3,
+				42.3,
+				42.3
+			]
+		},
+		{
+			"id": "otp-mfa",
+			"field": "dark.slots[5].width",
+			"old": 44,
+			"head": 42.3,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-166"
+			],
+			"ref": "8aff69588 (the MFA code row: six slots share a row capped at 360px, w-auto flex-1)",
+			"repeatValues": [
+				42.3,
+				42.3,
+				42.3
+			]
+		},
+		{
+			"id": "otp-mfa",
+			"field": "light.slots[0].width",
+			"old": 44,
+			"head": 42.3,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-166"
+			],
+			"ref": "8aff69588 (the MFA code row: six slots share a row capped at 360px, w-auto flex-1)",
+			"repeatValues": [
+				42.3,
+				42.3,
+				42.3
+			]
+		},
+		{
+			"id": "otp-mfa",
+			"field": "light.slots[1].width",
+			"old": 44,
+			"head": 42.3,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-166"
+			],
+			"ref": "8aff69588 (the MFA code row: six slots share a row capped at 360px, w-auto flex-1)",
+			"repeatValues": [
+				42.3,
+				42.3,
+				42.3
+			]
+		},
+		{
+			"id": "otp-mfa",
+			"field": "light.slots[2].width",
+			"old": 44,
+			"head": 42.3,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-166"
+			],
+			"ref": "8aff69588 (the MFA code row: six slots share a row capped at 360px, w-auto flex-1)",
+			"repeatValues": [
+				42.3,
+				42.3,
+				42.3
+			]
+		},
+		{
+			"id": "otp-mfa",
+			"field": "light.slots[3].width",
+			"old": 44,
+			"head": 42.3,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-166"
+			],
+			"ref": "8aff69588 (the MFA code row: six slots share a row capped at 360px, w-auto flex-1)",
+			"repeatValues": [
+				42.3,
+				42.3,
+				42.3
+			]
+		},
+		{
+			"id": "otp-mfa",
+			"field": "light.slots[4].width",
+			"old": 44,
+			"head": 42.3,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-166"
+			],
+			"ref": "8aff69588 (the MFA code row: six slots share a row capped at 360px, w-auto flex-1)",
+			"repeatValues": [
+				42.3,
+				42.3,
+				42.3
+			]
+		},
+		{
+			"id": "otp-mfa",
+			"field": "light.slots[5].width",
+			"old": 44,
+			"head": 42.3,
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-166"
+			],
+			"ref": "8aff69588 (the MFA code row: six slots share a row capped at 360px, w-auto flex-1)",
+			"repeatValues": [
+				42.3,
+				42.3,
+				42.3
+			]
+		},
+		{
+			"id": "toast-default",
+			"field": "dark.toasterClass",
+			"old": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+			"head": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162"
+			],
+			"ref": "2ad67e538 (rich-color toasts draw their text in the AA -text companions)",
+			"repeatValues": [
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!"
+			]
+		},
+		{
+			"id": "toast-default",
+			"field": "light.toasterClass",
+			"old": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+			"head": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162"
+			],
+			"ref": "2ad67e538 (rich-color toasts draw their text in the AA -text companions)",
+			"repeatValues": [
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!"
+			]
+		},
+		{
+			"id": "toast-error",
+			"field": "dark.toastBg",
+			"old": [
+				45,
+				6,
+				7,
+				1
+			],
+			"head": [
+				19,
+				10,
+				13,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162",
+				"VD-160"
+			],
+			"ref": "2ad67e538 (rich-color toasts on the -text companions; the light success-text token is af72de1aa's)",
+			"repeatValues": [
+				[
+					19,
+					10,
+					13,
+					1
+				],
+				[
+					19,
+					10,
+					13,
+					1
+				],
+				[
+					19,
+					10,
+					13,
+					1
+				]
+			]
+		},
+		{
+			"id": "toast-error",
+			"field": "dark.toastBorderColor",
+			"old": [
+				77,
+				4,
+				8,
+				1
+			],
+			"head": [
+				55,
+				14,
+				15,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162",
+				"VD-160"
+			],
+			"ref": "2ad67e538 (rich-color toasts on the -text companions; the light success-text token is af72de1aa's)",
+			"repeatValues": [
+				[
+					55,
+					14,
+					15,
+					1
+				],
+				[
+					55,
+					14,
+					15,
+					1
+				],
+				[
+					55,
+					14,
+					15,
+					1
+				]
+			]
+		},
+		{
+			"id": "toast-error",
+			"field": "dark.toastColor",
+			"old": [
+				255,
+				158,
+				161,
+				1
+			],
+			"head": [
+				255,
+				103,
+				98,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162",
+				"VD-160"
+			],
+			"ref": "2ad67e538 (rich-color toasts on the -text companions; the light success-text token is af72de1aa's)",
+			"repeatValues": [
+				[
+					255,
+					103,
+					98,
+					1
+				],
+				[
+					255,
+					103,
+					98,
+					1
+				],
+				[
+					255,
+					103,
+					98,
+					1
+				]
+			]
+		},
+		{
+			"id": "toast-error",
+			"field": "dark.toasterClass",
+			"old": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+			"head": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162"
+			],
+			"ref": "2ad67e538 (rich-color toasts draw their text in the AA -text companions)",
+			"repeatValues": [
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!"
+			]
+		},
+		{
+			"id": "toast-error",
+			"field": "light.toastBg",
+			"old": [
+				255,
+				240,
+				240,
+				1
+			],
+			"head": [
+				255,
+				235,
+				233,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162",
+				"VD-160"
+			],
+			"ref": "2ad67e538 (rich-color toasts on the -text companions; the light success-text token is af72de1aa's)",
+			"repeatValues": [
+				[
+					255,
+					235,
+					233,
+					1
+				],
+				[
+					255,
+					235,
+					233,
+					1
+				],
+				[
+					255,
+					235,
+					233,
+					1
+				]
+			]
+		},
+		{
+			"id": "toast-error",
+			"field": "light.toastBorderColor",
+			"old": [
+				255,
+				224,
+				225,
+				1
+			],
+			"head": [
+				255,
+				195,
+				189,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162",
+				"VD-160"
+			],
+			"ref": "2ad67e538 (rich-color toasts on the -text companions; the light success-text token is af72de1aa's)",
+			"repeatValues": [
+				[
+					255,
+					195,
+					189,
+					1
+				],
+				[
+					255,
+					195,
+					189,
+					1
+				],
+				[
+					255,
+					195,
+					189,
+					1
+				]
+			]
+		},
+		{
+			"id": "toast-error",
+			"field": "light.toastColor",
+			"old": [
+				230,
+				0,
+				0,
+				1
+			],
+			"head": [
+				190,
+				0,
+				13,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162",
+				"VD-160"
+			],
+			"ref": "2ad67e538 (rich-color toasts on the -text companions; the light success-text token is af72de1aa's)",
+			"repeatValues": [
+				[
+					190,
+					0,
+					13,
+					1
+				],
+				[
+					190,
+					0,
+					13,
+					1
+				],
+				[
+					190,
+					0,
+					13,
+					1
+				]
+			]
+		},
+		{
+			"id": "toast-error",
+			"field": "light.toasterClass",
+			"old": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+			"head": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162"
+			],
+			"ref": "2ad67e538 (rich-color toasts draw their text in the AA -text companions)",
+			"repeatValues": [
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!"
+			]
+		},
+		{
+			"id": "toast-loading",
+			"field": "dark.toasterClass",
+			"old": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+			"head": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162"
+			],
+			"ref": "2ad67e538 (rich-color toasts draw their text in the AA -text companions)",
+			"repeatValues": [
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!"
+			]
+		},
+		{
+			"id": "toast-loading",
+			"field": "light.toasterClass",
+			"old": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+			"head": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162"
+			],
+			"ref": "2ad67e538 (rich-color toasts draw their text in the AA -text companions)",
+			"repeatValues": [
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!"
+			]
+		},
+		{
+			"id": "toast-success",
+			"field": "dark.toastBg",
+			"old": [
+				0,
+				31,
+				15,
+				1
+			],
+			"head": [
+				5,
+				20,
+				18,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162",
+				"VD-160"
+			],
+			"ref": "2ad67e538 (rich-color toasts on the -text companions; the light success-text token is af72de1aa's)",
+			"repeatValues": [
+				[
+					5,
+					20,
+					18,
+					1
+				],
+				[
+					5,
+					20,
+					18,
+					1
+				],
+				[
+					5,
+					20,
+					18,
+					1
+				]
+			]
+		},
+		{
+			"id": "toast-success",
+			"field": "dark.toastBorderColor",
+			"old": [
+				0,
+				61,
+				28,
+				1
+			],
+			"head": [
+				7,
+				52,
+				32,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162",
+				"VD-160"
+			],
+			"ref": "2ad67e538 (rich-color toasts on the -text companions; the light success-text token is af72de1aa's)",
+			"repeatValues": [
+				[
+					7,
+					52,
+					32,
+					1
+				],
+				[
+					7,
+					52,
+					32,
+					1
+				],
+				[
+					7,
+					52,
+					32,
+					1
+				]
+			]
+		},
+		{
+			"id": "toast-success",
+			"field": "dark.toastColor",
+			"old": [
+				89,
+				243,
+				166,
+				1
+			],
+			"head": [
+				75,
+				220,
+				149,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162",
+				"VD-160"
+			],
+			"ref": "2ad67e538 (rich-color toasts on the -text companions; the light success-text token is af72de1aa's)",
+			"repeatValues": [
+				[
+					75,
+					220,
+					149,
+					1
+				],
+				[
+					75,
+					220,
+					149,
+					1
+				],
+				[
+					75,
+					220,
+					149,
+					1
+				]
+			]
+		},
+		{
+			"id": "toast-success",
+			"field": "dark.toasterClass",
+			"old": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+			"head": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162"
+			],
+			"ref": "2ad67e538 (rich-color toasts draw their text in the AA -text companions)",
+			"repeatValues": [
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!"
+			]
+		},
+		{
+			"id": "toast-success",
+			"field": "light.toastBg",
+			"old": [
+				236,
+				253,
+				243,
+				1
+			],
+			"head": [
+				233,
+				248,
+				239,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162",
+				"VD-160"
+			],
+			"ref": "2ad67e538 (rich-color toasts on the -text companions; the light success-text token is af72de1aa's)",
+			"repeatValues": [
+				[
+					233,
+					248,
+					239,
+					1
+				],
+				[
+					233,
+					248,
+					239,
+					1
+				],
+				[
+					233,
+					248,
+					239,
+					1
+				]
+			]
+		},
+		{
+			"id": "toast-success",
+			"field": "light.toastBorderColor",
+			"old": [
+				191,
+				252,
+				217,
+				1
+			],
+			"head": [
+				188,
+				234,
+				208,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162",
+				"VD-160"
+			],
+			"ref": "2ad67e538 (rich-color toasts on the -text companions; the light success-text token is af72de1aa's)",
+			"repeatValues": [
+				[
+					188,
+					234,
+					208,
+					1
+				],
+				[
+					188,
+					234,
+					208,
+					1
+				],
+				[
+					188,
+					234,
+					208,
+					1
+				]
+			]
+		},
+		{
+			"id": "toast-success",
+			"field": "light.toastColor",
+			"old": [
+				0,
+				138,
+				46,
+				1
+			],
+			"head": [
+				0,
+				114,
+				56,
+				1
+			],
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162",
+				"VD-160"
+			],
+			"ref": "2ad67e538 (rich-color toasts on the -text companions; the light success-text token is af72de1aa's)",
+			"repeatValues": [
+				[
+					0,
+					114,
+					56,
+					1
+				],
+				[
+					0,
+					114,
+					56,
+					1
+				],
+				[
+					0,
+					114,
+					56,
+					1
+				]
+			]
+		},
+		{
+			"id": "toast-success",
+			"field": "light.toasterClass",
+			"old": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]!",
+			"head": "[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+			"kind": "measured",
+			"class": "intended",
+			"vd": [
+				"VD-162"
+			],
+			"ref": "2ad67e538 (rich-color toasts draw their text in the AA -text companions)",
+			"repeatValues": [
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!",
+				"[--normal-bg:var(--color-popover)]! [--normal-text:var(--color-popover-foreground)]! [--normal-border:var(--color-border)]! [--border-radius:var(--radius)]! [--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]! [--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]! [--success-text:var(--color-success-text)]! [--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]! [--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]! [--info-text:var(--color-info-text)]! [--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]! [--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]! [--warning-text:var(--color-warning-text)]! [--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]! [--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]! [--error-text:var(--color-destructive-text)]!"
+			]
+		}
+	],
+	"noise": []
 }

@@ -1,84 +1,259 @@
 {
-  "build": "capture-3062 (b7f25511b, build id _Nnp0e_wFsNWRbPU8NSYu, served on :3062)",
-  "tree": "b7f25511b (codeStateSha)",
-  "method": "66.2-29 Task 3: Playwright Chromium, console errors containing Content Security Policy plus securitypolicyviolation events from an init script",
-  "routes": [
-    {
-      "route": "/login",
-      "status": 200,
-      "nonceCsp": true,
-      "count": 1,
-      "violations": [
-        {
-          "directive": "script-src",
-          "source": "1-g7excfkl0wo.js",
-          "line": 1,
-          "col": 4409
-        }
-      ]
-    },
-    {
-      "route": "/auth/confirm-email",
-      "status": 200,
-      "nonceCsp": true,
-      "count": 0,
-      "violations": []
-    },
-    {
-      "route": "/auth/update-password",
-      "status": 200,
-      "nonceCsp": true,
-      "count": 1,
-      "violations": [
-        {
-          "directive": "script-src",
-          "source": "1-g7excfkl0wo.js",
-          "line": 1,
-          "col": 4409
-        }
-      ]
-    }
-  ],
-  "control": {
-    "tree": "36972318f (its code set in this worktree, same session, served on :3064)",
-    "routes": [
-      {
-        "route": "/login",
-        "count": 1,
-        "violations": [
-          {
-            "directive": "script-src",
-            "source": "1-g7excfkl0wo.js",
-            "line": 1,
-            "col": 4409
-          }
-        ]
-      },
-      {
-        "route": "/auth/confirm-email",
-        "count": 0,
-        "violations": []
-      },
-      {
-        "route": "/auth/update-password",
-        "count": 1,
-        "violations": [
-          {
-            "directive": "script-src",
-            "source": "1-g7excfkl0wo.js",
-            "line": 1,
-            "col": 4409
-          }
-        ]
-      }
-    ]
-  },
-  "controlNote": "both trees report exactly the zod 4 Function(\"\") probe (script-src eval) on /login and /auth/update-password, at .next/static/chunks/1-g7excfkl0wo.js line 1 col 4409, verified in the served chunk",
-  "beyondControl": 0,
-  "ownerManifestCspErrors": 0,
-  "sidebarManifestCspErrors": 0,
-  "ownerCapturesNote": "console errors containing Content Security Policy across every capture of the f39 manifest (92) and the f39-sidebar manifest (60): 0 and 0; the 36972318f same-session manifests: 0 and 0. The other console errors are 184 (92-capture set) and 120 (sidebar set) on both trees, equal",
-  "total": 0,
-  "totalRule": "total = probe events beyond the control (the two zod Function(\"\") events, /login and /auth/update-password) + ownerManifestCspErrors + sidebarManifestCspErrors",
-  "sourceInvariants": "src/proxy.ts, src/components/providers.tsx and src/lib/sidebar-state.ts have no diff since PRE_39; \"sidebar_state\" appears in non-test src only in sidebar-state.ts"
+	"build": "capture-3062 (7f6fcc67c, build id WoItmD_8ZdXkh65M-ysB_, served on :3062)",
+	"tree": "7f6fcc67c (codeStateSha)",
+	"method": "66.2-29 Task 3: Playwright Chromium, console errors containing Content Security Policy plus securitypolicyviolation events from an init script",
+	"routes": [
+		{
+			"route": "/login",
+			"status": 200,
+			"nonceCsp": true,
+			"consoleCspErrors": [],
+			"violations": [
+				{
+					"directive": "script-src",
+					"blocked": "eval",
+					"source": "1-g7excfkl0wo.js",
+					"line": 1,
+					"col": 4409,
+					"disposition": "enforce"
+				}
+			],
+			"count": 1
+		},
+		{
+			"route": "/auth/confirm-email",
+			"status": 200,
+			"nonceCsp": true,
+			"consoleCspErrors": [],
+			"violations": [],
+			"count": 0
+		},
+		{
+			"route": "/auth/update-password",
+			"status": 200,
+			"nonceCsp": true,
+			"consoleCspErrors": [],
+			"violations": [
+				{
+					"directive": "script-src",
+					"blocked": "eval",
+					"source": "1-g7excfkl0wo.js",
+					"line": 1,
+					"col": 4409,
+					"disposition": "enforce"
+				}
+			],
+			"count": 1
+		}
+	],
+	"control": {
+		"tree": "3977aa58d (its code set in this worktree, same session, build id B2wi-SDp8H2PYmHJPEPrO, served on :3064)",
+		"routes": [
+			{
+				"route": "/login",
+				"count": 1,
+				"violations": [
+					{
+						"directive": "script-src",
+						"blocked": "eval",
+						"source": "1-g7excfkl0wo.js",
+						"line": 1,
+						"col": 4409,
+						"disposition": "enforce"
+					}
+				]
+			},
+			{
+				"route": "/auth/confirm-email",
+				"count": 0,
+				"violations": []
+			},
+			{
+				"route": "/auth/update-password",
+				"count": 1,
+				"violations": [
+					{
+						"directive": "script-src",
+						"blocked": "eval",
+						"source": "1-g7excfkl0wo.js",
+						"line": 1,
+						"col": 4409,
+						"disposition": "enforce"
+					}
+				]
+			}
+		]
+	},
+	"beyondControl": 0,
+	"ownerManifestCspErrors": 0,
+	"sidebarManifestCspErrors": 0,
+	"total": 0,
+	"totalRule": "total = probe events beyond the control + ownerManifestCspErrors + sidebarManifestCspErrors",
+	"ownerCapturesNote": "console errors containing Content Security Policy across every capture of the f39 manifest (92) and the f39-sidebar manifest (60): 0 and 0; the 3977aa58d same-session manifests: 0 and 0. The other console errors: 192 and 120 on this head, 192 and 120 on 3977aa58d",
+	"headers": {
+		"method": "fetch with redirect: manual on each route, the Content-Security-Policy response header with each 'nonce-...' value written 'nonce-<n>'; nonce routes are the proxy's (/login, /auth/*, private prefixes), static routes get no CSP under next start (vercel.json's applies on Vercel only)",
+		"head": {
+			"/login": {
+				"kind": "nonce",
+				"status": 200,
+				"location": null,
+				"csp": "default-src 'self'; script-src 'self' 'nonce-<n>' 'strict-dynamic' 'sha256-AvM/QMxsEDhcwNLYb1jYS2mLUCd0snlFdk5VDvtk7II='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' data: blob: https://*.supabase.co; connect-src 'self' *.supabase.co *.sentry.io *.stripe.com; font-src 'self'; object-src 'none'; frame-src 'self' blob: https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+			},
+			"/auth/confirm-email": {
+				"kind": "nonce",
+				"status": 200,
+				"location": null,
+				"csp": "default-src 'self'; script-src 'self' 'nonce-<n>' 'strict-dynamic' 'sha256-AvM/QMxsEDhcwNLYb1jYS2mLUCd0snlFdk5VDvtk7II='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' data: blob: https://*.supabase.co; connect-src 'self' *.supabase.co *.sentry.io *.stripe.com; font-src 'self'; object-src 'none'; frame-src 'self' blob: https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+			},
+			"/auth/update-password": {
+				"kind": "nonce",
+				"status": 200,
+				"location": null,
+				"csp": "default-src 'self'; script-src 'self' 'nonce-<n>' 'strict-dynamic' 'sha256-AvM/QMxsEDhcwNLYb1jYS2mLUCd0snlFdk5VDvtk7II='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' data: blob: https://*.supabase.co; connect-src 'self' *.supabase.co *.sentry.io *.stripe.com; font-src 'self'; object-src 'none'; frame-src 'self' blob: https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+			},
+			"/auth/signout": {
+				"kind": "nonce",
+				"status": 200,
+				"location": null,
+				"csp": "default-src 'self'; script-src 'self' 'nonce-<n>' 'strict-dynamic' 'sha256-AvM/QMxsEDhcwNLYb1jYS2mLUCd0snlFdk5VDvtk7II='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' data: blob: https://*.supabase.co; connect-src 'self' *.supabase.co *.sentry.io *.stripe.com; font-src 'self'; object-src 'none'; frame-src 'self' blob: https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+			},
+			"/dashboard": {
+				"kind": "nonce",
+				"status": 307,
+				"location": "/login?redirect=%2Fdashboard",
+				"csp": "default-src 'self'; script-src 'self' 'nonce-<n>' 'strict-dynamic' 'sha256-AvM/QMxsEDhcwNLYb1jYS2mLUCd0snlFdk5VDvtk7II='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' data: blob: https://*.supabase.co; connect-src 'self' *.supabase.co *.sentry.io *.stripe.com; font-src 'self'; object-src 'none'; frame-src 'self' blob: https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+			},
+			"/settings": {
+				"kind": "nonce",
+				"status": 307,
+				"location": "/login?redirect=%2Fsettings",
+				"csp": "default-src 'self'; script-src 'self' 'nonce-<n>' 'strict-dynamic' 'sha256-AvM/QMxsEDhcwNLYb1jYS2mLUCd0snlFdk5VDvtk7II='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' data: blob: https://*.supabase.co; connect-src 'self' *.supabase.co *.sentry.io *.stripe.com; font-src 'self'; object-src 'none'; frame-src 'self' blob: https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+			},
+			"/billing/plans": {
+				"kind": "nonce",
+				"status": 307,
+				"location": "/login?redirect=%2Fbilling%2Fplans",
+				"csp": "default-src 'self'; script-src 'self' 'nonce-<n>' 'strict-dynamic' 'sha256-AvM/QMxsEDhcwNLYb1jYS2mLUCd0snlFdk5VDvtk7II='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' data: blob: https://*.supabase.co; connect-src 'self' *.supabase.co *.sentry.io *.stripe.com; font-src 'self'; object-src 'none'; frame-src 'self' blob: https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+			},
+			"/": {
+				"kind": "static",
+				"status": 200,
+				"location": null,
+				"csp": ""
+			},
+			"/pricing": {
+				"kind": "static",
+				"status": 200,
+				"location": null,
+				"csp": ""
+			},
+			"/help": {
+				"kind": "static",
+				"status": 200,
+				"location": null,
+				"csp": ""
+			},
+			"/faq": {
+				"kind": "static",
+				"status": 200,
+				"location": null,
+				"csp": ""
+			},
+			"/blog": {
+				"kind": "static",
+				"status": 200,
+				"location": null,
+				"csp": ""
+			},
+			"/privacy": {
+				"kind": "static",
+				"status": 200,
+				"location": null,
+				"csp": ""
+			}
+		},
+		"control": {
+			"/login": {
+				"kind": "nonce",
+				"status": 200,
+				"location": null,
+				"csp": "default-src 'self'; script-src 'self' 'nonce-<n>' 'strict-dynamic' 'sha256-AvM/QMxsEDhcwNLYb1jYS2mLUCd0snlFdk5VDvtk7II='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' data: blob: https://*.supabase.co; connect-src 'self' *.supabase.co *.sentry.io *.stripe.com; font-src 'self'; object-src 'none'; frame-src 'self' blob: https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+			},
+			"/auth/confirm-email": {
+				"kind": "nonce",
+				"status": 200,
+				"location": null,
+				"csp": "default-src 'self'; script-src 'self' 'nonce-<n>' 'strict-dynamic' 'sha256-AvM/QMxsEDhcwNLYb1jYS2mLUCd0snlFdk5VDvtk7II='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' data: blob: https://*.supabase.co; connect-src 'self' *.supabase.co *.sentry.io *.stripe.com; font-src 'self'; object-src 'none'; frame-src 'self' blob: https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+			},
+			"/auth/update-password": {
+				"kind": "nonce",
+				"status": 200,
+				"location": null,
+				"csp": "default-src 'self'; script-src 'self' 'nonce-<n>' 'strict-dynamic' 'sha256-AvM/QMxsEDhcwNLYb1jYS2mLUCd0snlFdk5VDvtk7II='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' data: blob: https://*.supabase.co; connect-src 'self' *.supabase.co *.sentry.io *.stripe.com; font-src 'self'; object-src 'none'; frame-src 'self' blob: https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+			},
+			"/auth/signout": {
+				"kind": "nonce",
+				"status": 200,
+				"location": null,
+				"csp": "default-src 'self'; script-src 'self' 'nonce-<n>' 'strict-dynamic' 'sha256-AvM/QMxsEDhcwNLYb1jYS2mLUCd0snlFdk5VDvtk7II='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' data: blob: https://*.supabase.co; connect-src 'self' *.supabase.co *.sentry.io *.stripe.com; font-src 'self'; object-src 'none'; frame-src 'self' blob: https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+			},
+			"/dashboard": {
+				"kind": "nonce",
+				"status": 307,
+				"location": "/login?redirect=%2Fdashboard",
+				"csp": "default-src 'self'; script-src 'self' 'nonce-<n>' 'strict-dynamic' 'sha256-AvM/QMxsEDhcwNLYb1jYS2mLUCd0snlFdk5VDvtk7II='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' data: blob: https://*.supabase.co; connect-src 'self' *.supabase.co *.sentry.io *.stripe.com; font-src 'self'; object-src 'none'; frame-src 'self' blob: https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+			},
+			"/settings": {
+				"kind": "nonce",
+				"status": 307,
+				"location": "/login?redirect=%2Fsettings",
+				"csp": "default-src 'self'; script-src 'self' 'nonce-<n>' 'strict-dynamic' 'sha256-AvM/QMxsEDhcwNLYb1jYS2mLUCd0snlFdk5VDvtk7II='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' data: blob: https://*.supabase.co; connect-src 'self' *.supabase.co *.sentry.io *.stripe.com; font-src 'self'; object-src 'none'; frame-src 'self' blob: https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+			},
+			"/billing/plans": {
+				"kind": "nonce",
+				"status": 307,
+				"location": "/login?redirect=%2Fbilling%2Fplans",
+				"csp": "default-src 'self'; script-src 'self' 'nonce-<n>' 'strict-dynamic' 'sha256-AvM/QMxsEDhcwNLYb1jYS2mLUCd0snlFdk5VDvtk7II='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; media-src 'self' data: blob: https://*.supabase.co; connect-src 'self' *.supabase.co *.sentry.io *.stripe.com; font-src 'self'; object-src 'none'; frame-src 'self' blob: https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+			},
+			"/": {
+				"kind": "static",
+				"status": 200,
+				"location": null,
+				"csp": ""
+			},
+			"/pricing": {
+				"kind": "static",
+				"status": 200,
+				"location": null,
+				"csp": ""
+			},
+			"/help": {
+				"kind": "static",
+				"status": 200,
+				"location": null,
+				"csp": ""
+			},
+			"/faq": {
+				"kind": "static",
+				"status": 200,
+				"location": null,
+				"csp": ""
+			},
+			"/blog": {
+				"kind": "static",
+				"status": 200,
+				"location": null,
+				"csp": ""
+			},
+			"/privacy": {
+				"kind": "static",
+				"status": 200,
+				"location": null,
+				"csp": ""
+			}
+		},
+		"equal": true,
+		"diff": []
+	},
+	"sourceInvariants": "src/proxy.ts changed since PRE_39 in its gate and route-prefix matching only (acdd96017, d92ae61c3, 5da054158): the auth prefixes, needsNonceCsp, THEME_NO_FLASH_SCRIPT_HASH with buildNonceCsp, the per-request nonce block, withCsp and PRIVATE_ROUTE_PREFIXES' code lines are byte-identical to PRE_39's and the prefix rule is the same comparison (f39-checks.mjs --fix-round-4, fr4-csp-code); src/components/providers.tsx and src/lib/sidebar-state.ts have no diff since PRE_39; \"sidebar_state\" appears in non-test src only in sidebar-state.ts"
 }

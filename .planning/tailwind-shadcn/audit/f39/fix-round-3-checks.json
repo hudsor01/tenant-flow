@@ -54,8 +54,8 @@
 			"expected": "passed",
 			"measured": {
 				"status": "passed",
-				"numTests": 3,
-				"numPassed": 3,
+				"numTests": 4,
+				"numPassed": 4,
 				"missingTitles": [],
 				"missingMarkers": []
 			},
@@ -69,27 +69,12 @@
 			"expected": "passed",
 			"measured": {
 				"status": "passed",
-				"numTests": 10,
-				"numPassed": 10,
+				"numTests": 9,
+				"numPassed": 9,
 				"missingTitles": [],
 				"missingMarkers": []
 			},
 			"group": "fr3-guard:src/components/__tests__/billing-auth-lists-base-rules.test.tsx"
-		},
-		{
-			"cp": "FR-3",
-			"choice": "fix-round-3",
-			"name": "fix round 3 guard src/components/__tests__/heading-block-paragraph-margin.test.ts (part 6b (G2h)) present and passing, with its 3 title(s)",
-			"pass": true,
-			"expected": "passed",
-			"measured": {
-				"status": "passed",
-				"numTests": 3,
-				"numPassed": 3,
-				"missingTitles": [],
-				"missingMarkers": []
-			},
-			"group": "fr3-guard:src/components/__tests__/heading-block-paragraph-margin.test.ts"
 		},
 		{
 			"cp": "FR-3",
@@ -99,8 +84,8 @@
 			"expected": "passed",
 			"measured": {
 				"status": "passed",
-				"numTests": 4,
-				"numPassed": 4,
+				"numTests": 6,
+				"numPassed": 6,
 				"missingTitles": [],
 				"missingMarkers": []
 			},
@@ -114,8 +99,8 @@
 			"expected": "passed",
 			"measured": {
 				"status": "passed",
-				"numTests": 5,
-				"numPassed": 5,
+				"numTests": 39,
+				"numPassed": 39,
 				"missingTitles": [],
 				"missingMarkers": []
 			},
@@ -279,8 +264,8 @@
 			"expected": "passed",
 			"measured": {
 				"status": "passed",
-				"numTests": 3,
-				"numPassed": 3,
+				"numTests": 4,
+				"numPassed": 4,
 				"missingTitles": [],
 				"missingMarkers": []
 			},
@@ -309,8 +294,8 @@
 			"expected": "passed",
 			"measured": {
 				"status": "passed",
-				"numTests": 6,
-				"numPassed": 6,
+				"numTests": 9,
+				"numPassed": 9,
 				"missingTitles": [],
 				"missingMarkers": []
 			},
@@ -364,7 +349,7 @@
 		{
 			"cp": "FR-3",
 			"choice": "fix-round-3",
-			"name": "fix round 3 guard src/providers/__tests__/query-cache-buster.test.ts (part 3 (v7)) present and passing, with its 1 title(s)",
+			"name": "fix round 3 guard src/providers/__tests__/query-cache-buster.test.ts (part 3 (v7; v8, v9 in fix round 4)) present and passing, with its 1 title(s)",
 			"pass": true,
 			"expected": "passed",
 			"measured": {
@@ -394,39 +379,40 @@
 		{
 			"cp": "FR-3",
 			"choice": "fix-round-3",
-			"name": "the code state is b7f25511b (the last commit outside .planning/)",
+			"name": "fix round 3's code state b7f25511b is in the history of the code state (git rev-list)",
 			"pass": true,
-			"expected": "b7f25511b600b9cf1edd50bc56c41de55e02f29a",
-			"measured": "b7f25511b600b9cf1edd50bc56c41de55e02f29a",
+			"expected": true,
+			"measured": {
+				"fr3InHistory": true,
+				"codeState": "7f6fcc67c3d2d939a2f765713510b2943fc6b6f8"
+			},
 			"group": "fr3-code-state"
 		},
 		{
 			"cp": "FR-3",
 			"choice": "fix-round-3",
-			"name": "every evidence file this re-freeze owns was measured on the code state, and the screenshot and probe diffs against a same-session 36972318f",
+			"name": "every evidence file this re-freeze owns was measured on the code state, and the screenshot and probe diffs against a same-session 3977aa58d",
 			"pass": true,
 			"expected": "all on the code state",
 			"measured": {
 				"stale": [],
 				"screenBaselines": [
-					"36972318f"
+					"3977aa58d"
 				],
 				"screensFresh": true,
-				"probesBaseline": "36972318f"
+				"probesBaseline": "3977aa58d"
 			},
 			"group": "fr3-fresh"
 		},
 		{
 			"cp": "FR-3",
 			"choice": "fix-round-3",
-			"name": "every component-probe difference from 36972318f is intended under a VD row, or noise the same field shows across same-session repeats of the code state",
+			"name": "every component-probe difference from 3977aa58d is intended under a VD row, or noise the same field shows across same-session repeats of the code state",
 			"pass": true,
 			"expected": "0 unattributed",
 			"measured": {
-				"diffs": 0,
-				"noise": [
-					"toast-loading dark.iconWidth 23 -> 22"
-				],
+				"diffs": 50,
+				"noise": [],
 				"badDiffs": [],
 				"badNoise": []
 			},
@@ -474,15 +460,15 @@
 		{
 			"cp": "FR-3",
 			"choice": "fix-round-3",
-			"name": "the migration replay applies all 357 files from empty on the code state, every gate exit 0",
+			"name": "the migration replay applies all 358 files from empty on the code state (357 at round 3), every gate exit 0",
 			"pass": true,
 			"expected": {
-				"files": 357
+				"files": 358
 			},
 			"measured": {
-				"files": 357,
-				"applied": 357,
-				"tree": 357,
+				"files": 358,
+				"applied": 358,
+				"tree": 358,
 				"gates": {
 					"applied": 0,
 					"no-network": 0,
@@ -499,7 +485,7 @@
 		{
 			"cp": "FR-3",
 			"choice": "fix-round-3",
-			"name": "deno check is clean on all 17 functions and the in-process Deno tests pass at their counts",
+			"name": "deno check is clean on all 17 functions and round 3's in-process Deno test files pass at their current counts",
 			"pass": true,
 			"expected": {
 				"functions": 17,
@@ -508,7 +494,7 @@
 					"lease-signature-metering-test.ts": 5,
 					"lease-signing-test.ts": 12,
 					"rate-limit-sentry-test.ts": 2,
-					"export-report-test.ts": 16,
+					"export-report-test.ts": 17,
 					"generate-pdf-test.ts": 9
 				}
 			},
@@ -533,7 +519,7 @@
 						"failed": 0
 					},
 					"export-report-test.ts": {
-						"passed": 16,
+						"passed": 17,
 						"failed": 0
 					},
 					"generate-pdf-test.ts": {
@@ -547,13 +533,14 @@
 		{
 			"cp": "FR-3",
 			"choice": "fix-round-3",
-			"name": "the redeploy list is exactly the four functions whose bundle differs from d9c7329f0 (all 17 bundled), and the PR body's deploy command names exactly them",
+			"name": "the redeploy list is exactly the functions whose bundle differs from d9c7329f0 (all 17 bundled; round 3's four, 5 since fix round 4), and the PR body's deploy command names exactly them",
 			"pass": true,
 			"expected": [
 				"export-report",
 				"generate-pdf",
 				"lease-signature",
-				"n8n-blog-ingest"
+				"n8n-blog-ingest",
+				"stripe-webhooks"
 			],
 			"measured": {
 				"bundled": 17,
@@ -561,19 +548,22 @@
 					"export-report",
 					"generate-pdf",
 					"lease-signature",
-					"n8n-blog-ingest"
+					"n8n-blog-ingest",
+					"stripe-webhooks"
 				],
 				"deploy": [
 					"export-report",
 					"generate-pdf",
 					"lease-signature",
-					"n8n-blog-ingest"
+					"n8n-blog-ingest",
+					"stripe-webhooks"
 				],
 				"prBodyCommand": [
 					"export-report",
 					"generate-pdf",
 					"lease-signature",
-					"n8n-blog-ingest"
+					"n8n-blog-ingest",
+					"stripe-webhooks"
 				]
 			},
 			"group": "fr3-edge"
@@ -601,12 +591,12 @@
 			"pass": true,
 			"expected": {
 				"section": "## Fix round 3 (after perfect-PR cycle 2)",
-				"vd": "VD-130..VD-150"
+				"vd": "VD-130..VD-151"
 			},
 			"measured": {
-				"section": 22461,
-				"fixRound2": 15038,
-				"afterMerge": 37443,
+				"section": 10238,
+				"fixRound2": 7853,
+				"afterMerge": 23246,
 				"table": [
 					"VD-130",
 					"VD-131",

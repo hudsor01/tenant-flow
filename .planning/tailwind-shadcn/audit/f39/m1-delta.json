@@ -1,197 +1,269 @@
 {
-  "tree": "b7f25511b (codeStateSha)",
-  "rule": "66.2-29 M1-delta rule, anchored on FINAL (66.2-37): FINAL scannedFiles + added - deleted non-test src files (every src file the scan reads: not *.test.ts(x), which globals.css excludes), each attributed to the newest range that added or deleted it: fix round 3 (f8de0175e..b7f25511b, the code of 36972318f..HEAD), fix round 2 (b628eb9f1..f8de0175e), fix round 1 (PRE_39..b628eb9f1), then MAIN_MERGE",
-  "final": 917,
-  "finalListLength": 917,
-  "added": 32,
-  "deleted": 9,
-  "expected": 940,
-  "actual": 940,
-  "actualListLength": 940,
-  "bySource": {
-    "fix round 1 (PRE_39..b628eb9f1)": {
-      "added": 29,
-      "deleted": 8
-    },
-    "fix round 3 (f8de0175e..b7f25511b)": {
-      "added": 2,
-      "deleted": 0
-    },
-    "fix round 2 (b628eb9f1..f8de0175e)": {
-      "added": 1,
-      "deleted": 0
-    },
-    "main-merge (MAIN_MERGE^1..MAIN_MERGE)": {
-      "added": 0,
-      "deleted": 1
-    }
-  },
-  "addedPaths": [
-    {
-      "path": "src/app/(owner)/reports/balance-sheet/balance-sheet-csv.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/app/(owner)/reports/balance-sheet/balance-sheet-view.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/app/(owner)/reports/cash-flow/cash-flow-csv.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/app/(owner)/reports/cash-flow/cash-flow-view.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/app/(owner)/reports/income-statement/income-statement-csv.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/app/(owner)/reports/income-statement/income-statement-view.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/app/(owner)/reports/ledger-totals-unavailable.tsx",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/app/(owner)/reports/report-export-button.tsx",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/app/(owner)/reports/statement-basis-note.tsx",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/app/(owner)/reports/year-end/year-end-csv.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/components/analytics/lease-profitability-table.tsx",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/components/dashboard/components/occupancy-badge.tsx",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/components/leases/table/leases-csv.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/components/leases/wizard/utility-options.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/components/settings/download-account-data.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/components/shared/chart-series.tsx",
-      "source": "fix round 3 (f8de0175e..b7f25511b)"
-    },
-    {
-      "path": "src/components/tenants/tenants-csv.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/hooks/api/query-keys/property-performance-mappers.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/lib/formatters/count.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/lib/formatters/signed.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/lib/reports/csv.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/lib/reports/statement-basis.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/lib/reports/statement-labels.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/lib/stated-window.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/test/mocks/deleted-properties.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/test/mocks/paged-rpc.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/test/utils/button-sites.ts",
-      "source": "fix round 3 (f8de0175e..b7f25511b)"
-    },
-    {
-      "path": "src/test/utils/label-in-name.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/test/utils/oklch-contrast.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/test/utils/regexp-source.ts",
-      "source": "fix round 2 (b628eb9f1..f8de0175e)"
-    },
-    {
-      "path": "src/test/utils/state-fill-pairs.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/test/utils/vivid-text-elements.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    }
-  ],
-  "deletedPaths": [
-    {
-      "path": "src/app/(owner)/analytics/financial/_components/invoice-summary-list.tsx",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/app/(owner)/analytics/financial/_components/lease-table.tsx",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/components/analytics/lease-charts.tsx",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/components/dashboard/components/lease-status-badge.tsx",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/hooks/api/query-keys/property-stats-keys.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/hooks/api/query-keys/tenant-stats-mapper.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/hooks/use-entity-detail.ts",
-      "source": "fix round 1 (PRE_39..b628eb9f1)"
-    },
-    {
-      "path": "src/types/jest-dom.d.ts",
-      "source": "main-merge (MAIN_MERGE^1..MAIN_MERGE)"
-    }
-  ]
+	"tree": "7f6fcc67c (codeStateSha)",
+	"rule": "66.2-29 M1-delta rule, anchored on FINAL (66.2-37): FINAL scannedFiles + added - deleted non-test src files (every src file the scan reads: not *.test.ts(x), which globals.css excludes), each attributed to the newest range that added or deleted it: fix round 4 (b7f25511b..7f6fcc67c, the code of 3977aa58d..HEAD), fix round 3 (f8de0175e..b7f25511b, the code of 36972318f..HEAD), fix round 2 (b628eb9f1..f8de0175e), fix round 1 (PRE_39..b628eb9f1), then MAIN_MERGE",
+	"final": 917,
+	"finalListLength": 917,
+	"added": 43,
+	"deleted": 15,
+	"expected": 945,
+	"actual": 945,
+	"actualListLength": 945,
+	"bySource": {
+		"fix round 1 (PRE_39..b628eb9f1)": {
+			"added": 29,
+			"deleted": 8
+		},
+		"fix round 4 (b7f25511b..7f6fcc67c)": {
+			"added": 11,
+			"deleted": 6
+		},
+		"fix round 3 (f8de0175e..b7f25511b)": {
+			"added": 2,
+			"deleted": 0
+		},
+		"fix round 2 (b628eb9f1..f8de0175e)": {
+			"added": 1,
+			"deleted": 0
+		},
+		"main-merge (MAIN_MERGE^1..MAIN_MERGE)": {
+			"added": 0,
+			"deleted": 1
+		}
+	},
+	"addedPaths": [
+		{
+			"path": "src/app/(owner)/reports/balance-sheet/balance-sheet-csv.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/app/(owner)/reports/balance-sheet/balance-sheet-view.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/app/(owner)/reports/cash-flow/cash-flow-csv.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/app/(owner)/reports/cash-flow/cash-flow-view.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/app/(owner)/reports/income-statement/income-statement-csv.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/app/(owner)/reports/income-statement/income-statement-view.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/app/(owner)/reports/ledger-totals-unavailable.tsx",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/app/(owner)/reports/report-export-button.tsx",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/app/(owner)/reports/statement-basis-note.tsx",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/app/(owner)/reports/year-end/year-end-csv.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/app/(owner)/tenants/components/move-out-record.tsx",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/components/analytics/lease-profitability-table.tsx",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/components/billing/checkout-success-card.tsx",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/components/dashboard/components/occupancy-badge.tsx",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/components/leases/table/leases-csv.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/components/leases/wizard/utility-options.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/components/settings/deletion-scheduled-notice.tsx",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/components/settings/download-account-data.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/components/shared/chart-series.tsx",
+			"source": "fix round 3 (f8de0175e..b7f25511b)"
+		},
+		{
+			"path": "src/components/shared/owner-error-box.tsx",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/components/shared/unavailable-outline-button.ts",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/components/tenants/tenants-csv.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/components/ui/scroll-region.tsx",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/hooks/api/query-keys/property-performance-mappers.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/lib/diagnostic-error.ts",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/lib/formatters/count.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/lib/formatters/signed.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/lib/reports/csv.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/lib/reports/statement-basis.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/lib/reports/statement-labels.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/lib/stated-window.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/test/mocks/deleted-properties.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/test/mocks/paged-rpc.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/test/utils/availability.ts",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/test/utils/base-margin-sites.ts",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/test/utils/button-sites.ts",
+			"source": "fix round 3 (f8de0175e..b7f25511b)"
+		},
+		{
+			"path": "src/test/utils/export-readers.ts",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/test/utils/git-blob.ts",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/test/utils/label-in-name.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/test/utils/oklch-contrast.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/test/utils/regexp-source.ts",
+			"source": "fix round 2 (b628eb9f1..f8de0175e)"
+		},
+		{
+			"path": "src/test/utils/state-fill-pairs.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/test/utils/vivid-text-elements.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		}
+	],
+	"deletedPaths": [
+		{
+			"path": "src/app/(owner)/analytics/financial/_components/invoice-summary-list.tsx",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/app/(owner)/analytics/financial/_components/lease-table.tsx",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/app/actions/auth.ts",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/app/pricing/cancel/page.tsx",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/app/stripe/cancel/page.tsx",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/app/stripe/success/page.tsx",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/components/analytics/lease-charts.tsx",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/components/dashboard/components/lease-status-badge.tsx",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/components/leases/lease-action-buttons.tsx",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/components/ui/animated-trend-indicator.tsx",
+			"source": "fix round 4 (b7f25511b..7f6fcc67c)"
+		},
+		{
+			"path": "src/hooks/api/query-keys/property-stats-keys.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/hooks/api/query-keys/tenant-stats-mapper.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/hooks/use-entity-detail.ts",
+			"source": "fix round 1 (PRE_39..b628eb9f1)"
+		},
+		{
+			"path": "src/types/jest-dom.d.ts",
+			"source": "main-merge (MAIN_MERGE^1..MAIN_MERGE)"
+		}
+	]
 }

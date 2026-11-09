@@ -3,25 +3,37 @@
   {
    "name": "--color-success-foreground",
    "value": "var(--success-foreground)",
-   "line": 524,
+   "line": 531,
+   "mode": "inline"
+  },
+  {
+   "name": "--color-warning-foreground",
+   "value": "var(--warning-foreground)",
+   "line": 533,
+   "mode": "inline"
+  },
+  {
+   "name": "--color-info-foreground",
+   "value": "var(--info-foreground)",
+   "line": 540,
    "mode": "inline"
   },
   {
    "name": "--color-chart-2",
    "value": "var(--chart-2)",
-   "line": 535,
+   "line": 542,
    "mode": "inline"
   },
   {
    "name": "--color-chart-3",
    "value": "var(--chart-3)",
-   "line": 536,
+   "line": 543,
    "mode": "inline"
   },
   {
    "name": "--color-chart-5",
    "value": "var(--chart-5)",
-   "line": 538,
+   "line": 545,
    "mode": "inline"
   }
  ],
