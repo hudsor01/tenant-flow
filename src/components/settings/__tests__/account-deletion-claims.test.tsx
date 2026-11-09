@@ -295,6 +295,27 @@ describe("the legal pages say what the deletion job and the export do", () => {
 		);
 	});
 
+	// Owner, 2026-11-09 ("Rewrite to match"), Part 8l: 7.2 said records could
+	// be updated "directly through the platform", false once the plan or trial
+	// ends: the proxy then closes every owner page but Settings, where the
+	// General tab still edits the email, the phone and the emergency contact.
+	it("privacy 7.2 says what can still be edited after a plan or trial ends, as Settings does", () => {
+		const proxy = readFileSync(join(ROOT, "src/proxy.ts"), "utf8");
+		expect(proxy).toMatch(
+			/const SUBSCRIPTION_EXEMPT_PREFIXES = \["\/settings"\] as const;/,
+		);
+		const general = readFileSync(
+			join(ROOT, "src/components/settings/general-settings.tsx"),
+			"utf8",
+		);
+		expect(general).toMatch(/id="contactEmail"/);
+		expect(general).toMatch(/id="phone"/);
+		expect(general).toMatch(/<OwnerEmergencyContactSection \/>/);
+		expect(privacy).toContain(
+			"You can update your account information, property data and tenant records in the app while you have an active subscription or trial. After your subscription or trial ends, Settings stays open, and there you can still change your email address, phone number and emergency contact.",
+		);
+	});
+
 	it("deletion is a request that runs after 30 days, in both documents", () => {
 		expect(privacy).toContain(
 			"Deletion runs 30 days after the request, and you can cancel it until then; Section 6 describes what it removes and what it keeps.",
@@ -339,6 +360,9 @@ describe("no copy claims a deletion, a retention limit or an export the code doe
 		/unlock all features/i,
 		/full access to all features/i,
 		/all premium features/i,
+		// Records are edited in the app with a plan or trial; after it ends
+		// only Settings is open (owner, 2026-11-09, Part 8l).
+		/records directly through the platform/i,
 	];
 
 	function sources(dir: string): string[] {

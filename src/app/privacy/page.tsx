@@ -303,8 +303,11 @@ export default function PrivacyPage() {
 
 						<h3 className="mb-3 typography-h4">7.2 Correction and Updates</h3>
 						<p>
-							You can update your account information, property data, and tenant
-							records directly through the platform.
+							You can update your account information, property data and tenant
+							records in the app while you have an active subscription or trial.
+							After your subscription or trial ends, Settings stays open, and
+							there you can still change your email address, phone number and
+							emergency contact.
 						</p>
 
 						<h3 className="mb-3 typography-h4">7.3 Deletion</h3>
