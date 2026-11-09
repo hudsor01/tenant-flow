@@ -540,15 +540,20 @@ describe("Mutation Hooks", () => {
 	});
 
 	describe("useMarkTenantAsMovedOutMutation (TEN-06)", () => {
+		const tenantsUpdate = vi.fn();
+		const tenantsUpdateEq = vi.fn();
+
 		beforeEach(() => {
-			// markMovedOut updates tenants.status then re-selects the row with the
+			// markMovedOut updates the tenant then re-selects the row with the
 			// lease join and returns it — mock both chains so the mutation resolves.
+			tenantsUpdateEq
+				.mockReset()
+				.mockResolvedValue({ data: null, error: null });
+			tenantsUpdate.mockReset().mockReturnValue({ eq: tenantsUpdateEq });
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === "tenants") {
 					return {
-						update: vi.fn().mockReturnValue({
-							eq: vi.fn().mockResolvedValue({ data: null, error: null }),
-						}),
+						update: tenantsUpdate,
 						select: vi.fn().mockReturnValue({
 							eq: vi.fn().mockReturnValue({
 								single: vi.fn().mockResolvedValue({
@@ -561,6 +566,40 @@ describe("Mutation Hooks", () => {
 				}
 				return createQueryChain({ data: null });
 			});
+		});
+
+		it("saves the status, the move-out date and the trimmed reason in one UPDATE", async () => {
+			const queryClient = new QueryClient({
+				defaultOptions: {
+					queries: { retry: false },
+					mutations: { retry: false },
+				},
+			});
+			const wrapper = ({ children }: { children: ReactNode }) => (
+				<QueryClientProvider client={queryClient}>
+					{children}
+				</QueryClientProvider>
+			);
+			const { result } = renderHook(() => useMarkTenantAsMovedOutMutation(), {
+				wrapper,
+			});
+
+			await result.current.mutateAsync({
+				id: "tenant-123",
+				data: {
+					moveOutDate: "2026-07-07",
+					moveOutReason: "  relocation: took a job in Denver  ",
+				},
+			});
+
+			expect(tenantsUpdate).toHaveBeenCalledTimes(1);
+			expect(tenantsUpdate).toHaveBeenCalledWith({
+				status: "moved_out",
+				move_out_date: "2026-07-07",
+				move_out_reason: "relocation: took a job in Denver",
+				updated_at: expect.any(String),
+			});
+			expect(tenantsUpdateEq).toHaveBeenCalledWith("id", "tenant-123");
 		});
 
 		it("resolves without throwing and leaves the real list cache key a PaginatedResponse object", async () => {

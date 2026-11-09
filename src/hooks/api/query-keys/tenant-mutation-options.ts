@@ -1,6 +1,5 @@
 import { mutationOptions } from "@tanstack/react-query";
 import { omitUndefined } from "#lib/db-insert";
-import { logger } from "#lib/frontend-logger";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import type { TenantCreate, TenantUpdateInput } from "#lib/validation/tenants";
@@ -114,6 +113,8 @@ export const tenantMutations = {
 					.from("tenants")
 					.update({
 						status: "moved_out",
+						move_out_date: data.moveOutDate,
+						move_out_reason: data.moveOutReason.trim(),
 						updated_at: new Date().toISOString(),
 					})
 					.eq("id", id);
@@ -129,16 +130,6 @@ export const tenantMutations = {
 					.single();
 
 				if (fetchError) handlePostgrestError(fetchError, "tenants");
-
-				// Move-out reason has no DB column; persisted via audit log only.
-				logger.info("Tenant marked as moved out", {
-					action: "mark_moved_out",
-					metadata: {
-						tenant_id: id,
-						move_out_date: data.moveOutDate,
-						move_out_reason: data.moveOutReason,
-					},
-				});
 
 				return mapTenantRow(updated as TenantPostgrestRow);
 			},

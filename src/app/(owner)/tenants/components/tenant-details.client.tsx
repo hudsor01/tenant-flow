@@ -12,12 +12,16 @@ import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { useMarkTenantAsMovedOutMutation } from "#hooks/api/use-tenant-mutations";
-import { leaseStatusLabel } from "#lib/constants/status-types";
+import {
+	leaseStatusLabel,
+	moveOutReasonText,
+} from "#lib/constants/status-types";
 import { formatDate } from "#lib/formatters/date";
 import { createLogger } from "#lib/frontend-logger";
 import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { formatCurrency } from "#lib/utils/currency";
 import { MoveOutDialog } from "./move-out-dialog";
+import { MoveOutRecord } from "./move-out-record";
 import { validateMoveOutDate } from "./move-out-validation";
 
 const logger = createLogger({ component: "TenantDetails" });
@@ -56,7 +60,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 				id,
 				data: {
 					moveOutDate,
-					moveOutReason: `${moveOutReason}${additionalNotes ? `: ${additionalNotes}` : ""}`,
+					moveOutReason: moveOutReasonText(moveOutReason, additionalNotes),
 				},
 			});
 			// FORMFIX-08: useMarkTenantAsMovedOutMutation fires the single success toast
@@ -183,6 +187,11 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 						</div>
 					</div>
 				</CardLayout>
+
+				<MoveOutRecord
+					date={tenant.move_out_date}
+					reason={tenant.move_out_reason}
+				/>
 
 				{/* Lease Information */}
 				{tenant.leases && tenant.leases.length > 0 && (

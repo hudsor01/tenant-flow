@@ -135,6 +135,62 @@ export function propertyStatusLabel(value: string): string {
 }
 
 /**
+ * The reasons "Mark as moved out" offers, by the slug it saves at the start of
+ * `tenants.move_out_reason`, and the name the owner sees for each: in the
+ * dialog's list and on the tenant's page.
+ */
+export const MOVE_OUT_REASON_LABELS = {
+	lease_expired: "Lease Expired",
+	early_termination: "Early Termination",
+	eviction: "Eviction",
+	purchase: "Purchased Property",
+	relocation: "Relocation",
+	other: "Other",
+} as const;
+
+type MoveOutReason = keyof typeof MOVE_OUT_REASON_LABELS;
+
+function isMoveOutReason(value: string): value is MoveOutReason {
+	return Object.hasOwn(MOVE_OUT_REASON_LABELS, value);
+}
+
+/** `tenants_move_out_reason_length_check` (20261109141151). */
+const MOVE_OUT_REASON_MAX_LENGTH = 2000;
+
+const MOVE_OUT_NOTES_SEPARATOR = ": ";
+
+/**
+ * The longest note the dialog takes: the longest slug, the separator and the
+ * note stay within the column's limit whichever reason is chosen.
+ */
+export const MOVE_OUT_NOTES_MAX_LENGTH =
+	MOVE_OUT_REASON_MAX_LENGTH -
+	MOVE_OUT_NOTES_SEPARATOR.length -
+	Math.max(...Object.keys(MOVE_OUT_REASON_LABELS).map((slug) => slug.length));
+
+/** The reason the dialog saves: the slug, or the slug and the trimmed notes. */
+export function moveOutReasonText(slug: string, notes: string): string {
+	const trimmed = notes.trim();
+	return trimmed ? `${slug}${MOVE_OUT_NOTES_SEPARATOR}${trimmed}` : slug;
+}
+
+/**
+ * A saved reason as the tenant's page shows it: a known slug as its label,
+ * with the notes after it; anything else whole, as written.
+ */
+export function readMoveOutReason(saved: string): {
+	label: string;
+	notes: string | null;
+} {
+	const at = saved.indexOf(MOVE_OUT_NOTES_SEPARATOR);
+	const slug = at === -1 ? saved : saved.slice(0, at);
+	if (!isMoveOutReason(slug)) return { label: saved, notes: null };
+	const notes =
+		at === -1 ? "" : saved.slice(at + MOVE_OUT_NOTES_SEPARATOR.length);
+	return { label: MOVE_OUT_REASON_LABELS[slug], notes: notes || null };
+}
+
+/**
  * A property's occupancy on the dashboard's portfolio, from its own occupied
  * and total units. The column read "Lease Status" and invented one from the
  * occupancy rate: 100% "Active", 80% or more "Expiring", less "Vacant", so a
