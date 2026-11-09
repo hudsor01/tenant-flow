@@ -72,7 +72,10 @@ export function MaintenanceFormFields({
 				}}
 			>
 				{(field) => (
-					<Field>
+					// min-w-0: the form's grid is one auto track, and a Select value is
+					// nowrap, so a long one (a unit or tenant name) would widen the track
+					// past the dialog at 320 instead of clipping in its trigger.
+					<Field className="min-w-0">
 						<FieldLabel id={unitLabelId} htmlFor="unit_id">
 							Unit *
 						</FieldLabel>
@@ -120,7 +123,7 @@ export function MaintenanceFormFields({
 				}}
 			>
 				{(field) => (
-					<Field>
+					<Field className="min-w-0">
 						<FieldLabel id={tenantLabelId} htmlFor="tenant_id">
 							Tenant *
 						</FieldLabel>
