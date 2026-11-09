@@ -17,7 +17,10 @@
  * - `customer.subscription.trial_will_end` told every owner to "Add a payment
  *   method now ... otherwise your subscription will be canceled". Stripe sends
  *   it whether or not a payment method is on file, and the event names the
- *   customer by id only, so the email now states both outcomes.
+ *   customer by id only, so the email now states both outcomes. Its subject
+ *   said "ends in 3 days", false for a send with less time left; its date was
+ *   worked out in UTC without saying so; with no `trial_end` it read "ends on
+ *   in 3 days" (main session, Part 8o: `_shared/trial-end-text.ts`).
  *
  * WHY THE SOURCES ARE READ FROM DISK: the handlers are Deno modules (explicit
  * `.ts` imports, `Deno.env`, `npm:` packages), which Vitest cannot import, so
@@ -32,6 +35,10 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { REPORTS_HUB_ENTRIES } from "#app/(owner)/reports/reports-hub-entries";
 import { PREMIUM_REPORT_SLUGS } from "#lib/reports/premium-report-slugs";
+import {
+	trialEndCopy,
+	trialIsStillRunning,
+} from "../_shared/trial-end-text";
 
 function readRepoSource(relativePath: string): string {
 	return readFileSync(
@@ -136,9 +143,7 @@ describe("the trial-ending email", () => {
 	const html = emailHtml(TRIAL_WILL_END);
 
 	it("states both outcomes, since Stripe sends it whether or not a payment method is on file", () => {
-		expect(html).toContain(
-			"<p>Your TenantFlow trial ends on ${escapeHtml(trialEndDate)}.</p>",
-		);
+		expect(html).toContain("<p>${escapeHtml(copy.lead)}</p>");
 		expect(html).toContain(
 			"<p>If you've added a payment method, your plan continues when the trial ends and is billed to it.</p>",
 		);
@@ -160,6 +165,75 @@ describe("the trial-ending email", () => {
 		expect(readRepoSource("../stripe-checkout/index.ts")).toMatch(
 			/end_behavior: \{ missing_payment_method: "cancel" as const \}/,
 		);
+	});
+
+	// Main session, Part 8o: Stripe sends the event three days before the
+	// trial ends, at once when less time is left (a carry-over trial can start
+	// with 48 to 72 hours left), and at once when a trial is ended early.
+	it("takes its subject and first line from the trial-end leaf, and sends nothing for a trial that is over", () => {
+		// The subject and the date were literals and a UTC date: "ends in 3
+		// days", and `: "in 3 days"` with no `trial_end`.
+		expect(TRIAL_WILL_END).not.toMatch(/subject: ["'`]/);
+		expect(TRIAL_WILL_END).not.toMatch(/: "in 3 days"/);
+		expect(TRIAL_WILL_END).not.toMatch(/toLocale(?:Date)?String/);
+		expect(TRIAL_WILL_END).toMatch(/subject: copy\.subject,/);
+		expect(TRIAL_WILL_END).toMatch(
+			/const copy = trialEndCopy\(sub\.trial_end \?\? null\);/,
+		);
+		const guard = TRIAL_WILL_END.indexOf(
+			"if (!trialIsStillRunning(sub.status, sub.trial_end ?? null, Date.now())) {",
+		);
+		expect(guard).toBeGreaterThan(-1);
+		expect(guard).toBeLessThan(TRIAL_WILL_END.indexOf("await sendEmail("));
+		expect(
+			TRIAL_WILL_END.slice(guard, TRIAL_WILL_END.indexOf("await sendEmail(")),
+		).toMatch(/\n\t\treturn;\n\t\}/);
+	});
+});
+
+describe("the trial end, named so no reader misreads the day", () => {
+	// 2026-11-13 02:13 UTC is the evening of November 12 in every US zone: a
+	// date alone, worked out in UTC, named the day after the owner's.
+	const evening = Date.UTC(2026, 10, 13, 2, 13) / 1000;
+
+	it("names the date and time in UTC, with the zone written out", () => {
+		const lead = (end: number) => trialEndCopy(end).lead;
+		expect(lead(evening)).toBe(
+			"Your TenantFlow trial ends on November 13, 2026, at 2:13 AM UTC.",
+		);
+		expect(lead(Date.UTC(2026, 0, 1, 0, 0) / 1000)).toBe(
+			"Your TenantFlow trial ends on January 1, 2026, at 12:00 AM UTC.",
+		);
+		expect(lead(Date.UTC(2026, 11, 31, 12, 5) / 1000)).toBe(
+			"Your TenantFlow trial ends on December 31, 2026, at 12:05 PM UTC.",
+		);
+		expect(lead(Date.UTC(2026, 6, 4, 23, 59) / 1000)).toBe(
+			"Your TenantFlow trial ends on July 4, 2026, at 11:59 PM UTC.",
+		);
+	});
+
+	it("puts the end in the subject and the first line, and reads 'is ending' with no date", () => {
+		expect(trialEndCopy(evening)).toEqual({
+			subject: "Your TenantFlow trial ends on November 13, 2026, at 2:13 AM UTC",
+			lead: "Your TenantFlow trial ends on November 13, 2026, at 2:13 AM UTC.",
+		});
+		expect(trialEndCopy(null)).toEqual({
+			subject: "Your TenantFlow trial is ending",
+			lead: "Your TenantFlow trial is ending.",
+		});
+		for (const copy of [trialEndCopy(evening), trialEndCopy(null)]) {
+			expect(`${copy.subject} ${copy.lead}`).not.toMatch(/in 3 days|on in/);
+		}
+	});
+
+	it("warns only while the trial is still running", () => {
+		const end = evening * 1000;
+		expect(trialIsStillRunning("trialing", evening, end - 60_000)).toBe(true);
+		expect(trialIsStillRunning("trialing", null, end)).toBe(true);
+		// Ended early (trial_end=now, a portal plan change) or delivered late.
+		expect(trialIsStillRunning("trialing", evening, end)).toBe(false);
+		expect(trialIsStillRunning("active", evening, end - 60_000)).toBe(false);
+		expect(trialIsStillRunning("canceled", null, end)).toBe(false);
 	});
 });
 

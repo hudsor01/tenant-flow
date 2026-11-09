@@ -48,6 +48,9 @@
  * Part 8n's email said every page closes "until your subscription is active
  * again", though a canceled subscription stays canceled and the owner chooses
  * a plan.
+ *
+ * Part 8o (main session): the trial-ending email's subject said "ends in 3
+ * days" to owners with less time left.
  */
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -397,6 +400,9 @@ describe("no copy claims a deletion, a retention limit or an export the code doe
 		// a canceled subscription is not made active again (a plan is chosen).
 		/continued payment failure/i,
 		/until your subscription is active again/i,
+		// Stripe sends the trial-ending event with less than 3 days left too
+		// (main session, Part 8o).
+		/trial ends in 3 days/i,
 	];
 
 	function sources(dir: string): string[] {
