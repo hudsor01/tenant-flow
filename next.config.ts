@@ -219,6 +219,17 @@ const nextConfig: NextConfig = {
 				destination: "/help",
 				permanent: true,
 			},
+			// /pricing/cancel was a page and a Stripe `cancel_url`: from 3eb2fe370
+			// (2025-09-13) to 59687ae68 (2025-09-19) the pricing page sent
+			// `${origin}/pricing/cancel` to its checkout route, which passed it to
+			// Stripe as `cancel_url`. Nothing has linked to it since, and the page
+			// is deleted (66.2-39 fix round 4, Part 8n); checkout's cancel page is
+			// /billing/checkout/cancel. Next passes the query string through.
+			{
+				source: "/pricing/cancel",
+				destination: "/billing/checkout/cancel",
+				permanent: true,
+			},
 			// Deleted Phase-1 blog catalogue: 301 each ghost slug (now HTTP-404
 			// under dynamicParams=false) to its closest live equivalent so the
 			// accumulated Google ranking signal transfers instead of decaying on

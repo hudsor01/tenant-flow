@@ -15,7 +15,6 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import LeaseTemplatePage from "#app/(owner)/documents/lease-template/page";
 import { ConfirmEmailInstructions } from "#app/auth/confirm-email/confirm-email-states";
-import CheckoutCancelPage from "#app/pricing/cancel/page";
 import { PasswordStrength } from "#components/auth/password-strength";
 import { type Plan, PlanCard } from "#components/billing/plan-card";
 import { UpgradeDialog } from "#components/billing/upgrade-dialog";
@@ -168,14 +167,6 @@ describe("the billing, auth and marketing lists cancel the base list rules", () 
 		const paragraphs = container.querySelectorAll("ol li p");
 		expect(paragraphs.length).toBe(6);
 		for (const paragraph of paragraphs) expectParagraphNeutralized(paragraph);
-	});
-
-	it("the checkout-cancelled panel's list", () => {
-		render(<CheckoutCancelPage />);
-		expectListNeutralized(
-			screen.getByText("What happened?").parentElement?.querySelector("ul") ??
-				null,
-		);
 	});
 
 	it("the lease template workflow steps, and each step's paragraph", () => {

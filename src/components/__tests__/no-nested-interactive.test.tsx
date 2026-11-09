@@ -4,8 +4,9 @@
  * Eight links wrapped a Button (`<Link><Button/></Link>`: an `<a>` holding a
  * `<button>`, two tab stops for one action, and invalid HTML): the year-end
  * page's Reports, the tenant page's Edit, the units page's Add Unit, the
- * inspections page's New Inspection and four on /pricing/cancel. The canonical
- * form is `<Button asChild><Link/></Button>`, one `<a>` with the button's look.
+ * inspections page's New Inspection and four on /pricing/cancel (a page deleted
+ * since). The canonical form is `<Button asChild><Link/></Button>`, one `<a>`
+ * with the button's look.
  * The multi-select's option rows held the Radix Checkbox, a `<button
  * role="checkbox">` inside the row's `<button role="option">`; the row now
  * draws the checkbox's look with a span. The dashboard's preset menu put a

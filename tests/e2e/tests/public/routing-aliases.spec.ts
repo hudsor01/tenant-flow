@@ -32,6 +32,21 @@ test.describe("Routing aliases — Phase 3 (CRIT-05 + CRIT-06)", () => {
 		expect(response.headers().location).toBe("/privacy");
 	});
 
+	// /pricing/cancel was a Stripe cancel_url (2025-09-13 to 2025-09-19), so
+	// its page's deletion keeps a redirect, with the query string (66.2-39 fix
+	// round 4, Part 8n).
+	test("/pricing/cancel 301/308s to /billing/checkout/cancel, query kept", async ({
+		page,
+	}) => {
+		const response = await page.request.get("/pricing/cancel?from=stripe", {
+			maxRedirects: 0,
+		});
+		expect([301, 308]).toContain(response.status());
+		expect(response.headers().location).toBe(
+			"/billing/checkout/cancel?from=stripe",
+		);
+	});
+
 	// PUBUX-08: /help-center and /rss-feed never existed as pages in any
 	// commit. The speculative CRIT-06 aliases were removed (the
 	// no-typo-courtesy-redirects rule: 404 is correct for URLs that never

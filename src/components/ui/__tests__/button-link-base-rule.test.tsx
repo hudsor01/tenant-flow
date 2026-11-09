@@ -6,12 +6,13 @@
  * hold no "button" substring and no `role`, so the `@layer base` text-link
  * rules in globals.css (link color, a transparent underline that turns visible
  * on hover) used to reach every such anchor: "Add Unit", "Reports", "Edit" and
- * the /pricing/cancel links underlined on hover, and an outline or ghost
- * Button-link took the link color. Button puts `data-slot="button"` on the
- * anchor, and the rules' guards now exclude it. `computeAnchorRuleReach`
- * matches the rules' own selectors, read from globals.css, against the
- * rendered anchor; an unclassed link in the same document is the positive
- * control, and a plain text link still takes the rules.
+ * the /pricing/cancel links (a page deleted since) underlined on hover, and an
+ * outline or ghost Button-link took the link color. Button puts
+ * `data-slot="button"` on the anchor, and the rules' guards now exclude it.
+ * `computeAnchorRuleReach` matches the rules' own selectors, read from
+ * globals.css, against the rendered anchor; an unclassed link in the same
+ * document is the positive control, and a plain text link still takes the
+ * rules.
  */
 import { render, screen } from "@testing-library/react";
 import Link from "next/link";

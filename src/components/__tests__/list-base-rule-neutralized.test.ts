@@ -9,7 +9,8 @@
  * rule reaches sits 24px right of the heading above it, 16px further from
  * that heading than its classes declare, and 16px of empty space sits under
  * it inside every padded box it ends (the password checklist's popover, the
- * plan cards, the upgrade dialog, the checkout-cancelled panel).
+ * plan cards, the upgrade dialog, and /pricing/cancel's panel, a page deleted
+ * since).
  *
  * THE RULE. For each list in a non-test .tsx under src, the class string it is
  * written with is run through `computeListCascade` against the real base rules,

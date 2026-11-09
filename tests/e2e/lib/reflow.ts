@@ -39,7 +39,6 @@ export const PUBLIC_REFLOW_ROUTES = [
 	"/help",
 	"/login",
 	"/pricing",
-	"/pricing/cancel",
 	"/privacy",
 	"/resources",
 	"/resources/landlord-tax-deduction-tracker",
