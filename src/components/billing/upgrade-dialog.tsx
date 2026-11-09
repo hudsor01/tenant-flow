@@ -109,7 +109,7 @@ export function UpgradeDialog({
 
 	const getDialogDescription = () => {
 		if (isNewSubscription) {
-			return "Start your subscription and unlock all features.";
+			return "Start your subscription to use every feature this plan includes.";
 		}
 		if (isManagedSwitch) {
 			return "Review and manage your subscription in the billing portal.";

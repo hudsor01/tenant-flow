@@ -192,12 +192,15 @@ export default function BillingPlansPage() {
 	return (
 		<div className="container max-w-7xl py-8">
 			<div className="mb-8">
+				{/* Billing settings, not the dashboard: an owner whose plan has
+				    lapsed reaches this page and Settings, and the proxy sends the
+				    dashboard to /pricing (66.2-39 fix round 4, Part 8l). */}
 				<Link
-					href="/dashboard"
+					href="/settings?tab=billing"
 					className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-11"
 				>
 					<ArrowLeft className="size-4" />
-					Back to Dashboard
+					Back to Billing Settings
 				</Link>
 
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -209,7 +212,9 @@ export default function BillingPlansPage() {
 							{hasSubscription && currentPlan
 								? `You are currently on the ${currentPlan.name} plan`
 								: hasSubscription
-									? "You have an active subscription"
+									? status === "active" || status === "trialing"
+										? "You have an active subscription"
+										: `Your subscription is ${status?.replace(/_/g, " ")}`
 									: "Choose a plan that fits your needs"}
 						</p>
 					</div>

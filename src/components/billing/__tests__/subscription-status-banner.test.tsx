@@ -9,6 +9,11 @@ vi.mock("#hooks/api/use-billing", () => ({
 	useSubscriptionStatus: () => mockUseSubscriptionStatus(),
 }));
 
+// What the proxy does for these statuses: every owner page but Settings (and
+// the plan pages) sends them to /pricing (66.2-39 fix round 4, Part 8l).
+const LAPSED_COPY =
+	"Your subscription is inactive. Other pages need an active plan; Settings stays open so you can download your data, request account deletion or resubscribe.";
+
 describe("SubscriptionStatusBanner", () => {
 	it("renders nothing when loading", () => {
 		mockUseSubscriptionStatus.mockReturnValue({
@@ -205,7 +210,7 @@ describe("SubscriptionStatusBanner", () => {
 
 		render(<SubscriptionStatusBanner />);
 
-		expect(screen.getByText(/subscription is inactive/i)).toBeInTheDocument();
+		expect(screen.getByText(LAPSED_COPY)).toBeInTheDocument();
 		const link = screen.getByRole("link", { name: /reactivate/i });
 		expect(link).toHaveAttribute("href", "/billing/plans");
 	});
@@ -224,7 +229,7 @@ describe("SubscriptionStatusBanner", () => {
 
 		render(<SubscriptionStatusBanner />);
 
-		expect(screen.getByText(/subscription is inactive/i)).toBeInTheDocument();
+		expect(screen.getByText(LAPSED_COPY)).toBeInTheDocument();
 		const link = screen.getByRole("link", { name: /reactivate/i });
 		expect(link).toHaveAttribute("href", "/billing/plans");
 	});
@@ -243,7 +248,7 @@ describe("SubscriptionStatusBanner", () => {
 
 		render(<SubscriptionStatusBanner />);
 
-		expect(screen.getByText(/subscription is inactive/i)).toBeInTheDocument();
+		expect(screen.getByText(LAPSED_COPY)).toBeInTheDocument();
 		const link = screen.getByRole("link", { name: /reactivate/i });
 		expect(link).toHaveAttribute("href", "/billing/plans");
 	});

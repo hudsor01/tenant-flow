@@ -10,7 +10,9 @@ import { useSubscriptionStatus } from "#hooks/api/use-billing";
  * - trialing: primary banner with days-remaining counter + upgrade CTA
  * - active: renders nothing (null)
  * - past_due: warning banner with link to /settings?tab=billing (portal launcher)
- * - unpaid/canceled/expired: destructive lock banner with link to /billing/plans
+ * - unpaid/canceled/expired: destructive lock banner with link to /billing/plans;
+ *   it says what the proxy does: every other owner page needs an active plan,
+ *   and Settings stays open (owner, 2026-11-09)
  * - null (no subscription): info banner with link to /pricing
  *
  * Include in owner layout to show across all owner pages.
@@ -109,13 +111,17 @@ export function SubscriptionStatusBanner() {
 	// Unpaid, canceled, expired: red lock banner. Links to /billing/plans,
 	// which is proxy-allowlisted (reachable for these gate-locked statuses) and
 	// shows Manage Subscription for unpaid (live sub → portal) or a fresh
-	// checkout for canceled/expired (no live sub → resubscribe).
+	// checkout for canceled/expired (no live sub → resubscribe). It said only
+	// premium features were off, but the proxy closes every owner page except
+	// Settings and the plan pages, and the banner shows on Settings too
+	// (66.2-39 fix round 4, Part 8l).
 	return (
 		<div className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive-text">
 			<Lock className="size-5 shrink-0" />
 			<p className="mb-0 flex-1">
-				Your subscription is inactive. Premium features are disabled until your
-				subscription is renewed.
+				Your subscription is inactive. Other pages need an active plan; Settings
+				stays open so you can download your data, request account deletion or
+				resubscribe.
 			</p>
 			<Link
 				href="/billing/plans"

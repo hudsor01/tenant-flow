@@ -214,11 +214,6 @@ describe("BillingSettings empty-state branches", () => {
 	});
 
 	const RESUBSCRIBE_CASES = [
-		{
-			status: "past_due",
-			badge: "Past Due",
-			copy: /Your subscription is past due/,
-		},
 		{ status: "unpaid", badge: "Unpaid", copy: /Your subscription is unpaid/ },
 		{
 			status: "canceled",
@@ -273,7 +268,42 @@ describe("BillingSettings empty-state branches", () => {
 		},
 	);
 
-	it("renders the no-subscription branch (Upgrade to unlock copy)", async () => {
+	// The proxy admits past_due through Stripe's retries: it read "Resubscribe
+	// to restore access" to an owner who had access (66.2-39 fix round 4,
+	// Part 8l).
+	it("renders the past_due branch: keep access by updating the payment method", async () => {
+		useSubscriptionStatusMock.mockReturnValue({
+			data: {
+				subscriptionStatus: "past_due",
+				stripePriceId: "price_1TVTaIP3WCR53SdoqnUe1Inv",
+				currentPeriodEnd: null,
+				stripeCustomerId: "cus_past_due",
+				cancelAtPeriodEnd: false,
+				trialEndsAt: null,
+			},
+			isLoading: false,
+		});
+		useUserMock.mockReturnValue({
+			data: { stripe_customer_id: "cus_past_due" },
+		});
+
+		const BillingSettings = await getBillingSettings();
+		renderWithProviders(<BillingSettings />);
+
+		expect(screen.getByText("Past Due")).toBeInTheDocument();
+		expect(
+			screen.getByText(
+				"Your payment is past due. Update your payment method to keep access.",
+			),
+		).toBeInTheDocument();
+		expect(screen.queryByText(/restore access/)).toBeNull();
+		expect(screen.queryByRole("link", { name: "Resubscribe" })).toBeNull();
+		expect(
+			screen.getByRole("button", { name: "Manage Plan" }),
+		).toBeInTheDocument();
+	});
+
+	it("renders the no-subscription branch (other pages need a plan)", async () => {
 		useSubscriptionStatusMock.mockReturnValue({
 			data: {
 				subscriptionStatus: null,
@@ -293,7 +323,7 @@ describe("BillingSettings empty-state branches", () => {
 		expect(screen.getByText("No plan")).toBeInTheDocument();
 		expect(screen.getByText("No Subscription")).toBeInTheDocument();
 		expect(
-			screen.getByText(/Upgrade to unlock premium features/),
+			screen.getByText("Other pages need an active plan."),
 		).toBeInTheDocument();
 		expect(
 			screen.getByRole("button", { name: "Choose a Plan" }),
@@ -344,7 +374,7 @@ describe("BillingSettings empty-state branches", () => {
 		// "No plan" empty-state must NOT render alongside the error.
 		expect(screen.queryByText("No plan")).not.toBeInTheDocument();
 		expect(
-			screen.queryByText(/Upgrade to unlock premium features/),
+			screen.queryByText("Other pages need an active plan."),
 		).not.toBeInTheDocument();
 	});
 

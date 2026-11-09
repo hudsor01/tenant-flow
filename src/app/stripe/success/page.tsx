@@ -28,7 +28,7 @@ function SuccessContent() {
 
 				<p className="text-muted-foreground mb-8">
 					Your subscription has been activated successfully. You now have access
-					to all premium features.
+					to every feature your plan includes.
 				</p>
 
 				<div className="space-y-4">
@@ -42,7 +42,7 @@ function SuccessContent() {
 				</div>
 
 				<div className="mt-8 pt-6 border-t border-border">
-					<p className="text-muted-foreground">
+					<p className="mb-0 text-muted-foreground">
 						A confirmation email has been sent to your inbox with your receipt
 						and account details.
 					</p>

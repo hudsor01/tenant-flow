@@ -33,8 +33,8 @@ export default function CheckoutSuccessPage() {
 					</div>
 					<CardTitle className="text-2xl">Subscription Activated!</CardTitle>
 					<CardDescription>
-						Your subscription is now active and you have full access to all
-						features.
+						Your subscription is now active, with every feature your plan
+						includes.
 					</CardDescription>
 				</CardHeader>
 				<CardContent>

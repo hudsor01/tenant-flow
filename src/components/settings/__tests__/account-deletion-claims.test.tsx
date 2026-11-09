@@ -25,6 +25,13 @@
  * from its subscription gate). The privacy policy said both worked only "while
  * your subscription or trial is active", and the cancel dialog that a plan
  * must be chosen "to open the app again"; both now say what the proxy does.
+ *
+ * Part 8l: what a lapsed owner can reach was understated the other way. The
+ * lapsed banner said "Premium features are disabled until your subscription
+ * is renewed" and the billing tab "Upgrade to unlock premium features", while
+ * the proxy closes every owner page but Settings and the plan pages; and the
+ * plan pages promised "all features" on any plan, though e-sign and premium
+ * reports are Growth and Max only. The scan holds those phrases out too.
  */
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -324,6 +331,14 @@ describe("no copy claims a deletion, a retention limit or an export the code doe
 		// subscription (owner, 2026-11-09, Part 8k).
 		/while your subscription or trial is active/i,
 		/to open the app again/i,
+		// A lapsed owner reaches only Settings and the plan pages, not a
+		// "premium"-less app; a plan opens the features it includes, not all
+		// of them (Part 8l).
+		/premium features are disabled/i,
+		/unlock premium features/i,
+		/unlock all features/i,
+		/full access to all features/i,
+		/all premium features/i,
 	];
 
 	function sources(dir: string): string[] {

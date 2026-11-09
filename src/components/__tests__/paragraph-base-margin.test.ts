@@ -76,10 +76,6 @@ const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
 		1,
 		"de07c434f7013af650f679bfaab94de8a9f8172b",
 	],
-	"src/app/(owner)/billing/checkout/cancel/page.tsx": [
-		1,
-		"c45d886c30a931666a08865530e8cfbc7cca82dc",
-	],
 	"src/app/(owner)/documents/templates/components/branding-editor.tsx": [
 		1,
 		"ab640343b60d1ff9e084f3aa96452ef318d4e1eb",
@@ -125,10 +121,6 @@ const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
 	"src/app/sign/[token]/page.tsx": [
 		3,
 		"59920fd69e0b49cae40d4a631849c72d03953bb7",
-	],
-	"src/app/stripe/success/page.tsx": [
-		1,
-		"269ef285eae41c907fb03c47391a5c6054e7de63",
 	],
 	"src/components/admin/deliverability-table.tsx": [
 		1,

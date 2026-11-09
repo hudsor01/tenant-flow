@@ -139,8 +139,11 @@ function StatusBadge({ status }: { status: string | null }) {
 	);
 }
 
+// The statuses the proxy locks out of every owner page but Settings and the
+// plan pages. `past_due` is not one: the proxy admits it through Stripe's
+// retries, so it has its own line (it read "Resubscribe to restore access"
+// to an owner who had access, 66.2-39 fix round 4, Part 8l).
 const RESUBSCRIBE_STATUSES = new Set([
-	"past_due",
 	"unpaid",
 	"canceled",
 	"incomplete",
@@ -396,6 +399,12 @@ export function BillingSettings() {
 									to keep using TenantFlow when the trial ends.
 								</p>
 							)}
+							{status === "past_due" && (
+								<p className="text-sm text-muted-foreground mt-1 mb-0">
+									Your payment is past due. Update your payment method to keep
+									access.
+								</p>
+							)}
 							{isResubscribeState && (
 								<p className="text-sm text-muted-foreground mt-1 mb-0">
 									{status === "expired"
@@ -412,7 +421,7 @@ export function BillingSettings() {
 							)}
 							{!status && (
 								<p className="text-sm text-muted-foreground mt-1 mb-0">
-									Upgrade to unlock premium features
+									Other pages need an active plan.
 								</p>
 							)}
 						</div>

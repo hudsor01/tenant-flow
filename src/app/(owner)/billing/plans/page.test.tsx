@@ -96,6 +96,47 @@ describe("BillingPlansPage — BILL-01 portal-vs-checkout routing", () => {
 		expect(screen.queryByText(/undefined plan/i)).not.toBeInTheDocument();
 	});
 
+	// 66.2-39 fix round 4, Part 8l: a live but locked subscription is not
+	// "active" (the proxy sends unpaid, paused and incomplete to /pricing).
+	it.each([
+		["unpaid", "Your subscription is unpaid"],
+		["past_due", "Your subscription is past due"],
+		["paused", "Your subscription is paused"],
+	])(
+		"names a %s subscription whose plan is unresolved by its status, not as active",
+		(status, copy) => {
+			mockStatus({
+				subscriptionStatus: status,
+				stripeCustomerId: "cus_test",
+				stripePriceId: "price_legacy_comp",
+				currentPeriodEnd: "2026-06-15T12:00:00Z",
+				cancelAtPeriodEnd: false,
+			});
+			render(<BillingPlansPage />);
+
+			expect(screen.getByText(copy)).toBeInTheDocument();
+			expect(
+				screen.queryByText(/you have an active subscription/i),
+			).not.toBeInTheDocument();
+		},
+	);
+
+	it("goes back to billing settings, which an owner whose plan has lapsed still reaches", () => {
+		mockStatus({
+			subscriptionStatus: "canceled",
+			stripeCustomerId: "cus_test",
+			stripePriceId: null,
+			currentPeriodEnd: null,
+			cancelAtPeriodEnd: false,
+		});
+		render(<BillingPlansPage />);
+
+		expect(
+			screen.getByRole("link", { name: /back to billing settings/i }),
+		).toHaveAttribute("href", "/settings?tab=billing");
+		expect(screen.queryByRole("link", { name: /dashboard/i })).toBeNull();
+	});
+
 	it("keeps an abandoned-checkout trial (trialing, customer set, no synced period) on the checkout path", () => {
 		// stripe-checkout persists stripe_customer_id BEFORE the session, so a
 		// DB-trial owner who abandons checkout returns with a customer id but no
