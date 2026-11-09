@@ -2,7 +2,11 @@ import * as Sentry from "@sentry/nextjs";
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "#env";
-import { PRIVATE_ROUTE_PREFIXES } from "#lib/routes/private-routes";
+import {
+	matchesAnyRoutePrefix,
+	matchesRoutePrefix,
+	PRIVATE_ROUTE_PREFIXES,
+} from "#lib/routes/private-routes";
 import { requiresMfaStepUp } from "#lib/supabase/mfa-assurance";
 import { updateSession } from "#lib/supabase/middleware";
 import type { Database } from "#types/supabase";
@@ -35,10 +39,22 @@ const ACTIVE_SUBSCRIPTION_STATUSES = new Set([
 const SUBSCRIPTION_EXEMPT_PREFIXES = ["/settings"] as const;
 
 function isSubscriptionExempt(pathname: string): boolean {
-	return SUBSCRIPTION_EXEMPT_PREFIXES.some(
-		(prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-	);
+	return matchesAnyRoutePrefix(pathname, SUBSCRIPTION_EXEMPT_PREFIXES);
 }
+
+/**
+ * Paths that skip the `users` read and the subscription gate (step 5): the
+ * plan pages, where a lapsed owner resubscribes, and the Stripe checkout's
+ * return. `/pricing` and `/auth` are not private, so they pass at step 3 and
+ * never reach this check; they stay listed so that a future private route
+ * under either cannot send a lapsed owner from `/pricing` to `/pricing`.
+ */
+const SUBSCRIPTION_ALLOWLIST_PREFIXES = [
+	"/pricing",
+	"/billing/checkout",
+	"/billing/plans",
+	"/auth",
+] as const;
 
 /**
  * The gate, in the order `proxy()` runs it:
@@ -51,7 +67,8 @@ function isSubscriptionExempt(pathname: string): boolean {
  *      there when you ship a new gated route.
  *   4. No user, or an aal1 session that must step up to MFA, goes to
  *      `/login?redirect=<path+query>`.
- *   5. `/billing/checkout*` and `/billing/plans*` pass with no `users` read.
+ *   5. `/billing/checkout` and `/billing/plans` and their subpaths
+ *      (`SUBSCRIPTION_ALLOWLIST_PREFIXES`) pass with no `users` read.
  *   6. One `users` read (`is_admin`, `subscription_status`): a failure goes to
  *      `/login` (fail-secure); `/admin*` without `is_admin` goes to
  *      `/dashboard`.
@@ -67,9 +84,7 @@ type UserGateRow = {
 };
 
 function isPrivateRoute(pathname: string): boolean {
-	return PRIVATE_ROUTE_PREFIXES.some(
-		(prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
-	);
+	return matchesAnyRoutePrefix(pathname, PRIVATE_ROUTE_PREFIXES);
 }
 
 // Public-but-credential-sensitive routes: the login form and the auth
@@ -82,9 +97,7 @@ function isPrivateRoute(pathname: string): boolean {
 const AUTH_ROUTE_PREFIXES = ["/login", "/auth"];
 
 function isAuthRoute(pathname: string): boolean {
-	return AUTH_ROUTE_PREFIXES.some(
-		(prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
-	);
+	return matchesAnyRoutePrefix(pathname, AUTH_ROUTE_PREFIXES);
 }
 
 /**
@@ -223,7 +236,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 	// browser Supabase client refreshes the token client-side, and every private
 	// route below still runs updateSession + the auth gates. /blog is never
 	// private- or auth-gated, so nothing here depends on the refreshed session.
-	if (pathname === "/blog" || pathname.startsWith("/blog/")) {
+	if (matchesRoutePrefix(pathname, "/blog")) {
 		return NextResponse.next();
 	}
 
@@ -277,12 +290,11 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 	// sensitive surfaces (Stripe redirect-back round-trip lands on
 	// /billing/checkout). Admin routes still need the gate, so check
 	// /admin separately below.
-	const isSubscriptionAllowlisted =
-		pathname.startsWith("/pricing") ||
-		pathname.startsWith("/billing/checkout") ||
-		pathname.startsWith("/billing/plans") ||
-		pathname.startsWith("/auth/");
-	const isAdminRoute = pathname.startsWith("/admin");
+	const isSubscriptionAllowlisted = matchesAnyRoutePrefix(
+		pathname,
+		SUBSCRIPTION_ALLOWLIST_PREFIXES,
+	);
+	const isAdminRoute = matchesRoutePrefix(pathname, "/admin");
 	if (!isAdminRoute && isSubscriptionAllowlisted) {
 		return withCsp(supabaseResponse);
 	}
@@ -376,8 +388,8 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
 	// Subscription gate: authenticated non-admin users need an active,
 	// trialing or past_due subscription to reach private routes. Admins
-	// bypass. The /pricing, /billing/checkout, /billing/plans, /auth/
-	// allowlist was already short-circuited above, before the `users` read;
+	// bypass. The allowlist (SUBSCRIPTION_ALLOWLIST_PREFIXES) was already
+	// short-circuited above, before the `users` read;
 	// Settings is exempt here, after it (SUBSCRIPTION_EXEMPT_PREFIXES), so a
 	// lapsed owner still passes sign-in, MFA and the read to reach it.
 	if (!gateRow.is_admin && !isAdminRoute && !isSubscriptionExempt(pathname)) {
@@ -392,8 +404,14 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 	return withCsp(supabaseResponse);
 }
 
+// Skips Next's static assets and image optimizer, the favicon, image files,
+// the Sentry tunnel and the API routes, each on a path-segment boundary (the
+// rule of `matchesRoutePrefix`, which Next cannot call: it reads the matcher
+// as a literal at build time):
+// `/monitoring` and `/monitoring/x`, never `/monitoringx`; the dot in
+// `favicon.ico` is literal (66.2-39 fix round 4, Part 8l).
 export const config = {
 	matcher: [
-		"/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|monitoring|api/).*)",
+		"/((?!_next/static(?:/|$)|_next/image(?:/|$)|favicon\\.ico$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|monitoring(?:/|$)|api(?:/|$)).*)",
 	],
 };

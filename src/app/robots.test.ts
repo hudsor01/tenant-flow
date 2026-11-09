@@ -5,6 +5,7 @@ vi.mock("#lib/generate-metadata", () => ({
 }));
 
 import {
+	matchesRoutePrefix,
 	PRIVATE_ROUTE_PREFIXES,
 	ROBOTS_ONLY_PRIVATE_PATHS,
 } from "#lib/routes/private-routes";
@@ -169,18 +170,14 @@ describe("robots()", () => {
 	});
 });
 
-// The exact predicate `proxy.ts#isPrivateRoute` uses. Duplicated here on
-// purpose: importing proxy.ts would pull in @supabase/ssr, next/server and the
-// validated env module, none of which this suite needs. The predicate is three
-// lines and pinned by the assertions below, so a drift in proxy.ts's matching
-// rule surfaces as a behavioural test failure elsewhere rather than silently.
+// The prefixes that capture `pathname`, by the predicate `proxy.ts`'s
+// `isPrivateRoute` uses (`matchesRoutePrefix`, imported from the same module
+// as the prefixes, so this suite tests the proxy's rule, not a copy of it).
 function matchesPrefix(
 	pathname: string,
 	prefixes: readonly string[],
 ): string[] {
-	return prefixes.filter(
-		(prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
-	);
+	return prefixes.filter((prefix) => matchesRoutePrefix(pathname, prefix));
 }
 
 // Assertions 3 and 4 below are a PAIR, and neither means much alone: one proves

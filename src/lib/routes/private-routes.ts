@@ -3,6 +3,29 @@
  * Imported by proxy.ts (middleware gate) and robots.ts (disallow list).
  * Never edit this file without updating both consumers.
  */
+
+/**
+ * Whether `pathname` is `prefix` or a path below it. Every route-prefix match
+ * in the request path (`proxy.ts`: the private routes, the auth routes and
+ * so the nonce-CSP routes, `/blog`, the subscription allowlist and exemption,
+ * `/admin`) goes through here, so a prefix matches on a path-segment boundary:
+ * `/billing/plans` covers `/billing/plans/x` but not `/billing/plansx`
+ * (66.2-39 fix round 4, Part 8l; the allowlist and the admin check matched
+ * any continuation). No prefix is meant to match a non-boundary
+ * continuation. The proxy's `config.matcher` states the same boundaries in
+ * its pattern, because Next reads it as a literal at build time.
+ */
+export function matchesRoutePrefix(pathname: string, prefix: string): boolean {
+	return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
+export function matchesAnyRoutePrefix(
+	pathname: string,
+	prefixes: readonly string[],
+): boolean {
+	return prefixes.some((prefix) => matchesRoutePrefix(pathname, prefix));
+}
+
 export const PRIVATE_ROUTE_PREFIXES = [
 	"/admin",
 	"/analytics",
@@ -16,8 +39,8 @@ export const PRIVATE_ROUTE_PREFIXES = [
 	//    reverse order is how an authenticated surface goes public for a commit.
 	//
 	// 2. `isPrivateRoute` (proxy.ts) matches on a path-segment boundary
-	//    (`pathname === prefix || pathname.startsWith(prefix + "/")`), so this
-	//    entry provably cannot capture the public `/apply/<token>` route.
+	//    (`matchesRoutePrefix` above), so this entry provably cannot capture
+	//    the public `/apply/<token>` route.
 	//
 	// 3. `/apply` is deliberately absent from BOTH arrays in this file
 	//    (D-13/D-14). It is public by ABSENCE — the proxy is a deny-list. The
