@@ -477,6 +477,11 @@
      "what": "ComboboxContent w-max (width: max-content), which the Dice UI source does not set: the positioner places the list by top and left, and an absolutely positioned box's shrink-to-fit width is the room right of its left edge, so the list's width followed wherever it last sat (opened at 480 and again at 320, 268px wide at x 51.63; 1280 to 390 while open, 325px at x 65 where a fresh page opens it 390px wide at x 0)",
      "reason": "D-26 customization",
      "ref": "66.2-39 fix round 4 Part 8f (overlay viewport-change sweep; Floating UI computePosition initial layout)"
+    },
+    {
+     "what": "the list has an id (useId, through a context the Root provides) and the input and trigger point aria-controls at it, where Dice UI 2.0.0 points both at an id it never gives the list; the trigger carries aria-label \"Show options\" unless its caller names it, where Dice UI's is a bare chevron button; the input and list take their name from the caller through aria-labelledby",
+     "reason": "D-26 customization",
+     "ref": "WCAG 4.1.2; 66.2-39 fix round 4 Part 8h (rendered axe pass: aria-valid-attr-value, button-name, aria-input-field-name on the lease wizard)"
     }
    ]
   },

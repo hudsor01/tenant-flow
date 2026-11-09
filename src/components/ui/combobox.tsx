@@ -17,24 +17,37 @@
  *   sat. Opened at 480 and again at 320, it was 268px wide at x 51.63; after
  *   1280 to 390 with it open, 325px at x 65, where a page loaded at that
  *   width opens it at 0 and the viewport's width (66.2-39 fix round 4,
- *   Part 8f).
+ *   Part 8f);
+ * - the list has an id, and the input and the trigger point `aria-controls`
+ *   at it: Dice UI 2.0.0 points both at an id it never gives the list, so
+ *   axe failed the open combobox's `aria-controls`. The trigger is named
+ *   ("Show options" unless its caller names it), where Dice UI's is a bare
+ *   chevron button (axe `button-name`). The input and the list take their
+ *   name from the caller's label through `aria-labelledby` (the trimmed Label
+ *   part had named both; 66.2-39 fix round 4, Part 8h).
  */
 import * as ComboboxPrimitive from "@diceui/combobox";
 import { Check, ChevronDown } from "lucide-react";
-import type { ComponentProps } from "react";
+import { type ComponentProps, createContext, useContext, useId } from "react";
 
 import { cn } from "#lib/utils";
+
+/** The list's id, which the input and the trigger point `aria-controls` at. */
+const ComboboxListIdContext = createContext<string | undefined>(undefined);
 
 const Combobox = (({
 	className,
 	...props
 }: ComponentProps<typeof ComboboxPrimitive.Root>) => {
+	const listId = useId();
 	return (
-		<ComboboxPrimitive.Root
-			data-slot="combobox"
-			className={cn(className)}
-			{...props}
-		/>
+		<ComboboxListIdContext value={listId}>
+			<ComboboxPrimitive.Root
+				data-slot="combobox"
+				className={cn(className)}
+				{...props}
+			/>
+		</ComboboxListIdContext>
 	);
 }) as ComboboxPrimitive.ComboboxRootComponentProps;
 
@@ -58,9 +71,11 @@ function ComboboxInput({
 	className,
 	...props
 }: ComponentProps<typeof ComboboxPrimitive.Input>) {
+	const listId = useContext(ComboboxListIdContext);
 	return (
 		<ComboboxPrimitive.Input
 			data-slot="combobox-input"
+			aria-controls={listId}
 			className={cn(
 				"flex h-9 w-full rounded-md bg-transparent text-base placeholder:text-muted-foreground focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
 				className,
@@ -75,9 +90,12 @@ function ComboboxTrigger({
 	children,
 	...props
 }: ComponentProps<typeof ComboboxPrimitive.Trigger>) {
+	const listId = useContext(ComboboxListIdContext);
 	return (
 		<ComboboxPrimitive.Trigger
 			data-slot="combobox-trigger"
+			aria-controls={listId}
+			aria-label="Show options"
 			className={cn(
 				"flex shrink-0 items-center justify-center rounded-r-md border-input bg-transparent text-muted-foreground transition-colors hover:text-foreground/80 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
 				className,
@@ -95,10 +113,12 @@ function ComboboxContent({
 	children,
 	...props
 }: ComponentProps<typeof ComboboxPrimitive.Content>) {
+	const listId = useContext(ComboboxListIdContext);
 	return (
 		<ComboboxPrimitive.Portal>
 			<ComboboxPrimitive.Content
 				data-slot="combobox-content"
+				id={listId}
 				sideOffset={sideOffset}
 				className={cn(
 					"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--dice-available-height) w-max max-w-(--dice-available-width) min-w-(--dice-anchor-width) origin-(--dice-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=closed]:animate-out data-[state=open]:animate-in",
