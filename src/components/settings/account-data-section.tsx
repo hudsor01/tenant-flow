@@ -4,7 +4,10 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { AlertTriangle, Download, Loader2, Trash2, Undo2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { DeletionScheduledNotice } from "#components/settings/deletion-scheduled-notice";
+import {
+	ACCOUNT_DELETION_COPY,
+	DeletionScheduledNotice,
+} from "#components/settings/deletion-scheduled-notice";
 import { downloadAccountData } from "#components/settings/download-account-data";
 import { BlurFade } from "#components/ui/blur-fade";
 import { authKeys } from "#hooks/api/use-auth";
@@ -51,20 +54,11 @@ export function AccountDataSection() {
 			setConfirmText("");
 			deletionStatus.refetch();
 		},
-		onError: (err: Error) => {
-			const message = err.message || "Failed to request deletion";
-			if (message.includes("active leases")) {
-				toast.error(
-					"Cannot delete account with active leases. Please end all leases first.",
-				);
-			} else if (message.includes("pending payments")) {
-				toast.error(
-					"Cannot delete account with pending payments. Please resolve outstanding payments first.",
-				);
-			} else {
-				toast.error(userFacingErrorMessage(err, "Failed to request deletion"));
-			}
-		},
+		// request_account_deletion() only stamps the request, so it never refuses
+		// for a lease or a payment; an active lease delays the nightly job
+		// instead (ACCOUNT_DELETION_COPY).
+		onError: (err: Error) =>
+			toast.error(userFacingErrorMessage(err, "Failed to request deletion")),
 	});
 
 	const cancelDeletion = useMutation({
@@ -99,9 +93,12 @@ export function AccountDataSection() {
 					<h3 className="mb-1 text-sm font-medium text-muted-foreground uppercase tracking-wider">
 						Data Portability
 					</h3>
+					{/* What export-user-data returns: the profile and these tables,
+					    with documents as a list (the files are not in it). It has no
+					    rent ledger, inspections, vendors or applications (Part 8i). */}
 					<p className="text-sm text-muted-foreground mb-4">
-						Export all your account data including properties, tenants, leases,
-						and payment history as a JSON file.
+						Download your profile, properties, units, tenants, leases,
+						maintenance requests, expenses and document list as a JSON file.
 					</p>
 					<button
 						onClick={() => exportData.mutate()}
@@ -149,9 +146,7 @@ export function AccountDataSection() {
 					) : (
 						<>
 							<p className="text-sm text-muted-foreground mb-4">
-								Request deletion of your account and all associated data. You
-								will have a 30-day grace period to cancel before deletion is
-								permanent.
+								{ACCOUNT_DELETION_COPY.intro}
 							</p>
 
 							{!showDeleteConfirm ? (
@@ -171,12 +166,10 @@ export function AccountDataSection() {
 										/>
 										<div>
 											<p className="mb-0 text-sm font-medium text-destructive-text">
-												This will schedule your account for deletion
+												{ACCOUNT_DELETION_COPY.confirmTitle}
 											</p>
 											<p className="text-sm text-muted-foreground mt-1 mb-0">
-												After 30 days, all your data will be permanently
-												anonymized. You can cancel anytime during the grace
-												period.
+												{ACCOUNT_DELETION_COPY.confirmBody}
 											</p>
 										</div>
 									</div>

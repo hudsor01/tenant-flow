@@ -27,17 +27,33 @@ describe("DeletionScheduledNotice", () => {
 		vi.useRealTimers();
 	});
 
-	it("names the deletion date and the days left, 30 days after the request", () => {
+	// The job runs the first night after the date, and waits while a lease is
+	// active; it never deletes the account itself (Part 8i). The notice said
+	// "Your account will be permanently deleted on <date>".
+	it("names the earliest date the job runs and the days until it, 30 days after the request", () => {
 		render(
 			<DeletionScheduledNotice deletionRequestedAt="2026-11-01T12:00:00Z" />,
 		);
 		expect(
 			screen.getByText("Account scheduled for deletion"),
 		).toBeInTheDocument();
-		const body = screen.getByText(/permanently deleted on/);
+		const body = screen.getByText(/Deletion runs on or after/);
 		expect(body.textContent).toBe(
-			"Your account will be permanently deleted on December 1, 2026. You have 24 days remaining to cancel.",
+			"Deletion runs on or after December 1, 2026, in 24 days. If a lease is still active then, it waits until none is. You can cancel until it runs.",
 		);
+	});
+
+	// Past the date (a lease still active, or before that night's run) the
+	// notice counted negative days: "You have -6 days remaining to cancel."
+	it("says the deletion is due, not a negative count, once the date has passed", () => {
+		render(
+			<DeletionScheduledNotice deletionRequestedAt="2026-09-01T12:00:00Z" />,
+		);
+		const body = screen.getByText(/Deletion was due on/);
+		expect(body.textContent).toBe(
+			"Deletion was due on October 1, 2026. It runs on the first night no lease is active. You can cancel until it runs.",
+		);
+		expect(body.textContent).not.toMatch(/-\d/);
 	});
 
 	it("leaves no base paragraph margin on either line", () => {
@@ -46,7 +62,7 @@ describe("DeletionScheduledNotice", () => {
 		);
 		for (const line of [
 			screen.getByText("Account scheduled for deletion"),
-			screen.getByText(/permanently deleted on/),
+			screen.getByText(/Deletion runs on or after/),
 		]) {
 			const { neutralized, baseline } = computeParagraphCascade(line);
 			expect(baseline.marginBottom).toBe("16px");

@@ -164,7 +164,7 @@ export default function AboutPage() {
 									<ItemTitle>Security & Privacy</ItemTitle>
 									<ItemDescription className="mb-0">
 										Row-level data isolation per landlord, encrypted at rest,
-										GDPR-compliant deletion flow.
+										data export and account deletion requests in Settings.
 									</ItemDescription>
 								</ItemContent>
 							</Item>
