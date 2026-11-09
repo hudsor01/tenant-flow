@@ -129,10 +129,14 @@ const DELETE_COPY = {
 /** The actions menu's item that opens the delete confirmation. */
 const DELETE_MENU_LABEL = "Delete application";
 
-/** §B-8, the anonymized banner. */
+/**
+ * §B-8, the anonymized banner. `anonymize_old_rental_applications()` clocks
+ * `coalesce(decided_at, created_at)`, so an application nobody decided is aged
+ * from its submission (66.2-39 fix round 4, Part 8i).
+ */
 const ANONYMIZED_COPY = {
 	title: "This application has been anonymized.",
-	body: "TenantFlow removes applicant details two years after a decision. The unit, dates, status and recorded reason are kept.",
+	body: "TenantFlow removes applicant details two years after a decision, or two years after submission if none was made. The unit, dates, status and recorded reason are kept.",
 } as const;
 
 const NOTES_COPY = {

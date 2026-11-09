@@ -623,8 +623,13 @@ describe("ApplicationDetail — an anonymized row is a stub, not a person", () =
 		expect(
 			screen.getByText("This application has been anonymized."),
 		).toBeInTheDocument();
+		// The sweep clocks coalesce(decided_at, created_at): an application with
+		// no decision is aged from its submission, and the banner says so
+		// (66.2-39 fix round 4, Part 8i).
 		expect(
-			screen.getByText(/TenantFlow removes applicant details two years/),
+			screen.getByText(
+				"TenantFlow removes applicant details two years after a decision, or two years after submission if none was made. The unit, dates, status and recorded reason are kept.",
+			),
 		).toBeInTheDocument();
 		expect(container.textContent ?? "").not.toContain(SENTINEL);
 		// The stub the spec requires: the unit, the dates, the status and the
