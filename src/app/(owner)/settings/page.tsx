@@ -59,7 +59,6 @@ interface SettingsSection {
 	id: SettingsTab;
 	label: string;
 	icon: ReactNode;
-	description: string;
 }
 
 const sections: SettingsSection[] = [
@@ -67,37 +66,31 @@ const sections: SettingsSection[] = [
 		id: "general",
 		label: "General",
 		icon: <Building2 className="h-4 w-4" />,
-		description: "Business profile and preferences",
 	},
 	{
 		id: "notifications",
 		label: "Notifications",
 		icon: <Bell className="h-4 w-4" />,
-		description: "Email and in-app notification settings",
 	},
 	{
 		id: "security",
 		label: "Security",
 		icon: <Shield className="h-4 w-4" />,
-		description: "Password and authentication",
 	},
 	{
 		id: "billing",
 		label: "Billing",
 		icon: <CreditCard className="h-4 w-4" />,
-		description: "Subscription and payment info",
 	},
 	{
 		id: "categories",
 		label: "Categories",
 		icon: <FolderTree className="h-4 w-4" />,
-		description: "Customize the document taxonomy",
 	},
 	{
 		id: "data",
 		label: "My Data",
 		icon: <Database className="h-4 w-4" />,
-		description: "Export or delete your data",
 	},
 ];
 
