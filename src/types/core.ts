@@ -186,17 +186,6 @@ export interface FinancialOverviewResponse {
 	year: number;
 }
 
-export interface LeaseStatsResponse {
-	totalLeases: number;
-	activeLeases: number;
-	expiredLeases: number;
-	terminatedLeases: number;
-	totalMonthlyRent: number;
-	averageRent: number;
-	total_security_deposits: number;
-	expiringLeases: number;
-}
-
 export interface TenantWithLeaseInfo {
 	id: string;
 	owner_user_id: string | null;

@@ -114,22 +114,6 @@ export const leaseMutations = {
 			},
 		}),
 
-	/** Optimistic delete returns the ID for rollback */
-	deleteOptimistic: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.leases.delete,
-			mutationFn: async (id: string): Promise<string> => {
-				const supabase = createClient();
-				const { error } = await supabase
-					.from("leases")
-					.update({ lease_status: "inactive" })
-					.eq("id", id);
-
-				if (error) handlePostgrestError(error, "leases");
-				return id;
-			},
-		}),
-
 	terminate: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.leases.terminate,

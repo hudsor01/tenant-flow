@@ -345,7 +345,6 @@ src/components/bulk-import/parse-csv-with-schema.ts CSV_MAX_ROWS
 src/components/dashboard/dashboard-data.ts DashboardViewModel transformDashboardData
 src/components/layout/navbar.tsx default
 src/components/layout/page-layout.tsx default
-src/components/leases/lease-action-buttons.tsx LeaseActionButtons
 src/components/leases/lease-form-options.ts validationSchema
 src/components/notifications/notification-item.tsx resolveHref
 src/components/pricing/owner-subscribe-dialog.tsx default

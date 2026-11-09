@@ -28,7 +28,6 @@ export const mutationKeys = {
 	leases: {
 		create: ["mutations", "leases", "create"] as const,
 		update: ["mutations", "leases", "update"] as const,
-		delete: ["mutations", "leases", "delete"] as const,
 		sign: ["mutations", "leases", "sign"] as const,
 		sendForSignature: ["mutations", "leases", "sendForSignature"] as const,
 		cancelSignature: ["mutations", "leases", "cancelSignature"] as const,

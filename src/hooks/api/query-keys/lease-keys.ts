@@ -7,15 +7,8 @@ import { queryOptions } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
-import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { PaginatedResponse } from "#types/api-contracts";
-import type {
-	Lease,
-	LeaseStatsResponse,
-	Property,
-	Tenant,
-	Unit,
-} from "#types/core";
+import type { Lease, Property, Tenant, Unit } from "#types/core";
 import {
 	type ExpiringLeaseRow,
 	mapExpiringLeaseRow,
@@ -198,32 +191,6 @@ export const leaseQueries = {
 				return (data ?? []).map((row) => mapExpiringLeaseRow(row));
 			},
 			staleTime: 5 * 60 * 1000,
-		}),
-
-	stats: () =>
-		queryOptions({
-			queryKey: [...leaseQueries.all(), "stats"],
-			queryFn: async (): Promise<LeaseStatsResponse> => {
-				const supabase = createClient();
-				const user = await getCachedUser();
-				if (!user) throw new Error("Not authenticated");
-				const { data, error } = await supabase.rpc("get_lease_stats", {
-					p_user_id: user.id,
-				});
-				if (error) handlePostgrestError(error, "leases");
-				const stats = data as Record<string, number>;
-				return {
-					totalLeases: stats.totalLeases ?? 0,
-					activeLeases: stats.activeLeases ?? 0,
-					expiredLeases: stats.expiredLeases ?? 0,
-					terminatedLeases: stats.terminatedLeases ?? 0,
-					totalMonthlyRent: stats.totalMonthlyRent ?? 0,
-					averageRent: stats.averageRent ?? 0,
-					total_security_deposits: stats.total_security_deposits ?? 0,
-					expiringLeases: stats.expiringLeases ?? 0,
-				};
-			},
-			...QUERY_CACHE_TIMES.STATS,
 		}),
 
 	signedDocument: (leaseId: string, enabled = true) =>

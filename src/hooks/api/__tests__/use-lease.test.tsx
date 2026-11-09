@@ -284,36 +284,6 @@ describe("Query Hooks", () => {
 		});
 	});
 
-	describe("leaseQueries.stats", () => {
-		it("should call get_lease_stats RPC for aggregated counts", async () => {
-			supabaseRpcMock.mockResolvedValue({
-				data: {
-					totalLeases: 10,
-					activeLeases: 5,
-					expiredLeases: 2,
-					terminatedLeases: 1,
-					expiringLeases: 1,
-					totalMonthlyRent: 5000,
-					averageRent: 1000,
-					total_security_deposits: 2500,
-				},
-				error: null,
-			});
-
-			const { result } = renderHook(() => useQuery(leaseQueries.stats()), {
-				wrapper: createWrapper(),
-			});
-
-			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true);
-			});
-
-			expect(supabaseRpcMock).toHaveBeenCalledWith("get_lease_stats", {
-				p_user_id: "user-123",
-			});
-		});
-	});
-
 	describe("useLeaseSignatureStatus", () => {
 		it("derives owner/tenant/both-signed booleans from the raw timestamps", async () => {
 			supabaseFromMock.mockImplementation((table: string) => {

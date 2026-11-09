@@ -11,113 +11,13 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
-import { logger } from "#lib/frontend-logger";
 import type { LeaseUpdateInput } from "#lib/validation/leases";
 import type { Lease } from "#types/core";
-import { type LeaseDetailRow, leaseQueries } from "./query-keys/lease-keys";
+import { leaseQueries } from "./query-keys/lease-keys";
 import { leaseMutations } from "./query-keys/lease-mutation-options";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 import { tenantQueries } from "./query-keys/tenant-keys";
 import { unitQueries } from "./query-keys/unit-keys";
-
-/**
- * Mutation hook to delete a lease with optimistic removal
- */
-export function useDeleteLeaseOptimisticMutation(options?: {
-	onSuccess?: () => void;
-	onError?: (error: Error) => void;
-}) {
-	const queryClient = useQueryClient();
-
-	const callbacks = createMutationCallbacks<
-		string,
-		string,
-		{
-			previousDetail: LeaseDetailRow | undefined;
-			previousLists: [
-				readonly unknown[],
-				(
-					| {
-							data: Lease[];
-							total?: number;
-							limit?: number;
-							offset?: number;
-					  }
-					| undefined
-				),
-			][];
-		}
-	>(queryClient, {
-		invalidate: [
-			leaseQueries.lists(),
-			leaseQueries.stats().queryKey,
-			// Soft-deleting an active lease frees its unit (the
-			// sync_unit_status_from_lease trigger), so the units views refresh.
-			unitQueries.all(),
-			ownerDashboardKeys.all,
-		],
-		errorContext: "Delete lease",
-		onSuccessExtra: () => {
-			logger.info("Lease deleted successfully");
-			options?.onSuccess?.();
-		},
-		optimistic: {
-			cancel: (id) => [leaseQueries.detail(id).queryKey, leaseQueries.lists()],
-			snapshot: (qc, id) => ({
-				previousDetail: qc.getQueryData(leaseQueries.detail(id).queryKey),
-				previousLists: qc.getQueriesData<{
-					data: Lease[];
-					total?: number;
-					limit?: number;
-					offset?: number;
-				}>({ queryKey: leaseQueries.lists() }),
-			}),
-			apply: (qc, id) => {
-				qc.removeQueries({
-					queryKey: leaseQueries.detail(id).queryKey,
-				});
-				qc.setQueriesData<{
-					data: Lease[];
-					total?: number;
-					limit?: number;
-					offset?: number;
-				}>({ queryKey: leaseQueries.lists() }, (old) =>
-					old
-						? {
-								...old,
-								data: old.data.filter((lease) => lease.id !== id),
-								total: (old.total ?? old.data.length) - 1,
-							}
-						: old,
-				);
-			},
-			rollback: (qc, context, id) => {
-				if (context.previousDetail) {
-					qc.setQueryData(
-						leaseQueries.detail(id).queryKey,
-						context.previousDetail,
-					);
-				}
-				if (context.previousLists) {
-					context.previousLists.forEach(([queryKey, data]) => {
-						qc.setQueryData(queryKey, data);
-					});
-				}
-			},
-		},
-	});
-
-	return useMutation({
-		...leaseMutations.deleteOptimistic(),
-		...callbacks,
-		// Dual error handling: factory shows standard toast via handleMutationError;
-		// options.onError is for caller-specific side effects (e.g., navigation, dialog close).
-		onError: (err, vars, ctx) => {
-			callbacks.onError(err, vars, ctx);
-			options?.onError?.(err instanceof Error ? err : new Error(String(err)));
-		},
-	});
-}
 
 /**
  * Create lease mutation
