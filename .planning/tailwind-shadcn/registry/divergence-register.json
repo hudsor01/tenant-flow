@@ -786,6 +786,11 @@
      "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
      "reason": "D-26 customization",
      "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "an Item inside an ItemGroup takes role listitem (the group provides a context; the file is a client module for it), where upstream gives the group role list and its items no role, so the list owned no listitem",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.3.1; 66.2-39 fix round 4 Part 8h (rendered axe pass: aria-required-children on /about and /help)"
     }
    ]
   },
