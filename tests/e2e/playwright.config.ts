@@ -224,6 +224,8 @@ export default defineConfig({
 				"**/owner/applications.spec.ts",
 				// Phase 66.2 sidebar spec — owner-axe only, see the note there.
 				"**/owner/app-shell-sidebar.spec.ts",
+				// 66.2-39 fix round 4, Part 8h — owner-axe only, see the note there.
+				"**/owner/properties-table-a11y.e2e.spec.ts",
 			],
 		},
 
@@ -283,6 +285,10 @@ export default defineConfig({
 				// jsdom can decide none of them. Listing it here is what makes it gate
 				// a PR — CI runs `--project=owner-axe` and never runs `owner`.
 				"**/owner/app-shell-sidebar.spec.ts",
+				// 66.2-39 fix round 4, Part 8h: the /properties table view, which no
+				// URL names, by axe at 320 and 1280 (CI's axe runs saw /dashboard and
+				// the shell only). Listing it here is what makes it gate a PR.
+				"**/owner/properties-table-a11y.e2e.spec.ts",
 				// Phase 66.2 WCAG 1.4.10 reflow sweep (fix round 1, part F) — every
 				// owner page at 320px, self-authenticating via loginAsOwner (no
 				// storageState). Listed here so it gates a PR; the public half runs
@@ -363,6 +369,8 @@ export default defineConfig({
 				"**/owner/applications.spec.ts",
 				// Phase 66.2 sidebar spec — owner-axe only, see the note there.
 				"**/owner/app-shell-sidebar.spec.ts",
+				// 66.2-39 fix round 4, Part 8h — owner-axe only, see the note there.
+				"**/owner/properties-table-a11y.e2e.spec.ts",
 			],
 		},
 
@@ -386,6 +394,8 @@ export default defineConfig({
 				"**/owner/applications.spec.ts",
 				// Phase 66.2 sidebar spec — owner-axe only, see the note there.
 				"**/owner/app-shell-sidebar.spec.ts",
+				// 66.2-39 fix round 4, Part 8h — owner-axe only, see the note there.
+				"**/owner/properties-table-a11y.e2e.spec.ts",
 			],
 		},
 	],
