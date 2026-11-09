@@ -63,18 +63,28 @@ function formatNextBillingDate(currentPeriodEnd: string | null): string | null {
 	});
 }
 
+// The statuses whose subscription has ended: Stripe's terminal `canceled` and
+// `incomplete_expired`, and `expired`, a DB-managed trial that lapsed. Every
+// other status is a subscription the owner still has.
+const ENDED_STATUSES = new Set(["canceled", "incomplete_expired", "expired"]);
+
 // Resolve the plan-card title so the heading never contradicts the status
-// badge (the prior "No plan" + "Active" bug). Cases ordered by specificity:
-// known plan → trial → active-without-plan (synthetic / sync-lag) → no plan.
+// badge (the prior "No plan" + "Active" bug). A known plan is named whatever
+// the status, and the badge beside it states the status: only `active` and
+// `trialing` counted, so a past_due owner on Growth read "No plan" (main
+// session, 66.2-39 fix round 4, Part 8m). "No plan" is only for an owner who
+// has none: no subscription, or one that has ended. Cases ordered by
+// specificity: known plan → trial → active-without-plan (synthetic /
+// sync-lag) → no plan → another subscription whose plan is not known.
 function resolvePlanTitle(
 	status: string | null,
-	isActive: boolean,
 	currentPlan: PricingConfig | null,
 ): string {
-	if (isActive && currentPlan) return currentPlan.name;
+	if (currentPlan) return currentPlan.name;
 	if (status === "trialing") return "Free trial";
-	if (isActive) return "Active subscription";
-	return "No plan";
+	if (status === "active") return "Active subscription";
+	if (status === null || ENDED_STATUSES.has(status)) return "No plan";
+	return "Your subscription";
 }
 
 const STATUS_BADGE_VARIANTS = {
@@ -315,7 +325,7 @@ export function BillingSettings() {
 						<div>
 							<div className="flex items-center gap-2 mb-1">
 								<h4 className="text-xl font-bold">
-									{resolvePlanTitle(status, isActive, currentPlan)}
+									{resolvePlanTitle(status, currentPlan)}
 								</h4>
 								<StatusBadge status={status} />
 							</div>

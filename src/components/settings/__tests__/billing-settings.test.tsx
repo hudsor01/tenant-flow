@@ -8,7 +8,7 @@
  */
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -424,4 +424,77 @@ describe("BillingSettings empty-state branches", () => {
 			screen.getByText(/Your session appears to have expired/),
 		).toBeInTheDocument();
 	});
+});
+
+// Main session, Part 8m: the plan title names the plan whenever the plan is
+// known, whatever the status, and the badge beside it states the status. It
+// counted only `active` and `trialing` as having a plan, so a past_due owner
+// on Growth read "No plan". "No plan" is only for an owner who has none: no
+// subscription, or one that has ended.
+describe("BillingSettings plan title", () => {
+	const GROWTH_PRICE = "price_1TVTaIP3WCR53SdoqnUe1Inv";
+	const STATUSES = [
+		{ status: "active", badge: "Active", none: "Active subscription" },
+		{ status: "trialing", badge: "Trial", none: "Free trial" },
+		{ status: "past_due", badge: "Past Due", none: "Your subscription" },
+		{ status: "unpaid", badge: "Unpaid", none: "Your subscription" },
+		{ status: "paused", badge: "Paused", none: "Your subscription" },
+		{ status: "incomplete", badge: "Incomplete", none: "Your subscription" },
+		{ status: "canceled", badge: "Canceled", none: "No plan" },
+		{ status: "incomplete_expired", badge: "Expired", none: "No plan" },
+		{ status: "expired", badge: "Trial Expired", none: "No plan" },
+		{ status: null, badge: "No Subscription", none: "No plan" },
+	] as const;
+
+	beforeEach(() => {
+		useSubscriptionStatusMock.mockReset();
+		useUserMock.mockReset();
+		captureMessageMock.mockReset();
+		useUserMock.mockReturnValue({ data: { stripe_customer_id: "cus_title" } });
+	});
+
+	async function titleAndBadge(
+		status: (typeof STATUSES)[number]["status"],
+		stripePriceId: string | null,
+	) {
+		useSubscriptionStatusMock.mockReturnValue({
+			data: {
+				subscriptionStatus: status,
+				stripePriceId,
+				currentPeriodEnd: "2026-12-01T00:00:00.000Z",
+				stripeCustomerId: "cus_title",
+				cancelAtPeriodEnd: false,
+				trialEndsAt: null,
+			},
+			isLoading: false,
+		});
+		const BillingSettings = await getBillingSettings();
+		renderWithProviders(<BillingSettings />);
+		const card = screen
+			.getByRole("heading", { name: "Current Plan" })
+			.closest("section") as HTMLElement;
+		const title = within(card).getByRole("heading", { level: 4 });
+		return {
+			title: title.textContent,
+			row: title.parentElement as HTMLElement,
+		};
+	}
+
+	it.each(STATUSES)(
+		"$status with a known plan: the plan's name, the status beside it",
+		async ({ status, badge }) => {
+			const { title, row } = await titleAndBadge(status, GROWTH_PRICE);
+			expect(title).toBe("Growth");
+			expect(within(row).getByText(badge)).toBeInTheDocument();
+		},
+	);
+
+	it.each(STATUSES)(
+		"$status with no known plan: $none",
+		async ({ status, badge, none }) => {
+			const { title, row } = await titleAndBadge(status, null);
+			expect(title).toBe(none);
+			expect(within(row).getByText(badge)).toBeInTheDocument();
+		},
+	);
 });

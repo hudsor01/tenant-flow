@@ -208,14 +208,18 @@ export default function BillingPlansPage() {
 						<h1 className="text-2xl font-bold text-foreground">
 							Subscription Plans
 						</h1>
+						{/* A known plan is named with its status beside it: past_due,
+						    unpaid, paused and incomplete read "You are currently on the
+						    Growth plan" as an active one did (main session, 66.2-39 fix
+						    round 4, Part 8m). */}
 						<p className="mb-0 text-muted-foreground mt-1">
-							{hasSubscription && currentPlan
-								? `You are currently on the ${currentPlan.name} plan`
-								: hasSubscription
-									? status === "active" || status === "trialing"
-										? "You have an active subscription"
-										: `Your subscription is ${status?.replace(/_/g, " ")}`
-									: "Choose a plan that fits your needs"}
+							{hasSubscription
+								? status === "active" || status === "trialing"
+									? currentPlan
+										? `You are currently on the ${currentPlan.name} plan`
+										: "You have an active subscription"
+									: `Your ${currentPlan ? `${currentPlan.name} ` : ""}subscription is ${status?.replace(/_/g, " ")}`
+								: "Choose a plan that fits your needs"}
 						</p>
 					</div>
 

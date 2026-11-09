@@ -121,6 +121,33 @@ describe("BillingPlansPage — BILL-01 portal-vs-checkout routing", () => {
 		},
 	);
 
+	// Main session, Part 8m: a known plan is named with its status beside it.
+	// "You are currently on the Growth plan" read the same for an unpaid owner,
+	// whom the proxy locks out, as for an active one.
+	it.each([
+		["active", "You are currently on the Growth plan"],
+		["trialing", "You are currently on the Growth plan"],
+		["past_due", "Your Growth subscription is past due"],
+		["unpaid", "Your Growth subscription is unpaid"],
+		["paused", "Your Growth subscription is paused"],
+		["incomplete", "Your Growth subscription is incomplete"],
+	])(
+		"names a %s subscription's known plan with its status: %s",
+		(status, copy) => {
+			mockStatus({
+				subscriptionStatus: status,
+				stripeCustomerId: "cus_test",
+				stripePriceId: "price_1TVTaIP3WCR53SdoqnUe1Inv",
+				currentPeriodEnd: "2026-06-15T12:00:00Z",
+				cancelAtPeriodEnd: false,
+			});
+			render(<BillingPlansPage />);
+
+			expect(screen.getByText(copy)).toBeInTheDocument();
+			expect(screen.getByText("Current Plan: Growth")).toBeInTheDocument();
+		},
+	);
+
 	it("goes back to billing settings, which an owner whose plan has lapsed still reaches", () => {
 		mockStatus({
 			subscriptionStatus: "canceled",
