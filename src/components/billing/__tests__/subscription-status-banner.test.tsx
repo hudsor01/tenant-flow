@@ -214,11 +214,11 @@ describe("SubscriptionStatusBanner", () => {
 	it.each([
 		[
 			5 * 24 * 60 * 60 * 1000,
-			"5 days left in your trial. Without a payment method on file when it ends, your subscription is canceled.",
+			"5 days left in your trial. Without a payment method on file when the trial ends, your subscription is canceled.",
 		],
 		[
 			12 * 60 * 60 * 1000,
-			"1 day left in your trial. Without a payment method on file when it ends, your subscription is canceled.",
+			"1 day left in your trial. Without a payment method on file when the trial ends, your subscription is canceled.",
 		],
 		[
 			-2 * 24 * 60 * 60 * 1000,
@@ -226,7 +226,7 @@ describe("SubscriptionStatusBanner", () => {
 		],
 		[
 			null,
-			"Your plan's trial is on. Without a payment method on file when it ends, your subscription is canceled.",
+			"Your plan's trial is on. Without a payment method on file when the trial ends, your subscription is canceled.",
 		],
 	])(
 		"tells a trial of a chosen plan what happens at its end (%s ms left)",

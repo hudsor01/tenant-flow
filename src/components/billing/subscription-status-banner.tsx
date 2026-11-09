@@ -74,10 +74,10 @@ export function SubscriptionStatusBanner() {
 		if (subscription.stripePriceId !== null) {
 			const plan =
 				daysLeft === null
-					? "Your plan's trial is on. Without a payment method on file when it ends, your subscription is canceled."
+					? "Your plan's trial is on. Without a payment method on file when the trial ends, your subscription is canceled."
 					: daysLeft <= 0
 						? "Your trial has ended. Without a payment method on file, your subscription is canceled."
-						: `${daysLeft} ${dayWord} left in your trial. Without a payment method on file when it ends, your subscription is canceled.`;
+						: `${daysLeft} ${dayWord} left in your trial. Without a payment method on file when the trial ends, your subscription is canceled.`;
 			return (
 				<StatusBanner
 					tone="primary"
@@ -178,6 +178,10 @@ const BANNER_TONES = {
  * under it, for every banner's copy (measured on the rendered banners: the
  * lapsed one from 348px, the past_due one from 340px), and the layout is the
  * row it always was. The banner's own width decides, through its container.
+ * The plan-trial copies hold it too, every day count from 1 to 14, measured
+ * at every 2px from 352 to 520: worded "when it ends", the copies of 102 to
+ * 104 characters ran 4 lines beside the link where the grid held 2, at
+ * 410-416 (66.2-39 fix round 4, Part 8n).
  */
 function StatusBanner({
 	tone,
