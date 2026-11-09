@@ -226,7 +226,7 @@ describe("useRevokeSessionMutation - current session fast-path", () => {
 			isCurrent: true,
 		});
 
-		expect(res).toEqual({ success: true, message: "Session terminated" });
+		expect(res).toEqual({ signedOutThisBrowser: true });
 		expect(mockSignOut).toHaveBeenCalledTimes(1);
 		// This device only: signOut()'s default scope is "global", which ended
 		// every session of the account while the confirmation said this device
@@ -275,7 +275,7 @@ describe("useRevokeSessionMutation - current session fast-path", () => {
 			isCurrent: false,
 		});
 
-		expect(res).toEqual({ success: true, message: "Session terminated" });
+		expect(res).toEqual({ signedOutThisBrowser: true });
 		expect(mockSignOut).toHaveBeenCalledTimes(1);
 		// This device only: signOut()'s default scope is "global", which ended
 		// every session of the account while the confirmation said this device
@@ -307,7 +307,7 @@ describe("useRevokeSessionMutation - non-current RPC path", () => {
 			isCurrent: false,
 		});
 
-		expect(res).toEqual({ success: true, message: "Session terminated" });
+		expect(res).toEqual({ signedOutThisBrowser: false });
 		expect(mockGetUser).toHaveBeenCalledTimes(1);
 		expect(mockRpc).toHaveBeenCalledWith("revoke_user_session", {
 			p_user_id: "user-1",
@@ -347,7 +347,7 @@ describe("useRevokeSessionMutation - non-current RPC path", () => {
 			isCurrent: false,
 		});
 
-		expect(res).toEqual({ success: true, message: "Session terminated" });
+		expect(res).toEqual({ signedOutThisBrowser: true });
 		expect(mockRpc).toHaveBeenCalledTimes(1);
 		expect(mockSignOut).toHaveBeenCalledTimes(1);
 		expect(callOrder).toEqual(["rpc", "signOut"]);
@@ -436,7 +436,7 @@ describe("useRevokeSessionMutation - non-current RPC path", () => {
 			isCurrent: false,
 		});
 
-		expect(res).toEqual({ success: true, message: "Session terminated" });
+		expect(res).toEqual({ signedOutThisBrowser: false });
 		// session was null in both getSession calls → decode never invoked.
 		expect(mockDecodeSessionId).not.toHaveBeenCalled();
 		expect(mockRpc).toHaveBeenCalledWith("revoke_user_session", {
@@ -508,7 +508,10 @@ describe("useRevokeSessionMutation - optimistic cache", () => {
 		expect(mockRouter.replace).toHaveBeenCalledWith("/login");
 	});
 
-	it("onSuccess reports success via handleMutationSuccess", async () => {
+	// Main session, Part 8m: this browser's session is gone, so its success
+	// clears the auth data and lands on /login at once, with no toast, as
+	// every other sign-out does.
+	it("a successful sign-out of this device clears the auth data and lands on /login once", async () => {
 		mockGetSession.mockResolvedValue(makeSession());
 		mockDecodeSessionId.mockReturnValue(null);
 		mockSignOut.mockResolvedValue({ error: null });
@@ -520,11 +523,59 @@ describe("useRevokeSessionMutation - optimistic cache", () => {
 
 		await result.current.mutateAsync({ id: "session-A", isCurrent: true });
 
-		expect(mockHandleMutationSuccess).toHaveBeenCalledWith(
-			"Revoke session",
-			"The session has been terminated successfully",
+		await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledTimes(1));
+		expect(mockRouter.replace).toHaveBeenCalledWith("/login");
+		expect(mockClearAuthData).toHaveBeenCalledTimes(1);
+		expect(mockHandleMutationSuccess).not.toHaveBeenCalled();
+	});
+
+	it("the defense-in-depth sign-out after the RPC lands on /login too", async () => {
+		mockGetSession.mockResolvedValue(makeSession());
+		mockDecodeSessionId
+			.mockReturnValueOnce("current-session-id")
+			.mockReturnValueOnce("session-B");
+		mockGetUser.mockResolvedValue({
+			data: { user: { id: "user-1" } },
+			error: null,
+		});
+		mockRpc.mockResolvedValue({ data: null, error: null });
+		mockSignOut.mockResolvedValue({ error: null });
+
+		const { wrapper } = createWrapperWithClient();
+		const { result } = renderHook(() => useRevokeSessionMutation(), {
+			wrapper,
+		});
+
+		await result.current.mutateAsync({ id: "session-B", isCurrent: false });
+
+		await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledTimes(1));
+		expect(mockRouter.replace).toHaveBeenCalledWith("/login");
+		expect(mockClearAuthData).toHaveBeenCalledTimes(1);
+		expect(mockHandleMutationSuccess).not.toHaveBeenCalled();
+	});
+
+	it("another session's revoke reports success via handleMutationSuccess and stays", async () => {
+		mockGetSession.mockResolvedValue(makeSession());
+		mockDecodeSessionId.mockReturnValue("current-session-id");
+		mockGetUser.mockResolvedValue({
+			data: { user: { id: "user-1" } },
+			error: null,
+		});
+		mockRpc.mockResolvedValue({ data: null, error: null });
+
+		const { wrapper } = createWrapperWithClient();
+		const { result } = renderHook(() => useRevokeSessionMutation(), {
+			wrapper,
+		});
+
+		await result.current.mutateAsync({ id: "session-B", isCurrent: false });
+
+		await waitFor(() =>
+			expect(mockHandleMutationSuccess).toHaveBeenCalledWith(
+				"Revoke session",
+				"The session has been terminated successfully",
+			),
 		);
-		// Its success is unchanged (main session, Part 8l): no landing.
 		expect(mockRouter.replace).not.toHaveBeenCalled();
 		expect(mockClearAuthData).not.toHaveBeenCalled();
 	});

@@ -32,12 +32,13 @@ import userEvent from "@testing-library/user-event";
 import { createElement, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { toastError, router } = vi.hoisted(() => ({
+const { toastError, toastSuccess, router } = vi.hoisted(() => ({
 	toastError: vi.fn(),
+	toastSuccess: vi.fn(),
 	router: { push: vi.fn(), replace: vi.fn(), back: vi.fn() },
 }));
 vi.mock("sonner", () => ({
-	toast: { error: toastError, success: vi.fn() },
+	toast: { error: toastError, success: toastSuccess },
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
@@ -204,6 +205,7 @@ beforeEach(() => {
 	stubFetch();
 	seedSession();
 	toastError.mockClear();
+	toastSuccess.mockClear();
 	router.push.mockClear();
 	router.replace.mockClear();
 });
@@ -544,6 +546,39 @@ describe("the session row's Sign out this device, with the real auth-js", () => 
 			...renderHook(() => useRevokeSessionMutation(), { wrapper }),
 		};
 	}
+
+	// Part 8m (main session): the browser's session is gone, so a success lands
+	// on /login at once, as every other sign-out does, not on an owner page
+	// with no session.
+	it("a successful sign-out of this device clears the session and lands on /login once", async () => {
+		const { result } = renderRevoke();
+
+		await act(async () => {
+			await result.current.mutateAsync({ id: CURRENT, isCurrent: true });
+		});
+		expect(logouts()).toEqual(["POST /auth/v1/logout?scope=local"]);
+		expect(hasSession()).toBe(false);
+		expect(router.replace).toHaveBeenCalledTimes(1);
+		expect(router.replace).toHaveBeenCalledWith("/login");
+		expect(router.push).not.toHaveBeenCalled();
+		// The landing says it, as every other sign-out's does; no toast.
+		expect(toastSuccess).not.toHaveBeenCalled();
+	});
+
+	it("a successful revoke of another session stays on Settings and keeps this one", async () => {
+		const { result } = renderRevoke();
+
+		await act(async () => {
+			await result.current.mutateAsync({ id: OTHER, isCurrent: false });
+		});
+		expect(logouts()).toEqual([]);
+		expect(hasSession()).toBe(true);
+		expect(router.replace).not.toHaveBeenCalled();
+		expect(router.push).not.toHaveBeenCalled();
+		expect(toastSuccess).toHaveBeenCalledWith(
+			"The session has been terminated successfully",
+		);
+	});
 
 	it("a failed sign-out of this device clears the session, shows the incomplete outcome and lands on /login", async () => {
 		answers = ["500"];

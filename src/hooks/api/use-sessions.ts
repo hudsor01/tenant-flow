@@ -82,7 +82,7 @@ const sessionMutationFactories = {
 					// what could not work: the incomplete outcome of "Sign out"
 					// instead (Part 8l).
 					if (error) throw new SignOutIncompleteError(error);
-					return { success: true, message: "Session terminated" };
+					return { signedOutThisBrowser: true };
 				}
 
 				// Non-current sessions: SECURITY DEFINER RPC validates auth.uid() ==
@@ -115,9 +115,10 @@ const sessionMutationFactories = {
 					: null;
 				if (postCurrent !== null && postCurrent === input.id) {
 					await supabase.auth.signOut({ scope: "local" });
+					return { signedOutThisBrowser: true };
 				}
 
-				return { success: true, message: "Session terminated" };
+				return { signedOutThisBrowser: false };
 			},
 		}),
 };
@@ -165,7 +166,16 @@ export function useRevokeSessionMutation() {
 
 			handleMutationError(error, "Revoke session");
 		},
-		onSuccess: () => {
+		onSuccess: ({ signedOutThisBrowser }) => {
+			// This browser's session is gone: clear what a sign-out clears and
+			// land on /login at once, as every other sign-out does (main
+			// session, Part 8m), not on Settings with no session. Another
+			// session's revoke stays here, since this browser keeps its own.
+			if (signedOutThisBrowser) {
+				clearAuthData();
+				router.replace("/login");
+				return;
+			}
 			handleMutationSuccess(
 				"Revoke session",
 				"The session has been terminated successfully",
