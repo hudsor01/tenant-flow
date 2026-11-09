@@ -40,6 +40,11 @@ export function MaintenanceFormFields({
 	const { data: allTenants } = useAllTenants();
 	const fullName = (t: NonNullable<typeof allTenants>[number]): string =>
 		`${t.first_name ?? ""} ${t.last_name ?? ""}`.trim();
+	// An option's text is its name: a tenant saved with only `name` (or only
+	// an email) rendered an empty option, which axe's aria-toggle-field-name
+	// failed on the open tenant list (66.2-39 fix round 4, Part 8h).
+	const optionLabel = (t: NonNullable<typeof allTenants>[number]): string =>
+		fullName(t) || t.name?.trim() || t.email?.trim() || "Unnamed tenant";
 	const tenants = [...(allTenants ?? [])].sort((a, b) => {
 		const nameA = fullName(a);
 		const nameB = fullName(b);
@@ -138,7 +143,7 @@ export function MaintenanceFormFields({
 								) : (
 									tenants.map((tenant) => (
 										<SelectItem key={tenant.id} value={tenant.id}>
-											{tenant.first_name} {tenant.last_name}
+											{optionLabel(tenant)}
 										</SelectItem>
 									))
 								)}
