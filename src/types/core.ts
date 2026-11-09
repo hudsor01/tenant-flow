@@ -135,19 +135,6 @@ export type MaintenanceRequestWithExtras = MaintenanceRequest & {
 	preferredDate?: string;
 };
 
-export type TenantWithExtras = Tenant & {
-	name?: string;
-	email?: string;
-	phone?: string | null;
-	first_name?: string | null;
-	last_name?: string | null;
-	auth_user_id?: string;
-	invitation_status?: string;
-	invitation_sent_at?: string | null;
-	status?: string;
-	move_out_date?: string | null;
-};
-
 // Re-export app-only types from constants
 export type MaintenanceCategory = MaintenanceCategoryFromConstants;
 export type PropertyType = PropertyTypeFromConstants;
@@ -186,25 +173,12 @@ export interface FinancialOverviewResponse {
 	year: number;
 }
 
-export interface TenantWithLeaseInfo {
-	id: string;
-	owner_user_id: string | null;
-	status: string;
-	created_at: string | null;
-	date_of_birth: string | null;
-	emergency_contact_name: string | null;
-	emergency_contact_phone: string | null;
-	emergency_contact_relationship: string | null;
-	identity_verified: boolean | null;
-	ssn_last_four: string | null;
-	move_out_date: string | null;
-	move_out_reason: string | null;
-	updated_at: string | null;
-	name: string | null;
-	email: string | null;
-	phone: string | null;
-	first_name: string | null;
-	last_name: string | null;
+/**
+ * A tenant row (the generated `tenants` Row, so a column the database adds
+ * reaches it without a hand-kept copy; 66.2-39 fix round 4, Part 8k) with its
+ * current lease and where it lives.
+ */
+export interface TenantWithLeaseInfo extends Tenant {
 	currentLease?: {
 		id: string;
 		start_date: string;
