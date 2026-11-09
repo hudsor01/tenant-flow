@@ -569,6 +569,24 @@ describe("the session row's Sign out this device, with the real auth-js", () => 
 		).toEqual([OTHER]);
 	});
 
+	// Part 8l: offline it runs at once (networkMode always), never paused until
+	// the browser is back, when the session would have ended unasked.
+	it("runs offline at once: this device's row fails to the incomplete outcome", async () => {
+		answers = ["offline"];
+		onlineManager.setOnline(false);
+		const { result } = renderRevoke();
+
+		act(() => {
+			result.current.mutate({ id: CURRENT, isCurrent: true });
+		});
+		await waitFor(() => expect(result.current.isError).toBe(true));
+		expect(result.current.isPaused).toBe(false);
+		expect(result.current.error).toBeInstanceOf(SignOutIncompleteError);
+		expect(logouts()).toEqual(["POST /auth/v1/logout?scope=local"]);
+		expect(hasSession()).toBe(false);
+		expect(router.replace).toHaveBeenCalledWith("/login");
+	});
+
 	it("a failed revoke of another session keeps this one, restores its row, and a retry sends again", async () => {
 		rpcAnswers = ["500"];
 		const { result, queryClient } = renderRevoke();

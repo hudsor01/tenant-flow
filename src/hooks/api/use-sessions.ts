@@ -33,9 +33,17 @@ export interface RevokeSessionInput {
 }
 
 const sessionMutationFactories = {
+	/**
+	 * `networkMode: "always"`, as "Sign out" has (Part 8k): under the app's
+	 * default `"online"` an offline press paused the mutation, the dialog
+	 * stayed loading, and the session ended on reconnect; now it runs at once
+	 * and fails, this device's row with the incomplete outcome (66.2-39 fix
+	 * round 4, Part 8l).
+	 */
 	revoke: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.sessions.revoke,
+			networkMode: "always",
 			mutationFn: async (input: RevokeSessionInput) => {
 				const supabase = createClient();
 
