@@ -8,6 +8,11 @@
  * Query hooks and authKeys remain in use-auth.ts per CLAUDE.md rule.
  */
 
+import {
+	type AuthError,
+	isAuthApiError,
+	isAuthSessionMissingError,
+} from "@supabase/supabase-js";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { logger } from "#lib/frontend-logger";
@@ -39,15 +44,44 @@ const SIGN_OUT_INCOMPLETE_TITLE = "Sign out did not finish";
 const SIGN_OUT_INCOMPLETE_DETAIL =
 	"You are signed out of this browser, but its session may still be open on our server. Sign in again and end it under Active Sessions in Settings.";
 
+/**
+ * "Sign out" found this browser's session already ended on the server
+ * (another device signed out everywhere, or revoked it under Active
+ * Sessions). The logout endpoint then answers 403 `session_not_found` (or 401
+ * for a JWT it rejects), which auth-js treats as success, so the two requests
+ * would report "signed out everywhere" while the other sessions stayed open:
+ * the server cannot tell whose sessions to end from a session it no longer
+ * has. Signing in again gives the browser a live session, and "Sign out"
+ * then ends the others through its first request.
+ */
+const SIGN_OUT_SESSION_ENDED_DETAIL =
+	"This browser was already signed out, so your other devices could not be signed out from here. Sign in and sign out again to end their sessions.";
+
 export class SignOutIncompleteError extends Error {
 	readonly title = SIGN_OUT_INCOMPLETE_TITLE;
-	readonly detail = SIGN_OUT_INCOMPLETE_DETAIL;
-	constructor(cause: unknown) {
-		super(`${SIGN_OUT_INCOMPLETE_TITLE}. ${SIGN_OUT_INCOMPLETE_DETAIL}`, {
-			cause,
-		});
+	readonly detail: string;
+	constructor(cause: unknown, detail: string = SIGN_OUT_INCOMPLETE_DETAIL) {
+		super(`${SIGN_OUT_INCOMPLETE_TITLE}. ${detail}`, { cause });
 		this.name = "SignOutIncompleteError";
+		this.detail = detail;
 	}
+}
+
+/**
+ * `getUser()`'s answer for a browser whose session the server no longer
+ * accepts (auth-js 2.118.0, proven against a stubbed fetch, 66.2-39 fix
+ * round 4, Part 8l): a 403 `session_not_found`, or no session in the browser
+ * at all, is `AuthSessionMissingError`, and auth-js has removed the session
+ * and fired SIGNED_OUT; a 401 (a JWT the server rejects) is an
+ * `AuthApiError` with status 401, and the session is still stored. A live
+ * session answers with the user; a 404 means the user no longer exists, and
+ * with it every session, so there is nothing left to end.
+ */
+function sessionAlreadyEnded(error: AuthError): boolean {
+	return (
+		isAuthSessionMissingError(error) ||
+		(isAuthApiError(error) && (error.status === 401 || error.status === 403))
+	);
 }
 
 const authMutationFactories = {
@@ -63,6 +97,13 @@ const authMutationFactories = {
 	 *      and can try again.
 	 *   2. `scope: "local"` then ends this session, on the server and in the
 	 *      browser. Its failure is `SignOutIncompleteError`.
+	 * Before them, one `getUser()` request asks the server whether it still
+	 * accepts this browser's session. When it does not, neither request could
+	 * end the other sessions, and both would report success (auth-js treats a
+	 * 401, 403 or 404 from the logout endpoint as signed out), so the sign-out
+	 * stops with the incomplete outcome and says why (Part 8l). Any other
+	 * `getUser()` failure (offline, a 5xx) is left to the first request, which
+	 * fails the same way or succeeds.
 	 * `networkMode: "always"`: under the app's default `"online"` an offline
 	 * press paused the mutation ("Signing out..." until the browser came back)
 	 * and then signed out on reconnect; now it fails at once.
@@ -73,6 +114,18 @@ const authMutationFactories = {
 			networkMode: "always",
 			mutationFn: async () => {
 				const supabase = createClient();
+				const { error: userError } = await supabase.auth.getUser();
+				if (userError && sessionAlreadyEnded(userError)) {
+					// After a 403 getUser() has removed the session, so this sends
+					// nothing; after a 401 the rejected session is still stored, and
+					// this removes it (a local sign-out removes it whatever its
+					// request is answered).
+					await supabase.auth.signOut({ scope: "local" });
+					throw new SignOutIncompleteError(
+						userError,
+						SIGN_OUT_SESSION_ENDED_DETAIL,
+					);
+				}
 				const others = await supabase.auth.signOut({ scope: "others" });
 				if (others.error) throw others.error;
 				const local = await supabase.auth.signOut({ scope: "local" });

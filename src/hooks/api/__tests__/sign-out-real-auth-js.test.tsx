@@ -100,6 +100,12 @@ let calls: string[] = [];
 let answers: Answer[];
 /** How each revoke_user_session RPC is answered, in order (then "ok"). */
 let rpcAnswers: Answer[];
+/**
+ * How GET /auth/v1/user is answered: the user, GoTrue's answer for a JWT
+ * whose session no longer exists (403 `session_not_found`), one for a JWT it
+ * rejects (401 `bad_jwt`), or a 500.
+ */
+let userAnswer: "ok" | "403-session-not-found" | "401-bad-jwt" | "500";
 
 function stubFetch() {
 	vi.stubGlobal(
@@ -129,6 +135,32 @@ function stubFetch() {
 					);
 				}
 				return new Response(null, { status: 204 });
+			}
+			if (url.pathname === "/auth/v1/user" && userAnswer !== "ok") {
+				const [status, code, msg] =
+					userAnswer === "403-session-not-found"
+						? [
+								403,
+								"session_not_found",
+								"Session from session_id claim in JWT does not exist",
+							]
+						: userAnswer === "401-bad-jwt"
+							? [
+									401,
+									"bad_jwt",
+									"invalid JWT: unable to parse or verify signature",
+								]
+							: [500, "unexpected_failure", "server error"];
+				return new Response(
+					JSON.stringify({ code: status, error_code: code, msg }),
+					{
+						status,
+						headers: {
+							"content-type": "application/json",
+							"x-supabase-api-version": "2024-01-01",
+						},
+					},
+				);
 			}
 			if (url.pathname === "/auth/v1/user") {
 				return new Response(JSON.stringify(USER), {
@@ -166,6 +198,7 @@ beforeEach(() => {
 	calls = [];
 	answers = [];
 	rpcAnswers = [];
+	userAnswer = "ok";
 	// Node's BroadcastChannel keeps the worker alive; auth-js skips it when absent.
 	vi.stubGlobal("BroadcastChannel", undefined);
 	stubFetch();
@@ -208,6 +241,72 @@ describe("useSignOutMutation, with the real auth-js", () => {
 	});
 
 	it("success sends scope=others, then scope=local, and removes the session", async () => {
+		const { result } = renderSignOut();
+
+		await act(async () => {
+			await result.current.mutateAsync();
+		});
+		expect(logouts()).toEqual([
+			"POST /auth/v1/logout?scope=others",
+			"POST /auth/v1/logout?scope=local",
+		]);
+		expect(hasSession()).toBe(false);
+	});
+
+	// Part 8l: one GET /auth/v1/user before the logouts asks whether the
+	// server still accepts this browser's session.
+	it("asks the server for the user first, then sends the two logouts", async () => {
+		const { result } = renderSignOut();
+
+		await act(async () => {
+			await result.current.mutateAsync();
+		});
+		expect(calls).toEqual([
+			"GET /auth/v1/user",
+			"POST /auth/v1/logout?scope=others",
+			"POST /auth/v1/logout?scope=local",
+		]);
+	});
+
+	it("a session another device already ended (403 session_not_found) is the incomplete outcome, with no logout sent", async () => {
+		userAnswer = "403-session-not-found";
+		const { result } = renderSignOut();
+
+		await act(async () => {
+			await expect(result.current.mutateAsync()).rejects.toBeInstanceOf(
+				SignOutIncompleteError,
+			);
+		});
+		// Without the check: others and local both answered 403, which auth-js
+		// treats as success, and the owner read "signed out" everywhere.
+		expect(logouts()).toEqual([]);
+		expect(hasSession()).toBe(false);
+		expect(toastError).toHaveBeenCalledWith(
+			"Sign out did not finish. This browser was already signed out, so your other devices could not be signed out from here. Sign in and sign out again to end their sessions.",
+		);
+		expect(router.replace).toHaveBeenCalledTimes(1);
+		expect(router.replace).toHaveBeenCalledWith("/login");
+	});
+
+	it("a JWT the server rejects (401) is the same outcome, and the rejected session is removed", async () => {
+		userAnswer = "401-bad-jwt";
+		answers = ["ok"];
+		const { result } = renderSignOut();
+
+		await act(async () => {
+			await expect(result.current.mutateAsync()).rejects.toMatchObject({
+				name: "SignOutIncompleteError",
+				detail:
+					"This browser was already signed out, so your other devices could not be signed out from here. Sign in and sign out again to end their sessions.",
+			});
+		});
+		expect(logouts()).toEqual(["POST /auth/v1/logout?scope=local"]);
+		expect(hasSession()).toBe(false);
+		expect(router.replace).toHaveBeenCalledWith("/login");
+	});
+
+	it("a getUser() failure that is not an ended session (500) is left to the logouts", async () => {
+		userAnswer = "500";
 		const { result } = renderSignOut();
 
 		await act(async () => {
@@ -351,6 +450,39 @@ describe("/auth/signout, with the real auth-js and AuthProvider", () => {
 			screen.queryByText("You have been signed out successfully."),
 		).toBeNull();
 		expect(screen.getByRole("button", { name: /^sign in$/i })).toBeVisible();
+	});
+
+	it("a session ended on the server after the page loaded says so in the page, never Signed Out", async () => {
+		renderPage();
+		const button = await screen.findByRole("button", { name: /^sign out$/i });
+		userAnswer = "403-session-not-found";
+		await userEvent.click(button);
+
+		expect(
+			await screen.findByText(
+				"This browser was already signed out, so your other devices could not be signed out from here. Sign in and sign out again to end their sessions.",
+			),
+		).toBeInTheDocument();
+		expect(screen.getByText("Sign out did not finish")).toBeInTheDocument();
+		expect(screen.queryByText("Signed Out")).toBeNull();
+		expect(logouts()).toEqual([]);
+		expect(hasSession()).toBe(false);
+		expect(router.replace).not.toHaveBeenCalled();
+		expect(screen.getByRole("button", { name: /^sign in$/i })).toBeVisible();
+	});
+
+	it("an arrival whose session already ended reads as signed out on this browser, and claims nothing else", async () => {
+		userAnswer = "403-session-not-found";
+		renderPage();
+
+		// AuthProvider's own getUser() met the 403 and auth-js removed the
+		// session, so the page's session check reads none.
+		expect(await screen.findByText("Signed Out")).toBeInTheDocument();
+		expect(
+			screen.getByText("You are not signed in on this browser."),
+		).toBeInTheDocument();
+		expect(hasSession()).toBe(false);
+		expect(logouts()).toEqual([]);
 	});
 
 	// Part 8l: a success lands on /login at once, once; no timer.
