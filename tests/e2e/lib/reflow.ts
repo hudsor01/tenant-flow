@@ -48,7 +48,6 @@ export const PUBLIC_REFLOW_ROUTES = [
 	"/search",
 	"/security-policy",
 	"/stripe/cancel",
-	"/stripe/success",
 	"/terms",
 	"/sign/not-a-real-token",
 	"/apply/not-a-real-token",
