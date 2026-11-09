@@ -101,5 +101,4 @@ export const ROBOTS_ONLY_PRIVATE_PATHS = [
 	"/owner",
 	"/_next/data",
 	"/monitoring",
-	"/stripe",
 ] as const;

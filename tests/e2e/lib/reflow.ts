@@ -46,7 +46,6 @@ export const PUBLIC_REFLOW_ROUTES = [
 	"/resources/security-deposit-reference-card",
 	"/search",
 	"/security-policy",
-	"/stripe/cancel",
 	"/terms",
 	"/sign/not-a-real-token",
 	"/apply/not-a-real-token",
