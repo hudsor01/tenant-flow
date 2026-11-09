@@ -206,7 +206,10 @@ function LoginPageContent() {
 
 	const handleMfaCancel = async () => {
 		const supabase = createClient();
-		await supabase.auth.signOut();
+		// Abandoning the challenge ends this half-signed-in session only, on the
+		// server and in the browser. The default scope, "global", ended every
+		// session of the account on every device (66.2-39 fix round 4, Part 8k).
+		await supabase.auth.signOut({ scope: "local" });
 		setShowMfaDialog(false);
 		setMfaFactorId(null);
 		setPendingRedirect(null);

@@ -117,16 +117,22 @@ vi.mock("#hooks/api/use-profile-avatar-mutations", () => ({
 // Mock use-auth hooks
 const mockSignOut = vi.fn();
 const mockChangePassword = vi.fn();
-vi.mock("#hooks/api/use-auth-mutations", () => ({
-	useSignOutMutation: () => ({
-		mutateAsync: mockSignOut,
-		isPending: false,
-	}),
-	useChangePasswordMutation: () => ({
-		mutateAsync: mockChangePassword,
-		isPending: false,
-	}),
-}));
+vi.mock("#hooks/api/use-auth-mutations", async () => {
+	const actual = await vi.importActual<
+		typeof import("#hooks/api/use-auth-mutations")
+	>("#hooks/api/use-auth-mutations");
+	return {
+		SignOutIncompleteError: actual.SignOutIncompleteError,
+		useSignOutMutation: () => ({
+			mutateAsync: mockSignOut,
+			isPending: false,
+		}),
+		useChangePasswordMutation: () => ({
+			mutateAsync: mockChangePassword,
+			isPending: false,
+		}),
+	};
+});
 
 // Mock sonner
 vi.mock("sonner", () => ({
@@ -327,6 +333,44 @@ describe("Owner Profile Page", () => {
 		await user.click(screen.getByText("Sign Out"));
 
 		expect(mockSignOut).toHaveBeenCalled();
+		await waitFor(() => expect(mockPush).toHaveBeenCalledWith("/login"));
+	});
+
+	// 66.2-39 fix round 4, Part 8k: the mutation's onError shows the toast; the
+	// page decides only where the owner goes.
+	it("stays on the page after a failed first request, whose session is kept", async () => {
+		const user = userEvent.setup();
+		mockSignOut.mockRejectedValueOnce(new Error("Failed to fetch"));
+
+		render(
+			<TestWrapper>
+				<OwnerProfilePage />
+			</TestWrapper>,
+		);
+		await user.click(await screen.findByText("Sign Out"));
+
+		await waitFor(() => expect(mockSignOut).toHaveBeenCalled());
+		expect(mockPush).not.toHaveBeenCalledWith("/login");
+		expect(screen.getByText("Sign Out")).toBeInTheDocument();
+	});
+
+	it("goes to sign in after a failed second request, whose browser session is gone", async () => {
+		const user = userEvent.setup();
+		const { SignOutIncompleteError } = await import(
+			"#hooks/api/use-auth-mutations"
+		);
+		mockSignOut.mockRejectedValueOnce(
+			new SignOutIncompleteError(new Error("server error")),
+		);
+
+		render(
+			<TestWrapper>
+				<OwnerProfilePage />
+			</TestWrapper>,
+		);
+		await user.click(await screen.findByText("Sign Out"));
+
+		await waitFor(() => expect(mockPush).toHaveBeenCalledWith("/login"));
 	});
 
 	it("navigates to settings page from quick links", async () => {

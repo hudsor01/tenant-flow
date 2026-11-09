@@ -19,14 +19,60 @@ import { getCachedUser } from "#lib/supabase/get-cached-user";
 import { mutationKeys } from "./mutation-keys";
 import { useAuthCacheUtils } from "./use-auth";
 
+/** What a failed first request of "Sign out" tells the owner (shell and profile toast). */
+const SIGN_OUT_FAILED = "Sign out failed. Check your connection and try again.";
+
+/**
+ * The second request of "Sign out" failed. auth-js 2.118.0 `_signOut` has
+ * already removed this browser's session (it does on any error other than
+ * 401/403/404 unless the scope is `others`), and the first request ended every
+ * other session, so only this session may still be open on the server. A
+ * retry cannot reach it, because the browser no longer holds its token;
+ * signing in again and signing out ends it, through that sign-out's first
+ * request.
+ */
+const SIGN_OUT_INCOMPLETE_TITLE = "Sign out did not finish";
+const SIGN_OUT_INCOMPLETE_DETAIL =
+	"You are signed out of this browser and your other devices, but this session may still be open on our server. Sign in and sign out again to close it.";
+
+export class SignOutIncompleteError extends Error {
+	readonly title = SIGN_OUT_INCOMPLETE_TITLE;
+	readonly detail = SIGN_OUT_INCOMPLETE_DETAIL;
+	constructor(cause: unknown) {
+		super(`${SIGN_OUT_INCOMPLETE_TITLE}. ${SIGN_OUT_INCOMPLETE_DETAIL}`, {
+			cause,
+		});
+		this.name = "SignOutIncompleteError";
+	}
+}
+
 const authMutationFactories = {
+	/**
+	 * "Sign out" ends every session of the account, on every device (sessions
+	 * here never expire, so the general sign-out is global). It does so in two
+	 * requests, because one `scope: "global"` request that fails has already
+	 * cleared this browser's session (auth-js 2.118.0 `_signOut`), and the page
+	 * then said the owner was signed out while every other session stayed open
+	 * (66.2-39 fix round 4, Part 8k):
+	 *   1. `scope: "others"` ends every other session. On failure auth-js keeps
+	 *      this browser's session, so the owner stays signed in, sees the error
+	 *      and can try again.
+	 *   2. `scope: "local"` then ends this session, on the server and in the
+	 *      browser. Its failure is `SignOutIncompleteError`.
+	 * `networkMode: "always"`: under the app's default `"online"` an offline
+	 * press paused the mutation ("Signing out..." until the browser came back)
+	 * and then signed out on reconnect; now it fails at once.
+	 */
 	logout: () =>
 		mutationOptions<void, unknown, void>({
 			mutationKey: mutationKeys.auth.logout,
+			networkMode: "always",
 			mutationFn: async () => {
 				const supabase = createClient();
-				const { error } = await supabase.auth.signOut();
-				if (error) throw error;
+				const others = await supabase.auth.signOut({ scope: "others" });
+				if (others.error) throw others.error;
+				const local = await supabase.auth.signOut({ scope: "local" });
+				if (local.error) throw new SignOutIncompleteError(local.error);
 			},
 		}),
 
@@ -76,9 +122,17 @@ const authMutationFactories = {
 };
 
 /**
- * Sign out mutation with comprehensive cache clearing
+ * Sign out mutation with comprehensive cache clearing.
+ *
+ * A failure is shown as a toast (the shell's menu and command palette, the
+ * profile page). `/auth/signout` passes `toastOnError: false`: it shows the
+ * failure in the page, beside its retry.
  */
-export function useSignOutMutation() {
+export function useSignOutMutation({
+	toastOnError = true,
+}: {
+	toastOnError?: boolean;
+} = {}) {
 	const { clearAuthData } = useAuthCacheUtils();
 
 	return useMutation({
@@ -90,6 +144,18 @@ export function useSignOutMutation() {
 			});
 		},
 		onError: (error) => {
+			// The browser is signed out after an incomplete sign-out too: clear
+			// what a success clears, so the next user of this browser inherits
+			// nothing.
+			if (error instanceof SignOutIncompleteError) clearAuthData();
+			if (toastOnError) {
+				handleMutationError(
+					error,
+					"Sign out",
+					error instanceof SignOutIncompleteError ? undefined : SIGN_OUT_FAILED,
+				);
+				return;
+			}
 			logger.error("Sign out failed", {
 				action: "sign_out_error",
 				metadata: {

@@ -1,0 +1,345 @@
+/**
+ * @vitest-environment jsdom
+ * "Sign out" against the real auth-js (66.2-39 fix round 4, Part 8k).
+ *
+ * Nothing here is mocked between the app and the network: the hook and the
+ * `/auth/signout` page run the app's own `createClient()` (`@supabase/ssr`'s
+ * browser client and auth-js 2.118.0), which keeps the session in
+ * `document.cookie`, and only `fetch` is a stub that answers in this process.
+ * The session is synthetic; no request leaves the test.
+ *
+ * With one `scope: "global"` request, a failed request had already removed
+ * the browser's session (`_signOut` does on any error other than 401/403/404
+ * unless the scope is `others`), and the page then said "You have been signed
+ * out successfully" while every other session stayed open. The sign-out is
+ * now `others`, then `local`.
+ */
+
+import {
+	onlineManager,
+	QueryClient,
+	QueryClientProvider,
+} from "@tanstack/react-query";
+import {
+	act,
+	cleanup,
+	render,
+	renderHook,
+	screen,
+	waitFor,
+} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { createElement, type ReactNode } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const { toastError } = vi.hoisted(() => ({ toastError: vi.fn() }));
+vi.mock("sonner", () => ({
+	toast: { error: toastError, success: vi.fn() },
+}));
+
+import SignOutPage from "#app/auth/signout/page";
+import { AuthStoreProvider } from "#providers/auth-provider";
+import {
+	SignOutIncompleteError,
+	useSignOutMutation,
+} from "../use-auth-mutations";
+
+// The app's browser client keys its cookie on the project ref, the URL's first
+// label: http://localhost:54321 (src/test/unit-setup.ts) gives "localhost".
+const COOKIE = "sb-localhost-auth-token";
+
+const b64url = (value: unknown) =>
+	btoa(JSON.stringify(value))
+		.replace(/\+/g, "-")
+		.replace(/\//g, "_")
+		.replace(/=+$/, "");
+
+const USER = {
+	id: "00000000-0000-4000-8000-000000000001",
+	aud: "authenticated",
+	role: "authenticated",
+	email: "owner@example.com",
+	app_metadata: {},
+	user_metadata: {},
+	created_at: "2026-01-01T00:00:00Z",
+};
+
+function seedSession() {
+	const exp = Math.floor(Date.now() / 1000) + 3600;
+	const accessToken = `${b64url({ alg: "HS256", typ: "JWT" })}.${b64url({
+		sub: USER.id,
+		exp,
+		aud: "authenticated",
+		role: "authenticated",
+		session_id: "00000000-0000-4000-8000-0000000000aa",
+	})}.c2lnbmF0dXJl`;
+	const session = {
+		access_token: accessToken,
+		refresh_token: "synthetic-refresh",
+		expires_in: 3600,
+		expires_at: exp,
+		token_type: "bearer",
+		user: USER,
+	};
+	// @supabase/ssr's cookie encoding: "base64-" + base64url(JSON).
+	document.cookie = `${COOKIE}=base64-${b64url(session)}; path=/`;
+}
+
+const hasSession = () =>
+	document.cookie.split("; ").some((c) => c.startsWith(`${COOKIE}=`));
+
+type Answer = "ok" | "500" | "offline";
+let calls: string[] = [];
+/** How each logout request is answered, in order, whatever its scope (then "ok"). */
+let answers: Answer[];
+
+function stubFetch() {
+	vi.stubGlobal(
+		"fetch",
+		vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+			const url = new URL(String(input));
+			const method = init?.method ?? "GET";
+			calls.push(`${method} ${url.pathname}${url.search}`);
+			if (url.pathname === "/auth/v1/logout") {
+				const answer = answers.shift() ?? "ok";
+				if (answer === "offline") throw new TypeError("Failed to fetch");
+				if (answer === "500") {
+					return new Response(
+						JSON.stringify({ code: 500, msg: "server error" }),
+						{ status: 500, headers: { "content-type": "application/json" } },
+					);
+				}
+				return new Response(null, { status: 204 });
+			}
+			if (url.pathname === "/auth/v1/user") {
+				return new Response(JSON.stringify(USER), {
+					status: 200,
+					headers: { "content-type": "application/json" },
+				});
+			}
+			return new Response("{}", {
+				status: 200,
+				headers: { "content-type": "application/json" },
+			});
+		}),
+	);
+}
+
+const logouts = () => calls.filter((c) => c.includes("/auth/v1/logout"));
+
+function newClient() {
+	return new QueryClient({
+		defaultOptions: {
+			queries: { retry: false, gcTime: 0 },
+			mutations: { retry: false },
+		},
+	});
+}
+
+function renderSignOut(options?: { toastOnError?: boolean }) {
+	const queryClient = newClient();
+	const wrapper = ({ children }: { children: ReactNode }) =>
+		createElement(QueryClientProvider, { client: queryClient }, children);
+	return renderHook(() => useSignOutMutation(options), { wrapper });
+}
+
+beforeEach(() => {
+	calls = [];
+	answers = [];
+	// Node's BroadcastChannel keeps the worker alive; auth-js skips it when absent.
+	vi.stubGlobal("BroadcastChannel", undefined);
+	stubFetch();
+	seedSession();
+	toastError.mockClear();
+});
+
+afterEach(() => {
+	cleanup();
+	onlineManager.setOnline(true);
+	document.cookie = `${COOKIE}=; path=/; max-age=0`;
+	vi.unstubAllGlobals();
+});
+
+describe("useSignOutMutation, with the real auth-js", () => {
+	it("a failing first request keeps the session and throws, and a retry sends again", async () => {
+		answers = ["500", "500"];
+		const { result } = renderSignOut();
+
+		await act(async () => {
+			await expect(result.current.mutateAsync()).rejects.toMatchObject({
+				name: "AuthRetryableFetchError",
+			});
+		});
+		expect(logouts()).toEqual(["POST /auth/v1/logout?scope=others"]);
+		expect(hasSession()).toBe(true);
+
+		await act(async () => {
+			await expect(result.current.mutateAsync()).rejects.toMatchObject({
+				name: "AuthRetryableFetchError",
+			});
+		});
+		expect(logouts()).toEqual([
+			"POST /auth/v1/logout?scope=others",
+			"POST /auth/v1/logout?scope=others",
+		]);
+		expect(hasSession()).toBe(true);
+	});
+
+	it("success sends scope=others, then scope=local, and removes the session", async () => {
+		const { result } = renderSignOut();
+
+		await act(async () => {
+			await result.current.mutateAsync();
+		});
+		expect(logouts()).toEqual([
+			"POST /auth/v1/logout?scope=others",
+			"POST /auth/v1/logout?scope=local",
+		]);
+		expect(hasSession()).toBe(false);
+	});
+
+	it("a rejected fetch (offline) keeps the session and throws", async () => {
+		answers = ["offline"];
+		const { result } = renderSignOut();
+
+		await act(async () => {
+			await expect(result.current.mutateAsync()).rejects.toMatchObject({
+				message: expect.stringContaining("Failed to fetch"),
+			});
+		});
+		expect(logouts()).toEqual(["POST /auth/v1/logout?scope=others"]);
+		expect(hasSession()).toBe(true);
+	});
+
+	it("a failing second request is SignOutIncompleteError, after auth-js removed the session", async () => {
+		answers = ["ok", "500"];
+		const { result } = renderSignOut();
+
+		await act(async () => {
+			await expect(result.current.mutateAsync()).rejects.toBeInstanceOf(
+				SignOutIncompleteError,
+			);
+		});
+		expect(logouts()).toEqual([
+			"POST /auth/v1/logout?scope=others",
+			"POST /auth/v1/logout?scope=local",
+		]);
+		expect(hasSession()).toBe(false);
+	});
+
+	it("runs offline at once (networkMode always), never paused until the browser is back", async () => {
+		answers = ["offline"];
+		onlineManager.setOnline(false);
+		const { result } = renderSignOut();
+
+		act(() => {
+			result.current.mutate();
+		});
+		await waitFor(() => expect(result.current.isError).toBe(true));
+		expect(result.current.isPaused).toBe(false);
+		expect(logouts()).toEqual(["POST /auth/v1/logout?scope=others"]);
+		expect(hasSession()).toBe(true);
+	});
+
+	it("toasts a failure where the page has no inline error, and only there", async () => {
+		answers = ["offline", "offline"];
+		const shell = renderSignOut();
+		await act(async () => {
+			await shell.result.current.mutateAsync().catch(() => {});
+		});
+		expect(toastError).toHaveBeenCalledWith(
+			"Sign out failed. Check your connection and try again.",
+		);
+
+		toastError.mockClear();
+		const page = renderSignOut({ toastOnError: false });
+		await act(async () => {
+			await page.result.current.mutateAsync().catch(() => {});
+		});
+		expect(toastError).not.toHaveBeenCalled();
+	});
+
+	it("toasts the incomplete sign-out with what ended and how to end the rest", async () => {
+		answers = ["ok", "offline"];
+		const { result } = renderSignOut();
+		await act(async () => {
+			await result.current.mutateAsync().catch(() => {});
+		});
+		expect(toastError).toHaveBeenCalledWith(
+			"Sign out did not finish. You are signed out of this browser and your other devices, but this session may still be open on our server. Sign in and sign out again to close it.",
+		);
+	});
+});
+
+describe("/auth/signout, with the real auth-js and AuthProvider", () => {
+	function renderPage() {
+		const queryClient = newClient();
+		return render(
+			createElement(
+				QueryClientProvider,
+				{ client: queryClient },
+				createElement(AuthStoreProvider, null, createElement(SignOutPage)),
+			),
+		);
+	}
+
+	async function pressSignOut(name: RegExp) {
+		await userEvent.click(await screen.findByRole("button", { name }));
+	}
+
+	it("a failed first request shows the error, keeps the session, and Try Again sends again", async () => {
+		answers = ["offline", "offline"];
+		renderPage();
+		await pressSignOut(/^sign out$/i);
+
+		expect(
+			await screen.findByText(
+				"Sign out failed — check your connection and try again.",
+			),
+		).toBeInTheDocument();
+		expect(hasSession()).toBe(true);
+		expect(screen.queryByText("Signed Out")).toBeNull();
+
+		await pressSignOut(/^try again$/i);
+		await waitFor(() =>
+			expect(logouts()).toEqual([
+				"POST /auth/v1/logout?scope=others",
+				"POST /auth/v1/logout?scope=others",
+			]),
+		);
+		expect(screen.queryByText("Signed Out")).toBeNull();
+	});
+
+	it("a failed second request never says Signed Out, though auth-js removed the session", async () => {
+		answers = ["ok", "500"];
+		renderPage();
+		await pressSignOut(/^sign out$/i);
+
+		expect(
+			await screen.findByText("Sign out did not finish"),
+		).toBeInTheDocument();
+		expect(hasSession()).toBe(false);
+		// AuthProvider's SIGNED_OUT handler dropped the page's session check,
+		// which refetched as null; the page still does not claim a sign-out.
+		await act(async () => {
+			await new Promise((r) => setTimeout(r, 50));
+		});
+		expect(screen.queryByText("Signed Out")).toBeNull();
+		expect(
+			screen.queryByText("You have been signed out successfully."),
+		).toBeNull();
+		expect(screen.getByRole("button", { name: /^sign in$/i })).toBeVisible();
+	});
+
+	it("success says Signed Out", async () => {
+		renderPage();
+		await pressSignOut(/^sign out$/i);
+
+		expect(await screen.findByText("Signed Out")).toBeInTheDocument();
+		expect(logouts()).toEqual([
+			"POST /auth/v1/logout?scope=others",
+			"POST /auth/v1/logout?scope=local",
+		]);
+		expect(hasSession()).toBe(false);
+	});
+});

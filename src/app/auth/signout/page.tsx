@@ -8,7 +8,10 @@ import { Alert, AlertDescription } from "#components/ui/alert";
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
 import { authKeys } from "#hooks/api/use-auth";
-import { useSignOutMutation } from "#hooks/api/use-auth-mutations";
+import {
+	SignOutIncompleteError,
+	useSignOutMutation,
+} from "#hooks/api/use-auth-mutations";
 import { createClient } from "#lib/supabase/client";
 
 /**
@@ -20,7 +23,8 @@ import { createClient } from "#lib/supabase/client";
  */
 export default function SignOutPage() {
 	const router = useRouter();
-	const signOut = useSignOutMutation();
+	// The failure is shown in the page, beside its retry, not as a toast.
+	const signOut = useSignOutMutation({ toastOnError: false });
 	const [signedOut, setSignedOut] = useState(false);
 
 	// Check if user has an active session
@@ -34,12 +38,19 @@ export default function SignOutPage() {
 		staleTime: 0,
 	});
 
-	const isAuthenticated = !!session && !signedOut;
+	// AUTH-10: the page says "Signed Out" only after this page's sign-out
+	// succeeded, or on arrival with no session. After a failed attempt it never
+	// does, even once the session is gone: the mutation's second request
+	// (`scope: "local"`) removes this browser's session before it returns its
+	// error (auth-js 2.118.0), and AuthProvider's SIGNED_OUT handler then drops
+	// this page's session check, which refetches as null. A failed first
+	// request (`scope: "others"`) keeps the session: the page shows the error
+	// and "Try Again" sends it again. A failed second request is
+	// SignOutIncompleteError: the page says what ended and how to end the rest.
+	const incomplete =
+		signOut.error instanceof SignOutIncompleteError ? signOut.error : null;
+	const showSignedOut = signedOut || (!session && signOut.isIdle);
 
-	// AUTH-10: only mark the user signed out when supabase-js actually cleared
-	// the session (onSuccess). A failed sign-out (network / auth-server 5xx keeps
-	// the local session) must NOT render the success card — it renders an honest
-	// failure state with a retry instead. The mutation's own onError logs.
 	function handleSignOut() {
 		signOut.mutate(undefined, {
 			onSuccess: () => {
@@ -57,7 +68,7 @@ export default function SignOutPage() {
 		return () => clearTimeout(timer);
 	}, [signedOut, router]);
 
-	if (isLoading) {
+	if (isLoading && signOut.isIdle) {
 		return (
 			<div className="flex min-h-screen items-center justify-center p-4">
 				<CardLayout
@@ -71,7 +82,19 @@ export default function SignOutPage() {
 		);
 	}
 
-	if (!isAuthenticated) {
+	if (incomplete) {
+		return (
+			<div className="flex min-h-screen items-center justify-center p-4">
+				<CardLayout title={incomplete.title} description={incomplete.detail}>
+					<Button className="w-full" onClick={() => router.push("/login")}>
+						Sign In
+					</Button>
+				</CardLayout>
+			</div>
+		);
+	}
+
+	if (showSignedOut) {
 		return (
 			<div className="flex min-h-screen items-center justify-center p-4">
 				<CardLayout
@@ -93,8 +116,8 @@ export default function SignOutPage() {
 
 	return (
 		<div className="flex min-h-screen items-center justify-center p-4">
-			{/* supabase.auth.signOut() defaults to the global scope: every session
-			    of the account ends, on every device. */}
+			{/* Sign Out ends every session of the account, on every device: the
+			    other sessions first, then this one (useSignOutMutation). */}
 			<CardLayout
 				title="Sign out of TenantFlow?"
 				description="This signs you out here and on every other device where you are signed in."

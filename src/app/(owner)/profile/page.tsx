@@ -22,7 +22,10 @@ import { QuickLinksSection } from "#components/profiles/owner/quick-links-sectio
 import { SecuritySection } from "#components/profiles/owner/security-section";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Button } from "#components/ui/button";
-import { useSignOutMutation } from "#hooks/api/use-auth-mutations";
+import {
+	SignOutIncompleteError,
+	useSignOutMutation,
+} from "#hooks/api/use-auth-mutations";
 import { useProfile } from "#hooks/api/use-profile";
 import {
 	useRemoveAvatarMutation,
@@ -159,8 +162,12 @@ export default function OwnerProfilePage() {
 		try {
 			await signOut.mutateAsync();
 			router.push("/login");
-		} catch {
-			// Error handled by mutation
+		} catch (error) {
+			// The mutation's onError shows the failure as a toast. A failed first
+			// request keeps the session, so the owner stays here and can try
+			// again; after a failed second request this browser is signed out
+			// too, so go to sign in, as the toast says.
+			if (error instanceof SignOutIncompleteError) router.push("/login");
 		}
 	};
 

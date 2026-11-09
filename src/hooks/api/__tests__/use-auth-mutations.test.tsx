@@ -82,6 +82,7 @@ vi.mock("../use-auth", () => ({
 }));
 
 import {
+	SignOutIncompleteError,
 	useChangePasswordMutation,
 	useSignOutMutation,
 	useSupabasePasswordResetMutation,
@@ -121,7 +122,11 @@ describe("useSignOutMutation", () => {
 		await waitFor(() => {
 			expect(result.current.isSuccess).toBe(true);
 		});
-		expect(mockSignOut).toHaveBeenCalledTimes(1);
+		// Every other session first, then this one (66.2-39 fix round 4, Part 8k).
+		expect(mockSignOut.mock.calls).toEqual([
+			[{ scope: "others" }],
+			[{ scope: "local" }],
+		]);
 		expect(mockClearAuthData).toHaveBeenCalledTimes(1);
 		expect(mockLoggerInfo).toHaveBeenCalledWith(
 			expect.stringContaining("signed out"),
@@ -129,8 +134,9 @@ describe("useSignOutMutation", () => {
 		);
 	});
 
-	it("logs and sets isError when signOut errors (clearAuthData not called)", async () => {
-		mockSignOut.mockResolvedValue({ error: new Error("network down") });
+	it("toasts and sets isError when the first request errors (clearAuthData not called)", async () => {
+		const failure = new Error("network down");
+		mockSignOut.mockResolvedValue({ error: failure });
 
 		const { result } = renderWithClient(() => useSignOutMutation());
 		await expect(result.current.mutateAsync()).rejects.toMatchObject({
@@ -140,10 +146,49 @@ describe("useSignOutMutation", () => {
 		await waitFor(() => {
 			expect(result.current.isError).toBe(true);
 		});
+		// The second request is never sent after the first one fails.
+		expect(mockSignOut.mock.calls).toEqual([[{ scope: "others" }]]);
 		expect(mockClearAuthData).not.toHaveBeenCalled();
+		expect(mockHandleMutationError).toHaveBeenCalledWith(
+			failure,
+			"Sign out",
+			"Sign out failed. Check your connection and try again.",
+		);
+		expect(mockLoggerError).not.toHaveBeenCalled();
+	});
+
+	it("only logs the failure when the caller shows it in the page (toastOnError: false)", async () => {
+		mockSignOut.mockResolvedValue({ error: new Error("network down") });
+
+		const { result } = renderWithClient(() =>
+			useSignOutMutation({ toastOnError: false }),
+		);
+		await expect(result.current.mutateAsync()).rejects.toMatchObject({
+			message: expect.stringContaining("network down"),
+		});
+
+		expect(mockHandleMutationError).not.toHaveBeenCalled();
 		expect(mockLoggerError).toHaveBeenCalledWith(
 			"Sign out failed",
 			expect.objectContaining({ action: "sign_out_error" }),
+		);
+	});
+
+	it("clears the auth data after a failed second request, whose browser session is gone", async () => {
+		mockSignOut
+			.mockResolvedValueOnce({ error: null })
+			.mockResolvedValueOnce({ error: new Error("server error") });
+
+		const { result } = renderWithClient(() => useSignOutMutation());
+		await expect(result.current.mutateAsync()).rejects.toBeInstanceOf(
+			SignOutIncompleteError,
+		);
+
+		expect(mockClearAuthData).toHaveBeenCalledTimes(1);
+		expect(mockHandleMutationError).toHaveBeenCalledWith(
+			expect.any(SignOutIncompleteError),
+			"Sign out",
+			undefined,
 		);
 	});
 });
