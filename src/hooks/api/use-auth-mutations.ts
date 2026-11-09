@@ -24,17 +24,20 @@ import { useAuthCacheUtils } from "./use-auth";
 const SIGN_OUT_FAILED = "Sign out failed. Check your connection and try again.";
 
 /**
- * The second request of "Sign out" failed. auth-js 2.118.0 `_signOut` has
- * already removed this browser's session (it does on any error other than
- * 401/403/404 unless the scope is `others`), and the first request ended every
- * other session, so only this session may still be open on the server. A
- * retry cannot reach it, because the browser no longer holds its token;
- * signing in again and signing out ends it, through that sign-out's first
- * request.
+ * A sign-out request failed after auth-js had already removed this browser's
+ * session: auth-js 2.118.0 `_signOut` does on any error other than
+ * 401/403/404 unless the scope is `others`. That is "Sign out"'s second
+ * request (`scope: "local"`, after the first ended every other session) and
+ * the session row's "Sign out this device" (`use-sessions.ts`). This
+ * browser's session may still be open on the server, and a retry cannot
+ * reach it, because the browser no longer holds its token. Once signed in
+ * again, the owner sees it as another session under Active Sessions and ends
+ * it there. One wording serves both: it names neither the other devices,
+ * which the session row never signs out, nor a sign-out that would end them.
  */
 const SIGN_OUT_INCOMPLETE_TITLE = "Sign out did not finish";
 const SIGN_OUT_INCOMPLETE_DETAIL =
-	"You are signed out of this browser and your other devices, but this session may still be open on our server. Sign in and sign out again to close it.";
+	"You are signed out of this browser, but its session may still be open on our server. Sign in again and end it under Active Sessions in Settings.";
 
 export class SignOutIncompleteError extends Error {
 	readonly title = SIGN_OUT_INCOMPLETE_TITLE;

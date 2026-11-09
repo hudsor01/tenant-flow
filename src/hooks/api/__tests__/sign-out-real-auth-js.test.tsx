@@ -43,10 +43,12 @@ vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
 import SignOutPage from "#app/auth/signout/page";
 import { AuthStoreProvider } from "#providers/auth-provider";
+import { sessionKeys, type UserSession } from "../query-keys/session-keys";
 import {
 	SignOutIncompleteError,
 	useSignOutMutation,
 } from "../use-auth-mutations";
+import { useRevokeSessionMutation } from "../use-sessions";
 
 // The app's browser client keys its cookie on the project ref, the URL's first
 // label: http://localhost:54321 (src/test/unit-setup.ts) gives "localhost".
@@ -96,6 +98,8 @@ type Answer = "ok" | "500" | "offline";
 let calls: string[] = [];
 /** How each logout request is answered, in order, whatever its scope (then "ok"). */
 let answers: Answer[];
+/** How each revoke_user_session RPC is answered, in order (then "ok"). */
+let rpcAnswers: Answer[];
 
 function stubFetch() {
 	vi.stubGlobal(
@@ -110,6 +114,17 @@ function stubFetch() {
 				if (answer === "500") {
 					return new Response(
 						JSON.stringify({ code: 500, msg: "server error" }),
+						{ status: 500, headers: { "content-type": "application/json" } },
+					);
+				}
+				return new Response(null, { status: 204 });
+			}
+			if (url.pathname === "/rest/v1/rpc/revoke_user_session") {
+				const answer = rpcAnswers.shift() ?? "ok";
+				if (answer === "offline") throw new TypeError("Failed to fetch");
+				if (answer === "500") {
+					return new Response(
+						JSON.stringify({ code: "XX000", message: "server error" }),
 						{ status: 500, headers: { "content-type": "application/json" } },
 					);
 				}
@@ -150,6 +165,7 @@ function renderSignOut(options?: { toastOnError?: boolean }) {
 beforeEach(() => {
 	calls = [];
 	answers = [];
+	rpcAnswers = [];
 	// Node's BroadcastChannel keeps the worker alive; auth-js skips it when absent.
 	vi.stubGlobal("BroadcastChannel", undefined);
 	stubFetch();
@@ -272,7 +288,7 @@ describe("useSignOutMutation, with the real auth-js", () => {
 			await result.current.mutateAsync().catch(() => {});
 		});
 		expect(toastError).toHaveBeenCalledWith(
-			"Sign out did not finish. You are signed out of this browser and your other devices, but this session may still be open on our server. Sign in and sign out again to close it.",
+			"Sign out did not finish. You are signed out of this browser, but its session may still be open on our server. Sign in again and end it under Active Sessions in Settings.",
 		);
 	});
 });
@@ -350,5 +366,105 @@ describe("/auth/signout, with the real auth-js and AuthProvider", () => {
 			"POST /auth/v1/logout?scope=local",
 		]);
 		expect(hasSession()).toBe(false);
+	});
+});
+
+// The session row's "Sign out this device" (use-sessions.ts, Part 8l). Its
+// own row signs out with `scope: "local"`, which auth-js 2.118.0 answers on
+// failure by removing this browser's session anyway; another row's revoke is
+// an RPC that touches nothing in this browser.
+describe("the session row's Sign out this device, with the real auth-js", () => {
+	const CURRENT = "00000000-0000-4000-8000-0000000000aa";
+	const OTHER = "00000000-0000-4000-8000-0000000000bb";
+
+	function row(id: string, isCurrent: boolean): UserSession {
+		return {
+			id,
+			user_id: USER.id,
+			created_at: "2026-01-01T00:00:00Z",
+			updated_at: "2026-01-01T00:00:00Z",
+			user_agent: null,
+			ip: null,
+			browser: null,
+			os: null,
+			device: null,
+			is_current: isCurrent,
+		};
+	}
+
+	function renderRevoke() {
+		// The session list stays cached (no observer here), as the row's list
+		// does while Settings shows it.
+		const queryClient = new QueryClient({
+			defaultOptions: {
+				queries: { retry: false, gcTime: Number.POSITIVE_INFINITY },
+				mutations: { retry: false },
+			},
+		});
+		queryClient.setQueryData<UserSession[]>(sessionKeys.all, [
+			row(CURRENT, true),
+			row(OTHER, false),
+		]);
+		const wrapper = ({ children }: { children: ReactNode }) =>
+			createElement(QueryClientProvider, { client: queryClient }, children);
+		return {
+			queryClient,
+			...renderHook(() => useRevokeSessionMutation(), { wrapper }),
+		};
+	}
+
+	it("a failed sign-out of this device clears the session, shows the incomplete outcome and lands on /login", async () => {
+		answers = ["500"];
+		const { result, queryClient } = renderRevoke();
+
+		await act(async () => {
+			await expect(
+				result.current.mutateAsync({ id: CURRENT, isCurrent: true }),
+			).rejects.toBeInstanceOf(SignOutIncompleteError);
+		});
+		expect(logouts()).toEqual(["POST /auth/v1/logout?scope=local"]);
+		expect(hasSession()).toBe(false);
+		expect(toastError).toHaveBeenCalledWith(
+			"Sign out did not finish. You are signed out of this browser, but its session may still be open on our server. Sign in again and end it under Active Sessions in Settings.",
+		);
+		expect(router.replace).toHaveBeenCalledTimes(1);
+		expect(router.replace).toHaveBeenCalledWith("/login");
+		// No row comes back to offer a retry that cannot work.
+		expect(
+			queryClient
+				.getQueryData<UserSession[]>(sessionKeys.all)
+				?.map((s) => s.id),
+		).toEqual([OTHER]);
+	});
+
+	it("a failed revoke of another session keeps this one, restores its row, and a retry sends again", async () => {
+		rpcAnswers = ["500"];
+		const { result, queryClient } = renderRevoke();
+
+		await act(async () => {
+			await expect(
+				result.current.mutateAsync({ id: OTHER, isCurrent: false }),
+			).rejects.toMatchObject({ message: "server error" });
+		});
+		const rpcCalls = () =>
+			calls.filter((c) => c.includes("revoke_user_session"));
+		expect(rpcCalls()).toEqual(["POST /rest/v1/rpc/revoke_user_session"]);
+		expect(logouts()).toEqual([]);
+		expect(hasSession()).toBe(true);
+		expect(router.replace).not.toHaveBeenCalled();
+		expect(
+			queryClient
+				.getQueryData<UserSession[]>(sessionKeys.all)
+				?.map((s) => s.id),
+		).toEqual([CURRENT, OTHER]);
+
+		await act(async () => {
+			await result.current.mutateAsync({ id: OTHER, isCurrent: false });
+		});
+		expect(rpcCalls()).toEqual([
+			"POST /rest/v1/rpc/revoke_user_session",
+			"POST /rest/v1/rpc/revoke_user_session",
+		]);
+		expect(hasSession()).toBe(true);
 	});
 });

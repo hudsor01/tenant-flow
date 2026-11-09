@@ -4,6 +4,7 @@ import {
 	useQuery,
 	useQueryClient,
 } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import {
 	handleMutationError,
 	handleMutationSuccess,
@@ -16,6 +17,8 @@ import {
 	sessionQueries,
 	type UserSession,
 } from "./query-keys/session-keys";
+import { useAuthCacheUtils } from "./use-auth";
+import { SignOutIncompleteError } from "./use-auth-mutations";
 
 export interface RevokeSessionInput {
 	/** auth.sessions.id UUID returned by get_user_sessions RPC. */
@@ -65,7 +68,12 @@ const sessionMutationFactories = {
 					// while the row and its confirmation sign out this device only
 					// (66.2-39 fix round 4, Part 8h).
 					const { error } = await supabase.auth.signOut({ scope: "local" });
-					if (error) throw error;
+					// On failure auth-js 2.118.0 has already removed this browser's
+					// session (it does on any error other than 401/403/404 unless the
+					// scope is `others`), so the row's error and its retry offered
+					// what could not work: the incomplete outcome of "Sign out"
+					// instead (Part 8l).
+					if (error) throw new SignOutIncompleteError(error);
 					return { success: true, message: "Session terminated" };
 				}
 
@@ -112,6 +120,8 @@ export function useUserSessions() {
 
 export function useRevokeSessionMutation() {
 	const queryClient = useQueryClient();
+	const { clearAuthData } = useAuthCacheUtils();
+	const router = useRouter();
 
 	return useMutation({
 		...sessionMutationFactories.revoke(),
@@ -129,6 +139,18 @@ export function useRevokeSessionMutation() {
 			return { previous };
 		},
 		onError: (error, _variables, context) => {
+			// "Sign out this device" failed after this browser was signed out:
+			// no row to restore and no retry. Clear what a sign-out clears, say
+			// what happened and go to sign in, as "Sign out" does (Part 8l).
+			if (error instanceof SignOutIncompleteError) {
+				clearAuthData();
+				handleMutationError(error, "Revoke session");
+				router.replace("/login");
+				return;
+			}
+
+			// Another session's revoke failed: nothing changed in this browser,
+			// so the row comes back and its button tries again.
 			if (context?.previous) {
 				queryClient.setQueryData(sessionKeys.all, context.previous);
 			}
