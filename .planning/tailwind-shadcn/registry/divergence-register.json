@@ -343,6 +343,11 @@
      "what": "the weekday, week_number_header, week_number and day cells add p-0 border-0 bg-transparent (the day cell border-0): the globals.css @layer base th/td rules gave the weekday cells 16px side padding, a muted fill and a bottom border, and every day cell a bottom border; upstream assumes no table base rules",
      "reason": "D-26 customization",
      "ref": "66.2-39 fix round 4 Part 8e (rendered sweep: the month was 329.7px at every width)"
+    },
+    {
+     "what": "labels.labelDayButton writes the day as the number the button shows (EEEE, MMMM d, yyyy, with react-day-picker's Today and selected wording), where upstream keeps the default PPPP label (November 1st), which does not contain the button's visible number",
+     "reason": "D-26 customization",
+     "ref": "WCAG 2.5.3; 66.2-39 fix round 4 Part 8h (rendered axe pass: label-content-name-mismatch on the vault date filter)"
     }
    ]
   },

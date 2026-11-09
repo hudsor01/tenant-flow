@@ -40,6 +40,13 @@
  *   rules (`p-0 border-0 bg-transparent`): their 16px side padding made each
  *   weekday 46-50px wide, so the month was 329.7px at every width, and the
  *   header painted muted cells with a border under them and under each week.
+ *
+ * Fix round 4, Part 8h (66.2-39; recorded in the divergence register):
+ * - a day button's name writes the day as the number it shows ("Sunday,
+ *   November 1, 2026"): react-day-picker's default ("PPPP") reads "November
+ *   1st", which does not contain the button's visible "1", so axe's
+ *   label-content-name-mismatch failed every day of an open calendar
+ *   (WCAG 2.5.3).
  */
 import {
 	ChevronDownIcon,
@@ -49,13 +56,31 @@ import {
 import type { ComponentProps } from "react";
 import { useEffect, useRef } from "react";
 import {
+	DateLib,
 	type DayButton,
 	DayPicker,
 	getDefaultClassNames,
+	type Labels,
 } from "react-day-picker";
 
 import { Button, buttonVariants } from "#components/ui/button";
 import { cn } from "#lib/utils";
+
+/** react-day-picker's day label, with the day written as the number the button shows. */
+const labelDayButton: Labels["labelDayButton"] = (
+	date,
+	modifiers,
+	options,
+	dateLib,
+) => {
+	let label = (dateLib ?? new DateLib(options)).format(
+		date,
+		"EEEE, MMMM d, yyyy",
+	);
+	if (modifiers.today) label = `Today, ${label}`;
+	if (modifiers.selected) label = `${label}, selected`;
+	return label;
+};
 
 function Calendar({
 	className,
@@ -64,6 +89,7 @@ function Calendar({
 	captionLayout = "label",
 	buttonVariant = "ghost",
 	formatters,
+	labels,
 	components,
 	...props
 }: ComponentProps<typeof DayPicker> & {
@@ -81,6 +107,7 @@ function Calendar({
 				className,
 			)}
 			captionLayout={captionLayout}
+			labels={{ labelDayButton, ...labels }}
 			formatters={{
 				formatMonthDropdown: (date) =>
 					date.toLocaleString("default", { month: "short" }),
