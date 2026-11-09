@@ -190,7 +190,10 @@ export function AccountDataSection() {
 											className="w-full max-w-sm px-3 py-2 h-11 text-sm rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-destructive/20 focus:border-destructive transition-all"
 										/>
 									</div>
-									<div className="flex gap-3">
+									{/* The two buttons wrap: at 320-360px "Cancel" shrank under its
+									    padding and its text ran up to 9px past the button (66.2-39 fix
+									    round 4, Part 8i). */}
+									<div className="flex flex-wrap gap-3">
 										<button
 											onClick={() => requestDeletion.mutate()}
 											disabled={
