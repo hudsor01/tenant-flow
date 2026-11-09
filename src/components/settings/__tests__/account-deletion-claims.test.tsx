@@ -32,6 +32,15 @@
  * the proxy closes every owner page but Settings and the plan pages; and the
  * plan pages promised "all features" on any plan, though e-sign and premium
  * reports are Growth and Max only. The scan holds those phrases out too.
+ *
+ * Part 8n: the emails the app sends are copy too, so the scan reads
+ * `supabase/functions` as well. The failed-payment email said the
+ * subscription "will be canceled and premium features will be disabled" once
+ * the retries ran out (Stripe's setting decides unpaid or canceled, the proxy
+ * locks out both, and the paid features stop at once while past due), and the
+ * trial-ending email told every owner to add a payment method "to keep
+ * uninterrupted access", "otherwise" the subscription is canceled, though
+ * Stripe sends it to an owner who has one too.
  */
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -368,13 +377,22 @@ describe("no copy claims a deletion, a retention limit or an export the code doe
 		// lock to a cancellation alone (main session, Part 8m).
 		/when your subscription is cancell?ed/i,
 		/losing access when/i,
+		// The emails (main session, Part 8n): the paid features stop while
+		// past due, not after a cancellation; the trial email reaches owners
+		// with a payment method too.
+		/premium features will be disabled/i,
+		/your subscription will be cancell?ed and/i,
+		/otherwise your subscription will be cancell?ed/i,
+		/keep uninterrupted access/i,
 	];
 
 	function sources(dir: string): string[] {
 		return readdirSync(dir).flatMap((name) => {
 			const path = join(dir, name);
 			if (statSync(path).isDirectory()) {
-				return name === "__tests__" || name === "test" ? [] : sources(path);
+				return name === "__tests__" || name === "test" || name === "tests"
+					? []
+					: sources(path);
 			}
 			return /\.(ts|tsx)$/.test(name) && !/\.(test|spec)\.tsx?$/.test(name)
 				? [path]
@@ -382,16 +400,24 @@ describe("no copy claims a deletion, a retention limit or an export the code doe
 		});
 	}
 
-	it("finds none in src, the legal pages included", () => {
+	function scan(dir: string): string[] {
 		const hits: string[] = [];
-		for (const path of sources(join(ROOT, "src"))) {
+		for (const path of sources(join(ROOT, dir))) {
 			const file = relative(ROOT, path);
-			// JSX wraps a sentence over lines: read it whole.
+			// JSX and email templates wrap a sentence over lines: read it whole.
 			const text = readFileSync(path, "utf8").replace(/\s+/g, " ");
 			for (const claim of FALSE_CLAIMS) {
 				if (claim.test(text)) hits.push(`${file} ${claim}`);
 			}
 		}
-		expect(hits).toEqual([]);
+		return hits;
+	}
+
+	it("finds none in src, the legal pages included", () => {
+		expect(scan("src")).toEqual([]);
+	});
+
+	it("finds none in supabase/functions, the emails included", () => {
+		expect(scan("supabase/functions")).toEqual([]);
 	});
 });

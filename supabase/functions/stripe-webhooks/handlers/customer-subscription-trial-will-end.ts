@@ -11,6 +11,13 @@ import type { SupabaseAdmin } from "./types.ts";
  * subscription auto-cancels at trial end, so this event is the only reminder
  * window. Emails the owner a nudge to add a payment method.
  *
+ * Stripe sends it whether or not a payment method is on file (an owner can add
+ * one in the billing portal during the trial), and the event carries the
+ * customer as an id only: a card set as the customer's default is not in the
+ * payload. So the copy states both outcomes rather than branching on the
+ * payload or calling Stripe; it told every owner to add a payment method
+ * (66.2-39 fix round 4, Part 8n).
+ *
  * DB-managed trials (no Stripe subscription) do NOT emit this event — the
  * expire_trials() reminder is a separate, out-of-scope feature.
  */
@@ -51,8 +58,10 @@ export async function handleCustomerSubscriptionTrialWillEnd(
 		to: [owner.email as string],
 		subject: "Your TenantFlow trial ends in 3 days",
 		html: `<p>Hi ${escapeHtml((owner.first_name as string) || "there")},</p>
-      <p>Your TenantFlow trial ends on ${escapeHtml(trialEndDate)}. Add a payment method now to keep uninterrupted access — otherwise your subscription will be canceled when the trial ends.</p>
-      <p><a href="${escapeHtml(frontendUrl)}/settings?tab=billing">Add a payment method</a></p>`,
+      <p>Your TenantFlow trial ends on ${escapeHtml(trialEndDate)}.</p>
+      <p>If you've added a payment method, your plan continues when the trial ends and is billed to it.</p>
+      <p>If you haven't, add one in Billing Settings before then. Without one, your subscription is canceled when the trial ends, and every page except Settings closes until you choose a plan.</p>
+      <p><a href="${escapeHtml(frontendUrl)}/settings?tab=billing">Open Billing Settings</a></p>`,
 		tags: [{ name: "category", value: "trial_will_end" }],
 	});
 
