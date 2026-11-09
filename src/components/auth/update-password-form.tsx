@@ -223,7 +223,8 @@ export function UpdatePasswordForm({
 
 					<div className="text-center pt-4 border-t border-border">
 						<p className="mb-0 text-caption text-muted-foreground">
-							Your password will be encrypted and stored securely
+							Your password is stored only as a one-way hash, never as readable
+							text.
 						</p>
 					</div>
 				</CardContent>
