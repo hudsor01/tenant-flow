@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("#lib/generate-metadata", () => ({
@@ -221,5 +223,30 @@ describe("/apply is public by absence (D-13/D-14)", () => {
 				PRIVATE_PATHS,
 			),
 		).toContain("/applications");
+	});
+});
+
+// A disallow on a URL nothing serves does harm, not good: a crawler that may not
+// fetch the URL never sees its 404, so a stale index entry is never dropped. So
+// every robots-only path is served: a src/app route, or one of the two paths
+// Next serves without one (its data route, and the Sentry tunnel that
+// next.config.ts mounts at tunnelRoute).
+const NON_APP_ROBOTS_PATHS: readonly string[] = ["/_next/data", "/monitoring"];
+
+describe("every robots-only path is served", () => {
+	const appPaths = ROBOTS_ONLY_PRIVATE_PATHS.filter(
+		(path) => !NON_APP_ROBOTS_PATHS.includes(path),
+	);
+
+	it.each(appPaths)("%s has a src/app route", (path) => {
+		expect(
+			existsSync(join(process.cwd(), "src/app", path)),
+			`${path}: no src/app route serves it, so its disallow only hides a 404`,
+		).toBe(true);
+	});
+
+	it("/monitoring is still the Sentry tunnel", () => {
+		const config = readFileSync(join(process.cwd(), "next.config.ts"), "utf8");
+		expect(config).toContain('tunnelRoute: "/monitoring"');
 	});
 });

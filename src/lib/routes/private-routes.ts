@@ -94,11 +94,8 @@ export const ROBOTS_ONLY_PRIVATE_PATHS = [
 	"/api",
 	"/auth/callback",
 	"/auth/confirm-email",
-	"/auth/post-checkout",
-	"/auth/select-role",
 	"/auth/signout",
 	"/auth/update-password",
-	"/owner",
 	"/_next/data",
 	"/monitoring",
 ] as const;

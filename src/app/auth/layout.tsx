@@ -13,8 +13,8 @@ import type { ReactNode } from "react";
 export const dynamic = "force-dynamic";
 
 // SEO-15: auth pages must NOT inherit the homepage canonical or index/follow.
-// One segment-level export covers all four pages (confirm-email, post-checkout,
-// signout, update-password): title becomes "Account | TenantFlow", robots flips
+// One segment-level export covers all three pages (confirm-email, signout,
+// update-password): title becomes "Account | TenantFlow", robots flips
 // to noindex (mirrors the (owner)/layout.tsx:33 pattern).
 export const metadata: Metadata = {
 	title: "Account",
