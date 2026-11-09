@@ -19,12 +19,15 @@ let mockUserRow: {
 //   - mockUserRowThrow:  thrown error (connection-pool exhaustion etc.)
 let mockUserRowError: Error | null = null;
 let mockUserRowThrow: Error | null = null;
+/** How many times the proxy read the `users` row (its gate read). */
+const userReads = vi.hoisted(() => ({ n: 0 }));
 vi.mock("@supabase/ssr", () => ({
 	createServerClient: () => ({
 		from: () => ({
 			select: () => ({
 				eq: () => ({
 					maybeSingle: async () => {
+						userReads.n += 1;
 						if (mockUserRowThrow) throw mockUserRowThrow;
 						if (mockUserRowError) {
 							return { data: null, error: mockUserRowError };
@@ -43,6 +46,24 @@ vi.mock("@sentry/nextjs", () => ({
 	captureException: (...args: unknown[]) => mockCaptureException(...args),
 	captureMessage: (...args: unknown[]) => mockCaptureMessage(...args),
 }));
+
+// Two private prefixes that share the "/settings" prefix (fixtures: the app
+// has no such routes, so in production these paths are public and reach
+// Next's 404). Private here, they prove that the Settings exemption from the
+// subscription gate matches on a path-segment boundary.
+vi.mock("#lib/routes/private-routes", async () => {
+	const actual = await vi.importActual<
+		typeof import("#lib/routes/private-routes")
+	>("#lib/routes/private-routes");
+	return {
+		...actual,
+		PRIVATE_ROUTE_PREFIXES: [
+			...actual.PRIVATE_ROUTE_PREFIXES,
+			"/settingsx",
+			"/settings-old",
+		],
+	};
+});
 
 vi.mock("#env", () => ({
 	env: {
@@ -132,6 +153,7 @@ describe("proxy routing", () => {
 		mockUserRow = { is_admin: false, subscription_status: "active" };
 		mockUserRowError = null;
 		mockUserRowThrow = null;
+		userReads.n = 0;
 	});
 
 	describe("public routes", () => {
@@ -430,19 +452,19 @@ describe("proxy routing", () => {
 			},
 		);
 
-		it("redirects user without subscription on /settings (non-allowlisted)", async () => {
+		it("lets a user without subscription reach /settings, after the users read (owner, 2026-11-09)", async () => {
+			const supabaseResponse = makeSupabaseResponse();
 			mockUpdateSession.mockResolvedValue({
 				user: makeUser(),
-				supabaseResponse: makeSupabaseResponse(),
+				supabaseResponse,
 			});
 			mockUserRow = { is_admin: false, subscription_status: null };
 
-			await proxy(buildRequest("/settings"));
+			const result = await proxy(buildRequest("/settings"));
 
-			expect(NextResponse.redirect).toHaveBeenCalledOnce();
-			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
-				.mock.calls[0]![0] as URL;
-			expect(redirectUrl.pathname).toBe("/pricing");
+			expect(NextResponse.redirect).not.toHaveBeenCalled();
+			expect(result).toBe(supabaseResponse);
+			expect(userReads.n).toBe(1);
 		});
 
 		it("admin user bypasses subscription gate", async () => {
@@ -547,6 +569,127 @@ describe("proxy routing", () => {
 			// Crucially: captureException should NOT fire — this isn't a
 			// thrown exception path.
 			expect(mockCaptureException).not.toHaveBeenCalled();
+		});
+	});
+
+	// Owner, 2026-11-09: an owner whose plan or trial has lapsed reaches
+	// Settings and its subpaths, to download their data, request deletion and
+	// resubscribe. Every other private route still sends them to /pricing,
+	// and sign-in, the MFA step-up and the users read still apply to Settings.
+	describe("Settings for an owner whose subscription has lapsed", () => {
+		const LAPSED = [
+			"canceled",
+			"unpaid",
+			"expired",
+			"incomplete",
+			"incomplete_expired",
+			"paused",
+			null,
+		];
+		const redirectPath = () =>
+			(
+				(NextResponse.redirect as ReturnType<typeof vi.fn>).mock
+					.calls[0]![0] as URL
+			).pathname;
+
+		it.each(
+			LAPSED.flatMap((status) =>
+				["/settings", "/settings/billing"].map((route) => [status, route]),
+			),
+		)("a %s owner passes on %s", async (subscription_status, route) => {
+			const supabaseResponse = makeSupabaseResponse();
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse,
+			});
+			mockUserRow = {
+				is_admin: false,
+				subscription_status: subscription_status as string | null,
+			};
+
+			const result = await proxy(buildRequest(route as string));
+
+			expect(NextResponse.redirect).not.toHaveBeenCalled();
+			expect(result).toBe(supabaseResponse);
+			expect(userReads.n).toBe(1);
+		});
+
+		it.each(["/dashboard", "/profile", "/settingsx", "/settings-old"])(
+			"a canceled owner is still sent to /pricing from %s",
+			async (route) => {
+				mockUpdateSession.mockResolvedValue({
+					user: makeUser(),
+					supabaseResponse: makeSupabaseResponse(),
+				});
+				mockUserRow = { is_admin: false, subscription_status: "canceled" };
+
+				await proxy(buildRequest(route));
+
+				expect(NextResponse.redirect).toHaveBeenCalledOnce();
+				expect(redirectPath()).toBe("/pricing");
+			},
+		);
+
+		it.each(["/settings", "/dashboard"])(
+			"an active owner passes on %s, as before",
+			async (route) => {
+				const supabaseResponse = makeSupabaseResponse();
+				mockUpdateSession.mockResolvedValue({
+					user: makeUser(),
+					supabaseResponse,
+				});
+				mockUserRow = { is_admin: false, subscription_status: "active" };
+
+				const result = await proxy(buildRequest(route));
+
+				expect(NextResponse.redirect).not.toHaveBeenCalled();
+				expect(result).toBe(supabaseResponse);
+			},
+		);
+
+		it("signing in still applies to /settings", async () => {
+			mockUpdateSession.mockResolvedValue({
+				user: null,
+				supabaseResponse: makeSupabaseResponse(),
+			});
+
+			await proxy(buildRequest("/settings?tab=billing"));
+
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			const url = (NextResponse.redirect as ReturnType<typeof vi.fn>).mock
+				.calls[0]![0] as URL;
+			expect(url.pathname).toBe("/login");
+			expect(url.searchParams.get("redirect")).toBe("/settings?tab=billing");
+			expect(userReads.n).toBe(0);
+		});
+
+		it("the MFA step-up still applies to /settings", async () => {
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				assuranceLevel: { currentLevel: "aal1", nextLevel: "aal2" },
+				supabaseResponse: makeSupabaseResponse(),
+			});
+			mockUserRow = { is_admin: false, subscription_status: "canceled" };
+
+			await proxy(buildRequest("/settings"));
+
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			expect(redirectPath()).toBe("/login");
+			expect(userReads.n).toBe(0);
+		});
+
+		it("a failed users read on /settings still goes to /login (fail-secure)", async () => {
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse: makeSupabaseResponse(),
+			});
+			mockUserRowThrow = new Error("connection pool exhausted");
+
+			await proxy(buildRequest("/settings"));
+
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			expect(redirectPath()).toBe("/login");
+			expect(userReads.n).toBe(1);
 		});
 	});
 

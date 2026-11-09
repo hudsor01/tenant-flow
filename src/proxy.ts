@@ -15,7 +15,8 @@ import type { Database } from "#types/supabase";
  * banner) and can reach the in-app payment-fix surface. When Stripe exhausts
  * its retries it emits `customer.subscription.updated`→`unpaid` or
  * `.deleted`→`canceled`, and the gate then locks the owner out. `unpaid`,
- * `canceled`, `expired`, etc. stay locked (they recover via /billing/plans).
+ * `canceled`, `expired`, etc. stay locked out of every private route except
+ * Settings (`SUBSCRIPTION_EXEMPT_PREFIXES`); they recover via /billing/plans.
  */
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set([
 	"active",
@@ -24,16 +25,39 @@ const ACTIVE_SUBSCRIPTION_STATUSES = new Set([
 ]);
 
 /**
- * Private route prefixes that require an authenticated user. Anything NOT
- * in this list is treated as public — including unknown URLs, which then
- * fall through to Next.js so the built-in `not-found.tsx` renders a real
- * 404 page instead of a hostile "redirect to login" loop.
- *
- * Add a prefix here when you ship a new route group that gates on auth.
- * Owner-dashboard prefixes mirror the directories under `src/app/(owner)/`;
- * `/admin/*` is the (admin) route group; `/billing/*` is gated EXCEPT for
- * the checkout + plans subpaths (those are handled inside the subscription
- * gate below).
+ * Private routes a signed-in owner reaches whatever their subscription
+ * status (owner, 2026-11-09): Settings and its subpaths, where an owner whose
+ * plan or trial has lapsed downloads their data, requests account deletion and
+ * resubscribes. Only the subscription requirement is lifted: sign-in, the MFA
+ * step-up and the `users` read still apply. Matched on a path-segment
+ * boundary, so `/settingsx` or `/settings-old` would not be Settings.
+ */
+const SUBSCRIPTION_EXEMPT_PREFIXES = ["/settings"] as const;
+
+function isSubscriptionExempt(pathname: string): boolean {
+	return SUBSCRIPTION_EXEMPT_PREFIXES.some(
+		(prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+	);
+}
+
+/**
+ * The gate, in the order `proxy()` runs it:
+ *   1. `/blog` and `/blog/*` pass with no session refresh.
+ *   2. `updateSession()` refreshes the session and reads the MFA assurance
+ *      level.
+ *   3. A path outside `PRIVATE_ROUTE_PREFIXES` (`#lib/routes/private-routes`)
+ *      passes: the gate is a deny-list, so an unknown URL reaches Next's
+ *      `not-found.tsx` instead of a "redirect to login" loop. Add a prefix
+ *      there when you ship a new gated route.
+ *   4. No user, or an aal1 session that must step up to MFA, goes to
+ *      `/login?redirect=<path+query>`.
+ *   5. `/billing/checkout*` and `/billing/plans*` pass with no `users` read.
+ *   6. One `users` read (`is_admin`, `subscription_status`): a failure goes to
+ *      `/login` (fail-secure); `/admin*` without `is_admin` goes to
+ *      `/dashboard`.
+ *   7. A non-admin needs an active, trialing or past_due subscription, else
+ *      `/pricing`, except on Settings and its subpaths
+ *      (`SUBSCRIPTION_EXEMPT_PREFIXES`). Admins bypass.
  */
 
 /** Combined row read once per request and used by both gates. */
@@ -350,12 +374,13 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 		);
 	}
 
-	// Subscription gate: authenticated non-admin users need an active or
-	// trialing Stripe subscription to reach private routes. Admins bypass.
-	// The /pricing, /billing/checkout, /billing/plans, /auth/ allowlist
-	// was already short-circuited above; we only reach here for routes
-	// that genuinely require an active subscription.
-	if (!gateRow.is_admin && !isAdminRoute) {
+	// Subscription gate: authenticated non-admin users need an active,
+	// trialing or past_due subscription to reach private routes. Admins
+	// bypass. The /pricing, /billing/checkout, /billing/plans, /auth/
+	// allowlist was already short-circuited above, before the `users` read;
+	// Settings is exempt here, after it (SUBSCRIPTION_EXEMPT_PREFIXES), so a
+	// lapsed owner still passes sign-in, MFA and the read to reach it.
+	if (!gateRow.is_admin && !isAdminRoute && !isSubscriptionExempt(pathname)) {
 		const status = gateRow.subscription_status;
 		if (!status || !ACTIVE_SUBSCRIPTION_STATUSES.has(status)) {
 			return withCsp(

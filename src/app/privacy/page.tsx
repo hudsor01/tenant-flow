@@ -288,11 +288,11 @@ export default function PrivacyPage() {
 
 						<h3 className="mb-3 typography-h4">7.1 Access and Portability</h3>
 						<p>
-							While your subscription or trial is active, you can download your
-							profile, properties, units, tenants, leases, maintenance requests,
-							expenses and document list as a JSON file from your account
-							settings. You can also request your data at any time by contacting
-							us at{" "}
+							You can download your profile, properties, units, tenants, leases,
+							maintenance requests, expenses and document list as a JSON file
+							from your account settings at any time, including after your
+							subscription or trial ends. You can also request your data by
+							contacting us at{" "}
 							<a
 								href="mailto:privacy@tenantflow.app"
 								className="text-primary-text underline"
@@ -310,8 +310,8 @@ export default function PrivacyPage() {
 						<h3 className="mb-3 typography-h4">7.3 Deletion</h3>
 						<p>
 							You can request deletion of your account from your account
-							settings while your subscription or trial is active, or at any
-							time by contacting us at{" "}
+							settings at any time, including after your subscription or trial
+							ends, or by contacting us at{" "}
 							<a
 								href="mailto:privacy@tenantflow.app"
 								className="text-primary-text underline"

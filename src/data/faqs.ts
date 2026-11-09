@@ -85,7 +85,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: "How secure is my data?",
 				answer:
-					"TenantFlow runs on Supabase with TLS in transit and encryption at rest. Postgres row-level security isolates every landlord's data per request. Tenants never log in, so there are no extra access surfaces to manage. You can export your data or request account deletion at any time (a 30-day grace period applies before anonymization).",
+					"TenantFlow runs on Supabase with TLS in transit and encryption at rest. Postgres row-level security isolates every landlord's data per request. Tenants never log in, so there are no extra access surfaces to manage. In Settings you can download your data or request account deletion at any time, including after your plan or trial ends. Deletion runs 30 days after the request, waits while a lease is active, and can be cancelled until then.",
 			},
 			{
 				question: "Are lease templates compliant for my state?",

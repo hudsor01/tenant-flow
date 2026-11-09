@@ -19,6 +19,12 @@
  * requirements", backups "for up to 90 days". Their passages are held to the
  * same function bodies and the export function, and the false-claim scan now
  * reads them too.
+ *
+ * Owner, 2026-11-09 (Part 8k): an owner whose plan or trial has lapsed reaches
+ * Settings, its export and its deletion request (the proxy exempts Settings
+ * from its subscription gate). The privacy policy said both worked only "while
+ * your subscription or trial is active", and the cancel dialog that a plan
+ * must be chosen "to open the app again"; both now say what the proxy does.
  */
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -260,7 +266,25 @@ describe("the legal pages say what the deletion job and the export do", () => {
 
 	it("the privacy policy's export is the function's tables", () => {
 		expect(privacy).toContain(
-			"you can download your profile, properties, units, tenants, leases, maintenance requests, expenses and document list as a JSON file from your account settings.",
+			"You can download your profile, properties, units, tenants, leases, maintenance requests, expenses and document list as a JSON file from your account settings",
+		);
+	});
+
+	it("Settings' export and deletion request are open whatever the subscription, as the proxy does", () => {
+		const proxy = readFileSync(join(ROOT, "src/proxy.ts"), "utf8");
+		expect(proxy).toMatch(
+			/const SUBSCRIPTION_EXEMPT_PREFIXES = \["\/settings"\] as const;/,
+		);
+		expect(proxy).toMatch(/!isSubscriptionExempt\(pathname\)/);
+		expect(privacy).toContain(
+			"as a JSON file from your account settings at any time, including after your subscription or trial ends.",
+		);
+		expect(privacy).toContain(
+			"You can request deletion of your account from your account settings at any time, including after your subscription or trial ends, or by contacting us at",
+		);
+		const faqs = readFileSync(join(ROOT, "src/data/faqs.ts"), "utf8");
+		expect(faqs).toContain(
+			"In Settings you can download your data or request account deletion at any time, including after your plan or trial ends. Deletion runs 30 days after the request, waits while a lease is active, and can be cancelled until then.",
 		);
 	});
 
@@ -296,6 +320,10 @@ describe("no copy claims a deletion, a retention limit or an export the code doe
 		/backups for up to 90 days/i,
 		/backups are retained for 90 days/i,
 		/terminate your account at any time/i,
+		// Settings, its export and its deletion request are not gated by the
+		// subscription (owner, 2026-11-09, Part 8k).
+		/while your subscription or trial is active/i,
+		/to open the app again/i,
 	];
 
 	function sources(dir: string): string[] {

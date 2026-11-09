@@ -234,7 +234,8 @@ export function SubscriptionCancelSection() {
 					<div>
 						<p className="text-sm font-medium">Cancel Subscription</p>
 						{/* Nothing deletes an owner's data when a plan ends: the proxy sends a
-						    lapsed account to /pricing, and its records stay. */}
+						    lapsed account to /pricing from every page but Settings (owner,
+						    2026-11-09), and its records stay. */}
 						<p className="mb-0 text-xs text-muted-foreground">
 							Your properties, tenants and leases are kept after your plan ends.
 							You can reactivate anytime before your period ends.
@@ -255,8 +256,9 @@ export function SubscriptionCancelSection() {
 								<AlertDialogDescription className="mb-0">
 									Your plan stays active until <strong>{endDate}</strong>, and
 									you can reactivate it until then. After that, you choose a
-									plan to open the app again; your properties, tenants and
-									leases are kept.
+									plan to use the app again, and your properties, tenants and
+									leases are kept. Settings stays open, so you can still
+									download your data or request deletion of your account.
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter>
