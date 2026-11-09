@@ -15,6 +15,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getJsonHeaders } from "./cors.ts";
 import { captureWebhookError } from "./errors.ts";
+import { tierGateRefusal } from "./tier-gate-decision.ts";
 
 const ACTIVE_SUB_STATUSES: ReadonlySet<string> = new Set([
 	"active",
@@ -81,7 +82,16 @@ export async function checkTierEntitlement(
 	const hasActiveSub = !!ownerStatus && ACTIVE_SUB_STATUSES.has(ownerStatus);
 	const onEntitledPlan = !!ownerPlan && config.entitled_plans.has(ownerPlan);
 
-	if (hasActiveSub && onEntitledPlan) return null;
+	// An owner on Growth or Max whose subscription is not active (past due, in
+	// the app) is refused with Billing Settings, not "upgrade" to a plan they
+	// have (`tier-gate-decision.ts`, 66.2-39 fix round 4, Part 8n).
+	const refusal = tierGateRefusal({
+		onEntitledPlan,
+		hasActiveSub,
+		status: ownerStatus,
+		upgradeSource: config.upgrade_source,
+	});
+	if (refusal === null) return null;
 
 	// Record the gate hit for admin analytics. We fire-and-forget (don't await)
 	// so the 402 response returns as fast as possible, but the Deno Edge runtime
@@ -126,9 +136,7 @@ export async function checkTierEntitlement(
 
 	return new Response(
 		JSON.stringify({
-			error: `This feature requires a Growth or Max subscription.`,
-			upgrade_required: true,
-			upgrade_url: `/billing/plans?source=${config.upgrade_source}`,
+			...refusal,
 			current_plan: ownerPlan,
 			current_status: ownerStatus,
 		}),

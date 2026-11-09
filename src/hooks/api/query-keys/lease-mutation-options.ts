@@ -19,7 +19,7 @@ import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { LeaseCreate, LeaseUpdateInput } from "#lib/validation/leases";
 import type { Lease } from "#types/core";
 import { mutationKeys } from "../mutation-keys";
-import { PaywallError } from "./report-keys";
+import { PaywallError, paywallReason } from "./report-keys";
 
 /**
  * Calls the lease-signature Edge Function with an action payload.
@@ -48,14 +48,21 @@ async function callLeaseSignatureEdgeFunction(
 		const error = (await response.json().catch(() => ({}))) as {
 			error?: string;
 			upgrade_url?: string;
+			reason?: unknown;
 		};
 		const message = error.error ?? "Signature request failed";
-		// Over-cap e-sign metering block (402): the edge fn returns an actionable
-		// `upgrade_url`. Preserve it via PaywallError so the send mutation surfaces
-		// an Upgrade CTA instead of discarding the status + url into a bare toast
-		// (RESEARCH Pitfall 4). Every other error keeps the plain-message behavior.
+		// A 402 (the tier gate's, or the over-cap e-sign meter's): the edge fn
+		// returns an actionable `upgrade_url`, and the tier gate its `reason`.
+		// Preserve both via PaywallError so the send mutation surfaces the right
+		// CTA instead of discarding the status + url into a bare toast (RESEARCH
+		// Pitfall 4). Every other error keeps the plain-message behavior.
 		if (typeof error.upgrade_url === "string") {
-			throw new PaywallError(message, error.upgrade_url, "esign");
+			throw new PaywallError(
+				message,
+				error.upgrade_url,
+				"esign",
+				paywallReason(error.reason),
+			);
 		}
 		throw new Error(message);
 	}

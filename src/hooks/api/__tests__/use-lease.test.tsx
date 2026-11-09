@@ -22,6 +22,7 @@ import {
 } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	type LeaseWithNestedRelations,
@@ -31,6 +32,7 @@ import {
 } from "#components/leases/table/lease-utils";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
 import type { Lease, Property } from "#types/core";
+import { tierGateRefusal } from "../../../../supabase/functions/_shared/tier-gate-decision";
 import { leaseQueries } from "../query-keys/lease-keys";
 import { ownerDashboardKeys } from "../query-keys/owner-dashboard-keys";
 import { tenantQueries } from "../query-keys/tenant-keys";
@@ -813,6 +815,79 @@ describe("Mutation Hooks", () => {
 			).rejects.toMatchObject({
 				message: expect.stringContaining("Tenant email is required"),
 			});
+		});
+
+		// 66.2-39 fix round 4, Part 8n: the send's 402 toast follows the
+		// refusal's reason. The bodies are the gate leaf's own.
+		const sendArgs = {
+			leaseId: "lease-123",
+			missingFields: {
+				immediate_family_members: "",
+				landlord_notice_address: "123 Main St",
+			},
+		};
+		async function sendRefused(body: Record<string, unknown>) {
+			vi.mocked(toast.error).mockClear();
+			fetchMock.mockResolvedValueOnce({ ok: false, json: async () => body });
+			const { result } = renderHook(() => useSendLeaseForSignatureMutation(), {
+				wrapper: createWrapper(),
+			});
+			await expect(result.current.mutateAsync(sendArgs)).rejects.toMatchObject({
+				name: "PaywallError",
+			});
+			await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));
+		}
+
+		it("titles a past-due Growth owner's refusal for billing, not an upgrade", async () => {
+			await sendRefused({
+				...tierGateRefusal({
+					onEntitledPlan: true,
+					hasActiveSub: false,
+					status: "past_due",
+					upgradeSource: "esign_gate",
+				}),
+			});
+			expect(toast.error).toHaveBeenCalledWith(
+				"Billing needs attention",
+				expect.objectContaining({
+					description:
+						"Your plan includes this, but it is paused while your subscription payment is past due. Update your payment method in Billing Settings.",
+					action: expect.objectContaining({ label: "Billing Settings" }),
+				}),
+			);
+		});
+
+		it("titles a plan without e-sign as an upgrade, since no limit was reached", async () => {
+			await sendRefused({
+				...tierGateRefusal({
+					onEntitledPlan: false,
+					hasActiveSub: true,
+					status: "active",
+					upgradeSource: "esign_gate",
+				}),
+			});
+			expect(toast.error).toHaveBeenCalledWith(
+				"Upgrade required",
+				expect.objectContaining({
+					description: "This feature requires a Growth or Max subscription.",
+					action: expect.objectContaining({ label: "Upgrade" }),
+				}),
+			);
+		});
+
+		it("keeps the meter's over-cap title, which names no reason", async () => {
+			await sendRefused({
+				error:
+					"You've used all 25 lease e-signs included in your plan this month. Upgrade to Max for unlimited e-signs.",
+				upgrade_required: true,
+				upgrade_url: "/billing/plans?source=esign_quota",
+			});
+			expect(toast.error).toHaveBeenCalledWith(
+				"E-sign limit reached",
+				expect.objectContaining({
+					action: expect.objectContaining({ label: "Upgrade" }),
+				}),
+			);
 		});
 	});
 });

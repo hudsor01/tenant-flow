@@ -47,6 +47,7 @@ vi.mock("#lib/reports/download-blob", () => ({
 	downloadBlob: mockDownloadBlob,
 }));
 
+import { tierGateRefusal } from "../../../../supabase/functions/_shared/tier-gate-decision";
 import { ExportButtons } from "../export-buttons";
 
 const SUPABASE_URL = "http://test-supabase";
@@ -174,6 +175,63 @@ describe("ExportButtons", () => {
 		try {
 			options.action?.onClick?.();
 			expect(assign).toHaveBeenCalledWith("/billing/plans?source=reports_gate");
+		} finally {
+			Object.defineProperty(window, "location", {
+				configurable: true,
+				value: original,
+			});
+		}
+	});
+
+	// 66.2-39 fix round 4, Part 8n: a Growth owner whose subscription is past
+	// due has the plan; the gate's refusal (the leaf's own body) names the
+	// payment, and the toast opens Billing Settings instead of the plans page.
+	it("turns a past-due owner's 402 into the Billing Settings toast, not an upgrade", async () => {
+		const refusal = tierGateRefusal({
+			onEntitledPlan: true,
+			hasActiveSub: false,
+			status: "past_due",
+			upgradeSource: "reports_gate",
+		});
+		fetchMock.mockResolvedValue(
+			new Response(
+				JSON.stringify({
+					...refusal,
+					current_plan: "growth",
+					current_status: "past_due",
+				}),
+				{ status: 402, headers: { "Content-Type": "application/json" } },
+			),
+		);
+		const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+		render(<ExportButtons />);
+		await user.click(screen.getByRole("button", { name: "Export Excel" }));
+
+		await waitFor(() => expect(mockToastError).toHaveBeenCalledTimes(1));
+		const [title, options] = mockToastError.mock.calls[0] as [
+			string,
+			{
+				description?: string;
+				action?: { label?: string; onClick?: () => void };
+			},
+		];
+		expect(title).toBe("Billing needs attention");
+		expect(options.description).toBe(
+			"Your plan includes this, but it is paused while your subscription payment is past due. Update your payment method in Billing Settings.",
+		);
+		expect(options.action?.label).toBe("Billing Settings");
+		expect(mockHandleMutationError).not.toHaveBeenCalled();
+		expect(mockDownloadBlob).not.toHaveBeenCalled();
+
+		const assign = vi.fn();
+		const original = window.location;
+		Object.defineProperty(window, "location", {
+			configurable: true,
+			value: { ...original, assign },
+		});
+		try {
+			options.action?.onClick?.();
+			expect(assign).toHaveBeenCalledWith("/settings?tab=billing");
 		} finally {
 			Object.defineProperty(window, "location", {
 				configurable: true,

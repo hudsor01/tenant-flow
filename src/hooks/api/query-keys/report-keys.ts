@@ -12,6 +12,10 @@ import {
 	taxYearReportFilename,
 	YEAR_END_REPORT_TYPE,
 } from "../../../../supabase/functions/_shared/tax-year-reports";
+import {
+	TIER_GATE_REFUSAL_REASONS,
+	type TierGateRefusalReason,
+} from "../../../../supabase/functions/_shared/tier-gate-decision";
 import { mutationKeys } from "../mutation-keys";
 
 export const reportKeys = {
@@ -60,19 +64,35 @@ export const reportQueries = {
 };
 
 /**
- * Thrown when the reports tier gate returns 402. Caller mutations detect this
- * via `instanceof PaywallError` to surface an upgrade CTA instead of a generic
- * error toast.
+ * Thrown when a tier gate returns 402. Caller mutations detect this via
+ * `instanceof PaywallError` to surface an upgrade CTA instead of a generic
+ * error toast. `reason` is the gate's (`_shared/tier-gate-decision.ts`):
+ * `subscription_inactive` is an owner whose plan includes the feature while
+ * the subscription is not active, whom the toast sends to Billing Settings,
+ * not to upgrade. `null` when the 402 names none (the e-sign quota's, or an
+ * older function's).
  */
 export class PaywallError extends Error {
 	readonly upgradeUrl: string;
 	readonly feature: string;
-	constructor(message: string, upgradeUrl: string, feature: string) {
+	readonly reason: TierGateRefusalReason | null;
+	constructor(
+		message: string,
+		upgradeUrl: string,
+		feature: string,
+		reason: TierGateRefusalReason | null = null,
+	) {
 		super(message);
 		this.name = "PaywallError";
 		this.upgradeUrl = upgradeUrl;
 		this.feature = feature;
+		this.reason = reason;
 	}
+}
+
+/** A 402 body's `reason`, if it is one the tier gate writes. */
+export function paywallReason(raw: unknown): TierGateRefusalReason | null {
+	return TIER_GATE_REFUSAL_REASONS.find((reason) => reason === raw) ?? null;
 }
 
 async function parsePaywallResponse(
@@ -84,6 +104,7 @@ async function parsePaywallResponse(
 			error?: string;
 			upgrade_url?: string;
 			upgrade_required?: boolean;
+			reason?: unknown;
 		};
 		const url =
 			typeof body.upgrade_url === "string"
@@ -93,7 +114,12 @@ async function parsePaywallResponse(
 			typeof body.error === "string"
 				? body.error
 				: "This feature requires a Growth or Max subscription.";
-		return new PaywallError(msg, url, defaultFeature);
+		return new PaywallError(
+			msg,
+			url,
+			defaultFeature,
+			paywallReason(body.reason),
+		);
 	} catch {
 		return new PaywallError(
 			"This feature requires a Growth or Max subscription.",

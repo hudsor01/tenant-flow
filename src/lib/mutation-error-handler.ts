@@ -276,6 +276,19 @@ export function showStorageQuotaUpgradeToast(): void {
 	);
 }
 
+/**
+ * The paywall toast's title and action for a tier gate's refusal whose reason
+ * is `subscription_inactive` (`_shared/tier-gate-decision.ts`): the owner's
+ * plan includes the feature, and the subscription is not active (past due, in
+ * the app). The action opens Billing Settings, the refusal's `upgrade_url`;
+ * telling this owner to upgrade a plan they have misstated it (66.2-39 fix
+ * round 4, Part 8n). The reports and e-sign handlers both show it.
+ */
+export const PAYWALL_BILLING_TOAST = {
+	title: "Billing needs attention",
+	action: "Billing Settings",
+} as const;
+
 /** The noun for a plan-limited resource the trigger's DETAIL names. */
 const PLAN_LIMIT_NOUNS: Record<string, [string, string]> = {
 	properties: ["property", "properties"],

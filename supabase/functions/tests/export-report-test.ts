@@ -10,7 +10,7 @@
 //     generate-pdf delegate, with a month's scheduled rent and a lease's rent
 //     received in columns of their own in every format;
 //   - the paywall: a free-tier owner gets the 402 with upgrade_url and no RPC
-//     runs;
+//     runs, and a past-due Growth owner the 402 with Billing Settings;
 //   - every RPC error is a 500 and never a file;
 //   - type, format and year are validated: a type the function does not build
 //     (the deleted maintenance and revenue row dumps, the removed 1099-NEC
@@ -534,14 +534,38 @@ Deno.test("a free-tier owner gets the 402 with upgrade_url, and no RPC runs", as
 		);
 		assertEquals(res.status, 402);
 		const body = (await res.json()) as {
+			reason?: string;
 			upgrade_required?: boolean;
 			upgrade_url?: string;
 		};
+		assertEquals(body.reason, "plan");
 		assertEquals(body.upgrade_required, true);
 		assertEquals(body.upgrade_url, "/billing/plans?source=reports_gate");
 		assertEquals(calls.rpcs.length, 0);
 		assertEquals(calls.gateEvents, 1);
 	}
+});
+
+// 66.2-39 fix round 4, Part 8n: a Growth owner whose subscription is past due
+// has the plan, so the 402 names the payment and Billing Settings, not an
+// upgrade (`_shared/tier-gate-decision.ts`).
+Deno.test("a past-due Growth owner gets the 402 with Billing Settings, and no RPC runs", async () => {
+	const { res, calls } = await run(
+		get(`${FA}&format=csv`),
+		scenario({ plan: "growth", status: "past_due" }),
+	);
+	assertEquals(res.status, 402);
+	assertEquals(await res.json(), {
+		error:
+			"Your plan includes this, but it is paused while your subscription payment is past due. Update your payment method in Billing Settings.",
+		reason: "subscription_inactive",
+		upgrade_required: false,
+		upgrade_url: "/settings?tab=billing",
+		current_plan: "growth",
+		current_status: "past_due",
+	});
+	assertEquals(calls.rpcs.length, 0);
+	assertEquals(calls.gateEvents, 1);
 });
 
 Deno.test("every RPC error is a 500 and never a file", async () => {

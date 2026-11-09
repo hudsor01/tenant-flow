@@ -12,6 +12,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
 	handleMutationError,
+	PAYWALL_BILLING_TOAST,
 	userFacingErrorMessage,
 } from "#lib/mutation-error-handler";
 import { downloadBlob } from "#lib/reports/download-blob";
@@ -33,10 +34,13 @@ import {
  */
 function handleReportMutationError(err: unknown, action: string): void {
 	if (err instanceof PaywallError) {
-		toast.error("Upgrade required", {
+		// The plan includes the export and the subscription is not active: the
+		// action is Billing Settings, not a plan to upgrade to.
+		const billing = err.reason === "subscription_inactive";
+		toast.error(billing ? PAYWALL_BILLING_TOAST.title : "Upgrade required", {
 			description: userFacingErrorMessage(err),
 			action: {
-				label: "See plans",
+				label: billing ? PAYWALL_BILLING_TOAST.action : "See plans",
 				onClick: () => {
 					window.location.assign(err.upgradeUrl);
 				},
