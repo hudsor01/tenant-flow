@@ -323,7 +323,10 @@ export function BillingSettings() {
 
 					<div className="flex items-start justify-between">
 						<div>
-							<div className="flex items-center gap-2 mb-1">
+							{/* The badge wraps under a long title: "Your subscription"
+							    beside "Incomplete" held one line and pushed Manage Plan
+							    to 335.3px at 320 (Part 8m, measured). */}
+							<div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
 								<h4 className="text-xl font-bold">
 									{resolvePlanTitle(status, currentPlan)}
 								</h4>

@@ -489,6 +489,16 @@ describe("BillingSettings plan title", () => {
 		},
 	);
 
+	// Measured on the served build (Part 8m): "Your subscription" beside the
+	// "Incomplete" badge held the row on one line, and Manage Plan ran to
+	// 335.3px at 320 and 328. The badge wraps under the title instead.
+	it("lets the badge wrap under a long title, so the row never pushes the buttons out", async () => {
+		const { row } = await titleAndBadge("incomplete", null);
+		expect(row.className.split(/\s+/)).toEqual(
+			expect.arrayContaining(["flex", "flex-wrap", "items-center"]),
+		);
+	});
+
 	it.each(STATUSES)(
 		"$status with no known plan: $none",
 		async ({ status, badge, none }) => {
