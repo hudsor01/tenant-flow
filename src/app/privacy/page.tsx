@@ -18,7 +18,7 @@ export default function PrivacyPage() {
 			<div className="mx-auto min-h-screen max-w-4xl px-6 lg:px-8 section-spacing">
 				<h1 className="mb-8 typography-h1">Privacy Policy</h1>
 				<p className="mb-6 text-muted-foreground">
-					Last Updated: July 15, 2026
+					Last Updated: November 9, 2026
 				</p>
 
 				<div className="prose prose-gray dark:prose-invert max-w-none">
@@ -44,7 +44,7 @@ export default function PrivacyPage() {
 
 						<h3 className="mb-3 typography-h4">2.1 Information You Provide</h3>
 						<p>We collect information that you voluntarily provide to us:</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								<strong>Account Information:</strong> Name, email address, phone
 								number, and password when you create an account
@@ -82,7 +82,7 @@ export default function PrivacyPage() {
 							When you use TenantFlow, we automatically collect certain
 							information:
 						</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								<strong>Usage Data:</strong> Pages viewed, features used, time
 								spent on pages, and interaction patterns
@@ -106,7 +106,7 @@ export default function PrivacyPage() {
 							2.3 Third-Party Authentication
 						</h3>
 						<p>If you choose to sign in using Google OAuth, we collect:</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>Your Google account email address</li>
 							<li>
 								Your Google profile name and photo (if publicly available)
@@ -128,7 +128,7 @@ export default function PrivacyPage() {
 							3. How We Use Your Information
 						</h2>
 						<p>We use the collected information for the following purposes:</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								<strong>Service Delivery:</strong> Provide, maintain, and
 								improve our property management platform
@@ -171,7 +171,7 @@ export default function PrivacyPage() {
 
 						<h3 className="mb-3 typography-h4">4.1 Service Providers</h3>
 						<p>We share data with trusted third-party service providers:</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								<strong>Supabase:</strong> Database hosting and authentication
 							</li>
@@ -193,7 +193,7 @@ export default function PrivacyPage() {
 
 						<h3 className="mb-3 typography-h4">4.2 Legal Requirements</h3>
 						<p>We may disclose your information if required by law or to:</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>Comply with legal processes or government requests</li>
 							<li>Enforce our Terms of Service</li>
 							<li>
@@ -216,7 +216,7 @@ export default function PrivacyPage() {
 							We implement industry-standard security measures to protect your
 							data:
 						</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								<strong>Encryption:</strong> All data is encrypted in transit
 								(HTTPS/TLS) and at rest (AES-256)
@@ -251,22 +251,31 @@ export default function PrivacyPage() {
 							We retain your personal information for as long as necessary to
 							provide our services and comply with legal obligations:
 						</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								<strong>Active Accounts:</strong> Data is retained while your
 								account is active
 							</li>
 							<li>
-								<strong>Deleted Accounts:</strong> Data is deleted within 90
-								days after account deletion, except where required by law
+								<strong>Deleted Accounts:</strong> Account deletion runs 30 days
+								after you request it, and waits while any of your leases is
+								active. It removes your name, email, phone and photo link from
+								your profile, marks your properties inactive, replaces the
+								descriptions in your activity history, and deletes your
+								notifications, notification preferences and settings, and rental
+								applications. Your leases, tenants, units, maintenance requests,
+								documents and their files, expenses and rent records are kept,
+								and so are your profile photo file, your emergency contact and
+								your sign-in account, which holds your email address
 							</li>
 							<li>
-								<strong>Financial Records:</strong> Payment and tax records
-								retained for 7 years as required by law
+								<strong>Financial Records:</strong> Your expenses and rent
+								records are kept while your account exists, and account deletion
+								does not remove them
 							</li>
 							<li>
-								<strong>Backup Data:</strong> Backups are retained for 90 days
-								for disaster recovery purposes
+								<strong>Backup Data:</strong> Backups are retained for disaster
+								recovery purposes
 							</li>
 						</ul>
 					</section>
@@ -279,8 +288,11 @@ export default function PrivacyPage() {
 
 						<h3 className="mb-3 typography-h4">7.1 Access and Portability</h3>
 						<p>
-							You can access and export your data at any time through your
-							account settings or by contacting us at{" "}
+							While your subscription or trial is active, you can download your
+							profile, properties, units, tenants, leases, maintenance requests,
+							expenses and document list as a JSON file from your account
+							settings. You can also request your data at any time by contacting
+							us at{" "}
 							<a
 								href="mailto:privacy@tenantflow.app"
 								className="text-primary-text underline"
@@ -297,9 +309,19 @@ export default function PrivacyPage() {
 
 						<h3 className="mb-3 typography-h4">7.3 Deletion</h3>
 						<p>
-							You can delete your account and associated data at any time
-							through account settings. Some information may be retained as
-							required by law or for legitimate business purposes.
+							You can request deletion of your account from your account
+							settings while your subscription or trial is active, or at any
+							time by contacting us at{" "}
+							<a
+								href="mailto:privacy@tenantflow.app"
+								className="text-primary-text underline"
+							>
+								privacy@tenantflow.app
+							</a>
+							. Deletion runs 30 days after the request, and you can cancel it
+							until then; Section 6 describes what it removes and what it keeps.
+							Some information may be retained as required by law or for
+							legitimate business purposes.
 						</p>
 
 						<h3 className="mb-3 typography-h4">7.4 Marketing Communications</h3>
@@ -321,7 +343,7 @@ export default function PrivacyPage() {
 							8. Cookies and Tracking Technologies
 						</h2>
 						<p>We use the following types of cookies:</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								<strong>Essential Cookies:</strong> Required for basic platform
 								functionality (authentication, security)
@@ -360,9 +382,17 @@ export default function PrivacyPage() {
 							different data protection laws than your country.
 						</p>
 						<p>
-							For users in the European Economic Area (EEA), we comply with GDPR
-							requirements and provide appropriate safeguards for data
-							transfers.
+							If you are in the European Economic Area (EEA), you can download
+							your data and request deletion of your account as Section 7
+							describes. For any other request about your personal information,
+							contact us at{" "}
+							<a
+								href="mailto:privacy@tenantflow.app"
+								className="text-primary-text underline"
+							>
+								privacy@tenantflow.app
+							</a>
+							.
 						</p>
 					</section>
 
@@ -385,7 +415,7 @@ export default function PrivacyPage() {
 							changes in our practices or for legal, operational, or regulatory
 							reasons. We will notify you of significant changes by:
 						</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>Posting the updated policy on this page</li>
 							<li>Updating the &quot;Last Updated&quot; date at the top</li>
 							<li>Sending an email notification for material changes</li>
@@ -403,7 +433,7 @@ export default function PrivacyPage() {
 							Privacy Policy or our data practices, please contact us:
 						</p>
 						<div className="mt-4 rounded-lg bg-muted p-6">
-							<p className="mb-2">
+							<p className="mt-0 mb-2">
 								<strong>Email:</strong>{" "}
 								<a
 									href="mailto:privacy@tenantflow.app"
@@ -412,7 +442,7 @@ export default function PrivacyPage() {
 									privacy@tenantflow.app
 								</a>
 							</p>
-							<p className="mb-2">
+							<p className="mt-0 mb-2">
 								<strong>Support:</strong>{" "}
 								<a
 									href="mailto:support@tenantflow.app"
@@ -421,7 +451,7 @@ export default function PrivacyPage() {
 									support@tenantflow.app
 								</a>
 							</p>
-							<p>
+							<p className="mt-0 mb-0">
 								<strong>Response Time:</strong> We aim to respond to all privacy
 								requests within 30 days
 							</p>
@@ -436,7 +466,7 @@ export default function PrivacyPage() {
 							If you are a California resident, you have additional rights under
 							the California Consumer Privacy Act (CCPA):
 						</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								Right to know what personal information we collect and how
 								it&apos;s used
@@ -462,11 +492,11 @@ export default function PrivacyPage() {
 					</section>
 
 					<div className="mt-12 border-t pt-8 text-muted-foreground">
-						<p>
+						<p className="mt-0 mb-0">
 							This Privacy Policy is effective as of October 5, 2025 and applies
 							to all users of the TenantFlow platform.
 						</p>
-						<p className="mt-4">
+						<p className="mt-4 mb-0">
 							<strong>TenantFlow</strong> is a property management software
 							platform designed to help landlords efficiently manage properties,
 							tenants, leases, and financial operations.

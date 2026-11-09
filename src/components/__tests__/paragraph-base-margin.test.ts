@@ -118,7 +118,6 @@ const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
 	],
 	"src/app/marketing-home.tsx": [2, "a637d6e38fbbde2a5d0f2d22f23321dfc95cf60c"],
 	"src/app/pricing/page.tsx": [1, "5b684df9ea95251daf511cc5b1ed8b7a09c310c1"],
-	"src/app/privacy/page.tsx": [2, "b787e72998d6bfc3abcf221defd01320b1b825fe"],
 	"src/app/security-policy/page.tsx": [
 		1,
 		"e573dca49e90859aae9b8708c2ed96240108116c",
@@ -131,7 +130,6 @@ const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
 		1,
 		"269ef285eae41c907fb03c47391a5c6054e7de63",
 	],
-	"src/app/terms/page.tsx": [3, "a421bd86530a74e901f2d72519c31658eabaf6ab"],
 	"src/components/admin/deliverability-table.tsx": [
 		1,
 		"554323816217ddc619546d7926ae99c0fa691672",

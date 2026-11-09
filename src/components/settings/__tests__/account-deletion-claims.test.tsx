@@ -11,6 +11,14 @@
  * nothing deletes data when a plan ends. Each sentence of the deletion copy
  * is read against the latest migration body of the function that does it, so
  * a migration that changes the job fails here until the copy follows.
+ *
+ * The legal pages said the same false things (66.2-39 fix round 4, Part 8j;
+ * owner, 2026-11-09: rewrite them to match): data "deleted within 90 days",
+ * payment records "retained for 7 years", "export your data at any time",
+ * "delete your account and associated data at any time", "we comply with GDPR
+ * requirements", backups "for up to 90 days". Their passages are held to the
+ * same function bodies and the export function, and the false-claim scan now
+ * reads them too.
  */
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -224,8 +232,50 @@ describe("the export copy names what export-user-data returns", () => {
 	});
 });
 
-describe("no in-app copy claims a deletion, a retention limit or an export the code does not do", () => {
-	/** Phrases that state something no code does. The legal pages are reported, not edited. */
+describe("the legal pages say what the deletion job and the export do", () => {
+	const anonymize = latestFunctionBody("anonymize_deleted_user");
+	/** A page's text with JSX line wrapping collapsed. */
+	const pageText = (file: string) =>
+		readFileSync(join(ROOT, file), "utf8").replace(/\s+/g, " ");
+	const privacy = pageText("src/app/privacy/page.tsx");
+	const terms = pageText("src/app/terms/page.tsx");
+
+	it("the privacy policy's deleted accounts are what the job removes and keeps", () => {
+		expect(anonymize.body).not.toMatch(
+			/(delete from|update) public\.(units|maintenance_requests|documents|leases|tenants|expenses|rent_charges|rent_receipts)\b/,
+		);
+		expect(anonymize.body).not.toMatch(/storage\./);
+		expect(anonymize.body).toMatch(/update public\.activity set description/);
+		expect(anonymize.body).toMatch(/delete from public\.user_preferences /);
+		expect(anonymize.body).toMatch(
+			/delete from public\.notification_settings /,
+		);
+		expect(privacy).toContain(
+			"Account deletion runs 30 days after you request it, and waits while any of your leases is active. It removes your name, email, phone and photo link from your profile, marks your properties inactive, replaces the descriptions in your activity history, and deletes your notifications, notification preferences and settings, and rental applications. Your leases, tenants, units, maintenance requests, documents and their files, expenses and rent records are kept, and so are your profile photo file, your emergency contact and your sign-in account, which holds your email address",
+		);
+		expect(privacy).toContain(
+			"Your expenses and rent records are kept while your account exists, and account deletion does not remove them",
+		);
+	});
+
+	it("the privacy policy's export is the function's tables", () => {
+		expect(privacy).toContain(
+			"you can download your profile, properties, units, tenants, leases, maintenance requests, expenses and document list as a JSON file from your account settings.",
+		);
+	});
+
+	it("deletion is a request that runs after 30 days, in both documents", () => {
+		expect(privacy).toContain(
+			"Deletion runs 30 days after the request, and you can cancel it until then; Section 6 describes what it removes and what it keeps.",
+		);
+		expect(terms).toContain(
+			"describes (Section 7.3); deletion runs 30 days after the request.",
+		);
+	});
+});
+
+describe("no copy claims a deletion, a retention limit or an export the code does not do", () => {
+	/** Phrases that state something no code does. */
 	const FALSE_CLAIMS = [
 		/all associated data/i,
 		/all your data will be/i,
@@ -238,8 +288,15 @@ describe("no in-app copy claims a deletion, a retention limit or an export the c
 		/keep your account when/i,
 		/GDPR-compliant/i,
 		/Cannot delete account with/i,
+		/deleted within 90 days/i,
+		/retained for 7 years/i,
+		/export your data at any time/i,
+		/delete your account and associated data/i,
+		/comply with GDPR/i,
+		/backups for up to 90 days/i,
+		/backups are retained for 90 days/i,
+		/terminate your account at any time/i,
 	];
-	const LEGAL = new Set(["src/app/privacy/page.tsx", "src/app/terms/page.tsx"]);
 
 	function sources(dir: string): string[] {
 		return readdirSync(dir).flatMap((name) => {
@@ -253,17 +310,15 @@ describe("no in-app copy claims a deletion, a retention limit or an export the c
 		});
 	}
 
-	it("finds none in src (outside the legal pages)", () => {
+	it("finds none in src, the legal pages included", () => {
 		const hits: string[] = [];
 		for (const path of sources(join(ROOT, "src"))) {
 			const file = relative(ROOT, path);
-			if (LEGAL.has(file)) continue;
-			const lines = readFileSync(path, "utf8").split("\n");
-			lines.forEach((line, i) => {
-				for (const claim of FALSE_CLAIMS) {
-					if (claim.test(line)) hits.push(`${file}:${i + 1} ${claim}`);
-				}
-			});
+			// JSX wraps a sentence over lines: read it whole.
+			const text = readFileSync(path, "utf8").replace(/\s+/g, " ");
+			for (const claim of FALSE_CLAIMS) {
+				if (claim.test(text)) hits.push(`${file} ${claim}`);
+			}
 		}
 		expect(hits).toEqual([]);
 	});
