@@ -1,5 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { computeAnchorRuleReach } from "#test/utils/base-rule-cascade";
 import { SubscriptionStatusBanner } from "../subscription-status-banner";
 
 const mockUseSubscriptionStatus = vi.fn();
@@ -245,5 +246,67 @@ describe("SubscriptionStatusBanner", () => {
 		expect(screen.getByText(/subscription is inactive/i)).toBeInTheDocument();
 		const link = screen.getByRole("link", { name: /reactivate/i });
 		expect(link).toHaveAttribute("href", "/billing/plans");
+	});
+
+	// The base `a` rule (globals.css) colors a text link primary, which beat the
+	// banner color the link was meant to inherit: in the rendered app
+	// "Reactivate" read 3.99:1 (primary on destructive/10) and "Upgrade" 4.13:1
+	// (primary on primary/10), light theme (66.2-39 fix round 4, Part 8i). Each
+	// link the rule reaches carries its banner's AA -text color itself.
+	it("gives each banner link its banner's -text color, which the base link rule would override", () => {
+		const states: [string, unknown, RegExp][] = [
+			["null", null, /view plans/i],
+			[
+				"trialing",
+				{
+					subscriptionStatus: "trialing",
+					stripeCustomerId: null,
+					stripePriceId: null,
+					currentPeriodEnd: null,
+					cancelAtPeriodEnd: false,
+					trialEndsAt: null,
+				},
+				/upgrade/i,
+			],
+			[
+				"past_due",
+				{
+					subscriptionStatus: "past_due",
+					stripeCustomerId: "cus_123",
+					stripePriceId: null,
+					currentPeriodEnd: null,
+					cancelAtPeriodEnd: false,
+					trialEndsAt: null,
+				},
+				/update billing/i,
+			],
+			[
+				"canceled",
+				{
+					subscriptionStatus: "canceled",
+					stripeCustomerId: "cus_123",
+					stripePriceId: null,
+					currentPeriodEnd: null,
+					cancelAtPeriodEnd: false,
+					trialEndsAt: null,
+				},
+				/reactivate/i,
+			],
+		];
+		for (const [label, data, name] of states) {
+			cleanup();
+			mockUseSubscriptionStatus.mockReturnValue({ data, isLoading: false });
+			render(<SubscriptionStatusBanner />);
+			const link = screen.getByRole("link", { name });
+			const reach = computeAnchorRuleReach(link);
+			expect(reach.baseline.rest, label).toBe(true);
+			expect(reach.rest, label).toBe(true);
+			const banner = link.parentElement as HTMLElement;
+			const tone = banner.className.match(/\btext-(\w+)-text\b/)?.[0];
+			expect(tone, label).toMatch(
+				/^text-(info|primary|warning|destructive)-text$/,
+			);
+			expect(link.className.split(/\s+/), label).toContain(tone);
+		}
 	});
 });

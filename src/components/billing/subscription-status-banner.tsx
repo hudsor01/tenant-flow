@@ -14,6 +14,12 @@ import { useSubscriptionStatus } from "#hooks/api/use-billing";
  * - null (no subscription): info banner with link to /pricing
  *
  * Include in owner layout to show across all owner pages.
+ *
+ * Each link names its banner's -text color: the base `a` rule (globals.css)
+ * colors a text link primary, which beat the banner color it was meant to
+ * inherit. In the rendered app "Reactivate" read 3.99:1 (primary on
+ * destructive/10) and "Upgrade" 4.13:1 (primary on primary/10), light theme
+ * (66.2-39 fix round 4, Part 8i).
  */
 export function SubscriptionStatusBanner() {
 	const { data: subscription, isLoading, isError } = useSubscriptionStatus();
@@ -39,7 +45,7 @@ export function SubscriptionStatusBanner() {
 				</p>
 				<Link
 					href="/pricing"
-					className="shrink-0 font-medium underline underline-offset-4 hover:text-foreground"
+					className="shrink-0 font-medium text-info-text underline underline-offset-4 hover:text-foreground"
 				>
 					View plans
 				</Link>
@@ -68,7 +74,7 @@ export function SubscriptionStatusBanner() {
 				<p className="mb-0 flex-1">{message}</p>
 				<Link
 					href="/billing/plans?source=trial_banner"
-					className="shrink-0 font-medium underline underline-offset-4 hover:text-foreground"
+					className="shrink-0 font-medium text-primary-text underline underline-offset-4 hover:text-foreground"
 				>
 					Upgrade
 				</Link>
@@ -92,7 +98,7 @@ export function SubscriptionStatusBanner() {
 				</p>
 				<Link
 					href="/settings?tab=billing"
-					className="shrink-0 font-medium underline underline-offset-4 hover:text-foreground"
+					className="shrink-0 font-medium text-warning-text underline underline-offset-4 hover:text-foreground"
 				>
 					Update billing
 				</Link>
@@ -113,7 +119,7 @@ export function SubscriptionStatusBanner() {
 			</p>
 			<Link
 				href="/billing/plans"
-				className="shrink-0 font-medium underline underline-offset-4 hover:text-foreground"
+				className="shrink-0 font-medium text-destructive-text underline underline-offset-4 hover:text-foreground"
 			>
 				Reactivate
 			</Link>
