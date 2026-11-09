@@ -120,6 +120,8 @@ describe("SubscriptionStatusBanner", () => {
 		expect(link).toHaveAttribute("href", "/settings?tab=billing");
 	});
 
+	// A signup trial names no plan (set_trial_on_signup sets only the status
+	// and its end), so it is told to choose one.
 	it("renders trial banner with days remaining when status is trialing", () => {
 		const trialEndsAt = new Date(
 			Date.now() + 5 * 24 * 60 * 60 * 1000,
@@ -128,7 +130,7 @@ describe("SubscriptionStatusBanner", () => {
 			data: {
 				subscriptionStatus: "trialing",
 				stripeCustomerId: "cus_123",
-				stripePriceId: "price_123",
+				stripePriceId: null,
 				currentPeriodEnd: "2026-04-01",
 				cancelAtPeriodEnd: false,
 				trialEndsAt,
@@ -151,7 +153,7 @@ describe("SubscriptionStatusBanner", () => {
 			data: {
 				subscriptionStatus: "trialing",
 				stripeCustomerId: "cus_123",
-				stripePriceId: "price_123",
+				stripePriceId: null,
 				currentPeriodEnd: "2026-04-01",
 				cancelAtPeriodEnd: false,
 				trialEndsAt,
@@ -172,7 +174,7 @@ describe("SubscriptionStatusBanner", () => {
 			data: {
 				subscriptionStatus: "trialing",
 				stripeCustomerId: "cus_123",
-				stripePriceId: "price_123",
+				stripePriceId: null,
 				currentPeriodEnd: "2026-04-01",
 				cancelAtPeriodEnd: false,
 				trialEndsAt,
@@ -190,7 +192,7 @@ describe("SubscriptionStatusBanner", () => {
 			data: {
 				subscriptionStatus: "trialing",
 				stripeCustomerId: "cus_123",
-				stripePriceId: "price_123",
+				stripePriceId: null,
 				currentPeriodEnd: "2026-04-01",
 				cancelAtPeriodEnd: false,
 				trialEndsAt: null,
@@ -204,6 +206,54 @@ describe("SubscriptionStatusBanner", () => {
 		const link = screen.getByRole("link", { name: /upgrade/i });
 		expect(link).toHaveAttribute("href", "/billing/plans?source=trial_banner");
 	});
+
+	// 66.2-39 fix round 4, Part 8n: a trial of a chosen plan (stripe-checkout's
+	// carry-over trial, whose row names the plan) needs no upgrade; Stripe
+	// cancels it at the end without a payment method on file and bills the
+	// plan with one. It was told to "upgrade to keep access".
+	it.each([
+		[
+			5 * 24 * 60 * 60 * 1000,
+			"5 days left in your trial. Without a payment method on file when it ends, your subscription is canceled.",
+		],
+		[
+			12 * 60 * 60 * 1000,
+			"1 day left in your trial. Without a payment method on file when it ends, your subscription is canceled.",
+		],
+		[
+			-2 * 24 * 60 * 60 * 1000,
+			"Your trial has ended. Without a payment method on file, your subscription is canceled.",
+		],
+		[
+			null,
+			"Your plan's trial is on. Without a payment method on file when it ends, your subscription is canceled.",
+		],
+	])(
+		"tells a trial of a chosen plan what happens at its end (%s ms left)",
+		(offset, copy) => {
+			mockUseSubscriptionStatus.mockReturnValue({
+				data: {
+					subscriptionStatus: "trialing",
+					stripeCustomerId: "cus_123",
+					stripePriceId: "growth",
+					currentPeriodEnd: "2026-04-01",
+					cancelAtPeriodEnd: false,
+					trialEndsAt:
+						offset === null
+							? null
+							: new Date(Date.now() + offset).toISOString(),
+				},
+				isLoading: false,
+			});
+
+			render(<SubscriptionStatusBanner />);
+
+			expect(screen.getByText(copy)).toBeInTheDocument();
+			expect(screen.queryByText(/upgrade/i)).not.toBeInTheDocument();
+			const link = screen.getByRole("link", { name: "Update billing" });
+			expect(link).toHaveAttribute("href", "/settings?tab=billing");
+		},
+	);
 
 	it("renders destructive lock banner when status is unpaid", () => {
 		mockUseSubscriptionStatus.mockReturnValue({
@@ -281,6 +331,18 @@ describe("SubscriptionStatusBanner", () => {
 					trialEndsAt: null,
 				},
 				/upgrade/i,
+			],
+			[
+				"trialing a chosen plan",
+				{
+					subscriptionStatus: "trialing",
+					stripeCustomerId: "cus_123",
+					stripePriceId: "growth",
+					currentPeriodEnd: null,
+					cancelAtPeriodEnd: false,
+					trialEndsAt: null,
+				},
+				/update billing/i,
 			],
 			[
 				"past_due",
@@ -362,6 +424,18 @@ describe("SubscriptionStatusBanner", () => {
 					trialEndsAt: null,
 				},
 				/upgrade/i,
+			],
+			[
+				"trialing a chosen plan",
+				{
+					subscriptionStatus: "trialing",
+					stripeCustomerId: "cus_123",
+					stripePriceId: "growth",
+					currentPeriodEnd: null,
+					cancelAtPeriodEnd: false,
+					trialEndsAt: null,
+				},
+				/update billing/i,
 			],
 			[
 				"past_due",

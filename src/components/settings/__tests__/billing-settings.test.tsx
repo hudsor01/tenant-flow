@@ -110,6 +110,37 @@ describe("BillingSettings empty-state branches", () => {
 		).toBeInTheDocument();
 	});
 
+	// 66.2-39 fix round 4, Part 8n: a trial's period ends with the trial,
+	// where Stripe bills the plan only with a payment method on file and
+	// cancels it without one, so the date is labelled as the trial's end.
+	it.each([
+		["active", /^Next billing date: /],
+		["trialing", /^Trial ends: /],
+	] as const)("labels a %s plan's period end", async (status, label) => {
+		useSubscriptionStatusMock.mockReturnValue({
+			data: {
+				subscriptionStatus: status,
+				stripePriceId: "price_1TVTaIP3WCR53SdoqnUe1Inv",
+				currentPeriodEnd: "2026-06-01T00:00:00.000Z",
+				stripeCustomerId: "cus_growth",
+				cancelAtPeriodEnd: false,
+				trialEndsAt: null,
+			},
+			isLoading: false,
+		});
+		useUserMock.mockReturnValue({
+			data: { stripe_customer_id: "cus_growth" },
+		});
+
+		const BillingSettings = await getBillingSettings();
+		renderWithProviders(<BillingSettings />);
+
+		expect(screen.getByText(label)).toBeInTheDocument();
+		if (status === "trialing") {
+			expect(screen.queryByText(/Next billing date/)).not.toBeInTheDocument();
+		}
+	});
+
 	it("renders the trialing-without-priceId branch with Choose a plan link", async () => {
 		useSubscriptionStatusMock.mockReturnValue({
 			data: {

@@ -357,9 +357,16 @@ export function BillingSettings() {
 									    indefinitely-stale webhook isn't masked as "still
 									    syncing" forever (mirrors the "Plan details will sync
 									    shortly" copy below). */}
+									{/* A trial's period ends with the trial, where Stripe bills
+									    the plan only with a payment method on file and cancels it
+									    without one, so the date is the trial's end, not a billing
+									    date (66.2-39 fix round 4, Part 8n). */}
 									{nextBillingDate ? (
 										<p className="text-xs text-muted-foreground mt-2 mb-0">
-											Next billing date: {nextBillingDate}
+											{status === "trialing"
+												? "Trial ends"
+												: "Next billing date"}
+											: {nextBillingDate}
 										</p>
 									) : (
 										<p className="text-xs text-muted-foreground mt-2 mb-0">

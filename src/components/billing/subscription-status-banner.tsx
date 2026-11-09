@@ -15,7 +15,8 @@ import { cn } from "#lib/utils";
 /**
  * SubscriptionStatusBanner — shows warning/lock banner for subscription issues.
  *
- * - trialing: primary banner with days-remaining counter + upgrade CTA
+ * - trialing: primary banner with days-remaining counter + upgrade CTA; a
+ *   trial of a chosen plan (Stripe's) says what happens at its end instead
  * - active: renders nothing (null)
  * - past_due: warning banner with link to /settings?tab=billing (portal launcher)
  * - unpaid/canceled/expired: destructive lock banner with link to /billing/plans;
@@ -64,6 +65,30 @@ export function SubscriptionStatusBanner() {
 	if (status === "trialing") {
 		const daysLeft = calculateDaysRemaining(subscription.trialEndsAt);
 		const dayWord = daysLeft === 1 ? "day" : "days";
+		// A trial of a chosen plan: stripe-checkout's carry-over trial, the only
+		// Stripe trial, whose row names the plan (a signup trial names none).
+		// It needs no upgrade: Stripe cancels it at the trial's end without a
+		// payment method on file (`missing_payment_method: "cancel"`) and bills
+		// the plan with one. It told this owner to "upgrade to keep access"
+		// (66.2-39 fix round 4, Part 8n; the trial-ending email says the same).
+		if (subscription.stripePriceId !== null) {
+			const plan =
+				daysLeft === null
+					? "Your plan's trial is on. Without a payment method on file when it ends, your subscription is canceled."
+					: daysLeft <= 0
+						? "Your trial has ended. Without a payment method on file, your subscription is canceled."
+						: `${daysLeft} ${dayWord} left in your trial. Without a payment method on file when it ends, your subscription is canceled.`;
+			return (
+				<StatusBanner
+					tone="primary"
+					icon={Clock}
+					href="/settings?tab=billing"
+					action="Update billing"
+				>
+					{plan}
+				</StatusBanner>
+			);
+		}
 		const message =
 			daysLeft === null
 				? "You're on a free trial — upgrade to keep access."
