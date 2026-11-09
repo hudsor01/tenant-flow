@@ -40,16 +40,6 @@ function daysUntil(iso: string | null): number {
 	return Math.max(0, Math.ceil((end - Date.now()) / (1000 * 60 * 60 * 24)));
 }
 
-function addDaysFormatted(iso: string | null, days: number): string {
-	if (!iso) return "your data retention date";
-	const base = new Date(iso).getTime() + days * 24 * 60 * 60 * 1000;
-	return new Date(base).toLocaleDateString("en-US", {
-		year: "numeric",
-		month: "long",
-		day: "numeric",
-	});
-}
-
 export function SubscriptionCancelSection() {
 	const status = useSubscriptionStatus();
 	const [dialogOpen, setDialogOpen] = useState(false);
@@ -118,8 +108,10 @@ export function SubscriptionCancelSection() {
 	const daysLeft = daysUntil(currentPeriodEnd);
 
 	// ───────────── State 3: Canceled (terminal) ─────────────
+	// Nothing deletes an owner's data when a plan ends, at any age: no job reads
+	// subscription_status to delete or anonymize (Part 8i). Only the owner's
+	// own deletion request does (ACCOUNT_DELETION_COPY).
 	if (subscriptionStatus === "canceled") {
-		const dataDeleteDate = addDaysFormatted(currentPeriodEnd, 30);
 		return (
 			<BlurFade delay={0.55}>
 				<section className="rounded-lg border border-destructive/30 bg-destructive/5 p-6">
@@ -131,16 +123,15 @@ export function SubscriptionCancelSection() {
 						Your plan ended on <strong>{endDate}</strong>
 					</p>
 					<p className="text-sm text-muted-foreground mt-2">
-						Your data will be deleted on <strong>{dataDeleteDate}</strong>{" "}
-						unless you request deletion or export it sooner.
+						Your properties, tenants and leases are kept.
 					</p>
 					<div className="mt-8 space-y-4">
 						<h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
 							Your Data
 						</h4>
 						<p className="text-sm text-muted-foreground">
-							Under GDPR and CCPA, you have the right to download or delete your
-							data before the 30-day retention window ends.
+							Under GDPR and CCPA, you can download a copy of your data or
+							request account deletion.
 						</p>
 						<GdprDataActions variant="inline" />
 					</div>
@@ -212,8 +203,7 @@ export function SubscriptionCancelSection() {
 							: "Reactivate Plan"}
 					</Button>
 					<p className="text-xs text-muted-foreground mt-4 mb-0">
-						Your data stays for 30 days after your plan ends per our privacy
-						policy.
+						Your properties, tenants and leases are kept after your plan ends.
 					</p>
 				</section>
 			</BlurFade>

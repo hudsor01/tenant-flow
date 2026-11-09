@@ -328,6 +328,14 @@ describe("SubscriptionCancelSection", () => {
 			screen.getByRole("button", { name: /^reactivate plan$/i }),
 		).toBeInTheDocument();
 		expect(screen.queryByRole("button", { name: /^cancel plan$/i })).toBeNull();
+		// It said "Your data stays for 30 days after your plan ends per our
+		// privacy policy"; nothing deletes it then (Part 8i).
+		expect(
+			screen.getByText(
+				"Your properties, tenants and leases are kept after your plan ends.",
+			),
+		).toBeInTheDocument();
+		expect(screen.queryByText(/30 days/)).toBeNull();
 	});
 
 	it("clicking Reactivate Plan fires useReactivateSubscriptionMutation().mutate()", async () => {
@@ -350,9 +358,18 @@ describe("SubscriptionCancelSection", () => {
 		mockCanceled();
 		render(<SubscriptionCancelSection />);
 		expect(screen.getByText(/your plan ended on/i)).toBeInTheDocument();
+		// Nothing deletes an owner's data when a plan ends (66.2-39 fix round 4,
+		// Part 8i): this state said "Your data will be deleted on <date>" and
+		// named a "30-day retention window".
 		expect(
-			screen.getByText(/your data will be deleted on/i),
+			screen.getByText("Your properties, tenants and leases are kept."),
 		).toBeInTheDocument();
+		expect(
+			screen.getByText(
+				"Under GDPR and CCPA, you can download a copy of your data or request account deletion.",
+			),
+		).toBeInTheDocument();
+		expect(screen.queryByText(/deleted on|retention|30 days/i)).toBeNull();
 		expect(
 			screen.getByRole("link", { name: /need to come back\? view plans/i }),
 		).toBeInTheDocument();

@@ -129,7 +129,12 @@ describe("BillingSettings empty-state branches", () => {
 
 		expect(screen.getByText("Free trial")).toBeInTheDocument();
 		expect(screen.getByText("Trial")).toBeInTheDocument();
-		expect(screen.getByText(/Your trial is active/)).toBeInTheDocument();
+		// expire_trials() only sets subscription_status to 'expired': the account
+		// and its records stay, so the note no longer says choosing a plan keeps
+		// the account (66.2-39 fix round 4, Part 8i).
+		expect(screen.getByText(/Your trial is active/).textContent).toBe(
+			"Your trial is active. Choose a plan to keep using TenantFlow when the trial ends.",
+		);
 		expect(screen.getByRole("link", { name: /Choose a plan/ })).toHaveAttribute(
 			"href",
 			"/billing/plans",

@@ -393,7 +393,7 @@ export function BillingSettings() {
 									>
 										Choose a plan
 									</Link>{" "}
-									to keep your account when the trial ends.
+									to keep using TenantFlow when the trial ends.
 								</p>
 							)}
 							{isResubscribeState && (
