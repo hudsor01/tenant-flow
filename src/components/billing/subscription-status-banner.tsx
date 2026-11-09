@@ -113,10 +113,14 @@ export function SubscriptionStatusBanner() {
 		return null;
 	}
 
-	// Past due: yellow warning. Stripe's failed-payment setting decides
-	// whether its retries end in `unpaid` or `canceled`, and the proxy locks
-	// out both, so the copy names neither: it tied the lock to a cancellation
-	// alone (main session, 66.2-39 fix round 4, Part 8m).
+	// Past due: yellow warning. Stripe's Revenue recovery settings (owner,
+	// 2026-11-09) retry the payment and cancel the subscription when every
+	// retry fails, which closes every page but Settings, so updating the
+	// payment method keeps access. The Growth and Max paid features pause at
+	// once; the paywall says so where they are used, and the banner does not:
+	// every wording that kept "subscription" and added the pause ran the row
+	// taller than the grid at 9 to 31 widths from a 22rem banner (66.2-39 fix
+	// round 4, Part 8o; the failed-payment email lists them).
 	if (status === "past_due") {
 		return (
 			<StatusBanner

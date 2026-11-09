@@ -36,11 +36,18 @@
  * Part 8n: the emails the app sends are copy too, so the scan reads
  * `supabase/functions` as well. The failed-payment email said the
  * subscription "will be canceled and premium features will be disabled" once
- * the retries ran out (Stripe's setting decides unpaid or canceled, the proxy
- * locks out both, and the paid features stop at once while past due), and the
- * trial-ending email told every owner to add a payment method "to keep
- * uninterrupted access", "otherwise" the subscription is canceled, though
- * Stripe sends it to an owner who has one too.
+ * the retries ran out (the paid features stop at once while past due, before
+ * any cancellation), and the trial-ending email told every owner to add a
+ * payment method "to keep uninterrupted access", "otherwise" the subscription
+ * is canceled, though Stripe sends it to an owner who has one too.
+ *
+ * Part 8o: Stripe's Revenue recovery settings are known (owner, 2026-11-09):
+ * a failed renewal is retried, and the subscription is canceled when every
+ * retry fails. The terms said only that "continued payment failure" may
+ * suspend the service, though the paid features pause at the first failure;
+ * Part 8n's email said every page closes "until your subscription is active
+ * again", though a canceled subscription stays canceled and the owner chooses
+ * a plan.
  */
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -372,9 +379,10 @@ describe("no copy claims a deletion, a retention limit or an export the code doe
 		// Records are edited in the app with a plan or trial; after it ends
 		// only Settings is open (owner, 2026-11-09, Part 8l).
 		/records directly through the platform/i,
-		// Stripe's failed-payment setting decides whether its retries end in
-		// unpaid or canceled, and both lock the owner out, so no copy ties the
-		// lock to a cancellation alone (main session, Part 8m).
+		// The subscription is canceled only when every retry fails (Stripe's
+		// Revenue recovery settings, owner, 2026-11-09), so no copy says access
+		// is lost "when" it is canceled, as if that were certain (main session,
+		// Part 8m).
 		/when your subscription is cancell?ed/i,
 		/losing access when/i,
 		// The emails (main session, Part 8n): the paid features stop while
@@ -384,6 +392,11 @@ describe("no copy claims a deletion, a retention limit or an export the code doe
 		/your subscription will be cancell?ed and/i,
 		/otherwise your subscription will be cancell?ed/i,
 		/keep uninterrupted access/i,
+		// After a failed payment (owner, 2026-11-09, Part 8o): the paid
+		// features pause at the first failure, not after "continued" ones, and
+		// a canceled subscription is not made active again (a plan is chosen).
+		/continued payment failure/i,
+		/until your subscription is active again/i,
 	];
 
 	function sources(dir: string): string[] {

@@ -43,16 +43,21 @@ export async function handleInvoicePaymentFailed(
 	}
 
 	// Send owner notification email about subscription payment failure.
-	// What it says is true whether Stripe's retries end in `unpaid` or
-	// `canceled` (its failed-payment setting, which this repo cannot read): the
-	// proxy closes every page but Settings for both. The paid features stop
-	// now, not then: the tier gates (`_shared/tier-gate.ts`, the reminder
-	// drainer) admit only `active` and `trialing`, so a past-due owner on
-	// Growth or Max loses new e-signature requests (lease-signature `send`),
-	// the Year-End, Tax Documents and Financial Analytics exports (the premium
-	// report types) and renewal reminder emails. It said the subscription would
-	// be canceled and premium features disabled after the retries (66.2-39 fix
-	// round 4, Part 8n; the in-app past_due banner says the same first line).
+	// It states what the code and Stripe's Revenue recovery settings decide
+	// (owner, 2026-11-09, from the Stripe Dashboard: a failed renewal leaves
+	// the subscription past due, card payments are retried, and when every
+	// retry fails the subscription is canceled). While it is past due the
+	// proxy admits the owner and the paid features pause at once: the tier
+	// gates (`_shared/tier-gate.ts`, the reminder drainer) admit only `active`
+	// and `trialing`, so a past-due owner on Growth or Max loses new
+	// e-signature requests (lease-signature `send`), the Year-End, Tax
+	// Documents and Financial Analytics exports (the premium report types) and
+	// renewal reminder emails. Once canceled, the proxy closes every page but
+	// Settings until a plan is chosen. The retry schedule is not known here,
+	// so the email names no count or duration, and it says nothing of the
+	// invoice. Changing those settings in Stripe means changing this copy
+	// (66.2-39 fix round 4, Part 8o; Part 8n's copy left out the retries and
+	// the cancellation).
 	const frontendUrl =
 		Deno.env.get("NEXT_PUBLIC_APP_URL") ?? "https://app.tenantflow.app";
 	await sendEmail({
@@ -60,7 +65,8 @@ export async function handleInvoicePaymentFailed(
 		subject: "Action Required: Subscription Payment Failed",
 		html: `<p>Hi ${escapeHtml((owner.first_name as string) || "there")},</p>
       <p>Your TenantFlow subscription payment failed. Update your payment method to keep access.</p>
-      <p>Until the payment goes through, Growth and Max plans can't send new e-signature requests, export the Year-End, Tax Documents or Financial Analytics reports, or send renewal reminder emails. If the payment isn't made, every page except Settings closes until your subscription is active again.</p>
+      <p>We'll retry the payment. Until it goes through, Growth and Max plans can't send new e-signature requests, export the Year-End, Tax Documents or Financial Analytics reports, or send renewal reminder emails.</p>
+      <p>If every retry fails, your subscription is canceled, and every page except Settings closes until you choose a plan again.</p>
       <p><a href="${escapeHtml(frontendUrl)}/settings?tab=billing">Update Payment Method</a></p>`,
 		tags: [{ name: "category", value: "subscription_failure" }],
 	});

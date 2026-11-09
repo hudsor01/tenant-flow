@@ -136,8 +136,12 @@ export default function TermsPage() {
 							</li>
 							<li>
 								<strong>Failed Payments:</strong> If a payment fails, we will
-								attempt to collect payment again. Continued payment failure may
-								result in service suspension
+								attempt to collect payment again. Until it is collected, the
+								Growth and Max plans&apos; e-signature requests, Year-End, Tax
+								Documents and Financial Analytics report exports, and lease
+								renewal reminder emails are paused. If every attempt fails, your
+								subscription is canceled, and the Service, other than your
+								account settings, is unavailable until you subscribe again
 							</li>
 						</ul>
 

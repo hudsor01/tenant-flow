@@ -106,10 +106,11 @@ describe("SubscriptionStatusBanner", () => {
 
 		render(<SubscriptionStatusBanner />);
 
-		// Stripe's failed-payment setting decides whether its retries end in
-		// unpaid or canceled, and both lock the owner out: the copy says what is
-		// true either way (main session, Part 8m). It said access was lost "when
-		// your subscription is canceled".
+		// Stripe's Revenue recovery settings retry the payment and cancel the
+		// subscription when every retry fails, which locks the owner out, so
+		// updating the payment method keeps access (owner, 2026-11-09, Part 8o).
+		// It said access was lost "when your subscription is canceled", as if
+		// the cancellation were certain (main session, Part 8m).
 		expect(
 			screen.getByText(
 				"Your subscription payment failed. Update your payment method to keep access.",

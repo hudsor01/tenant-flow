@@ -6,11 +6,14 @@
  *
  * - `invoice.payment_failed` said that if the charge kept failing "your
  *   subscription will be canceled and premium features will be disabled".
- *   Stripe's failed-payment setting decides whether its retries end in
- *   `unpaid` or `canceled`, and the proxy closes every page but Settings for
- *   both; and the paid features do not wait for that: the tier gates admit
+ *   The paid features do not wait for a cancellation: the tier gates admit
  *   only `active` and `trialing`, so they stop while the subscription is past
- *   due. The email now says what is true either way, and what stops now.
+ *   due. Stripe's Revenue recovery settings are known since (owner,
+ *   2026-11-09, from the Stripe Dashboard): a failed renewal leaves the
+ *   subscription past due, card payments are retried, and when every retry
+ *   fails the subscription is canceled. The email says that (Part 8o), with
+ *   no retry count or duration and nothing of the invoice, and the terms'
+ *   "Failed Payments" passage says the same.
  * - `customer.subscription.trial_will_end` told every owner to "Add a payment
  *   method now ... otherwise your subscription will be canceled". Stripe sends
  *   it whether or not a payment method is on file, and the event names the
@@ -62,22 +65,28 @@ const TRIAL_WILL_END = readRepoSource(
 describe("the failed-payment email", () => {
 	const html = emailHtml(PAYMENT_FAILED);
 
-	it("says what is true whether the retries end in unpaid or canceled, and what stops now", () => {
+	it("says what Stripe's Revenue recovery settings and the gates do: retried, paused, canceled if every retry fails", () => {
 		expect(html).toContain(
 			"<p>Your TenantFlow subscription payment failed. Update your payment method to keep access.</p>",
 		);
 		expect(html).toContain(
-			"<p>Until the payment goes through, Growth and Max plans can't send new e-signature requests, export the Year-End, Tax Documents or Financial Analytics reports, or send renewal reminder emails. If the payment isn't made, every page except Settings closes until your subscription is active again.</p>",
+			"<p>We'll retry the payment. Until it goes through, Growth and Max plans can't send new e-signature requests, export the Year-End, Tax Documents or Financial Analytics reports, or send renewal reminder emails.</p>",
+		);
+		expect(html).toContain(
+			"<p>If every retry fails, your subscription is canceled, and every page except Settings closes until you choose a plan again.</p>",
 		);
 		expect(html).toContain(
 			'/settings?tab=billing">Update Payment Method</a></p>',
 		);
 	});
 
-	it("no longer ties the lock to a cancellation or the features to the end of the retries", () => {
+	it("ties the features to the first failure, not the cancellation, and names no retry count, duration or invoice", () => {
 		expect(html).not.toMatch(/will be cancell?ed/i);
 		expect(html).not.toMatch(/premium features will be disabled/i);
-		expect(html).not.toMatch(/keep retrying/i);
+		expect(html).not.toMatch(/active again/i);
+		expect(html).not.toMatch(/\binvoice\b/i);
+		expect(html).not.toMatch(/\b\d+\s*(?:times|days?|hours?|weeks?|attempts?|retries)\b/i);
+		expect(html).not.toMatch(/\b(?:one|two|three|four|five|six|seven|eight)\s+(?:times|days?|weeks?|attempts?|retries)\b/i);
 	});
 
 	it("names only what the gates stop while past due", () => {
@@ -151,5 +160,18 @@ describe("the trial-ending email", () => {
 		expect(readRepoSource("../stripe-checkout/index.ts")).toMatch(
 			/end_behavior: \{ missing_payment_method: "cancel" as const \}/,
 		);
+	});
+});
+
+describe("the terms' Failed Payments passage", () => {
+	const terms = readRepoSource("../../../src/app/terms/page.tsx")
+		.replace(/&apos;/g, "'")
+		.replace(/\s+/g, " ");
+
+	it("says what the email says: retried, the paid features paused at once, canceled if every attempt fails", () => {
+		expect(terms).toContain(
+			"<strong>Failed Payments:</strong> If a payment fails, we will attempt to collect payment again. Until it is collected, the Growth and Max plans' e-signature requests, Year-End, Tax Documents and Financial Analytics report exports, and lease renewal reminder emails are paused. If every attempt fails, your subscription is canceled, and the Service, other than your account settings, is unavailable until you subscribe again",
+		);
+		expect(terms).not.toMatch(/continued payment failure/i);
 	});
 });

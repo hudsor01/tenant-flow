@@ -31,13 +31,15 @@ export function matchesAnyRoutePrefix(
 /**
  * The subscription statuses the proxy admits to a private route (its step 7;
  * Settings is exempt whatever the status). `past_due` is admitted so a
- * delinquent owner keeps access during Stripe's dunning/retry window (the
- * grace period promised in the dunning email and banner) and can reach the
- * in-app payment fix. When Stripe exhausts its retries it emits
- * `customer.subscription.updated`→`unpaid` or `.deleted`→`canceled`, and the
- * gate then locks the owner out. Read by `proxy.ts` and by the checkout
- * success page, which offers the dashboard only once the owner's status is
- * one of these (66.2-39 fix round 4, Part 8m).
+ * delinquent owner keeps access while Stripe retries the payment (the
+ * failed-payment email and the past_due banner say so) and can reach the
+ * in-app payment fix. Stripe's Revenue recovery settings cancel the
+ * subscription when every retry fails (owner, 2026-11-09): it emits
+ * `customer.subscription.deleted`→`canceled`, and the gate then locks the
+ * owner out (as it would `unpaid`, which another setting writes). Read by
+ * `proxy.ts` and by the checkout success page, which offers the dashboard
+ * only once the owner's status is one of these (66.2-39 fix round 4, Parts 8m
+ * and 8o).
  */
 export const PROXY_ADMITTED_SUBSCRIPTION_STATUSES: ReadonlySet<string> =
 	new Set(["active", "trialing", "past_due"]);
