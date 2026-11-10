@@ -177,7 +177,7 @@ export default function AnalyticsPage() {
 								</p>
 							</div>
 						</div>
-						<div className="space-y-3">
+						<div className="@container/top-properties space-y-3">
 							{propertiesLoading ? (
 								Array.from({ length: TOP_PROPERTY_COUNT }).map((_, i) => (
 									<Skeleton key={i} className="h-14 w-full" />
@@ -195,10 +195,12 @@ export default function AnalyticsPage() {
 										{/* The occupancy badge wraps under the property when the
 										    two do not fit one line: at 320-384 the name's column
 										    was left too narrow for its figures, and $7,500.00/mo
-										    ran 10.19px past it (66.2-39 fix round 4, Part 8e). */}
+										    ran 10.19px past it (66.2-39 fix round 4, Part 8e). Below a
+										    16rem list the decorative icon is hidden: at 320 the column
+										    beside it was narrower than $1,234,567.00/mo on Linux. */}
 										<div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg bg-muted/20">
 											<div className="flex min-w-0 flex-1 basis-48 items-center gap-3">
-												<div className="size-10 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
+												<div className="hidden size-10 shrink-0 rounded-lg bg-primary/10 items-center justify-center @min-[16rem]/top-properties:flex">
 													<Building2 className="w-5 h-5 text-primary" />
 												</div>
 												<div className="min-w-0">
