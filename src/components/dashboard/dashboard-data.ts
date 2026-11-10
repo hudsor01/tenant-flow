@@ -1,4 +1,5 @@
 import type { OwnerDashboardData } from "#hooks/api/use-owner-dashboard";
+import { portfolioOccupancy } from "#lib/constants/status-types";
 import type {
 	MonthlyRevenuePoint,
 	TimeSeriesDataPoint,
@@ -73,20 +74,9 @@ export function transformDashboardData(
 			property: prop.property,
 			address: prop.address_line1,
 			units: { occupied: prop.occupiedUnits, total: prop.totalUnits },
-			tenant: prop.occupiedUnits > 0 ? `${prop.occupiedUnits} tenants` : null,
-			leaseStatus:
-				prop.occupancyRate === 100
-					? "active"
-					: prop.occupancyRate >= 80
-						? "expiring"
-						: "vacant",
-			leaseEnd: null,
+			occupancy: portfolioOccupancy(prop.occupiedUnits, prop.totalUnits),
 			rent: prop.monthlyRevenue,
-			// `open_maintenance` is optional on PropertyPerformance — only the v2
-			// dashboard RPC emits it. `?? 0` is the read-seam fallback; producers
-			// that genuinely have no maintenance data omit the field rather than
-			// fabricating a zero at construction time.
-			maintenanceOpen: prop.open_maintenance ?? 0,
+			maintenanceOpen: prop.open_maintenance,
 		}),
 	);
 

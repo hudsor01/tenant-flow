@@ -18,7 +18,7 @@ export default function TermsPage() {
 			<div className="mx-auto min-h-screen max-w-4xl px-6 lg:px-8 section-spacing">
 				<h1 className="mb-8 typography-h1">Terms of Service</h1>
 				<p className="mb-6 text-muted-foreground">
-					Last Updated: July 17, 2026
+					Last Updated: November 9, 2026
 				</p>
 
 				<div className="prose prose-gray dark:prose-invert max-w-none">
@@ -42,7 +42,7 @@ export default function TermsPage() {
 					<section className="mb-8">
 						<h2 className="mb-4 typography-h3">2. Eligibility</h2>
 						<p>To use TenantFlow, you must:</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>Be at least 18 years of age</li>
 							<li>Have the legal capacity to enter into a binding contract</li>
 							<li>
@@ -68,14 +68,14 @@ export default function TermsPage() {
 							To access certain features of the Platform, you must register for
 							an account. You may create an account using:
 						</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>Email and password</li>
 							<li>Google OAuth authentication</li>
 						</ul>
 
 						<h3 className="mb-3 typography-h4">3.2 Account Security</h3>
 						<p>You are responsible for:</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								Maintaining the confidentiality of your account credentials
 							</li>
@@ -95,9 +95,14 @@ export default function TermsPage() {
 
 						<h3 className="mb-3 typography-h4">3.3 Account Termination</h3>
 						<p>
-							You may terminate your account at any time through account
-							settings. We reserve the right to suspend or terminate accounts
-							that violate these Terms.
+							You may request deletion of your account through account settings
+							or by contacting us, as our{" "}
+							<a href="/privacy" className="text-primary-text underline">
+								Privacy Policy
+							</a>{" "}
+							describes (Section 7.3); deletion runs 30 days after the request.
+							We reserve the right to suspend or terminate accounts that violate
+							these Terms.
 						</p>
 					</section>
 
@@ -115,7 +120,7 @@ export default function TermsPage() {
 						</p>
 
 						<h3 className="mb-3 typography-h4">4.2 Billing</h3>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-0 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								<strong>Recurring Charges:</strong> Subscriptions are billed on
 								a recurring basis (monthly or annually) based on your selected
@@ -131,15 +136,19 @@ export default function TermsPage() {
 							</li>
 							<li>
 								<strong>Failed Payments:</strong> If a payment fails, we will
-								attempt to collect payment again. Continued payment failure may
-								result in service suspension
+								attempt to collect payment again. Until it is collected, the
+								Growth and Max plans&apos; e-signature requests, Year-End, Tax
+								Documents and Financial Analytics report exports, and lease
+								renewal reminder emails are paused. If every attempt fails, your
+								subscription is canceled, and the Service, other than your
+								account settings, is unavailable until you subscribe again
 							</li>
 						</ul>
 
 						<h3 id="cancellation" className="mb-3 typography-h4 scroll-mt-24">
 							4.3 Cancellation and Refunds
 						</h3>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-0 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								You may cancel your subscription at any time through account
 								settings
@@ -171,7 +180,7 @@ export default function TermsPage() {
 
 						<h3 className="mb-3 typography-h4">5.1 Permitted Use</h3>
 						<p>You may use TenantFlow only for:</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>Managing your property portfolio</li>
 							<li>Tracking tenants, leases, and maintenance requests</li>
 							<li>Recording rent received and managing financials</li>
@@ -181,7 +190,7 @@ export default function TermsPage() {
 
 						<h3 className="mb-3 typography-h4">5.2 Prohibited Activities</h3>
 						<p>You agree not to:</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								Use the Service for any unlawful purpose or in violation of
 								applicable laws
@@ -232,7 +241,7 @@ export default function TermsPage() {
 							upload, submit, or store in the Service (&quot;User
 							Content&quot;), including:
 						</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>Property information and listings</li>
 							<li>Tenant data and records</li>
 							<li>Lease agreements and documents</li>
@@ -246,7 +255,7 @@ export default function TermsPage() {
 							non-exclusive, royalty-free license to use, store, reproduce, and
 							process your User Content solely for the purpose of:
 						</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>Providing and maintaining the Service</li>
 							<li>Backing up and securing your data</li>
 							<li>
@@ -255,12 +264,16 @@ export default function TermsPage() {
 						</ul>
 						<p>
 							This license terminates when you delete your User Content or
-							account, except for data retained in backups for up to 90 days.
+							account, except for the records an account deletion keeps (our{" "}
+							<a href="/privacy" className="text-primary-text underline">
+								Privacy Policy
+							</a>
+							, Section 6) and data retained in backups.
 						</p>
 
 						<h3 className="mb-3 typography-h4">6.3 Content Responsibility</h3>
 						<p>You are solely responsible for:</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>The accuracy and legality of your User Content</li>
 							<li>Ensuring you have necessary rights to upload User Content</li>
 							<li>
@@ -301,7 +314,7 @@ export default function TermsPage() {
 					<section className="mb-8">
 						<h2 className="mb-4 typography-h3">8. Third-Party Services</h2>
 						<p>The Service integrates with third-party services including:</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								<strong>Stripe:</strong> Payment processing for TenantFlow
 								subscriptions
@@ -334,7 +347,7 @@ export default function TermsPage() {
 							AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
 							IMPLIED, INCLUDING BUT NOT LIMITED TO:
 						</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								Warranties of merchantability or fitness for a particular
 								purpose
@@ -357,7 +370,7 @@ export default function TermsPage() {
 							TO THE MAXIMUM EXTENT PERMITTED BY LAW, TENANTFLOW SHALL NOT BE
 							LIABLE FOR:
 						</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								Any indirect, incidental, special, consequential, or punitive
 								damages
@@ -384,7 +397,7 @@ export default function TermsPage() {
 							damages, losses, liabilities, and expenses (including attorney
 							fees) arising from:
 						</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>Your use of the Service</li>
 							<li>Your User Content</li>
 							<li>Your violation of these Terms</li>
@@ -428,7 +441,7 @@ export default function TermsPage() {
 							12. Modifications to the Service
 						</h2>
 						<p>We reserve the right to:</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>Modify, suspend, or discontinue the Service at any time</li>
 							<li>Add or remove features</li>
 							<li>Impose usage limits</li>
@@ -446,7 +459,7 @@ export default function TermsPage() {
 							We may revise these Terms at any time. Material changes will be
 							communicated by:
 						</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>Posting the updated Terms on this page</li>
 							<li>Updating the &quot;Last Updated&quot; date</li>
 							<li>Sending email notification for significant changes</li>
@@ -489,7 +502,7 @@ export default function TermsPage() {
 						<h2 className="mb-4 typography-h3">17. Contact Information</h2>
 						<p>For questions about these Terms, contact us:</p>
 						<div className="mt-4 rounded-lg bg-muted p-6">
-							<p className="mb-2">
+							<p className="mt-0 mb-2">
 								<strong>Email:</strong>{" "}
 								<a
 									href="mailto:legal@tenantflow.app"
@@ -498,7 +511,7 @@ export default function TermsPage() {
 									legal@tenantflow.app
 								</a>
 							</p>
-							<p className="mb-2">
+							<p className="mt-0 mb-2">
 								<strong>Support:</strong>{" "}
 								<a
 									href="mailto:support@tenantflow.app"
@@ -507,7 +520,7 @@ export default function TermsPage() {
 									support@tenantflow.app
 								</a>
 							</p>
-							<p>
+							<p className="mt-0 mb-0">
 								<strong>Response Time:</strong> We respond to legal inquiries
 								within 7 business days
 							</p>
@@ -515,14 +528,14 @@ export default function TermsPage() {
 					</section>
 
 					<div className="mt-12 border-t pt-8 text-muted-foreground">
-						<p>
+						<p className="mt-0 mb-0">
 							By using TenantFlow, you acknowledge that you have read,
 							understood, and agree to be bound by these Terms of Service.
 						</p>
-						<p className="mt-4">
-							<strong>Last Updated:</strong> July 17, 2026
+						<p className="mt-4 mb-0">
+							<strong>Last Updated:</strong> November 9, 2026
 						</p>
-						<p className="mt-2">
+						<p className="mt-2 mb-0">
 							<strong>Effective Date:</strong> October 5, 2025
 						</p>
 					</div>

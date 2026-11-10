@@ -10,7 +10,7 @@ export type Database = {
 	// Allows to automatically instantiate createClient with right options
 	// instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
 	__InternalSupabase: {
-		PostgrestVersion: "14.5";
+		PostgrestVersion: "14.18";
 	};
 	graphql_public: {
 		Tables: {
@@ -2219,6 +2219,8 @@ export type Database = {
 					id: string;
 					identity_verified: boolean | null;
 					last_name: string | null;
+					move_out_date: string | null;
+					move_out_reason: string | null;
 					name: string | null;
 					owner_user_id: string | null;
 					phone: string | null;
@@ -2237,6 +2239,8 @@ export type Database = {
 					id?: string;
 					identity_verified?: boolean | null;
 					last_name?: string | null;
+					move_out_date?: string | null;
+					move_out_reason?: string | null;
 					name?: string | null;
 					owner_user_id?: string | null;
 					phone?: string | null;
@@ -2255,6 +2259,8 @@ export type Database = {
 					id?: string;
 					identity_verified?: boolean | null;
 					last_name?: string | null;
+					move_out_date?: string | null;
+					move_out_reason?: string | null;
 					name?: string | null;
 					owner_user_id?: string | null;
 					phone?: string | null;
@@ -2842,7 +2848,82 @@ export type Database = {
 			};
 		};
 		Views: {
-			[_ in never]: never;
+			pg_stat_monitor: {
+				Row: {
+					application_name: string | null;
+					bucket: number | null;
+					bucket_done: boolean | null;
+					bucket_start_time: string | null;
+					calls: number | null;
+					client_ip: unknown;
+					cmd_type: number | null;
+					cmd_type_text: string | null;
+					comments: string | null;
+					cpu_sys_time: number | null;
+					cpu_user_time: number | null;
+					datname: string | null;
+					dbid: unknown;
+					elevel: number | null;
+					jit_deform_count: number | null;
+					jit_deform_time: number | null;
+					jit_emission_count: number | null;
+					jit_emission_time: number | null;
+					jit_functions: number | null;
+					jit_generation_time: number | null;
+					jit_inlining_count: number | null;
+					jit_inlining_time: number | null;
+					jit_optimization_count: number | null;
+					jit_optimization_time: number | null;
+					local_blk_read_time: number | null;
+					local_blk_write_time: number | null;
+					local_blks_dirtied: number | null;
+					local_blks_hit: number | null;
+					local_blks_read: number | null;
+					local_blks_written: number | null;
+					max_exec_time: number | null;
+					max_plan_time: number | null;
+					mean_exec_time: number | null;
+					mean_plan_time: number | null;
+					message: string | null;
+					min_exec_time: number | null;
+					min_plan_time: number | null;
+					minmax_stats_since: string | null;
+					pgsm_query_id: number | null;
+					planid: number | null;
+					plans: number | null;
+					query: string | null;
+					query_plan: string | null;
+					queryid: number | null;
+					relations: string[] | null;
+					resp_calls: string[] | null;
+					rows: number | null;
+					shared_blk_read_time: number | null;
+					shared_blk_write_time: number | null;
+					shared_blks_dirtied: number | null;
+					shared_blks_hit: number | null;
+					shared_blks_read: number | null;
+					shared_blks_written: number | null;
+					sqlcode: string | null;
+					stats_since: string | null;
+					stddev_exec_time: number | null;
+					stddev_plan_time: number | null;
+					temp_blk_read_time: number | null;
+					temp_blk_write_time: number | null;
+					temp_blks_read: number | null;
+					temp_blks_written: number | null;
+					top_query: string | null;
+					top_queryid: number | null;
+					toplevel: boolean | null;
+					total_exec_time: number | null;
+					total_plan_time: number | null;
+					userid: unknown;
+					username: string | null;
+					wal_bytes: number | null;
+					wal_fpi: number | null;
+					wal_records: number | null;
+				};
+				Relationships: [];
+			};
 		};
 		Functions: {
 			acquire_internal_event_lock: {
@@ -3005,7 +3086,15 @@ export type Database = {
 				};
 				Returns: string;
 			};
+			cron_job_slot_counts: {
+				Args: { p_jobname: string; p_schedule: string };
+				Returns: {
+					named_job_count: number;
+					other_jobs_same_slot: number;
+				}[];
+			};
 			custom_access_token_hook: { Args: { event: Json }; Returns: Json };
+			decode_error_level: { Args: { elevel: number }; Returns: string };
 			expire_leases: { Args: never; Returns: undefined };
 			expire_trials: { Args: never; Returns: number };
 			generate_rent_charges: { Args: never; Returns: number };
@@ -3036,6 +3125,7 @@ export type Database = {
 					slug: string;
 				}[];
 			};
+			get_cmd_type: { Args: { cmd_type: number }; Returns: string };
 			get_collection_rate: {
 				Args: { p_month?: string; p_user_id: string };
 				Returns: {
@@ -3124,6 +3214,7 @@ export type Database = {
 					upgrades_from_gate: number;
 				}[];
 			};
+			get_histogram_timings: { Args: never; Returns: string };
 			get_invoice_statistics: { Args: { p_user_id: string }; Returns: Json };
 			get_lead_paint_compliance_report: {
 				Args: never;
@@ -3307,6 +3398,10 @@ export type Database = {
 				}[];
 			};
 			health_check: { Args: never; Returns: Json };
+			histogram: {
+				Args: { _bucket: number; _quryid: number };
+				Returns: Record<string, unknown>[];
+			};
 			invoke_send_lease_reminders: { Args: never; Returns: undefined };
 			is_admin: { Args: never; Returns: boolean };
 			is_notification_suppressed: {
@@ -3348,6 +3443,18 @@ export type Database = {
 					used: number;
 				}[];
 			};
+			pg_stat_monitor_internal: {
+				Args: { showtext: boolean };
+				Returns: Record<string, unknown>[];
+			};
+			pg_stat_monitor_reset: { Args: never; Returns: undefined };
+			pg_stat_monitor_version: { Args: never; Returns: string };
+			pgsm_create_11_view: { Args: never; Returns: number };
+			pgsm_create_13_view: { Args: never; Returns: number };
+			pgsm_create_14_view: { Args: never; Returns: number };
+			pgsm_create_15_view: { Args: never; Returns: number };
+			pgsm_create_17_view: { Args: never; Returns: number };
+			pgsm_create_view: { Args: never; Returns: number };
 			process_account_deletions: { Args: never; Returns: undefined };
 			process_subscription_status_change: {
 				Args: {
@@ -3358,6 +3465,7 @@ export type Database = {
 				Returns: undefined;
 			};
 			queue_lease_reminders: { Args: never; Returns: undefined };
+			range: { Args: never; Returns: string[] };
 			reassign_document_category: {
 				Args: { p_from_id: string; p_to_id: string };
 				Returns: undefined;
@@ -3440,6 +3548,15 @@ export type Database = {
 			seed_default_document_categories: {
 				Args: { p_owner_user_id: string };
 				Returns: undefined;
+			};
+			seed_storage_object_for_test: {
+				Args: {
+					p_bucket: string;
+					p_bytes: number;
+					p_name: string;
+					p_owner: string;
+				};
+				Returns: string;
 			};
 			set_application_notes: {
 				Args: { p_application_id: string; p_notes: string };
@@ -3680,3 +3797,12 @@ export type CompositeTypes<
 	: PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
 		? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
 		: never;
+
+export const Constants = {
+	graphql_public: {
+		Enums: {},
+	},
+	public: {
+		Enums: {},
+	},
+} as const;

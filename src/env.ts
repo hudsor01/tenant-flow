@@ -71,13 +71,23 @@ export const env = createEnv({
 	 * These are inlined at build time - changes require rebuild
 	 */
 	client: {
-		NEXT_PUBLIC_APP_URL: z
-			.string()
-			.url("NEXT_PUBLIC_APP_URL must be a valid URL"),
+		// z.url() with the message scoped to the format check: a missing value
+		// keeps zod's "expected string" message, as the string schema's url
+		// check did.
+		NEXT_PUBLIC_APP_URL: z.url({
+			error: (issue) =>
+				issue.code === "invalid_format"
+					? "NEXT_PUBLIC_APP_URL must be a valid URL"
+					: undefined,
+		}),
 
 		NEXT_PUBLIC_SUPABASE_URL: z
-			.string()
-			.url("NEXT_PUBLIC_SUPABASE_URL must be a valid URL")
+			.url({
+				error: (issue) =>
+					issue.code === "invalid_format"
+						? "NEXT_PUBLIC_SUPABASE_URL must be a valid URL"
+						: undefined,
+			})
 			.refine(
 				(url) =>
 					url.includes("supabase.co") ||

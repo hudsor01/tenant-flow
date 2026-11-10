@@ -1,89 +1,19 @@
 /**
- * Property Mutation Hooks -- CRUD, mark-sold, image deletion.
+ * Property Mutation Hooks -- CRUD and image deletion.
  * Query hooks remain in use-properties.ts.
  *
  * mutationFn logic lives in propertyMutations factories (query-keys/property-mutation-options.ts).
  * This file spreads factories and adds onSuccess/onError/onSettled callbacks.
  */
 
-import {
-	useMutation,
-	usePrefetchQuery,
-	useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
 
-import { logger } from "#lib/frontend-logger";
 import type { Property } from "#types/core";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 import { propertyMutations, propertyQueries } from "./query-keys/property-keys";
-import { propertyStatsQueries } from "./query-keys/property-stats-keys";
 import { unitQueries } from "./query-keys/unit-keys";
-
-/**
- * Declarative prefetch hook for property detail
- * Prefetches when component mounts (route-level prefetching)
- */
-export function usePrefetchPropertyDetail(id: string) {
-	usePrefetchQuery(propertyQueries.detail(id));
-}
-
-/**
- * Mark property as sold (7-year retention compliance)
- */
-export function useMarkPropertySoldMutation() {
-	const queryClient = useQueryClient();
-
-	return useMutation({
-		...propertyMutations.markSold(),
-		...createMutationCallbacks<
-			{ message: string },
-			{ id: string },
-			{
-				previousDetail: Property | undefined;
-				previousLists: [readonly unknown[], Property[] | undefined][];
-			}
-		>(queryClient, {
-			invalidate: [
-				propertyQueries.lists(),
-				propertyStatsQueries.stats().queryKey,
-				ownerDashboardKeys.all,
-			],
-			errorContext: "Mark property as sold",
-			onSuccessExtra: (data) => {
-				logger.info("Property marked as sold", { message: data.message });
-			},
-			optimistic: {
-				cancel: (variables) => [
-					propertyQueries.detail(variables.id).queryKey,
-					propertyQueries.lists(),
-				],
-				snapshot: (qc, variables) => ({
-					previousDetail: qc.getQueryData<Property>(
-						propertyQueries.detail(variables.id).queryKey,
-					),
-					previousLists: qc.getQueriesData<Property[]>({
-						queryKey: propertyQueries.lists(),
-					}),
-				}),
-				rollback: (qc, context, variables) => {
-					if (context.previousDetail) {
-						qc.setQueryData(
-							propertyQueries.detail(variables.id).queryKey,
-							context.previousDetail,
-						);
-					}
-					if (context.previousLists) {
-						context.previousLists.forEach(([queryKey, data]) => {
-							qc.setQueryData(queryKey, data);
-						});
-					}
-				},
-			},
-		}),
-	});
-}
 
 /** Create property mutation */
 export function useCreatePropertyMutation() {

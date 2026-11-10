@@ -8,7 +8,7 @@
 "use client";
 
 import { addMonths, addYears, format, isAfter, parseISO } from "date-fns";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
@@ -61,7 +61,7 @@ export function RenewLeaseDialog({
 	// sends one. Extending end_date (the renew) still succeeds.
 	const termsLocked = isLeaseTermsLocked(lease);
 
-	const handleSubmit = async (e: FormEvent) => {
+	const handleSubmit = async (e: SubmitEvent) => {
 		e.preventDefault();
 		if (!newEndDate) {
 			toast.error("Please select an end date");
@@ -133,7 +133,7 @@ export function RenewLeaseDialog({
 				<form onSubmit={handleSubmit}>
 					<DialogHeader>
 						<DialogTitle>Renew Lease</DialogTitle>
-						<DialogDescription>
+						<DialogDescription className="mb-0">
 							Create a new lease term with optional rent adjustment
 						</DialogDescription>
 					</DialogHeader>

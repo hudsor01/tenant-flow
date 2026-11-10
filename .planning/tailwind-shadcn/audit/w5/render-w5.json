@@ -1,0 +1,136 @@
+{
+  "label": "w5",
+  "tokenListSource": ".planning/tailwind-shadcn/audit/baseline/token-list.json",
+  "tokenCount": 71,
+  "fontVarsSource": "src/lib/fonts.ts",
+  "fontVars": [
+    "--font-roboto",
+    "--font-geist-mono"
+  ],
+  "fontVarsOn": "html",
+  "globalError": {
+    "fontVarsOn": "html"
+  },
+  "fonts": {
+    "light": {
+      "html": "Stubfontroboto, system-ui, -apple-system, \"system-ui\", \"Segoe UI\", Roboto, sans-serif",
+      "body": "Stubfontroboto, system-ui, -apple-system, \"system-ui\", \"Segoe UI\", Roboto, sans-serif",
+      "fontMono": "Stubfontgeistmono, ui-monospace, \"SF Mono\", \"Cascadia Code\", monospace",
+      "codeTag": "Stubfontgeistmono, ui-monospace, \"SF Mono\", \"Cascadia Code\", monospace",
+      "fontDisplay": "Stubfontroboto, system-ui, -apple-system, \"system-ui\", \"Segoe UI\", Roboto, sans-serif"
+    },
+    "dark": {
+      "html": "Stubfontroboto, system-ui, -apple-system, \"system-ui\", \"Segoe UI\", Roboto, sans-serif",
+      "body": "Stubfontroboto, system-ui, -apple-system, \"system-ui\", \"Segoe UI\", Roboto, sans-serif",
+      "fontMono": "Stubfontgeistmono, ui-monospace, \"SF Mono\", \"Cascadia Code\", monospace",
+      "codeTag": "Stubfontgeistmono, ui-monospace, \"SF Mono\", \"Cascadia Code\", monospace",
+      "fontDisplay": "Stubfontroboto, system-ui, -apple-system, \"system-ui\", \"Segoe UI\", Roboto, sans-serif"
+    }
+  },
+  "secondaryPixel": {
+    "light": [
+      222,
+      243,
+      255
+    ],
+    "dark": [
+      37,
+      41,
+      46
+    ]
+  },
+  "pairs": [
+    {
+      "name": "renew-lease heading",
+      "outer": "bg-background",
+      "inner": "bg-muted",
+      "fg": "text-foreground"
+    },
+    {
+      "name": "renew-lease body",
+      "outer": "bg-background",
+      "inner": "bg-muted",
+      "fg": "text-muted-foreground"
+    },
+    {
+      "name": "renew-lease icon",
+      "outer": "bg-background",
+      "inner": "bg-muted",
+      "fg": "text-muted-foreground"
+    },
+    {
+      "name": "badge secondary",
+      "outer": "bg-background",
+      "inner": "bg-secondary",
+      "fg": "text-secondary-foreground"
+    }
+  ],
+  "contrast": {
+    "light": {
+      "renew-lease heading": 15.16,
+      "renew-lease body": 5.44,
+      "renew-lease icon": 5.44,
+      "badge secondary": 15.83,
+      "lease template preview h2": 16.98,
+      "lease template preview p": 9.86,
+      "lease template preview strong": 16.98,
+      "lease template preview a": 16.98,
+      "admin blog review h2": 16.98,
+      "admin blog review p": 17.31,
+      "admin blog review strong": 16.98,
+      "admin blog review a": 16.98
+    },
+    "dark": {
+      "renew-lease heading": 15.46,
+      "renew-lease body": 7.53,
+      "renew-lease icon": 7.53,
+      "badge secondary": 10.89,
+      "lease template preview h2": 19.87,
+      "lease template preview p": 13.5,
+      "lease template preview strong": 19.87,
+      "lease template preview a": 19.87,
+      "admin blog review h2": 19.87,
+      "admin blog review p": 17.74,
+      "admin blog review strong": 19.87,
+      "admin blog review a": 19.87
+    }
+  },
+  "touch390": {
+    "switch": {
+      "width": 32,
+      "height": 18.4,
+      "padding": "0px",
+      "minHeight": "0px"
+    },
+    "buttonSecondary": {
+      "width": 76.2,
+      "height": 44,
+      "padding": "8px 16px",
+      "minHeight": "44px"
+    },
+    "iconButton": {
+      "width": 44,
+      "height": 44,
+      "padding": "0px",
+      "minHeight": "44px"
+    },
+    "iconButtonSize8": {
+      "width": 44,
+      "height": 44,
+      "padding": "0px",
+      "minHeight": "44px"
+    },
+    "input": {
+      "width": 390,
+      "height": 44,
+      "padding": "4px 12px",
+      "minHeight": "44px"
+    },
+    "inputH9": {
+      "width": 199,
+      "height": 44,
+      "padding": "4px 12px",
+      "minHeight": "44px"
+    }
+  }
+}

@@ -11,7 +11,8 @@
  * factories that already exist: `applicationQueries.list` (plan 66-09) for the
  * rows, and `propertyQueries.listWithDetails()` for the unit filter's options.
  * The second one is called with NO arguments on purpose — that is byte-identical
- * to `/properties`' own call (`properties/page.tsx:59`), so both surfaces land
+ * to `/properties`' own call (the properties page's
+ * `propertyQueries.listWithDetails()`), so both surfaces land
  * on the same TanStack Query cache entry instead of forking one.
  *
  * WHY THE UNIT LIST COMES FROM THE PROPERTY FACTORY AND NOT `unitQueries.list`.
@@ -145,7 +146,7 @@ function QueueSkeletons() {
 	return (
 		<div className="flex flex-col gap-2">
 			{Array.from({ length: 5 }).map((_, index) => (
-				<Skeleton key={index} className="h-[72px] rounded-lg" />
+				<Skeleton key={index} className="h-18 rounded-lg" />
 			))}
 		</div>
 	);
@@ -185,11 +186,12 @@ function QueueEmpty() {
 				</EmptyMedia>
 				<EmptyTitle>No applications yet</EmptyTitle>
 				{/*
-				 * `mb-0`: EmptyDescription is a bare `<p>` (empty.tsx:72-81) and
-				 * globals.css:499 gives every `<p>` a 1rem bottom margin in @layer
-				 * base. Its parent EmptyHeader lays out with `gap-2`, and gap does not
-				 * cancel margins, so without this the title-to-button rhythm carries
-				 * 16px of dead space it never declared.
+				 * `mb-0`: EmptyDescription is a bare `<p>` (`EmptyDescription` in
+				 * empty.tsx) and
+				 * the `@layer base` `p` rule in globals.css gives every `<p>` a 1rem
+				 * bottom margin. Its parent EmptyHeader lays out with `gap-2`, and gap
+				 * does not cancel margins, so without this the title-to-button rhythm
+				 * carries 16px of dead space it never declared.
 				 */}
 				<EmptyDescription className="mb-0">
 					Create an application link for a vacant unit and share it on your
@@ -255,8 +257,9 @@ function QueueFilteredEmpty() {
 function QueueRows({ rows }: { rows: ApplicationSummaryRow[] }) {
 	return (
 		/*
-		 * All four neutralizers are mandatory (§D-3). globals.css:517-524 declares
-		 * unscoped `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
+		 * All four neutralizers are mandatory (§D-3). The `@layer base` `ul, ol` /
+		 * `li` rules in globals.css declare unscoped
+		 * `ul, ol { margin: 1rem 0; padding-left: 1.5rem }` and
 		 * `li { margin-bottom: 0.25rem }` inside @layer base, and a utility beats a
 		 * base rule by layer order — but only if it is written. Without `pl-0` the
 		 * queue indents 24px out of alignment with the page header; without `mt-0`
@@ -286,12 +289,14 @@ function QueueRows({ rows }: { rows: ApplicationSummaryRow[] }) {
 					<Item size="default" asChild>
 						{/*
 						 * BOTH classes are required and each fixes a different half of
-						 * the same base rule (globals.css:504). `no-underline` defeats its
-						 * transparent underline, which turns visible on hover and would
+						 * the same base rule (the `@layer base`
+						 * `a:not([role="button"]):not(.button):not([class*="button"])
+						 * :not([data-slot="button"])` rule in globals.css). `no-underline`
+						 * defeats its transparent underline, which turns visible on hover and would
 						 * draw a line across the entire row; `text-foreground` defeats its
 						 * `color: var(--color-primary)`, which would tint the whole row
 						 * accent-blue. `buttonVariants` is not involved here, but the
-						 * rule's three `:not()` guards are all satisfied by a plain
+						 * rule's four `:not()` guards are all satisfied by a plain
 						 * `<Link>` regardless. Phase 65 shipped exactly this.
 						 */}
 						<Link
@@ -314,7 +319,7 @@ function QueueRows({ rows }: { rows: ApplicationSummaryRow[] }) {
 							<ItemContent className="min-w-0">
 								{/*
 								 * `block w-full min-w-0` is what makes `truncate` actually
-								 * fire. ItemTitle is `flex w-fit` (item.tsx:118-128): a flex
+								 * fire. ItemTitle is `flex w-fit` (item.tsx): a flex
 								 * container has no anonymous text box for
 								 * `text-overflow: ellipsis` to apply to, and `w-fit` sizes the
 								 * box to its own text so `overflow: hidden` has nothing to
@@ -328,7 +333,8 @@ function QueueRows({ rows }: { rows: ApplicationSummaryRow[] }) {
 									{rowHeading(row)}
 								</ItemTitle>
 								{/*
-								 * `mb-0`: ItemDescription is a bare `<p>` (item.tsx:131-143)
+								 * `mb-0`: ItemDescription is a bare `<p>` (`ItemDescription`
+								 * in item.tsx)
 								 * carrying the same base 1rem bottom margin, and ItemContent
 								 * spaces its children with `gap-1`, which does not cancel
 								 * margins. Without it every row carried 16px of dead space
@@ -336,7 +342,7 @@ function QueueRows({ rows }: { rows: ApplicationSummaryRow[] }) {
 								 *
 								 * `line-clamp-none` IS WHAT MAKES THIS COMPONENT'S OWN DOC
 								 * COMMENT TRUE. `ItemDescription`'s base string carries
-								 * `line-clamp-2` (item.tsx:131-143), and `text-xs mb-0` is in
+								 * `line-clamp-2` (item.tsx), and `text-xs mb-0` is in
 								 * no conflicting tailwind-merge group, so that clamp survived
 								 * and applied `overflow: hidden` with `-webkit-line-clamp: 2`
 								 * while the comment above claimed there was no clamp. At 375px
@@ -495,24 +501,23 @@ export function ApplicationQueue() {
 				 * WHY `w-full` WAS NOT ENOUGH. It does beat the base `w-fit` in
 				 * tailwind-merge, and the box really did become 327px. But the five
 				 * triggers carry `flex-1` from `TabsTrigger`'s own base (ui/tabs.tsx),
-				 * i.e. `flex: 1 1 0%`, so they size to the box rather than the box
+				 * i.e. `flex: 1 1 0%`, so they sized to the box rather than the box
 				 * sizing to them. Normally that still overflows, because a flex item's
-				 * `min-width: auto` floors it at its min-content width — but the
-				 * UNLAYERED `@media (max-width: 768px)` block at globals.css:1536 sets
-				 * an explicit `min-width: var(--touch-target-min)` on every `button`,
-				 * and an explicit min-width REPLACES `auto`. The floor became 44px, the
+				 * `min-width: auto` floors it at its min-content width — but the mobile
+				 * touch-target rule of that time (Phase 66 §D-1) set an explicit
+				 * `min-width: var(--touch-target-min)` on every `button`, and an
+				 * explicit min-width REPLACES `auto`. The floor became 44px, the
 				 * triggers shrank to 64.2px each, and there was nothing left to
-				 * overflow. No utility can take that rule back: it is unlayered, and
-				 * unlayered beats every `@layer utilities` declaration regardless of
-				 * specificity — which is why the fix does not try.
+				 * overflow.
 				 *
-				 * `flex-none` on the trigger is what defeats BOTH. `flex: 0 0 auto`
-				 * means the basis is the content width and the shrink factor is zero,
-				 * so a trigger cannot be squeezed below its label no matter what floor
-				 * is imposed, and the 44px min-width degrades to a harmless floor under
-				 * the one short label ("All", 33.9px of box). It is passed per instance
-				 * so tailwind-merge resolves it against the base `flex-1` rather than
-				 * appending to it.
+				 * Phase 66.2 D-08 replaced that rule with the `@layer base`
+				 * touch-target rule, which excludes `role=tab`, so no 44px min-width
+				 * applies to these triggers any more. `flex-none` still matters:
+				 * `flex: 0 0 auto` means the basis is the content width and the shrink
+				 * factor is zero, so each trigger stays at its label width against
+				 * `TabsTrigger`'s base `flex-1`. It is passed per instance so
+				 * tailwind-merge resolves it against the base `flex-1` rather than
+				 * appending to it. E-22 measures the result at 375px and 320px.
 				 *
 				 * With nothing shrinkable inside it, the base `w-fit` is now the RIGHT
 				 * width — the box hugs its tabs when they fit and `max-w-full` clamps
@@ -527,7 +532,8 @@ export function ApplicationQueue() {
 				 * unreachable by scrolling in LTR, so the first tabs would be
 				 * permanently cut off.
 				 *
-				 * `scrollbar-hide` is the existing @utility at globals.css:1797. No
+				 * `scrollbar-hide` is the existing `@utility scrollbar-hide` in
+				 * globals.css. No
 				 * counts on the tabs this phase — a per-status count needs a query
 				 * nothing else on this page issues (§F).
 				 */}

@@ -1,0 +1,15 @@
+PASS a W2 non-inline @theme --color-* names equal the 36 moved names
+PASS b each moved name has exactly one top-level :root --<n> equal to W2 @theme --color-<n>
+PASS c each dual-mode name has exactly one .dark --<n> equal to W2 dark --color-<n>; charts have none
+PASS d each moved name has exactly one @theme inline --color-<n>: var(--<n>)
+PASS e1 no non-inline @theme declaration starts with --color-
+PASS e2 no rule selector is :where(.dark, .dark *) (X4)
+PASS e3 @custom-variant dark (&:where(.dark, .dark *)) exists
+PASS e4 non-inline @theme radius/shadow/text/leading/tracking map equals W2 (25 decls)
+PASS e5 every --sidebar* decl in :root, .dark and @theme inline equals W2 (27 decls, D-21)
+PASS f W2 census: 4 hits over 912 files, all in src/lib/data-table.ts [src/lib/data-table.ts: var(--border); src/lib/data-table.ts: var(--border); src/lib/data-table.ts: var(--background); src/lib/data-table.ts: var(--background)]
+PASS g W3 census: 0 hits outside globals.css over 912 files; globals.css 36 hits, 36 in @theme inline --color-<n> mappings
+PASS h data-table.ts: no var(--background)/var(--border); var(--color-background) only when isPinned, else transparent
+PASS i satori diff: 12 changed lines, all comments; route.tsx --chart-N: oklch x5, --color-chart- x0
+PASS j no className applies a nested `dark` scope (rg exit 1 = 0 hits)
+W2=de2a678226c05906263c18ea58d9ddff8c0ec689

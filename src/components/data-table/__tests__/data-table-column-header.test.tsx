@@ -23,7 +23,7 @@ import {
 	DataTableColumnHeader,
 	getAriaSort,
 } from "#components/data-table/data-table-column-header";
-import type { UnitRowWithRelations } from "#types/core";
+import type { UnitListRow } from "#hooks/api/query-keys/unit-keys";
 
 type Row = { name: string; value: number };
 
@@ -174,7 +174,7 @@ describe("DataTableColumnHeader non-sortable column", () => {
 describe("W-1 units-table 2nd consumer", () => {
 	it("renders the 7 unit headers and sorts with no console.error", () => {
 		const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-		render(<Harness<UnitRowWithRelations> columns={unitColumns} />);
+		render(<Harness<UnitListRow> columns={unitColumns} />);
 
 		// 7 unit columns → 7 header cells.
 		expect(screen.getAllByRole("columnheader")).toHaveLength(7);

@@ -1,0 +1,894 @@
+{
+ "label": "w2",
+ "tree": "HEAD d02cf1d34473ea4260cfce28fc3ee9a30b0f496c",
+ "appUrl": "http://localhost:3062",
+ "blogSlug": "turbotenant-vs-apartments-com-complete-comparison-for-2025",
+ "server": "screens.mjs --start next start :3062 (NEXT_PUBLIC_APP_URL=http://localhost:3062 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder SKIP_ENV_VALIDATION=true bun run build)",
+ "tool": {
+  "path": ".planning/tailwind-shadcn/audit/screens.mjs",
+  "sha256": "ce38afa9f5007d31286bba7ef6a1bf14c99ba69131569dcd358aa32ef82607f4"
+ },
+ "reference": "screens/w1 (66.2-10); same-session controls: w1now (W1 gate tree rebuilt and captured this session), w2-repeat and w2-repeat2 (/pricing and /signup at 390)",
+ "consoleErrorsCsp": [
+  {
+   "file": "public/login-light-390.png",
+   "cspConsoleErrors": 0
+  },
+  {
+   "file": "public/auth_confirm-email-light-390.png",
+   "cspConsoleErrors": 0
+  },
+  {
+   "file": "public/login-light-1280.png",
+   "cspConsoleErrors": 0
+  },
+  {
+   "file": "public/auth_confirm-email-light-1280.png",
+   "cspConsoleErrors": 0
+  },
+  {
+   "file": "public/login-dark-390.png",
+   "cspConsoleErrors": 0
+  },
+  {
+   "file": "public/auth_confirm-email-dark-390.png",
+   "cspConsoleErrors": 0
+  },
+  {
+   "file": "public/login-dark-1280.png",
+   "cspConsoleErrors": 0
+  },
+  {
+   "file": "public/auth_confirm-email-dark-1280.png",
+   "cspConsoleErrors": 0
+  }
+ ],
+ "counts": {
+  "total": 92,
+  "public": 44,
+  "owner": 48,
+  "pixelDiffVsW1": {
+   "identical": 70,
+   "changed": 19,
+   "sizeChanged": 3,
+   "missingInA": 0,
+   "missingInB": 0
+  },
+  "classes": {
+   "data-drift": 18,
+   "identical": 70,
+   "noise": 4
+  }
+ },
+ "entries": [
+  {
+   "file": "public/root-light-390.png",
+   "set": "public",
+   "route": "/",
+   "theme": "light",
+   "width": 390,
+   "sha256": "0036a5ede9f5891e16b765ba938a8a29c632cf6c17b42fd782e78eef0b03f0f7",
+   "bytes": 606839
+  },
+  {
+   "file": "public/pricing-light-390.png",
+   "set": "public",
+   "route": "/pricing",
+   "theme": "light",
+   "width": 390,
+   "sha256": "90424ad0b6ccb35d01e51c4f908b9ecc460c4a4bcff21362e6a0faeebbf1421a",
+   "bytes": 405280
+  },
+  {
+   "file": "public/help-light-390.png",
+   "set": "public",
+   "route": "/help",
+   "theme": "light",
+   "width": 390,
+   "sha256": "8287b310cf89b96dda397418c100c244cacb419f5201c4a7204b5b7fa166d543",
+   "bytes": 233588
+  },
+  {
+   "file": "public/faq-light-390.png",
+   "set": "public",
+   "route": "/faq",
+   "theme": "light",
+   "width": 390,
+   "sha256": "3a30034d2852598a3f5692331b1fd81894c78102307a0e743645da7cf9ab35ea",
+   "bytes": 288541
+  },
+  {
+   "file": "public/login-light-390.png",
+   "set": "public",
+   "route": "/login",
+   "theme": "light",
+   "width": 390,
+   "sha256": "9f08b188135e07a9ab94b78c46f64b2707bf620715e1819f76c4793689813484",
+   "bytes": 45937
+  },
+  {
+   "file": "public/signup-light-390.png",
+   "set": "public",
+   "route": "/signup",
+   "theme": "light",
+   "width": 390,
+   "sha256": "f760375cffc2fdb1de95b253d88e6800884520dae7f12cfa171799806e0ef5b3",
+   "bytes": 405298
+  },
+  {
+   "file": "public/contact-light-390.png",
+   "set": "public",
+   "route": "/contact",
+   "theme": "light",
+   "width": 390,
+   "sha256": "ec2162d98884f64333687f00663d77d1103f0d639dd40a1e9a9514337eed9238",
+   "bytes": 179961
+  },
+  {
+   "file": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390.png",
+   "set": "public",
+   "route": "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
+   "theme": "light",
+   "width": 390,
+   "sha256": "c5b03f980e3966711d2e5925b6945b536efe1f555703a5cab0a0be2602bd8e74",
+   "bytes": 2372086
+  },
+  {
+   "file": "public/privacy-light-390.png",
+   "set": "public",
+   "route": "/privacy",
+   "theme": "light",
+   "width": 390,
+   "sha256": "3ae77a0824b21e673ab4ab4d9a4d35432abdad2f344ec0cfe354f7d2f455c6a8",
+   "bytes": 917823
+  },
+  {
+   "file": "public/auth_confirm-email-light-390.png",
+   "set": "public",
+   "route": "/auth/confirm-email",
+   "theme": "light",
+   "width": 390,
+   "sha256": "e8cd332d14445cd4001dfd8549d3fc84e2137685e0e4bb0f93a63ef8f1eed1b0",
+   "bytes": 66446
+  },
+  {
+   "file": "public/auth_update-password-light-390.png",
+   "set": "public",
+   "route": "/auth/update-password",
+   "theme": "light",
+   "width": 390,
+   "sha256": "75b15c77368e47f92d3a65d939e47e233862de12842bbeae06c0b646d225c55e",
+   "bytes": 36124
+  },
+  {
+   "file": "public/root-light-1280.png",
+   "set": "public",
+   "route": "/",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "222f2f8858e60bd7ff43b77d9c6de6e86ac1e69a02c4ff413c0be4dcd4899320",
+   "bytes": 780938
+  },
+  {
+   "file": "public/pricing-light-1280.png",
+   "set": "public",
+   "route": "/pricing",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "11fb984cb388bc164f213a0960b39d13bdf17183b10b152808b9360e3cfbade8",
+   "bytes": 445262
+  },
+  {
+   "file": "public/help-light-1280.png",
+   "set": "public",
+   "route": "/help",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "830520f4143017ecdb455a8b5f07f713b2e180109038d2b3ab577a137f4c5567",
+   "bytes": 248116
+  },
+  {
+   "file": "public/faq-light-1280.png",
+   "set": "public",
+   "route": "/faq",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "6d1b06397e57363c2ef0ed262c0a9a4a75b0aae4e988f48995f87c6703bce008",
+   "bytes": 332606
+  },
+  {
+   "file": "public/login-light-1280.png",
+   "set": "public",
+   "route": "/login",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "e455aa1bc623fd4230d1cd2132d6228a82a96c90791790c5c73eabbdfe2116f7",
+   "bytes": 355259
+  },
+  {
+   "file": "public/signup-light-1280.png",
+   "set": "public",
+   "route": "/signup",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "11fb984cb388bc164f213a0960b39d13bdf17183b10b152808b9360e3cfbade8",
+   "bytes": 445262
+  },
+  {
+   "file": "public/contact-light-1280.png",
+   "set": "public",
+   "route": "/contact",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "41c0a8d37671e760dac4c5d2a868008488110f34dc0a16862d8e88a5fec2bec7",
+   "bytes": 364770
+  },
+  {
+   "file": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280.png",
+   "set": "public",
+   "route": "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "56f5219fd3cd544076de0857e13186b0c930797261cd3e311265f1cc8694b187",
+   "bytes": 2240194
+  },
+  {
+   "file": "public/privacy-light-1280.png",
+   "set": "public",
+   "route": "/privacy",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "05d6a715eee1dff040bfb3efd43858e4d44af224a815bb7889e846c0c69ec81e",
+   "bytes": 935903
+  },
+  {
+   "file": "public/auth_confirm-email-light-1280.png",
+   "set": "public",
+   "route": "/auth/confirm-email",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "8d3a4e060cfea3637c66c64f1447456de0e99f55e5d4c3e1f1a55d1fc2680770",
+   "bytes": 568044
+  },
+  {
+   "file": "public/auth_update-password-light-1280.png",
+   "set": "public",
+   "route": "/auth/update-password",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "7ae4955a332faf333a44b7dbb164f7c75abc0e65496e0bf24742b813924dbaca",
+   "bytes": 440827
+  },
+  {
+   "file": "public/root-dark-390.png",
+   "set": "public",
+   "route": "/",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "cc1a621fbef0915a54a5b62e799eb7c941130a45efd6010bfaa5dca388571033",
+   "bytes": 611814
+  },
+  {
+   "file": "public/pricing-dark-390.png",
+   "set": "public",
+   "route": "/pricing",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "f2f37128deb2ef00988a75bf0f2befe0b9b45232a32afbfecc4b9e44f487f5a6",
+   "bytes": 408428
+  },
+  {
+   "file": "public/help-dark-390.png",
+   "set": "public",
+   "route": "/help",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "844a056c5a5c4f2ee5e188ca5da8cfa64f36c8ef6b7b7fd8d210af950a926466",
+   "bytes": 238631
+  },
+  {
+   "file": "public/faq-dark-390.png",
+   "set": "public",
+   "route": "/faq",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "104b90d6c952cd84147b69d440c5b496eef82e3cacbd1429181c1928866aa20f",
+   "bytes": 289260
+  },
+  {
+   "file": "public/login-dark-390.png",
+   "set": "public",
+   "route": "/login",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "79519b4918ce8eda116dbc42455b7396ddca8d5eba5ec24add28a7071cec38e0",
+   "bytes": 46365
+  },
+  {
+   "file": "public/signup-dark-390.png",
+   "set": "public",
+   "route": "/signup",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "9b75400e308b5babd694fee13cf60874fdaa8b2cc58212caeade7c8aaeb25e4d",
+   "bytes": 408360
+  },
+  {
+   "file": "public/contact-dark-390.png",
+   "set": "public",
+   "route": "/contact",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "48b8137e5759371ed661ad9018fabac77f94eb9101e6a2dd2e359ba66c968497",
+   "bytes": 174017
+  },
+  {
+   "file": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390.png",
+   "set": "public",
+   "route": "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "6ffac285ba9b13bb7505292ea344c3d7b9049e0f8137b334c1e7284ec6b7e89c",
+   "bytes": 2363692
+  },
+  {
+   "file": "public/privacy-dark-390.png",
+   "set": "public",
+   "route": "/privacy",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "485e390b56707bf7a05e032b002cd76e6c4e0c65ba7ab34c73b042e688cac296",
+   "bytes": 916660
+  },
+  {
+   "file": "public/auth_confirm-email-dark-390.png",
+   "set": "public",
+   "route": "/auth/confirm-email",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "cbedec377679da1d853f717c13262186af34049b711b41ee96915b9249df6d6b",
+   "bytes": 65999
+  },
+  {
+   "file": "public/auth_update-password-dark-390.png",
+   "set": "public",
+   "route": "/auth/update-password",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "38f7a685b209afe8f8cd095836c9668a3de27643e3d07a3e4cbc95b4015ab848",
+   "bytes": 36030
+  },
+  {
+   "file": "public/root-dark-1280.png",
+   "set": "public",
+   "route": "/",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "2d2aa676fd264e2c7da4388436473afa22d83e4f86c88f760ab670652fbdd07a",
+   "bytes": 785292
+  },
+  {
+   "file": "public/pricing-dark-1280.png",
+   "set": "public",
+   "route": "/pricing",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "4652eeedba8c99ffc894f12dad6a2c10ec78585d207a2880b48e4b29c29cd6c2",
+   "bytes": 446953
+  },
+  {
+   "file": "public/help-dark-1280.png",
+   "set": "public",
+   "route": "/help",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "890a2bec585d037847d0a1c53497a9726744683dd369797155138ebee6d3f0ad",
+   "bytes": 251788
+  },
+  {
+   "file": "public/faq-dark-1280.png",
+   "set": "public",
+   "route": "/faq",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "8dd3de106b745c08f8786a344b208c9a151eafe08dbbe291daae9504a2641306",
+   "bytes": 331938
+  },
+  {
+   "file": "public/login-dark-1280.png",
+   "set": "public",
+   "route": "/login",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "12fb9bdc5fcc4f595cc857b2c8d7cc7ca89d9f0a1a0797e752c788d21f6567be",
+   "bytes": 354752
+  },
+  {
+   "file": "public/signup-dark-1280.png",
+   "set": "public",
+   "route": "/signup",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "4652eeedba8c99ffc894f12dad6a2c10ec78585d207a2880b48e4b29c29cd6c2",
+   "bytes": 446953
+  },
+  {
+   "file": "public/contact-dark-1280.png",
+   "set": "public",
+   "route": "/contact",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "fcf31d3d0f47ff8238ba0055e3085a76b6bb95a07da136af07448adda34012ad",
+   "bytes": 340321
+  },
+  {
+   "file": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280.png",
+   "set": "public",
+   "route": "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "ff1c7a79af9d332bd33940b9dee4fa5ccef394bc89872736d54a3e2353a531ff",
+   "bytes": 2225303
+  },
+  {
+   "file": "public/privacy-dark-1280.png",
+   "set": "public",
+   "route": "/privacy",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "3b70cda51536c171c9dfd2fbad7f4c5b790c1f89a6c602b7007317ed8018d991",
+   "bytes": 931558
+  },
+  {
+   "file": "public/auth_confirm-email-dark-1280.png",
+   "set": "public",
+   "route": "/auth/confirm-email",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "4a3f849a77e2f77b753ede877d4eb7943f32ac8f894a3aea8522ecc07d828aa8",
+   "bytes": 566873
+  },
+  {
+   "file": "public/auth_update-password-dark-1280.png",
+   "set": "public",
+   "route": "/auth/update-password",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "8fd88b39ea6c535569248d14ae1a183f4fa85307d20b8e5946028915c3ea6520",
+   "bytes": 438966
+  },
+  {
+   "file": "owner/dashboard-light-390.png",
+   "set": "owner",
+   "route": "/dashboard",
+   "theme": "light",
+   "width": 390,
+   "sha256": "c8841440dc3e6a89deb7fdfd37662997993a718bf6943819b00aa8eb8c77a661",
+   "bytes": 303143
+  },
+  {
+   "file": "owner/properties-light-390.png",
+   "set": "owner",
+   "route": "/properties",
+   "theme": "light",
+   "width": 390,
+   "sha256": "7c1390cdefe87d130d9e4c2b29812ca9a348c3fa628d174f69ab812af00ca321",
+   "bytes": 67868
+  },
+  {
+   "file": "owner/tenants-light-390.png",
+   "set": "owner",
+   "route": "/tenants",
+   "theme": "light",
+   "width": 390,
+   "sha256": "3fde33653c1cc178893c49b2c3bd54ae23654f5889966cdc5ec224afde9d12ba",
+   "bytes": 76469
+  },
+  {
+   "file": "owner/leases-light-390.png",
+   "set": "owner",
+   "route": "/leases",
+   "theme": "light",
+   "width": 390,
+   "sha256": "5ad7549b811660ae2e2f76cde84b41dab5b1c0b53709a6706bc45190ba3d14c6",
+   "bytes": 56996
+  },
+  {
+   "file": "owner/applications-light-390.png",
+   "set": "owner",
+   "route": "/applications",
+   "theme": "light",
+   "width": 390,
+   "sha256": "101c8e9b7884d6f09e41a6ac3e6e7ea8237b06cd215d1f9061c602e39cb0d93e",
+   "bytes": 170695
+  },
+  {
+   "file": "owner/maintenance-light-390.png",
+   "set": "owner",
+   "route": "/maintenance",
+   "theme": "light",
+   "width": 390,
+   "sha256": "277c8a2ab24a1d3989b4640bcb5fc1028d9ee058c77bb8b465318ceba21f15d1",
+   "bytes": 24155
+  },
+  {
+   "file": "owner/documents-light-390.png",
+   "set": "owner",
+   "route": "/documents",
+   "theme": "light",
+   "width": 390,
+   "sha256": "d640110abf84237fc853fab1030c81ab24590c0be2d67e81d3d49ea94caaddfa",
+   "bytes": 101023
+  },
+  {
+   "file": "owner/documents_lease-template-light-390.png",
+   "set": "owner",
+   "route": "/documents/lease-template",
+   "theme": "light",
+   "width": 390,
+   "sha256": "0ecac75c8c2f0818344742dbdaee092141cb10b93ec8cfb44556c2d6eda43726",
+   "bytes": 803109
+  },
+  {
+   "file": "owner/analytics_overview-light-390.png",
+   "set": "owner",
+   "route": "/analytics/overview",
+   "theme": "light",
+   "width": 390,
+   "sha256": "e5f4c7f0361d8a870ac0ebbf3a3cd8114806db5eb910a3114c94d3ccd1b1ad6b",
+   "bytes": 111060
+  },
+  {
+   "file": "owner/reports_cash-flow-light-390.png",
+   "set": "owner",
+   "route": "/reports/cash-flow",
+   "theme": "light",
+   "width": 390,
+   "sha256": "a1b4da36ca2367e32b1b77b309485ec7d54bd3ab2e6eb28ab362d03e4022a7f6",
+   "bytes": 100049
+  },
+  {
+   "file": "owner/settings-light-390.png",
+   "set": "owner",
+   "route": "/settings",
+   "theme": "light",
+   "width": 390,
+   "sha256": "aa0d54ec24787e5a86d08f43fc58072c9380b0e3023e2f79e7b6a5fb87cef120",
+   "bytes": 98151
+  },
+  {
+   "file": "owner/dashboard-light-1280.png",
+   "set": "owner",
+   "route": "/dashboard",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "b02128cdb603d0c0e2ec3c0b5ba37c24b6c1e9bcdc1f632823b257189ecca1ca",
+   "bytes": 308538
+  },
+  {
+   "file": "owner/properties-light-1280.png",
+   "set": "owner",
+   "route": "/properties",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "8a9b133f9d5726eb675ba8a9cfa7a9d286b501c304920c021515a50f85d10a6f",
+   "bytes": 125697
+  },
+  {
+   "file": "owner/tenants-light-1280.png",
+   "set": "owner",
+   "route": "/tenants",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "f4e3ae1715e7d73c14238b951a53d736078f74a89e5a73dfed6c4906c40819e9",
+   "bytes": 137929
+  },
+  {
+   "file": "owner/leases-light-1280.png",
+   "set": "owner",
+   "route": "/leases",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "87e31568239cae08bfd51b45593cf8d3307a022e9219c05cd5680e2af2c55fea",
+   "bytes": 124426
+  },
+  {
+   "file": "owner/applications-light-1280.png",
+   "set": "owner",
+   "route": "/applications",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "c79bc6d643ef7c8746f1487a23254f4f14db164231407ef80971074a8fa456fa",
+   "bytes": 243124
+  },
+  {
+   "file": "owner/maintenance-light-1280.png",
+   "set": "owner",
+   "route": "/maintenance",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "58a8bcb6bba6f6d3660ec6462b2f288f72bc7c1e7dc1b9e714491ad07ce8e713",
+   "bytes": 60772
+  },
+  {
+   "file": "owner/documents-light-1280.png",
+   "set": "owner",
+   "route": "/documents",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "3c9a0f45f13050b559b1ac5d86a031f9e594d951c02f790dfcab907b33b4cd56",
+   "bytes": 133031
+  },
+  {
+   "file": "owner/documents_lease-template-light-1280.png",
+   "set": "owner",
+   "route": "/documents/lease-template",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "386b07aad0da56cc7416bcf222d1664ca105eda71ef5c2bf908d6c3d1b4b3239",
+   "bytes": 853483
+  },
+  {
+   "file": "owner/analytics_overview-light-1280.png",
+   "set": "owner",
+   "route": "/analytics/overview",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "f683d8ecafa2d590c61c7b3709e64d4d625710f285f99a1775047bf53caa7094",
+   "bytes": 145473
+  },
+  {
+   "file": "owner/reports_cash-flow-light-1280.png",
+   "set": "owner",
+   "route": "/reports/cash-flow",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "143ace894fe6badb5745cf6680ee834a3796056e424a0d1d70f11c796ad6c427",
+   "bytes": 132713
+  },
+  {
+   "file": "owner/settings-light-1280.png",
+   "set": "owner",
+   "route": "/settings",
+   "theme": "light",
+   "width": 1280,
+   "sha256": "d66b2c32f7d65704590f572a2a9138e036a58d68272ff0f88a80e9fd8cac86f5",
+   "bytes": 134434
+  },
+  {
+   "file": "owner/applications-light-375.png",
+   "set": "owner",
+   "route": "/applications",
+   "theme": "light",
+   "width": 375,
+   "sha256": "bc1fdbaf19682bb03d28b09f63f9aefa980e6dbca291887a782ee4368e1c3fb7",
+   "bytes": 165118
+  },
+  {
+   "file": "owner/applications-light-320.png",
+   "set": "owner",
+   "route": "/applications",
+   "theme": "light",
+   "width": 320,
+   "sha256": "e5318983ea1cd50bd5aac44a9a564cb51111a1d8fa946ca9c85f7ee2365e5458",
+   "bytes": 147524
+  },
+  {
+   "file": "owner/dashboard-dark-390.png",
+   "set": "owner",
+   "route": "/dashboard",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "d95d9a82338c0e222ee7e9583d2effeb80e4bb471b7c23c51355ba53672d6321",
+   "bytes": 303030
+  },
+  {
+   "file": "owner/properties-dark-390.png",
+   "set": "owner",
+   "route": "/properties",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "49bcdfd0cd9efbd67b5b9b08d8bdd4c229856e3b0f82a94e3c7a5c5850e8976d",
+   "bytes": 68323
+  },
+  {
+   "file": "owner/tenants-dark-390.png",
+   "set": "owner",
+   "route": "/tenants",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "55a8d58b90f23161b6b3550fd396a70f047c808b40ffb17bbb02b2dc1a376707",
+   "bytes": 76442
+  },
+  {
+   "file": "owner/leases-dark-390.png",
+   "set": "owner",
+   "route": "/leases",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "e80e1960c613765beb2313fd309129d70964fd4273753eeee6a15e2b00707f1c",
+   "bytes": 57625
+  },
+  {
+   "file": "owner/applications-dark-390.png",
+   "set": "owner",
+   "route": "/applications",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "ae611fd857c56a761418c5c9b1a80aed05b4939b10cde50e0384917c2af11841",
+   "bytes": 168658
+  },
+  {
+   "file": "owner/maintenance-dark-390.png",
+   "set": "owner",
+   "route": "/maintenance",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "2b426368e1e5e403b4134db0c097bfa8e750621d77ea1c26312313fcc91decca",
+   "bytes": 24537
+  },
+  {
+   "file": "owner/documents-dark-390.png",
+   "set": "owner",
+   "route": "/documents",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "18bb275eef40c73b726a8b8cff7ccdfc0f75f9ace68cf7975572b6a37bba7168",
+   "bytes": 102687
+  },
+  {
+   "file": "owner/documents_lease-template-dark-390.png",
+   "set": "owner",
+   "route": "/documents/lease-template",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "feb8cabb41ef2268040e541b214d78d66962eebed3339026a3db3c88f4ac86bc",
+   "bytes": 801517
+  },
+  {
+   "file": "owner/analytics_overview-dark-390.png",
+   "set": "owner",
+   "route": "/analytics/overview",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "03dee4982c824d6d7260e0dc67b94a07f5f300ff5bb7e149edd2606a1d429618",
+   "bytes": 111672
+  },
+  {
+   "file": "owner/reports_cash-flow-dark-390.png",
+   "set": "owner",
+   "route": "/reports/cash-flow",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "6631515a8997bceabcdfdecfc86fac04bc43a12021cd4484a356bde465a2c54d",
+   "bytes": 99132
+  },
+  {
+   "file": "owner/settings-dark-390.png",
+   "set": "owner",
+   "route": "/settings",
+   "theme": "dark",
+   "width": 390,
+   "sha256": "eec6da0485941f22dc0c8c4a4a92ca72ff9a9ec7b3baf1ee05b1700f01c378f0",
+   "bytes": 98126
+  },
+  {
+   "file": "owner/dashboard-dark-1280.png",
+   "set": "owner",
+   "route": "/dashboard",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "0961262c115a6db5a63d28dd5536fb16a7ae63246fe961657020b9e655486178",
+   "bytes": 308771
+  },
+  {
+   "file": "owner/properties-dark-1280.png",
+   "set": "owner",
+   "route": "/properties",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "edbf7534d61ef99f9ff88fbd46f670a3d927e10bc71c3e462e7274a916ae95e1",
+   "bytes": 126379
+  },
+  {
+   "file": "owner/tenants-dark-1280.png",
+   "set": "owner",
+   "route": "/tenants",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "602895414695730ad30feabf24e9a3c95363ea4152eeb1ee3a20b9d3b50a2c73",
+   "bytes": 136623
+  },
+  {
+   "file": "owner/leases-dark-1280.png",
+   "set": "owner",
+   "route": "/leases",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "5930a4413bd5191aee90e51ae5e42f9297f0fe957ca7ac168b2731fa0c28f935",
+   "bytes": 124062
+  },
+  {
+   "file": "owner/applications-dark-1280.png",
+   "set": "owner",
+   "route": "/applications",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "69a3f429375bb2b17f2d858c755e0bb28775ad3ef340bf45b31bea62fb77d1b3",
+   "bytes": 240029
+  },
+  {
+   "file": "owner/maintenance-dark-1280.png",
+   "set": "owner",
+   "route": "/maintenance",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "e8290773349e22d2834fe477c83def89ecdf6be6b79eb0325792b78adec81298",
+   "bytes": 60412
+  },
+  {
+   "file": "owner/documents-dark-1280.png",
+   "set": "owner",
+   "route": "/documents",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "4b62ef69d206d7fbb7c849c5b62bdad24b449095d64719bb8e3221f3e78f0e2f",
+   "bytes": 133499
+  },
+  {
+   "file": "owner/documents_lease-template-dark-1280.png",
+   "set": "owner",
+   "route": "/documents/lease-template",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "1be14f7dcac2ea80bd12b1ef935499fd51ae9399f2555752bc92fd51a8160980",
+   "bytes": 845262
+  },
+  {
+   "file": "owner/analytics_overview-dark-1280.png",
+   "set": "owner",
+   "route": "/analytics/overview",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "dcb750d3ebebca652d140f7a0c65e7a6ed0d61d38675feaa98606372921bc67e",
+   "bytes": 145315
+  },
+  {
+   "file": "owner/reports_cash-flow-dark-1280.png",
+   "set": "owner",
+   "route": "/reports/cash-flow",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "8bcaef65a63041f296695c955a6a41f34004c41ec50416eb4047fbec62b1dbbc",
+   "bytes": 130669
+  },
+  {
+   "file": "owner/settings-dark-1280.png",
+   "set": "owner",
+   "route": "/settings",
+   "theme": "dark",
+   "width": 1280,
+   "sha256": "667c094a64823f44237d17734eef585698227a0fb6b18922950648b28a2a68e5",
+   "bytes": 133858
+  },
+  {
+   "file": "owner/applications-dark-375.png",
+   "set": "owner",
+   "route": "/applications",
+   "theme": "dark",
+   "width": 375,
+   "sha256": "6178bc48c3ef4c4639e90717c67080e49c1213d1ea84058be1846a125f05f4aa",
+   "bytes": 163811
+  },
+  {
+   "file": "owner/applications-dark-320.png",
+   "set": "owner",
+   "route": "/applications",
+   "theme": "dark",
+   "width": 320,
+   "sha256": "6d2e9086d3664f7ca327115b2b4b6343d923967314797d7c88261bfa639afec6",
+   "bytes": 145963
+  }
+ ],
+ "noiseRule": "Noise and probe rules (decided 2026-10-31 after 66.2-15), commit 234419439"
+}

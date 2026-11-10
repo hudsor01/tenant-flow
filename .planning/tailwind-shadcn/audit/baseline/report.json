@@ -1,0 +1,83 @@
+{
+ "scannedFiles": 1553,
+ "explicitSourcesMatchingNothing": [
+  "..*.{ts,tsx}"
+ ],
+ "noncanonical": {
+  "classes": 146,
+  "firstPartyFiles": 53,
+  "vendoredUiFiles": 15
+ },
+ "dead": {
+  "themeVars": 55,
+  "customProperties": 47,
+  "utilities": "90/133",
+  "keyframes": 1,
+  "plainClassSelectors": 20
+ },
+ "utilityCollisions": [
+  "text-muted",
+  "text-caption"
+ ],
+ "invalidOklch": [
+  "L166 oklch(95.46% 3.51 246.58)"
+ ],
+ "nonInlineThemeVarsReferencingVars": [
+  "L26 --font-sans: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+  "L29 --font-display: var(--font-display), \"Playfair Display\", Georgia, \"Times New Roman\", serif",
+  "L31 --font-mono: var(--font-geist-mono), ui-monospace, \"SF Mono\", \"Cascadia Code\", monospace",
+  "L193 --color-sidebar: var(--color-background)",
+  "L194 --color-sidebar-foreground: var(--color-foreground)",
+  "L195 --color-sidebar-primary: var(--color-primary)",
+  "L196 --color-sidebar-primary-foreground: var(--color-primary-foreground)",
+  "L197 --color-sidebar-accent: var(--color-accent)",
+  "L198 --color-sidebar-accent-foreground: var(--color-accent-foreground)",
+  "L199 --color-sidebar-border: var(--color-border)",
+  "L200 --color-sidebar-ring: var(--color-ring)"
+ ],
+ "lightOnlyColorTokensInUse": [
+  "--color-white: oklch(1 0 0)",
+  "--color-black: oklch(0 0 0)",
+  "--color-label-primary: oklch(0 0 0 / 85%)",
+  "--color-label-secondary: oklch(0 0 0 / 50%)",
+  "--color-label-tertiary: oklch(0 0 0 / 35%)",
+  "--color-fill-primary: oklch(0 0 0 / 6%)",
+  "--color-fill-secondary: oklch(0 0 0 / 10%)",
+  "--color-fill-tertiary: oklch(0 0 0 / 14%)",
+  "--color-separator: oklch(0.31 0 0 / 29%)",
+  "--color-chart-1: oklch(0.63 0.22 259)",
+  "--color-chart-2: oklch(0.7 0.18 180)",
+  "--color-chart-3: oklch(0.72 0.16 85)",
+  "--color-chart-4: oklch(0.65 0.18 20)",
+  "--color-chart-5: oklch(0.55 0.12 250)"
+ ],
+ "twMerge": {
+  "projectCnUsesExtendTailwindMerge": false,
+  "fontSizesDroppedNextToAColor": [
+   "text-display-hero",
+   "text-display-lg",
+   "text-display",
+   "text-display-sm",
+   "text-title-1",
+   "text-title-2",
+   "text-title-3",
+   "text-title-4",
+   "text-caption",
+   "text-stat",
+   "text-stat-lg",
+   "text-stat-xl"
+  ]
+ },
+ "otherStylesheets": {
+  "src/app/(owner)/dashboard.css": {
+   "classes": 39,
+   "deadClasses": 33,
+   "varsNotDefinedByGlobals": [
+    "--text-responsive-h2",
+    "--leading-title-1",
+    "--text-responsive-h3",
+    "--leading-title-2"
+   ]
+  }
+ }
+}

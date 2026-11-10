@@ -89,8 +89,8 @@ export function useDeleteTenantMutation() {
 }
 
 /**
- * Mark tenant as moved out (soft delete)
- * Follows industry-standard 7-year retention pattern.
+ * Mark a tenant as moved out: one UPDATE saves the status, the move-out date
+ * and the reason (with any notes). The tenant stays listed; nothing is deleted.
  */
 export function useMarkTenantAsMovedOutMutation() {
 	const queryClient = useQueryClient();

@@ -80,11 +80,11 @@ export function TenantTableRow({
 			<td className={cn(TENANT_COLUMN_CLASS.property, "px-4 py-2")} role="cell">
 				{tenant.currentProperty ? (
 					<div className="text-left min-w-0">
-						<p className="text-sm text-foreground truncate">
+						<p className="mb-0 text-sm text-foreground truncate">
 							{tenant.currentProperty}
 						</p>
 						{tenant.currentUnit && (
-							<p className="text-xs text-muted-foreground truncate">
+							<p className="mb-0 text-xs text-muted-foreground truncate">
 								Unit {tenant.currentUnit}
 							</p>
 						)}
@@ -104,7 +104,7 @@ export function TenantTableRow({
 						className="h-auto p-0 text-primary-text"
 						onClick={() => onViewLease(leaseId)}
 					>
-						<FileText className="mr-1 h-3.5 w-3.5" />
+						<FileText className="mr-1 size-3.5" />
 						View
 					</Button>
 				) : (
@@ -125,7 +125,7 @@ export function TenantTableRow({
 					<Button
 						variant="ghost"
 						size="icon"
-						className="h-8 w-8 min-h-8 min-w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+						className="h-8 w-8 min-h-8 min-w-8 text-destructive-text hover:text-destructive-text hover:bg-destructive/10 dark:hover:bg-destructive/10 dark:hover:text-destructive-text"
 						onClick={() => onDelete(tenant.id)}
 					>
 						<Trash2 className="h-4 w-4" />

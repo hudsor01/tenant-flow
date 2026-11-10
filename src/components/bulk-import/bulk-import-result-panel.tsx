@@ -90,10 +90,12 @@ function ResultHeader({
 			<div
 				className={cn(
 					"icon-container-md border",
-					tone === "success" && "bg-success/10 text-success border-success/20",
-					tone === "warning" && "bg-warning/10 text-warning border-warning/20",
+					tone === "success" &&
+						"bg-success/10 text-success-text border-success/20",
+					tone === "warning" &&
+						"bg-warning/10 text-warning-text border-warning/20",
 					tone === "destructive" &&
-						"bg-destructive/10 text-destructive border-destructive/20",
+						"bg-destructive/10 text-destructive-text border-destructive/20",
 				)}
 			>
 				{tone === "success" && <PartyPopper className="size-5" />}
@@ -103,7 +105,7 @@ function ResultHeader({
 			<div className="flex-1">
 				<p
 					className={cn(
-						"text-base font-semibold",
+						"mb-0 text-base font-semibold",
 						tone === "success" && "text-success-text",
 						tone === "warning" && "text-warning-text",
 						tone === "destructive" && "text-destructive-text",
@@ -114,7 +116,7 @@ function ResultHeader({
 					{tone === "warning" && "Partial import completed"}
 					{tone === "destructive" && "Import failed"}
 				</p>
-				<p className="text-sm text-muted-foreground mt-1">
+				<p className="text-sm text-muted-foreground mt-1 mb-0">
 					{tone === "success" && `Your ${plural} have been added.`}
 					{tone === "warning" &&
 						`Some ${plural} were imported, but others had errors.`}
@@ -142,7 +144,7 @@ function StatCard({
 	return (
 		<div
 			className={cn(
-				"p-3 rounded-lg flex items-center gap-3",
+				"p-3 rounded-lg flex items-start gap-3",
 				active
 					? tone === "success"
 						? "bg-success/10"
@@ -152,7 +154,7 @@ function StatCard({
 		>
 			<div
 				className={cn(
-					"icon-container-sm",
+					"icon-container-sm shrink-0",
 					active
 						? tone === "success"
 							? "bg-success/20 text-success"
@@ -165,7 +167,7 @@ function StatCard({
 			<div>
 				<p
 					className={cn(
-						"text-xl font-bold",
+						"whitespace-nowrap text-xl font-bold",
 						active
 							? tone === "success"
 								? "text-success-text"
@@ -175,7 +177,7 @@ function StatCard({
 				>
 					{count}
 				</p>
-				<p className="text-xs text-muted-foreground">{label}</p>
+				<p className="mb-0 text-xs text-muted-foreground">{label}</p>
 			</div>
 		</div>
 	);
@@ -200,20 +202,27 @@ function ResultStats({
 	const failedLabel = showCumulative
 		? `${result.failed === 1 ? "Row" : "Rows"} still failing this batch`
 		: `${result.failed === 1 ? "Row" : "Rows"} failed`;
+	// The columns step on the panel's own width, never the viewport's: one
+	// until two tiles are 10rem wide (66.2-39 fix round 4, Part 8d). Each
+	// tile's figure sits at its top, so a label that wraps ("Rows still
+	// failing this batch", a plural entity's "(total)") never moves it off its
+	// neighbour's line: centred, the two counts sat 8px apart from 408 to 488px.
 	return (
-		<div className="grid grid-cols-2 gap-3">
-			<StatCard
-				tone="success"
-				count={importedCount}
-				label={importedLabel}
-				icon="check"
-			/>
-			<StatCard
-				tone="destructive"
-				count={result.failed}
-				label={failedLabel}
-				icon="x"
-			/>
+		<div className="@container/import-result">
+			<div className="grid grid-cols-1 @min-[20.75rem]/import-result:grid-cols-2 gap-3">
+				<StatCard
+					tone="success"
+					count={importedCount}
+					label={importedLabel}
+					icon="check"
+				/>
+				<StatCard
+					tone="destructive"
+					count={result.failed}
+					label={failedLabel}
+					icon="x"
+				/>
+			</div>
 		</div>
 	);
 }

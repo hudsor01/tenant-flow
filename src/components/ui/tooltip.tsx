@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * shadcn new-york-v4 registry item `tooltip`.
+ *
+ * Local divergences (recorded in the divergence register):
+ * - TooltipPrimitive.Arrow is aria-hidden: the arrow is a bare svg, which
+ *   Chrome exposes inside the tooltip as an unnamed image (WCAG 1.1.1;
+ *   66.2-39 fix round 4, Part 5c).
+ */
 import { Tooltip as TooltipPrimitive } from "radix-ui";
 import type { ComponentProps } from "react";
 
@@ -19,11 +27,7 @@ function TooltipProvider({
 }
 
 function Tooltip({ ...props }: ComponentProps<typeof TooltipPrimitive.Root>) {
-	return (
-		<TooltipProvider>
-			<TooltipPrimitive.Root data-slot="tooltip" {...props} />
-		</TooltipProvider>
-	);
+	return <TooltipPrimitive.Root data-slot="tooltip" {...props} />;
 }
 
 function TooltipTrigger({
@@ -44,13 +48,16 @@ function TooltipContent({
 				data-slot="tooltip-content"
 				sideOffset={sideOffset}
 				className={cn(
-					"bg-foreground text-background animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-[var(--radix-tooltip-content-transform-origin)] rounded-md px-3 py-1.5 text-xs text-balance",
+					"z-50 w-fit origin-(--radix-tooltip-content-transform-origin) animate-in rounded-md bg-foreground px-3 py-1.5 text-xs text-balance text-background fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
 					className,
 				)}
 				{...props}
 			>
 				{children}
-				<TooltipPrimitive.Arrow className="bg-foreground fill-foreground z-50 size-2.5 translate-y-[calc(-50%-2px)] rotate-45 rounded-[2px]" />
+				<TooltipPrimitive.Arrow
+					aria-hidden="true"
+					className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-foreground fill-foreground"
+				/>
 			</TooltipPrimitive.Content>
 		</TooltipPrimitive.Portal>
 	);

@@ -21,6 +21,7 @@ import {
 } from "#components/ui/alert-dialog";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
+import { formatCount } from "#lib/formatters/count";
 import { createLogger } from "#lib/frontend-logger";
 import { cn } from "#lib/utils";
 import type { Lease } from "#types/core";
@@ -39,15 +40,36 @@ interface LeaseHeaderProps {
 	lease: Lease;
 	tenant: TenantInfo | null | undefined;
 	unitName?: string | null;
+	/** The unit's property by name, for the heading. */
+	propertyName?: string | null;
 	/** The unit's property street address, for the rent-increase notice. */
 	propertyAddress?: string | null;
 	onCancelSignature: () => Promise<void>;
 	isCancelling: boolean;
 }
 
+/**
+ * The lease's heading: its property and unit ("Maple Apartments · Unit 4B"),
+ * either alone when the other is missing, "Lease" with neither. It printed
+ * "Lease #" and the first eight characters of the lease's id.
+ */
+function leaseHeading(
+	propertyName: string | null | undefined,
+	unitName: string | null | undefined,
+): string {
+	const property = propertyName?.trim();
+	const unit = unitName?.trim();
+	if (property && unit) return `${property} · Unit ${unit}`;
+	if (property) return property;
+	if (unit) return `Unit ${unit}`;
+	return "Lease";
+}
+
 export function LeaseHeader({
 	lease,
 	tenant,
+	unitName,
+	propertyName,
 	propertyAddress,
 	onCancelSignature,
 	isCancelling,
@@ -105,7 +127,9 @@ export function LeaseHeader({
 	return (
 		<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 			<div className="flex items-center gap-3">
-				<h2 className="text-lg font-semibold">Lease #{lease.id.slice(0, 8)}</h2>
+				<h2 className="text-lg font-semibold">
+					{leaseHeading(propertyName, unitName)}
+				</h2>
 				<span
 					className={cn(
 						"inline-flex items-center px-2.5 py-1 rounded-sm text-xs font-medium",
@@ -115,12 +139,9 @@ export function LeaseHeader({
 					{statusConfig.label}
 				</span>
 				{isExpiringSoon && (
-					<Badge
-						variant="outline"
-						className="border-orange-500 text-orange-600 dark:text-orange-400"
-					>
+					<Badge variant="warning">
 						<AlertTriangle className="w-3 h-3 mr-1" />
-						Expires in {daysUntilExpiry} days
+						Expires in {formatCount(daysUntilExpiry, "day")}
 					</Badge>
 				)}
 			</div>
@@ -151,11 +172,13 @@ export function LeaseHeader({
 							</AlertDialogTrigger>
 							<AlertDialogContent>
 								<AlertDialogHeader>
-									<AlertDialogTitle>Cancel Signature Request?</AlertDialogTitle>
-									<AlertDialogDescription>
-										This will revert the lease to draft status. Any pending
-										signatures will be lost and you will need to send a new
-										signature request.
+									<AlertDialogTitle>
+										Cancel the signature request?
+									</AlertDialogTitle>
+									<AlertDialogDescription className="mb-0">
+										The lease goes back to draft, the tenant's signing link
+										stops working, and any signature already given is cleared.
+										To get it signed, send a new request.
 									</AlertDialogDescription>
 								</AlertDialogHeader>
 								<AlertDialogFooter>
@@ -168,7 +191,7 @@ export function LeaseHeader({
 											handleCancelSignature();
 										}}
 										disabled={isCancelling}
-										className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+										variant="destructive"
 									>
 										{isCancelling ? "Cancelling..." : "Cancel Request"}
 									</AlertDialogAction>
@@ -190,7 +213,7 @@ export function LeaseHeader({
 						variant="outline"
 						size="sm"
 						disabled
-						aria-label="Editing is locked because this lease has been sent for signature or signed"
+						aria-label="Edit Lease: locked because this lease has been sent for signature or signed"
 						title="Editing is locked because this lease has been sent for signature or signed"
 					>
 						Edit Lease

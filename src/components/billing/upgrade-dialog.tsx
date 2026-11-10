@@ -13,6 +13,7 @@ import {
 	DialogTitle,
 } from "#components/ui/dialog";
 import { cn } from "#lib/utils";
+import { formatCurrency } from "#lib/utils/currency";
 
 interface UpgradeDialogProps {
 	targetPlan: Plan | null;
@@ -108,7 +109,7 @@ export function UpgradeDialog({
 
 	const getDialogDescription = () => {
 		if (isNewSubscription) {
-			return "Start your subscription and unlock all features.";
+			return "Start your subscription to use every feature this plan includes.";
 		}
 		if (isManagedSwitch) {
 			return "Review and manage your subscription in the billing portal.";
@@ -139,7 +140,9 @@ export function UpgradeDialog({
 						) : null}
 						{getDialogTitle()}
 					</DialogTitle>
-					<DialogDescription>{getDialogDescription()}</DialogDescription>
+					<DialogDescription className="mb-0">
+						{getDialogDescription()}
+					</DialogDescription>
 				</DialogHeader>
 
 				<div className="space-y-4 py-4">
@@ -148,7 +151,9 @@ export function UpgradeDialog({
 						<div className="flex items-center justify-between">
 							<span className="text-sm text-muted-foreground">New price</span>
 							<span className="text-lg font-bold">
-								{targetPlan.price === 0 ? "Free" : `$${targetPlan.price}/mo`}
+								{targetPlan.price === 0
+									? "Free"
+									: `${formatCurrency(targetPlan.price, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/mo`}
 							</span>
 						</div>
 						{currentPlan && (
@@ -164,10 +169,9 @@ export function UpgradeDialog({
 										priceDifference === 0 && "text-muted-foreground",
 									)}
 								>
-									{priceDifference > 0 && "+"}
 									{priceDifference === 0
 										? "No change"
-										: `$${priceDifference}/mo`}
+										: `${priceDifference > 0 ? "+" : ""}${formatCurrency(priceDifference, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/mo`}
 								</span>
 							</div>
 						)}
@@ -179,7 +183,7 @@ export function UpgradeDialog({
 							<h4 className="text-sm font-medium text-foreground mb-2">
 								{isNewSubscription ? "What you get" : "Features you gain"}
 							</h4>
-							<ul className="space-y-1.5">
+							<ul className="flex flex-col gap-1.5 pl-0 mt-0 mb-0 [&>li]:mb-0">
 								{gained.map((feature) => (
 									<li
 										key={feature.name}
@@ -199,7 +203,7 @@ export function UpgradeDialog({
 							<h4 className="text-sm font-medium text-foreground mb-2">
 								Features you lose
 							</h4>
-							<ul className="space-y-1.5">
+							<ul className="flex flex-col gap-1.5 pl-0 mt-0 mb-0 [&>li]:mb-0">
 								{lost.map((feature) => (
 									<li
 										key={feature.name}
@@ -215,7 +219,7 @@ export function UpgradeDialog({
 
 					{/* Info for existing subscribers */}
 					{currentPlan && (
-						<p className="text-xs text-muted-foreground">
+						<p className="mb-0 text-xs text-muted-foreground">
 							{isUpgrade
 								? "Your card will be charged the prorated difference immediately."
 								: "Your current features will remain active until the end of your billing period."}

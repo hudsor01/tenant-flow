@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { User } from "@supabase/supabase-js";
-import { type NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
@@ -21,8 +21,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  *
  *  2. On a PRIVATE route the proxy forwards the per-request nonce CSP on
  *     the REQUEST `Content-Security-Policy` header passed to
- *     `updateSession` (the load-bearing path Next 16.2.6 parses for the
- *     hydration-script nonce — app-render.js:167-168), NOT only on the
+ *     `updateSession` (the load-bearing path Next parses for the
+ *     hydration-script nonce — `getScriptNonceFromHeader`), NOT only on the
  *     response, and the request-side nonce token is byte-for-byte equal
  *     to the response-side nonce token. The request-side assertion is
  *     the one that FAILS under a naive response-only wiring.
@@ -80,24 +80,7 @@ vi.mock("#env", () => ({
 import { proxy } from "#proxy";
 
 function buildRequest(pathname: string): NextRequest {
-	const url = new URL(pathname, "http://localhost:3050");
-	const nextUrl = Object.assign(url, {
-		clone: () => new URL(url.toString()),
-	});
-	const cookieStore = new Map<string, { name: string; value: string }>();
-
-	return {
-		nextUrl,
-		url: url.toString(),
-		headers: new Headers(),
-		cookies: {
-			getAll: () => [...cookieStore.values()],
-			set: (name: string, value: string) => {
-				cookieStore.set(name, { name, value });
-			},
-			get: (name: string) => cookieStore.get(name),
-		},
-	} as unknown as NextRequest;
+	return new NextRequest(new URL(pathname, "http://localhost:3050"));
 }
 
 function makeUser(): User {

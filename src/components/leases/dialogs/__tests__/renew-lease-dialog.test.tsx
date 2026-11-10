@@ -151,7 +151,7 @@ describe("RenewLeaseDialog", () => {
 
 		// The rent-adjustment toggle is disabled and no rent input is rendered.
 		const lockedToggle = screen.getByRole("button", {
-			name: /rent is locked/i,
+			name: /^adjust rent: locked/i,
 		});
 		expect(lockedToggle).toBeDisabled();
 		expect(screen.queryByRole("spinbutton")).toBeNull();

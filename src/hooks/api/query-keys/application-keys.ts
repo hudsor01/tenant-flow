@@ -35,6 +35,7 @@ import {
 	type ApplicationStatus,
 	type DispositionReasonValue,
 } from "#lib/applications/application-copy";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import type { Database } from "#types/supabase";
@@ -134,7 +135,7 @@ function requireString(
 ): string {
 	const value = raw[field];
 	if (typeof value !== "string") {
-		throw new Error(
+		throw new DiagnosticError(
 			`${mapper}: NOT NULL field '${field}' missing or non-string from PostgREST response`,
 		);
 	}
@@ -168,7 +169,7 @@ function nullableNumber(
 		const parsed = Number(value);
 		if (Number.isFinite(parsed)) return parsed;
 	}
-	throw new Error(
+	throw new DiagnosticError(
 		`${mapper}: numeric field '${field}' is neither a number nor a numeric string`,
 	);
 }
@@ -180,7 +181,7 @@ function requireNumber(
 ): number {
 	const parsed = nullableNumber(raw, field, mapper);
 	if (parsed === null) {
-		throw new Error(
+		throw new DiagnosticError(
 			`${mapper}: NOT NULL field '${field}' missing from PostgREST response`,
 		);
 	}
@@ -198,7 +199,7 @@ function requireApplicationStatus(
 ): ApplicationStatus {
 	const parsed = applicationStatusSchema.safeParse(value);
 	if (!parsed.success) {
-		throw new Error(
+		throw new DiagnosticError(
 			`${mapper}: invalid 'status' value '${String(value)}' from PostgREST response`,
 		);
 	}
@@ -514,7 +515,7 @@ export function recordApplicationConversionMutationOptions(
 
 			const row = (data ?? [])[0];
 			if (!row) {
-				throw new Error(
+				throw new DiagnosticError(
 					"record_application_conversion returned no row from PostgREST response",
 				);
 			}

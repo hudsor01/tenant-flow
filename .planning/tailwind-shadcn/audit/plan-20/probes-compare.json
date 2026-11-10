@@ -1,0 +1,30 @@
+{
+  "noise": [],
+  "differences": [],
+  "compared": [
+    "blur-fade-io-stub",
+    "blur-fade-no-js",
+    "blur-fade-reduced-motion",
+    "border-beam-grid",
+    "border-beam-stats",
+    "chart",
+    "command",
+    "data-table",
+    "date-popover",
+    "grid-pattern",
+    "otp-mfa",
+    "otp-setup",
+    "update-password-badge"
+  ],
+  "runs": {
+    "pre": [
+      "pre20a",
+      "pre20b"
+    ],
+    "post": "post20"
+  },
+  "negativeControl": {
+    "mutatedPaths": 2,
+    "detected": 2
+  }
+}

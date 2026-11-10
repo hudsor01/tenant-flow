@@ -220,11 +220,6 @@ vi.stubGlobal(
 	}),
 );
 
-// Mock formatCurrency
-vi.mock("#lib/utils/currency", () => ({
-	formatCurrency: (amount: number) => `$${amount.toFixed(2)}`,
-}));
-
 function createTestQueryClient() {
 	return new QueryClient({
 		defaultOptions: {
@@ -570,8 +565,8 @@ describe("Settings Page", () => {
 
 		await waitFor(() => {
 			const activeBadge = screen.getByText("Active");
-			// Check that the badge uses emerald color scheme for success state
-			expect(activeBadge.className).toContain("bg-emerald");
+			// The success state reads the success tint and its AA text companion
+			expect(activeBadge).toHaveClass("bg-success/10", "text-success-text");
 		});
 	});
 });

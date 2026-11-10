@@ -2,19 +2,20 @@
 
 import { Field, FieldError, FieldLabel } from "#components/ui/field";
 import { Input } from "#components/ui/input";
+import { LEASE_STATUS_LABELS } from "#lib/constants/status-types";
 import { withForm } from "#lib/forms/form-hook";
 import { leaseFormOptions } from "./lease-form-options";
 
 const STATUS_OPTIONS = [
-	{ value: "draft", label: "Draft" },
-	{ value: "pending_signature", label: "Pending" },
-	{ value: "active", label: "Active" },
-	{ value: "ended", label: "Ended" },
+	{ value: "draft", label: LEASE_STATUS_LABELS.draft },
+	{ value: "pending_signature", label: LEASE_STATUS_LABELS.pending_signature },
+	{ value: "active", label: LEASE_STATUS_LABELS.active },
+	{ value: "ended", label: LEASE_STATUS_LABELS.ended },
 	// 'expired' is cron-set + read-only (not in the write union) — shown disabled
 	// so an already-expired lease's Status renders "Expired" instead of blank,
 	// while staying non-selectable for any other lease.
-	{ value: "expired", label: "Expired", disabled: true },
-	{ value: "terminated", label: "Terminated" },
+	{ value: "expired", label: LEASE_STATUS_LABELS.expired, disabled: true },
+	{ value: "terminated", label: LEASE_STATUS_LABELS.terminated },
 ];
 
 const CURRENCY_OPTIONS = [
@@ -31,7 +32,7 @@ export const LeaseFormFinancialFields = withForm({
 			<>
 				{/* Rent Amount and Security Deposit — number fields with non-null
 				    defaults (empty -> 0) kept inline; NumberField is for number|null. */}
-				<div className="grid gap-4 md:grid-cols-2">
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<form.AppField name="rent_amount">
 						{(field) => (
 							<Field>
@@ -93,7 +94,7 @@ export const LeaseFormFinancialFields = withForm({
 					)}
 				</form.AppField>
 
-				<div className="grid gap-4 md:grid-cols-2">
+				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<form.AppField name="rent_currency">
 						{(field) => (
 							<field.SelectField

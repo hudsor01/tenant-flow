@@ -66,12 +66,31 @@ function ChartContainer({
 		return () => cancelAnimationFrame(rafId);
 	}, []);
 
+	// Recharts' accessibility layer makes each surface a tab stop (tabIndex 0,
+	// arrow keys move the tooltip). Upstream hides its outline; here keyboard
+	// focus draws a 2px ring-colored outline inset by its own width, so no
+	// overflow-clipping card ancestor can cut it. `outline-solid` is required:
+	// `outline-hidden` sets `--tw-outline-style: none`, which `outline-2` reads.
+	// The sector rule hides Recharts' default white sector stroke but not one a
+	// Pie sets through a token (`stroke="var(--color-card)"`, the occupancy
+	// donut's wedge separator): a class rule beats the presentation attribute,
+	// so matching every [stroke] painted that separator transparent.
+	// The axis rule matches each tick label's own class: recharts 3 draws the
+	// labels in a `g.recharts-cartesian-axis-tick-labels` group, apart from the
+	// `g.recharts-cartesian-axis-tick` that upstream's `_text` descendant rule
+	// targets (recharts 2's markup), so that rule left every label at the grey
+	// fill attribute recharts writes. chart-recharts-classes.test.tsx matches
+	// every rule here against the installed recharts' own SVG. A Pie's own tab
+	// stop is an SVG group, which paints no outline: keyboard focus on it paints
+	// its sectors' stroke (the donut's 2px separator) in the ring color (it showed only the base 4px ring/20
+	// halo, 1.35:1; 66.2-39 fix round 4, Part 5b).
 	return (
 		<ChartContext.Provider value={{ config }}>
 			<div
+				data-slot="chart"
 				data-chart={chartId}
 				className={cn(
-					"[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='var(--color-border)']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-polar-grid_[stroke='var(--color-border)']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='var(--color-border)']]:stroke-border flex aspect-video justify-center text-xs [&_.recharts-dot[stroke='var(--color-background)']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-sector]:outline-hidden [&_.recharts-sector[stroke='var(--color-background)']]:stroke-transparent [&_.recharts-surface]:outline-hidden",
+					"[&_.recharts-cartesian-axis-tick-value]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke]]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-polar-grid_[stroke]]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke]]:stroke-border flex aspect-video justify-center text-xs [&_.recharts-dot[stroke]]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-sector]:outline-hidden [&_.recharts-sector:not([stroke^='var('])]:stroke-transparent [&_.recharts-surface]:outline-hidden [&_.recharts-surface:focus-visible]:outline-2 [&_.recharts-surface:focus-visible]:-outline-offset-2 [&_.recharts-surface:focus-visible]:outline-ring [&_.recharts-surface:focus-visible]:outline-solid [&_.recharts-pie:focus-visible_.recharts-sector]:stroke-ring",
 					className,
 				)}
 				{...props}

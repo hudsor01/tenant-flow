@@ -21,8 +21,8 @@ import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
 import { toast } from "sonner";
 import { vi } from "vitest";
+import type { LeaseDetailRow } from "#hooks/api/query-keys/lease-keys";
 import { render } from "#test/utils/test-render";
-import type { LeaseWithExtras } from "#types/core";
 import { LeaseForm } from "../lease-form";
 
 // Mock useCurrentUser hook
@@ -152,7 +152,7 @@ vi.mock("sonner", () => ({
 	},
 }));
 
-const mockLease: LeaseWithExtras = {
+const mockLease: LeaseDetailRow = {
 	id: "lease-1",
 	unit_id: "unit-1",
 	primary_tenant_id: "tenant-1",
@@ -197,10 +197,21 @@ const mockLease: LeaseWithExtras = {
 	property_built_before_1978: null,
 	lead_paint_disclosure_acknowledged: null,
 	governing_state: null,
+	tenant: {
+		id: "tenant-1",
+		name: "John Doe",
+		first_name: null,
+		last_name: null,
+		email: "john@example.com",
+	},
 	unit: {
 		id: "unit-1",
 		unit_number: "101",
+		bedrooms: 2,
+		bathrooms: 1,
+		square_feet: null,
 		property_id: "property-1",
+		property: null,
 	},
 };
 
@@ -354,7 +365,7 @@ describe("LeaseForm", () => {
 		});
 
 		test("renders a pending_signature lease with a non-blank Pending status", async () => {
-			const pendingLease: LeaseWithExtras = {
+			const pendingLease: LeaseDetailRow = {
 				...mockLease,
 				lease_status: "pending_signature",
 			};
@@ -390,7 +401,7 @@ describe("LeaseForm", () => {
 
 		test("no-op save preserves the pending_signature status", async () => {
 			const user = userEvent.setup();
-			const pendingLease: LeaseWithExtras = {
+			const pendingLease: LeaseDetailRow = {
 				...mockLease,
 				lease_status: "pending_signature",
 			};

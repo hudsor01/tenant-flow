@@ -1,7 +1,7 @@
 "use client";
 
 import { Pencil, Plus } from "lucide-react";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { useState } from "react";
 import { Button } from "#components/ui/button";
 import {
@@ -73,7 +73,7 @@ export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
 
 	const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
-	const handleSubmit = async (e: FormEvent) => {
+	const handleSubmit = async (e: SubmitEvent) => {
 		e.preventDefault();
 		if (!name.trim()) return;
 
@@ -142,7 +142,7 @@ export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
 			<DialogContent className="max-w-lg">
 				<DialogHeader>
 					<DialogTitle>{isEditing ? "Edit Vendor" : "Add Vendor"}</DialogTitle>
-					<DialogDescription>
+					<DialogDescription className="mb-0">
 						{isEditing
 							? "Update vendor details."
 							: "Add a new contractor or vendor to your roster."}

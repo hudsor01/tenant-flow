@@ -35,18 +35,11 @@ export interface LeaseTemplateSchema {
 	glossary: Record<string, string>;
 }
 
-export interface CustomClause {
-	id: string;
-	title: string;
-	body: string;
-}
-
 export interface LeaseTemplateSelections {
 	state: USState;
 	selectedClauses: string[];
 	includeStateDisclosures: boolean;
 	includeFederalDisclosures: boolean;
-	customClauses?: CustomClause[];
 }
 
 export interface LeaseTemplateContext {
@@ -461,19 +454,6 @@ function buildClauseHtml(
 	return `<article data-clause="${escapeHtml(clause.id)}" class="lease-clause"><h3>${escapeHtml(clause.title)}</h3>${interpolate(clause.body, context)}</article>`;
 }
 
-function renderCustomClauses(customClauses: CustomClause[] | undefined) {
-	if (!customClauses?.length) return "";
-	return customClauses
-		.map(
-			(
-				clause,
-			) => `<article data-clause="${escapeHtml(clause.id)}" class="lease-clause">
-      <h3>${escapeHtml(clause.title)}</h3>
-      <p>${escapeHtml(clause.body)}</p>`,
-		)
-		.join("");
-}
-
 function renderSection(
 	section: LeaseTemplateSection,
 	selections: LeaseTemplateSelections,
@@ -558,7 +538,6 @@ export function renderLeaseHtmlBody(
 		.map((section) => renderSection(section, selections, context))
 		.join("");
 
-	const customHtml = renderCustomClauses(selections.customClauses);
 	const stateHtml = renderStateNotices(selections, schema);
 	const federalHtml = selections.includeFederalDisclosures
 		? renderFederalNotices(schema)
@@ -572,7 +551,6 @@ export function renderLeaseHtmlBody(
 		</p>
 	</header>
 	${sectionHtml}
-	${customHtml}
 	${stateHtml}
 	${federalHtml}
 </div>`;
@@ -593,7 +571,6 @@ export function getDefaultSelections(
 		selectedClauses,
 		includeStateDisclosures: true,
 		includeFederalDisclosures: true,
-		customClauses: [],
 	};
 }
 

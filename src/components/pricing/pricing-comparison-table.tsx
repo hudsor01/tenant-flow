@@ -142,16 +142,28 @@ function FeatureCell({
 	value: FeatureValue;
 	highlight?: boolean;
 }) {
+	// The icon is the cell's only visible content, so the value it draws is
+	// restated as text a screen reader announces (WCAG 1.1.1).
 	if (typeof value === "boolean") {
 		return value ? (
-			<Check
-				className={cn(
-					"size-5 mx-auto",
-					highlight ? "text-primary" : "text-success",
-				)}
-			/>
+			<>
+				<Check
+					aria-hidden="true"
+					className={cn(
+						"size-5 mx-auto",
+						highlight ? "text-primary" : "text-success-text",
+					)}
+				/>
+				<span className="sr-only">Included</span>
+			</>
 		) : (
-			<Minus className="size-5 text-muted-foreground/50 mx-auto" />
+			<>
+				<Minus
+					aria-hidden="true"
+					className="size-5 text-muted-foreground mx-auto"
+				/>
+				<span className="sr-only">Not included</span>
+			</>
 		);
 	}
 	return (
@@ -178,7 +190,7 @@ function CategorySection({
 			<CollapsibleTrigger asChild>
 				<Button
 					variant="ghost"
-					className="w-full justify-between py-4 px-6 h-auto rounded-none border-b border-border/50 hover:bg-muted/50"
+					className="w-full justify-between py-4 px-6 h-auto rounded-none border-b border-border/50 hover:bg-muted/50 dark:hover:bg-muted/50"
 				>
 					<span className="font-semibold text-foreground">{category}</span>
 					<ChevronDown
@@ -194,7 +206,7 @@ function CategorySection({
 					<div
 						key={feature.name}
 						className={cn(
-							"grid grid-cols-4 items-center py-3 px-6 transition-colors hover:bg-muted/40",
+							"grid grid-cols-4 items-center py-3 px-6",
 							idx % 2 === 0 ? "bg-muted/20" : "bg-transparent",
 						)}
 					>
@@ -231,10 +243,10 @@ export function PricingComparisonTable({
 
 			<div className="relative overflow-x-auto rounded-xl border border-border/50 bg-card">
 				<div
-					className="pointer-events-none absolute inset-y-0 right-0 z-20 w-8 bg-gradient-to-l from-card to-transparent md:hidden"
+					className="pointer-events-none absolute inset-y-0 right-0 z-20 w-8 bg-linear-to-l from-card to-transparent md:hidden"
 					aria-hidden="true"
 				/>
-				<div className="min-w-[640px]">
+				<div className="min-w-160">
 					{/* Sticky header */}
 					<div className="grid grid-cols-4 items-center py-4 px-6 bg-muted/70 backdrop-blur-sm border-b border-border sticky top-0 z-10 shadow-sm">
 						<div className="text-sm font-medium text-muted-foreground">

@@ -191,13 +191,13 @@ describe("getDashboardPercentage", () => {
 	it("returns positive trend for positive value", () => {
 		const result = getDashboardPercentage(10);
 		expect(result.trend).toBe("positive");
-		expect(result.color).toBe("text-success");
+		expect(result.color).toBe("text-success-text");
 		expect(result.value).toBe("10%");
 	});
 	it("returns negative trend for negative value", () => {
 		const result = getDashboardPercentage(-5);
 		expect(result.trend).toBe("negative");
-		expect(result.color).toBe("text-destructive");
+		expect(result.color).toBe("text-destructive-text");
 	});
 	it("returns neutral trend for zero", () => {
 		const result = getDashboardPercentage(0);

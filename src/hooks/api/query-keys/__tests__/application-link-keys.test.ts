@@ -19,6 +19,7 @@
 
 import { QueryClient } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { escapeRegExp } from "#test/utils/regexp-source";
 
 const { mockFrom, mockSelect, mockOrder, mockLimit, mockRpc } = vi.hoisted(
 	() => ({
@@ -216,7 +217,7 @@ describe("mapApplicationLinkRow", () => {
 			expect(
 				() => mapApplicationLinkRow({ ...linkRow, [field]: undefined }),
 				`expected a throw when '${field}' is missing`,
-			).toThrow(new RegExp(`'${field}'`));
+			).toThrow(new RegExp(`'${escapeRegExp(field)}'`));
 		}
 	});
 

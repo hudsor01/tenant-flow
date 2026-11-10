@@ -1,6 +1,6 @@
 "use client";
 
-import { useStore } from "@tanstack/react-form";
+import { useSelector } from "@tanstack/react-form";
 import { useEffect, useRef, useState } from "react";
 import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
 import { useAppForm, withForm } from "#lib/forms/form-hook";
@@ -347,8 +347,8 @@ export function RentalApplicationForm({
 		},
 	});
 
-	const isSubmitting = useStore(form.store, (state) => state.isSubmitting);
-	const isDirty = useStore(form.store, (state) => state.isDirty);
+	const isSubmitting = useSelector(form.store, (state) => state.isSubmitting);
+	const isDirty = useSelector(form.store, (state) => state.isDirty);
 	// The closest thing to a safety net that exists without writing applicant PII
 	// to a possibly-shared device.
 	useUnsavedChangesWarning(isDirty && !confirmed);

@@ -4,6 +4,7 @@ import { Camera, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
+import { ConfirmDialog } from "#components/ui/confirm-dialog";
 import { Label } from "#components/ui/label";
 import {
 	Select,
@@ -58,6 +59,9 @@ export function InspectionRoomCard({
 	const [notes, setNotes] = useState(room.notes ?? "");
 	const [conditionRating, setConditionRating] = useState(room.condition_rating);
 	const [showPhotoUpload, setShowPhotoUpload] = useState(false);
+	// The trash button only opens the confirmation; the delete runs from its
+	// Delete room.
+	const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
 	const updateRoom = useUpdateInspectionRoom(inspectionId);
 	const deleteRoom = useDeleteInspectionRoom(inspectionId);
@@ -82,10 +86,9 @@ export function InspectionRoomCard({
 		}
 	}
 
-	function handleDelete() {
-		if (confirm(`Remove room "${room.room_name}"?`)) {
-			deleteRoom.mutate(room.id);
-		}
+	function handleConfirmDelete() {
+		setConfirmDeleteOpen(false);
+		deleteRoom.mutate(room.id);
 	}
 
 	const photos = room.photos ?? [];
@@ -133,14 +136,23 @@ export function InspectionRoomCard({
 					type="button"
 					variant="ghost"
 					size="sm"
-					onClick={handleDelete}
+					onClick={() => setConfirmDeleteOpen(true)}
 					disabled={deleteRoom.isPending}
-					className="shrink-0 text-muted-foreground hover:text-destructive"
+					className="shrink-0 text-muted-foreground hover:text-destructive-text hover:bg-destructive/10 dark:hover:bg-destructive/10 dark:hover:text-destructive-text"
 					aria-label={`Delete room ${room.room_name}`}
 				>
 					<Trash2 className="w-4 h-4" aria-hidden="true" />
 				</Button>
 			</div>
+			<ConfirmDialog
+				open={confirmDeleteOpen}
+				onOpenChange={setConfirmDeleteOpen}
+				title={`Delete room "${room.room_name}"?`}
+				description="This permanently deletes the room with its condition rating, notes and photos. This can't be undone."
+				confirmText="Delete room"
+				loading={deleteRoom.isPending}
+				onConfirm={handleConfirmDelete}
+			/>
 
 			{/* Expanded content */}
 			{isExpanded && (
@@ -203,7 +215,7 @@ export function InspectionRoomCard({
 								{photos.map((photo) => (
 									<div
 										key={photo.id}
-										className="aspect-square rounded-md bg-muted overflow-hidden relative group"
+										className="aspect-square rounded-md bg-muted overflow-hidden relative"
 									>
 										{photo.publicUrl ? (
 											// Signed URL from the private inspection-photos bucket is
@@ -217,6 +229,7 @@ export function InspectionRoomCard({
 										) : (
 											<div
 												className="flex h-full w-full items-center justify-center text-muted-foreground"
+												role="img"
 												aria-label={photo.file_name}
 											>
 												<Camera className="w-5 h-5" aria-hidden="true" />
@@ -224,7 +237,7 @@ export function InspectionRoomCard({
 										)}
 										{photo.caption && (
 											<div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1">
-												<p className="text-white text-xs truncate">
+												<p className="mb-0 text-white text-xs truncate">
 													{photo.caption}
 												</p>
 											</div>

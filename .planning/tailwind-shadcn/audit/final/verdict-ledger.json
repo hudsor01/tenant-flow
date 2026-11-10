@@ -1,0 +1,944 @@
+[
+ {
+  "task": 1,
+  "step": "1",
+  "headSha": "ae50f4999a911f0c845d66a3df7dc9ac6c7a19eb",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/commit-chain-final.txt",
+    "sha256": "f4b2897a41d9784ba0dbbac3433c114a7bae9ce5e3a5bcd728c8a356420b9e3c"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:26:35.623Z"
+ },
+ {
+  "task": 1,
+  "step": "2",
+  "headSha": "6f9a01791c7d968b768e0d495d3d040a5920099a",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/audit.mjs"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/report.json",
+    "sha256": "cb9d9866d349510eb7cadc6a1d283e5e7a850d1a5190e15fe324f8ef708bbd90"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/candidate-css.json",
+    "sha256": "facdc62dba073afb2eb1c55c424c3c36f408821836b2f3c91e3d78226811716b"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/compiled.css",
+    "sha256": "248a001f6372ffbe83aa33c60f3f8dfa412fab6fc4e294e40bd1689837479062"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/dead.json",
+    "sha256": "177de504afcc001b685ff6526bdf93bee25b0314e40bbb27cd3843855b5e0ec0"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/valid-candidates.txt",
+    "sha256": "719ed28ae7b0e01663cfd9aed7d8f02ec1dde4d19be49b6b8c5ecd85558c533c"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/noncanonical-by-file.json",
+    "sha256": "ea73e540b513513ea80ac812be5cf7415abe43db72352a30db5ade96dd0c9109"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/scanned-files.txt",
+    "sha256": "df6b333c0f5ae0fd6dd60062ce8856266142d8df7b8f83968cd33703b777a48b"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/m1-delta.json",
+    "sha256": "4131dc813e6dbb04b11b0b2f9857858d06842636384c8f3fc9d511182630a783"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:29:04.384Z"
+ },
+ {
+  "task": 1,
+  "step": "3",
+  "headSha": "6f9a01791c7d968b768e0d495d3d040a5920099a",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/phases/66.2-tailwind-v4-and-shadcn-ui-canonical-remediation/66.2-*-SUMMARY.md"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/d05-accounting.json",
+    "sha256": "05616e2732bb220bfb2592b271b5071335c37d3d2de20d3d4356eba5637d7ae7"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:29:51.118Z"
+ },
+ {
+  "task": 1,
+  "step": "4",
+  "headSha": "d7a72687e34b25d308cab220a0fabee419a63d5e",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/w6-assertions.mjs",
+   ".planning/tailwind-shadcn/audit/source-assertions-w2.mjs"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/w6-assertions-final.txt",
+    "sha256": "1939add2687b094f9df43e111c764a1b781cb1774bc51713d29fe317f5fb41bc"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/w6-assertions-prew6.txt",
+    "sha256": "ad2ce5e5e05f6671af79d7d44f44c1495cb2de8f6f6b1a4ce51fc52ac44cd686"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/source-assertions-w2-final.txt",
+    "sha256": "0826c346f47a781c5752cd490a6481735652e31a892d62dcb1f771d234c06d81"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:33:23.395Z"
+ },
+ {
+  "task": 1,
+  "step": "5",
+  "headSha": "d7a72687e34b25d308cab220a0fabee419a63d5e",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/css-parity.mjs"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/css-parity-intended-final.json",
+    "sha256": "03f21383906ac3359b6324a73c64544bd47b36b6f761e4bb4018e7d29f549a61"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/css-parity-cc-w5-vs-cc-final.json",
+    "sha256": "b4e552df211d36b7109f43a861101880d90f3e46ac54770eb0b08bee661df71a"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/css-parity-families-final.json",
+    "sha256": "036ed6db97f7fa8a726689445c8844b3e0d4614c621e2b47c0cd360f4238c2f4"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:35:11.585Z"
+ },
+ {
+  "task": 1,
+  "step": "6",
+  "headSha": "d7a72687e34b25d308cab220a0fabee419a63d5e",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/css-parity.mjs"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/css-parity-candidate-css-vs-cc-final.json",
+    "sha256": "2d3c05c64a2b88d9745acd3dcda9fad74167c5b1465f51862b06dfd16f0c4a37"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/css-parity-cumulative.json",
+    "sha256": "2651cf48899b0d2860894d83afee18abb1290d928e5ded74f680c6d5b42e7f60"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:35:11.659Z"
+ },
+ {
+  "task": 1,
+  "step": "7",
+  "headSha": "d7a72687e34b25d308cab220a0fabee419a63d5e",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/render-check.mjs"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/tokens-final.json",
+    "sha256": "731439eed601aa2d1727de0574dd09e85ffa3cc5b18b03c10c7f36aa93c66c5d"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/tokens-final-sidebar.json",
+    "sha256": "701066d24a39edbdfd9efabca6453525051e27928b50ee076f8ca259bfb22a81"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/render-final.json",
+    "sha256": "85e4e723bf265468381b5a864c95069b68df37eb0697379ac3f7374e60e18965"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/token-parity-final.json",
+    "sha256": "68aed4389e90a653ede3bed13341ab8c16d84ad7fe6447c73c762cf79882e50d"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:36:01.802Z"
+ },
+ {
+  "task": 1,
+  "step": "8",
+  "headSha": "d7a72687e34b25d308cab220a0fabee419a63d5e",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/audit.mjs",
+   ".planning/tailwind-shadcn/audit/css-parity.mjs",
+   ".planning/tailwind-shadcn/audit/render-check.mjs",
+   ".planning/tailwind-shadcn/audit/w6-assertions.mjs"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/candidate-css.json",
+    "sha256": "facdc62dba073afb2eb1c55c424c3c36f408821836b2f3c91e3d78226811716b"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/commit-chain-final.txt",
+    "sha256": "f4b2897a41d9784ba0dbbac3433c114a7bae9ce5e3a5bcd728c8a356420b9e3c"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/compiled.css",
+    "sha256": "248a001f6372ffbe83aa33c60f3f8dfa412fab6fc4e294e40bd1689837479062"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/css-parity-candidate-css-vs-cc-final.json",
+    "sha256": "2d3c05c64a2b88d9745acd3dcda9fad74167c5b1465f51862b06dfd16f0c4a37"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/css-parity-cc-w5-vs-cc-final.json",
+    "sha256": "b4e552df211d36b7109f43a861101880d90f3e46ac54770eb0b08bee661df71a"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/css-parity-cumulative.json",
+    "sha256": "2651cf48899b0d2860894d83afee18abb1290d928e5ded74f680c6d5b42e7f60"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/css-parity-families-final.json",
+    "sha256": "036ed6db97f7fa8a726689445c8844b3e0d4614c621e2b47c0cd360f4238c2f4"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/css-parity-intended-final.json",
+    "sha256": "03f21383906ac3359b6324a73c64544bd47b36b6f761e4bb4018e7d29f549a61"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/d05-accounting.json",
+    "sha256": "05616e2732bb220bfb2592b271b5071335c37d3d2de20d3d4356eba5637d7ae7"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/dead.json",
+    "sha256": "177de504afcc001b685ff6526bdf93bee25b0314e40bbb27cd3843855b5e0ec0"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/m1-delta.json",
+    "sha256": "4131dc813e6dbb04b11b0b2f9857858d06842636384c8f3fc9d511182630a783"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/noncanonical-by-file.json",
+    "sha256": "ea73e540b513513ea80ac812be5cf7415abe43db72352a30db5ade96dd0c9109"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/render-final.json",
+    "sha256": "85e4e723bf265468381b5a864c95069b68df37eb0697379ac3f7374e60e18965"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/report.json",
+    "sha256": "cb9d9866d349510eb7cadc6a1d283e5e7a850d1a5190e15fe324f8ef708bbd90"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/scanned-files.txt",
+    "sha256": "df6b333c0f5ae0fd6dd60062ce8856266142d8df7b8f83968cd33703b777a48b"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/source-assertions-w2-final.txt",
+    "sha256": "0826c346f47a781c5752cd490a6481735652e31a892d62dcb1f771d234c06d81"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/token-parity-final.json",
+    "sha256": "68aed4389e90a653ede3bed13341ab8c16d84ad7fe6447c73c762cf79882e50d"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/tokens-final-sidebar.json",
+    "sha256": "701066d24a39edbdfd9efabca6453525051e27928b50ee076f8ca259bfb22a81"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/tokens-final.json",
+    "sha256": "731439eed601aa2d1727de0574dd09e85ffa3cc5b18b03c10c7f36aa93c66c5d"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/valid-candidates.txt",
+    "sha256": "719ed28ae7b0e01663cfd9aed7d8f02ec1dde4d19be49b6b8c5ecd85558c533c"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/w6-assertions-final.txt",
+    "sha256": "1939add2687b094f9df43e111c764a1b781cb1774bc51713d29fe317f5fb41bc"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/w6-assertions-prew6.txt",
+    "sha256": "ad2ce5e5e05f6671af79d7d44f44c1495cb2de8f6f6b1a4ce51fc52ac44cd686"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:36:01.890Z"
+ },
+ {
+  "task": 2,
+  "step": "1-prew5",
+  "headSha": "d7a72687e34b25d308cab220a0fabee419a63d5e",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/component-probes.mjs",
+   ".planning/tailwind-shadcn/audit/probes/entry.tsx"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/screens/final-component-shots/prew5/button-dark.png",
+    "sha256": "fc37bfa386840eb1aa159f14e9d6fa83bc95cfd2b1334a1c2f287ea846c4116c"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/screens/final-component-shots/prew5/button-focus-dark.png",
+    "sha256": "c158ebf16d74ae6c08efcc89a9d1f4ec5a20801e0f9811b68367b31ba4da1710"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/screens/final-component-shots/prew5/button-focus-light.png",
+    "sha256": "78d1063d54058956134ae152af5d2f9cbc211622bfdfaf5d2f6554726f92f196"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/screens/final-component-shots/prew5/button-light.png",
+    "sha256": "0300a5fc89b6f51f8461975ac64f4a0b794aa0f7ee671f6f37845179cb5bb593"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:38:41.461Z"
+ },
+ {
+  "task": 2,
+  "step": "2",
+  "headSha": "d7a72687e34b25d308cab220a0fabee419a63d5e",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/component-probes.mjs",
+   ".planning/tailwind-shadcn/audit/probes/entry.tsx"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/probes-final.json",
+    "sha256": "99d8f886557f6e0991a7cfcedd3884106ce69bbf643f717436f036f5134e953c"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/screens/final-component-shots/final/shots-manifest.json",
+    "sha256": "a14dcd0747e08a248477d6d5f8d816bcf530ca15b6ec3dc59db0ec0be5f4b25b"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:39:54.479Z"
+ },
+ {
+  "task": 2,
+  "step": "3",
+  "headSha": "d7a72687e34b25d308cab220a0fabee419a63d5e",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   "src/** (tests)",
+   "scripts/**"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/unit-final-summary.json",
+    "sha256": "9dd8d05aaeb568f76820eaffd07dc083accedf401f0791028f9b8998ee46fed9"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:41:41.018Z"
+ },
+ {
+  "task": 2,
+  "step": "4",
+  "headSha": "d7a72687e34b25d308cab220a0fabee419a63d5e",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/w5-claims.mjs",
+   ".planning/tailwind-shadcn/audit/button-icon-census.mjs",
+   "src/** (tests)"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/button-icon-census-final.json",
+    "sha256": "a005b3a87d9f366def90fa08d9a6e5d038d4f91062d088e3a21ea28b9f657a2c"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/claims-final.json",
+    "sha256": "3574c743a55555092a8797d13dd27b370578b3995d6166f4c0cae8145e3f424a"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:41:49.041Z"
+ },
+ {
+  "task": 2,
+  "step": "4b",
+  "headSha": "d7a72687e34b25d308cab220a0fabee419a63d5e",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/vendored-inventory.mjs",
+   ".planning/tailwind-shadcn/audit/registry-fetch.mjs",
+   ".planning/tailwind-shadcn/registry/divergence-register.json"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/vendored-inventory.json",
+    "sha256": "60bd7e529f8c4f8b52bc0ebe1bd2028f9a850f2432bf19d225c2a01b5d6e3f54"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/registry-inventory-manifest-final.json",
+    "sha256": "00ffdaa5d8fc5d9922fe36e65c028626fb43a486d8c2c1dd46c14d37690ac3e3"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:42:15.245Z"
+ },
+ {
+  "task": 2,
+  "step": "5",
+  "headSha": "fb6320a722f9dd1711a1e2e4e16fd800189b5b3c",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/owner-loading-probe.tsx"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/owner-loading-final.json",
+    "sha256": "86082cd442ec85c655b15eff7455506fe4e7d2cdf344a78eb0ed832f52dcb108"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:44:28.112Z"
+ },
+ {
+  "task": 2,
+  "step": "6",
+  "headSha": "fb6320a722f9dd1711a1e2e4e16fd800189b5b3c",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/guard-redproof.ts",
+   "src/** (tests)",
+   "scripts/**"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/redproof-baseline-final.json",
+    "sha256": "8476721818a650df95b8f7d1188f9b26e419cbea2d4ff5cd1fef912356d1a04e"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/redproof-head-final.json",
+    "sha256": "c349c71cb9c7f77a765f34519c3b99d6521c96a57d5dd72dc2903f2faecf512e"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:45:04.597Z"
+ },
+ {
+  "task": 2,
+  "step": "7",
+  "headSha": "fb6320a722f9dd1711a1e2e4e16fd800189b5b3c",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   "src/** (tests)",
+   "scripts/**"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/validate-quick-final.json",
+    "sha256": "f4398ff0b8e3a0a5f05873f97bd416f27c051dda399eb4924bcfa54b4e669d2f"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:46:43.088Z"
+ },
+ {
+  "task": 2,
+  "step": "8",
+  "headSha": "fb6320a722f9dd1711a1e2e4e16fd800189b5b3c",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/component-probes.mjs",
+   ".planning/tailwind-shadcn/audit/w5-claims.mjs",
+   ".planning/tailwind-shadcn/audit/vendored-inventory.mjs",
+   ".planning/tailwind-shadcn/audit/owner-loading-probe.tsx",
+   ".planning/tailwind-shadcn/audit/guard-redproof.ts"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/probes-final.json",
+    "sha256": "99d8f886557f6e0991a7cfcedd3884106ce69bbf643f717436f036f5134e953c"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/button-icon-census-final.json",
+    "sha256": "a005b3a87d9f366def90fa08d9a6e5d038d4f91062d088e3a21ea28b9f657a2c"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/claims-final.json",
+    "sha256": "3574c743a55555092a8797d13dd27b370578b3995d6166f4c0cae8145e3f424a"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/vendored-inventory.json",
+    "sha256": "60bd7e529f8c4f8b52bc0ebe1bd2028f9a850f2432bf19d225c2a01b5d6e3f54"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/registry-inventory-manifest-final.json",
+    "sha256": "00ffdaa5d8fc5d9922fe36e65c028626fb43a486d8c2c1dd46c14d37690ac3e3"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/owner-loading-final.json",
+    "sha256": "86082cd442ec85c655b15eff7455506fe4e7d2cdf344a78eb0ed832f52dcb108"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/unit-final-summary.json",
+    "sha256": "9dd8d05aaeb568f76820eaffd07dc083accedf401f0791028f9b8998ee46fed9"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/redproof-baseline-final.json",
+    "sha256": "8476721818a650df95b8f7d1188f9b26e419cbea2d4ff5cd1fef912356d1a04e"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/redproof-head-final.json",
+    "sha256": "c349c71cb9c7f77a765f34519c3b99d6521c96a57d5dd72dc2903f2faecf512e"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T00:46:43.172Z"
+ },
+ {
+  "task": 3,
+  "step": "1",
+  "headSha": "fb6320a722f9dd1711a1e2e4e16fd800189b5b3c",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/builds-final.json",
+    "sha256": "2177e670bb0057df9ea8c709b0b8bd749f9f4ec05d16d99662d41b7471ee6c25"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T01:26:41.562Z"
+ },
+ {
+  "task": 3,
+  "step": "2",
+  "headSha": "fb6320a722f9dd1711a1e2e4e16fd800189b5b3c",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/screens.mjs"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/iso-shell.css",
+    "sha256": "eedbe178f0d3d5405f8a14dad132e44e04640186418fc63548ba8cd05cb06e9d"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/visible-w6.json",
+    "sha256": "2e353063cca89d2610a8ede3afc387df380c389ab97d1ebd636b90c5a0fba744"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/markers-w6.json",
+    "sha256": "ab5892e823ef4d08dfba891c71d9457249b73436df96159a1d815e6454414d54"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T01:26:41.640Z"
+ },
+ {
+  "task": 3,
+  "step": "3",
+  "headSha": "fb6320a722f9dd1711a1e2e4e16fd800189b5b3c",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/screens.mjs",
+   "tests/e2e/lib/**"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/iso-visibility-final.json",
+    "sha256": "c303162f4b31d3e557180dfae5c5f720dfbdc92b6ca1a8a6bf57076c394376e2"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/screens-manifest-final.json",
+    "sha256": "79d5724ea53c040c3fc3911390f85bf4b074db4f8ce40cb596300a44de3e0a32"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/screens/final/manifest.json",
+    "sha256": "2ea3c4cb036f28b5c2ef7ed22793054f7e1c60dd6cb9f287fa1be27d10a5cd44"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/screens/final-repeat/manifest.json",
+    "sha256": "2b08146eb9083bb8787b7926bfebd0f9ebe04dc9cb25706b27fff3eefcc626aa"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/screens/final-iso/manifest.json",
+    "sha256": "f9400ac1996f380a9fcc02cd4f88d71bcc691f11f6cf4056ecf3ebea77f991d0"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/screens/final-iso-repeat/manifest.json",
+    "sha256": "382e8c611487b68d932558a209da69564c802c1d1199fe68c1a0330befadb1b6"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/screens/w5-shell-iso/manifest.json",
+    "sha256": "37d295b0d4cb1660a691622ee537680be41bef4e47d1111df808892dc4998afd"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/screens/basenow37/manifest.json",
+    "sha256": "34f271299cda5dc6d898a5eeace39683337e210973045ea4239e18756c1b06d5"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/screens/basenow37-repeat/manifest.json",
+    "sha256": "da36b1e78a24608f7a5cafa8f81e2adf3f57e3178c47d2be2274105e71b1c21f"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T01:26:41.719Z"
+ },
+ {
+  "task": 3,
+  "step": "4",
+  "headSha": "fb6320a722f9dd1711a1e2e4e16fd800189b5b3c",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/screens.mjs",
+   "tests/e2e/lib/**"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/screens-iso-final.json",
+    "sha256": "f855c6c773391f6805a2d9e5138e7a94fb61c513fde7456992233ce39a61dbec"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/screens-diff-final.json",
+    "sha256": "bc67c59b382094d38f2e2c98f6e7bbe2612bb8f7f4ac4e2c61c9aa16c6232809"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/screens-cumulative.json",
+    "sha256": "75daf5b20ef18e0baa9abcc1efd4ef98360b8d0c946fbe2ad0fa5312f755f3ef"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T01:26:41.794Z"
+ },
+ {
+  "task": 3,
+  "step": "5",
+  "headSha": "fb6320a722f9dd1711a1e2e4e16fd800189b5b3c",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/sidebar-step0.mjs",
+   ".planning/tailwind-shadcn/audit/screens.mjs",
+   "tests/e2e/lib/**"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/screens-sidebar-final.json",
+    "sha256": "d6af898caeba92bd24e38b3b63e575f6794a73d2413ade518f427796e94a71f5"
+   },
+   {
+    "path": ".planning/tailwind-shadcn/audit/screens/final-sidebar/manifest.json",
+    "sha256": "3a3899e83f746cd4a59975656b5be17ef573d1bf7b7914d89c658c1af597a24b"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T01:26:41.871Z"
+ },
+ {
+  "task": 3,
+  "step": "6",
+  "headSha": "fb6320a722f9dd1711a1e2e4e16fd800189b5b3c",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/component-probes.mjs"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/probes-final.json",
+    "sha256": "99d8f886557f6e0991a7cfcedd3884106ce69bbf643f717436f036f5134e953c"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T01:26:41.948Z"
+ },
+ {
+  "task": 3,
+  "step": "7",
+  "headSha": "fb6320a722f9dd1711a1e2e4e16fd800189b5b3c",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   "src/proxy.ts",
+   "src/components/providers.tsx"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/csp-final.json",
+    "sha256": "e5e8aef622fa13431994baf11819e82f3fb3fca39458472b6b542c1898cb430c"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T01:26:42.022Z"
+ },
+ {
+  "task": 3,
+  "step": "8",
+  "headSha": "fb6320a722f9dd1711a1e2e4e16fd800189b5b3c",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   "tests/e2e/**"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/e2e-final-summary.json",
+    "sha256": "bb365f2360d19fef7b63f58da93f0f4ba800ce05918efee5dd343519212b5d90"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T01:30:51.965Z"
+ },
+ {
+  "task": 4,
+  "step": "1",
+  "headSha": "3e2c8d94433dee6a80e0453dec8867882516acc3",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json",
+   ".planning/tailwind-shadcn/audit/vd-register.mjs"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/vd-register.json",
+    "sha256": "a828bf479cb364e913e5a7d1437ecea9723b1d001ef2d071f640d05d0c802fe2"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T01:39:24.789Z"
+ },
+ {
+  "task": 4,
+  "step": "2",
+  "headSha": "3e2c8d94433dee6a80e0453dec8867882516acc3",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json"
+  ],
+  "artifacts": [
+   {
+    "path": ".planning/tailwind-shadcn/audit/final/evidence-pack.json",
+    "sha256": "243cb82c04ae717584c6173b358213764e73bba435f17febec166a9597000f18"
+   }
+  ],
+  "verdict": "pass",
+  "at": "2026-11-01T01:39:24.864Z"
+ },
+ {
+  "task": 4,
+  "step": "4",
+  "headSha": "3e2c8d94433dee6a80e0453dec8867882516acc3",
+  "inputs": [
+   "src/** (non-test)",
+   "src/app/globals.css",
+   "package.json",
+   "bun.lock",
+   "components.json",
+   "vitest.config.ts",
+   "next.config.ts",
+   "tsconfig.json"
+  ],
+  "artifacts": [],
+  "verdict": "pass",
+  "at": "2026-11-01T01:39:24.939Z"
+ }
+]

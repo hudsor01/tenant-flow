@@ -1,10 +1,10 @@
-@import "tailwindcss";
+@import "tailwindcss" source("..");
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
-@source "..*.{ts,tsx}";
-@source not "../../.planning/**/*";
-@source not "../../README.md";
+/* source("..") is resolved against this file's directory (src/app), so class
+   detection reads only src/; nothing outside src/ is rendered by the app. */
+
 /* Test files assert on class strings (e.g. arbitrary-value candidates in
    comments); Tailwind v4's Oxide scanner would extract those and emit invalid
    CSS that crashes the Turbopack dev parser. Tests contribute no real UI
@@ -13,24 +13,30 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
+@theme inline {
 	/* ============================================================================
 	   TYPOGRAPHY SYSTEM
 	   ============================================================================
-	   Roboto - Clean geometric sans-serif for body text and UI
-	   Playfair Display - Elegant serif for hero/marketing headlines
-	   Geist Mono - Vercel's monospace font for code
+	   Roboto (--font-sans): body text, headings and UI, through font-sans and
+	   the base html/body rule
+	   Geist Mono (--font-mono): font-mono, and code/kbd/samp/pre through
+	   Tailwind's preflight
+	   ----------------------------------------------------------------------------
+	   src/lib/fonts.ts defines both faces (Roboto via next/font/google, Geist
+	   Mono via next/font/local from the geist package's woff2), and the root
+	   documents put their next/font variables (--font-roboto,
+	   --font-geist-mono) on <html>. These stacks are inline so each utility
+	   emits var(--font-roboto) etc. directly; a non-inline @theme value would
+	   resolve at :root.
 	   ========================================================================== */
-
-	/* Font Stacks */
 	--font-sans:
-		var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-		Roboto, sans-serif;
-	--font-display:
-		var(--font-display), "Playfair Display", Georgia, "Times New Roman", serif;
+		var(--font-roboto), system-ui, -apple-system, BlinkMacSystemFont,
+		"Segoe UI", Roboto, sans-serif;
 	--font-mono:
 		var(--font-geist-mono), ui-monospace, "SF Mono", "Cascadia Code", monospace;
+}
 
+@theme {
 	/* ============================================================================
 	   Typography Scale - 5-Level Hierarchy
 	   ============================================================================
@@ -42,14 +48,7 @@
 	   ========================================================================== */
 
 	/* Level 1: Display - Marketing/Hero (impactful, fluid) */
-	--text-display-hero: clamp(3rem, 8vw, 5rem); /* 48-80px - main hero */
-	--text-display-lg: clamp(2.5rem, 6vw, 4rem); /* 40-64px - secondary hero */
-	--text-display: clamp(2rem, 5vw, 3rem); /* 32-48px - feature headlines */
-	--text-display-sm: clamp(
-		1.5rem,
-		3.5vw,
-		2.25rem
-	); /* 24-36px - section intros */
+	--text-display-hero: clamp(2.75rem, 8vw, 5rem); /* 44-80px - main hero */
 
 	/* Level 2: Title - App headings (clear, readable) */
 	--text-title-1: clamp(1.5rem, 3vw, 1.875rem); /* 24-30px - page titles */
@@ -61,191 +60,34 @@
 	--text-title-3: clamp(1rem, 2vw, 1.25rem); /* 16-20px - card titles */
 	--text-title-4: clamp(0.875rem, 1.5vw, 1rem); /* 14-16px - subsections */
 
-	/* Level 3: Body - Content text (optimized for reading) */
-	--text-base: 1rem; /* 16px - standard body */
-	--text-lg: 1.125rem; /* 18px - lead paragraphs */
-	--text-xl: 1.25rem; /* 20px - emphasized content */
-
-	/* Level 4: Small - Secondary UI text */
-	--text-sm: 0.875rem; /* 14px - UI labels, secondary */
-	--text-xs: 0.75rem; /* 12px - small labels, badges */
-
 	/* Level 5: Caption - Metadata/tertiary */
 	--text-caption: 0.6875rem; /* 11px - timestamps, hints */
 
 	/* Stats & Data Display - Tabular, impactful */
-	--text-stat-sm: 1.5rem; /* 24px - compact stats */
 	--text-stat: 2rem; /* 32px - standard stats */
-	--text-stat-lg: 2.5rem; /* 40px - featured stats */
-	--text-stat-xl: 3.5rem; /* 56px - hero stats */
-
-	/* Extended sizes (backwards compatibility) */
-	--text-2xl: 1.5rem; /* 24px */
-	--text-3xl: 1.875rem; /* 30px */
-	--text-4xl: 2.25rem; /* 36px */
-	--text-5xl: 3rem; /* 48px */
-	--text-6xl: 3.75rem; /* 60px */
-
-	/* Legacy display sizes (mapped for compatibility) */
-	--text-display-2xl: 5rem;
-	--text-display-xl: 4rem;
-	--text-display-md: 2.5rem;
 
 	/* ============================================================================
 	   Line Heights - Optimized for Readability
 	   ============================================================================ */
-	--leading-none: 1;
 	--leading-display: 1.1; /* Hero headlines */
 	--leading-tight: 1.2; /* Large titles */
 	--leading-snug: 1.35; /* Standard headings */
-	--leading-normal: 1.5; /* Body text */
 	--leading-relaxed: 1.7; /* Long-form reading */
-	--leading-loose: 2; /* Extra breathing room */
 
 	/* ============================================================================
 	   Letter Spacing - Refined for Impact
 	   ============================================================================ */
-	--tracking-tightest: -0.04em; /* Hero display */
-	--tracking-tighter: -0.025em; /* Large display */
 	--tracking-tight: -0.015em; /* Headings */
-	--tracking-normal: 0; /* Body */
 	--tracking-wide: 0.02em; /* UI labels */
-	--tracking-wider: 0.05em; /* Uppercase labels */
-	--tracking-widest: 0.1em; /* All-caps headings */
 
 	/* ============================================================================
-	   Animation Durations - UI/UX Standards
+	   Transition Durations - the duration-instant, duration-fast,
+	   duration-normal and duration-slow utilities
 	   ============================================================================ */
 	--transition-duration-instant: 150ms;
 	--transition-duration-fast: 200ms;
 	--transition-duration-normal: 300ms;
 	--transition-duration-slow: 500ms;
-	--transition-duration-slower: 700ms;
-	/* Tailwind v4 defaults for white and black ship out of the box, but the
-	   explicit @theme block replaces the default theme entirely. Restore both
-	   so opacity modifiers on these colors compile to valid CSS. */
-	--color-white: oklch(1 0 0);
-	--color-black: oklch(0 0 0);
-	--color-slate-50: oklch(0.984 0.003 247.858);
-	--color-slate-100: oklch(0.968 0.007 247.896);
-	--color-slate-200: oklch(0.929 0.013 255.508);
-	--color-slate-300: oklch(0.869 0.022 252.894);
-	--color-slate-400: oklch(0.704 0.04 256.788);
-	--color-slate-500: oklch(0.554 0.046 258.34);
-	--color-slate-600: oklch(0.446 0.043 257.734);
-	--color-slate-700: oklch(0.373 0.044 257.75);
-	--color-slate-800: oklch(0.279 0.041 260.031);
-	--color-slate-900: oklch(0.208 0.042 265.755);
-	--color-slate-950: oklch(0.129 0.042 264.695);
-	--color-label-primary: oklch(0 0 0 / 85%);
-	--color-label-secondary: oklch(0 0 0 / 50%);
-	--color-label-tertiary: oklch(0 0 0 / 35%);
-	--color-label-quaternary: oklch(0 0 0 / 20%);
-	--color-label-on-dark: oklch(1 0 0 / 90%);
-	--color-label-on-dark-secondary: oklch(1 0 0 / 60%);
-	--color-fill-primary: oklch(0 0 0 / 6%);
-	--color-fill-secondary: oklch(0 0 0 / 10%);
-	--color-fill-tertiary: oklch(0 0 0 / 14%);
-	--color-fill-quaternary: oklch(0 0 0 / 18%);
-	--color-fill-muted: oklch(0 0 0 / 4%);
-	--color-separator: oklch(0.31 0 0 / 29%);
-	--color-background: oklch(0.985 0.002 240);
-	--color-foreground: oklch(0.2 0.02 245);
-	--color-muted: oklch(0.94 0.01 240);
-	--color-muted-foreground: oklch(0.48 0.015 245);
-	--color-popover: oklch(1 0 0);
-	--color-popover-foreground: oklch(0.2 0.02 240);
-	--color-card: oklch(0.99 0.003 240);
-	--color-card-foreground: oklch(0.2 0.02 245);
-	--color-border: oklch(0.88 0.01 245);
-	--color-border-secondary: oklch(0.8 0.01 245);
-	--color-input: oklch(0.8 0.015 245);
-	--color-ring: oklch(0.5 0.2 257);
-	--color-primary: oklch(0.54 0.23 257);
-	--color-primary-foreground: oklch(0.98 0.01 255);
-	--color-secondary: oklch(95.46% 3.51 246.58);
-	--color-secondary-foreground: oklch(0.2 0 0);
-	--color-accent: oklch(0.6 0.17 160);
-	--color-accent-foreground: oklch(0.98 0.01 160);
-	--color-accent-main: oklch(0.65 0.23 260);
-	--color-accent-85: oklch(0.65 0.23 260 / 85%);
-	--color-destructive: oklch(0.577 0.245 25);
-	--color-destructive-foreground: oklch(0.98 0.01 90);
-	--color-success: oklch(0.66 0.2 160);
-	--color-success-foreground: oklch(0.2 0.02 160);
-	--color-warning: oklch(0.75 0.18 85);
-	--color-warning-foreground: oklch(0.25 0.03 85);
-	/*
-	 * Status TEXT tokens — AA-safe (>=4.5:1) when used as foreground text/icons
-	 * on the card/background surface. The vivid --color-{success,warning} accents
-	 * are tuned for fills, not text: at light-mode lightness they fail WCAG AA on a
-	 * near-white card (success ~2.6:1, warning ~2.2:1); --color-destructive only
-	 * scrapes by (~4.6:1). These darker-in-light / lighter-in-dark companions are
-	 * theme-aware and clear AA with headroom in both themes.
-	 */
-	--color-success-text: oklch(0.5 0.15 158);
-	--color-warning-text: oklch(0.52 0.13 72);
-	--color-destructive-text: oklch(0.5 0.21 27);
-	--color-primary-text: oklch(0.46 0.2 257);
-	--color-info-text: oklch(0.48 0.17 240);
-	--color-info: oklch(0.62 0.19 240);
-	--color-info-foreground: oklch(0.18 0.02 240);
-	--color-sidebar: var(--color-background);
-	--color-sidebar-foreground: var(--color-foreground);
-	--color-sidebar-primary: var(--color-primary);
-	--color-sidebar-primary-foreground: var(--color-primary-foreground);
-	--color-sidebar-accent: var(--color-accent);
-	--color-sidebar-accent-foreground: var(--color-accent-foreground);
-	--color-sidebar-border: var(--color-border);
-	--color-sidebar-ring: var(--color-ring);
-	--color-chart-1: oklch(0.63 0.22 259);
-	--color-chart-2: oklch(0.7 0.18 180);
-	--color-chart-3: oklch(0.72 0.16 85);
-	--color-chart-4: oklch(0.65 0.18 20);
-	--color-chart-5: oklch(0.55 0.12 250);
-	--spacing: 0.25rem;
-	--spacing-0: 0rem;
-	--spacing-px: 1px;
-	--spacing-0_5: 0.125rem;
-	--spacing-1: 0.25rem;
-	--spacing-1_5: 0.375rem;
-	--spacing-2: 0.5rem;
-	--spacing-2_5: 0.625rem;
-	--spacing-3: 0.75rem;
-	--spacing-3_5: 0.875rem;
-	--spacing-4: 1rem;
-	--spacing-5: 1.25rem;
-	--spacing-6: 1.5rem;
-	--spacing-7: 1.75rem;
-	--spacing-8: 2rem;
-	--spacing-9: 2.25rem;
-	--spacing-10: 2.5rem;
-	--spacing-11: 2.75rem;
-	--spacing-12: 3rem;
-	--spacing-14: 3.5rem;
-	--spacing-16: 4rem;
-	--spacing-20: 5rem;
-	--spacing-24: 6rem;
-	--spacing-28: 7rem;
-	--spacing-32: 8rem;
-	--spacing-35: 8.75rem;
-	--spacing-36: 9rem;
-	--spacing-40: 10rem;
-	--spacing-44: 11rem;
-	--spacing-48: 12rem;
-	--spacing-52: 13rem;
-	--spacing-56: 14rem;
-	--spacing-60: 15rem;
-	--spacing-64: 16rem;
-	--spacing-72: 18rem;
-	--spacing-80: 20rem;
-	--spacing-96: 24rem;
-	--spacing-container-inline: clamp(1.5rem, 4vw, 3rem);
-	--spacing-responsive-xs: clamp(0.25rem, 1vw, 0.5rem);
-	--spacing-responsive-sm: clamp(0.375rem, 1.5vw, 0.75rem);
-	--spacing-responsive-md: clamp(0.5rem, 2vw, 1rem);
-	--spacing-responsive-lg: clamp(0.75rem, 3vw, 1.5rem);
-	--spacing-responsive-xl: clamp(1rem, 4vw, 2rem);
 	--radius: 0.5rem;
 	--radius-sm: 4px;
 	--radius-md: 8px;
@@ -264,115 +106,26 @@
 		0 20px 25px -5px oklch(0.15 0.02 250 / 0.1),
 		0 8px 10px -6px oklch(0.15 0.02 250 / 0.1);
 	--shadow-2xl: 0 25px 50px -12px oklch(0.15 0.02 250 / 0.25);
-	--duration-75: 75ms;
 	--duration-100: 100ms;
-	--duration-150: 150ms;
 	--duration-200: 200ms;
 	--duration-300: 300ms;
 	--duration-500: 500ms;
 	--duration-700: 700ms;
 	--duration-1000: 1000ms;
 	--duration-standard: 250ms;
-	--duration-medium: 350ms;
-	--ease-linear: linear;
-	--ease-in: cubic-bezier(0.4, 0, 1, 1);
-	--ease-out: cubic-bezier(0, 0, 0.2, 1);
-	--ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-	--ease-smooth: cubic-bezier(0.45, 0.05, 0.29, 0.99);
-	--ease-out-smooth: cubic-bezier(0.16, 1, 0.3, 1);
-	--ease-in-smooth: cubic-bezier(0.7, 0, 0.84, 0);
-	--ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
-	--width-full: 100%;
-	--max-width-2xl: 42rem;
-	--max-width-3xl: 48rem;
-	--z-index-toast: 9999;
-	--z-index-modal: 1300;
-	--z-index-modal-backdrop: 1200;
 }
 
 @layer base {
 	:root {
-		--font-family: var(--font-sans);
-		/* Font weights - Only define weights available in Spline Sans (400-700) */
-		--font-weight-normal: 400;
-		--font-weight-medium: 500;
-		--font-weight-semibold: 600;
-		--font-weight-bold: 700;
-		--icon-xs: 0.75rem;
-		--icon-sm: 0.875rem;
-		--icon-md: 1rem;
-		--icon-lg: 1.25rem;
-		--icon-xl: 1.5rem;
-		--icon-2xl: 2rem;
 		--touch-target-min: 2.75rem;
 		--touch-target-padding: clamp(0.75rem, 2vw, 1rem);
-		--touch-target-gap: clamp(0.5rem, 1.5vw, 0.75rem);
-		--section-spacing-responsive: clamp(2rem, 8vh, 6rem);
-		--glass-material: oklch(1 0 0 / 0.8);
-		--glass-border: oklch(0.9 0.005 240 / 0.5);
-		--glass-shadow: 0 20px 60px oklch(0.15 0.02 250 / 0.25);
-		--glass-blur: 10px;
-		--focus-ring-color: var(--color-ring);
-		--scale-hover: 1.05;
-		--scale-tap: 0.95;
-		--translate-hover-x: 4px;
-		--translate-hover-y: -1px;
-		--translate-slide-y: 20px;
-		--transition-card: all 500ms var(--ease-out);
-		--transition-hover: all 200ms var(--ease-out);
-		--transition-quick: all 150ms var(--ease-out);
-		--transition-color:
-			color 180ms var(--ease-out), background 200ms var(--ease-out);
-		--transform-lift: translateY(-2px);
-		--transform-scale-hover: scale(1.02);
-		--hover-border-color: color-mix(
-			in oklch,
-			var(--color-primary) 15%,
-			transparent
-		);
-		--sidebar-transition: width 200ms ease-linear;
-		--sidebar-width-icon: 3rem;
-		--sidebar-width: 16rem;
-		--feature-card-hover-bg: color-mix(
-			in oklch,
-			var(--color-card) 95%,
-			transparent
-		);
-		--feature-card-icon-hover: scale(1.05);
-		--navbar-btn-hover-bg: color-mix(
-			in oklch,
-			var(--color-primary) 5%,
-			transparent
-		);
-		--navbar-btn-hover-text: var(--color-primary);
-		--lightbox-nav-bg: oklch(0 0 0 / 0.5);
-		--lightbox-nav-hover-bg: oklch(0 0 0 / 0.7);
-		--portal-feature-hover: scale(1.05) rotate(1deg);
-		--portal-feature-transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-		--layout-section-padding-y: var(--spacing-16);
-		--layout-section-padding-y-compact: var(--spacing-12);
-		--layout-section-padding-y-spacious: var(--spacing-24);
-		--layout-section-padding-y-hero: var(--spacing-32);
-		--layout-container-padding-x: clamp(1.5rem, 4vw, 3rem);
-		--layout-container-padding-x-narrow: clamp(1rem, 2vw, 1.5rem);
-		--layout-container-padding-x-wide: clamp(2rem, 6vw, 4rem);
-		--layout-container-max-width: 80rem;
-		--layout-content-padding: var(--spacing-8);
-		--layout-content-padding-compact: var(--spacing-4);
-		--layout-content-padding-spacious: var(--spacing-12);
-		--layout-content-padding-hero: var(--spacing-16);
-		--layout-gap-section: var(--spacing-16);
-		--layout-gap-group: var(--spacing-8);
-		--layout-gap-items: var(--spacing-4);
-		--layout-stack-loose: var(--spacing-12);
-		--layout-stack-default: var(--spacing-6);
-		--layout-grid-cols-1: repeat(1, minmax(0, 1fr));
-		--layout-grid-cols-2: repeat(2, minmax(0, 1fr));
-		--layout-grid-cols-3: repeat(3, minmax(0, 1fr));
-		--layout-grid-cols-5: repeat(5, minmax(0, 1fr));
-		--layout-stack-tight: var(--spacing-3);
-		--layout-navbar-height: var(--spacing-16);
-		--layout-navbar-spacing: var(--spacing-20);
+		--layout-section-padding-y: --spacing(16);
+		--layout-section-padding-y-compact: --spacing(12);
+		--layout-content-padding: --spacing(8);
+		--layout-content-padding-compact: --spacing(4);
+		--layout-gap-group: --spacing(8);
+		--layout-gap-items: --spacing(4);
+		--layout-navbar-spacing: --spacing(20);
 	}
 
 	html {
@@ -408,9 +161,9 @@
 	   fields that ignores the input's transparent background, so a saved
 	   login looked dark on the white card. The box-shadow inset is the only
 	   way to override -webkit-autofill's background; the long transition
-	   suppresses the autofill color flash. Keyed to --color-background +
-	   --color-foreground, which are redefined under .dark, so it adapts to
-	   both themes. */
+	   suppresses the autofill color flash. Keyed to --color-background and
+	   --color-foreground, which alias --background and --foreground; .dark
+	   redefines those, so the fill follows both themes. */
 	input:-webkit-autofill,
 	input:-webkit-autofill:hover,
 	input:-webkit-autofill:focus,
@@ -429,7 +182,7 @@
 	}
 
 	/* ============================================================================
-	   Heading Hierarchy - Premium Typography
+	   Heading Hierarchy - h1-h6 base styles
 	   ============================================================================ */
 	h1,
 	h2,
@@ -501,7 +254,14 @@
 		line-height: var(--leading-relaxed);
 	}
 
-	a:not([role="button"]):not(.button):not([class*="button"]) {
+	/* The text-link look. A Button-styled link (Button asChild puts
+	   data-slot="button" on its child) is a button, not a text link, so both
+	   rules pass it by and it keeps the Button's look: no underline on hover,
+	   and the color its variant sets or its parent's (66.2-39 fix round 3,
+	   F27, OD-3; D-B still defers removing the rules). */
+	a:not([role="button"]):not(.button):not([class*="button"]):not(
+		[data-slot="button"]
+	) {
 		color: var(--color-primary);
 		text-decoration: underline;
 		text-decoration-color: transparent;
@@ -509,9 +269,11 @@
 		transition: all var(--duration-200) var(--ease-out);
 	}
 
-	a:not([role="button"]):not(.button):not([class*="button"]):hover {
+	a:not([role="button"]):not(.button):not([class*="button"]):not(
+		[data-slot="button"]
+	):hover {
 		text-decoration-color: currentColor;
-		color: color-mix(in oklch, var(--color-primary) 80%, transparent);
+		color: var(--color-primary-text);
 	}
 
 	ul,
@@ -525,9 +287,6 @@
 	}
 
 	code {
-		font-family:
-			ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas,
-			"Liberation Mono", "Courier New", monospace;
 		font-size: 0.875em;
 		padding: 0.125rem 0.25rem;
 		border-radius: var(--radius-sm);
@@ -536,9 +295,6 @@
 	}
 
 	pre {
-		font-family:
-			ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas,
-			"Liberation Mono", "Courier New", monospace;
 		font-size: 0.875rem;
 		line-height: 1.5;
 		padding: 1rem;
@@ -648,42 +404,159 @@
 			transparent
 		);
 	}
+}
 
-	:where(.dark, .dark *) {
-		--color-background: oklch(0.14 0.02 250);
-		--color-foreground: oklch(0.96 0.01 240);
-		--color-muted: oklch(0.22 0.02 255);
-		--color-muted-foreground: oklch(0.74 0.02 250);
-		--color-popover: oklch(0.12 0.015 250);
-		--color-popover-foreground: oklch(0.96 0.01 240);
-		--color-card: oklch(0.16 0.02 255);
-		--color-card-foreground: oklch(0.96 0.01 240);
-		--color-border: oklch(0.3 0.015 255);
-		--color-border-secondary: oklch(0.36 0.015 255);
-		--color-input: oklch(0.3 0.01 255);
-		--color-ring: oklch(0.72 0.22 259);
-		--color-primary: oklch(0.72 0.22 259);
-		--color-primary-foreground: oklch(0.18 0.01 250);
-		--color-secondary: oklch(0.28 0.01 250);
-		--color-secondary-foreground: oklch(0.9 0.01 250);
-		--color-accent: oklch(0.7 0.17 160);
-		--color-accent-foreground: oklch(0.15 0.02 160);
-		--color-accent-main: oklch(0.7 0.23 259);
-		--color-accent-85: oklch(0.7 0.23 259 / 85%);
-		--color-destructive: oklch(0.5 0.24 29);
-		--color-destructive-foreground: oklch(0.95 0.02 80);
-		--color-success: oklch(0.68 0.2 150);
-		--color-success-foreground: oklch(0.18 0.02 150);
-		--color-warning: oklch(0.72 0.18 80);
-		--color-warning-foreground: oklch(0.22 0.02 80);
-		/* Dark-theme status TEXT tokens — lighter so they clear AA on the dark card. */
-		--color-success-text: oklch(0.8 0.16 158);
-		--color-warning-text: oklch(0.84 0.15 82);
-		--color-destructive-text: oklch(0.71 0.19 25);
-		--color-primary-text: oklch(0.8 0.16 259);
-		--color-info-text: oklch(0.8 0.15 250);
-		--color-info: oklch(0.66 0.18 250);
-		--color-info-foreground: oklch(0.2 0.02 250);
+/* Semantic color tokens (D-23). Raw light values live in :root and dark
+   values in .dark, which next-themes sets on <html>. The @theme inline
+   at-rule after them exposes each as --color-<name>: var(--<name>), so a
+   utility reads the raw token where it is used. The chart tokens are
+   mode-independent and have no dark value. The sidebar tokens live in their
+   own :root and @theme inline rules further down (D-21, D-37). */
+:root {
+	--background: oklch(0.985 0.002 240);
+	--foreground: oklch(0.2 0.02 245);
+	--muted: oklch(0.94 0.01 240);
+	--muted-foreground: oklch(0.48 0.015 245);
+	--popover: oklch(1 0 0);
+	--popover-foreground: oklch(0.2 0.02 240);
+	--card: oklch(0.99 0.003 240);
+	--card-foreground: oklch(0.2 0.02 245);
+	--border: oklch(0.88 0.01 245);
+	/* A control's boundary (input, select, checkbox, switch track): 3:1 on the
+	   page, card, popover and muted surfaces (WCAG 1.4.11; 66.2-39 fix round 4,
+	   Part 5b; was 0.8, 1.57-1.86:1). */
+	--input: oklch(0.615 0.015 245);
+	--ring: oklch(0.5 0.2 257);
+	--primary: oklch(0.54 0.23 257);
+	--primary-foreground: oklch(0.98 0.01 255);
+	--secondary: oklch(0.9546 0.0351 246.58);
+	--secondary-foreground: oklch(0.2 0 0);
+	--accent: oklch(0.6 0.17 160);
+	/* 4.67:1 on --accent (token math; Chrome readback in status-colors.md
+	   section 7); the former 0.98 0.01 160 read 3.32:1, under AA for the outline
+	   and ghost hover and menu focus labels. Same hue and chroma, darkened. */
+	--accent-foreground: oklch(0.24 0.01 160);
+	--accent-main: oklch(0.65 0.23 260);
+	--destructive: oklch(0.577 0.245 25);
+	/* 4.63:1 on --destructive (measured in Chrome); the former 0.98 0.01 90
+	   read 4.48:1, under AA for the 12-14px destructive Button and Badge text. */
+	--destructive-foreground: oklch(0.99 0.006 90);
+	--success: oklch(0.66 0.2 160);
+	--success-foreground: oklch(0.2 0.02 160);
+	--warning: oklch(0.75 0.18 85);
+	--warning-foreground: oklch(0.25 0.03 85);
+	/*
+	 * Status TEXT tokens — AA-safe (>=4.5:1) when used as foreground text/icons
+	 * on the card/background surface. The vivid --color-{success,warning} accents
+	 * are tuned for fills, not text: at light-mode lightness they fail WCAG AA on a
+	 * near-white card (success ~2.6:1, warning ~2.2:1); --color-destructive only
+	 * scrapes by (~4.6:1). These darker-in-light / lighter-in-dark companions are
+	 * theme-aware and clear AA with headroom in both themes. A status badge's
+	 * 10% tint also lands on a hovered row, a tinted card or an item's accent
+	 * hover, so success and info sit darker than the bare card needs (the F1
+	 * rendered sweep read success 4.22-4.50:1 at L 0.5 and info 3.95:1 at
+	 * L 0.48 there; 66.2-39 fix round 4, Part 5b).
+	 */
+	--success-text: oklch(0.47 0.15 158);
+	--warning-text: oklch(0.52 0.13 72);
+	--destructive-text: oklch(0.5 0.21 27);
+	--primary-text: oklch(0.46 0.2 257);
+	--info-text: oklch(0.44 0.17 240);
+	--info: oklch(0.62 0.19 240);
+	--info-foreground: oklch(0.18 0.02 240);
+	--chart-1: oklch(0.63 0.22 259);
+	--chart-2: oklch(0.7 0.18 180);
+	--chart-3: oklch(0.72 0.16 85);
+	--chart-4: oklch(0.65 0.18 20);
+	--chart-5: oklch(0.55 0.12 250);
+}
+
+.dark {
+	--background: oklch(0.14 0.02 250);
+	--foreground: oklch(0.96 0.01 240);
+	--muted: oklch(0.22 0.02 255);
+	--muted-foreground: oklch(0.74 0.02 250);
+	--popover: oklch(0.12 0.015 250);
+	--popover-foreground: oklch(0.96 0.01 240);
+	--card: oklch(0.16 0.02 255);
+	--card-foreground: oklch(0.96 0.01 240);
+	--border: oklch(0.3 0.015 255);
+	--input: oklch(0.515 0.01 255);
+	--ring: oklch(0.72 0.22 259);
+	--primary: oklch(0.72 0.22 259);
+	--primary-foreground: oklch(0.18 0.01 250);
+	--secondary: oklch(0.28 0.01 250);
+	--secondary-foreground: oklch(0.9 0.01 250);
+	--accent: oklch(0.7 0.17 160);
+	--accent-foreground: oklch(0.15 0.02 160);
+	--accent-main: oklch(0.7 0.23 259);
+	--destructive: oklch(0.5 0.24 29);
+	--destructive-foreground: oklch(0.95 0.02 80);
+	--success: oklch(0.68 0.2 150);
+	--success-foreground: oklch(0.18 0.02 150);
+	--warning: oklch(0.72 0.18 80);
+	--warning-foreground: oklch(0.22 0.02 80);
+	/* Dark-theme status TEXT tokens — lighter so they clear AA on the dark card. */
+	--success-text: oklch(0.8 0.16 158);
+	--warning-text: oklch(0.84 0.15 82);
+	--destructive-text: oklch(0.71 0.19 25);
+	--primary-text: oklch(0.8 0.16 259);
+	--info-text: oklch(0.8 0.15 250);
+	--info: oklch(0.66 0.18 250);
+	--info-foreground: oklch(0.2 0.02 250);
+}
+
+@theme inline {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-accent-main: var(--accent-main);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
+	--color-warning: var(--warning);
+	--color-warning-foreground: var(--warning-foreground);
+	--color-success-text: var(--success-text);
+	--color-warning-text: var(--warning-text);
+	--color-destructive-text: var(--destructive-text);
+	--color-primary-text: var(--primary-text);
+	--color-info-text: var(--info-text);
+	--color-info: var(--info);
+	--color-info-foreground: var(--info-foreground);
+	--color-chart-1: var(--chart-1);
+	--color-chart-2: var(--chart-2);
+	--color-chart-3: var(--chart-3);
+	--color-chart-4: var(--chart-4);
+	--color-chart-5: var(--chart-5);
+}
+
+/* BorderBeam travel: this key drives the after:animate-border-beam class in
+   src/components/ui/border-beam.tsx. It is inline because BorderBeam sets
+   --duration per element through its style attribute; a non-inline theme value
+   resolves at :root, where --duration is unset, and computes animation-name:
+   none. The global reduced-motion rule below stops it. */
+@theme inline {
+	--animate-border-beam: border-beam calc(var(--duration) * 1s) infinite linear;
+
+	@keyframes border-beam {
+		100% {
+			offset-distance: 100%;
+		}
 	}
 }
 
@@ -749,35 +622,6 @@
 	border-color: var(--color-border);
 }
 
-@utility status-overdue {
-	color: var(--color-destructive-text);
-	background-color: color-mix(
-		in oklch,
-		var(--color-destructive) 10%,
-		transparent
-	);
-	border-color: color-mix(in oklch, var(--color-destructive) 20%, transparent);
-}
-
-@utility status-complete {
-	color: var(--color-success-text);
-	background-color: color-mix(in oklch, var(--color-success) 10%, transparent);
-}
-
-@utility status-error {
-	color: var(--color-destructive-text);
-	background-color: color-mix(
-		in oklch,
-		var(--color-destructive) 10%,
-		transparent
-	);
-}
-
-@utility activity-payment {
-	color: var(--color-success-text);
-	background-color: color-mix(in oklch, var(--color-success) 10%, transparent);
-}
-
 @utility activity-maintenance {
 	color: var(--color-info-text);
 	background-color: color-mix(in oklch, var(--color-info) 10%, transparent);
@@ -799,10 +643,9 @@
 }
 
 /* ============================================================================
-   Composite Animation Utilities
+   Surface Utilities
    ============================================================================
-   Semantic presets for common animation patterns to reduce repetition.
-   All use standardized duration tokens for consistency.
+   The glass border, the loading skeleton and the info/primary icon fills.
    ========================================================================== */
 
 /* Translucent white border for glass effects on primary-colored surfaces.
@@ -812,136 +655,9 @@
 	border-color: oklch(1 0 0 / 20%);
 }
 
-/* Entry animations */
-@utility enter-card {
-	@apply animate-in fade-in slide-in-from-bottom-4 duration-slow;
-}
-
-@utility enter-modal {
-	@apply animate-in fade-in zoom-in-95 duration-fast;
-}
-
-@utility enter-page {
-	@apply animate-in fade-in duration-slower;
-}
-
-@utility enter-sheet {
-	@apply animate-in fade-in duration-normal;
-}
-
-/* Exit animations */
-@utility exit-modal {
-	@apply animate-out fade-out zoom-out-95 duration-fast;
-}
-
 /* Loading states */
 @utility loading-skeleton {
 	@apply animate-pulse bg-muted;
-}
-
-@utility skeleton-text {
-	@apply h-4 rounded bg-muted animate-pulse;
-}
-
-@utility skeleton-heading {
-	@apply h-8 rounded bg-muted animate-pulse;
-}
-
-@utility skeleton-button {
-	@apply h-10 w-24 rounded-md bg-muted animate-pulse;
-}
-
-@utility skeleton-card {
-	@apply h-48 rounded-lg bg-muted animate-pulse;
-}
-
-/* Interactive states */
-@utility interactive-lift {
-	@apply transition-all duration-normal hover:-translate-y-1 hover:shadow-lg;
-}
-
-@utility interactive-fade {
-	@apply transition-opacity duration-fast opacity-70 hover:opacity-100;
-}
-
-@utility interactive-scale {
-	@apply transition-transform duration-fast hover:scale-105 active:scale-95;
-}
-
-@utility interactive-glow {
-	@apply transition-shadow duration-normal hover:shadow-xl hover:shadow-primary/10;
-}
-
-@utility dashboard-widget-card {
-	position: relative;
-	overflow: hidden;
-	border-radius: var(--radius-xl);
-	border: 1px solid var(--color-border);
-	background: var(--color-card);
-	box-shadow: var(--shadow-sm);
-	transition: border-color 0.15s ease-out;
-}
-
-.dashboard-widget-card:hover,
-.dashboard-widget-card:focus-visible,
-.dashboard-widget-card:focus-within {
-	border-color: var(--color-ring);
-}
-
-@utility stat-card-professional {
-	background: var(--color-card);
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-xl);
-	box-shadow: var(--shadow-sm);
-	transition: border-color 0.15s ease-out;
-	position: relative;
-	overflow: hidden;
-}
-
-.stat-card-professional:hover {
-	border-color: var(--color-ring);
-}
-
-@utility status-badge {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.375rem;
-	padding: 0.25rem 0.75rem;
-	border-radius: var(--radius-full);
-	font-size: var(--text-xs);
-	font-weight: var(--font-weight-bold);
-	text-transform: uppercase;
-	letter-spacing: 0.05em;
-	transition: var(--transition-quick);
-}
-
-@utility status-badge-success {
-	background: color-mix(in oklch, var(--color-success) 10%, transparent);
-	color: var(--color-success-text);
-	border: 1px solid color-mix(in oklch, var(--color-success) 20%, transparent);
-}
-
-@utility status-badge-warning {
-	background: color-mix(in oklch, var(--color-warning) 10%, transparent);
-	color: var(--color-warning-text);
-	border: 1px solid color-mix(in oklch, var(--color-warning) 20%, transparent);
-}
-
-@utility status-badge-destructive {
-	background: color-mix(in oklch, var(--color-destructive) 10%, transparent);
-	color: var(--color-destructive-text);
-	border: 1px solid
-		color-mix(in oklch, var(--color-destructive) 20%, transparent);
-}
-
-@utility icon-bg-success {
-	background: color-mix(in oklch, var(--color-success) 10%, transparent);
-	color: var(--color-success-text);
-}
-
-@utility icon-bg-warning {
-	background: color-mix(in oklch, var(--color-warning) 10%, transparent);
-	color: var(--color-warning-text);
 }
 
 @utility icon-bg-info {
@@ -954,167 +670,6 @@
 	color: var(--color-primary-text);
 }
 
-/* Dashboard Panel Styles - Unified section component styling */
-.dashboard-panel {
-	background: var(--color-card);
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-lg);
-	overflow: hidden;
-	transition: border-color var(--transition-duration-fast) ease-out;
-}
-
-.dashboard-panel:hover {
-	border-color: color-mix(
-		in oklch,
-		var(--color-primary) 30%,
-		var(--color-border)
-	);
-}
-
-.dashboard-panel-header {
-	padding: var(--spacing-5);
-	border-bottom: 1px solid var(--color-border);
-}
-
-.dashboard-panel-header[data-variant="activity"] {
-	background: color-mix(in oklch, var(--color-primary) 3%, transparent);
-}
-
-.dashboard-panel-header[data-variant="performance"] {
-	background: color-mix(in oklch, var(--color-warning) 3%, transparent);
-}
-
-.dashboard-panel-header[data-variant="actions"] {
-	background: color-mix(in oklch, var(--color-success) 3%, transparent);
-}
-
-.dashboard-panel-title {
-	font-size: var(--text-base);
-	font-weight: 500;
-	color: var(--color-foreground);
-	margin: 0;
-}
-
-.dashboard-panel-description {
-	font-size: var(--text-sm);
-	color: var(--color-muted-foreground);
-	margin: var(--spacing-1) 0 0 0;
-}
-
-.dashboard-panel-body {
-	padding: var(--spacing-5);
-}
-
-/* Dashboard panel density modes */
-.dashboard-panel[data-density="compact"] .dashboard-panel-header {
-	padding: var(--spacing-3) var(--spacing-4);
-}
-
-.dashboard-panel[data-density="compact"] .dashboard-panel-body {
-	padding: var(--spacing-3) var(--spacing-4);
-}
-
-/* Dashboard Stat Card - Improved touch targets and transitions */
-@utility dashboard-stat-card {
-	background: var(--color-card);
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-lg);
-	padding: var(--spacing-4);
-	transition:
-		border-color var(--transition-duration-fast) ease-out,
-		box-shadow var(--transition-duration-fast) ease-out,
-		transform var(--transition-duration-fast) ease-out;
-	min-height: 6rem; /* 96px - comfortable touch target */
-}
-
-.dashboard-stat-card:hover {
-	border-color: color-mix(
-		in oklch,
-		var(--color-primary) 30%,
-		var(--color-border)
-	);
-	box-shadow: var(--shadow-md);
-	transform: translateY(-2px);
-}
-
-.dashboard-stat-card[data-variant="warning"]:hover {
-	border-color: color-mix(
-		in oklch,
-		var(--color-warning) 30%,
-		var(--color-border)
-	);
-}
-
-/* Quick Action Button - Touch-friendly styling */
-@utility quick-action-button {
-	display: flex;
-	align-items: center;
-	gap: var(--spacing-3);
-	width: 100%;
-	padding: var(--spacing-3);
-	min-height: var(--spacing-11); /* 44px touch target */
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-lg);
-	background: transparent;
-	text-align: left;
-	transition:
-		border-color var(--transition-duration-fast) ease-out,
-		background-color var(--transition-duration-fast) ease-out;
-}
-
-.quick-action-button:hover {
-	border-color: color-mix(
-		in oklch,
-		var(--color-primary) 30%,
-		var(--color-border)
-	);
-	background: color-mix(in oklch, var(--color-primary) 5%, transparent);
-}
-
-.quick-action-button:focus-visible {
-	outline: 2px solid var(--color-ring);
-	outline-offset: 2px;
-}
-
-/* View Toggle - Segmented control styling */
-@utility view-toggle {
-	display: flex;
-	align-items: center;
-	gap: var(--spacing-1);
-	padding: var(--spacing-1);
-	background: var(--color-muted);
-	border-radius: var(--radius-lg);
-}
-
-@utility view-toggle-button {
-	display: flex;
-	align-items: center;
-	gap: var(--spacing-1_5);
-	padding: var(--spacing-1_5) var(--spacing-3);
-	min-height: var(--spacing-8); /* 32px */
-	font-size: var(--text-sm);
-	font-weight: 500;
-	border-radius: var(--radius-md);
-	transition:
-		background-color var(--transition-duration-fast) ease-out,
-		color var(--transition-duration-fast) ease-out,
-		box-shadow var(--transition-duration-fast) ease-out;
-}
-
-.view-toggle-button[data-active="true"] {
-	background: var(--color-background);
-	color: var(--color-foreground);
-	box-shadow: var(--shadow-sm);
-}
-
-.view-toggle-button[data-active="false"] {
-	color: var(--color-muted-foreground);
-}
-
-.view-toggle-button[data-active="false"]:hover {
-	color: var(--color-foreground);
-}
-
 /* ============================================================================
    Responsive Typography Utilities (Fluid clamp-based)
    ============================================================================
@@ -1122,19 +677,18 @@
    These utilities provide explicit responsive text classes.
    ========================================================================== */
 
+/*
+ * A hero headline's longest word fits its column (66.2-39 fix round 4, Part
+ * 8e): at 320 a 48px floor ran "spreadsheets" 11.11px and "management"
+ * 4.7px past a 272px column, and at 1024 the about hero's 80px "management"
+ * (5.77em) ran 13.16px past its 448px half of the page. The floor is 44px,
+ * and inside a container (the two-column hero's copy) the size is at most
+ * 16% of the container's width, where a 5.8em word fills 93% of it. With no
+ * container, cqi falls back to the viewport, and 16 of it never binds.
+ */
 @utility text-responsive-display-xl {
-	font-size: var(--text-display-hero);
+	font-size: min(var(--text-display-hero), 16cqi);
 	line-height: var(--leading-display);
-}
-
-@utility text-responsive-display-lg {
-	font-size: var(--text-display-lg);
-	line-height: var(--leading-tight);
-}
-
-@utility text-responsive-display {
-	font-size: var(--text-display);
-	line-height: var(--leading-tight);
 }
 
 @utility text-responsive-h1 {
@@ -1142,29 +696,10 @@
 	line-height: var(--leading-tight);
 }
 
-@utility text-responsive-h2 {
-	font-size: var(--text-title-2);
-	line-height: var(--leading-snug);
-}
-
-@utility text-responsive-h3 {
-	font-size: var(--text-title-3);
-	line-height: var(--leading-snug);
-}
-
-@utility text-responsive-body {
-	font-size: var(--text-base);
-	line-height: var(--leading-normal);
-}
-
 @utility touch-target {
 	min-height: var(--touch-target-min);
 	min-width: var(--touch-target-min);
 	padding: var(--touch-target-padding);
-}
-
-@utility touch-friendly {
-	gap: var(--touch-target-gap);
 }
 
 @utility section-spacing {
@@ -1175,152 +710,41 @@
 	padding-block: var(--layout-section-padding-y-compact);
 }
 
-@utility section-spacing-spacious {
-	padding-block: var(--layout-section-padding-y-spacious);
-}
-
 @utility page-offset-navbar {
 	padding-top: var(--layout-navbar-spacing);
 }
 
-@utility page-container {
-	max-width: var(--layout-container-max-width);
-	margin-inline: auto;
-	padding-inline: var(--layout-container-padding-x);
-}
-
-@utility section-gap {
-	gap: var(--layout-gap-section);
-}
-
-@utility mobile-stack {
-	display: flex;
-	flex-direction: column;
-	gap: var(--spacing-responsive-sm);
-}
-
-@utility mobile-container {
-	padding: var(--container-padding-responsive);
-	max-width: 100%;
-	margin: 0 auto;
-}
-
-@utility mobile-section {
-	padding: var(--section-spacing-responsive) 0;
-}
-
-@utility grid-responsive-auto-fit {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-	gap: var(--spacing-responsive-md);
-}
-
-@media (hover: hover) and (pointer: fine) {
-	.hover-lift:hover {
-		transform: translateY(-2px);
-		box-shadow: var(--shadow-md);
-	}
-
-	.hover-scale:hover {
-		transform: scale(1.02);
-	}
-}
-
+/* Reduced motion: an animation keeps 0.01ms, so the animationend that Radix
+   and Dice UI presence wait for still fires. A transition is 0s: nothing here
+   waits for transitionend, and an element that declares no transition has the
+   initial transition-property, all, so 0.01ms gave every such element a live
+   transition of every property. A script that wrote a size and read the box
+   back in the same task then read the old value until the next frame, and
+   Floating UI's size step skips its re-measure on exactly that read: an open
+   combobox at 320 resized to 328 sat 20px above the viewport, and an open tour
+   step lagged up to 16px behind its place (66.2-39 fix round 4, Part 8f). */
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,
 	*::after {
 		animation-duration: 0.01ms !important;
 		animation-iteration-count: 1 !important;
-		transition-duration: 0.01ms !important;
+		transition-duration: 0s !important;
 		scroll-behavior: auto !important;
 	}
 }
 
-@media (prefers-contrast: high) {
-	.high-contrast {
-		filter: contrast(1.25);
-	}
-}
-
-/* Quick text utilities - semantic shortcuts */
-@utility text-muted {
-	font-size: var(--text-sm);
-	color: var(--color-muted-foreground);
-}
-
-@utility text-caption {
-	font-size: var(--text-caption);
-	color: var(--color-muted-foreground);
-}
-
 /* ============================================================================
-   Typography Utilities - Premium Semantic Styles
+   Typography Utilities - Semantic Styles
    ============================================================================
-   Level 1: Display (marketing)  → typography-hero, typography-display, etc.
    Level 2: Titles (app UI)      → typography-h1, h2, h3, h4
-   Level 3: Body (content)       → typography-p, typography-lead, typography-large
-   Level 4: Small (secondary)    → typography-small, typography-muted
-   Level 5: Caption (tertiary)   → typography-label, typography-caption
+   Level 3: Body (content)       → typography-large
+   Level 4: Small (secondary)    → typography-small
+   Level 5: Caption (tertiary)   → typography-label
+   Numeric/Data                  → typography-stat
    ========================================================================== */
 
-/* Level 1: Display - Marketing/Hero (Playfair Display serif) */
-@utility typography-hero {
-	font-family: var(--font-display);
-	font-size: var(--text-display-hero);
-	font-weight: var(--font-weight-bold);
-	line-height: var(--leading-display);
-	letter-spacing: var(--tracking-tight);
-	text-wrap: balance;
-}
-
-@utility typography-display-lg {
-	font-family: var(--font-display);
-	font-size: var(--text-display-lg);
-	font-weight: var(--font-weight-bold);
-	line-height: var(--leading-display);
-	letter-spacing: var(--tracking-tight);
-	text-wrap: balance;
-}
-
-@utility typography-display {
-	font-family: var(--font-display);
-	font-size: var(--text-display);
-	font-weight: var(--font-weight-semibold);
-	line-height: var(--leading-tight);
-	letter-spacing: var(--tracking-tight);
-	text-wrap: balance;
-}
-
-@utility typography-display-sm {
-	font-family: var(--font-display);
-	font-size: var(--text-display-sm);
-	font-weight: var(--font-weight-semibold);
-	line-height: var(--leading-tight);
-	letter-spacing: var(--tracking-tight);
-	text-wrap: balance;
-}
-
-/* Sans-serif display variants (for CTAs, features) */
-@utility typography-display-sans {
-	font-family: var(--font-sans);
-	font-size: var(--text-display);
-	font-weight: var(--font-weight-bold);
-	line-height: var(--leading-tight);
-	letter-spacing: var(--tracking-tight);
-	text-wrap: balance;
-}
-
-@utility typography-display-sans-lg {
-	font-family: var(--font-sans);
-	font-size: var(--text-display-lg);
-	font-weight: var(--font-weight-bold);
-	line-height: var(--leading-tight);
-	letter-spacing: var(--tracking-tighter);
-	text-wrap: balance;
-}
-
-/* Level 2: Titles - App headings (Geist Sans) */
+/* Level 2: Titles - App headings (Roboto, font-sans) */
 @utility typography-h1 {
 	font-family: var(--font-sans);
 	font-size: var(--text-title-1);
@@ -1357,18 +781,7 @@
 	@apply scroll-m-20;
 }
 
-/* Level 3: Body - Content text (optimized for reading) */
-@utility typography-p {
-	font-size: var(--text-base);
-	line-height: var(--leading-relaxed);
-	@apply not-first:mt-4;
-}
-
-@utility typography-lead {
-	font-size: var(--text-xl);
-	line-height: var(--leading-relaxed);
-	color: var(--color-muted-foreground);
-}
+/* Level 3: Body - Content text */
 
 @utility typography-large {
 	font-size: var(--text-lg);
@@ -1383,12 +796,6 @@
 	line-height: var(--leading-snug);
 }
 
-@utility typography-muted {
-	font-size: var(--text-sm);
-	color: var(--color-muted-foreground);
-	line-height: var(--leading-normal);
-}
-
 /* Level 5: Caption - Labels/metadata */
 @utility typography-label {
 	font-size: var(--text-xs);
@@ -1399,58 +806,14 @@
 	color: var(--color-muted-foreground);
 }
 
-@utility typography-caption {
-	font-size: var(--text-caption);
-	line-height: var(--leading-normal);
-	color: var(--color-muted-foreground);
-}
-
 /* Numeric/Data Display - Impactful stats */
 @utility typography-stat {
 	font-family: var(--font-sans);
 	font-size: var(--text-stat);
 	font-weight: var(--font-weight-bold);
-	line-height: var(--leading-none);
+	line-height: 1;
 	letter-spacing: var(--tracking-tight);
 	font-variant-numeric: tabular-nums;
-}
-
-@utility typography-stat-lg {
-	font-family: var(--font-sans);
-	font-size: var(--text-stat-lg);
-	font-weight: var(--font-weight-bold);
-	line-height: var(--leading-none);
-	letter-spacing: var(--tracking-tighter);
-	font-variant-numeric: tabular-nums;
-}
-
-@utility typography-stat-xl {
-	font-family: var(--font-sans);
-	font-size: var(--text-stat-xl);
-	font-weight: var(--font-weight-bold);
-	line-height: var(--leading-none);
-	letter-spacing: var(--tracking-tighter);
-	font-variant-numeric: tabular-nums;
-}
-
-/* Typography: Blockquote */
-@utility typography-blockquote {
-	@apply mt-6 border-l-2 pl-6 italic;
-}
-
-/* Typography: Lists */
-@utility typography-list {
-	@apply my-6 ml-6 list-disc [&>li]:mt-2;
-}
-
-/* Typography: Inline Code */
-@utility typography-inline-code {
-	@apply relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
-}
-
-/* Typography: Table (wrapper for overflow) */
-@utility typography-table-wrapper {
-	@apply my-6 w-full overflow-y-auto;
 }
 
 @utility flex-center {
@@ -1477,18 +840,6 @@
 	@apply rounded-lg border border-border bg-card shadow-sm;
 }
 
-@utility card-elevated {
-	@apply rounded-xl border border-border bg-card shadow-md;
-}
-
-@utility card-bordered {
-	@apply rounded-2xl border border-border bg-card/50 backdrop-blur-sm;
-}
-
-@utility card-glass {
-	@apply rounded-2xl border border-border/20 bg-background/60 backdrop-blur-lg shadow-2xl;
-}
-
 @utility icon-container-sm {
 	@apply size-8 rounded-lg flex-center;
 }
@@ -1505,100 +856,52 @@
 	@apply bg-primary/10 text-primary border border-primary/20;
 }
 
-@utility content-section {
-	@apply space-y-4 p-6;
-}
+/*
+ * Touch-target floor below 48rem (D-08). It sits in @layer base, and the
+ * cascade orders @layer utilities after @layer base, so any utility on the
+ * control overrides it whatever the specificity (layer order is compared
+ * before specificity). Every selector is also wrapped in :where(), which keeps
+ * it at zero specificity against other @layer base rules. It sets no padding. Radix switch, checkbox,
+ * radio and tab buttons own their geometry, so they are excluded, as are the
+ * checkbox, radio, range, file and hidden input types.
+ */
+@layer base {
+	@media (width < 48rem) {
+		:where(
+				button:not(
+					[role="switch"],
+					[role="checkbox"],
+					[role="radio"],
+					[role="tab"]
+				),
+				[role="button"]
+			) {
+			min-height: var(--touch-target-min);
+			min-width: var(--touch-target-min);
+		}
 
-@utility content-padded {
-	@apply p-8;
-}
-
-@utility content-compact {
-	@apply space-y-2 p-4;
-}
-
-@utility gap-standard {
-	@apply gap-2;
-}
-
-@utility gap-comfortable {
-	@apply gap-4;
-}
-
-@utility interactive-item {
-	@apply transition-colors hover:bg-accent/50 rounded-lg p-2 cursor-pointer;
-}
-
-@utility clickable-card {
-	@apply transition-all hover:border-primary/50 hover:shadow-md cursor-pointer;
-}
-
-@media (max-width: 768px) {
-	.mobile-full-width {
-		width: 100vw;
-		margin-left: calc(-50vw + 50%);
-	}
-
-	.mobile-centered {
-		text-align: center;
-	}
-
-	.mobile-padded {
-		padding: var(--container-padding-mobile);
-	}
-
-	.mobile-spaced {
-		margin: var(--section-spacing-mobile) 0;
-	}
-
-	.btn,
-	button,
-	[role="button"] {
-		min-height: var(--touch-target-min);
-		min-width: var(--touch-target-min);
-		padding: var(--touch-target-padding);
-	}
-
-	.form-input,
-	input,
-	select,
-	textarea {
-		min-height: var(--touch-target-min);
-		padding: var(--touch-target-padding);
-	}
-
-	.mobile-stack > * + * {
-		margin-block-start: var(--spacing-responsive-sm);
-	}
-
-	.mobile-nav-item {
-		padding: var(--touch-target-padding);
-		min-height: var(--touch-target-min);
-	}
-}
-
-@keyframes mobile-fade-in {
-	from {
-		opacity: 0;
-		transform: translateY(10px);
-	}
-
-	to {
-		opacity: 1;
-		transform: translateY(0);
+		:where(
+				input:not(
+					[type="checkbox"],
+					[type="radio"],
+					[type="range"],
+					[type="file"],
+					[type="hidden"]
+				),
+				select,
+				textarea
+			) {
+			min-height: var(--touch-target-min);
+		}
 	}
 }
 
 @utility testimonial-card {
-	@apply relative bg-card border border-border rounded-2xl p-8 h-full hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5;
+	@apply relative bg-card border border-border rounded-2xl p-8 h-full;
 }
 
 @utility showcase-card {
-	@apply relative bg-card/50 border border-border/40 rounded p-6 text-center backdrop-blur-sm hover:bg-card/90 hover:border-primary/40 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 overflow-hidden hover:-translate-y-1 hover:scale-[1.02];
-}
-
-@utility trust-indicator-badge {
-	@apply inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm;
+	@apply relative bg-card/50 border border-border/40 rounded p-6 text-center backdrop-blur-sm overflow-hidden;
 }
 
 @utility accordion-item {
@@ -1607,10 +910,6 @@
 
 @utility glowing-effect-blur {
 	@apply absolute inset-0 rounded-[inherit] blur-xl;
-}
-
-@utility mobile-dropdown-link {
-	@apply block px-4 py-2 text-sm text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200;
 }
 
 @utility property-grid {
@@ -1636,142 +935,22 @@
 	}
 }
 
-@utility touch-card {
-	min-height: 44px;
-	touch-action: manipulation;
-}
-
-@utility touch-button {
-	min-height: 44px;
-	min-width: 44px;
-	touch-action: manipulation;
-}
-
-@utility touch-interactive {
-	min-height: 44px;
-	touch-action: manipulation;
-	padding-block: 0.75rem;
-	padding-inline: 1rem;
-}
-
-@utility animate-card-in {
-	@apply animate-in fade-in slide-in-from-bottom-4 duration-500;
-}
-
-@utility animate-chart-bar {
-	animation: chart-bar-grow 500ms ease-out forwards;
-}
-
-@keyframes chart-bar-grow {
-	from {
-		transform: scaleY(0);
-		transform-origin: bottom;
-	}
-	to {
-		transform: scaleY(1);
-		transform-origin: bottom;
-	}
-}
-
-@utility animate-trend-up {
-	@apply animate-in slide-in-from-bottom-1 duration-300;
-}
-
-@utility animate-trend-down {
-	@apply animate-in slide-in-from-top-1 duration-300;
-}
-
-@utility animate-number {
-	animation: number-fade 400ms ease-out;
-}
-
-@keyframes number-fade {
-	from {
-		opacity: 0;
-		transform: translateY(4px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
-}
-
-@utility hover-smooth {
-	@apply transition-all duration-300 ease-out;
-}
-
-@utility hover-lift-shadow {
-	@apply transition-all duration-300 ease-out hover:shadow-lg hover:-translate-y-0.5;
-}
-
-@utility icon-hover-scale {
-	@apply transition-transform duration-200 hover:scale-105;
-}
-
-@utility skeleton-pulse {
-	@apply animate-pulse bg-muted;
-}
-
-@utility skeleton-stagger {
-	@apply animate-in fade-in duration-300;
-}
-
-@utility animate-progress {
-	animation: progress-fill 1000ms ease-out forwards;
-}
-
-@keyframes progress-fill {
-	from {
-		width: 0%;
-	}
-	to {
-		width: var(--progress-value, 100%);
-	}
-}
-
-@utility animate-metric {
-	@apply animate-in fade-in slide-in-from-bottom-2 duration-500;
-}
-
-@utility animate-content {
-	@apply animate-in fade-in duration-300;
-}
-
-@utility focus-card {
-	@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
-	@apply focus-visible:border-primary/30 focus-visible:shadow-lg;
-}
-
-@utility focus-interactive {
-	@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1;
-}
-
-@utility skip-link {
-	@apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50;
-	@apply focus:bg-background focus:text-foreground focus:px-4 focus:py-2 focus:rounded-md;
-	@apply focus:ring-2 focus:ring-ring focus:ring-offset-2;
-}
-
+/* The sidebar surface tokens alias the brand semantic tokens, so they follow
+   the light and dark values with no dark rule of their own (D-37). The three
+   widths size the desktop rail, the mobile sheet and the unused icon mode
+   (D-51). */
 :root {
-	--sidebar: hsl(0 0% 98%);
-	--sidebar-foreground: hsl(240 5.3% 26.1%);
-	--sidebar-primary: hsl(240 5.9% 10%);
-	--sidebar-primary-foreground: hsl(0 0% 98%);
-	--sidebar-accent: hsl(240 4.8% 95.9%);
-	--sidebar-accent-foreground: hsl(240 5.9% 10%);
-	--sidebar-border: hsl(220 13% 91%);
-	--sidebar-ring: hsl(217.2 91.2% 59.8%);
-}
-
-.dark {
-	--sidebar: hsl(240 5.9% 10%);
-	--sidebar-foreground: hsl(240 4.8% 95.9%);
-	--sidebar-primary: hsl(224.3 76.3% 48%);
-	--sidebar-primary-foreground: hsl(0 0% 100%);
-	--sidebar-accent: hsl(240 3.7% 15.9%);
-	--sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-	--sidebar-border: hsl(240 3.7% 15.9%);
-	--sidebar-ring: hsl(217.2 91.2% 59.8%);
+	--sidebar: var(--card);
+	--sidebar-foreground: var(--card-foreground);
+	--sidebar-primary: var(--primary);
+	--sidebar-primary-foreground: var(--primary-foreground);
+	--sidebar-accent: var(--muted);
+	--sidebar-accent-foreground: var(--foreground);
+	--sidebar-border: var(--border);
+	--sidebar-ring: var(--ring);
+	--sidebar-width: 14rem;
+	--sidebar-width-mobile: 18rem;
+	--sidebar-width-icon: 3rem;
 }
 
 @theme inline {
@@ -1783,6 +962,26 @@
 	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
 	--color-sidebar-border: var(--sidebar-border);
 	--color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* The floating quick-actions dock (src/components/shell/quick-actions-dock.tsx),
+   shown from lg up: its panel height and its gap above the viewport bottom.
+   --dock-clearance is the band it covers. While the dock is mounted the owner
+   <main> reserves that band as bottom padding, so the last content scrolls
+   clear of it, and the root reserves it as scroll padding, so scrolled-to and
+   keyboard-focused elements stop above it (WCAG 2.4.11, CP-4 follow-up). */
+:root {
+	--dock-height: --spacing(16.5);
+	--dock-offset: --spacing(6);
+	--dock-clearance: calc(var(--dock-height) + var(--dock-offset));
+}
+
+@layer base {
+	html:has([data-slot="quick-actions-dock"]) {
+		@variant lg {
+			scroll-padding-bottom: var(--dock-clearance);
+		}
+	}
 }
 
 @layer base {

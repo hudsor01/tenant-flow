@@ -1,0 +1,799 @@
+{
+	"mode": "fix-round-2",
+	"checks": [
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/lib/__tests__/regexp-source.test.ts present and passing, all 11 tests",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 11,
+				"numPassed": 11,
+				"missingTitles": []
+			},
+			"group": "fr2-helper-test"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "the modules importing the regexp-source helper equal the recorded list",
+			"pass": true,
+			"expected": 28,
+			"measured": {
+				"count": 28,
+				"missing": [],
+				"extra": []
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "scripts/reclaim-finalize.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"scripts/reclaim-finalize.test.ts": {
+					"status": "passed",
+					"numTests": 20,
+					"numPassed": 20,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/app/__tests__/design-token-drift.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/app/__tests__/design-token-drift.test.ts": {
+					"status": "passed",
+					"numTests": 2683,
+					"numPassed": 2683,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/app/__tests__/global-error-fonts.test.tsx runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/app/__tests__/global-error-fonts.test.tsx": {
+					"status": "passed",
+					"numTests": 2,
+					"numPassed": 2,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/app/__tests__/marketing-home.test.tsx runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/app/__tests__/marketing-home.test.tsx": {
+					"status": "passed",
+					"numTests": 4,
+					"numPassed": 4,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/components/__tests__/group-markers.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/components/__tests__/group-markers.test.ts": {
+					"status": "passed",
+					"numTests": 2,
+					"numPassed": 2,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/components/__tests__/ids-not-shown-as-text.test.tsx runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/components/__tests__/ids-not-shown-as-text.test.tsx": {
+					"status": "passed",
+					"numTests": 9,
+					"numPassed": 9,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/components/__tests__/no-nested-interactive.test.tsx runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/components/__tests__/no-nested-interactive.test.tsx": {
+					"status": "passed",
+					"numTests": 6,
+					"numPassed": 6,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/components/documents/__tests__/documents-section.test.tsx runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/components/documents/__tests__/documents-section.test.tsx": {
+					"status": "passed",
+					"numTests": 21,
+					"numPassed": 21,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/components/layout/navbar/__tests__/navbar-desktop-nav.test.tsx runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/components/layout/navbar/__tests__/navbar-desktop-nav.test.tsx": {
+					"status": "passed",
+					"numTests": 5,
+					"numPassed": 5,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/components/shell/__tests__/label-in-name.test.tsx runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/components/shell/__tests__/label-in-name.test.tsx": {
+					"status": "passed",
+					"numTests": 3,
+					"numPassed": 3,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/components/ui/__tests__/blur-fade-grid-placement.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/components/ui/__tests__/blur-fade-grid-placement.test.ts": {
+					"status": "passed",
+					"numTests": 5,
+					"numPassed": 5,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/hooks/api/__tests__/collection-rate-mapper.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/hooks/api/__tests__/collection-rate-mapper.test.ts": {
+					"status": "passed",
+					"numTests": 9,
+					"numPassed": 9,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/hooks/api/__tests__/data-layer-callers.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/hooks/api/__tests__/data-layer-callers.test.ts": {
+					"status": "passed",
+					"numTests": 2,
+					"numPassed": 2,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/hooks/api/__tests__/report-mutations-have-callers.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/hooks/api/__tests__/report-mutations-have-callers.test.ts": {
+					"status": "passed",
+					"numTests": 4,
+					"numPassed": 4,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/hooks/api/query-keys/__tests__/application-keys.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/hooks/api/query-keys/__tests__/application-keys.test.ts": {
+					"status": "passed",
+					"numTests": 40,
+					"numPassed": 40,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/hooks/api/query-keys/__tests__/application-link-keys.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/hooks/api/query-keys/__tests__/application-link-keys.test.ts": {
+					"status": "passed",
+					"numTests": 21,
+					"numPassed": 21,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/hooks/api/query-keys/__tests__/notification-keys.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/hooks/api/query-keys/__tests__/notification-keys.test.ts": {
+					"status": "passed",
+					"numTests": 12,
+					"numPassed": 12,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/hooks/api/query-keys/document-category-keys.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/hooks/api/query-keys/document-category-keys.test.ts": {
+					"status": "passed",
+					"numTests": 6,
+					"numPassed": 6,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/hooks/api/query-keys/document-keys.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/hooks/api/query-keys/document-keys.test.ts": {
+					"status": "passed",
+					"numTests": 7,
+					"numPassed": 7,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/lib/__tests__/breadcrumbs.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/lib/__tests__/breadcrumbs.test.ts": {
+					"status": "passed",
+					"numTests": 31,
+					"numPassed": 31,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/lib/__tests__/no-always-empty-local-list.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/lib/__tests__/no-always-empty-local-list.test.ts": {
+					"status": "passed",
+					"numTests": 4,
+					"numPassed": 4,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/lib/__tests__/no-deprecated-library-api.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/lib/__tests__/no-deprecated-library-api.test.ts": {
+					"status": "passed",
+					"numTests": 11,
+					"numPassed": 11,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/lib/__tests__/one-label-per-value.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/lib/__tests__/one-label-per-value.test.ts": {
+					"status": "passed",
+					"numTests": 9,
+					"numPassed": 9,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/lib/formatters/__tests__/count-labels-agree.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/lib/formatters/__tests__/count-labels-agree.test.ts": {
+					"status": "passed",
+					"numTests": 4,
+					"numPassed": 4,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/types/sections/__tests__/inspections.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/types/sections/__tests__/inspections.test.ts": {
+					"status": "passed",
+					"numTests": 10,
+					"numPassed": 10,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "supabase/functions/__tests__/rate-limit.test.ts runs and passes (itself)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"supabase/functions/__tests__/rate-limit.test.ts": {
+					"status": "passed",
+					"numTests": 101,
+					"numPassed": 101,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/test/utils/oklch-contrast.ts runs and passes (src/app/__tests__/destructive-pair-contrast.test.ts, src/app/__tests__/design-token-drift.test.ts)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/app/__tests__/destructive-pair-contrast.test.ts": {
+					"status": "passed",
+					"numTests": 2,
+					"numPassed": 2,
+					"missingTitles": []
+				},
+				"src/app/__tests__/design-token-drift.test.ts": {
+					"status": "passed",
+					"numTests": 2683,
+					"numPassed": 2683,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/test/utils/state-fill-pairs.ts runs and passes (src/app/__tests__/state-fill-contrast.test.ts)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"src/app/__tests__/state-fill-contrast.test.ts": {
+					"status": "passed",
+					"numTests": 39,
+					"numPassed": 39,
+					"missingTitles": []
+				}
+			},
+			"group": "fr2-helper-users"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/components/__tests__/no-nested-interactive.test.tsx keeps its fix-round-2 tests, passing",
+			"pass": true,
+			"expected": [
+				"no control nests another (static) looks past JSX comments to the first child, and no further",
+				"no control nests another (static) scans adversarial comment runs in linear time"
+			],
+			"measured": {
+				"status": "passed",
+				"numTests": 6,
+				"numPassed": 6,
+				"missingTitles": []
+			},
+			"group": "fr2-guard-titles"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/components/ui/__tests__/blur-fade-grid-placement.test.ts keeps its fix-round-2 tests, passing",
+			"pass": true,
+			"expected": [
+				"BlurFade grid placement looks past JSX comments to the first child, and no further",
+				"BlurFade grid placement scans adversarial comment runs in linear time"
+			],
+			"measured": {
+				"status": "passed",
+				"numTests": 5,
+				"numPassed": 5,
+				"missingTitles": []
+			},
+			"group": "fr2-guard-titles"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/hooks/api/__tests__/report-mutations-have-callers.test.ts keeps its fix-round-2 tests, passing",
+			"pass": true,
+			"expected": [
+				"report mutations and their keys have callers reads the object path as literal text and as a whole identifier"
+			],
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": []
+			},
+			"group": "fr2-guard-titles"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "src/lib/__tests__/no-always-empty-local-list.test.ts keeps its fix-round-2 tests, passing",
+			"pass": true,
+			"expected": [
+				"no local list stays the empty literal it was declared as reads a list's name as literal text and as a whole identifier"
+			],
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": []
+			},
+			"group": "fr2-guard-titles"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "tests/e2e/lib/__tests__/e2e-support-exports-have-callers.test.ts keeps its fix-round-2 tests, passing",
+			"pass": true,
+			"expected": [
+				"Playwright support modules export only what is imported (66.2-39 fix round 1, part F) reads a namespace name holding `$` literally and as a whole identifier"
+			],
+			"measured": {
+				"status": "passed",
+				"numTests": 3,
+				"numPassed": 3,
+				"missingTitles": []
+			},
+			"group": "fr2-guard-titles"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "scripts/mutation-sweep.test.ts (the shard partition proof) present and passing",
+			"pass": true,
+			"expected": [
+				"the mutation sweep's shards lists every row once, in order, with no shard set",
+				"the mutation sweep's shards hands each matrix job its shard and the matrix size",
+				"the mutation sweep's shards splits the rows into disjoint, non-empty shards whose union is every row",
+				"the mutation sweep's shards refuses a half-set, malformed or out-of-range shard",
+				"the mutation sweep's shards fails a shard that holds no row"
+			],
+			"measured": {
+				"status": "passed",
+				"numTests": 9,
+				"numPassed": 9,
+				"missingTitles": []
+			},
+			"group": "fr2-sweep-partition"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "scripts/workflow-contract.test.ts present and passing",
+			"pass": true,
+			"expected": [
+				"the fixture helpers the push-trigger matcher fails in linear time"
+			],
+			"measured": {
+				"status": "passed",
+				"numTests": 27,
+				"numPassed": 27,
+				"missingTitles": []
+			},
+			"group": "fr2-workflow-contract"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": ".github/workflows/mutation-sweep.yml: 8 shards, fail-fast false, each job handed its shard and the matrix size, 15-minute timeout",
+			"pass": true,
+			"expected": {
+				"shards": [
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8
+				],
+				"failFast": false,
+				"timeoutMinutes": 15
+			},
+			"measured": {
+				"shards": [
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8
+				],
+				"failFast": false,
+				"env": {
+					"SWEEP_SHARD": "${{ matrix.shard }}",
+					"SWEEP_SHARDS": "${{ strategy.job-total }}"
+				},
+				"timeoutMinutes": 15
+			},
+			"group": "fr2-sweep-workflow"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "mutation sweep unsharded and as 8 shards: every row caught once, 0 vacuous, 0 not applied, the listing a disjoint cover",
+			"pass": true,
+			"expected": {
+				"rows": 185,
+				"shards": 8
+			},
+			"measured": {
+				"unsharded": {
+					"rows": 185,
+					"caught": 185
+				},
+				"shardRows": 185,
+				"shards": 8,
+				"listing": {
+					"command": "SWEEP_LIST=1 [SWEEP_SHARD=i SWEEP_SHARDS=8] bash scripts/mutation-sweep.sh (touches nothing)",
+					"exits": {
+						"all": 0,
+						"shards": [
+							0,
+							0,
+							0,
+							0,
+							0,
+							0,
+							0,
+							0
+						]
+					},
+					"rows": 185,
+					"union": 185,
+					"disjoint": true,
+					"nonEmpty": true,
+					"equalsUnsharded": true,
+					"perShard": [
+						24,
+						23,
+						23,
+						23,
+						23,
+						23,
+						23,
+						23
+					],
+					"rowRule": "row r runs in shard ((r - 1) mod 8) + 1",
+					"ruleHolds": true
+				}
+			},
+			"group": "fr2-sweep-shards"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "every escape-style replace in a tracked JS/TS file escapes every regex metacharacter, and no string-pattern escape reaches new RegExp",
+			"pass": true,
+			"expected": "0 partial",
+			"measured": {
+				"sites": 7,
+				"partial": [],
+				"stringPatternEscapes": {
+					"reachingRegExp": 0,
+					"notReaching": []
+				}
+			},
+			"group": "fr2-escape-complete"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "escape helpers under src/, scripts/, tests/ and supabase/functions/__tests__/ live only in the shared helper and main's reclaim-finalize.ts",
+			"pass": true,
+			"expected": [
+				"src/test/utils/regexp-source.ts",
+				"scripts/reclaim-finalize.ts"
+			],
+			"measured": {
+				"elsewhere": [],
+				"differsFromMain": []
+			},
+			"group": "fr2-escape-homes"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "neither backtracking form fix round 2 removed is back in a tracked JS/TS file",
+			"pass": true,
+			"expected": 0,
+			"measured": [],
+			"group": "fr2-old-redos"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "fix round 2's code diff b628eb9f1..f8de0175e holds 42 paths, none of them application code, and matches f39/fix-round-2-paths.json",
+			"pass": true,
+			"expected": {
+				"paths": 42,
+				"application": 0
+			},
+			"measured": {
+				"paths": 42,
+				"application": [],
+				"recordedMatches": true
+			},
+			"group": "fr2-scope"
+		},
+		{
+			"cp": "FR-2",
+			"choice": "fix-round-2",
+			"name": "the app build and compiled CSS of b628eb9f1, 4433ca833 (the screenshot and probe evidence) and f8de0175e are identical, and a one-constant change is detected",
+			"pass": true,
+			"expected": "identical, control > 0",
+			"measured": {
+				"compiledCss": {
+					"b628eb9f1": "de12912060d9f1892b0c130aa3ed3b4e6ca1f7f81dda0b86f4f137a575f274d0",
+					"4433ca833": "de12912060d9f1892b0c130aa3ed3b4e6ca1f7f81dda0b86f4f137a575f274d0",
+					"f8de0175e": "de12912060d9f1892b0c130aa3ed3b4e6ca1f7f81dda0b86f4f137a575f274d0"
+				},
+				"builds": [
+					"b628eb9f1 68fe080ba93b 5002",
+					"4433ca833 68fe080ba93b 5002",
+					"f8de0175e 68fe080ba93b 5002",
+					"f8de0175e 68fe080ba93b 5002",
+					"f8de0175e 68fe080ba93b 5002"
+				],
+				"comparisons": [
+					{
+						"a": "b628eb9f1",
+						"b": "f8de0175e",
+						"differingFiles": 0
+					},
+					{
+						"a": "4433ca833",
+						"b": "f8de0175e",
+						"differingFiles": 0
+					},
+					{
+						"a": "f8de0175e",
+						"b": "f8de0175e (rebuilds)",
+						"differingFiles": 0
+					}
+				],
+				"positiveControl": {
+					"change": "src/app/(owner)/reports/statement-basis-note.tsx BlurFade delay 0.4 -> 0.5 (worktree only, restored from HEAD)",
+					"exit": 0,
+					"manifestSha256": "6d86a033e3d82fc9d61d8055faf0d9bc60abba44cfe5ae0e04a6b391778ec68c",
+					"differingFiles": 13,
+					"note": "6 server app files, 4 SSR chunks, 3 browser chunks"
+				}
+			},
+			"group": "fr2-build-identity"
+		}
+	],
+	"failedGroups": [],
+	"failed": 0
+}

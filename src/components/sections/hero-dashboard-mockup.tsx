@@ -16,7 +16,7 @@ import { cn } from "#lib/utils";
 
 export function HeroDashboardMockup({ className }: { className?: string }) {
 	return (
-		<div className={cn("relative", className)}>
+		<div className={cn("@container/hero-mockup relative", className)}>
 			<div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border bg-card">
 				<div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border-b border-border">
 					<div className="flex gap-1.5">
@@ -32,13 +32,13 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 					<div className="w-12" />
 				</div>
 
-				<div className="p-4 space-y-4 bg-gradient-to-b from-background to-muted/20">
+				<div className="p-4 space-y-4 bg-linear-to-b from-background to-muted/20">
 					<div className="flex-between">
 						<div>
 							<h3 className="text-sm font-semibold text-foreground">
 								Dashboard
 							</h3>
-							<p className="text-xs text-muted-foreground">
+							<p className="mb-0 text-xs text-muted-foreground">
 								Welcome back, Sarah
 							</p>
 						</div>
@@ -47,13 +47,17 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 								<Bell className="size-4 text-muted-foreground" />
 								<div className="absolute -top-1 -right-1 size-2 bg-primary rounded-full animate-pulse" />
 							</div>
-							<div className="size-8 rounded-full bg-primary/10 flex-center text-primary text-xs font-medium">
+							<div className="size-8 rounded-full bg-primary/10 flex-center text-primary-text text-xs font-medium">
 								SC
 							</div>
 						</div>
 					</div>
 
-					<div className="grid grid-cols-4 gap-3">
+					{/* Two columns until four cards hold an icon and its trend side by
+					    side, on the mockup's own width (66.2-39 fix round 4, Part 8c):
+					    four at 320 left a trend 28.5px, and "+12%" (29.09px) ran past
+					    its card. */}
+					<div className="grid grid-cols-2 @min-[27rem]/hero-mockup:grid-cols-4 gap-3">
 						<StatCard
 							label="Properties"
 							value="12"
@@ -99,12 +103,12 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 								{[
 									"h-[35%]",
 									"h-[45%]",
-									"h-[40%]",
+									"h-2/5",
 									"h-[55%]",
-									"h-[50%]",
+									"h-1/2",
 									"h-[65%]",
-									"h-[60%]",
-									"h-[75%]",
+									"h-3/5",
+									"h-3/4",
 									"h-[70%]",
 									"h-[82%]",
 									"h-[78%]",
@@ -151,14 +155,11 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 							<span className="text-xs font-medium text-foreground">
 								Recent Activity
 							</span>
-							<button
-								type="button"
-								className="text-xs text-primary hover:underline flex items-center"
-							>
+							<span className="text-xs text-primary-text flex items-center">
 								View all <ChevronRight className="size-3" />
-							</button>
+							</span>
 						</div>
-						<div className="space-y-2">
+						<div className="@container/activity space-y-2">
 							<ActivityItem
 								avatar="JC"
 								name="Jamie Carter"
@@ -207,10 +208,14 @@ function StatCard({
 	trendUp: boolean;
 	icon: ReactNode;
 }) {
+	// The icon and the trend share a line, and neither shrinks: the icon is
+	// 24px until the card holds it at 32px beside "+12%" (73.09px of 74), as
+	// the mockup's narrow columns (about 200px wide at 1024 and on /about at
+	// 480) do not (66.2-39 fix round 4, Part 8d).
 	return (
-		<div className="card-standard p-2.5 hover:border-primary/20 transition-colors">
+		<div className="@container/mockup-stat card-standard p-2.5">
 			<div className="flex-between mb-1.5">
-				<div className="icon-container-sm bg-primary/10 text-primary">
+				<div className="size-6 @min-[4.625rem]/mockup-stat:size-8 shrink-0 rounded-lg flex-center bg-primary/10 text-primary">
 					{icon}
 				</div>
 				<span
@@ -220,9 +225,9 @@ function StatCard({
 					)}
 				>
 					{trendUp ? (
-						<ArrowUpRight className="size-2.5" />
+						<ArrowUpRight className="size-2.5 shrink-0" />
 					) : (
-						<ArrowDownRight className="size-2.5" />
+						<ArrowDownRight className="size-2.5 shrink-0" />
 					)}
 					{trend}
 				</span>
@@ -251,12 +256,9 @@ function QuickAction({
 	};
 
 	return (
-		<button
-			type="button"
-			className="w-full card-standard p-2.5 flex-between hover:border-primary/20 hover:bg-primary/5 transition-all group"
-		>
+		<div className="w-full card-standard p-2.5 flex-between">
 			<div className="flex items-center gap-2">
-				<div className="icon-container-sm bg-primary/10 text-primary group-hover:scale-105 transition-transform">
+				<div className="icon-container-sm bg-primary/10 text-primary">
 					{icon}
 				</div>
 				<span className="text-xs font-medium text-foreground">{label}</span>
@@ -271,9 +273,9 @@ function QuickAction({
 					{badge}
 				</span>
 			) : (
-				<ChevronRight className="size-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
+				<ChevronRight className="size-3.5 text-muted-foreground" />
 			)}
-		</button>
+		</div>
 	);
 }
 
@@ -298,9 +300,12 @@ function ActivityItem({
 		info: "bg-info/10 text-info-text",
 	};
 
+	// The tag and the time stack until the list holds them beside the text:
+	// at 320 the three in one row left the text 37.55px, and "submitted"
+	// (53.98px) ran into the tag (66.2-39 fix round 4, Part 8e).
 	return (
-		<div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-			<div className="size-7 rounded-full bg-primary/10 flex-center text-primary text-xs font-medium">
+		<div className="flex items-center gap-3 p-2 rounded-lg">
+			<div className="size-7 shrink-0 rounded-full bg-primary/10 flex-center text-primary-text text-xs font-medium">
 				{avatar}
 			</div>
 			<div className="flex-1 min-w-0">
@@ -309,12 +314,19 @@ function ActivityItem({
 					<span className="text-muted-foreground"> {action}</span>
 				</div>
 			</div>
-			<span
-				className={cn("text-xs px-2 py-0.5 rounded-full", statusColors[status])}
-			>
-				{amount}
-			</span>
-			<span className="text-xs text-muted-foreground">{time}</span>
+			<div className="flex shrink-0 flex-col items-end gap-1 @min-[16rem]/activity:flex-row @min-[16rem]/activity:items-center @min-[16rem]/activity:gap-3">
+				<span
+					className={cn(
+						"text-xs px-2 py-0.5 rounded-full whitespace-nowrap",
+						statusColors[status],
+					)}
+				>
+					{amount}
+				</span>
+				<span className="text-xs text-muted-foreground whitespace-nowrap">
+					{time}
+				</span>
+			</div>
 		</div>
 	);
 }

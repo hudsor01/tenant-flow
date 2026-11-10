@@ -66,14 +66,14 @@ const UNIT_LIMIT = 25;
  */
 const HONEYPOT_FIELD = "company_website";
 
-export interface SeedCredentials {
+interface SeedCredentials {
 	url: string;
 	key: string;
 	email: string;
 	password: string;
 }
 
-export interface ApplicationLinkFixture {
+interface ApplicationLinkFixture {
 	id: string;
 	unitId: string;
 	rawToken: string;
@@ -133,7 +133,7 @@ export async function signInAsOwner(
  * carries `code: "NOT_FOUND"` is the only response that means "not deployed" —
  * every other 404 comes from the function itself.
  */
-export async function isApplyFunctionDeployed(
+async function isApplyFunctionDeployed(
 	baseUrl: string,
 	fetchImpl: typeof fetch = fetch,
 ): Promise<boolean> {
@@ -423,7 +423,7 @@ function applicationPayload(tag: string): Record<string, unknown> {
 /** How many of the owner's recent applications are considered for reuse. */
 const REUSE_LOOKBACK = 5;
 
-export interface ApplicationSeedResult {
+interface ApplicationSeedResult {
 	application: SeededApplication | null;
 	reason: string | null;
 	/**

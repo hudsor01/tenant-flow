@@ -127,6 +127,39 @@ describe("PropertyImageDropzone Component", () => {
 	});
 
 	describe("File Selection", () => {
+		// The hook is mocked here, so the root's react-dropzone props are not:
+		// dropzone.test.tsx renders the real react-dropzone root.
+		it("offers 'select files' as a keyboard-operable button that opens the file picker", async () => {
+			const user = userEvent.setup();
+			const open = vi.fn();
+			const click = vi.fn();
+			mockUploadReturn = createMockUploadReturn({
+				open,
+				inputRef: { current: { click } },
+			});
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper(),
+			});
+
+			const select = screen.getByRole("button", { name: "select files" });
+			expect(select).toHaveAttribute("type", "button");
+			// Reached by Tab, as a keyboard user reaches it.
+			for (
+				let press = 0;
+				press < 5 && document.activeElement !== select;
+				press += 1
+			) {
+				await user.tab();
+			}
+			expect(document.activeElement).toBe(select);
+			await user.keyboard("{Enter}");
+			expect(open).toHaveBeenCalledTimes(1);
+			await user.keyboard(" ");
+			expect(open).toHaveBeenCalledTimes(2);
+			// The hook's open() is the one path to the picker.
+			expect(click).not.toHaveBeenCalled();
+		});
+
 		it("accepts image files via drag and drop area", () => {
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
 				wrapper: createWrapper(),

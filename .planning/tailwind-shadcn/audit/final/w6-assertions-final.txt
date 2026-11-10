@@ -1,0 +1,14 @@
+PASS S-TOKENS 21 checks
+PASS S-WIDTHS 5 checks
+PASS S-VENDOR 19 checks
+PASS S-BREAKPOINT 2 checks
+PASS S-COLLAPSE 5 checks
+PASS S-SHELL 9 checks
+PASS S-COOKIE 8 checks
+PASS S-NAV 4 checks
+PASS S-DOCK 3 checks
+PASS S-SHEET 5 checks
+PASS S-NEUTRALIZE 2 checks
+PASS S-REMNANTS 6 checks
+PASS S-E2E 4 checks
+w6-assertions: all passed (root /Users/richard/Developer/tenant-flow-tw-shadcn)

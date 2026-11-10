@@ -35,7 +35,7 @@ import {
 // so an unknown value FAILS the row instead of being silently coerced to a
 // default.
 const tenantImportSchema = z.object({
-	email: z.email({ message: "Valid email is required" }),
+	email: z.email({ error: "Valid email is required" }),
 	first_name: z
 		.string()
 		.min(1, "First name is required")
@@ -97,7 +97,7 @@ export function tenantBulkImportConfig(): BulkImportConfig<TenantImportInput> {
 			const { error } = await supabase
 				.from("tenants")
 				.insert(omitUndefined({ ...row, owner_user_id: ownerId }));
-			return { error: error ? new Error(error.message) : null };
+			return { error };
 		},
 		invalidateKeys: [tenantQueries.all(), ownerDashboardKeys.all],
 	};

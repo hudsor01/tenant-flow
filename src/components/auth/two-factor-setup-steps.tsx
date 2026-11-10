@@ -46,7 +46,7 @@ export function QrStep({
 					<Shield className="size-5" />
 					Set Up Two-Factor Authentication
 				</DialogTitle>
-				<DialogDescription>
+				<DialogDescription className="mb-0">
 					Scan the QR code with your authenticator app (Google Authenticator,
 					Authy, etc.)
 				</DialogDescription>
@@ -91,7 +91,7 @@ export function QrStep({
 					</>
 				) : enrollError ? (
 					<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center">
-						<p className="text-destructive-text">
+						<p className="mb-0 text-destructive-text">
 							Failed to start 2FA setup. Please try again.
 						</p>
 					</div>
@@ -142,26 +142,30 @@ export function VerifyStep({
 					<Shield className="size-5" />
 					Verify Your Code
 				</DialogTitle>
-				<DialogDescription>
+				<DialogDescription className="mb-0">
 					Enter the 6-digit code from your authenticator app to complete setup
 				</DialogDescription>
 			</DialogHeader>
 			<DialogBody className="space-y-6">
 				<div className="flex-center py-4">
+					{/* The six slots share the row (44px each from sm, where the row
+					    is 360px), so the code fits a narrow dialog: fixed 44px slots made
+					    a 360px row that ran past a 390px screen. */}
 					<InputOTP
+						aria-label="6-digit code"
 						maxLength={6}
 						value={verifyCode}
 						onChange={onVerifyCodeChange}
 						disabled={verifyPending}
-						containerClassName="gap-4"
+						containerClassName="w-full max-w-90 gap-2 sm:gap-4"
 					>
-						<InputOTPGroup className="gap-2.5 *:data-[slot=input-otp-slot]:h-14 *:data-[slot=input-otp-slot]:w-11 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border *:data-[slot=input-otp-slot]:text-xl">
+						<InputOTPGroup className="min-w-0 flex-1 gap-2.5 *:data-[slot=input-otp-slot]:h-12 *:data-[slot=input-otp-slot]:w-auto *:data-[slot=input-otp-slot]:min-w-0 *:data-[slot=input-otp-slot]:flex-1 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border *:data-[slot=input-otp-slot]:text-xl sm:*:data-[slot=input-otp-slot]:h-14">
 							<InputOTPSlot index={0} />
 							<InputOTPSlot index={1} />
 							<InputOTPSlot index={2} />
 						</InputOTPGroup>
 						<InputOTPSeparator />
-						<InputOTPGroup className="gap-2.5 *:data-[slot=input-otp-slot]:h-14 *:data-[slot=input-otp-slot]:w-11 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border *:data-[slot=input-otp-slot]:text-xl">
+						<InputOTPGroup className="min-w-0 flex-1 gap-2.5 *:data-[slot=input-otp-slot]:h-12 *:data-[slot=input-otp-slot]:w-auto *:data-[slot=input-otp-slot]:min-w-0 *:data-[slot=input-otp-slot]:flex-1 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border *:data-[slot=input-otp-slot]:text-xl sm:*:data-[slot=input-otp-slot]:h-14">
 							<InputOTPSlot index={3} />
 							<InputOTPSlot index={4} />
 							<InputOTPSlot index={5} />
@@ -171,7 +175,7 @@ export function VerifyStep({
 
 				{verifyError !== null && (
 					<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-center">
-						<p className="text-sm text-destructive-text">
+						<p className="mb-0 text-sm text-destructive-text">
 							Invalid code. Please try again.
 						</p>
 					</div>
@@ -225,7 +229,7 @@ export function SuccessStep({ onComplete }: SuccessStepProps) {
 					</div>
 					<div className="space-y-2">
 						<p className="font-medium">Your account is now more secure</p>
-						<p className="text-sm text-muted-foreground">
+						<p className="mb-0 text-sm text-muted-foreground">
 							You&apos;ll need your authenticator app to sign in from now on.
 						</p>
 					</div>

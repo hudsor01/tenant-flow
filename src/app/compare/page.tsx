@@ -32,7 +32,7 @@ export default function ComparePage() {
 
 			<section className="section-spacing">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
-					<BlurFade delay={0.1} inView>
+					<BlurFade delay={0.1}>
 						<header className="mb-12 max-w-3xl">
 							<h1 className="text-4xl md:text-5xl font-bold tracking-tight">
 								TenantFlow vs the alternatives
@@ -47,23 +47,18 @@ export default function ComparePage() {
 
 					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 						{competitors.map((competitor, index) => (
-							<BlurFade
-								key={competitor.slug}
-								delay={0.15 + index * 0.05}
-								inView
-							>
+							<BlurFade key={competitor.slug} delay={0.15 + index * 0.05}>
 								<Link
 									href={`/compare/${competitor.slug}`}
 									className="group flex h-full flex-col rounded-lg border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-									aria-label={`Compare TenantFlow vs ${competitor.name}`}
 								>
 									<h2 className="text-lg font-semibold group-hover:underline">
 										TenantFlow vs {competitor.name}
 									</h2>
-									<p className="mt-2 text-sm text-muted-foreground">
+									<p className="mt-2 mb-0 text-sm text-muted-foreground">
 										{competitor.tagline}
 									</p>
-									<p className="mt-4 text-sm text-muted-foreground line-clamp-3">
+									<p className="mt-4 mb-0 text-sm text-muted-foreground line-clamp-3">
 										{competitor.description}
 									</p>
 									<span className="mt-auto pt-4 inline-flex items-center text-sm font-medium text-primary-text">

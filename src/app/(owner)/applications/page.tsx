@@ -56,7 +56,8 @@ export default function ApplicationsPage() {
 				 * `mb-0` because this `<p>` is a flex item of the `gap-1` header box,
 				 * which is itself a flex item of the `gap-8` shell. A flex item
 				 * establishes an independent formatting context, so the unscoped base
-				 * `p { margin-bottom: 1rem }` at globals.css:499 cannot collapse out of
+				 * `p { margin-bottom: 1rem }` (the `@layer base` `p` rule in
+				 * globals.css) cannot collapse out of
 				 * it — the 16px is added to the header's height and then `gap-8` adds
 				 * its own 32px on top, putting 48px between the subtitle and the queue
 				 * where the composition asks for 32 (§D-3).
@@ -99,7 +100,8 @@ export default function ApplicationsPage() {
 				{/*
 				 * `mb-0`: this `<p>` is a flex item of the band's own `gap-4` box, and
 				 * a flex item establishes an independent formatting context, so the
-				 * unscoped base `p { margin-bottom: 1rem }` at globals.css:499 cannot
+				 * unscoped base `p { margin-bottom: 1rem }` (the `@layer base` `p` rule
+				 * in globals.css) cannot
 				 * collapse out of it — the 16px is added to the item's height on top
 				 * of the 16px gap that already spaces it (§D-3).
 				 */}

@@ -1,0 +1,974 @@
+[
+ {
+  "file": "src/app/globals.css",
+  "position": 12703,
+  "line": 334,
+  "old": "var(--spacing-16)",
+  "new": "--spacing(16)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ":root",
+  "property": "--layout-section-padding-y",
+  "declValue": "var(--spacing-16)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 12760,
+  "line": 335,
+  "old": "var(--spacing-12)",
+  "new": "--spacing(12)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ":root",
+  "property": "--layout-section-padding-y-compact",
+  "declValue": "var(--spacing-12)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 12818,
+  "line": 336,
+  "old": "var(--spacing-24)",
+  "new": "--spacing(24)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ":root",
+  "property": "--layout-section-padding-y-spacious",
+  "declValue": "var(--spacing-24)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 12872,
+  "line": 337,
+  "old": "var(--spacing-32)",
+  "new": "--spacing(32)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ":root",
+  "property": "--layout-section-padding-y-hero",
+  "declValue": "var(--spacing-32)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 13142,
+  "line": 342,
+  "old": "var(--spacing-8)",
+  "new": "--spacing(8)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ":root",
+  "property": "--layout-content-padding",
+  "declValue": "var(--spacing-8)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 13196,
+  "line": 343,
+  "old": "var(--spacing-4)",
+  "new": "--spacing(4)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ":root",
+  "property": "--layout-content-padding-compact",
+  "declValue": "var(--spacing-4)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 13251,
+  "line": 344,
+  "old": "var(--spacing-12)",
+  "new": "--spacing(12)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ":root",
+  "property": "--layout-content-padding-spacious",
+  "declValue": "var(--spacing-12)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 13303,
+  "line": 345,
+  "old": "var(--spacing-16)",
+  "new": "--spacing(16)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ":root",
+  "property": "--layout-content-padding-hero",
+  "declValue": "var(--spacing-16)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 13346,
+  "line": 346,
+  "old": "var(--spacing-16)",
+  "new": "--spacing(16)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ":root",
+  "property": "--layout-gap-section",
+  "declValue": "var(--spacing-16)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 13387,
+  "line": 347,
+  "old": "var(--spacing-8)",
+  "new": "--spacing(8)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ":root",
+  "property": "--layout-gap-group",
+  "declValue": "var(--spacing-8)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 13427,
+  "line": 348,
+  "old": "var(--spacing-4)",
+  "new": "--spacing(4)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ":root",
+  "property": "--layout-gap-items",
+  "declValue": "var(--spacing-4)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 13469,
+  "line": 349,
+  "old": "var(--spacing-12)",
+  "new": "--spacing(12)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ":root",
+  "property": "--layout-stack-loose",
+  "declValue": "var(--spacing-12)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 13514,
+  "line": 350,
+  "old": "var(--spacing-6)",
+  "new": "--spacing(6)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ":root",
+  "property": "--layout-stack-default",
+  "declValue": "var(--spacing-6)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 13760,
+  "line": 355,
+  "old": "var(--spacing-3)",
+  "new": "--spacing(3)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ":root",
+  "property": "--layout-stack-tight",
+  "declValue": "var(--spacing-3)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 13804,
+  "line": 356,
+  "old": "var(--spacing-16)",
+  "new": "--spacing(16)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ":root",
+  "property": "--layout-navbar-height",
+  "declValue": "var(--spacing-16)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 13850,
+  "line": 357,
+  "old": "var(--spacing-20)",
+  "new": "--spacing(20)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ":root",
+  "property": "--layout-navbar-spacing",
+  "declValue": "var(--spacing-20)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 29085,
+  "line": 951,
+  "old": "var(--spacing-5)",
+  "new": "--spacing(5)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ".dashboard-panel-header",
+  "property": "padding",
+  "declValue": "var(--spacing-5)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 29762,
+  "line": 977,
+  "old": "var(--spacing-1)",
+  "new": "--spacing(1)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ".dashboard-panel-description",
+  "property": "margin",
+  "declValue": "var(--spacing-1) 0 0 0"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 29823,
+  "line": 981,
+  "old": "var(--spacing-5)",
+  "new": "--spacing(5)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ".dashboard-panel-body",
+  "property": "padding",
+  "declValue": "var(--spacing-5)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 29957,
+  "line": 986,
+  "old": "var(--spacing-3)",
+  "new": "--spacing(3)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ".dashboard-panel[data-density=\"compact\"] .dashboard-panel-header",
+  "property": "padding",
+  "declValue": "var(--spacing-3) var(--spacing-4)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 29974,
+  "line": 986,
+  "old": "var(--spacing-4)",
+  "new": "--spacing(4)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ".dashboard-panel[data-density=\"compact\"] .dashboard-panel-header",
+  "property": "padding",
+  "declValue": "var(--spacing-3) var(--spacing-4)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 30070,
+  "line": 990,
+  "old": "var(--spacing-3)",
+  "new": "--spacing(3)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ".dashboard-panel[data-density=\"compact\"] .dashboard-panel-body",
+  "property": "padding",
+  "declValue": "var(--spacing-3) var(--spacing-4)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 30087,
+  "line": 990,
+  "old": "var(--spacing-4)",
+  "new": "--spacing(4)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": ".dashboard-panel[data-density=\"compact\"] .dashboard-panel-body",
+  "property": "padding",
+  "declValue": "var(--spacing-3) var(--spacing-4)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 30322,
+  "line": 998,
+  "old": "var(--spacing-4)",
+  "new": "--spacing(4)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": "@utility dashboard-stat-card",
+  "property": "padding",
+  "declValue": "var(--spacing-4)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 31038,
+  "line": 1028,
+  "old": "var(--spacing-3)",
+  "new": "--spacing(3)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": "@utility quick-action-button",
+  "property": "gap",
+  "declValue": "var(--spacing-3)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 31080,
+  "line": 1030,
+  "old": "var(--spacing-3)",
+  "new": "--spacing(3)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": "@utility quick-action-button",
+  "property": "padding",
+  "declValue": "var(--spacing-3)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 31111,
+  "line": 1031,
+  "old": "var(--spacing-11)",
+  "new": "--spacing(11)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": "@utility quick-action-button",
+  "property": "min-height",
+  "declValue": "var(--spacing-11)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 31817,
+  "line": 1059,
+  "old": "var(--spacing-1)",
+  "new": "--spacing(1)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": "@utility view-toggle",
+  "property": "gap",
+  "declValue": "var(--spacing-1)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 31845,
+  "line": 1060,
+  "old": "var(--spacing-1)",
+  "new": "--spacing(1)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": "@utility view-toggle",
+  "property": "padding",
+  "declValue": "var(--spacing-1)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 32007,
+  "line": 1068,
+  "old": "var(--spacing-1_5)",
+  "new": "--spacing(1.5)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": "@utility view-toggle-button",
+  "property": "gap",
+  "declValue": "var(--spacing-1_5)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 32037,
+  "line": 1069,
+  "old": "var(--spacing-1_5)",
+  "new": "--spacing(1.5)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": "@utility view-toggle-button",
+  "property": "padding",
+  "declValue": "var(--spacing-1_5) var(--spacing-3)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 32056,
+  "line": 1069,
+  "old": "var(--spacing-3)",
+  "new": "--spacing(3)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": "@utility view-toggle-button",
+  "property": "padding",
+  "declValue": "var(--spacing-1_5) var(--spacing-3)"
+ },
+ {
+  "file": "src/app/globals.css",
+  "position": 32087,
+  "line": 1070,
+  "old": "var(--spacing-8)",
+  "new": "--spacing(8)",
+  "scope": "css",
+  "kind": "css-spacing",
+  "selector": "@utility view-toggle-button",
+  "property": "min-height",
+  "declValue": "var(--spacing-8)"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 4664,
+  "line": 171,
+  "old": "gap-[var(--spacing-2)]",
+  "new": "gap-2",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 4712,
+  "line": 172,
+  "old": "size-[var(--spacing-5)]",
+  "new": "size-5",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 4965,
+  "line": 179,
+  "old": "space-y-[var(--spacing-6)]",
+  "new": "space-y-6",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 5327,
+  "line": 190,
+  "old": "pr-[var(--spacing-10)]",
+  "new": "pr-10",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 5732,
+  "line": 202,
+  "old": "right-[var(--spacing-3)]",
+  "new": "right-3",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 6090,
+  "line": 211,
+  "old": "size-[var(--spacing-4)]",
+  "new": "size-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 6159,
+  "line": 213,
+  "old": "size-[var(--spacing-4)]",
+  "new": "size-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 6525,
+  "line": 226,
+  "old": "pr-[var(--spacing-10)]",
+  "new": "pr-10",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 6894,
+  "line": 236,
+  "old": "right-[var(--spacing-3)]",
+  "new": "right-3",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 7236,
+  "line": 245,
+  "old": "size-[var(--spacing-4)]",
+  "new": "size-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 7305,
+  "line": 247,
+  "old": "size-[var(--spacing-4)]",
+  "new": "size-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 7433,
+  "line": 251,
+  "old": "mt-[var(--spacing-1)]",
+  "new": "mt-1",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 7958,
+  "line": 267,
+  "old": "pr-[var(--spacing-10)]",
+  "new": "pr-10",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 8359,
+  "line": 279,
+  "old": "right-[var(--spacing-3)]",
+  "new": "right-3",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 8717,
+  "line": 288,
+  "old": "size-[var(--spacing-4)]",
+  "new": "size-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 8786,
+  "line": 290,
+  "old": "size-[var(--spacing-4)]",
+  "new": "size-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/change-password-dialog.tsx",
+  "position": 8969,
+  "line": 298,
+  "old": "rounded-[var(--radius-lg)]",
+  "new": "rounded-lg",
+  "scope": "tsx",
+  "kind": "radius-class"
+ },
+ {
+  "file": "src/components/auth/forgot-password-modal.tsx",
+  "position": 1916,
+  "line": 72,
+  "old": "space-y-[var(--spacing-4)]",
+  "new": "space-y-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/forgot-password-modal.tsx",
+  "position": 1975,
+  "line": 74,
+  "old": "space-y-[var(--spacing-2)]",
+  "new": "space-y-2",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/forgot-password-modal.tsx",
+  "position": 2127,
+  "line": 77,
+  "old": "left-[var(--spacing-3)]",
+  "new": "left-3",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/forgot-password-modal.tsx",
+  "position": 2180,
+  "line": 77,
+  "old": "size-[var(--spacing-4)]",
+  "new": "size-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/forgot-password-modal.tsx",
+  "position": 2483,
+  "line": 86,
+  "old": "pl-[var(--spacing-9)]",
+  "new": "pl-9",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/forgot-password-modal.tsx",
+  "position": 2715,
+  "line": 95,
+  "old": "size-[var(--spacing-4)]",
+  "new": "size-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/forgot-password-modal.tsx",
+  "position": 3072,
+  "line": 103,
+  "old": "gap-[var(--spacing-2)]",
+  "new": "gap-2",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/forgot-password-modal.tsx",
+  "position": 3565,
+  "line": 120,
+  "old": "size-[var(--spacing-4)]",
+  "new": "size-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/forgot-password-modal.tsx",
+  "position": 3589,
+  "line": 120,
+  "old": "mr-[var(--spacing-2)]",
+  "new": "mr-2",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/forgot-password-modal.tsx",
+  "position": 3851,
+  "line": 133,
+  "old": "size-[var(--spacing-12)]",
+  "new": "size-12",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/forgot-password-modal.tsx",
+  "position": 3950,
+  "line": 134,
+  "old": "size-[var(--spacing-6)]",
+  "new": "size-6",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/forgot-password-modal.tsx",
+  "position": 4247,
+  "line": 141,
+  "old": "mt-[var(--spacing-2)]",
+  "new": "mt-2",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/forgot-password-modal.tsx",
+  "position": 4377,
+  "line": 147,
+  "old": "space-y-[var(--spacing-4)]",
+  "new": "space-y-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/forgot-password-modal.tsx",
+  "position": 4446,
+  "line": 149,
+  "old": "size-[var(--spacing-4)]",
+  "new": "size-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/forgot-password-modal.tsx",
+  "position": 4757,
+  "line": 157,
+  "old": "space-y-[var(--spacing-2)]",
+  "new": "space-y-2",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/forgot-password-modal.tsx",
+  "position": 5046,
+  "line": 165,
+  "old": "gap-[var(--spacing-2)]",
+  "new": "gap-2",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/password-strength.tsx",
+  "position": 3169,
+  "line": 118,
+  "old": "gap-[var(--spacing-1)]",
+  "new": "gap-1",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/password-strength.tsx",
+  "position": 3192,
+  "line": 118,
+  "old": "h-[var(--spacing-2)]",
+  "new": "h-2",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/password-strength.tsx",
+  "position": 3384,
+  "line": 124,
+  "old": "duration-[var(--duration-standard)]",
+  "new": "duration-(--duration-standard)",
+  "scope": "tsx",
+  "kind": "duration-class"
+ },
+ {
+  "file": "src/components/auth/password-strength.tsx",
+  "position": 3603,
+  "line": 133,
+  "old": "mt-[var(--spacing-4)]",
+  "new": "mt-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/password-strength.tsx",
+  "position": 3625,
+  "line": 133,
+  "old": "mb-[var(--spacing-3)]",
+  "new": "mb-3",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/password-strength.tsx",
+  "position": 3756,
+  "line": 137,
+  "old": "space-y-[var(--spacing-2)]",
+  "new": "space-y-2",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/password-strength.tsx",
+  "position": 4008,
+  "line": 145,
+  "old": "gap-x-[var(--spacing-2)]",
+  "new": "gap-x-2",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/password-strength.tsx",
+  "position": 4198,
+  "line": 150,
+  "old": "size-[var(--spacing-4)]",
+  "new": "size-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/password-strength.tsx",
+  "position": 4276,
+  "line": 152,
+  "old": "size-[var(--spacing-4)]",
+  "new": "size-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 2801,
+  "line": 99,
+  "old": "space-y-[var(--spacing-4)]",
+  "new": "space-y-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 2942,
+  "line": 100,
+  "old": "p-[var(--spacing-3)]",
+  "new": "p-3",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 3007,
+  "line": 101,
+  "old": "size-[var(--spacing-6)]",
+  "new": "size-6",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 3081,
+  "line": 103,
+  "old": "space-y-[var(--spacing-2)]",
+  "new": "space-y-2",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 3386,
+  "line": 110,
+  "old": "space-y-[var(--spacing-6)]",
+  "new": "space-y-6",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 3505,
+  "line": 113,
+  "old": "space-y-[var(--spacing-6)]",
+  "new": "space-y-6",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 3562,
+  "line": 115,
+  "old": "space-y-[var(--spacing-4)]",
+  "new": "space-y-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 5606,
+  "line": 173,
+  "old": "gap-[var(--spacing-1)]",
+  "new": "gap-1",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 5668,
+  "line": 174,
+  "old": "size-[var(--spacing-3)]",
+  "new": "size-3",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 5939,
+  "line": 181,
+  "old": "gap-[var(--spacing-1)]",
+  "new": "gap-1",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 6000,
+  "line": 182,
+  "old": "size-[var(--spacing-3)]",
+  "new": "size-3",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 6226,
+  "line": 191,
+  "old": "size-[var(--spacing-4)]",
+  "new": "size-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 7130,
+  "line": 218,
+  "old": "size-[var(--spacing-4)]",
+  "new": "size-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 7178,
+  "line": 218,
+  "old": "mr-[var(--spacing-2)]",
+  "new": "mr-2",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 7287,
+  "line": 223,
+  "old": "size-[var(--spacing-4)]",
+  "new": "size-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 7311,
+  "line": 223,
+  "old": "mr-[var(--spacing-2)]",
+  "new": "mr-2",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/auth/update-password-form.tsx",
+  "position": 7449,
+  "line": 230,
+  "old": "pt-[var(--spacing-4)]",
+  "new": "pt-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/sections/features-section.tsx",
+  "position": 3419,
+  "line": 110,
+  "old": "mb-[var(--spacing-4)]",
+  "new": "mb-4",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/sections/features-section.tsx",
+  "position": 3760,
+  "line": 113,
+  "old": "size-[var(--spacing-6)]",
+  "new": "size-6",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/sections/features-section.tsx",
+  "position": 3970,
+  "line": 120,
+  "old": "size-[var(--spacing-2)]",
+  "new": "size-2",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/sections/features-section.tsx",
+  "position": 4215,
+  "line": 124,
+  "old": "w-[var(--spacing-1_5)]",
+  "new": "w-1.5",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ },
+ {
+  "file": "src/components/sections/features-section.tsx",
+  "position": 4238,
+  "line": 124,
+  "old": "h-[var(--spacing-1_5)]",
+  "new": "h-1.5",
+  "scope": "tsx",
+  "kind": "spacing-class"
+ }
+]

@@ -21,6 +21,7 @@ vi.mock("#lib/supabase/client", () => ({
 	}),
 }));
 
+import { tierGateRefusal } from "../../../../supabase/functions/_shared/tier-gate-decision";
 import { leaseMutations } from "./lease-mutation-options";
 import { PaywallError } from "./report-keys";
 
@@ -90,6 +91,43 @@ describe("callLeaseSignatureEdgeFunction over-cap 402 handling", () => {
 			"/billing/plans?source=esign_quota",
 		);
 		expect((err as PaywallError).message).toContain("25 lease e-signs");
+	});
+
+	// 66.2-39 fix round 4, Part 8n: the tier gate's reason rides on the error,
+	// so the toast can tell a past-due owner from one whose plan lacks e-sign.
+	it("carries the tier gate's reason, and drops one it does not write", async () => {
+		globalThis.fetch = vi.fn().mockResolvedValue(
+			jsonResponse(
+				tierGateRefusal({
+					onEntitledPlan: true,
+					hasActiveSub: false,
+					status: "past_due",
+					upgradeSource: "esign_gate",
+				}),
+				402,
+			),
+		);
+		const err = await runSend().then(
+			() => new Error("expected the send to reject"),
+			(e: unknown) => e,
+		);
+		expect(err).toBeInstanceOf(PaywallError);
+		expect((err as PaywallError).reason).toBe("subscription_inactive");
+		expect((err as PaywallError).upgradeUrl).toBe("/settings?tab=billing");
+
+		globalThis.fetch = vi
+			.fn()
+			.mockResolvedValue(
+				jsonResponse(
+					{ error: "x", upgrade_url: "/billing/plans", reason: "invented" },
+					402,
+				),
+			);
+		const unknown = await runSend().then(
+			() => new Error("expected the send to reject"),
+			(e: unknown) => e,
+		);
+		expect((unknown as PaywallError).reason).toBeNull();
 	});
 
 	it("throws a plain Error (not a PaywallError) for a non-paywall failure body", async () => {

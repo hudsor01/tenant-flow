@@ -1,0 +1,644 @@
+{
+	"mode": "fix-round-3",
+	"checks": [
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/hooks/api/__tests__/rent-ledger-invalidation.test.tsx (part 2 (F107)) present and passing, with its 5 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 5,
+				"numPassed": 5,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/hooks/api/__tests__/rent-ledger-invalidation.test.tsx"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/hooks/api/__tests__/data-layer-callers.test.ts (part 2 (OD-4, nested members)) present and passing, with its 2 title(s) and its widening",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/hooks/api/__tests__/data-layer-callers.test.ts"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/types/__tests__/api-contracts-exports-imported.test.ts (part 7b) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/types/__tests__/api-contracts-exports-imported.test.ts"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/components/__tests__/list-base-rule-neutralized.test.ts (part 7b) present and passing, with its 3 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/components/__tests__/list-base-rule-neutralized.test.ts"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/components/__tests__/billing-auth-lists-base-rules.test.tsx (part 7b) present and passing, with its 3 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 9,
+				"numPassed": 9,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/components/__tests__/billing-auth-lists-base-rules.test.tsx"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/components/ui/__tests__/button-caller-states.test.ts (part 5 (OD-2)) present and passing, with its 4 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 6,
+				"numPassed": 6,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/components/ui/__tests__/button-caller-states.test.ts"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/app/__tests__/state-fill-contrast.test.ts (part 5 (merged classes)) present and passing, with its 3 title(s) and its widening",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 39,
+				"numPassed": 39,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/app/__tests__/state-fill-contrast.test.ts"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/components/ui/__tests__/button-link-base-rule.test.tsx (part 5 (OD-3)) present and passing, with its 4 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 7,
+				"numPassed": 7,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/components/ui/__tests__/button-link-base-rule.test.tsx"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/components/__tests__/no-hover-on-static-elements.test.ts (part 5 (F56, by driver)) present and passing, with its 3 title(s) and its widening",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 3,
+				"numPassed": 3,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/components/__tests__/no-hover-on-static-elements.test.ts"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/components/__tests__/group-markers.test.ts (part 5 (F66)) present and passing, with its 2 title(s) and its widening",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/components/__tests__/group-markers.test.ts"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/components/ui/__tests__/chart-recharts-classes.test.tsx (part 6c) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/components/ui/__tests__/chart-recharts-classes.test.tsx"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/components/__tests__/ids-not-shown-as-text.test.tsx (part 6c (names, _id columns, foreign keys)) present and passing, with its 4 title(s) and its widening",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 9,
+				"numPassed": 9,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/components/__tests__/ids-not-shown-as-text.test.tsx"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/components/maintenance/__tests__/maintenance-list-names.test.tsx (part 6c) present and passing, with its 3 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 3,
+				"numPassed": 3,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/components/maintenance/__tests__/maintenance-list-names.test.tsx"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/components/leases/detail/__tests__/lease-details-embeds.test.tsx (part 7) present and passing, with its 3 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 5,
+				"numPassed": 5,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/components/leases/detail/__tests__/lease-details-embeds.test.tsx"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/components/leases/__tests__/lease-edit-unit-preselect.test.tsx (part 7, 7b) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/components/leases/__tests__/lease-edit-unit-preselect.test.tsx"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/components/__tests__/card-padding-v4.test.tsx (part 6b (G4)) present and passing, with its 3 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/components/__tests__/card-padding-v4.test.tsx"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/components/leases/detail/__tests__/lease-card-padding.test.tsx (part 6b (G4)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/components/leases/detail/__tests__/lease-card-padding.test.tsx"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/app/(owner)/reports/__tests__/report-tile-spacing.test.tsx (part 5 (Part 3's extras)) present and passing, with its 3 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/app/(owner)/reports/__tests__/report-tile-spacing.test.tsx"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/lib/reports/__tests__/report-data-notes.test.ts (part 3 (F121, F122)) present and passing, with its 3 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 9,
+				"numPassed": 9,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/lib/reports/__tests__/report-data-notes.test.ts"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard scripts/mutation-sweep.test.ts (part 1 (F102, the sweep section guard)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 9,
+				"numPassed": 9,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:scripts/mutation-sweep.test.ts"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard scripts/migration-replay-assertions.test.ts (part 1 (F97, F138, OD-1)) present and passing, with its 3 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 263,
+				"numPassed": 263,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:scripts/migration-replay-assertions.test.ts"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard tests/e2e/lib/__tests__/e2e-support-exports-have-callers.test.ts (part 7 (F84, git ls-files)) present and passing, with its 2 title(s) and its widening",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 3,
+				"numPassed": 3,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:tests/e2e/lib/__tests__/e2e-support-exports-have-callers.test.ts"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard tests/e2e/lib/__tests__/reflow-newest-record.test.ts (part 7 (F90)) present and passing, with its 4 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:tests/e2e/lib/__tests__/reflow-newest-record.test.ts"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/providers/__tests__/query-cache-buster.test.ts (part 3 (v7; v8, v9 in fix round 4)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 1,
+				"numPassed": 1,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/providers/__tests__/query-cache-buster.test.ts"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3 guard src/components/ui/__tests__/tour-viewport-fit.test.tsx (part 6d) present and passing, with its 6 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 6,
+				"numPassed": 6,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr3-guard:src/components/ui/__tests__/tour-viewport-fit.test.tsx"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3's code state b7f25511b is in the history of the code state (git rev-list)",
+			"pass": true,
+			"expected": true,
+			"measured": {
+				"fr3InHistory": true,
+				"codeState": "7f6fcc67c3d2d939a2f765713510b2943fc6b6f8"
+			},
+			"group": "fr3-code-state"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "every evidence file this re-freeze owns was measured on the code state, and the screenshot and probe diffs against a same-session 3977aa58d",
+			"pass": true,
+			"expected": "all on the code state",
+			"measured": {
+				"stale": [],
+				"screenBaselines": [
+					"3977aa58d"
+				],
+				"screensFresh": true,
+				"probesBaseline": "3977aa58d"
+			},
+			"group": "fr3-fresh"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "every component-probe difference from 3977aa58d is intended under a VD row, or noise the same field shows across same-session repeats of the code state",
+			"pass": true,
+			"expected": "0 unattributed",
+			"measured": {
+				"diffs": 50,
+				"noise": [],
+				"badDiffs": [],
+				"badNoise": []
+			},
+			"group": "fr3-probes"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "the mutation sweep holds 185 rows, every one caught unsharded and in shards of 24, 23, 23, 23, 23, 23, 23, 23",
+			"pass": true,
+			"expected": {
+				"rows": 185,
+				"shards": [
+					24,
+					23,
+					23,
+					23,
+					23,
+					23,
+					23,
+					23
+				]
+			},
+			"measured": {
+				"scriptRows": 185,
+				"unsharded": {
+					"rows": 185,
+					"caught": 185,
+					"vacuous": 0,
+					"notApplied": 0
+				},
+				"shards": [
+					"24/24",
+					"23/23",
+					"23/23",
+					"23/23",
+					"23/23",
+					"23/23",
+					"23/23",
+					"23/23"
+				]
+			},
+			"group": "fr3-sweep"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "the migration replay applies all 358 files from empty on the code state (357 at round 3), every gate exit 0",
+			"pass": true,
+			"expected": {
+				"files": 358
+			},
+			"measured": {
+				"files": 358,
+				"applied": 358,
+				"tree": 358,
+				"gates": {
+					"applied": 0,
+					"no-network": 0,
+					"seed": 0,
+					"test-cast": 0,
+					"billing-insights": 0,
+					"property-performance": 0,
+					"owner-figures": 0,
+					"blog-banlist": 0
+				}
+			},
+			"group": "fr3-replay"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "deno check is clean on all 17 functions and round 3's in-process Deno test files pass at their current counts",
+			"pass": true,
+			"expected": {
+				"functions": 17,
+				"tests": {
+					"send-lease-reminders-test.ts": 25,
+					"lease-signature-metering-test.ts": 5,
+					"lease-signing-test.ts": 12,
+					"rate-limit-sentry-test.ts": 2,
+					"export-report-test.ts": 17,
+					"generate-pdf-test.ts": 9
+				}
+			},
+			"measured": {
+				"functions": 17,
+				"nonZero": [],
+				"tests": {
+					"send-lease-reminders-test.ts": {
+						"passed": 25,
+						"failed": 0
+					},
+					"lease-signature-metering-test.ts": {
+						"passed": 5,
+						"failed": 0
+					},
+					"lease-signing-test.ts": {
+						"passed": 12,
+						"failed": 0
+					},
+					"rate-limit-sentry-test.ts": {
+						"passed": 2,
+						"failed": 0
+					},
+					"export-report-test.ts": {
+						"passed": 17,
+						"failed": 0
+					},
+					"generate-pdf-test.ts": {
+						"passed": 9,
+						"failed": 0
+					}
+				}
+			},
+			"group": "fr3-deno"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "the redeploy list is exactly the functions whose bundle differs from d9c7329f0 (all 17 bundled; round 3's four, 5 since fix round 4), and the PR body's deploy command names exactly them",
+			"pass": true,
+			"expected": [
+				"export-report",
+				"generate-pdf",
+				"lease-signature",
+				"n8n-blog-ingest",
+				"stripe-webhooks"
+			],
+			"measured": {
+				"bundled": 17,
+				"differing": [
+					"export-report",
+					"generate-pdf",
+					"lease-signature",
+					"n8n-blog-ingest",
+					"stripe-webhooks"
+				],
+				"deploy": [
+					"export-report",
+					"generate-pdf",
+					"lease-signature",
+					"n8n-blog-ingest",
+					"stripe-webhooks"
+				],
+				"prBodyCommand": [
+					"export-report",
+					"generate-pdf",
+					"lease-signature",
+					"n8n-blog-ingest",
+					"stripe-webhooks"
+				]
+			},
+			"group": "fr3-edge"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "rule parity: every key fix round 3 added or removed has its commit and VD row, and the FINAL -> f39 diff classifies exactly those keys as fix round 3's",
+			"pass": true,
+			"expected": "0 unclassified, 0 unattributed",
+			"measured": {
+				"unclassified": 0,
+				"added": 28,
+				"removed": 7,
+				"reversed": 2,
+				"badKeys": [],
+				"unattributed": []
+			},
+			"group": "fr3-parity"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "the PR body carries the fix-round-3 section after fix round 2 and before After merge, and its VD table lists VD-130..VD-151 once each",
+			"pass": true,
+			"expected": {
+				"section": "## Fix round 3 (after perfect-PR cycle 2)",
+				"vd": "VD-130..VD-151"
+			},
+			"measured": {
+				"section": 10238,
+				"fixRound2": 7853,
+				"afterMerge": 23246,
+				"table": [
+					"VD-130",
+					"VD-131",
+					"VD-132",
+					"VD-133",
+					"VD-134",
+					"VD-135",
+					"VD-136",
+					"VD-137",
+					"VD-138",
+					"VD-139",
+					"VD-140",
+					"VD-141",
+					"VD-142",
+					"VD-143",
+					"VD-144",
+					"VD-145",
+					"VD-146",
+					"VD-147",
+					"VD-148",
+					"VD-149",
+					"VD-150",
+					"VD-151"
+				]
+			},
+			"group": "fr3-pr-body"
+		},
+		{
+			"cp": "FR-3",
+			"choice": "fix-round-3",
+			"name": "fix round 3's code diff f8de0175e..b7f25511b equals f39/fix-round-3-paths.json",
+			"pass": true,
+			"expected": 355,
+			"measured": {
+				"paths": 355,
+				"recorded": 355,
+				"missing": [],
+				"extra": []
+			},
+			"group": "fr3-scope"
+		}
+	],
+	"failedGroups": [],
+	"failed": 0
+}

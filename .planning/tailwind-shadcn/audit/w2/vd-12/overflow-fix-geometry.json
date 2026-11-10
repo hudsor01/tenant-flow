@@ -1,0 +1,312 @@
+[
+ {
+  "pair": "nofix vs fix",
+  "theme": "light",
+  "width": 390,
+  "skeletons": [
+   37,
+   37
+  ],
+  "changed": 3,
+  "overflowAfter": "0",
+  "diffs": [
+   {
+    "i": 2,
+    "before": [
+     0,
+     96,
+     256,
+     40
+    ],
+    "after": [
+     0,
+     96,
+     180.52,
+     40
+    ]
+   },
+   {
+    "i": 3,
+    "before": [
+     272,
+     96,
+     128,
+     40
+    ],
+    "after": [
+     196.52,
+     96,
+     90.25,
+     40
+    ]
+   },
+   {
+    "i": 4,
+    "before": [
+     400,
+     96,
+     0,
+     40
+    ],
+    "after": [
+     286.77,
+     96,
+     103.23,
+     40
+    ]
+   }
+  ]
+ },
+ {
+  "pair": "nofix vs fix",
+  "theme": "light",
+  "width": 1280,
+  "skeletons": [
+   37,
+   37
+  ],
+  "changed": 0,
+  "overflowAfter": "0",
+  "diffs": []
+ },
+ {
+  "pair": "nofix vs fix",
+  "theme": "dark",
+  "width": 390,
+  "skeletons": [
+   37,
+   37
+  ],
+  "changed": 3,
+  "overflowAfter": "0",
+  "diffs": [
+   {
+    "i": 2,
+    "before": [
+     0,
+     96,
+     256,
+     40
+    ],
+    "after": [
+     0,
+     96,
+     180.52,
+     40
+    ]
+   },
+   {
+    "i": 3,
+    "before": [
+     272,
+     96,
+     128,
+     40
+    ],
+    "after": [
+     196.52,
+     96,
+     90.25,
+     40
+    ]
+   },
+   {
+    "i": 4,
+    "before": [
+     400,
+     96,
+     0,
+     40
+    ],
+    "after": [
+     286.77,
+     96,
+     103.23,
+     40
+    ]
+   }
+  ]
+ },
+ {
+  "pair": "nofix vs fix",
+  "theme": "dark",
+  "width": 1280,
+  "skeletons": [
+   37,
+   37
+  ],
+  "changed": 0,
+  "overflowAfter": "0",
+  "diffs": []
+ },
+ {
+  "pair": "nofix-live vs fix-live",
+  "theme": "light",
+  "width": 390,
+  "skeletons": [
+   37,
+   37
+  ],
+  "changed": 4,
+  "overflowAfter": "0",
+  "diffs": [
+   {
+    "i": 1,
+    "before": [
+     0,
+     44,
+     384,
+     16
+    ],
+    "after": [
+     0,
+     44,
+     358,
+     16
+    ]
+   },
+   {
+    "i": 2,
+    "before": [
+     0,
+     96,
+     256,
+     40
+    ],
+    "after": [
+     0,
+     96,
+     164.83,
+     40
+    ]
+   },
+   {
+    "i": 3,
+    "before": [
+     272,
+     96,
+     128,
+     40
+    ],
+    "after": [
+     180.83,
+     96,
+     82.41,
+     40
+    ]
+   },
+   {
+    "i": 4,
+    "before": [
+     400,
+     96,
+     0,
+     40
+    ],
+    "after": [
+     263.23,
+     96,
+     94.77,
+     40
+    ]
+   }
+  ]
+ },
+ {
+  "pair": "nofix-live vs fix-live",
+  "theme": "light",
+  "width": 1280,
+  "skeletons": [
+   37,
+   37
+  ],
+  "changed": 0,
+  "overflowAfter": "0",
+  "diffs": []
+ },
+ {
+  "pair": "nofix-live vs fix-live",
+  "theme": "dark",
+  "width": 390,
+  "skeletons": [
+   37,
+   37
+  ],
+  "changed": 4,
+  "overflowAfter": "0",
+  "diffs": [
+   {
+    "i": 1,
+    "before": [
+     0,
+     44,
+     384,
+     16
+    ],
+    "after": [
+     0,
+     44,
+     358,
+     16
+    ]
+   },
+   {
+    "i": 2,
+    "before": [
+     0,
+     96,
+     256,
+     40
+    ],
+    "after": [
+     0,
+     96,
+     164.83,
+     40
+    ]
+   },
+   {
+    "i": 3,
+    "before": [
+     272,
+     96,
+     128,
+     40
+    ],
+    "after": [
+     180.83,
+     96,
+     82.41,
+     40
+    ]
+   },
+   {
+    "i": 4,
+    "before": [
+     400,
+     96,
+     0,
+     40
+    ],
+    "after": [
+     263.23,
+     96,
+     94.77,
+     40
+    ]
+   }
+  ]
+ },
+ {
+  "pair": "nofix-live vs fix-live",
+  "theme": "dark",
+  "width": 1280,
+  "skeletons": [
+   37,
+   37
+  ],
+  "changed": 0,
+  "overflowAfter": "0",
+  "diffs": []
+ }
+]

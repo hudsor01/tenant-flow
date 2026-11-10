@@ -11,20 +11,26 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#components/ui/dialog";
+import {
+	PROPERTY_STATUS_LABELS,
+	PROPERTY_TYPE_OPTIONS,
+	type PropertyType,
+	toPropertyType,
+} from "#lib/constants/status-types";
 import type { PropertyStatus } from "#types/core";
-import type { DesignPropertyType } from "./types";
 
 interface PropertyBulkEditDialogProps {
 	open: boolean;
 	selectedCount: number;
 	bulkEditStatus: PropertyStatus;
-	bulkEditType: DesignPropertyType;
+	/** Null when the first selected property's type is outside the set. */
+	bulkEditType: PropertyType | null;
 	applyBulkStatus: boolean;
 	applyBulkType: boolean;
 	isSaving: boolean;
 	onOpenChange: (open: boolean) => void;
 	onStatusChange: (status: PropertyStatus) => void;
-	onTypeChange: (type: DesignPropertyType) => void;
+	onTypeChange: (type: PropertyType) => void;
 	onApplyStatusChange: (apply: boolean) => void;
 	onApplyTypeChange: (apply: boolean) => void;
 	onSubmit: () => void;
@@ -50,7 +56,7 @@ export function PropertyBulkEditDialog({
 			<DialogContent intent="edit">
 				<DialogHeader>
 					<DialogTitle>Bulk edit properties</DialogTitle>
-					<DialogDescription>
+					<DialogDescription className="mb-0">
 						Apply changes to {selectedCount}{" "}
 						{selectedCount === 1 ? "property" : "properties"}.
 					</DialogDescription>
@@ -79,11 +85,15 @@ export function PropertyBulkEditDialog({
 									onChange={(e) =>
 										onStatusChange(e.target.value as PropertyStatus)
 									}
-									className="w-full appearance-none px-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9 disabled:opacity-50 disabled:cursor-not-allowed"
+									className="w-full appearance-none px-3 py-2 text-sm bg-background border border-input rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9 disabled:opacity-50 disabled:cursor-not-allowed"
 								>
-									<option value="active">Active</option>
-									<option value="inactive">Inactive</option>
-									<option value="sold">Sold</option>
+									{Object.entries(PROPERTY_STATUS_LABELS).map(
+										([value, label]) => (
+											<option key={value} value={value}>
+												{label}
+											</option>
+										),
+									)}
 								</select>
 							</div>
 						</div>
@@ -106,17 +116,23 @@ export function PropertyBulkEditDialog({
 								<select
 									id="bulk-type"
 									disabled={!applyBulkType}
-									value={bulkEditType}
-									onChange={(e) =>
-										onTypeChange(e.target.value as DesignPropertyType)
-									}
-									className="w-full appearance-none px-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9 disabled:opacity-50 disabled:cursor-not-allowed"
+									value={bulkEditType ?? ""}
+									onChange={(e) => {
+										const type = toPropertyType(e.target.value);
+										if (type !== null) onTypeChange(type);
+									}}
+									className="w-full appearance-none px-3 py-2 text-sm bg-background border border-input rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9 disabled:opacity-50 disabled:cursor-not-allowed"
 								>
-									<option value="single_family">Single Family</option>
-									<option value="multi_family">Multi Family</option>
-									<option value="apartment">Apartment</option>
-									<option value="condo">Condo</option>
-									<option value="townhouse">Townhouse</option>
+									{bulkEditType === null && (
+										<option value="" disabled>
+											Select a type
+										</option>
+									)}
+									{PROPERTY_TYPE_OPTIONS.map((option) => (
+										<option key={option.value} value={option.value}>
+											{option.label}
+										</option>
+									))}
 								</select>
 							</div>
 						</div>
@@ -132,7 +148,11 @@ export function PropertyBulkEditDialog({
 					</Button>
 					<Button
 						onClick={onSubmit}
-						disabled={isSaving || (!applyBulkStatus && !applyBulkType)}
+						disabled={
+							isSaving ||
+							(!applyBulkStatus && !applyBulkType) ||
+							(applyBulkType && bulkEditType === null)
+						}
 					>
 						{isSaving ? "Applying..." : `Apply to ${selectedCount}`}
 					</Button>

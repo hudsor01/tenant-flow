@@ -8,7 +8,7 @@
  */
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -110,6 +110,37 @@ describe("BillingSettings empty-state branches", () => {
 		).toBeInTheDocument();
 	});
 
+	// 66.2-39 fix round 4, Part 8n: a trial's period ends with the trial,
+	// where Stripe bills the plan only with a payment method on file and
+	// cancels it without one, so the date is labelled as the trial's end.
+	it.each([
+		["active", /^Next billing date: /],
+		["trialing", /^Trial ends: /],
+	] as const)("labels a %s plan's period end", async (status, label) => {
+		useSubscriptionStatusMock.mockReturnValue({
+			data: {
+				subscriptionStatus: status,
+				stripePriceId: "price_1TVTaIP3WCR53SdoqnUe1Inv",
+				currentPeriodEnd: "2026-06-01T00:00:00.000Z",
+				stripeCustomerId: "cus_growth",
+				cancelAtPeriodEnd: false,
+				trialEndsAt: null,
+			},
+			isLoading: false,
+		});
+		useUserMock.mockReturnValue({
+			data: { stripe_customer_id: "cus_growth" },
+		});
+
+		const BillingSettings = await getBillingSettings();
+		renderWithProviders(<BillingSettings />);
+
+		expect(screen.getByText(label)).toBeInTheDocument();
+		if (status === "trialing") {
+			expect(screen.queryByText(/Next billing date/)).not.toBeInTheDocument();
+		}
+	});
+
 	it("renders the trialing-without-priceId branch with Choose a plan link", async () => {
 		useSubscriptionStatusMock.mockReturnValue({
 			data: {
@@ -129,7 +160,12 @@ describe("BillingSettings empty-state branches", () => {
 
 		expect(screen.getByText("Free trial")).toBeInTheDocument();
 		expect(screen.getByText("Trial")).toBeInTheDocument();
-		expect(screen.getByText(/Your trial is active/)).toBeInTheDocument();
+		// expire_trials() only sets subscription_status to 'expired': the account
+		// and its records stay, so the note no longer says choosing a plan keeps
+		// the account (66.2-39 fix round 4, Part 8i).
+		expect(screen.getByText(/Your trial is active/).textContent).toBe(
+			"Your trial is active. Choose a plan to keep using TenantFlow when the trial ends.",
+		);
 		expect(screen.getByRole("link", { name: /Choose a plan/ })).toHaveAttribute(
 			"href",
 			"/billing/plans",
@@ -209,11 +245,6 @@ describe("BillingSettings empty-state branches", () => {
 	});
 
 	const RESUBSCRIBE_CASES = [
-		{
-			status: "past_due",
-			badge: "Past Due",
-			copy: /Your subscription is past due/,
-		},
 		{ status: "unpaid", badge: "Unpaid", copy: /Your subscription is unpaid/ },
 		{
 			status: "canceled",
@@ -268,7 +299,42 @@ describe("BillingSettings empty-state branches", () => {
 		},
 	);
 
-	it("renders the no-subscription branch (Upgrade to unlock copy)", async () => {
+	// The proxy admits past_due through Stripe's retries: it read "Resubscribe
+	// to restore access" to an owner who had access (66.2-39 fix round 4,
+	// Part 8l).
+	it("renders the past_due branch: keep access by updating the payment method", async () => {
+		useSubscriptionStatusMock.mockReturnValue({
+			data: {
+				subscriptionStatus: "past_due",
+				stripePriceId: "price_1TVTaIP3WCR53SdoqnUe1Inv",
+				currentPeriodEnd: null,
+				stripeCustomerId: "cus_past_due",
+				cancelAtPeriodEnd: false,
+				trialEndsAt: null,
+			},
+			isLoading: false,
+		});
+		useUserMock.mockReturnValue({
+			data: { stripe_customer_id: "cus_past_due" },
+		});
+
+		const BillingSettings = await getBillingSettings();
+		renderWithProviders(<BillingSettings />);
+
+		expect(screen.getByText("Past Due")).toBeInTheDocument();
+		expect(
+			screen.getByText(
+				"Your payment is past due. Update your payment method to keep access.",
+			),
+		).toBeInTheDocument();
+		expect(screen.queryByText(/restore access/)).toBeNull();
+		expect(screen.queryByRole("link", { name: "Resubscribe" })).toBeNull();
+		expect(
+			screen.getByRole("button", { name: "Manage Plan" }),
+		).toBeInTheDocument();
+	});
+
+	it("renders the no-subscription branch (other pages need a plan)", async () => {
 		useSubscriptionStatusMock.mockReturnValue({
 			data: {
 				subscriptionStatus: null,
@@ -288,7 +354,7 @@ describe("BillingSettings empty-state branches", () => {
 		expect(screen.getByText("No plan")).toBeInTheDocument();
 		expect(screen.getByText("No Subscription")).toBeInTheDocument();
 		expect(
-			screen.getByText(/Upgrade to unlock premium features/),
+			screen.getByText("Other pages need an active plan."),
 		).toBeInTheDocument();
 		expect(
 			screen.getByRole("button", { name: "Choose a Plan" }),
@@ -339,7 +405,7 @@ describe("BillingSettings empty-state branches", () => {
 		// "No plan" empty-state must NOT render alongside the error.
 		expect(screen.queryByText("No plan")).not.toBeInTheDocument();
 		expect(
-			screen.queryByText(/Upgrade to unlock premium features/),
+			screen.queryByText("Other pages need an active plan."),
 		).not.toBeInTheDocument();
 	});
 
@@ -389,4 +455,87 @@ describe("BillingSettings empty-state branches", () => {
 			screen.getByText(/Your session appears to have expired/),
 		).toBeInTheDocument();
 	});
+});
+
+// Main session, Part 8m: the plan title names the plan whenever the plan is
+// known, whatever the status, and the badge beside it states the status. It
+// counted only `active` and `trialing` as having a plan, so a past_due owner
+// on Growth read "No plan". "No plan" is only for an owner who has none: no
+// subscription, or one that has ended.
+describe("BillingSettings plan title", () => {
+	const GROWTH_PRICE = "price_1TVTaIP3WCR53SdoqnUe1Inv";
+	const STATUSES = [
+		{ status: "active", badge: "Active", none: "Active subscription" },
+		{ status: "trialing", badge: "Trial", none: "Free trial" },
+		{ status: "past_due", badge: "Past Due", none: "Your subscription" },
+		{ status: "unpaid", badge: "Unpaid", none: "Your subscription" },
+		{ status: "paused", badge: "Paused", none: "Your subscription" },
+		{ status: "incomplete", badge: "Incomplete", none: "Your subscription" },
+		{ status: "canceled", badge: "Canceled", none: "No plan" },
+		{ status: "incomplete_expired", badge: "Expired", none: "No plan" },
+		{ status: "expired", badge: "Trial Expired", none: "No plan" },
+		{ status: null, badge: "No Subscription", none: "No plan" },
+	] as const;
+
+	beforeEach(() => {
+		useSubscriptionStatusMock.mockReset();
+		useUserMock.mockReset();
+		captureMessageMock.mockReset();
+		useUserMock.mockReturnValue({ data: { stripe_customer_id: "cus_title" } });
+	});
+
+	async function titleAndBadge(
+		status: (typeof STATUSES)[number]["status"],
+		stripePriceId: string | null,
+	) {
+		useSubscriptionStatusMock.mockReturnValue({
+			data: {
+				subscriptionStatus: status,
+				stripePriceId,
+				currentPeriodEnd: "2026-12-01T00:00:00.000Z",
+				stripeCustomerId: "cus_title",
+				cancelAtPeriodEnd: false,
+				trialEndsAt: null,
+			},
+			isLoading: false,
+		});
+		const BillingSettings = await getBillingSettings();
+		renderWithProviders(<BillingSettings />);
+		const card = screen
+			.getByRole("heading", { name: "Current Plan" })
+			.closest("section") as HTMLElement;
+		const title = within(card).getByRole("heading", { level: 4 });
+		return {
+			title: title.textContent,
+			row: title.parentElement as HTMLElement,
+		};
+	}
+
+	it.each(STATUSES)(
+		"$status with a known plan: the plan's name, the status beside it",
+		async ({ status, badge }) => {
+			const { title, row } = await titleAndBadge(status, GROWTH_PRICE);
+			expect(title).toBe("Growth");
+			expect(within(row).getByText(badge)).toBeInTheDocument();
+		},
+	);
+
+	// Measured on the served build (Part 8m): "Your subscription" beside the
+	// "Incomplete" badge held the row on one line, and Manage Plan ran to
+	// 335.3px at 320 and 328. The badge wraps under the title instead.
+	it("lets the badge wrap under a long title, so the row never pushes the buttons out", async () => {
+		const { row } = await titleAndBadge("incomplete", null);
+		expect(row.className.split(/\s+/)).toEqual(
+			expect.arrayContaining(["flex", "flex-wrap", "items-center"]),
+		);
+	});
+
+	it.each(STATUSES)(
+		"$status with no known plan: $none",
+		async ({ status, badge, none }) => {
+			const { title, row } = await titleAndBadge(status, null);
+			expect(title).toBe(none);
+			expect(within(row).getByText(badge)).toBeInTheDocument();
+		},
+	);
 });

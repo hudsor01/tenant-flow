@@ -156,7 +156,7 @@ export function PropertyTable({
 				    role attributes are restored on every structural element
 				    (mirrors portfolio-data-table.tsx). */}
 				<table
-					className="grid w-full"
+					className="grid w-full min-w-min"
 					role="table"
 					aria-rowcount={sortedProperties.length + 1}
 				>
@@ -171,6 +171,7 @@ export function PropertyTable({
 								role="columnheader"
 							>
 								<Checkbox
+									aria-label="Select all properties"
 									checked={
 										selectedRows.size === properties.length &&
 										properties.length > 0
@@ -246,7 +247,7 @@ export function PropertyTable({
 										"px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider",
 									)}
 								>
-									<SortHeader field="revenue">Monthly Revenue</SortHeader>
+									<SortHeader field="revenue">Occupied Rent</SortHeader>
 								</th>
 							)}
 							<th

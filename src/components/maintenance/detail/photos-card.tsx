@@ -23,6 +23,7 @@ import {
 	maintenanceMutations,
 	maintenanceQueries,
 } from "#hooks/api/query-keys/maintenance-keys";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 
 interface PhotosCardProps {
 	requestId: string;
@@ -100,7 +101,7 @@ export function PhotosCard({ requestId }: PhotosCardProps) {
 				uploaded++;
 			} catch (err) {
 				failures.push(
-					`${file.name}: ${err instanceof Error ? err.message : "unknown error"}`,
+					`${file.name}: ${userFacingErrorMessage(err, "Upload failed")}`,
 				);
 			}
 		}
@@ -125,7 +126,7 @@ export function PhotosCard({ requestId }: PhotosCardProps) {
 			setSelectedIndex(null);
 		} catch (err) {
 			toast.error("Failed to remove photo", {
-				description: err instanceof Error ? err.message : "Please try again.",
+				description: userFacingErrorMessage(err, "Please try again."),
 			});
 		}
 	};
@@ -221,7 +222,7 @@ export function PhotosCard({ requestId }: PhotosCardProps) {
 									<DialogTrigger asChild>
 										<button
 											type="button"
-											className="overflow-hidden rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring relative group"
+											className="overflow-hidden rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring relative"
 											aria-label={`View ${photo.file_name}`}
 										>
 											{isVideo ? (
@@ -268,7 +269,7 @@ export function PhotosCard({ requestId }: PhotosCardProps) {
 													handleDelete(photo.id, photo.storage_path)
 												}
 												disabled={deleteMutation.isPending}
-												className="text-destructive-text hover:text-destructive-text hover:bg-destructive/10"
+												className="text-destructive-text hover:text-destructive-text hover:bg-destructive/10 dark:hover:bg-destructive/20 dark:hover:text-destructive-text"
 											>
 												<Trash2 className="size-4 mr-2" />
 												{deleteMutation.isPending ? "Removing..." : "Remove"}

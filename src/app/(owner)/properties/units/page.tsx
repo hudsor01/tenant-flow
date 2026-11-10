@@ -16,6 +16,7 @@ import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
 import { Button } from "#components/ui/button";
 import {
 	Dialog,
+	DialogClose,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
@@ -36,7 +37,7 @@ import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useCreateUnitMutation } from "#hooks/api/use-unit";
 import { createLogger } from "#lib/frontend-logger";
 import type { UnitInput } from "#lib/validation/units";
-import { type UnitRow, unitColumns } from "./columns";
+import { unitColumns } from "./columns";
 
 // Dynamic import: ChartAreaInteractive is heavy (~40KB), defer loading until needed
 const ChartAreaInteractive = dynamic(
@@ -46,7 +47,7 @@ const ChartAreaInteractive = dynamic(
 		),
 	{
 		loading: () => (
-			<div className="h-[300px] rounded-lg border bg-card shadow-sm animate-pulse" />
+			<div className="h-75 rounded-lg border bg-card shadow-sm animate-pulse" />
 		),
 		ssr: false, // Chart renders client-side only
 	},
@@ -68,7 +69,7 @@ export default function UnitsPage() {
 	// Use backend RPC functions for statistics - NO CLIENT-SIDE CALCULATIONS
 	const { data: unitsStats } = useQuery(unitQueries.stats());
 
-	const units = (unitsResponse?.data || []) as UnitRow[];
+	const units = unitsResponse?.data ?? [];
 	const properties = propertiesResponse?.data || [];
 
 	// Use backend statistics directly - trust the database calculations
@@ -95,44 +96,62 @@ export default function UnitsPage() {
 
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-			{/* Units Metrics Cards */}
-			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-4">
-				<div className="p-4 rounded-lg border bg-card shadow-sm">
-					<div className="flex-between mb-2">
-						<h3 className="text-muted-foreground font-medium">Total Units</h3>
-						<div className="size-2 rounded-full bg-chart-4" />
+			{/* Units Metrics Cards. The columns step on the row's own width, never
+			    the viewport's (the rail changes it): one column until two tiles
+			    are 10.5rem wide, four from where four are (66.2-39 fix round 4,
+			    Part 8d). A 10.5rem tile holds its longest label, Maintenance
+			    (116.09px), beside its dot, so no label wraps and drops its figure
+			    below its neighbours', and each figure (1234) and the line under
+			    it (100.0% occupancy) on one line. The dots never shrink. */}
+			<div className="@container/unit-stats px-4 lg:px-6">
+				<div className="grid grid-cols-1 @min-[22rem]/unit-stats:grid-cols-2 @min-[45rem]/unit-stats:grid-cols-4 gap-4">
+					<div className="p-4 rounded-lg border bg-card shadow-sm">
+						<div className="flex-between gap-2 mb-2">
+							<h3 className="text-muted-foreground font-medium">Total Units</h3>
+							<div className="size-2 shrink-0 rounded-full bg-muted-foreground" />
+						</div>
+						<div className="whitespace-nowrap typography-h3">{totalUnits}</div>
+						<p className="text-caption text-muted-foreground mt-1 mb-0">
+							Across all properties
+						</p>
 					</div>
-					<div className="typography-h3">{totalUnits}</div>
-					<p className="text-caption mt-1">Across all properties</p>
-				</div>
 
-				<div className="p-4 rounded-lg border bg-card shadow-sm">
-					<div className="flex-between mb-2">
-						<h3 className="text-muted-foreground font-medium">Occupied</h3>
-						<div className="size-2 rounded-full bg-chart-1" />
+					<div className="p-4 rounded-lg border bg-card shadow-sm">
+						<div className="flex-between gap-2 mb-2">
+							<h3 className="text-muted-foreground font-medium">Occupied</h3>
+							<div className="size-2 shrink-0 rounded-full bg-success-text" />
+						</div>
+						<div className="whitespace-nowrap typography-h3">
+							{occupiedCount}
+						</div>
+						<div className="text-xs mt-1 text-success-text">
+							{occupancyRate.toFixed(1)}% occupancy
+						</div>
 					</div>
-					<div className="typography-h3">{occupiedCount}</div>
-					<div className="text-xs mt-1 text-chart-1">
-						{occupancyRate.toFixed(1)}% occupancy
-					</div>
-				</div>
 
-				<div className="p-4 rounded-lg border bg-card shadow-sm">
-					<div className="flex-between mb-2">
-						<h3 className="text-muted-foreground font-medium">Vacant</h3>
-						<div className="size-2 rounded-full bg-chart-7" />
+					<div className="p-4 rounded-lg border bg-card shadow-sm">
+						<div className="flex-between gap-2 mb-2">
+							<h3 className="text-muted-foreground font-medium">Vacant</h3>
+							<div className="size-2 shrink-0 rounded-full bg-primary-text" />
+						</div>
+						<div className="whitespace-nowrap typography-h3">{vacantCount}</div>
+						<div className="text-xs mt-1 text-muted-foreground">
+							Available now
+						</div>
 					</div>
-					<div className="typography-h3">{vacantCount}</div>
-					<div className="text-xs mt-1 text-chart-7">Available now</div>
-				</div>
 
-				<div className="p-4 rounded-lg border bg-card shadow-sm">
-					<div className="flex-between mb-2">
-						<h3 className="text-muted-foreground font-medium">Maintenance</h3>
-						<div className="size-2 rounded-full bg-chart-5" />
+					<div className="p-4 rounded-lg border bg-card shadow-sm">
+						<div className="flex-between gap-2 mb-2">
+							<h3 className="text-muted-foreground font-medium">Maintenance</h3>
+							<div className="size-2 shrink-0 rounded-full bg-destructive-text" />
+						</div>
+						<div className="whitespace-nowrap typography-h3">
+							{maintenanceCount}
+						</div>
+						<div className="text-xs mt-1 text-destructive-text">
+							Needs attention
+						</div>
 					</div>
-					<div className="typography-h3">{maintenanceCount}</div>
-					<div className="text-xs mt-1 text-chart-5">Needs attention</div>
 				</div>
 			</div>
 
@@ -155,12 +174,16 @@ export default function UnitsPage() {
 					{isLoading ? (
 						<div className="flex flex-col items-center justify-center py-12">
 							<div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-							<p className="mt-4 text-muted-foreground">Loading units...</p>
+							<p className="mt-4 mb-0 text-muted-foreground">
+								Loading units...
+							</p>
 						</div>
 					) : units.length === 0 ? (
 						<div className="flex flex-col items-center justify-center py-12">
 							<DoorOpen className="size-12 text-muted-foreground/50" />
-							<p className="mt-4 text-muted-foreground">No units found.</p>
+							{/* mb-4: the 16px the base `p` margin gave above the button,
+							    declared (the column has no gap). */}
+							<p className="mt-4 mb-4 text-muted-foreground">No units found.</p>
 							<NewUnitButton properties={properties} />
 						</div>
 					) : (
@@ -214,7 +237,7 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
-				<Button className="flex items-center gap-2 bg-chart-7 hover:bg-chart-7/90">
+				<Button className="flex items-center gap-2">
 					<Plus className="size-4" />
 					Add Unit
 				</Button>
@@ -243,7 +266,7 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 						<div className="grid gap-2">
 							<Label htmlFor="property_id">Property</Label>
 							<Select name="property_id" required>
-								<SelectTrigger>
+								<SelectTrigger id="property_id">
 									<SelectValue placeholder="Select property" />
 								</SelectTrigger>
 								<SelectContent>
@@ -290,9 +313,11 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 						</div>
 					</div>
 					<div className="flex justify-end gap-2 pt-2">
-						<Button ref={closeButtonRef} type="button" variant="outline">
-							Cancel
-						</Button>
+						<DialogClose asChild>
+							<Button ref={closeButtonRef} type="button" variant="outline">
+								Cancel
+							</Button>
+						</DialogClose>
 						<Button type="submit" disabled={create.isPending}>
 							{create.isPending ? "Creating..." : "Add Unit"}
 						</Button>

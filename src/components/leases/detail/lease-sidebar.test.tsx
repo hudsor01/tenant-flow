@@ -11,6 +11,7 @@
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
+import { DEFAULT_LEASE } from "#test/utils/test-data";
 import type { Lease } from "#types/core";
 import { LeaseSidebar } from "./lease-sidebar";
 
@@ -24,12 +25,13 @@ vi.mock("#components/leases/lease-signature-status", () => ({
 	LeaseSignatureStatus: () => null,
 }));
 
-const activeLease = {
+const activeLease: Lease = {
+	...DEFAULT_LEASE,
 	id: "lease-1",
 	lease_status: "active",
 	unit_id: "unit-9",
 	primary_tenant_id: "tenant-1",
-} as unknown as Lease;
+};
 
 describe("LeaseSidebar", () => {
 	it("links 'View Unit' to /units/[id]/edit", () => {

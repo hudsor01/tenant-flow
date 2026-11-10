@@ -5,9 +5,10 @@
  * pathname strings into breadcrumb items for navigation.
  */
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { escapeRegExp } from "#test/utils/regexp-source";
 import { generateBreadcrumbs } from "../breadcrumbs";
 
 describe("generateBreadcrumbs", () => {
@@ -125,7 +126,7 @@ describe("generateBreadcrumbs", () => {
 
 		// /analytics/financial stays live under full separation, so BOTH segments
 		// must keep resolving to real labels rather than falling through to the
-		// capitalize-the-slug default.
+		// record fallback ("Analytics Details").
 		it("should still map the live /analytics/financial route", () => {
 			expect(generateBreadcrumbs("/analytics/financial")).toEqual([
 				{ href: "/analytics", label: "Analytics" },
@@ -133,12 +134,47 @@ describe("generateBreadcrumbs", () => {
 			]);
 		});
 
-		it("should capitalize unknown segments", () => {
-			const result = generateBreadcrumbs("/custom/unknown-route");
-			expect(result).toEqual([
-				{ href: "/custom", label: "Custom" },
-				{ href: "/custom/unknown-route", label: "Unknown-route" },
+		// A segment the map does not name is the text a link put in a `[id]`
+		// segment: `/tenants/<any text>` matches `tenants/[id]`. The crumb used to
+		// capitalize it, so a crafted link put its sentence in the owner shell's
+		// header (66.2-39 fix round 4, URL text rendered verbatim).
+		it("labels an unnamed segment as a record, never with the URL's text", () => {
+			const sentence = "Your-account-is-locked-call-555-0100";
+			const crumbs = generateBreadcrumbs(`/tenants/${sentence}/edit`);
+			expect(crumbs).toEqual([
+				{ href: "/tenants", label: "Tenants" },
+				{ href: `/tenants/${sentence}`, label: "Tenants Details" },
+				{ href: `/tenants/${sentence}/edit`, label: "Edit" },
 			]);
+			expect(generateBreadcrumbs(`/${sentence}`)).toEqual([
+				{ href: `/${sentence}`, label: "Details" },
+			]);
+			for (const crumb of crumbs) {
+				expect(crumb.label.toLowerCase()).not.toContain("locked");
+			}
+		});
+
+		// Every crumb's label is the map's, the non-routable constant's or the
+		// "Details" fallback, so each static segment of an owner page needs an
+		// entry, or its crumb would read "<previous> Details".
+		it("names every static segment of an owner page", () => {
+			const pages = readdirSync(join(process.cwd(), "src/app/(owner)"), {
+				recursive: true,
+				encoding: "utf8",
+			}).filter((path) => /(^|\/)page\.tsx$/.test(path));
+			expect(pages.length).toBeGreaterThan(50);
+			const unnamed = new Set<string>();
+			for (const page of pages) {
+				const segments = page
+					.split("/")
+					.slice(0, -1)
+					.filter((segment) => !/^[([@]/.test(segment));
+				for (const segment of segments) {
+					const crumbs = generateBreadcrumbs(`/${segment}`);
+					if (crumbs[0]?.label === "Details") unnamed.add(segment);
+				}
+			}
+			expect([...unnamed]).toEqual([]);
 		});
 	});
 
@@ -219,11 +255,11 @@ describe("generateBreadcrumbs", () => {
 			for (const { slug, expected } of testCases) {
 				expect(generateBreadcrumbs(`/documents/templates/${slug}`)).toEqual([
 					{ href: "/documents", label: "Documents" },
-					// L-06: no LABEL_MAP entry — this resolves via the capitalize
-					// fallback, which already yields "Templates". The empty href is
-					// NON_ROUTABLE_SEGMENTS: /documents/templates has no page.tsx, and
-					// app-shell-header renders `crumb.href ? <Link> : <span>`, so an
-					// empty href is what keeps this crumb from linking to a 404.
+					// L-06: no LABEL_MAP entry — NON_ROUTABLE_SEGMENTS labels it by
+					// capitalizing the constant ("Templates") and gives it an empty
+					// href: /documents/templates has no page.tsx, and app-shell-header
+					// renders `crumb.href ? <Link> : <span>`, so an empty href is what
+					// keeps this crumb from linking to a 404.
 					{ href: "", label: "Templates" },
 					{ href: `/documents/templates/${slug}`, label: expected },
 				]);
@@ -253,9 +289,8 @@ describe("generateBreadcrumbs", () => {
 			});
 		});
 
-		// This one PASSES today via the capitalize fallback. It is added for D-07
-		// coverage of a real route, not because it changes behaviour — stated
-		// explicitly so the suite does not imply coverage it did not add.
+		// The vault entry is required: a segment the map does not name is read
+		// as a record id (D-07 coverage of a real route).
 		it("should label the vault route", () => {
 			expect(generateBreadcrumbs("/documents/vault")).toEqual([
 				{ href: "/documents", label: "Documents" },
@@ -318,9 +353,9 @@ describe("generateBreadcrumbs", () => {
 				"maintenance-request",
 				"tenant-notice",
 			]) {
-				expect(new RegExp(`^\\s*"?${key}"?:\\s*"`, "m").test(source)).toBe(
-					true,
-				);
+				expect(
+					new RegExp(`^\\s*"?${escapeRegExp(key)}"?:\\s*"`, "m").test(source),
+				).toBe(true);
 			}
 		});
 

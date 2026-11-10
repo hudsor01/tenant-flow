@@ -67,7 +67,7 @@ export default function TaxDeductionTrackerPage() {
 
 				{/* Important notice */}
 				<div className="rounded-xl border border-warning/20 bg-warning/10 p-6 mb-12">
-					<p className="text-sm text-warning-text">
+					<p className="mb-0 text-sm text-warning-text">
 						<strong>Disclaimer:</strong> This tracker is for informational
 						purposes only and does not constitute tax advice. Consult a
 						qualified tax professional for advice specific to your situation.
@@ -149,13 +149,13 @@ export default function TaxDeductionTrackerPage() {
 													{item.deduction}
 												</td>
 												<td className="p-3 text-sm text-muted-foreground align-top">
-													<p>{item.description}</p>
-													<p className="text-xs mt-1 italic">
+													<p className="mb-0">{item.description}</p>
+													<p className="text-xs mt-1 mb-0 italic">
 														e.g. {item.example}
 													</p>
 												</td>
 												<td className="p-3 text-right align-top">
-													<span className="text-sm text-muted-foreground/50">
+													<span className="text-sm text-muted-foreground">
 														$
 													</span>
 													<span className="inline-block w-20 border-b border-dashed border-muted-foreground/30" />
@@ -189,11 +189,11 @@ export default function TaxDeductionTrackerPage() {
 								Total Deductions
 							</h2>
 							<div className="text-right">
-								<span className="text-2xl font-bold text-primary">$</span>
+								<span className="text-2xl font-bold text-primary-text">$</span>
 								<span className="inline-block w-32 border-b-2 border-primary ml-1" />
 							</div>
 						</div>
-						<p className="text-sm text-muted-foreground mt-4">
+						<p className="text-sm text-muted-foreground mt-4 mb-0">
 							Transfer this total to IRS Schedule E. Keep all receipts and
 							documentation for at least 3 years (7 years if claiming
 							depreciation).

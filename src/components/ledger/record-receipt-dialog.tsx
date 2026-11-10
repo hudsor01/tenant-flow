@@ -73,7 +73,7 @@ const CHARGE_TYPE_LABELS: Record<string, string> = {
 };
 
 const recordReceiptFormSchema = z.object({
-	chargeId: z.uuid({ message: "Choose which charge this payment applies to." }),
+	chargeId: z.uuid({ error: "Choose which charge this payment applies to." }),
 	amount: z
 		.number({ error: "Enter an amount greater than $0." })
 		.positive("Enter an amount greater than $0."),
@@ -178,7 +178,7 @@ export function RecordReceiptDialog({
 				>
 					<DialogHeader>
 						<DialogTitle>Record a payment received</DialogTitle>
-						<DialogDescription>
+						<DialogDescription className="mb-0">
 							Log money you have already received against a single charge.
 							Recording a partial payment is fine: add one receipt per payment.
 						</DialogDescription>

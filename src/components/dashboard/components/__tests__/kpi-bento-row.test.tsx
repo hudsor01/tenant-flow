@@ -23,7 +23,10 @@ vi.mock("#components/dashboard/components/kpi-sparkline", () => ({
 	),
 }));
 
-import { KpiBentoRow } from "#components/dashboard/components/kpi-bento-row";
+import {
+	buildKpiTileConfigs,
+	KpiBentoRow,
+} from "#components/dashboard/components/kpi-bento-row";
 import type { KpiBentoRowProps } from "#components/dashboard/components/kpi-helpers";
 import type { MetricTrend, TimeSeriesDataPoint } from "#types/analytics";
 import type { DashboardStats } from "#types/stats";
@@ -35,6 +38,7 @@ function makeTrend(overrides: Partial<MetricTrend> = {}): MetricTrend {
 		change: 10,
 		percentChange: 12,
 		trend: "up",
+		window: { start_date: "2026-10-03", end_date: "2026-11-02" },
 		...overrides,
 	};
 }
@@ -70,7 +74,6 @@ const mockStats: DashboardStats = {
 		available: 10,
 		averageRent: 1500,
 		occupancyRate: 87,
-		occupancyChange: 0,
 		totalPotentialRent: 150000,
 		totalActualRent: 130500,
 	},
@@ -89,7 +92,7 @@ const mockStats: DashboardStats = {
 		avgResolutionTime: 2.4,
 		byPriority: { low: 4, medium: 12, high: 4, emergency: 2 },
 	},
-	revenue: { monthly: 14250, yearly: 171000, growth: 3 },
+	revenue: { monthly: 14250, yearly: 171000 },
 };
 
 const mockTrends: KpiBentoRowProps["metricTrends"] = {
@@ -128,6 +131,48 @@ describe("KpiBentoRow", () => {
 		vi.unstubAllGlobals();
 	});
 
+	it("declares the kpi-bento container with a utility, not an inline style", () => {
+		render(
+			<KpiBentoRow
+				isLoading={false}
+				stats={mockStats}
+				metricTrends={mockTrends}
+				timeSeries={mockTimeSeries}
+			/>,
+		);
+		const grid = screen.getByRole("list");
+		expect(grid.classList.contains("@container/kpi-bento")).toBe(true);
+		expect(grid.getAttribute("style")).toBeNull();
+	});
+
+	// A container query matches ancestors only, so a `@…/kpi-bento:` variant on
+	// the element that declares `@container/kpi-bento` can never apply (66.2-39
+	// F6). Checked on the loaded grid and on its skeleton twin.
+	it.each([
+		["loaded", false],
+		["loading", true],
+	] as const)(
+		"never queries kpi-bento on the %s grid that declares it",
+		(_state, isLoading) => {
+			const { container } = render(
+				<KpiBentoRow
+					isLoading={isLoading}
+					stats={mockStats}
+					metricTrends={mockTrends}
+					timeSeries={mockTimeSeries}
+				/>,
+			);
+			const declaring = Array.from(
+				container.querySelectorAll<HTMLElement>("[class]"),
+			).filter((el) => el.classList.contains("@container/kpi-bento"));
+			expect(declaring).toHaveLength(1);
+			const selfQueries = Array.from(declaring[0]?.classList ?? []).filter(
+				(c) => /^@[^/]+\/kpi-bento:/.test(c),
+			);
+			expect(selfQueries).toEqual([]);
+		},
+	);
+
 	it("renders 6 tiles in D-01 order", () => {
 		render(
 			<KpiBentoRow
@@ -142,8 +187,9 @@ describe("KpiBentoRow", () => {
 		const labels = items.map(
 			(item) => item.querySelector("[data-slot=stat-label]")?.textContent,
 		);
+		// The first tile is the active leases' rent: scheduled (66.2-39 part P).
 		expect(labels).toEqual([
-			"Revenue",
+			"Scheduled Rent",
 			"Occupancy",
 			"Active leases",
 			"Open maintenance",
@@ -242,7 +288,7 @@ describe("KpiBentoRow", () => {
 		expect(screen.queryByTestId("kpi-bento-row")).not.toBeNull();
 	});
 
-	it("Revenue aria-label matches buildTileAriaLabel template", () => {
+	it("Scheduled Rent aria-label matches buildTileAriaLabel template", () => {
 		render(
 			<KpiBentoRow
 				isLoading={false}
@@ -256,11 +302,29 @@ describe("KpiBentoRow", () => {
 		expect(stat?.getAttribute("aria-label")).toBe(
 			// WR-04 cycle-1 fix: "this month" now lives in spokenDescription
 			// (symmetric with the other tiles), not baked into spokenValue.
-			"Revenue: $14,250. This month. Up 12 percent vs. last month.",
+			"Scheduled Rent: $14,250. This month. Up 12 percent vs. 30 days ago.",
 		);
 	});
 
-	it("reduced-motion bypasses BlurFade wrapping", () => {
+	// The narrated label sits on the Stat div; a role-less div cannot be
+	// named, so the tile is a named group (66.2-39).
+	it("exposes each tile's narrated label on a named group", () => {
+		render(
+			<KpiBentoRow
+				isLoading={false}
+				stats={mockStats}
+				metricTrends={mockTrends}
+				timeSeries={mockTimeSeries}
+			/>,
+		);
+		expect(
+			screen.getByRole("group", {
+				name: "Scheduled Rent: $14,250. This month. Up 12 percent vs. 30 days ago.",
+			}),
+		).toBeInTheDocument();
+	});
+
+	it("reduced-motion renders KPI tiles without BlurFade wrappers", () => {
 		stubMatchMedia(true);
 		const { container } = render(
 			<KpiBentoRow
@@ -270,10 +334,186 @@ describe("KpiBentoRow", () => {
 				timeSeries={mockTimeSeries}
 			/>,
 		);
-		expect(
-			container.querySelector("[class*=will-change-transform]"),
-		).toBeNull();
+		expect(container.querySelectorAll('[data-slot="blur-fade"]')).toHaveLength(
+			0,
+		);
 		expect(screen.getAllByRole("listitem")).toHaveLength(6);
+	});
+
+	it("default motion wraps each KPI tile in one BlurFade inside its listitem", () => {
+		stubMatchMedia(false);
+		const { container } = render(
+			<KpiBentoRow
+				isLoading={false}
+				stats={mockStats}
+				metricTrends={mockTrends}
+				timeSeries={mockTimeSeries}
+			/>,
+		);
+		const wrappers = container.querySelectorAll('[data-slot="blur-fade"]');
+		expect(wrappers).toHaveLength(6);
+		for (const wrapper of wrappers) {
+			expect(wrapper.parentElement?.getAttribute("role")).toBe("listitem");
+		}
+		expect(screen.getAllByRole("listitem")).toHaveLength(6);
+	});
+
+	// CP-4 follow-up: a narrow tile used to split "$" from "7,500" because the
+	// prefix and the ticker were separate inline boxes in the stat's 1fr/auto
+	// grid row; the value never breaks. Part 8c (66.2-39 fix round 4): the
+	// label and the value shared one wrapping row, so a tile whose value did
+	// not fit beside its label put it a line below its neighbours' values. The
+	// value now has a line of its own under the label in every tile.
+	it("puts each label above its non-wrapping value, both children of the stat", () => {
+		stubMatchMedia(true);
+		render(
+			<KpiBentoRow
+				isLoading={false}
+				stats={mockStats}
+				metricTrends={mockTrends}
+				timeSeries={mockTimeSeries}
+			/>,
+		);
+		const items = screen.getAllByRole("listitem");
+		expect(items).toHaveLength(6);
+		for (const item of items) {
+			const stat = item.querySelector('[data-slot="stat"]');
+			const slots = Array.from(stat?.children ?? []).map((child) =>
+				child.getAttribute("data-slot"),
+			);
+			expect(slots.slice(0, 2)).toEqual(["stat-label", "stat-value"]);
+			expect(stat?.querySelector('[data-slot="kpi-heading"]')).toBeNull();
+			const value = stat?.querySelector(':scope > [data-slot="stat-value"]');
+			expect(value?.className.split(/\s+/)).toContain("whitespace-nowrap");
+		}
+		const revenueValue = items[0]?.querySelector('[data-slot="stat-value"]');
+		expect(revenueValue?.textContent).toBe("$14,250");
+		// The ticker formats the dollars itself (66.2-39): a separate "$" box
+		// put a negative value's sign after the symbol ("$-250").
+		expect(revenueValue?.children).toHaveLength(1);
+		const ticker = revenueValue?.firstElementChild;
+		expect(ticker?.textContent).toBe("$14,250");
+		// Under reduced motion too, the "$" is its own span outside the digits'
+		// tracking-wider, so it keeps the stat's tight tracking (66.2-39 fix
+		// round 3, F51; VD-71).
+		const parts = [...(ticker?.children ?? [])];
+		expect(parts.map((part) => part.textContent)).toEqual(["", "$", "14,250"]);
+		const symbol = parts.find((part) => part.textContent === "$");
+		const digits = parts.find((part) => part.textContent === "14,250");
+		expect(symbol?.className.split(/\s+/) ?? []).not.toContain(
+			"tracking-wider",
+		);
+		expect(digits?.className.split(/\s+/)).toContain("tracking-wider");
+		const occupancyValue = items[1]?.querySelector('[data-slot="stat-value"]');
+		expect(occupancyValue?.textContent).toBe("87%");
+	});
+
+	// A tile's no-prior copy is what its chip says with no earlier figure, and
+	// only a percent chip has that branch: a points chip always states its
+	// change, a trendless tile shows no chip (66.2-39 fix round 3, F44).
+	it("carries no-prior copy exactly where a chip can show it", () => {
+		if (!mockTrends || !mockTimeSeries) throw new Error("fixtures unset");
+		const tiles = buildKpiTileConfigs(mockStats, mockTrends, mockTimeSeries);
+		expect(tiles).toHaveLength(6);
+		for (const tile of tiles) {
+			const canShow = tile.trend !== null && tile.trendUnit === "percent";
+			expect(
+				{ id: tile.id, hasCopy: tile.noPriorText !== "" },
+				tile.id,
+			).toEqual({ id: tile.id, hasCopy: canShow });
+		}
+	});
+
+	it("states the window each chip computes, never 'last month'", () => {
+		const { container } = render(
+			<KpiBentoRow
+				isLoading={false}
+				stats={mockStats}
+				metricTrends={mockTrends}
+				timeSeries={mockTimeSeries}
+			/>,
+		);
+		const chips = [...container.querySelectorAll("[data-slot=stat-trend]")].map(
+			(chip) => chip.textContent,
+		);
+		expect(chips).toEqual([
+			"+12%vs. 30 days ago",
+			"+10.0 ptsvs. 30 days ago",
+			"\u22128%vs. 30 days ago",
+		]);
+		expect(container.textContent).not.toContain("last month");
+	});
+
+	it("shows occupancy's change in percentage points, as the overview tile does", () => {
+		render(
+			<KpiBentoRow
+				isLoading={false}
+				stats={mockStats}
+				metricTrends={{
+					...mockTrends,
+					occupancyRate: makeTrend({
+						current: 75,
+						previous: 100,
+						change: -25,
+						percentChange: -25,
+						trend: "down",
+					}),
+				}}
+				timeSeries={mockTimeSeries}
+			/>,
+		);
+		const chip = screen
+			.getAllByRole("listitem")[1]
+			?.querySelector("[data-slot=stat-trend]");
+		expect(chip?.textContent).toBe("\u221225.0 ptsvs. 30 days ago");
+	});
+
+	it("says there was no prior figure when percentChange is null", () => {
+		render(
+			<KpiBentoRow
+				isLoading={false}
+				stats={mockStats}
+				metricTrends={{
+					...mockTrends,
+					monthlyRevenue: makeTrend({ previous: 0, percentChange: null }),
+					openMaintenance: makeTrend({ previous: 0, percentChange: null }),
+				}}
+				timeSeries={mockTimeSeries}
+			/>,
+		);
+		const items = screen.getAllByRole("listitem");
+		expect(items[0]?.querySelector("[data-slot=stat-trend]")?.textContent).toBe(
+			"No rent scheduled 30 days ago",
+		);
+		expect(items[3]?.querySelector("[data-slot=stat-trend]")?.textContent).toBe(
+			"None open 30 days ago",
+		);
+		expect(items[0]?.textContent).not.toContain("0%");
+	});
+
+	it("says the change is unavailable when the server states no window", () => {
+		render(
+			<KpiBentoRow
+				isLoading={false}
+				stats={mockStats}
+				metricTrends={{
+					occupancyRate: makeTrend({ window: null }),
+					activeTenants: makeTrend({ window: null }),
+					monthlyRevenue: makeTrend({ window: null }),
+					openMaintenance: makeTrend({ window: null }),
+				}}
+				timeSeries={mockTimeSeries}
+			/>,
+		);
+		const chips = screen
+			.getAllByRole("listitem")
+			.map((item) => item.querySelector("[data-slot=stat-trend]")?.textContent)
+			.filter((text) => text !== undefined);
+		expect(chips).toEqual([
+			"Change unavailable",
+			"Change unavailable",
+			"Change unavailable",
+		]);
 	});
 
 	it("down-trend override class applied to Open Maintenance StatTrend", () => {
@@ -287,7 +527,7 @@ describe("KpiBentoRow", () => {
 		);
 		const items = screen.getAllByRole("listitem");
 		const trend = items[3]?.querySelector("[data-slot=stat-trend]");
-		expect(trend?.className).toMatch(/!text-warning-text/);
+		expect(trend?.className).toMatch(/(?:^|\s)text-warning-text!(?:\s|$)/);
 	});
 
 	it("sparkline-data-too-thin guard: data length 1 → no sparkline", async () => {

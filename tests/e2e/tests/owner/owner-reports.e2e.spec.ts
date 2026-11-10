@@ -50,9 +50,7 @@ test.describe("Owner Reports", () => {
 					.getByText(/no data|no results|no transactions|unavailable|\$0\.00/i)
 					.count()) > 0;
 			const hasHeading =
-				(await p
-					.getByRole("heading", { name: new RegExp(page.heading, "i") })
-					.count()) > 0;
+				(await p.getByRole("heading", { name: page.heading }).count()) > 0;
 
 			// Page should have either financial data, empty state, or at minimum the heading rendered
 			const pageRendered = hasFinancialData || hasEmptyState || hasHeading;

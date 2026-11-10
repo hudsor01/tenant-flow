@@ -2,36 +2,21 @@
 
 import * as Sentry from "@sentry/nextjs";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import {
-	AlertTriangle,
-	Clock,
-	Download,
-	Loader2,
-	Trash2,
-	Undo2,
-} from "lucide-react";
+import { AlertTriangle, Download, Loader2, Trash2, Undo2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import {
+	ACCOUNT_DELETION_COPY,
+	DeletionScheduledNotice,
+} from "#components/settings/deletion-scheduled-notice";
+import { downloadAccountData } from "#components/settings/download-account-data";
 import { BlurFade } from "#components/ui/blur-fade";
 import { authKeys } from "#hooks/api/use-auth";
-import { handleMutationError } from "#lib/mutation-error-handler";
+import {
+	handleMutationError,
+	userFacingErrorMessage,
+} from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
-
-function formatDeletionDate(deletionRequestedAt: string): string {
-	const requestDate = new Date(deletionRequestedAt);
-	const deleteDate = new Date(requestDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-	return deleteDate.toLocaleDateString("en-US", {
-		year: "numeric",
-		month: "long",
-		day: "numeric",
-	});
-}
-
-function daysRemaining(deletionRequestedAt: string): number {
-	const requestDate = new Date(deletionRequestedAt);
-	const deleteDate = new Date(requestDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-	return Math.ceil((deleteDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-}
 
 interface GdprDataActionsProps {
 	variant?: "standalone" | "inline";
@@ -62,46 +47,7 @@ export function GdprDataActions({
 	});
 
 	const exportData = useMutation({
-		mutationFn: async () => {
-			const supabase = createClient();
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-			if (!session?.access_token) throw new Error("Not authenticated");
-
-			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-			const response = await fetch(
-				`${supabaseUrl}/functions/v1/export-user-data`,
-				{
-					method: "GET",
-					headers: { Authorization: `Bearer ${session.access_token}` },
-				},
-			);
-
-			if (!response.ok) {
-				const body = await response.json().catch(() => ({}));
-				throw new Error(
-					((body as Record<string, unknown>).error as string) ||
-						"Export failed",
-				);
-			}
-
-			const blob = await response.blob();
-			const url = URL.createObjectURL(blob);
-			const disposition = response.headers.get("Content-Disposition");
-			const filenameMatch = disposition?.match(/filename="(.+)"/);
-			const filename =
-				filenameMatch?.[1] ??
-				`tenantflow-data-export-${new Date().toISOString().split("T")[0]}.json`;
-
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = filename;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(url);
-		},
+		mutationFn: downloadAccountData,
 		onSuccess: () => toast.success("Data export downloaded successfully"),
 		onError: (err) =>
 			handleMutationError(
@@ -127,18 +73,10 @@ export function GdprDataActions({
 			Sentry.captureException(err, {
 				tags: { mutation: "request_account_deletion" },
 			});
-			const message = err.message || "Failed to request deletion";
-			if (message.includes("active leases")) {
-				toast.error(
-					"Cannot delete account with active leases. Please end all leases first.",
-				);
-			} else if (message.includes("pending payments")) {
-				toast.error(
-					"Cannot delete account with pending payments. Please resolve outstanding payments first.",
-				);
-			} else {
-				toast.error(message);
-			}
+			// request_account_deletion() only stamps the request, so it never
+			// refuses for a lease or a payment; an active lease delays the
+			// nightly job instead (ACCOUNT_DELETION_COPY).
+			toast.error(userFacingErrorMessage(err, "Failed to request deletion"));
 		},
 	});
 
@@ -181,7 +119,6 @@ export function GdprDataActions({
 			<button
 				onClick={() => exportData.mutate()}
 				disabled={exportData.isPending}
-				aria-label="Download my data as JSON"
 				className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors disabled:opacity-50 disabled:pointer-events-none"
 			>
 				{exportData.isPending ? (
@@ -205,35 +142,12 @@ export function GdprDataActions({
 
 			{isPending ? (
 				<div className="space-y-4">
-					<div className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
-						<Clock
-							className="h-5 w-5 text-amber-600 mt-0.5 shrink-0"
-							aria-hidden="true"
-						/>
-						<div>
-							<p className="text-sm font-medium text-amber-700">
-								Account scheduled for deletion
-							</p>
-							<p className="text-sm text-muted-foreground mt-1">
-								Your account will be permanently deleted on{" "}
-								<strong>
-									{formatDeletionDate(
-										deletionStatus.data!.deletion_requested_at!,
-									)}
-								</strong>
-								. You have{" "}
-								<strong>
-									{daysRemaining(deletionStatus.data!.deletion_requested_at!)}{" "}
-									days
-								</strong>{" "}
-								remaining to cancel.
-							</p>
-						</div>
-					</div>
+					<DeletionScheduledNotice
+						deletionRequestedAt={deletionStatus.data!.deletion_requested_at!}
+					/>
 					<button
 						onClick={() => cancelDeletion.mutate()}
 						disabled={cancelDeletion.isPending}
-						aria-label="Cancel account deletion"
 						className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors disabled:opacity-50 disabled:pointer-events-none"
 					>
 						{cancelDeletion.isPending ? (
@@ -248,14 +162,12 @@ export function GdprDataActions({
 				<>
 					{variant === "standalone" && (
 						<p className="text-sm text-muted-foreground mb-4">
-							Request deletion of your account and all associated data. You will
-							have a 30-day grace period to cancel before deletion is permanent.
+							{ACCOUNT_DELETION_COPY.intro}
 						</p>
 					)}
 					{!showDeleteDialog ? (
 						<button
 							onClick={() => setShowDeleteDialog(true)}
-							aria-label="Request permanent account deletion"
 							className="flex items-center gap-2 rounded-lg border border-destructive/40 px-4 py-2 text-sm font-medium text-destructive-text hover:bg-destructive/10 transition-colors"
 						>
 							<Trash2 className="h-4 w-4" aria-hidden="true" />
@@ -269,12 +181,11 @@ export function GdprDataActions({
 									aria-hidden="true"
 								/>
 								<div>
-									<p className="text-sm font-medium text-destructive-text">
-										This will schedule your account for deletion
+									<p className="mb-0 text-sm font-medium text-destructive-text">
+										{ACCOUNT_DELETION_COPY.confirmTitle}
 									</p>
-									<p className="text-sm text-muted-foreground mt-1">
-										After 30 days, all your data will be permanently anonymized.
-										You can cancel anytime during the grace period.
+									<p className="text-sm text-muted-foreground mt-1 mb-0">
+										{ACCOUNT_DELETION_COPY.confirmBody}
 									</p>
 								</div>
 							</div>
@@ -292,10 +203,13 @@ export function GdprDataActions({
 									value={deleteConfirmText}
 									onChange={(e) => setDeleteConfirmText(e.target.value)}
 									placeholder="DELETE"
-									className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-destructive/20 focus:border-destructive transition-all"
+									className="h-10 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-destructive/20 focus:border-destructive transition-all"
 								/>
 							</div>
-							<div className="flex gap-3">
+							{/* The two buttons wrap: at 320-360px "Cancel" shrank under its
+							    padding and its text ran up to 9px past the button (66.2-39 fix
+							    round 4, Part 8i). */}
+							<div className="flex flex-wrap gap-3">
 								<button
 									onClick={() => {
 										setShowDeleteDialog(false);
@@ -310,8 +224,7 @@ export function GdprDataActions({
 									disabled={
 										deleteConfirmText !== "DELETE" || requestDeletion.isPending
 									}
-									aria-label="Confirm account deletion"
-									className="flex items-center gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+									className="flex items-center gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive-text dark:hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
 								>
 									{requestDeletion.isPending ? (
 										<Loader2
@@ -343,13 +256,13 @@ export function GdprDataActions({
 	// Standalone: full framing with BlurFade wrappers
 	return (
 		<>
-			<BlurFade delay={0.45} inView>
+			<BlurFade delay={0.45}>
 				<section className="rounded-lg border bg-card p-6">
 					{downloadBlock}
 				</section>
 			</BlurFade>
 
-			<BlurFade delay={0.5} inView>
+			<BlurFade delay={0.5}>
 				<section className="rounded-lg border border-destructive/30 bg-destructive/5 p-6">
 					{deletionBlock}
 				</section>

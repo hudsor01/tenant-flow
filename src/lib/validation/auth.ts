@@ -25,14 +25,14 @@ export const PASSWORD_COMPLEXITY_MESSAGE =
 
 // Login form validation schema
 export const loginZodSchema = z.object({
-	email: z.email({ message: "Please enter a valid email address" }),
+	email: z.email({ error: "Please enter a valid email address" }),
 	password: z.string().min(1, "Password is required"),
 });
 
 // Register form validation schema
 export const registerZodSchema = z
 	.object({
-		email: z.email({ message: "Please enter a valid email address" }),
+		email: z.email({ error: "Please enter a valid email address" }),
 		password: z
 			.string()
 			.min(
@@ -43,7 +43,7 @@ export const registerZodSchema = z
 		confirmPassword: z.string(),
 	})
 	.refine((data) => data.password === data.confirmPassword, {
-		message: "Passwords don't match",
+		error: "Passwords don't match",
 		path: ["confirmPassword"],
 	});
 
@@ -54,7 +54,7 @@ export const registerZodSchema = z
 export const signupFormSchema = z.object({
 	first_name: z.string().min(1, "First name is required"),
 	last_name: z.string().min(1, "Last name is required"),
-	email: z.email({ message: "Please enter a valid email address" }),
+	email: z.email({ error: "Please enter a valid email address" }),
 	password: z
 		.string()
 		.min(

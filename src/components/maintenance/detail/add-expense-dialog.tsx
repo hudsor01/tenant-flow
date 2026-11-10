@@ -1,7 +1,7 @@
 "use client";
 
 import { DollarSign, Plus } from "lucide-react";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
@@ -43,7 +43,7 @@ export function AddExpenseDialog({
 	);
 	const [description, setDescription] = useState("");
 
-	const handleSubmit = async (e: FormEvent) => {
+	const handleSubmit = async (e: SubmitEvent) => {
 		e.preventDefault();
 		if (!amount || parseFloat(amount) <= 0) {
 			toast.error("Please enter a valid amount");
@@ -86,7 +86,7 @@ export function AddExpenseDialog({
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Add Expense</DialogTitle>
-					<DialogDescription>
+					<DialogDescription className="mb-0">
 						Record an expense for this maintenance request.
 					</DialogDescription>
 				</DialogHeader>

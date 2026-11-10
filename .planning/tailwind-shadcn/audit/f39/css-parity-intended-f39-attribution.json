@@ -1,0 +1,6013 @@
+{
+	"changedSrc": 684,
+	"added": [
+		{
+			"key": "2xl:flex",
+			"files": [
+				"src/components/properties/__tests__/property-name-column.test.tsx",
+				"src/components/properties/property-table-types.ts"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "@4xl/dashboard:col-span-1",
+			"files": [
+				"src/components/dashboard/components/__tests__/occupancy-donut-chart.test.tsx",
+				"src/components/dashboard/components/occupancy-donut-chart.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "@4xl/dashboard:col-span-2",
+			"files": [
+				"src/components/dashboard/components/__tests__/revenue-area-chart.test.tsx",
+				"src/components/dashboard/components/revenue-area-chart.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "@4xl/dashboard:col-span-3",
+			"files": [
+				"src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "@4xl/dashboard:grid-cols-4",
+			"files": [
+				"src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx",
+				"src/components/dashboard/dashboard.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "@container/chart-card",
+			"files": [
+				"src/components/dashboard/chart-area-interactive.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "@container/dashboard",
+			"files": [
+				"src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx",
+				"src/components/dashboard/dashboard.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "@container/kpi-bento",
+			"files": [
+				"src/components/dashboard/components/__tests__/kpi-bento-row.test.tsx",
+				"src/components/dashboard/components/kpi-bento-row.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "[&_.recharts-surface:focus-visible]:-outline-offset-2",
+			"files": [
+				"src/components/ui/__tests__/chart.test.tsx",
+				"src/components/ui/chart.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "[&_.recharts-surface:focus-visible]:outline-2",
+			"files": [
+				"src/components/ui/__tests__/chart.test.tsx",
+				"src/components/ui/chart.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "[&_.recharts-surface:focus-visible]:outline-ring",
+			"files": [
+				"src/components/ui/__tests__/chart.test.tsx",
+				"src/components/ui/chart.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "[&_.recharts-surface:focus-visible]:outline-solid",
+			"files": [
+				"src/components/ui/__tests__/chart.test.tsx",
+				"src/components/ui/chart.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "[a&]:hover:bg-destructive-text",
+			"files": [
+				"src/components/ui/badge.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "[a&]:hover:bg-primary-text",
+			"files": [
+				"src/components/ui/badge.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "[a&]:hover:bg-success/12",
+			"files": [
+				"src/components/ui/badge.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "[a]:hover:bg-accent/25",
+			"files": [
+				"src/components/ui/item.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "aria-disabled:cursor-not-allowed",
+			"files": [
+				"src/app/(owner)/reports/report-export-button.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-black/75",
+			"files": [
+				"src/app/__tests__/tailwind-theme-integrity.test.ts",
+				"src/components/properties/sections/property-images-create-section.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "bg-destructive-text",
+			"files": [
+				"src/app/(owner)/properties/units/page.tsx",
+				"src/app/(owner)/reports/cash-flow/cash-flow-breakdown.tsx",
+				"src/app/(owner)/reports/income-statement/income-statement-page-breakdowns.tsx",
+				"src/components/ui/badge.tsx",
+				"src/components/ui/button.tsx"
+			],
+			"fileCount": 6
+		},
+		{
+			"key": "bg-info-text",
+			"files": [
+				"src/app/resources/security-deposit-reference-card/page.tsx",
+				"src/components/properties/property-table-row.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "bg-primary-text",
+			"files": [
+				"src/app/(owner)/properties/units/page.tsx",
+				"src/components/dashboard/components/__tests__/occupancy-donut-chart.test.tsx",
+				"src/components/dashboard/components/occupancy-donut-chart.tsx",
+				"src/components/ui/badge.tsx",
+				"src/components/ui/button.tsx"
+			],
+			"fileCount": 6
+		},
+		{
+			"key": "bg-success-text",
+			"files": [
+				"src/app/(owner)/properties/units/page.tsx",
+				"src/app/(owner)/reports/cash-flow/cash-flow-breakdown.tsx",
+				"src/app/(owner)/reports/income-statement/income-statement-page-breakdowns.tsx",
+				"src/app/__tests__/design-token-drift.test.ts",
+				"src/app/resources/security-deposit-reference-card/page.tsx"
+			],
+			"fileCount": 11
+		},
+		{
+			"key": "bg-warning-text",
+			"files": [
+				"src/app/__tests__/design-token-drift.test.ts",
+				"src/components/properties/property-table-row.tsx",
+				"src/components/ui/progress.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "bg-warning/5",
+			"files": [
+				"src/components/leases/detail/lease-terms-tab.tsx",
+				"src/components/settings/account-data-section.tsx",
+				"src/components/settings/gdpr-data-actions.tsx",
+				"src/components/settings/sections/subscription-cancel-section.tsx"
+			],
+			"fileCount": 4
+		},
+		{
+			"key": "blur-none",
+			"files": [
+				"src/app/blog/[slug]/blog-post-page.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "border-info/30",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "border-muted-foreground",
+			"files": [
+				"src/app/resources/security-deposit-reference-card/page.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "border-primary-foreground",
+			"files": [
+				"src/components/auth/__tests__/update-password-form.test.tsx",
+				"src/components/auth/update-password-form.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "bottom-2/5",
+			"files": [
+				"src/components/landing/feature-backgrounds.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "content-start",
+			"files": [
+				"src/app/(owner)/analytics/__tests__/stat-rows-one-height.test.tsx",
+				"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
+				"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+				"src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
+				"src/app/(owner)/reports/expenses/_components/expense-stats.tsx"
+			],
+			"fileCount": 6
+		},
+		{
+			"key": "dark:[a&]:hover:bg-destructive/90",
+			"files": [
+				"src/components/ui/badge.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:[a&]:hover:bg-primary/90",
+			"files": [
+				"src/components/ui/badge.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:border-primary-foreground/50",
+			"files": [
+				"src/app/__tests__/primary-cta-band-contrast.test.tsx",
+				"src/app/faq/page.tsx",
+				"src/app/help/page.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "dark:data-[state=on]:hover:bg-primary/90",
+			"files": [
+				"src/components/ui/toggle.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:hover:bg-destructive/90",
+			"files": [
+				"src/components/settings/account-data-section.tsx",
+				"src/components/settings/gdpr-data-actions.tsx",
+				"src/components/ui/__tests__/naming-conventions.test.tsx",
+				"src/components/ui/button.tsx"
+			],
+			"fileCount": 4
+		},
+		{
+			"key": "dark:hover:bg-primary-foreground",
+			"files": [
+				"src/app/__tests__/primary-cta-band-contrast.test.tsx",
+				"src/app/faq/page.tsx",
+				"src/app/help/page.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "dark:hover:bg-primary/90",
+			"files": [
+				"src/app/(owner)/analytics/financial/page.tsx",
+				"src/app/(owner)/analytics/property-performance/page.tsx",
+				"src/app/(owner)/dashboard/components/dashboard-empty-state.tsx",
+				"src/app/(owner)/dashboard/page.tsx",
+				"src/app/(owner)/leases/page.tsx"
+			],
+			"fileCount": 20
+		},
+		{
+			"key": "dark:hover:bg-transparent",
+			"files": [
+				"src/components/settings/category-row.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:hover:text-foreground",
+			"files": [
+				"src/components/ui/button.tsx",
+				"src/components/ui/calendar.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "data-[selected=true]:[&_svg:not([class*='text-'])]:text-accent-foreground",
+			"files": [
+				"src/components/ui/command.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-[state=completed]:bg-success-text",
+			"files": [
+				"src/components/bulk-import/bulk-import-stepper.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-[state=completed]:bg-success/10",
+			"files": [
+				"src/components/bulk-import/bulk-import-stepper.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-[state=completed]:text-success-text",
+			"files": [
+				"src/components/bulk-import/bulk-import-stepper.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-[state=on]:hover:bg-primary-text",
+			"files": [
+				"src/app/__tests__/state-fill-contrast.test.ts",
+				"src/components/ui/toggle.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "data-[state=open]:bg-muted",
+			"files": [
+				"src/components/data-table/data-table-column-header.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-dragging:bg-accent/25",
+			"files": [
+				"src/components/ui/file-upload/file-upload-dropzone.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-dragging:bg-primary/10",
+			"files": [
+				"src/components/bulk-import/__tests__/bulk-import-upload-step.test.tsx",
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "data-dragging:border-primary",
+			"files": [
+				"src/components/bulk-import/__tests__/bulk-import-upload-step.test.tsx",
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "data-dragging:scale-[1.01]",
+			"files": [
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-dragging:shadow-lg",
+			"files": [
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-dragging:shadow-primary/10",
+			"files": [
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "focus:[&_svg:not([class*='text-'])]:text-accent-foreground",
+			"files": [
+				"src/app/__tests__/state-fill-contrast.test.ts",
+				"src/components/ui/dropdown-menu.tsx",
+				"src/components/ui/select.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "focus:bg-muted",
+			"files": [
+				"src/components/shared/multi-select-chips.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "focus:text-primary-text",
+			"files": [
+				"src/components/auth/update-password-form.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-data-dragging:animate-bounce",
+			"files": [
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-data-dragging:animate-pulse",
+			"files": [
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-data-dragging:bg-primary/20",
+			"files": [
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-data-dragging:scale-110",
+			"files": [
+				"src/components/bulk-import/__tests__/bulk-import-upload-step.test.tsx",
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "h-1/2",
+			"files": [
+				"src/components/sections/hero-dashboard-mockup.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "h-2/5",
+			"files": [
+				"src/components/sections/hero-dashboard-mockup.tsx",
+				"src/components/shared/chart-loading-skeleton.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "h-3/4",
+			"files": [
+				"src/components/sections/hero-dashboard-mockup.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "h-3/5",
+			"files": [
+				"src/components/sections/hero-dashboard-mockup.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "h-4/5",
+			"files": [
+				"src/components/landing/feature-backgrounds.tsx",
+				"src/components/shared/chart-loading-skeleton.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "h-lh",
+			"files": [
+				"src/components/analytics/owner-payment-summary.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "hover:bg-accent/25",
+			"files": [
+				"src/components/ui/file-upload/file-upload-dropzone.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "hover:bg-destructive-text",
+			"files": [
+				"src/components/settings/account-data-section.tsx",
+				"src/components/settings/gdpr-data-actions.tsx",
+				"src/components/ui/__tests__/alert-dialog.test.tsx",
+				"src/components/ui/__tests__/naming-conventions.test.tsx",
+				"src/components/ui/button.tsx"
+			],
+			"fileCount": 5
+		},
+		{
+			"key": "hover:bg-primary-text",
+			"files": [
+				"src/app/(owner)/analytics/financial/page.tsx",
+				"src/app/(owner)/analytics/property-performance/page.tsx",
+				"src/app/(owner)/dashboard/components/dashboard-empty-state.tsx",
+				"src/app/(owner)/dashboard/page.tsx",
+				"src/app/(owner)/leases/page.tsx"
+			],
+			"fileCount": 20
+		},
+		{
+			"key": "hover:text-primary-text/80",
+			"files": [
+				"src/app/blog/[slug]/blog-post-page.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "lg:@xl/chart-card:grid-cols-4",
+			"files": [
+				"src/components/dashboard/chart-area-interactive.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "lg:min-h-0",
+			"files": [
+				"src/app/(owner)/analytics/__tests__/stat-rows-one-height.test.tsx",
+				"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
+				"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+				"src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
+				"src/components/properties/property-stats-section.tsx"
+			],
+			"fileCount": 6
+		},
+		{
+			"key": "lg:min-w-40",
+			"files": [
+				"src/components/properties/__tests__/property-name-column.test.tsx",
+				"src/components/properties/property-table-types.ts"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "lg:pb-(--dock-clearance)",
+			"files": [
+				"src/components/shell/__tests__/app-shell.test.tsx",
+				"src/components/shell/app-shell.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "max-sm:sr-only",
+			"files": [
+				"src/components/leases/wizard/lease-creation-wizard-header.tsx",
+				"src/components/ui/global-sync-indicator.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "min-h-10",
+			"files": [
+				"src/app/(owner)/analytics/__tests__/stat-rows-one-height.test.tsx",
+				"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
+				"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+				"src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
+				"src/components/properties/property-stats-section.tsx"
+			],
+			"fileCount": 6
+		},
+		{
+			"key": "min-w-48",
+			"files": [
+				"src/components/properties/property-table-types.ts"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "min-w-56",
+			"files": [
+				"src/components/properties/__tests__/property-name-column.test.tsx",
+				"src/components/properties/property-table-types.ts"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "min-w-min",
+			"files": [
+				"src/components/properties/__tests__/property-name-column.test.tsx",
+				"src/components/properties/property-table-types.ts",
+				"src/components/properties/property-table.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "mr-0.5",
+			"files": [
+				"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
+				"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+				"src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "normal-case",
+			"files": [
+				"src/app/(owner)/properties/units/components/unit-actions.tsx",
+				"src/components/__tests__/owner-text-as-entered.test.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "outline-solid",
+			"files": [
+				"src/components/ui/chart.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "ring-foreground/5",
+			"files": [
+				"src/components/tenants/tenant-detail-sheet.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "sm:flex-nowrap",
+			"files": [
+				"src/app/(owner)/reports/balance-sheet/page.tsx",
+				"src/app/(owner)/reports/cash-flow/cash-flow-header.tsx",
+				"src/app/(owner)/reports/income-statement/income-statement-page-header.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "sm:max-w-[95vw]",
+			"files": [
+				"src/components/properties/__tests__/image-lightbox.test.tsx",
+				"src/components/properties/image-lightbox.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "w-3/5",
+			"files": [
+				"src/components/shared/blog-empty-state.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "wrap-break-word",
+			"files": [
+				"src/app/(owner)/reports/tax-documents/page.tsx"
+			],
+			"fileCount": 1
+		}
+	],
+	"removed": [
+		{
+			"key": "-bottom-1",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "-inset-0.5",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "-left-1",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "@4xl/kpi-bento:gap-6",
+			"files": [
+				"src/components/dashboard/components/kpi-bento-row.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "[a&]:hover:bg-destructive/90",
+			"files": [
+				"src/components/ui/badge.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "[a&]:hover:bg-primary/90",
+			"files": [
+				"src/components/ui/badge.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "[a&]:hover:bg-success/15",
+			"files": [
+				"src/components/ui/badge.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-(--color-chart-5)",
+			"files": [
+				"src/components/dashboard/components/occupancy-donut-chart.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-amber-100",
+			"files": [
+				"src/components/leases/detail/lease-detail-utils.ts",
+				"src/components/properties/property-table-row.tsx",
+				"src/components/properties/property-units-table-config.ts",
+				"src/components/settings/billing-settings.tsx",
+				"src/components/settings/sections/two-factor-section.tsx"
+			],
+			"fileCount": 5
+		},
+		{
+			"key": "bg-amber-50",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx",
+				"src/components/settings/sections/two-factor-section.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "bg-amber-50/50",
+			"files": [
+				"src/components/leases/detail/lease-terms-tab.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-amber-500",
+			"files": [
+				"src/components/properties/property-table-row.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-amber-500/5",
+			"files": [
+				"src/components/settings/account-data-section.tsx",
+				"src/components/settings/gdpr-data-actions.tsx",
+				"src/components/settings/sections/subscription-cancel-section.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "bg-blue-100",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/app/(owner)/reports/tax-documents/page.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts",
+				"src/components/properties/property-table-row.tsx",
+				"src/components/properties/property-units-table-config.ts"
+			],
+			"fileCount": 6
+		},
+		{
+			"key": "bg-blue-50",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-blue-500",
+			"files": [
+				"src/components/properties/property-table-row.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-chart-1",
+			"files": [
+				"src/app/(owner)/properties/units/page.tsx",
+				"src/app/__tests__/tailwind-theme-integrity.test.ts"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "bg-chart-2",
+			"files": [
+				"src/components/dashboard/components/occupancy-donut-chart.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-chart-3",
+			"files": [
+				"src/app/(owner)/analytics/overview/page.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-chart-4",
+			"files": [
+				"src/app/(owner)/properties/units/page.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-chart-5",
+			"files": [
+				"src/app/(owner)/analytics/overview/page.tsx",
+				"src/app/(owner)/properties/units/page.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "bg-emerald-100",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/app/(owner)/reports/tax-documents/page.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts",
+				"src/components/properties/property-table-row.tsx",
+				"src/components/tenants/tenant-grid.tsx"
+			],
+			"fileCount": 5
+		},
+		{
+			"key": "bg-emerald-50",
+			"files": [
+				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
+				"src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "bg-emerald-500",
+			"files": [
+				"src/app/(owner)/reports/cash-flow/cash-flow-breakdown.tsx",
+				"src/app/(owner)/reports/income-statement/income-statement-page-breakdowns.tsx",
+				"src/components/properties/property-table-row.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "bg-emerald-500/10",
+			"files": [
+				"src/components/properties/property-stats-section.tsx",
+				"src/components/settings/billing-settings.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "bg-green-100",
+			"files": [
+				"src/components/properties/property-units-table-config.ts"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-green-500/10",
+			"files": [
+				"src/components/maintenance/detail/maintenance-utils.ts",
+				"src/components/maintenance/detail/timeline-card.tsx",
+				"src/components/maintenance/table/columns.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "bg-indigo-50",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-info",
+			"files": [
+				"src/app/resources/security-deposit-reference-card/page.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-orange-100",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts",
+				"src/components/maintenance/cards/maintenance-card.tsx",
+				"src/components/maintenance/table/columns.tsx"
+			],
+			"fileCount": 4
+		},
+		{
+			"key": "bg-orange-500/10",
+			"files": [
+				"src/components/maintenance/detail/maintenance-utils.ts",
+				"src/components/maintenance/kanban/maintenance-kanban.client.tsx",
+				"src/components/maintenance/table/columns.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "bg-primary/3",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-primary/60",
+			"files": [
+				"src/components/sections/stats-showcase.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-purple-100",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/components/properties/property-units-table-config.ts"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "bg-red-100",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts",
+				"src/components/settings/billing-settings.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "bg-red-50",
+			"files": [
+				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
+				"src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx",
+				"src/components/billing/subscription-status-banner.tsx",
+				"src/components/settings/sections/subscription-cancel-section.tsx"
+			],
+			"fileCount": 4
+		},
+		{
+			"key": "bg-red-500",
+			"files": [
+				"src/app/(owner)/reports/cash-flow/cash-flow-breakdown.tsx",
+				"src/app/(owner)/reports/income-statement/income-statement-page-breakdowns.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "bg-rose-100",
+			"files": [
+				"src/app/(owner)/reports/tax-documents/page.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-secondary/20",
+			"files": [
+				"src/components/ui/progress.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bg-stone-100",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "bg-success",
+			"files": [
+				"src/app/resources/security-deposit-reference-card/page.tsx",
+				"src/components/leases/__tests__/lease-signature-status.test.tsx",
+				"src/components/leases/lease-signature-status.tsx",
+				"src/components/sections/hero-section.tsx",
+				"src/components/ui/__tests__/progress.test.tsx"
+			],
+			"fileCount": 6
+		},
+		{
+			"key": "bg-warning",
+			"files": [
+				"src/components/ui/progress.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "border-amber-200",
+			"files": [
+				"src/components/leases/detail/lease-terms-tab.tsx",
+				"src/components/settings/sections/two-factor-section.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "border-amber-300",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx",
+				"src/components/reports/sections/year-end-report-section.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "border-amber-500/30",
+			"files": [
+				"src/components/settings/account-data-section.tsx",
+				"src/components/settings/gdpr-data-actions.tsx",
+				"src/components/settings/sections/subscription-cancel-section.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "border-blue-300",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "border-emerald-200",
+			"files": [
+				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "border-indigo-300",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "border-orange-500",
+			"files": [
+				"src/components/leases/detail/lease-header.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "border-red-200",
+			"files": [
+				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "border-red-300",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx",
+				"src/components/settings/sections/subscription-cancel-section.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "bottom-3",
+			"files": [
+				"src/components/sections/stats-showcase.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "bottom-[40%]",
+			"files": [
+				"src/components/landing/feature-backgrounds.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:bg-amber-500/20",
+			"files": [
+				"src/components/properties/property-table-row.tsx",
+				"src/components/properties/property-units-table-config.ts"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:bg-amber-900/10",
+			"files": [
+				"src/components/leases/detail/lease-terms-tab.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:bg-amber-900/30",
+			"files": [
+				"src/components/leases/detail/lease-detail-utils.ts",
+				"src/components/settings/billing-settings.tsx",
+				"src/components/settings/sections/two-factor-section.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "dark:bg-amber-950/30",
+			"files": [
+				"src/components/settings/sections/two-factor-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:bg-amber-950/50",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:bg-blue-500/20",
+			"files": [
+				"src/components/properties/property-table-row.tsx",
+				"src/components/properties/property-units-table-config.ts"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:bg-blue-900/30",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/app/(owner)/reports/tax-documents/page.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts",
+				"src/components/settings/billing-settings.tsx"
+			],
+			"fileCount": 4
+		},
+		{
+			"key": "dark:bg-blue-950/50",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:bg-emerald-500/20",
+			"files": [
+				"src/components/properties/property-table-row.tsx",
+				"src/components/settings/billing-settings.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:bg-emerald-900/30",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/app/(owner)/reports/tax-documents/page.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts",
+				"src/components/tenants/tenant-grid.tsx"
+			],
+			"fileCount": 4
+		},
+		{
+			"key": "dark:bg-emerald-950/30",
+			"files": [
+				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
+				"src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:bg-green-500/20",
+			"files": [
+				"src/components/properties/property-units-table-config.ts"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:bg-indigo-950/50",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:bg-orange-500/20",
+			"files": [
+				"src/components/maintenance/cards/maintenance-card.tsx",
+				"src/components/maintenance/table/columns.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:bg-orange-900/30",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:bg-purple-500/20",
+			"files": [
+				"src/components/properties/property-units-table-config.ts"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:bg-purple-900/30",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:bg-red-900/30",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts",
+				"src/components/settings/billing-settings.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "dark:bg-red-950/30",
+			"files": [
+				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
+				"src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:bg-red-950/50",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx",
+				"src/components/settings/sections/subscription-cancel-section.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:bg-rose-900/30",
+			"files": [
+				"src/app/(owner)/reports/tax-documents/page.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:bg-stone-800",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:border-amber-700",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:border-amber-800",
+			"files": [
+				"src/components/leases/detail/lease-terms-tab.tsx",
+				"src/components/settings/sections/two-factor-section.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:border-blue-700",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:border-emerald-800",
+			"files": [
+				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:border-indigo-700",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:border-red-700",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx",
+				"src/components/settings/sections/subscription-cancel-section.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:border-red-800",
+			"files": [
+				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:hover:text-accent-foreground",
+			"files": [
+				"src/components/ui/calendar.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:hover:text-amber-100",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:hover:text-blue-100",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:hover:text-indigo-100",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:hover:text-red-100",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:text-amber-200",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx",
+				"src/components/leases/detail/lease-terms-tab.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:text-amber-300",
+			"files": [
+				"src/components/leases/detail/lease-terms-tab.tsx",
+				"src/components/settings/billing-settings.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:text-amber-400",
+			"files": [
+				"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts",
+				"src/components/properties/property-table-row.tsx",
+				"src/components/properties/property-units-table-config.ts",
+				"src/components/tenants/tenant-stats.tsx"
+			],
+			"fileCount": 5
+		},
+		{
+			"key": "dark:text-blue-200",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:text-blue-300",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/components/settings/billing-settings.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:text-blue-400",
+			"files": [
+				"src/components/properties/property-table-row.tsx",
+				"src/components/properties/property-units-table-config.ts"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:text-emerald-300",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/components/settings/billing-settings.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:text-emerald-400",
+			"files": [
+				"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
+				"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+				"src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
+				"src/app/(owner)/reports/balance-sheet/page.tsx",
+				"src/app/(owner)/reports/cash-flow/cash-flow-stats.tsx"
+			],
+			"fileCount": 11
+		},
+		{
+			"key": "dark:text-green-400",
+			"files": [
+				"src/components/maintenance/detail/maintenance-utils.ts",
+				"src/components/maintenance/table/columns.tsx",
+				"src/components/properties/property-units-table-config.ts"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "dark:text-indigo-200",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:text-orange-300",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:text-orange-400",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts",
+				"src/components/leases/detail/lease-details-tab.tsx",
+				"src/components/leases/detail/lease-header.tsx",
+				"src/components/maintenance/cards/maintenance-card.tsx"
+			],
+			"fileCount": 8
+		},
+		{
+			"key": "dark:text-purple-300",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:text-purple-400",
+			"files": [
+				"src/components/properties/property-units-table-config.ts"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:text-red-200",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx",
+				"src/components/settings/sections/subscription-cancel-section.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:text-red-300",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/components/settings/billing-settings.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "dark:text-red-400",
+			"files": [
+				"src/app/(owner)/reports/balance-sheet/page.tsx",
+				"src/app/(owner)/reports/cash-flow/cash-flow-stats.tsx",
+				"src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
+				"src/app/(owner)/reports/income-statement/income-statement-page-stats.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts"
+			],
+			"fileCount": 5
+		},
+		{
+			"key": "dark:text-stone-300",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "dark:text-stone-400",
+			"files": [
+				"src/components/leases/detail/lease-detail-utils.ts"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-[state=completed]:bg-success",
+			"files": [
+				"src/components/bulk-import/bulk-import-stepper.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-[state=completed]:text-success-foreground",
+			"files": [
+				"src/components/bulk-import/bulk-import-stepper.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-[state=on]:hover:bg-primary/90",
+			"files": [
+				"src/components/ui/toggle.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-drag-over:bg-primary/10",
+			"files": [
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-drag-over:border-primary",
+			"files": [
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-drag-over:scale-[1.01]",
+			"files": [
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-drag-over:shadow-lg",
+			"files": [
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-drag-over:shadow-primary/10",
+			"files": [
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "data-dragging:bg-accent/30",
+			"files": [
+				"src/components/ui/file-upload/file-upload-dropzone.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "focus:text-primary",
+			"files": [
+				"src/components/auth/update-password-form.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "from-primary/4",
+			"files": [
+				"src/components/sections/stats-showcase.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "from-primary/8",
+			"files": [
+				"src/components/sections/stats-showcase.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-data-drag-over:animate-bounce",
+			"files": [
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-data-drag-over:animate-pulse",
+			"files": [
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-data-drag-over:bg-primary/20",
+			"files": [
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-data-drag-over:scale-110",
+			"files": [
+				"src/components/bulk-import/bulk-import-upload-step.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-hover/feature:bg-primary/20",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-hover/feature:opacity-100",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-hover/feature:scale-105",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-hover/feature:scale-110",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-hover/feature:scale-125",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-hover/feature:scale-150",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-hover/feature:shadow-lg",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-hover/feature:shadow-primary/25",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-hover/feature:text-foreground/80",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-hover/feature:text-primary",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-hover:bg-emerald-500/20",
+			"files": [
+				"src/components/properties/property-stats-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-hover:bg-primary/20",
+			"files": [
+				"src/app/(owner)/leases/leases-stat-cards.tsx",
+				"src/components/properties/property-stats-section.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "group-hover:opacity-40",
+			"files": [
+				"src/components/sections/how-it-works.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-hover:scale-125",
+			"files": [
+				"src/components/sections/stats-showcase.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-hover:scale-150",
+			"files": [
+				"src/components/sections/stats-showcase.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "group-hover:text-foreground/80",
+			"files": [
+				"src/components/sections/stats-showcase.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "h-[40%]",
+			"files": [
+				"src/components/sections/hero-dashboard-mockup.tsx",
+				"src/components/shared/chart-loading-skeleton.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "h-[50%]",
+			"files": [
+				"src/components/sections/hero-dashboard-mockup.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "h-[60%]",
+			"files": [
+				"src/components/sections/hero-dashboard-mockup.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "h-[75%]",
+			"files": [
+				"src/components/sections/hero-dashboard-mockup.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "h-[80%]",
+			"files": [
+				"src/components/landing/feature-backgrounds.tsx",
+				"src/components/shared/chart-loading-skeleton.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "hover:-translate-y-0.5",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "hover:bg-accent/30",
+			"files": [
+				"src/components/ui/file-upload/file-upload-dropzone.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "hover:bg-card/40",
+			"files": [
+				"src/components/sections/premium-cta.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "hover:bg-card/95",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "hover:bg-destructive/90",
+			"files": [
+				"src/components/settings/account-data-section.tsx",
+				"src/components/settings/gdpr-data-actions.tsx",
+				"src/components/ui/__tests__/alert-dialog.test.tsx",
+				"src/components/ui/__tests__/naming-conventions.test.tsx",
+				"src/components/ui/button.tsx"
+			],
+			"fileCount": 5
+		},
+		{
+			"key": "hover:bg-muted/70",
+			"files": [
+				"src/components/profiles/owner/security-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "hover:bg-primary/90",
+			"files": [
+				"src/app/(owner)/analytics/financial/page.tsx",
+				"src/app/(owner)/analytics/property-performance/page.tsx",
+				"src/app/(owner)/dashboard/components/dashboard-empty-state.tsx",
+				"src/app/(owner)/dashboard/page.tsx",
+				"src/app/(owner)/leases/page.tsx"
+			],
+			"fileCount": 20
+		},
+		{
+			"key": "hover:bg-success",
+			"files": [
+				"src/components/leases/lease-signature-status.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "hover:border-primary/15",
+			"files": [
+				"src/components/sections/features-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "hover:border-primary/20",
+			"files": [
+				"src/app/about/page.tsx",
+				"src/components/sections/hero-dashboard-mockup.tsx",
+				"src/components/sections/how-it-works.tsx",
+				"src/components/sections/testimonials-section.tsx"
+			],
+			"fileCount": 4
+		},
+		{
+			"key": "hover:text-amber-900",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "hover:text-blue-900",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "hover:text-indigo-900",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "hover:text-primary/80",
+			"files": [
+				"src/app/blog/[slug]/blog-post-page.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "hover:text-red-900",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "lg:pb-28",
+			"files": [
+				"src/components/shell/__tests__/app-shell.test.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "max-w-37.5",
+			"files": [
+				"src/components/shell/app-shell-header.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "sm:max-w-none",
+			"files": [
+				"src/components/shell/app-shell-header.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "text-(--color-accent-main)",
+			"files": [
+				"src/components/ui/__tests__/loading-spinner.test.tsx",
+				"src/components/ui/loading-spinner.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "text-amber-500",
+			"files": [
+				"src/components/leases/wizard/details-step.tsx",
+				"src/components/leases/wizard/review-step.tsx",
+				"src/components/reports/sections/year-end-report-section.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "text-amber-600",
+			"files": [
+				"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts",
+				"src/components/reports/sections/year-end-report-section.tsx",
+				"src/components/settings/account-data-section.tsx",
+				"src/components/settings/gdpr-data-actions.tsx"
+			],
+			"fileCount": 9
+		},
+		{
+			"key": "text-amber-700",
+			"files": [
+				"src/components/leases/detail/lease-detail-utils.ts",
+				"src/components/leases/detail/lease-terms-tab.tsx",
+				"src/components/properties/property-table-row.tsx",
+				"src/components/properties/property-units-table-config.ts",
+				"src/components/settings/account-data-section.tsx"
+			],
+			"fileCount": 8
+		},
+		{
+			"key": "text-amber-800",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx",
+				"src/components/leases/detail/lease-terms-tab.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "text-blue-600",
+			"files": [
+				"src/app/(owner)/reports/tax-documents/page.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "text-blue-700",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/components/properties/property-table-row.tsx",
+				"src/components/properties/property-units-table-config.ts",
+				"src/components/settings/billing-settings.tsx"
+			],
+			"fileCount": 4
+		},
+		{
+			"key": "text-blue-800",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "text-chart-1",
+			"files": [
+				"src/app/(owner)/properties/units/page.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "text-chart-5",
+			"files": [
+				"src/app/(owner)/properties/units/page.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "text-emerald-500",
+			"files": [
+				"src/components/profiles/owner/personal-info-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "text-emerald-600",
+			"files": [
+				"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
+				"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+				"src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
+				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
+				"src/app/(owner)/reports/balance-sheet/page.tsx"
+			],
+			"fileCount": 21
+		},
+		{
+			"key": "text-emerald-700",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts",
+				"src/components/properties/property-table-row.tsx",
+				"src/components/settings/billing-settings.tsx",
+				"src/components/tenants/tenant-grid.tsx"
+			],
+			"fileCount": 5
+		},
+		{
+			"key": "text-green-400",
+			"files": [
+				"src/components/properties/sections/property-images-create-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "text-green-500",
+			"files": [
+				"src/components/leases/wizard/review-step.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "text-green-600",
+			"files": [
+				"src/components/leases/wizard/review-step.tsx",
+				"src/components/maintenance/detail/maintenance-utils.ts",
+				"src/components/maintenance/detail/timeline-card.tsx",
+				"src/components/maintenance/table/columns.tsx"
+			],
+			"fileCount": 4
+		},
+		{
+			"key": "text-green-700",
+			"files": [
+				"src/components/properties/property-units-table-config.ts"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "text-indigo-800",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "text-muted-foreground/75",
+			"files": [
+				"src/components/auth/google-button.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "text-orange-600",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
+				"src/components/leases/detail/lease-details-tab.tsx",
+				"src/components/leases/detail/lease-header.tsx",
+				"src/components/maintenance/detail/maintenance-utils.ts",
+				"src/components/maintenance/kanban/maintenance-kanban.client.tsx"
+			],
+			"fileCount": 6
+		},
+		{
+			"key": "text-orange-700",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts",
+				"src/components/maintenance/cards/maintenance-card.tsx",
+				"src/components/maintenance/table/columns.tsx"
+			],
+			"fileCount": 4
+		},
+		{
+			"key": "text-primary-foreground/90",
+			"files": [
+				"src/app/faq/page.tsx",
+				"src/app/help/page.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "text-purple-700",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/components/properties/property-units-table-config.ts"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "text-red-400",
+			"files": [
+				"src/components/properties/sections/property-images-create-section.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "text-red-500",
+			"files": [
+				"src/components/reports/sections/year-end-report-section.tsx",
+				"src/lib/utils.ts"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "text-red-600",
+			"files": [
+				"src/app/(owner)/reports/balance-sheet/balance-equation-check.tsx",
+				"src/app/(owner)/reports/balance-sheet/balance-section.tsx",
+				"src/app/(owner)/reports/balance-sheet/page.tsx",
+				"src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx",
+				"src/app/(owner)/reports/cash-flow/cash-flow-balance-summary.tsx"
+			],
+			"fileCount": 12
+		},
+		{
+			"key": "text-red-700",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx",
+				"src/components/leases/detail/lease-detail-utils.ts",
+				"src/components/settings/billing-settings.tsx"
+			],
+			"fileCount": 3
+		},
+		{
+			"key": "text-red-800",
+			"files": [
+				"src/components/billing/subscription-status-banner.tsx",
+				"src/components/settings/sections/subscription-cancel-section.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "text-rose-600",
+			"files": [
+				"src/app/(owner)/reports/tax-documents/page.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "text-stone-500",
+			"files": [
+				"src/components/leases/detail/lease-detail-utils.ts"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "text-stone-600",
+			"files": [
+				"src/components/leases/detail/lease-detail-utils.ts"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "text-stone-700",
+			"files": [
+				"src/app/(owner)/reports/expenses/_components/expense-category-badge.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "to-accent/4",
+			"files": [
+				"src/components/sections/stats-showcase.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "to-accent/8",
+			"files": [
+				"src/components/sections/stats-showcase.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "top-3",
+			"files": [
+				"src/components/sections/stats-showcase.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "w-1.5",
+			"files": [
+				"src/components/sections/features-section.tsx",
+				"src/components/sections/stats-showcase.tsx"
+			],
+			"fileCount": 2
+		},
+		{
+			"key": "w-[60%]",
+			"files": [
+				"src/components/shared/blog-empty-state.tsx"
+			],
+			"fileCount": 1
+		},
+		{
+			"key": "xl:grid-cols-5",
+			"files": [
+				"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx"
+			],
+			"fileCount": 1
+		}
+	],
+	"changed": [
+		{
+			"key": "showcase-card",
+			"utility": "src/app/globals.css",
+			"commits": [
+				"ed7db2d48 fix(66.2-39): take hover affordances off elements that are not controls"
+			]
+		},
+		{
+			"key": "testimonial-card",
+			"utility": "src/app/globals.css",
+			"commits": [
+				"ed7db2d48 fix(66.2-39): take hover affordances off elements that are not controls"
+			]
+		}
+	],
+	"unattributed": [],
+	"cp4Followup": [
+		{
+			"side": "added",
+			"key": "bottom-(--dock-offset)",
+			"source": "CP-4 follow-up (G38..MAIN_MERGE^1)",
+			"files": [
+				"src/components/shell/__tests__/quick-actions-dock-css.test.ts",
+				"src/components/shell/__tests__/quick-actions-dock.test.tsx",
+				"src/components/shell/quick-actions-dock.tsx"
+			]
+		},
+		{
+			"side": "added",
+			"key": "h-(--dock-height)",
+			"source": "CP-4 follow-up (G38..MAIN_MERGE^1)",
+			"files": [
+				"src/components/shell/__tests__/quick-actions-dock-css.test.ts",
+				"src/components/shell/quick-actions-dock.tsx"
+			]
+		},
+		{
+			"side": "removed",
+			"key": "@container",
+			"source": "CP-4 follow-up (G38..MAIN_MERGE^1)",
+			"files": [
+				"src/components/dashboard/components/kpi-bento-row.tsx"
+			]
+		},
+		{
+			"side": "removed",
+			"key": "lg:col-span-3",
+			"source": "CP-4 follow-up (G38..MAIN_MERGE^1)",
+			"files": [
+				"src/app/(owner)/dashboard/components/dashboard-loading-skeleton.tsx"
+			]
+		}
+	],
+	"fixRound3": {
+		"base": "36972318f (code state f8de0175e)",
+		"head": "b7f25511b",
+		"added": [
+			{
+				"key": "[&_.recharts-cartesian-axis-tick-value]:fill-muted-foreground",
+				"files": [
+					"src/components/ui/chart.tsx"
+				],
+				"commits": [
+					"61df5a44d fix(66.2-39): paint chart axis labels through the class recharts 3 gives them"
+				],
+				"vd": [
+					"VD-143",
+					"VD-52"
+				]
+			},
+			{
+				"key": "[&_.recharts-sector:not([stroke^='var('])]:stroke-transparent",
+				"files": [
+					"src/components/ui/chart.tsx"
+				],
+				"commits": [
+					"7ba8647d4 fix(66.2-39): let a Pie's token stroke survive ChartContainer's sector rule"
+				],
+				"vd": [
+					"VD-53"
+				]
+			},
+			{
+				"key": "basis-28",
+				"files": [
+					"src/components/settings/category-row.tsx"
+				],
+				"commits": [
+					"bb06157dc fix(66.2-39): reflow the document categories tab at 320px"
+				],
+				"vd": [
+					"VD-148"
+				]
+			},
+			{
+				"key": "basis-56",
+				"files": [
+					"src/components/settings/categories-settings.tsx"
+				],
+				"commits": [
+					"bb06157dc fix(66.2-39): reflow the document categories tab at 320px"
+				],
+				"vd": [
+					"VD-148"
+				]
+			},
+			{
+				"key": "dark:border-border",
+				"files": [
+					"src/components/auth/google-button.tsx",
+					"src/components/pricing/pricing-card-standard.tsx"
+				],
+				"commits": [
+					"7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+				],
+				"vd": [
+					"VD-134"
+				]
+			},
+			{
+				"key": "dark:border-border/50",
+				"files": [
+					"src/components/sections/premium-cta.tsx"
+				],
+				"commits": [
+					"7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+				],
+				"vd": [
+					"VD-134"
+				]
+			},
+			{
+				"key": "dark:border-destructive/20",
+				"files": [
+					"src/components/settings/sections/subscription-cancel-section.tsx"
+				],
+				"commits": [
+					"7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+				],
+				"vd": [
+					"VD-134"
+				]
+			},
+			{
+				"key": "dark:border-destructive/30",
+				"files": [
+					"src/components/leases/download-signed-lease-button.tsx"
+				],
+				"commits": [
+					"7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+				],
+				"vd": [
+					"VD-134"
+				]
+			},
+			{
+				"key": "dark:border-muted-foreground/30",
+				"files": [
+					"src/app/resources/page.tsx",
+					"src/components/landing/final-cta-section.tsx",
+					"src/components/landing/hero-section.tsx"
+				],
+				"commits": [
+					"7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+				],
+				"vd": [
+					"VD-134"
+				]
+			},
+			{
+				"key": "dark:border-success/20",
+				"files": [
+					"src/components/leases/sign-lease-button.tsx"
+				],
+				"commits": [
+					"7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+				],
+				"vd": [
+					"VD-134"
+				]
+			},
+			{
+				"key": "dark:hover:bg-black/70",
+				"files": [
+					"src/components/properties/image-lightbox.tsx"
+				],
+				"commits": [
+					"7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+				],
+				"vd": [
+					"VD-134"
+				]
+			},
+			{
+				"key": "dark:hover:bg-destructive/10",
+				"files": [
+					"src/components/inspections/inspection-room-card.tsx",
+					"src/components/maintenance/table/columns.tsx",
+					"src/components/maintenance/vendors-page.client.tsx",
+					"src/components/properties/property-action-bar.tsx",
+					"src/components/properties/property-table-row.tsx",
+					"src/components/tenants/tenant-table-row.tsx"
+				],
+				"commits": [
+					"7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+				],
+				"vd": [
+					"VD-134"
+				]
+			},
+			{
+				"key": "dark:hover:bg-destructive/20",
+				"files": [
+					"src/app/(owner)/properties/property-details.client.tsx",
+					"src/components/documents/document-row.tsx",
+					"src/components/leases/download-signed-lease-button.tsx",
+					"src/components/maintenance/detail/maintenance-details.client.tsx",
+					"src/components/maintenance/detail/photos-card.tsx",
+					"src/components/settings/sections/subscription-cancel-section.tsx"
+				],
+				"commits": [
+					"7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+				],
+				"vd": [
+					"VD-134"
+				]
+			},
+			{
+				"key": "dark:hover:bg-muted/50",
+				"files": [
+					"src/app/(owner)/properties/units/components/unit-actions.tsx",
+					"src/components/bulk-import/bulk-import-stepper.tsx",
+					"src/components/pricing/pricing-comparison-table.tsx"
+				],
+				"commits": [
+					"7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+				],
+				"vd": [
+					"VD-134"
+				]
+			},
+			{
+				"key": "dark:hover:bg-primary/5",
+				"files": [
+					"src/app/resources/page.tsx",
+					"src/components/bulk-import/bulk-import-upload-step.tsx",
+					"src/components/landing/final-cta-section.tsx",
+					"src/components/landing/hero-section.tsx",
+					"src/components/pricing/pricing-card-standard.tsx",
+					"src/components/sections/premium-cta.tsx"
+				],
+				"commits": [
+					"7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+				],
+				"vd": [
+					"VD-134"
+				]
+			},
+			{
+				"key": "dark:hover:text-destructive-text",
+				"files": [
+					"src/app/(owner)/properties/property-details.client.tsx",
+					"src/components/documents/document-row.tsx",
+					"src/components/inspections/inspection-room-card.tsx",
+					"src/components/leases/download-signed-lease-button.tsx",
+					"src/components/maintenance/detail/maintenance-details.client.tsx",
+					"src/components/maintenance/detail/photos-card.tsx",
+					"src/components/maintenance/table/columns.tsx",
+					"src/components/maintenance/vendors-page.client.tsx",
+					"src/components/properties/property-action-bar.tsx",
+					"src/components/properties/property-table-row.tsx",
+					"src/components/settings/sections/subscription-cancel-section.tsx",
+					"src/components/tenants/tenant-table-row.tsx"
+				],
+				"commits": [
+					"7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+				],
+				"vd": [
+					"VD-134"
+				]
+			},
+			{
+				"key": "dark:hover:text-muted-foreground",
+				"files": [
+					"src/components/settings/category-row.tsx",
+					"src/components/shell/app-shell-header.tsx"
+				],
+				"commits": [
+					"7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+				],
+				"vd": [
+					"VD-134"
+				]
+			},
+			{
+				"key": "dark:hover:text-primary-text",
+				"files": [
+					"src/app/faq/page.tsx",
+					"src/app/help/page.tsx",
+					"src/components/pricing/pricing-card-standard.tsx"
+				],
+				"commits": [
+					"7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+				],
+				"vd": [
+					"VD-134"
+				]
+			},
+			{
+				"key": "dark:hover:text-white",
+				"files": [
+					"src/components/properties/image-lightbox.tsx"
+				],
+				"commits": [
+					"7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+				],
+				"vd": [
+					"VD-134"
+				]
+			},
+			{
+				"key": "focus-visible:border-primary-foreground",
+				"files": [
+					"src/app/faq/page.tsx",
+					"src/app/help/page.tsx"
+				],
+				"commits": [
+					"a2258d857 fix(66.2-39): draw the faq and help CTA focus rings in primary-foreground"
+				],
+				"vd": [
+					"VD-135"
+				]
+			},
+			{
+				"key": "focus-visible:ring-primary-foreground/80",
+				"files": [
+					"src/app/faq/page.tsx",
+					"src/app/help/page.tsx"
+				],
+				"commits": [
+					"a2258d857 fix(66.2-39): draw the faq and help CTA focus rings in primary-foreground"
+				],
+				"vd": [
+					"VD-135"
+				]
+			},
+			{
+				"key": "grid-cols-[repeat(auto-fit,minmax(min(20rem,100%),1fr))]",
+				"files": [
+					"src/app/(owner)/loading.tsx"
+				],
+				"commits": [
+					"958cce22c fix(66.2-39): keep the owner loading stat grid inside a 320px row"
+				],
+				"vd": [
+					"VD-12",
+					"VD-61"
+				]
+			},
+			{
+				"key": "hover:text-white",
+				"files": [
+					"src/components/properties/image-lightbox.tsx"
+				],
+				"commits": [
+					"7eafdd433 fix(66.2-39): measure each Button's merged classes and twin caller states"
+				],
+				"vd": [
+					"VD-134"
+				]
+			},
+			{
+				"key": "max-h-(--tour-available-height)",
+				"files": [
+					"src/components/ui/tour.tsx"
+				],
+				"commits": [
+					"5ab6b39e3 fix(66.2-39): keep every onboarding tour step inside the viewport"
+				],
+				"vd": [
+					"VD-151",
+					"VD-120"
+				]
+			},
+			{
+				"key": "max-md:pt-16",
+				"files": [
+					"src/components/ui/tour.tsx"
+				],
+				"commits": [
+					"b7f25511b fix(66.2-39): start the tour step's content below its close button"
+				],
+				"vd": [
+					"VD-151"
+				]
+			},
+			{
+				"key": "max-w-(--tour-available-width)",
+				"files": [
+					"src/components/ui/tour.tsx"
+				],
+				"commits": [
+					"5ab6b39e3 fix(66.2-39): keep every onboarding tour step inside the viewport"
+				],
+				"vd": [
+					"VD-151",
+					"VD-120"
+				]
+			},
+			{
+				"key": "md:data-scrollable:pr-6",
+				"files": [
+					"src/components/ui/tour.tsx"
+				],
+				"commits": [
+					"b7f25511b fix(66.2-39): start the tour step's content below its close button"
+				],
+				"vd": [
+					"VD-151"
+				]
+			},
+			{
+				"key": "wrap-anywhere",
+				"files": [
+					"src/components/settings/category-row.tsx"
+				],
+				"commits": [
+					"bb06157dc fix(66.2-39): reflow the document categories tab at 320px"
+				],
+				"vd": [
+					"VD-148"
+				]
+			}
+		],
+		"removed": [
+			{
+				"key": "[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground",
+				"files": [
+					"src/components/ui/chart.tsx"
+				],
+				"commits": [
+					"61df5a44d fix(66.2-39): paint chart axis labels through the class recharts 3 gives them"
+				],
+				"vd": [
+					"VD-143",
+					"VD-52"
+				]
+			},
+			{
+				"key": "[&_.recharts-sector[stroke]]:stroke-transparent",
+				"files": [
+					"src/components/ui/chart.tsx"
+				],
+				"commits": [
+					"7ba8647d4 fix(66.2-39): let a Pie's token stroke survive ChartContainer's sector rule"
+				],
+				"vd": [
+					"VD-53"
+				]
+			},
+			{
+				"key": "[a]:hover:bg-accent/50",
+				"files": [
+					"src/app/(owner)/documents/recent-documents-panel.tsx"
+				],
+				"commits": [
+					"57c06b9fc docs(66.2-39): cite the documents and applications comments by symbol, not line"
+				],
+				"vd": [
+					"comment-only"
+				]
+			},
+			{
+				"key": "grid-cols-[repeat(auto-fit,minmax(20rem,1fr))]",
+				"files": [
+					"src/app/(owner)/loading.tsx"
+				],
+				"commits": [
+					"958cce22c fix(66.2-39): keep the owner loading stat grid inside a 320px row"
+				],
+				"vd": [
+					"VD-12",
+					"VD-61"
+				]
+			},
+			{
+				"key": "group-hover:blur-2xl",
+				"files": [
+					"src/app/auth/confirm-email/confirm-email-states.tsx",
+					"src/app/auth/update-password/page.tsx"
+				],
+				"commits": [
+					"7d4e9abf9 fix(66.2-39): count group-hover effects whose group is not a control"
+				],
+				"vd": [
+					"VD-69"
+				]
+			},
+			{
+				"key": "md:flex",
+				"files": [
+					"src/components/properties/property-table-types.ts"
+				],
+				"commits": [
+					"d52c53b10 fix(66.2-39): correct the feature comments this PR's changes made false"
+				],
+				"vd": [
+					"comment-only"
+				]
+			},
+			{
+				"key": "space-y-0.5",
+				"files": [
+					"src/components/shared/multi-select-chips.tsx"
+				],
+				"commits": [
+					"7cb8c5d9d fix(66.2-39): cancel the base list rules on every list in this pr's files"
+				],
+				"vd": [
+					"VD-149"
+				]
+			}
+		],
+		"reversedFixRound1": [
+			{
+				"side": "added",
+				"key": "hover:bg-card/40",
+				"reverses": "a fix-round-1 or CP-4 removed key",
+				"commits": [
+					"b3605eb72 fix(66.2-39): give the premium CTA's cancellation link tile a hover again"
+				],
+				"vd": [
+					"VD-136"
+				]
+			},
+			{
+				"side": "removed",
+				"key": "hover:text-primary-text/80",
+				"reverses": "a fix-round-1 or CP-4 added key",
+				"commits": [
+					"f9aa2dd8c fix(66.2-39): keep the blog cross-links' hover label at full strength"
+				],
+				"vd": [
+					"VD-59"
+				]
+			}
+		],
+		"compiledCss": {
+			"old": {
+				"tree": "36972318f (code state f8de0175e), audit.mjs on the old state in this worktree, this session",
+				"sha256": "de12912060d9f1892b0c130aa3ed3b4e6ca1f7f81dda0b86f4f137a575f274d0"
+			},
+			"new": {
+				"tree": "b7f25511b",
+				"sha256": "bbf1a69aff432f0d4042a73c9843e5b383620462a39dbd7ee7c4a1b3224a1c0b"
+			},
+			"differingTopLevelBlocks": [
+				"@layer base",
+				"@layer utilities"
+			],
+			"utilities": "the candidate keys above (fixRound3.added / removed)",
+			"nonUtilityHunks": [
+				{
+					"rule": "a:not([role=\"button\"]):not(.button):not([class*=\"button\"])",
+					"becomes": "...:not([data-slot=\"button\"])",
+					"commit": "9a7092a7f fix(66.2-39): pass Button-styled links by in the base anchor rules",
+					"vd": [
+						"VD-66"
+					],
+					"decision": "OD-3 (owner): the base anchor rules narrowed in place, D-B"
+				},
+				{
+					"rule": "a:not([role=\"button\"]):not(.button):not([class*=\"button\"]):hover",
+					"becomes": "...:not([data-slot=\"button\"]):hover",
+					"commit": "9a7092a7f fix(66.2-39): pass Button-styled links by in the base anchor rules",
+					"vd": [
+						"VD-66"
+					],
+					"decision": "OD-3 (owner)"
+				}
+			],
+			"unclassified": 0
+		}
+	},
+	"fixRound4": {
+		"base": "3977aa58d (code state b7f25511b)",
+		"head": "7f6fcc67c3d2d939a2f765713510b2943fc6b6f8",
+		"added": [
+			{
+				"key": "**:data-[slot=stat-value]:col-span-2",
+				"files": [
+					"src/components/ui/stat.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "*:data-[slot=input-otp-slot]:flex-1",
+				"files": [
+					"src/components/auth/mfa-verification-dialog.tsx",
+					"src/components/auth/two-factor-setup-steps.tsx"
+				],
+				"commits": [
+					"8aff69588 fix(66.2-39): bound every overlay box by the space beside its trigger"
+				],
+				"vd": [
+					"VD-166",
+					"VD-167"
+				]
+			},
+			{
+				"key": "*:data-[slot=input-otp-slot]:h-12",
+				"files": [
+					"src/components/auth/mfa-verification-dialog.tsx",
+					"src/components/auth/two-factor-setup-steps.tsx"
+				],
+				"commits": [
+					"8aff69588 fix(66.2-39): bound every overlay box by the space beside its trigger"
+				],
+				"vd": [
+					"VD-166",
+					"VD-167"
+				]
+			},
+			{
+				"key": "*:data-[slot=input-otp-slot]:min-w-0",
+				"files": [
+					"src/components/auth/mfa-verification-dialog.tsx",
+					"src/components/auth/two-factor-setup-steps.tsx"
+				],
+				"commits": [
+					"8aff69588 fix(66.2-39): bound every overlay box by the space beside its trigger"
+				],
+				"vd": [
+					"VD-166",
+					"VD-167"
+				]
+			},
+			{
+				"key": "*:data-[slot=input-otp-slot]:w-auto",
+				"files": [
+					"src/components/auth/mfa-verification-dialog.tsx",
+					"src/components/auth/two-factor-setup-steps.tsx"
+				],
+				"commits": [
+					"8aff69588 fix(66.2-39): bound every overlay box by the space beside its trigger"
+				],
+				"vd": [
+					"VD-166",
+					"VD-167"
+				]
+			},
+			{
+				"key": "@4xl/analytics-stats:min-h-0",
+				"files": [
+					"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx"
+				],
+				"commits": [
+					"1dfbba30d fix(66.2-39): release the overview and performance stat labels on the row"
+				],
+				"vd": [
+					"VD-117"
+				]
+			},
+			{
+				"key": "@4xl/performance-stats:min-h-0",
+				"files": [
+					"src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx"
+				],
+				"commits": [
+					"1dfbba30d fix(66.2-39): release the overview and performance stat labels on the row"
+				],
+				"vd": [
+					"VD-117"
+				]
+			},
+			{
+				"key": "@4xl/tenant-stats:min-h-0",
+				"files": [
+					"src/components/tenants/tenant-stats.tsx"
+				],
+				"commits": [
+					"caf10c04e fix(66.2-39): release the tenants stat labels on the row's own width"
+				],
+				"vd": [
+					"VD-117"
+				]
+			},
+			{
+				"key": "@container/about-stats",
+				"files": [
+					"src/app/about/page.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/activity",
+				"files": [
+					"src/components/sections/hero-dashboard-mockup.tsx"
+				],
+				"commits": [
+					"0e9332bc1 fix(66.2-39): wrap the rows that ran a label past its control or column"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "@container/activity-tile",
+				"files": [
+					"src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/analytics-stats",
+				"files": [
+					"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+					"src/app/(owner)/analytics/overview/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width",
+					"1dfbba30d fix(66.2-39): release the overview and performance stat labels on the row"
+				],
+				"vd": [
+					"VD-175",
+					"VD-117"
+				]
+			},
+			{
+				"key": "@container/balance-stats",
+				"files": [
+					"src/app/(owner)/reports/balance-sheet/balance-sheet-skeleton.tsx",
+					"src/app/(owner)/reports/balance-sheet/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/cash-flow-activity",
+				"files": [
+					"src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/cash-flow-stats",
+				"files": [
+					"src/app/(owner)/reports/cash-flow/cash-flow-loading.tsx",
+					"src/app/(owner)/reports/cash-flow/cash-flow-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/compare-stat",
+				"files": [
+					"src/app/compare/[competitor]/page.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/compare-stats",
+				"files": [
+					"src/app/compare/[competitor]/page.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/expense-stats",
+				"files": [
+					"src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
+					"src/app/(owner)/reports/expenses/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/financial-stats",
+				"files": [
+					"src/app/(owner)/analytics/financial/_components/financial-analytics-skeleton.tsx",
+					"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/hero-mockup",
+				"files": [
+					"src/components/sections/hero-dashboard-mockup.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/import-result",
+				"files": [
+					"src/components/bulk-import/bulk-import-result-panel.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/import-validation",
+				"files": [
+					"src/components/bulk-import/bulk-import-validate-step.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/income-stats",
+				"files": [
+					"src/app/(owner)/reports/income-statement/income-statement-page-loading.tsx",
+					"src/app/(owner)/reports/income-statement/income-statement-page-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/lease-detail",
+				"files": [
+					"src/components/leases/detail/lease-details-skeleton.tsx",
+					"src/components/leases/detail/lease-details.client.tsx"
+				],
+				"commits": [
+					"a97c54202 fix(66.2-39): step the lease page's columns on the page's own width"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "@container/lease-metrics",
+				"files": [
+					"src/components/leases/detail/lease-details-skeleton.tsx",
+					"src/components/leases/detail/lease-details.client.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/lease-stats",
+				"files": [
+					"src/app/(owner)/leases/leases-stat-cards.tsx",
+					"src/components/leases/table/leases-page-skeleton.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/ledger-balance",
+				"files": [
+					"src/components/ledger/ledger-balance-strip.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/maintenance-header",
+				"files": [
+					"src/components/maintenance/detail/maintenance-header-card.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/maintenance-stats",
+				"files": [
+					"src/components/maintenance/maintenance-view.client.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/mockup-stat",
+				"files": [
+					"src/components/sections/hero-dashboard-mockup.tsx"
+				],
+				"commits": [
+					"b26667232 fix(66.2-39): keep every sized icon in a stat row's flex rows its size"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/payment-summary",
+				"files": [
+					"src/components/analytics/owner-payment-summary.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/performance-stats",
+				"files": [
+					"src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
+					"src/app/(owner)/analytics/property-performance/property-performance-skeleton.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width",
+					"1dfbba30d fix(66.2-39): release the overview and performance stat labels on the row"
+				],
+				"vd": [
+					"VD-175",
+					"VD-117"
+				]
+			},
+			{
+				"key": "@container/pricing-stats",
+				"files": [
+					"src/app/pricing/pricing-content.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/property-performance",
+				"files": [
+					"src/components/properties/property-performance-section.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/property-stats",
+				"files": [
+					"src/app/(owner)/properties/components/properties-loading-skeleton.tsx",
+					"src/components/properties/property-stats-section.tsx"
+				],
+				"commits": [
+					"67f1a0e89 fix(66.2-39): hold the /properties stat tiles' figures at every width"
+				],
+				"vd": [
+					"VD-171"
+				]
+			},
+			{
+				"key": "@container/reports-summary",
+				"files": [
+					"src/app/(owner)/reports/reports-summary-strip.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/review-step",
+				"files": [
+					"src/components/leases/wizard/review-step.tsx"
+				],
+				"commits": [
+					"64c7ba23b fix(66.2-39): step the lease review's terms on the step's own width"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "@container/showcase-stats",
+				"files": [
+					"src/components/sections/stats-showcase.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/stat",
+				"files": [
+					"src/app/(owner)/reports/balance-sheet/page.tsx",
+					"src/app/(owner)/reports/cash-flow/cash-flow-stats.tsx",
+					"src/app/(owner)/reports/income-statement/income-statement-page-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/status-banner",
+				"files": [
+					"src/components/billing/subscription-status-banner.tsx"
+				],
+				"commits": [
+					"cc679f239 fix(66.2-39): say what past_due risks either way, and stack the banners' link when narrow"
+				],
+				"vd": [
+					"VD-184"
+				]
+			},
+			{
+				"key": "@container/tax-totals",
+				"files": [
+					"src/app/(owner)/reports/tax-documents/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/tenant-contact",
+				"files": [
+					"src/app/(owner)/tenants/components/tenant-details.client.tsx"
+				],
+				"commits": [
+					"3800ff0de fix(66.2-39): let the tenant pages' rows and contact grid fit 320px"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "@container/tenant-move-out",
+				"files": [
+					"src/app/(owner)/tenants/components/move-out-record.tsx"
+				],
+				"commits": [
+					"73dc01687 fix(66.2-39): save the move-out date, reason and notes and show them on the tenant"
+				],
+				"vd": [
+					"VD-181"
+				]
+			},
+			{
+				"key": "@container/tenant-stats",
+				"files": [
+					"src/app/(owner)/tenants/components/tenants-loading-skeleton.tsx",
+					"src/components/tenants/tenant-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width",
+					"caf10c04e fix(66.2-39): release the tenants stat labels on the row's own width"
+				],
+				"vd": [
+					"VD-175",
+					"VD-117"
+				]
+			},
+			{
+				"key": "@container/terms-step",
+				"files": [
+					"src/components/leases/wizard/terms-step.tsx"
+				],
+				"commits": [
+					"1d1390293 fix(66.2-39): step the lease terms fields on the step's own width"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "@container/unit-stats",
+				"files": [
+					"src/app/(owner)/properties/units/page.tsx"
+				],
+				"commits": [
+					"a92a72dbf fix(66.2-39): step the units stat row on its own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@container/year-end-summary",
+				"files": [
+					"src/components/reports/sections/year-end-report-section.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[12.5rem]/activity-tile:text-2xl",
+				"files": [
+					"src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[14.5rem]/compare-stat:text-2xl",
+				"files": [
+					"src/app/compare/[competitor]/page.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[16rem]/activity:flex-row",
+				"files": [
+					"src/components/sections/hero-dashboard-mockup.tsx"
+				],
+				"commits": [
+					"0e9332bc1 fix(66.2-39): wrap the rows that ran a label past its control or column"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "@min-[16rem]/activity:gap-3",
+				"files": [
+					"src/components/sections/hero-dashboard-mockup.tsx"
+				],
+				"commits": [
+					"0e9332bc1 fix(66.2-39): wrap the rows that ran a label past its control or column"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "@min-[16rem]/activity:items-center",
+				"files": [
+					"src/components/sections/hero-dashboard-mockup.tsx"
+				],
+				"commits": [
+					"0e9332bc1 fix(66.2-39): wrap the rows that ran a label past its control or column"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "@min-[16rem]/stat:text-stat",
+				"files": [
+					"src/app/(owner)/reports/balance-sheet/page.tsx",
+					"src/app/(owner)/reports/cash-flow/cash-flow-stats.tsx",
+					"src/app/(owner)/reports/income-statement/income-statement-page-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[20.25rem]/chart-card:grid-cols-2",
+				"files": [
+					"src/components/dashboard/chart-area-interactive.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[20.75rem]/import-result:grid-cols-2",
+				"files": [
+					"src/components/bulk-import/bulk-import-result-panel.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[20.75rem]/import-validation:grid-cols-2",
+				"files": [
+					"src/components/bulk-import/bulk-import-validate-step.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[20rem]/review-step:grid-cols-2",
+				"files": [
+					"src/components/leases/wizard/review-step.tsx"
+				],
+				"commits": [
+					"64c7ba23b fix(66.2-39): step the lease review's terms on the step's own width"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "@min-[21rem]/lease-stats:grid-cols-2",
+				"files": [
+					"src/app/(owner)/leases/leases-stat-cards.tsx",
+					"src/components/leases/table/leases-page-skeleton.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[21rem]/maintenance-stats:grid-cols-2",
+				"files": [
+					"src/components/maintenance/maintenance-view.client.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[21rem]/tenant-stats:grid-cols-2",
+				"files": [
+					"src/app/(owner)/tenants/components/tenants-loading-skeleton.tsx",
+					"src/components/tenants/tenant-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[22.5rem]/cash-flow-activity:grid-cols-2",
+				"files": [
+					"src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[22.5rem]/lease-metrics:grid-cols-2",
+				"files": [
+					"src/components/leases/detail/lease-details-skeleton.tsx",
+					"src/components/leases/detail/lease-details.client.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[22rem]/about-stats:grid-cols-2",
+				"files": [
+					"src/app/about/page.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[22rem]/reports-summary:col-span-2",
+				"files": [
+					"src/app/(owner)/reports/reports-summary-strip.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[22rem]/reports-summary:grid-cols-2",
+				"files": [
+					"src/app/(owner)/reports/reports-summary-strip.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[22rem]/showcase-stats:grid-cols-2",
+				"files": [
+					"src/components/sections/stats-showcase.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[22rem]/status-banner:flex",
+				"files": [
+					"src/components/billing/subscription-status-banner.tsx"
+				],
+				"commits": [
+					"cc679f239 fix(66.2-39): say what past_due risks either way, and stack the banners' link when narrow"
+				],
+				"vd": [
+					"VD-184"
+				]
+			},
+			{
+				"key": "@min-[22rem]/unit-stats:grid-cols-2",
+				"files": [
+					"src/app/(owner)/properties/units/page.tsx"
+				],
+				"commits": [
+					"a92a72dbf fix(66.2-39): step the units stat row on its own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[24.5rem]/payment-summary:grid-cols-2",
+				"files": [
+					"src/components/analytics/owner-payment-summary.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[24rem]/terms-step:grid-cols-2",
+				"files": [
+					"src/components/leases/wizard/terms-step.tsx"
+				],
+				"commits": [
+					"1d1390293 fix(66.2-39): step the lease terms fields on the step's own width"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "@min-[25rem]/ledger-balance:col-span-2",
+				"files": [
+					"src/components/ledger/ledger-balance-strip.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[25rem]/ledger-balance:grid-cols-2",
+				"files": [
+					"src/components/ledger/ledger-balance-strip.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[25rem]/pricing-stats:col-span-2",
+				"files": [
+					"src/app/pricing/pricing-content.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[25rem]/pricing-stats:grid-cols-2",
+				"files": [
+					"src/app/pricing/pricing-content.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[25rem]/property-performance:grid-cols-2",
+				"files": [
+					"src/components/properties/property-performance-section.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[25rem]/property-stats:grid-cols-2",
+				"files": [
+					"src/app/(owner)/properties/components/properties-loading-skeleton.tsx",
+					"src/components/properties/property-stats-section.tsx"
+				],
+				"commits": [
+					"67f1a0e89 fix(66.2-39): hold the /properties stat tiles' figures at every width"
+				],
+				"vd": [
+					"VD-171"
+				]
+			},
+			{
+				"key": "@min-[27rem]/analytics-stats:grid-cols-2",
+				"files": [
+					"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+					"src/app/(owner)/analytics/overview/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[27rem]/hero-mockup:grid-cols-4",
+				"files": [
+					"src/components/sections/hero-dashboard-mockup.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[27rem]/performance-stats:grid-cols-2",
+				"files": [
+					"src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
+					"src/app/(owner)/analytics/property-performance/property-performance-skeleton.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[28.5rem]/year-end-summary:col-span-2",
+				"files": [
+					"src/components/reports/sections/year-end-report-section.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[28.5rem]/year-end-summary:grid-cols-2",
+				"files": [
+					"src/components/reports/sections/year-end-report-section.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[29.5rem]/tax-totals:col-span-2",
+				"files": [
+					"src/app/(owner)/reports/tax-documents/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[29.5rem]/tax-totals:grid-cols-2",
+				"files": [
+					"src/app/(owner)/reports/tax-documents/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[29rem]/financial-stats:grid-cols-2",
+				"files": [
+					"src/app/(owner)/analytics/financial/_components/financial-analytics-skeleton.tsx",
+					"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[30rem]/review-step:grid-cols-3",
+				"files": [
+					"src/components/leases/wizard/review-step.tsx"
+				],
+				"commits": [
+					"64c7ba23b fix(66.2-39): step the lease review's terms on the step's own width"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "@min-[30rem]/tenant-contact:grid-cols-2",
+				"files": [
+					"src/app/(owner)/tenants/components/tenant-details.client.tsx"
+				],
+				"commits": [
+					"3800ff0de fix(66.2-39): let the tenant pages' rows and contact grid fit 320px"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "@min-[30rem]/tenant-move-out:grid-cols-2",
+				"files": [
+					"src/app/(owner)/tenants/components/move-out-record.tsx"
+				],
+				"commits": [
+					"73dc01687 fix(66.2-39): save the move-out date, reason and notes and show them on the tenant"
+				],
+				"vd": [
+					"VD-181"
+				]
+			},
+			{
+				"key": "@min-[31rem]/expense-stats:col-span-2",
+				"files": [
+					"src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
+					"src/app/(owner)/reports/expenses/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[31rem]/expense-stats:grid-cols-2",
+				"files": [
+					"src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
+					"src/app/(owner)/reports/expenses/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[33.5rem]/reports-summary:col-span-1",
+				"files": [
+					"src/app/(owner)/reports/reports-summary-strip.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[33.5rem]/reports-summary:grid-cols-3",
+				"files": [
+					"src/app/(owner)/reports/reports-summary-strip.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[33rem]/balance-stats:col-span-2",
+				"files": [
+					"src/app/(owner)/reports/balance-sheet/balance-sheet-skeleton.tsx",
+					"src/app/(owner)/reports/balance-sheet/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[33rem]/balance-stats:grid-cols-2",
+				"files": [
+					"src/app/(owner)/reports/balance-sheet/balance-sheet-skeleton.tsx",
+					"src/app/(owner)/reports/balance-sheet/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[33rem]/cash-flow-stats:col-span-2",
+				"files": [
+					"src/app/(owner)/reports/cash-flow/cash-flow-loading.tsx",
+					"src/app/(owner)/reports/cash-flow/cash-flow-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[33rem]/cash-flow-stats:grid-cols-2",
+				"files": [
+					"src/app/(owner)/reports/cash-flow/cash-flow-loading.tsx",
+					"src/app/(owner)/reports/cash-flow/cash-flow-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[33rem]/income-stats:col-span-2",
+				"files": [
+					"src/app/(owner)/reports/income-statement/income-statement-page-loading.tsx",
+					"src/app/(owner)/reports/income-statement/income-statement-page-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[33rem]/income-stats:grid-cols-2",
+				"files": [
+					"src/app/(owner)/reports/income-statement/income-statement-page-loading.tsx",
+					"src/app/(owner)/reports/income-statement/income-statement-page-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[34rem]/maintenance-header:grid-cols-2",
+				"files": [
+					"src/components/maintenance/detail/maintenance-header-card.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[36.75rem]/compare-stats:grid-cols-2",
+				"files": [
+					"src/app/compare/[competitor]/page.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[36rem]/terms-step:grid-cols-3",
+				"files": [
+					"src/components/leases/wizard/terms-step.tsx"
+				],
+				"commits": [
+					"1d1390293 fix(66.2-39): step the lease terms fields on the step's own width"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "@min-[38.5rem]/pricing-stats:col-span-1",
+				"files": [
+					"src/app/pricing/pricing-content.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[38.5rem]/pricing-stats:grid-cols-3",
+				"files": [
+					"src/app/pricing/pricing-content.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[38rem]/ledger-balance:col-span-1",
+				"files": [
+					"src/components/ledger/ledger-balance-strip.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[38rem]/ledger-balance:grid-cols-3",
+				"files": [
+					"src/components/ledger/ledger-balance-strip.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[4.625rem]/mockup-stat:size-8",
+				"files": [
+					"src/components/sections/hero-dashboard-mockup.tsx"
+				],
+				"commits": [
+					"b26667232 fix(66.2-39): keep every sized icon in a stat row's flex rows its size"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[42.5rem]/tenant-stats:grid-cols-4",
+				"files": [
+					"src/app/(owner)/tenants/components/tenants-loading-skeleton.tsx",
+					"src/components/tenants/tenant-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[43rem]/lease-stats:grid-cols-4",
+				"files": [
+					"src/app/(owner)/leases/leases-stat-cards.tsx",
+					"src/components/leases/table/leases-page-skeleton.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[43rem]/maintenance-stats:grid-cols-4",
+				"files": [
+					"src/components/maintenance/maintenance-view.client.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[43rem]/year-end-summary:col-span-1",
+				"files": [
+					"src/components/reports/sections/year-end-report-section.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[43rem]/year-end-summary:grid-cols-3",
+				"files": [
+					"src/components/reports/sections/year-end-report-section.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[44.5rem]/tax-totals:col-span-1",
+				"files": [
+					"src/app/(owner)/reports/tax-documents/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[44.5rem]/tax-totals:grid-cols-3",
+				"files": [
+					"src/app/(owner)/reports/tax-documents/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[45.5rem]/lease-metrics:grid-cols-4",
+				"files": [
+					"src/components/leases/detail/lease-details-skeleton.tsx",
+					"src/components/leases/detail/lease-details.client.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[45rem]/unit-stats:grid-cols-4",
+				"files": [
+					"src/app/(owner)/properties/units/page.tsx"
+				],
+				"commits": [
+					"a92a72dbf fix(66.2-39): step the units stat row on its own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[46rem]/about-stats:grid-cols-4",
+				"files": [
+					"src/app/about/page.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[46rem]/showcase-stats:grid-cols-4",
+				"files": [
+					"src/components/sections/stats-showcase.tsx"
+				],
+				"commits": [
+					"02bd2240f fix(66.2-39): step the nine unlisted stat rows on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[47rem]/expense-stats:col-span-1",
+				"files": [
+					"src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
+					"src/app/(owner)/reports/expenses/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[47rem]/expense-stats:grid-cols-3",
+				"files": [
+					"src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
+					"src/app/(owner)/reports/expenses/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[49.5rem]/payment-summary:grid-cols-4",
+				"files": [
+					"src/components/analytics/owner-payment-summary.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[50rem]/balance-stats:col-span-1",
+				"files": [
+					"src/app/(owner)/reports/balance-sheet/balance-sheet-skeleton.tsx",
+					"src/app/(owner)/reports/balance-sheet/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[50rem]/balance-stats:grid-cols-3",
+				"files": [
+					"src/app/(owner)/reports/balance-sheet/balance-sheet-skeleton.tsx",
+					"src/app/(owner)/reports/balance-sheet/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[50rem]/cash-flow-stats:col-span-1",
+				"files": [
+					"src/app/(owner)/reports/cash-flow/cash-flow-loading.tsx",
+					"src/app/(owner)/reports/cash-flow/cash-flow-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[50rem]/cash-flow-stats:grid-cols-3",
+				"files": [
+					"src/app/(owner)/reports/cash-flow/cash-flow-loading.tsx",
+					"src/app/(owner)/reports/cash-flow/cash-flow-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[50rem]/income-stats:col-span-1",
+				"files": [
+					"src/app/(owner)/reports/income-statement/income-statement-page-loading.tsx",
+					"src/app/(owner)/reports/income-statement/income-statement-page-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[50rem]/income-stats:grid-cols-3",
+				"files": [
+					"src/app/(owner)/reports/income-statement/income-statement-page-loading.tsx",
+					"src/app/(owner)/reports/income-statement/income-statement-page-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[51rem]/property-performance:grid-cols-4",
+				"files": [
+					"src/components/properties/property-performance-section.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[51rem]/property-stats:grid-cols-4",
+				"files": [
+					"src/app/(owner)/properties/components/properties-loading-skeleton.tsx",
+					"src/components/properties/property-stats-section.tsx"
+				],
+				"commits": [
+					"67f1a0e89 fix(66.2-39): hold the /properties stat tiles' figures at every width"
+				],
+				"vd": [
+					"VD-171"
+				]
+			},
+			{
+				"key": "@min-[54.5rem]/analytics-stats:grid-cols-4",
+				"files": [
+					"src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+					"src/app/(owner)/analytics/overview/page.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[54.5rem]/performance-stats:grid-cols-4",
+				"files": [
+					"src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
+					"src/app/(owner)/analytics/property-performance/property-performance-skeleton.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "@min-[56rem]/lease-detail:col-span-2",
+				"files": [
+					"src/components/leases/detail/lease-details-skeleton.tsx",
+					"src/components/leases/detail/lease-details.client.tsx"
+				],
+				"commits": [
+					"a97c54202 fix(66.2-39): step the lease page's columns on the page's own width"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "@min-[56rem]/lease-detail:grid-cols-3",
+				"files": [
+					"src/components/leases/detail/lease-details-skeleton.tsx",
+					"src/components/leases/detail/lease-details.client.tsx"
+				],
+				"commits": [
+					"a97c54202 fix(66.2-39): step the lease page's columns on the page's own width"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "@min-[58rem]/financial-stats:grid-cols-4",
+				"files": [
+					"src/app/(owner)/analytics/financial/_components/financial-analytics-skeleton.tsx",
+					"src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "[&>button]:hover:text-accent-foreground",
+				"files": [
+					"src/components/ui/calendar.tsx"
+				],
+				"commits": [
+					"8ff0b81b0 fix(66.2-39): restate the today cell's hover label on the cell"
+				],
+				"vd": [
+					"VD-162"
+				]
+			},
+			{
+				"key": "[&>li]:my-2",
+				"files": [
+					"src/app/privacy/page.tsx",
+					"src/app/terms/page.tsx"
+				],
+				"commits": [
+					"4f5f4654b fix(66.2-39): make the privacy policy and terms say what deletion and export do"
+				],
+				"vd": [
+					"VD-181"
+				]
+			},
+			{
+				"key": "[&_.recharts-pie:focus-visible_.recharts-sector]:stroke-ring",
+				"files": [
+					"src/components/ui/chart.tsx"
+				],
+				"commits": [
+					"f6b286670 fix(66.2-39): give every remaining focus state a visible indicator"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "[--cell-size:--spacing(11)]",
+				"files": [
+					"src/components/ui/calendar.tsx"
+				],
+				"commits": [
+					"288da2f61 fix(66.2-39): fit the calendar's month to its popover, without table base rules"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "[--error-bg:color-mix(in_oklab,var(--color-destructive)_10%,var(--color-popover))]!",
+				"files": [
+					"src/components/ui/sonner.tsx"
+				],
+				"commits": [
+					"2ad67e538 fix(66.2-39): draw rich-color toasts with the AA text companions"
+				],
+				"vd": [
+					"VD-162"
+				]
+			},
+			{
+				"key": "[--error-border:color-mix(in_oklab,var(--color-destructive)_30%,var(--color-popover))]!",
+				"files": [
+					"src/components/ui/sonner.tsx"
+				],
+				"commits": [
+					"2ad67e538 fix(66.2-39): draw rich-color toasts with the AA text companions"
+				],
+				"vd": [
+					"VD-162"
+				]
+			},
+			{
+				"key": "[--error-text:var(--color-destructive-text)]!",
+				"files": [
+					"src/components/ui/sonner.tsx"
+				],
+				"commits": [
+					"2ad67e538 fix(66.2-39): draw rich-color toasts with the AA text companions"
+				],
+				"vd": [
+					"VD-162"
+				]
+			},
+			{
+				"key": "[--info-bg:color-mix(in_oklab,var(--color-info)_10%,var(--color-popover))]!",
+				"files": [
+					"src/components/ui/sonner.tsx"
+				],
+				"commits": [
+					"2ad67e538 fix(66.2-39): draw rich-color toasts with the AA text companions"
+				],
+				"vd": [
+					"VD-162"
+				]
+			},
+			{
+				"key": "[--info-border:color-mix(in_oklab,var(--color-info)_30%,var(--color-popover))]!",
+				"files": [
+					"src/components/ui/sonner.tsx"
+				],
+				"commits": [
+					"2ad67e538 fix(66.2-39): draw rich-color toasts with the AA text companions"
+				],
+				"vd": [
+					"VD-162"
+				]
+			},
+			{
+				"key": "[--info-text:var(--color-info-text)]!",
+				"files": [
+					"src/components/ui/sonner.tsx"
+				],
+				"commits": [
+					"2ad67e538 fix(66.2-39): draw rich-color toasts with the AA text companions"
+				],
+				"vd": [
+					"VD-162"
+				]
+			},
+			{
+				"key": "[--success-bg:color-mix(in_oklab,var(--color-success)_10%,var(--color-popover))]!",
+				"files": [
+					"src/components/ui/sonner.tsx"
+				],
+				"commits": [
+					"2ad67e538 fix(66.2-39): draw rich-color toasts with the AA text companions"
+				],
+				"vd": [
+					"VD-162"
+				]
+			},
+			{
+				"key": "[--success-border:color-mix(in_oklab,var(--color-success)_30%,var(--color-popover))]!",
+				"files": [
+					"src/components/ui/sonner.tsx"
+				],
+				"commits": [
+					"2ad67e538 fix(66.2-39): draw rich-color toasts with the AA text companions"
+				],
+				"vd": [
+					"VD-162"
+				]
+			},
+			{
+				"key": "[--success-text:var(--color-success-text)]!",
+				"files": [
+					"src/components/ui/sonner.tsx"
+				],
+				"commits": [
+					"2ad67e538 fix(66.2-39): draw rich-color toasts with the AA text companions"
+				],
+				"vd": [
+					"VD-162"
+				]
+			},
+			{
+				"key": "[--warning-bg:color-mix(in_oklab,var(--color-warning)_10%,var(--color-popover))]!",
+				"files": [
+					"src/components/ui/sonner.tsx"
+				],
+				"commits": [
+					"2ad67e538 fix(66.2-39): draw rich-color toasts with the AA text companions"
+				],
+				"vd": [
+					"VD-162"
+				]
+			},
+			{
+				"key": "[--warning-border:color-mix(in_oklab,var(--color-warning)_30%,var(--color-popover))]!",
+				"files": [
+					"src/components/ui/sonner.tsx"
+				],
+				"commits": [
+					"2ad67e538 fix(66.2-39): draw rich-color toasts with the AA text companions"
+				],
+				"vd": [
+					"VD-162"
+				]
+			},
+			{
+				"key": "[--warning-text:var(--color-warning-text)]!",
+				"files": [
+					"src/components/ui/sonner.tsx"
+				],
+				"commits": [
+					"2ad67e538 fix(66.2-39): draw rich-color toasts with the AA text companions"
+				],
+				"vd": [
+					"VD-162"
+				]
+			},
+			{
+				"key": "[overflow-clip-margin:4px]",
+				"files": [
+					"src/components/ui/input-otp.tsx"
+				],
+				"commits": [
+					"5f6b803e5 fix(66.2-39): keep the OTP field's widened input inside its row"
+				],
+				"vd": [
+					"VD-177"
+				]
+			},
+			{
+				"key": "aria-disabled:hover:bg-background",
+				"files": [
+					"src/components/shared/unavailable-outline-button.ts"
+				],
+				"commits": [
+					"74958619c fix(66.2-39): cancel the outline hover on the reports' unavailable exports"
+				],
+				"vd": [
+					"VD-90"
+				]
+			},
+			{
+				"key": "aria-disabled:hover:text-inherit",
+				"files": [
+					"src/components/shared/unavailable-outline-button.ts"
+				],
+				"commits": [
+					"74958619c fix(66.2-39): cancel the outline hover on the reports' unavailable exports"
+				],
+				"vd": [
+					"VD-90"
+				]
+			},
+			{
+				"key": "aria-invalid:ring-destructive-text",
+				"files": [
+					"src/components/ui/badge.tsx",
+					"src/components/ui/button.tsx",
+					"src/components/ui/checkbox.tsx",
+					"src/components/ui/input.tsx",
+					"src/components/ui/select.tsx",
+					"src/components/ui/stepper-trigger.tsx",
+					"src/components/ui/textarea.tsx",
+					"src/components/ui/toggle.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "basis-48",
+				"files": [
+					"src/app/(owner)/analytics/overview/page.tsx"
+				],
+				"commits": [
+					"0e9332bc1 fix(66.2-39): wrap the rows that ran a label past its control or column"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "basis-64",
+				"files": [
+					"src/components/maintenance/detail/maintenance-header-card.tsx"
+				],
+				"commits": [
+					"47a12e556 fix(66.2-39): make each card header that asks for a flex row one"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "bg-input",
+				"files": [
+					"src/components/ui/switch.tsx"
+				],
+				"commits": [
+					"b648c8f43 fix(66.2-39): keep the dark switch track at the input token's full strength"
+				],
+				"vd": [
+					"VD-160"
+				]
+			},
+			{
+				"key": "bg-input/30",
+				"files": [
+					"src/components/shared/unavailable-outline-button.ts"
+				],
+				"commits": [
+					"74958619c fix(66.2-39): cancel the outline hover on the reports' unavailable exports"
+				],
+				"vd": [
+					"VD-90"
+				]
+			},
+			{
+				"key": "bg-input/80",
+				"files": [],
+				"commits": [
+					"b648c8f43 fix(66.2-39): keep the dark switch track at the input token's full strength"
+				],
+				"vd": [
+					"comment-only"
+				]
+			},
+			{
+				"key": "border-destructive-foreground/30",
+				"files": [
+					"src/app/(owner)/properties/units/components/unit-actions.tsx"
+				],
+				"commits": [
+					"f79a26902 fix(66.2-39): spin the delete unit spinner in its button's own label color"
+				],
+				"vd": [
+					"VD-09"
+				]
+			},
+			{
+				"key": "border-ring",
+				"files": [
+					"src/components/ui/command.tsx"
+				],
+				"commits": [
+					"fd773b713 fix(66.2-39): draw raw fields and the command input with the input token"
+				],
+				"vd": [
+					"VD-160"
+				]
+			},
+			{
+				"key": "border-t-destructive-foreground",
+				"files": [
+					"src/app/(owner)/properties/units/components/unit-actions.tsx"
+				],
+				"commits": [
+					"f79a26902 fix(66.2-39): spin the delete unit spinner in its button's own label color"
+				],
+				"vd": [
+					"VD-09"
+				]
+			},
+			{
+				"key": "dark:aria-disabled:hover:bg-input/30",
+				"files": [
+					"src/components/shared/unavailable-outline-button.ts"
+				],
+				"commits": [
+					"74958619c fix(66.2-39): cancel the outline hover on the reports' unavailable exports"
+				],
+				"vd": [
+					"VD-90"
+				]
+			},
+			{
+				"key": "data-[active=true]:aria-invalid:ring-destructive-text",
+				"files": [
+					"src/components/ui/input-otp.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "data-[active=true]:ring-ring",
+				"files": [
+					"src/components/ui/input-otp.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "data-[variant=destructive]:focus:*:[svg]:text-destructive-foreground!",
+				"files": [
+					"src/components/ui/dropdown-menu.tsx"
+				],
+				"commits": [
+					"08b8553fc fix(66.2-39): show a focused destructive menu item at 3:1"
+				],
+				"vd": [
+					"VD-164"
+				]
+			},
+			{
+				"key": "data-[variant=destructive]:focus:bg-destructive",
+				"files": [
+					"src/components/ui/dropdown-menu.tsx"
+				],
+				"commits": [
+					"08b8553fc fix(66.2-39): show a focused destructive menu item at 3:1"
+				],
+				"vd": [
+					"VD-164"
+				]
+			},
+			{
+				"key": "data-[variant=destructive]:focus:text-destructive-foreground",
+				"files": [
+					"src/components/ui/dropdown-menu.tsx"
+				],
+				"commits": [
+					"08b8553fc fix(66.2-39): show a focused destructive menu item at 3:1"
+				],
+				"vd": [
+					"VD-164"
+				]
+			},
+			{
+				"key": "data-invalid:ring-destructive-text",
+				"files": [
+					"src/components/ui/file-upload/file-upload-dropzone.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "focus-visible:outline-solid",
+				"files": [
+					"src/components/data-table/data-table-column-header.tsx"
+				],
+				"commits": [
+					"f6b286670 fix(66.2-39): give every remaining focus state a visible indicator"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "focus-visible:ring-destructive-text",
+				"files": [
+					"src/components/ui/badge.tsx",
+					"src/components/ui/button.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "focus-within:border-ring",
+				"files": [
+					"src/components/ui/command.tsx"
+				],
+				"commits": [
+					"fd773b713 fix(66.2-39): draw raw fields and the command input with the input token"
+				],
+				"vd": [
+					"VD-160"
+				]
+			},
+			{
+				"key": "focus:[&_svg]:text-accent-foreground",
+				"files": [
+					"src/components/data-table/data-table-column-header.tsx"
+				],
+				"commits": [
+					"098de0896 fix(66.2-39): keep menu items legible on their focus fill"
+				],
+				"vd": [
+					"VD-164"
+				]
+			},
+			{
+				"key": "grid-cols-[auto_1fr]",
+				"files": [
+					"src/components/billing/subscription-status-banner.tsx"
+				],
+				"commits": [
+					"cc679f239 fix(66.2-39): say what past_due risks either way, and stack the banners' link when narrow"
+				],
+				"vd": [
+					"VD-184"
+				]
+			},
+			{
+				"key": "grid-cols-[minmax(0,1fr)_auto]",
+				"files": [
+					"src/components/ui/stat.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "grid-cols-[repeat(auto-fit,minmax(14.5rem,1fr))]",
+				"files": [
+					"src/components/dashboard/components/kpi-bento-row.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "grid-rows-subgrid",
+				"files": [
+					"src/components/billing/plan-card.tsx"
+				],
+				"commits": [
+					"ca705f70a fix(66.2-39): set every plan and pricing card's price at one y"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "group-data-[focused=true]/day:ring-offset-2",
+				"files": [
+					"src/components/ui/calendar.tsx"
+				],
+				"commits": [
+					"2f54b8ad7 fix(66.2-39): keep the calendar's today and the blog chips legible on hover"
+				],
+				"vd": [
+					"VD-161",
+					"VD-162"
+				]
+			},
+			{
+				"key": "group-data-[focused=true]/day:ring-offset-background",
+				"files": [
+					"src/components/ui/calendar.tsx"
+				],
+				"commits": [
+					"2f54b8ad7 fix(66.2-39): keep the calendar's today and the blog chips legible on hover"
+				],
+				"vd": [
+					"VD-161",
+					"VD-162"
+				]
+			},
+			{
+				"key": "group-data-[focused=true]/day:ring-ring",
+				"files": [
+					"src/components/ui/calendar.tsx"
+				],
+				"commits": [
+					"8ff0b81b0 fix(66.2-39): restate the today cell's hover label on the cell",
+					"2f54b8ad7 fix(66.2-39): keep the calendar's today and the blog chips legible on hover"
+				],
+				"vd": [
+					"VD-162",
+					"VD-161"
+				]
+			},
+			{
+				"key": "group-focus-within:-translate-y-12",
+				"files": [
+					"src/components/ui/bento-grid.tsx"
+				],
+				"commits": [
+					"98430d7cf fix(66.2-39): fix the deferred base-margin files this pr changes, and key the ratchet"
+				],
+				"vd": [
+					"VD-172",
+					"VD-173"
+				]
+			},
+			{
+				"key": "group-hover:-translate-y-12",
+				"files": [
+					"src/components/ui/bento-grid.tsx"
+				],
+				"commits": [
+					"98430d7cf fix(66.2-39): fix the deferred base-margin files this pr changes, and key the ratchet"
+				],
+				"vd": [
+					"VD-172",
+					"VD-173"
+				]
+			},
+			{
+				"key": "group-hover:text-inherit",
+				"files": [
+					"src/app/blog/page.tsx"
+				],
+				"commits": [
+					"2f54b8ad7 fix(66.2-39): keep the calendar's today and the blog chips legible on hover"
+				],
+				"vd": [
+					"VD-161",
+					"VD-162"
+				]
+			},
+			{
+				"key": "has-[>input:focus-visible]:ring-ring",
+				"files": [
+					"src/components/ui/input-group.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "has-[input[aria-invalid=true]]:ring-destructive-text",
+				"files": [
+					"src/components/ui/input-group.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "has-focus:ring-ring",
+				"files": [
+					"src/components/ui/calendar.tsx"
+				],
+				"commits": [
+					"2f54b8ad7 fix(66.2-39): keep the calendar's today and the blog chips legible on hover"
+				],
+				"vd": [
+					"VD-161",
+					"VD-162"
+				]
+			},
+			{
+				"key": "in-data-[selected=true]:text-accent-foreground",
+				"files": [
+					"src/components/shell/app-shell-search.tsx",
+					"src/components/ui/command.tsx"
+				],
+				"commits": [
+					"ae0a605bd fix(66.2-39): restate the selected label on the palette's muted labels"
+				],
+				"vd": [
+					"VD-164"
+				]
+			},
+			{
+				"key": "justify-self-start",
+				"files": [
+					"src/components/billing/subscription-status-banner.tsx"
+				],
+				"commits": [
+					"cc679f239 fix(66.2-39): say what past_due risks either way, and stack the banners' link when narrow"
+				],
+				"vd": [
+					"VD-184"
+				]
+			},
+			{
+				"key": "lg:@min-[38.5rem]/chart-card:grid-cols-4",
+				"files": [
+					"src/components/dashboard/chart-area-interactive.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "lg:min-h-[4lh]",
+				"files": [
+					"src/components/pricing/pricing-card-standard.tsx"
+				],
+				"commits": [
+					"ca705f70a fix(66.2-39): set every plan and pricing card's price at one y"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "max-h-(--dice-available-height)",
+				"files": [
+					"src/components/ui/combobox.tsx"
+				],
+				"commits": [
+					"8aff69588 fix(66.2-39): bound every overlay box by the space beside its trigger"
+				],
+				"vd": [
+					"VD-166",
+					"VD-167"
+				]
+			},
+			{
+				"key": "max-h-(--radix-popover-content-available-height)",
+				"files": [
+					"src/components/ui/popover.tsx"
+				],
+				"commits": [
+					"8aff69588 fix(66.2-39): bound every overlay box by the space beside its trigger"
+				],
+				"vd": [
+					"VD-166",
+					"VD-167"
+				]
+			},
+			{
+				"key": "max-h-[calc(100dvh-2rem)]",
+				"files": [
+					"src/components/ui/alert-dialog.tsx",
+					"src/components/ui/dialog.tsx"
+				],
+				"commits": [
+					"7b402e63b fix(66.2-39): bound a dialog to the viewport's height and let it scroll"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "max-w-(--dice-available-width)",
+				"files": [
+					"src/components/ui/combobox.tsx"
+				],
+				"commits": [
+					"8aff69588 fix(66.2-39): bound every overlay box by the space beside its trigger"
+				],
+				"vd": [
+					"VD-166",
+					"VD-167"
+				]
+			},
+			{
+				"key": "max-w-(--radix-dropdown-menu-content-available-width)",
+				"files": [
+					"src/components/ui/dropdown-menu.tsx"
+				],
+				"commits": [
+					"8aff69588 fix(66.2-39): bound every overlay box by the space beside its trigger"
+				],
+				"vd": [
+					"VD-166",
+					"VD-167"
+				]
+			},
+			{
+				"key": "max-w-(--radix-popover-content-available-width)",
+				"files": [
+					"src/components/ui/popover.tsx"
+				],
+				"commits": [
+					"8aff69588 fix(66.2-39): bound every overlay box by the space beside its trigger"
+				],
+				"vd": [
+					"VD-166",
+					"VD-167"
+				]
+			},
+			{
+				"key": "max-w-(--radix-select-content-available-width)",
+				"files": [
+					"src/components/ui/select.tsx"
+				],
+				"commits": [
+					"8aff69588 fix(66.2-39): bound every overlay box by the space beside its trigger"
+				],
+				"vd": [
+					"VD-166",
+					"VD-167"
+				]
+			},
+			{
+				"key": "max-w-90",
+				"files": [
+					"src/components/auth/mfa-verification-dialog.tsx",
+					"src/components/auth/two-factor-setup-steps.tsx"
+				],
+				"commits": [
+					"8aff69588 fix(66.2-39): bound every overlay box by the space beside its trigger"
+				],
+				"vd": [
+					"VD-166",
+					"VD-167"
+				]
+			},
+			{
+				"key": "md:p-3",
+				"files": [
+					"src/components/ui/calendar.tsx"
+				],
+				"commits": [
+					"288da2f61 fix(66.2-39): fit the calendar's month to its popover, without table base rules"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "mt-5",
+				"files": [
+					"src/app/privacy/page.tsx",
+					"src/app/terms/page.tsx"
+				],
+				"commits": [
+					"4f5f4654b fix(66.2-39): make the privacy policy and terms say what deletion and export do"
+				],
+				"vd": [
+					"VD-181"
+				]
+			},
+			{
+				"key": "overflow-clip",
+				"files": [
+					"src/components/ui/input-otp.tsx"
+				],
+				"commits": [
+					"5f6b803e5 fix(66.2-39): keep the OTP field's widened input inside its row"
+				],
+				"vd": [
+					"VD-177"
+				]
+			},
+			{
+				"key": "pl-6.5",
+				"files": [
+					"src/app/privacy/page.tsx",
+					"src/app/terms/page.tsx"
+				],
+				"commits": [
+					"4f5f4654b fix(66.2-39): make the privacy policy and terms say what deletion and export do"
+				],
+				"vd": [
+					"VD-181"
+				]
+			},
+			{
+				"key": "ring-destructive-text",
+				"files": [
+					"src/components/ui/badge.tsx",
+					"src/components/ui/button.tsx",
+					"src/components/ui/checkbox.tsx",
+					"src/components/ui/input-group.tsx",
+					"src/components/ui/input-otp.tsx",
+					"src/components/ui/input.tsx",
+					"src/components/ui/select.tsx",
+					"src/components/ui/stepper-trigger.tsx",
+					"src/components/ui/textarea.tsx",
+					"src/components/ui/toggle.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "ring-destructive/20",
+				"files": [
+					"src/components/ui/badge.tsx",
+					"src/components/ui/button.tsx",
+					"src/components/ui/checkbox.tsx",
+					"src/components/ui/input-group.tsx",
+					"src/components/ui/input-otp.tsx",
+					"src/components/ui/input.tsx",
+					"src/components/ui/select.tsx",
+					"src/components/ui/stepper-trigger.tsx",
+					"src/components/ui/textarea.tsx",
+					"src/components/ui/toggle.tsx"
+				],
+				"commits": [
+					"5f6b803e5 fix(66.2-39): keep the OTP field's widened input inside its row",
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-177",
+					"VD-161"
+				]
+			},
+			{
+				"key": "row-span-3",
+				"files": [
+					"src/components/billing/plan-card.tsx"
+				],
+				"commits": [
+					"ca705f70a fix(66.2-39): set every plan and pricing card's price at one y"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "sm:*:data-[slot=input-otp-slot]:h-14",
+				"files": [
+					"src/components/auth/mfa-verification-dialog.tsx",
+					"src/components/auth/two-factor-setup-steps.tsx"
+				],
+				"commits": [
+					"8aff69588 fix(66.2-39): bound every overlay box by the space beside its trigger"
+				],
+				"vd": [
+					"VD-166",
+					"VD-167"
+				]
+			},
+			{
+				"key": "w-max",
+				"files": [
+					"src/components/ui/combobox.tsx"
+				],
+				"commits": [
+					"982afd759 fix(66.2-39): size the combobox list by its content, not by where it last sat"
+				],
+				"vd": [
+					"VD-177"
+				]
+			}
+		],
+		"removed": [
+			{
+				"key": "**:data-[slot=stat-indicator]:row-span-2",
+				"files": [
+					"src/components/ui/stat.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "**:data-[slot=stat-value]:col-span-1",
+				"files": [
+					"src/components/ui/stat.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "*:data-[slot=input-otp-slot]:h-14",
+				"files": [
+					"src/components/auth/mfa-verification-dialog.tsx",
+					"src/components/auth/two-factor-setup-steps.tsx"
+				],
+				"commits": [
+					"8aff69588 fix(66.2-39): bound every overlay box by the space beside its trigger"
+				],
+				"vd": [
+					"VD-166",
+					"VD-167"
+				]
+			},
+			{
+				"key": "*:data-[slot=input-otp-slot]:w-11",
+				"files": [
+					"src/components/auth/mfa-verification-dialog.tsx",
+					"src/components/auth/two-factor-setup-steps.tsx"
+				],
+				"commits": [
+					"8aff69588 fix(66.2-39): bound every overlay box by the space beside its trigger"
+				],
+				"vd": [
+					"VD-166",
+					"VD-167"
+				]
+			},
+			{
+				"key": "[--cell-size:--spacing(8)]",
+				"files": [
+					"src/components/ui/calendar.tsx"
+				],
+				"commits": [
+					"288da2f61 fix(66.2-39): fit the calendar's month to its popover, without table base rules"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"key": "aria-invalid:ring-destructive/20",
+				"files": [
+					"src/components/ui/badge.tsx",
+					"src/components/ui/button.tsx",
+					"src/components/ui/checkbox.tsx",
+					"src/components/ui/input.tsx",
+					"src/components/ui/select.tsx",
+					"src/components/ui/stepper-trigger.tsx",
+					"src/components/ui/textarea.tsx",
+					"src/components/ui/toggle.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "border-t-foreground",
+				"files": [
+					"src/app/(owner)/properties/units/components/unit-actions.tsx"
+				],
+				"commits": [
+					"f79a26902 fix(66.2-39): spin the delete unit spinner in its button's own label color"
+				],
+				"vd": [
+					"VD-09"
+				]
+			},
+			{
+				"key": "dark:aria-invalid:ring-destructive/40",
+				"files": [
+					"src/components/ui/badge.tsx",
+					"src/components/ui/button.tsx",
+					"src/components/ui/checkbox.tsx",
+					"src/components/ui/input.tsx",
+					"src/components/ui/select.tsx",
+					"src/components/ui/stepper-trigger.tsx",
+					"src/components/ui/textarea.tsx",
+					"src/components/ui/toggle.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "dark:data-[active=true]:aria-invalid:ring-destructive/40",
+				"files": [
+					"src/components/ui/input-otp.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "dark:data-[state=unchecked]:bg-input/80",
+				"files": [
+					"src/components/ui/switch.tsx"
+				],
+				"commits": [
+					"b648c8f43 fix(66.2-39): keep the dark switch track at the input token's full strength"
+				],
+				"vd": [
+					"VD-160"
+				]
+			},
+			{
+				"key": "dark:data-[variant=destructive]:focus:bg-destructive/20",
+				"files": [
+					"src/components/ui/dropdown-menu.tsx"
+				],
+				"commits": [
+					"08b8553fc fix(66.2-39): show a focused destructive menu item at 3:1"
+				],
+				"vd": [
+					"VD-164"
+				]
+			},
+			{
+				"key": "dark:focus-visible:ring-destructive/40",
+				"files": [
+					"src/components/ui/badge.tsx",
+					"src/components/ui/button.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "dark:focus:ring-offset-background",
+				"files": [
+					"src/components/auth/google-button.tsx"
+				],
+				"commits": [
+					"f6b286670 fix(66.2-39): give every remaining focus state a visible indicator"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "dark:has-[input[aria-invalid=true]]:ring-destructive/40",
+				"files": [
+					"src/components/ui/input-group.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "data-[active=true]:aria-invalid:ring-destructive/20",
+				"files": [
+					"src/components/ui/input-otp.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "data-[active=true]:ring-ring/50",
+				"files": [
+					"src/components/ui/input-otp.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "data-[variant=destructive]:focus:bg-destructive/10",
+				"files": [
+					"src/components/ui/dropdown-menu.tsx"
+				],
+				"commits": [
+					"08b8553fc fix(66.2-39): show a focused destructive menu item at 3:1"
+				],
+				"vd": [
+					"VD-164"
+				]
+			},
+			{
+				"key": "data-[variant=destructive]:focus:text-destructive-text",
+				"files": [
+					"src/components/ui/dropdown-menu.tsx"
+				],
+				"commits": [
+					"08b8553fc fix(66.2-39): show a focused destructive menu item at 3:1"
+				],
+				"vd": [
+					"VD-164"
+				]
+			},
+			{
+				"key": "data-invalid:ring-destructive/20",
+				"files": [
+					"src/components/ui/file-upload/file-upload-dropzone.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "focus-visible:border-ring/50",
+				"files": [
+					"src/components/ui/file-upload/file-upload-dropzone.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "focus-visible:ring-destructive/20",
+				"files": [
+					"src/components/ui/badge.tsx",
+					"src/components/ui/button.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "focus-visible:ring-ring/50",
+				"files": [
+					"src/components/tenants/tenant-action-bar.tsx",
+					"src/components/ui/accordion.tsx",
+					"src/components/ui/badge.tsx",
+					"src/components/ui/button.tsx",
+					"src/components/ui/checkbox.tsx",
+					"src/components/ui/input.tsx",
+					"src/components/ui/item.tsx",
+					"src/components/ui/select.tsx",
+					"src/components/ui/stepper-trigger.tsx",
+					"src/components/ui/switch.tsx",
+					"src/components/ui/tabs.tsx",
+					"src/components/ui/textarea.tsx",
+					"src/components/ui/toggle.tsx"
+				],
+				"commits": [
+					"f6b286670 fix(66.2-39): give every remaining focus state a visible indicator",
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "focus:text-destructive-text",
+				"files": [
+					"src/app/(owner)/properties/units/components/unit-actions.tsx",
+					"src/app/(owner)/units/page.tsx",
+					"src/components/leases/lease-action-buttons.tsx",
+					"src/components/properties/property-units-table-row.tsx"
+				],
+				"commits": [
+					"098de0896 fix(66.2-39): keep menu items legible on their focus fill"
+				],
+				"vd": [
+					"VD-164"
+				]
+			},
+			{
+				"key": "grid-cols-[1fr_auto]",
+				"files": [
+					"src/components/ui/stat.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "grid-cols-[repeat(auto-fit,minmax(180px,1fr))]",
+				"files": [
+					"src/components/dashboard/components/kpi-bento-row.tsx"
+				],
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			},
+			{
+				"key": "group-data-[focused=true]/day:ring-ring/50",
+				"files": [
+					"src/components/ui/calendar.tsx"
+				],
+				"commits": [
+					"2f54b8ad7 fix(66.2-39): keep the calendar's today and the blog chips legible on hover"
+				],
+				"vd": [
+					"VD-161",
+					"VD-162"
+				]
+			},
+			{
+				"key": "group-hover:-translate-y-8",
+				"files": [
+					"src/components/ui/bento-grid.tsx"
+				],
+				"commits": [
+					"98430d7cf fix(66.2-39): fix the deferred base-margin files this pr changes, and key the ratchet"
+				],
+				"vd": [
+					"VD-172",
+					"VD-173"
+				]
+			},
+			{
+				"key": "has-[>input:focus-visible]:ring-ring/50",
+				"files": [
+					"src/components/ui/input-group.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "has-[input[aria-invalid=true]]:ring-destructive/20",
+				"files": [
+					"src/components/ui/input-group.tsx"
+				],
+				"commits": [
+					"552d56931 fix(66.2-39): make the primitives' focus rings opaque"
+				],
+				"vd": [
+					"VD-161"
+				]
+			},
+			{
+				"key": "has-focus:ring-ring/50",
+				"files": [
+					"src/components/ui/calendar.tsx"
+				],
+				"commits": [
+					"2f54b8ad7 fix(66.2-39): keep the calendar's today and the blog chips legible on hover"
+				],
+				"vd": [
+					"VD-161",
+					"VD-162"
+				]
+			},
+			{
+				"key": "hover:text-destructive",
+				"files": [
+					"src/app/(owner)/properties/property-details.client.tsx",
+					"src/components/inspections/inspection-room-card.tsx",
+					"src/components/maintenance/table/columns.tsx",
+					"src/components/maintenance/vendors-page.client.tsx",
+					"src/components/properties/property-table-row.tsx",
+					"src/components/settings/sections/active-sessions-section.tsx",
+					"src/components/tenants/tenant-grid.tsx",
+					"src/components/tenants/tenant-table-row.tsx"
+				],
+				"commits": [
+					"f8978e9ae fix(66.2-39): draw icon-only destructive buttons in destructive-text"
+				],
+				"vd": [
+					"VD-162"
+				]
+			},
+			{
+				"key": "slide-in-from-bottom-1",
+				"files": [
+					"src/components/ui/animated-trend-indicator.tsx"
+				],
+				"commits": [
+					"a905908cb fix(66.2-39): delete the animated trend indicator no screen renders"
+				],
+				"vd": [
+					"unrendered"
+				]
+			},
+			{
+				"key": "slide-in-from-top-1",
+				"files": [
+					"src/components/ui/animated-trend-indicator.tsx"
+				],
+				"commits": [
+					"a905908cb fix(66.2-39): delete the animated trend indicator no screen renders"
+				],
+				"vd": [
+					"unrendered"
+				]
+			},
+			{
+				"key": "text-destructive-text/80",
+				"files": [
+					"src/app/auth/confirm-email/confirm-email-states.tsx"
+				],
+				"commits": [
+					"d06ba0d50 fix(66.2-39): stop fading resting text below 4.5:1 with an alpha"
+				],
+				"vd": [
+					"VD-159"
+				]
+			},
+			{
+				"key": "text-info-foreground",
+				"files": [
+					"src/components/auth/forgot-password-modal.tsx"
+				],
+				"commits": [
+					"e30353f74 fix(66.2-39): label tinted notices with their AA text companions"
+				],
+				"vd": [
+					"VD-159"
+				]
+			},
+			{
+				"key": "text-muted-foreground/60",
+				"files": [
+					"src/components/billing/plan-card.tsx",
+					"src/components/landing/testimonials-section.tsx"
+				],
+				"commits": [
+					"d06ba0d50 fix(66.2-39): stop fading resting text below 4.5:1 with an alpha"
+				],
+				"vd": [
+					"VD-159"
+				]
+			},
+			{
+				"key": "text-muted-foreground/70",
+				"files": [
+					"src/app/(auth)/login/page.tsx"
+				],
+				"commits": [
+					"d06ba0d50 fix(66.2-39): stop fading resting text below 4.5:1 with an alpha"
+				],
+				"vd": [
+					"VD-159"
+				]
+			},
+			{
+				"key": "text-muted-foreground/80",
+				"files": [
+					"src/app/(auth)/login/page.tsx",
+					"src/components/landing/final-cta-section.tsx",
+					"src/components/landing/hero-section.tsx",
+					"src/components/leases/template/configuration-panel.tsx"
+				],
+				"commits": [
+					"d06ba0d50 fix(66.2-39): stop fading resting text below 4.5:1 with an alpha"
+				],
+				"vd": [
+					"VD-159"
+				]
+			},
+			{
+				"key": "text-warning-foreground",
+				"files": [
+					"src/components/bulk-import/bulk-import-validate-step.tsx"
+				],
+				"commits": [
+					"e30353f74 fix(66.2-39): label tinted notices with their AA text companions"
+				],
+				"vd": [
+					"VD-159"
+				]
+			}
+		],
+		"utilityChanged": [
+			{
+				"key": "text-responsive-display-xl",
+				"commits": [
+					"ed20e44a5 fix(66.2-39): fit a hero headline's longest word to its column"
+				],
+				"vd": [
+					"VD-176"
+				]
+			}
+		],
+		"reversed": [
+			{
+				"side": "added",
+				"key": "@container",
+				"reverses": "a cp4-followup removed key",
+				"commits": [
+					"ed20e44a5 fix(66.2-39): fit a hero headline's longest word to its column"
+				],
+				"vd": [
+					"VD-176"
+				]
+			},
+			{
+				"side": "added",
+				"key": "[a&]:hover:bg-success/15",
+				"reverses": "a fix-round-1 removed key",
+				"commits": [
+					"ae038ed02 fix(66.2-39): fill the success badge's anchor hover at /15, as warning and info"
+				],
+				"vd": [
+					"VD-170"
+				]
+			},
+			{
+				"side": "removed",
+				"key": "[a&]:hover:bg-success/12",
+				"reverses": "a fix-round-1 added key",
+				"commits": [
+					"ae038ed02 fix(66.2-39): fill the success badge's anchor hover at /15, as warning and info"
+				],
+				"vd": [
+					"VD-170"
+				]
+			},
+			{
+				"side": "removed",
+				"key": "lg:@xl/chart-card:grid-cols-4",
+				"reverses": "a fix-round-1 added key",
+				"commits": [
+					"21b7a0f0f fix(66.2-39): hold every stat tile's figure, rows stepped on their own width"
+				],
+				"vd": [
+					"VD-175"
+				]
+			}
+		],
+		"compiledCssOutsideUtilities": {
+			"method": "node css-blocks-dump.mjs on the audit compiled.css of 3977aa58d (built in this worktree, sha256 bbf1a69aff43...) and 7f6fcc67c (sha256 4a7de3f7e4e6...), every top-level block but @layer utilities one declaration a line, then diff: 4 hunks, each attributed",
+			"oldSha256": "bbf1a69aff432f0d4042",
+			"newSha256": "4a7de3f7e4e6f4568580",
+			"hunks": [
+				{
+					"block": "@layer theme",
+					"change": "--text-display-hero: clamp(3rem, 8vw, 5rem) -> clamp(2.75rem, 8vw, 5rem)",
+					"commits": [
+						"ed20e44a5 fix(66.2-39): fit a hero headline's longest word to its column"
+					],
+					"vd": [
+						"VD-176"
+					]
+				},
+				{
+					"block": "@layer base",
+					"change": "the base anchor hover color: var(--color-primary) at 80% (color-mix) -> var(--color-primary-text)",
+					"commits": [
+						"af72de1aa fix(66.2-39): raise the link hover, status text and boundary tokens to AA"
+					],
+					"vd": [
+						"VD-160"
+					]
+				},
+				{
+					"block": ":root and .dark",
+					"change": "--input oklch(0.8 0.015 245) -> oklch(0.615 0.015 245) light, oklch(0.3 0.01 255) -> oklch(0.515 0.01 255) dark; --success-text oklch(0.5 0.15 158) -> oklch(0.47 0.15 158); --info-text oklch(0.48 0.17 240) -> oklch(0.44 0.17 240)",
+					"commits": [
+						"af72de1aa fix(66.2-39): raise the link hover, status text and boundary tokens to AA"
+					],
+					"vd": [
+						"VD-160"
+					]
+				},
+				{
+					"block": "@media (prefers-reduced-motion: reduce)",
+					"change": "transition-duration: 0.01ms !important -> 0s !important",
+					"commits": [
+						"e37a20b8a fix(66.2-39): give a transition 0s under reduced motion, so a script reads its own write"
+					],
+					"vd": [
+						"VD-177"
+					]
+				}
+			]
+		}
+	}
+}

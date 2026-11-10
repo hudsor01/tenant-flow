@@ -13,8 +13,10 @@
  *
  * `units.total === 0` triggers the empty branch (04-CONTEXT.md D-03 + D-08 —
  * no fabricated `0%` donut for zero-unit owners; same honesty rule as
- * Phase 1 D-09 / POLISH-11). Wedge colors source from `var(--color-chart-2)`
- * (occupied) and `var(--color-chart-5)` (vacant) — 04-CONTEXT.md D-09.
+ * Phase 1 D-09 / POLISH-11). Wedge colors follow the unit status badge
+ * (`unit-status-badge.tsx`): `var(--color-success-text)` occupied and
+ * `var(--color-primary-text)` vacant, each 5.2:1 or more on the card in both
+ * themes (WCAG 1.4.11; chart-2 read 2.25:1 on the light card, 66.2-39 VD-53).
  * Entrance animation gates on `useReducedMotion()` (Phase 3 canonical hook).
  *
  * Per-chart inline `donutConfig` per 04-UI-SPEC § 16 — the shared
@@ -33,18 +35,23 @@ import {
 } from "#components/ui/card";
 import { type ChartConfig, ChartContainer } from "#components/ui/chart";
 import { useReducedMotion } from "#hooks/use-reduced-motion";
+import { formatCount } from "#lib/formatters/count";
 
 interface OccupancyDonutChartProps {
 	units: { occupied: number; vacant: number; total: number };
 }
 
-// Per-chart inline config (04-UI-SPEC § 16). `ChartContainer` resolves the
-// CSS variables via the `theme` map, but the JSX below references
-// `var(--color-chart-2)` / `var(--color-chart-5)` directly so the
-// design-token-drift scanner reads explicit token references.
+// Per-chart inline config (04-UI-SPEC § 16). `ChartContainer` turns each
+// `color` into a `--color-<key>` variable on its wrapper. The wedges below take
+// their fill straight from `pieData` (`var(--color-success-text)` occupied,
+// `var(--color-primary-text)` vacant, SVG fill values rather than classes), and
+// the legend swatches use the `bg-success-text` / `bg-primary-text` utilities,
+// which resolve to the same tokens. The two wedges sit close in luminance
+// (1.34:1 light), so each is outlined in the card color to keep the boundary
+// visible.
 const donutConfig = {
-	occupied: { label: "Occupied", color: "var(--color-chart-2)" },
-	vacant: { label: "Vacant", color: "var(--color-chart-5)" },
+	occupied: { label: "Occupied", color: "var(--color-success-text)" },
+	vacant: { label: "Vacant", color: "var(--color-primary-text)" },
 } as const satisfies ChartConfig;
 
 export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
@@ -53,16 +60,16 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 
 	if (isEmpty) {
 		return (
-			<Card className="lg:col-span-1">
+			<Card className="@4xl/dashboard:col-span-1">
 				<CardHeader>
 					<CardTitle>Occupancy</CardTitle>
 					<CardDescription>Across all units</CardDescription>
 				</CardHeader>
-				<CardContent className="flex h-[240px] flex-col items-center justify-center gap-2 text-center">
-					<p className="text-base font-semibold text-foreground">
+				<CardContent className="flex h-60 flex-col items-center justify-center gap-2 text-center">
+					<p className="mb-0 text-base font-semibold text-foreground">
 						No units yet
 					</p>
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						Add a property to see occupancy
 					</p>
 				</CardContent>
@@ -71,31 +78,31 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 	}
 
 	const occupancyPercent = Math.round((units.occupied / units.total) * 100);
-	const ariaLabel = `Occupancy donut: ${occupancyPercent} percent occupied (${units.occupied} of ${units.total} units)`;
+	const ariaLabel = `Occupancy donut: ${occupancyPercent} percent occupied (${units.occupied} of ${formatCount(units.total, "unit")})`;
 	const pieData = [
 		{
 			name: "Occupied",
 			value: units.occupied,
-			fill: "var(--color-chart-2)",
+			fill: "var(--color-success-text)",
 		},
 		{
 			name: "Vacant",
 			value: units.vacant,
-			fill: "var(--color-chart-5)",
+			fill: "var(--color-primary-text)",
 		},
 	];
 
 	return (
-		<Card className="lg:col-span-1">
+		<Card className="@4xl/dashboard:col-span-1">
 			<CardHeader>
 				<CardTitle>Occupancy</CardTitle>
 				<CardDescription>Across all units</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<div role="img" aria-label={ariaLabel} className="h-[180px] w-full">
+				<div role="img" aria-label={ariaLabel} className="h-45 w-full">
 					<ChartContainer
 						config={donutConfig}
-						className="!aspect-auto h-full w-full"
+						className="aspect-auto! h-full w-full"
 					>
 						<PieChart>
 							<Pie
@@ -104,7 +111,8 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 								nameKey="name"
 								innerRadius={50}
 								outerRadius={80}
-								strokeWidth={0}
+								stroke="var(--color-card)"
+								strokeWidth={2}
 								isAnimationActive={!reducedMotion}
 								animationDuration={800}
 								animationEasing="ease-out"
@@ -143,11 +151,11 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 						</PieChart>
 					</ChartContainer>
 				</div>
-				<ul className="mt-4 flex items-center justify-center gap-6 text-sm">
+				<ul className="mt-4 mb-0 pl-0 [&>li]:mb-0 flex items-center justify-center gap-6 text-sm">
 					<li className="flex items-center gap-2">
 						<span
 							aria-hidden="true"
-							className="inline-block size-2.5 rounded-full bg-[var(--color-chart-2)]"
+							className="inline-block size-2.5 rounded-full bg-success-text"
 						/>
 						<span className="text-muted-foreground">Occupied</span>
 						<span className="font-semibold tabular-nums text-foreground">
@@ -157,7 +165,7 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 					<li className="flex items-center gap-2">
 						<span
 							aria-hidden="true"
-							className="inline-block size-2.5 rounded-full bg-[var(--color-chart-5)]"
+							className="inline-block size-2.5 rounded-full bg-primary-text"
 						/>
 						<span className="text-muted-foreground">Vacant</span>
 						<span className="font-semibold tabular-nums text-foreground">

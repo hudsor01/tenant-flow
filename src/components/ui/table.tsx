@@ -1,10 +1,19 @@
+/**
+ * shadcn new-york-v4 registry item `table`. Local divergences are recorded in
+ * the divergence register; the latest (66.2-39 fix round 4, Part 8h): the
+ * container is a ScrollRegion, which takes a tab stop while the table is wider
+ * than it, so a keyboard can scroll a table that holds no control (axe
+ * scrollable-region-focusable on the lease ledger and the property
+ * performance tables, WCAG 2.1.1).
+ */
 import type { ComponentProps } from "react";
 
+import { ScrollRegion } from "#components/ui/scroll-region";
 import { cn } from "#lib/utils";
 
 function Table({ className, ...props }: ComponentProps<"table">) {
 	return (
-		<div
+		<ScrollRegion
 			data-slot="table-container"
 			className="relative w-full overflow-x-auto"
 		>
@@ -13,7 +22,7 @@ function Table({ className, ...props }: ComponentProps<"table">) {
 				className={cn("w-full caption-bottom text-sm", className)}
 				{...props}
 			/>
-		</div>
+		</ScrollRegion>
 	);
 }
 

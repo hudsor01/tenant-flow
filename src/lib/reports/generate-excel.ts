@@ -27,7 +27,7 @@ function buildCoverSheetData(report: ReportData): Array<Array<string>> {
 	];
 }
 
-function buildSectionSheetData(
+export function buildSectionSheetData(
 	section: ReportSection,
 ): Array<Array<string | number>> {
 	const sheetData: Array<Array<string | number>> = [[section.heading], []];
@@ -43,12 +43,20 @@ function buildSectionSheetData(
 		if (section.rows && section.rows.length > 0) sheetData.push([]);
 		sheetData.push(section.table.headers);
 		if (section.table.rows.length === 0) {
-			sheetData.push(["No data for the selected period."]);
+			// The builder's words, or none when the section's note says why.
+			if (section.table.emptyText !== null) {
+				sheetData.push([section.table.emptyText]);
+			}
 		} else {
 			for (const row of section.table.rows) {
 				sheetData.push(row);
 			}
 		}
+	}
+
+	if (section.paragraphs && section.paragraphs.length > 0) {
+		if ((section.rows?.length ?? 0) > 0 || section.table) sheetData.push([]);
+		for (const paragraph of section.paragraphs) sheetData.push([paragraph]);
 	}
 
 	if (section.note) {

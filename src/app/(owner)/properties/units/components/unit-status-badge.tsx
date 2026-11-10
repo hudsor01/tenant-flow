@@ -2,6 +2,7 @@ import { AlertTriangle, Calendar, Home, Users } from "lucide-react";
 import type { ComponentType } from "react";
 import { Badge } from "#components/ui/badge";
 import { cn } from "#lib/utils";
+import { unitStatusSchema } from "#lib/validation/units";
 import type { UnitStatus } from "#types/core";
 
 /**
@@ -52,6 +53,12 @@ export const statusConfig: Record<
 	},
 };
 
+/** A unit status as its label; a value outside the set as written. */
+export function unitStatusLabel(status: string): string {
+	const parsed = unitStatusSchema.safeParse(status);
+	return parsed.success ? statusConfig[parsed.data].label : status;
+}
+
 interface UnitStatusBadgeProps {
 	status: UnitStatus;
 	className?: string;
@@ -65,9 +72,8 @@ export function UnitStatusBadge({ status, className }: UnitStatusBadgeProps) {
 		<Badge
 			variant={config.variant}
 			className={cn(
-				"flex items-center gap-1.5 px-3 py-1 font-medium text-xs rounded-full border transition-all",
+				"flex items-center gap-1.5 px-3 py-1 font-medium text-xs rounded-full border",
 				config.className,
-				"hover:shadow-sm hover:scale-105",
 				className,
 			)}
 		>

@@ -17,6 +17,7 @@
 
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { loadProjectDesignSystem } from "#test/utils/tailwind-engine";
 import { OccupancyDonutChart } from "../occupancy-donut-chart";
 import { OccupancyDonutChartSkeleton } from "../occupancy-donut-chart-skeleton";
 
@@ -113,6 +114,89 @@ describe("OccupancyDonutChart", () => {
 		});
 	});
 
+	// 66.2-39 F10 / VD-53: both legend swatches use the named utility for the
+	// token their wedge fills with, spelled the same way. The wedges follow the
+	// unit status badge (occupied success-text, vacant primary-text), each
+	// 5.2:1 or more on the card in both themes; chart-2 read 2.25:1 light.
+	it("colors the legend swatches with the bg-success-text and bg-primary-text utilities", () => {
+		render(<OccupancyDonutChart units={populated} />);
+		const swatchOf = (label: string) =>
+			screen
+				.getByText(label)
+				.parentElement?.querySelector('[aria-hidden="true"]');
+		expect(swatchOf("Occupied")?.classList).toContain("bg-success-text");
+		expect(swatchOf("Vacant")?.classList).toContain("bg-primary-text");
+	});
+
+	it("fills the wedges with the swatch tokens and outlines them in the card color", async () => {
+		render(<OccupancyDonutChart units={populated} />);
+		const pie = await screen.findByTestId("pie");
+		const fills = (
+			JSON.parse(pie.getAttribute("data-data") ?? "[]") as {
+				name: string;
+				fill: string;
+			}[]
+		).map(({ name, fill }) => [name, fill]);
+		expect(fills).toEqual([
+			["Occupied", "var(--color-success-text)"],
+			["Vacant", "var(--color-primary-text)"],
+		]);
+		// The two wedges read 1.34:1 against each other (light), so the
+		// boundary is drawn in the card color, not left to the fills.
+		expect(pie.getAttribute("data-stroke")).toBe("var(--color-card)");
+		expect(Number(pie.getAttribute("data-stroke-width"))).toBeGreaterThan(0);
+	});
+
+	// The ChartContainer around the donut hides Recharts' default sector stroke
+	// with a class rule, and a class rule beats the SVG stroke attribute, so it
+	// must not reach a sector whose stroke is the card token: Recharts copies
+	// the Pie's stroke onto every path.recharts-sector (66.2-39 fix round 3,
+	// F75). The container's own compiled selector decides, matched against one
+	// sector of each kind.
+	it("leaves the card-color wedge separator to the Pie's stroke", async () => {
+		render(<OccupancyDonutChart units={populated} />);
+		const chart = document.querySelector('[data-slot="chart"]');
+		expect(chart).not.toBeNull();
+		// The resting rule; the focus rule (a focused Pie paints its sectors'
+		// stroke in the ring color, 66.2-39 fix round 4, Part 5b) is apart.
+		const classes = [...(chart?.classList ?? [])];
+		const sectorRules = classes.filter(
+			(c) =>
+				c.includes(".recharts-sector") &&
+				c.includes(":stroke-") &&
+				!c.includes(":focus-visible"),
+		);
+		expect(sectorRules).toHaveLength(1);
+		expect(
+			classes.filter(
+				(c) =>
+					c.includes(".recharts-pie:focus-visible") &&
+					c.endsWith(":stroke-ring"),
+			),
+		).toHaveLength(1);
+		const designSystem = await loadProjectDesignSystem();
+		const css = designSystem.candidatesToCss(sectorRules)[0] ?? "";
+		const selector = css.slice(css.indexOf(" ") + 1, css.indexOf("{")).trim();
+		expect(selector).toMatch(/recharts-sector/);
+		const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+		const sector = (stroke: string) => {
+			const path = document.createElementNS(
+				"http://www.w3.org/2000/svg",
+				"path",
+			);
+			path.setAttribute("class", "recharts-sector");
+			path.setAttribute("stroke", stroke);
+			svg.appendChild(path);
+			return path;
+		};
+		const token = sector("var(--color-card)");
+		const fallback = sector("white");
+		chart?.appendChild(svg);
+		expect(token.matches(selector)).toBe(false);
+		expect(fallback.matches(selector)).toBe(true);
+		svg.remove();
+	}, 30_000);
+
 	it("does NOT render a tooltip (UI-SPEC § 3.6)", () => {
 		render(<OccupancyDonutChart units={populated} />);
 		expect(screen.queryByTestId("tooltip")).toBeNull();
@@ -121,13 +205,12 @@ describe("OccupancyDonutChart", () => {
 });
 
 describe("OccupancyDonutChartSkeleton", () => {
-	it("renders a Card with lg:col-span-1 + size-[160px] donut placeholder", () => {
+	it("renders a Card on one dashboard-container column + size-40 donut placeholder", () => {
 		const { container } = render(<OccupancyDonutChartSkeleton />);
 		const card = container.firstElementChild;
-		expect(card?.className).toContain("lg:col-span-1");
-		const donutPlaceholder = container.querySelector(
-			"[class*='size-[160px]'][class*='rounded-full']",
-		);
+		expect(card?.className.split(/\s+/)).toContain("@4xl/dashboard:col-span-1");
+		expect(card?.className).not.toContain("lg:col-span");
+		const donutPlaceholder = container.querySelector(".size-40.rounded-full");
 		expect(donutPlaceholder).not.toBeNull();
 	});
 

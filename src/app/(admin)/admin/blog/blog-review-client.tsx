@@ -28,6 +28,8 @@ import {
 	useApproveBlogMutation,
 	useRejectBlogMutation,
 } from "#hooks/api/use-blog-admin-mutations";
+import { formatCount } from "#lib/formatters/count";
+import { categoryLabel } from "#lib/seo/blog-categories";
 
 interface BlogReviewClientProps {
 	initialDrafts: BlogReviewItem[];
@@ -47,7 +49,7 @@ export function BlogReviewClient({ initialDrafts }: BlogReviewClientProps) {
 			<Empty>
 				<EmptyHeader>
 					<EmptyTitle>No drafts to review</EmptyTitle>
-					<EmptyDescription>
+					<EmptyDescription className="mb-0">
 						There are no in-review drafts right now. New drafts appear here once
 						the generator submits them.
 					</EmptyDescription>
@@ -92,13 +94,13 @@ function BlogReviewRow({ draft }: { draft: BlogReviewItem }) {
 					<h3 className="text-lg font-semibold text-foreground">
 						{draft.title}
 					</h3>
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						<span className="font-mono">{draft.slug}</span>
 						{" · "}
-						{wordCount} words
+						{formatCount(wordCount, "word")}
 						{" · "}
 						{formatCreatedAt(draft.created_at)}
-						{draft.category ? ` · ${draft.category}` : ""}
+						{draft.category ? ` · ${categoryLabel(draft.category)}` : ""}
 					</p>
 				</div>
 				<div className="flex shrink-0 items-center gap-2">
@@ -123,16 +125,18 @@ function BlogReviewRow({ draft }: { draft: BlogReviewItem }) {
 			<AlertDialog open={confirmReject} onOpenChange={setConfirmReject}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Reject this draft?</AlertDialogTitle>
-						<AlertDialogDescription>
-							Rejecting archives this post. It cannot be undone from this
-							screen.
+						<AlertDialogTitle>Reject "{draft.title}"?</AlertDialogTitle>
+						{/* rejectBlogPost sets status 'archived'; this screen has no way
+						    to bring an archived post back. */}
+						<AlertDialogDescription className="mb-0">
+							This archives the draft, so it is never published. This screen
+							can't bring it back.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
 						<AlertDialogAction
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							variant="destructive"
 							onClick={() => reject.mutate({ id: draft.id })}
 						>
 							Reject
@@ -152,7 +156,7 @@ function BlogReviewRow({ draft }: { draft: BlogReviewItem }) {
 			</Button>
 
 			{showPreview ? (
-				<div className="prose prose-sm max-w-none border-t border-border pt-4 text-foreground">
+				<div className="prose prose-sm dark:prose-invert max-w-none border-t border-border pt-4 text-foreground">
 					<MarkdownContent content={draft.content} />
 				</div>
 			) : null}

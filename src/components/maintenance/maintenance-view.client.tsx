@@ -36,7 +36,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs";
 import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { usePreferencesStore } from "#providers/preferences-provider";
-import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
 import {
 	MaintenanceInsightsTab,
 	MaintenanceOverviewTab,
@@ -83,7 +82,7 @@ export function MaintenanceViewClient() {
 			unitIdFilter ? { unit_id: unitIdFilter } : undefined,
 		),
 	);
-	const requests = (response?.data ?? []) as MaintenanceDisplayRequest[];
+	const requests = response?.data ?? [];
 	// Stat cards come from the get_maintenance_stats RPC (counts the owner's FULL
 	// set) instead of the paginated list() (capped at 50), so they stay accurate
 	// for large portfolios. `completed_this_month` is scoped to the caller's local
@@ -106,7 +105,7 @@ export function MaintenanceViewClient() {
 		return requests.filter((r) => {
 			const title = r.title?.toLowerCase() ?? "";
 			const description = r.description?.toLowerCase() ?? "";
-			const propertyName = r.property?.name?.toLowerCase() ?? "";
+			const propertyName = r.propertyName?.toLowerCase() ?? "";
 			return (
 				title.includes(query) ||
 				description.includes(query) ||
@@ -133,10 +132,12 @@ export function MaintenanceViewClient() {
 					</div>
 					<Skeleton className="h-10 w-32" />
 				</div>
-				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-					{[1, 2, 3, 4].map((i) => (
-						<Skeleton key={i} className="h-28 rounded-lg" />
-					))}
+				<div className="@container/maintenance-stats mb-6">
+					<div className="grid grid-cols-1 @min-[21rem]/maintenance-stats:grid-cols-2 @min-[43rem]/maintenance-stats:grid-cols-4 gap-4">
+						{[1, 2, 3, 4].map((i) => (
+							<Skeleton key={i} className="h-28 rounded-lg" />
+						))}
+					</div>
 				</div>
 				<div className="flex gap-3 mb-6">
 					{[1, 2, 3, 4].map((i) => (
@@ -155,7 +156,7 @@ export function MaintenanceViewClient() {
 	if (requests.length === 0) {
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					{unitIdFilter ? (
 						<Empty>
 							<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
@@ -163,7 +164,7 @@ export function MaintenanceViewClient() {
 							</EmptyMedia>
 							<EmptyHeader>
 								<EmptyTitle>No maintenance requests for this unit</EmptyTitle>
-								<EmptyDescription>
+								<EmptyDescription className="mb-0">
 									{filterUnit?.unit_number
 										? `Unit ${filterUnit.unit_number} has no maintenance requests yet.`
 										: "This unit has no maintenance requests yet."}
@@ -185,7 +186,7 @@ export function MaintenanceViewClient() {
 							</EmptyMedia>
 							<EmptyHeader>
 								<EmptyTitle>No maintenance requests</EmptyTitle>
-								<EmptyDescription>
+								<EmptyDescription className="mb-0">
 									Log a request to track repairs, costs, and vendor assignments
 									for a unit.
 								</EmptyDescription>
@@ -193,7 +194,7 @@ export function MaintenanceViewClient() {
 							<EmptyContent>
 								<Button asChild>
 									<Link href="/maintenance/new">
-										<Plus className="w-5 h-5 mr-2" />
+										<Plus className="size-5 mr-2" />
 										Create Request
 									</Link>
 								</Button>
@@ -208,17 +209,17 @@ export function MaintenanceViewClient() {
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
 			{/* Header */}
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Maintenance</h1>
-						<p className="text-muted-foreground">
+						<p className="mb-0 text-muted-foreground">
 							Track and manage maintenance requests
 						</p>
 					</div>
 					<Link
 						href="/maintenance/new"
-						className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
+						className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
 					>
 						<Plus className="w-4 h-4" />
 						New Request
@@ -226,77 +227,82 @@ export function MaintenanceViewClient() {
 				</div>
 			</BlurFade>
 
-			{/* Stats */}
-			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-				<BlurFade delay={0.15} inView>
-					<Stat className="relative overflow-hidden">
-						{openCount > 0 && (
-							<BorderBeam
-								size={80}
-								duration={8}
-								colorFrom="var(--color-warning)"
-								colorTo="oklch(from var(--color-warning) l c h / 0.3)"
-							/>
-						)}
-						<StatLabel>Open</StatLabel>
-						{/* warning/success stat numbers use -text companions: at 32px (typography-stat)
-						    text-warning/text-success measure 2.15/2.59:1 in light, below the AA-large 3:1
-						    bar; the Urgent stat below keeps vivid text-destructive (4.55/3.29:1, clears it). */}
-						<StatValue className="flex items-baseline text-warning-text">
-							<NumberTicker value={openCount} duration={800} />
-						</StatValue>
-						<StatIndicator variant="icon" color="warning">
-							<Clock />
-						</StatIndicator>
-						<StatDescription>awaiting action</StatDescription>
-					</Stat>
-				</BlurFade>
-				<BlurFade delay={0.2} inView>
-					<Stat className="relative overflow-hidden">
-						<StatLabel>In Progress</StatLabel>
-						<StatValue className="flex items-baseline">
-							<NumberTicker value={inProgressCount} duration={800} />
-						</StatValue>
-						<StatIndicator variant="icon" color="primary">
-							<AlertTriangle />
-						</StatIndicator>
-						<StatDescription>being worked on</StatDescription>
-					</Stat>
-				</BlurFade>
-				<BlurFade delay={0.25} inView>
-					<Stat className="relative overflow-hidden">
-						<StatLabel>Completed</StatLabel>
-						<StatValue className="flex items-baseline text-success-text">
-							<NumberTicker value={completedCount} duration={800} />
-						</StatValue>
-						<StatIndicator variant="icon" color="success">
-							<CheckCircle />
-						</StatIndicator>
-						<StatDescription>this month</StatDescription>
-					</Stat>
-				</BlurFade>
-				<BlurFade delay={0.3} inView>
-					<Stat className="relative overflow-hidden">
-						{urgentCount > 0 && (
-							<BorderBeam
-								size={80}
-								duration={4}
-								colorFrom="var(--color-destructive)"
-								colorTo="oklch(from var(--color-destructive) l c h / 0.3)"
-							/>
-						)}
-						<StatLabel>Urgent</StatLabel>
-						<StatValue className="flex items-baseline text-destructive">
-							<NumberTicker value={urgentCount} duration={800} />
-						</StatValue>
-						<StatIndicator variant="icon" color="destructive">
-							<Wrench />
-						</StatIndicator>
-						<StatDescription>
-							{urgentCount > 0 ? "needs attention" : "all clear"}
-						</StatDescription>
-					</Stat>
-				</BlurFade>
+			{/* Stats: the columns step on the row's own width, never the
+			    viewport's (66.2-39 fix round 4, Part 8c): one until two tiles
+			    hold a four-digit count, four from where four do. */}
+			<div className="@container/maintenance-stats mb-6">
+				<div className="grid grid-cols-1 @min-[21rem]/maintenance-stats:grid-cols-2 @min-[43rem]/maintenance-stats:grid-cols-4 gap-4">
+					<BlurFade delay={0.15}>
+						<Stat className="relative overflow-hidden">
+							{openCount > 0 && (
+								<BorderBeam
+									size={80}
+									duration={8}
+									colorFrom="var(--color-warning)"
+									colorTo="oklch(from var(--color-warning) l c h / 0.3)"
+								/>
+							)}
+							<StatLabel>Open</StatLabel>
+							{/* warning/success stat numbers use -text companions: at 32px (typography-stat)
+						    text-warning/text-success measure 2.18/2.62:1 on the stat's card in light,
+						    below the AA-large 3:1 bar; the Urgent stat below keeps vivid
+						    text-destructive (4.62/3.21:1 light/dark, clears it). */}
+							<StatValue className="flex items-baseline text-warning-text">
+								<NumberTicker value={openCount} duration={800} />
+							</StatValue>
+							<StatIndicator variant="icon" color="warning">
+								<Clock />
+							</StatIndicator>
+							<StatDescription>awaiting action</StatDescription>
+						</Stat>
+					</BlurFade>
+					<BlurFade delay={0.2}>
+						<Stat className="relative overflow-hidden">
+							<StatLabel>In Progress</StatLabel>
+							<StatValue className="flex items-baseline">
+								<NumberTicker value={inProgressCount} duration={800} />
+							</StatValue>
+							<StatIndicator variant="icon" color="primary">
+								<AlertTriangle />
+							</StatIndicator>
+							<StatDescription>being worked on</StatDescription>
+						</Stat>
+					</BlurFade>
+					<BlurFade delay={0.25}>
+						<Stat className="relative overflow-hidden">
+							<StatLabel>Completed</StatLabel>
+							<StatValue className="flex items-baseline text-success-text">
+								<NumberTicker value={completedCount} duration={800} />
+							</StatValue>
+							<StatIndicator variant="icon" color="success">
+								<CheckCircle />
+							</StatIndicator>
+							<StatDescription>this month</StatDescription>
+						</Stat>
+					</BlurFade>
+					<BlurFade delay={0.3}>
+						<Stat className="relative overflow-hidden">
+							{urgentCount > 0 && (
+								<BorderBeam
+									size={80}
+									duration={4}
+									colorFrom="var(--color-destructive)"
+									colorTo="oklch(from var(--color-destructive) l c h / 0.3)"
+								/>
+							)}
+							<StatLabel>Urgent</StatLabel>
+							<StatValue className="flex items-baseline text-destructive">
+								<NumberTicker value={urgentCount} duration={800} />
+							</StatValue>
+							<StatIndicator variant="icon" color="destructive">
+								<Wrench />
+							</StatIndicator>
+							<StatDescription>
+								{urgentCount > 0 ? "needs attention" : "all clear"}
+							</StatDescription>
+						</Stat>
+					</BlurFade>
+				</div>
 			</div>
 
 			{/* DASH-18: unit-scope indicator when filtered via ?unit_id= */}

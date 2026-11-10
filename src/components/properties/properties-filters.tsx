@@ -8,10 +8,10 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#components/ui/empty";
+import { type PropertyType, toPropertyType } from "#lib/constants/status-types";
 import { intersectSelection } from "#lib/intersect-selection";
 import type { PropertyStatus } from "#types/core";
 import { propertyBulkImportConfig } from "./bulk-import-config";
-import type { DesignPropertyType } from "./types";
 
 export interface EmptyPropertiesProps {
 	onAddProperty?: (() => void) | undefined;
@@ -25,7 +25,7 @@ export function EmptyProperties({ onAddProperty }: EmptyPropertiesProps) {
 			</EmptyMedia>
 			<EmptyHeader>
 				<EmptyTitle>No properties yet</EmptyTitle>
-				<EmptyDescription>
+				<EmptyDescription className="mb-0">
 					Add your first property to start managing your portfolio.
 				</EmptyDescription>
 			</EmptyHeader>
@@ -53,17 +53,13 @@ export function PropertiesHeader({ onAddProperty }: PropertiesHeaderProps) {
 		<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
 			<div>
 				<h1 className="typography-h1">Properties</h1>
-				<p className="text-sm text-muted-foreground mt-1">
+				<p className="mb-0 text-sm text-muted-foreground mt-1">
 					Manage your property portfolio
 				</p>
 			</div>
-			<div className="flex items-center gap-2">
+			<div className="flex flex-wrap items-center gap-2">
 				<BulkImportDialog config={propertyBulkImportConfig()} />
-				<Button
-					onClick={onAddProperty}
-					className="gap-2 min-h-11"
-					aria-label="Add a new property"
-				>
+				<Button onClick={onAddProperty} className="gap-2 min-h-11">
 					<Plus className="w-4 h-4" />
 					Add Property
 				</Button>
@@ -83,14 +79,12 @@ export function NoResultsFilter({ onClearFilters }: NoResultsFilterProps) {
 				<Search />
 			</EmptyMedia>
 			<EmptyHeader>
-				<EmptyDescription>No properties match your filters</EmptyDescription>
+				<EmptyDescription className="mb-0">
+					No properties match your filters
+				</EmptyDescription>
 			</EmptyHeader>
 			<div className="flex items-center gap-3 mt-2">
-				<Button
-					variant="link"
-					onClick={onClearFilters}
-					aria-label="Clear all filters"
-				>
+				<Button variant="link" onClick={onClearFilters}>
 					Clear filters
 				</Button>
 			</div>
@@ -103,11 +97,11 @@ export function useBulkHandlers(
 	properties: {
 		id: string;
 		status: PropertyStatus;
-		propertyType: DesignPropertyType;
+		propertyType: string;
 	}[],
 	openBulkEdit: (
 		initialStatus: PropertyStatus,
-		initialType: DesignPropertyType,
+		initialType: PropertyType | null,
 	) => void,
 	deletePropertyMutation: { mutateAsync: (id: string) => Promise<unknown> },
 	clearSelection: () => void,
@@ -116,32 +110,38 @@ export function useBulkHandlers(
 		if (selectedRows.size === 0) return;
 		const firstSelected = properties.find((p) => selectedRows.has(p.id));
 		if (firstSelected) {
-			openBulkEdit(firstSelected.status, firstSelected.propertyType);
+			openBulkEdit(
+				firstSelected.status,
+				toPropertyType(firstSelected.propertyType),
+			);
 		}
 	};
 
-	const handleBulkDelete = async () => {
-		if (selectedRows.size === 0) return;
-		// STATE-05: only delete ids still present in the active list, so a stale
-		// phantom selection (already soft-deleted) can't be re-targeted.
+	// STATE-05: only ids still present in the active list, so a stale phantom
+	// selection (already soft-deleted) can't be re-targeted. Read when the
+	// confirmation opens, so its copy names the rows the delete acts on.
+	const bulkDeleteTargets = (): string[] =>
+		selectedRows.size === 0
+			? []
+			: intersectSelection(
+					selectedRows,
+					properties.map((p) => p.id),
+				);
+
+	// Runs only from the confirmation's Delete. The ids are the ones it named,
+	// intersected again with the list as it is now, so a property that left the
+	// list while the dialog was open is not re-targeted.
+	const handleBulkDelete = async (confirmedIds: readonly string[]) => {
 		const ids = intersectSelection(
-			selectedRows,
+			confirmedIds,
 			properties.map((p) => p.id),
 		);
 		if (ids.length === 0) return;
-		const label = ids.length === 1 ? "property" : "properties";
-		const confirmed =
-			typeof window === "undefined"
-				? true
-				: window.confirm(
-						`Delete ${ids.length} ${label}? This will mark the ${label} as inactive.`,
-					);
-		if (!confirmed) return;
 		clearSelection();
 		await Promise.allSettled(
 			ids.map((id) => deletePropertyMutation.mutateAsync(id)),
 		);
 	};
 
-	return { handleBulkEditOpen, handleBulkDelete };
+	return { handleBulkEditOpen, bulkDeleteTargets, handleBulkDelete };
 }

@@ -79,7 +79,9 @@ describe("DocumentsSection delete confirmation", () => {
 		await userEvent.click(screen.getByText("delete-d1"));
 
 		expect(mockMutate).not.toHaveBeenCalled();
-		expect(screen.getByText("Remove document?")).toBeInTheDocument();
+		expect(
+			screen.getByText('Remove document "Lease.pdf"?'),
+		).toBeInTheDocument();
 	});
 
 	it("deletes only after confirming in the dialog", async () => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Mail } from "lucide-react";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { useState } from "react";
 import { Button } from "#components/ui/button";
 import { useFormWithProgress } from "#hooks/use-form-progress";
@@ -155,7 +155,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 		},
 	);
 
-	const handleSubmit = async (e: FormEvent) => {
+	const handleSubmit = async (e: SubmitEvent) => {
 		e.preventDefault();
 		setErrors({});
 
@@ -218,7 +218,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 		>
 			{/* Left side - Contact Info with Image Background */}
 			<div className="relative flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-12 xl:px-32 overflow-hidden">
-				<div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/10" />
+				<div className="absolute inset-0 bg-linear-to-br from-primary/10 via-background to-accent/10" />
 				<div className="absolute inset-0 bg-linear-to-br from-background/30 via-transparent to-background/20" />
 
 				<div className="relative z-10 p-8 rounded-2xl backdrop-blur-lg bg-background/60 dark:bg-card/60 border border-border/20 shadow-2xl">
@@ -238,7 +238,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 							<div className="ml-3">
 								<p className="text-foreground font-semibold">Email Us</p>
 								<p className="text-muted-foreground">sales@tenantflow.app</p>
-								<p className="text-muted-foreground text-sm">
+								<p className="mb-0 text-muted-foreground text-sm">
 									US business hours, Monday through Friday
 								</p>
 							</div>
@@ -259,7 +259,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 
 					{!isHydrated && (
 						<div className="mb-4 p-3 bg-muted rounded-md">
-							<p className="text-muted-foreground">
+							<p className="mb-0 text-muted-foreground">
 								Restoring your progress...
 							</p>
 						</div>
@@ -267,7 +267,9 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 
 					{submitError && (
 						<div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-							<p className="text-sm text-destructive-text">{submitError}</p>
+							<p className="mb-0 text-sm text-destructive-text">
+								{submitError}
+							</p>
 						</div>
 					)}
 
@@ -282,12 +284,12 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 							type="submit"
 							disabled={isSubmitting}
 							size="lg"
-							className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+							className="w-full bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground"
 						>
 							{isSubmitting ? "Sending..." : "Send Message"}
 						</Button>
 
-						<p className="text-center text-muted-foreground">
+						<p className="mb-0 text-center text-muted-foreground">
 							We respond during US business hours, Monday through Friday.
 						</p>
 					</form>

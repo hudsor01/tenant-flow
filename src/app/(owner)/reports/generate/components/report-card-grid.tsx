@@ -30,9 +30,9 @@ export function ReportCardGrid({
 		<div className="flex flex-col gap-4">
 			<div>
 				<h2 className="font-medium text-foreground">{title}</h2>
-				<p className="text-sm text-muted-foreground">{description}</p>
+				<p className="mb-0 text-sm text-muted-foreground">{description}</p>
 			</div>
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 				{reports.map((report) => {
 					const Icon = report.icon;
 					return (
@@ -45,6 +45,12 @@ export function ReportCardGrid({
 								<CardDescription>{report.description}</CardDescription>
 							</CardHeader>
 							<CardContent className="flex-1 flex flex-col gap-3">
+								{report.coverage ? (
+									// mb-0: a flex item, so the base `p` margin would add to gap-3.
+									<p className="mb-0 text-sm text-muted-foreground">
+										{report.coverage.reason}
+									</p>
+								) : null}
 								<div className="flex-1" />
 								<div className="flex gap-2">
 									{report.formats.map((format) => {

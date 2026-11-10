@@ -5,31 +5,16 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { useEntityDetail } from "#hooks/use-entity-detail";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import type { PaginatedResponse } from "#types/api-contracts";
-import type { Property } from "#types/core";
 import {
 	type PropertyFilters,
 	propertyQueries,
 } from "./query-keys/property-keys";
-import { propertyStatsQueries } from "./query-keys/property-stats-keys";
 
 /** Stable select function for TanStack Query optimization */
 const selectPaginatedData = <T>(response: PaginatedResponse<T>): T[] =>
 	response.data;
-
-/**
- * Hook to fetch property by ID
- * Uses placeholderData from list cache for instant detail view
- */
-export function useProperty(id: string) {
-	return useEntityDetail<Property>({
-		queryOptions: propertyQueries.detail(id),
-		listQueryKey: propertyQueries.lists(),
-		id,
-	});
-}
 
 /**
  * Hook to fetch property list with pagination and search
@@ -57,10 +42,6 @@ export function usePropertyList(params?: {
 		structuralSharing: true,
 		notifyOnChangeProps: ["data", "error", "isPending", "isFetching"],
 	});
-}
-
-export function usePropertyStats() {
-	return useQuery(propertyStatsQueries.stats());
 }
 
 export function usePropertyImages(property_id: string) {

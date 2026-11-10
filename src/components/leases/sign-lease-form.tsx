@@ -156,10 +156,10 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 				aria-live="polite"
 			>
 				<CheckCircle2 className="h-10 w-10 text-success" />
-				<p className="text-base font-semibold text-foreground">
+				<p className="mb-0 text-base font-semibold text-foreground">
 					Your signature has been recorded
 				</p>
-				<p className="text-sm text-muted-foreground">
+				<p className="mb-0 text-sm text-muted-foreground">
 					{bothSigned
 						? "All parties have signed. This lease is now active. A copy of the signed lease is being emailed to you."
 						: "Thank you. The landlord has been notified and will countersign to activate the lease. You'll receive an emailed copy of the fully signed lease once they do."}
@@ -174,7 +174,7 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 				<p className="mb-2 font-medium text-foreground">
 					Consent to sign electronically
 				</p>
-				<p>
+				<p className="mb-0">
 					By signing below you agree to use an electronic signature for this
 					lease under the U.S. ESIGN Act and applicable state law, and that your
 					electronic signature is legally binding and equivalent to a
@@ -205,7 +205,7 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 					href={docFallbackUrl}
 					target="_blank"
 					rel="noopener noreferrer"
-					className="block text-center text-sm text-primary underline"
+					className="block text-center text-sm text-primary-text underline"
 					data-testid="view-lease-fallback-link"
 				>
 					Your browser blocked the document window — open the lease here
@@ -225,7 +225,7 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 				/>
 			</div>
 
-			<div className={cn("flex items-start gap-3", !viewed && "opacity-60")}>
+			<div className="flex items-start gap-3">
 				<Checkbox
 					id="sign-consent"
 					checked={consent}
@@ -237,13 +237,19 @@ export function SignLeaseForm({ token, tenantName }: SignLeaseFormProps) {
 				<div className="space-y-1">
 					<Label
 						htmlFor="sign-consent"
-						className="text-sm font-normal leading-relaxed cursor-pointer"
+						className={cn(
+							"text-sm font-normal leading-relaxed cursor-pointer",
+							!viewed && "opacity-60",
+						)}
 					>
 						I have read the lease, consent to sign electronically, and agree to
 						be legally bound by its terms.
 					</Label>
 					{!viewed ? (
-						<p id="sign-consent-hint" className="text-xs text-muted-foreground">
+						<p
+							id="sign-consent-hint"
+							className="mb-0 text-xs text-muted-foreground"
+						>
 							Open the lease above to enable this checkbox.
 						</p>
 					) : null}

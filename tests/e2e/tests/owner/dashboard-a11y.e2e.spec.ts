@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { loginAsOwner } from "../../auth-helpers";
+import { gotoAuthedDashboard } from "../../lib/authed-dashboard";
+import { boxOf } from "../../lib/measure";
 
 /**
  * Dashboard Accessibility + Responsiveness E2E (Phase 6, POLISH-05 / POLISH-06)
@@ -17,60 +18,27 @@ import { loginAsOwner } from "../../auth-helpers";
  *    ENTIRE /dashboard subtree (D-03 — full-page sweep incl. app-shell chrome,
  *    not just the v2.0-added regions). Served by a local production build; auth
  *    and data still hit the prod Supabase project (no screenshot diffing).
- * 2. 375px page-level zero-horizontal-scroll probe (POLISH-06): body and html
+ *    axe's `incomplete` list is not asserted: it holds the pairs axe could not
+ *    measure, here the chart axes' tick text inside each Recharts SVG and the
+ *    command palette's shortcut glyph (16 nodes, how many ticks depending on
+ *    owner A's data; 66.2-39 fix round 4, Part 7), never a measured failure.
+ * 2. Chart focus indicator (WCAG 2.4.7): a Recharts surface reached by Tab
+ *    draws a 2px solid outline in the ring color, inset by its own width so an
+ *    overflow-hidden card cannot clip it. axe has no rule for a missing focus
+ *    indicator, so the computed outline is read.
+ * 3. 375px page-level zero-horizontal-scroll probe (POLISH-06): body and html
  *    scrollWidth <= viewport + 1. The locked FORCE_GRID_QUERY (max-width:1023px)
  *    in portfolio-data-table.tsx forces the portfolio table into grid mode below
  *    1024px, which satisfies this.
  *
- * Auth/beforeEach: loginAsOwner lands on an authenticated /dashboard, then we
- * mark the onboarding tour completed, reload, and wait for the heading.
+ * Auth/beforeEach: `gotoAuthedDashboard` (`lib/authed-dashboard.ts`) lands on
+ * an authenticated /dashboard, marks the onboarding tour completed so its
+ * overlay never masks focusable elements from axe, reloads, waits for the
+ * loaded marker, and waits out the BlurFade entrances so axe measures the
+ * resting state (this file runs with motion enabled).
  */
 
 const WCAG_2_1_AA_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
-
-/**
- * Shared authed-dashboard navigation used by both the axe sweep and the 375px
- * probe. `loginAsOwner` authenticates via the Supabase token API and injects the
- * session into the browser (landing on /dashboard); we then mark the onboarding
- * tour completed (so its overlay never opens to mask focusable elements from
- * axe) and wait for the dashboard heading to confirm the client-fetched content
- * has resolved past the loading skeleton.
- */
-async function gotoAuthedDashboard(page: import("@playwright/test").Page) {
-	// loginAsOwner already lands on an authenticated /dashboard, so we only mark
-	// the onboarding tour completed and reload — no redundant re-navigation.
-	await loginAsOwner(page);
-	// Mark the owner onboarding tour completed so its spotlight overlay never
-	// auto-opens over the axe sweep. The app reads tour state from the
-	// "tenantflow:tour-progress" localStorage key as JSON keyed by tour name
-	// (getTourProgress short-circuits on "completed"/"skipped" —
-	// src/hooks/api/use-tour-progress.ts).
-	await page.evaluate(() => {
-		localStorage.setItem(
-			"tenantflow:tour-progress",
-			JSON.stringify({ "owner-onboarding": "completed" }),
-		);
-	});
-	await page.reload();
-	// Wait for a definitive loaded marker (past the skeleton) before sweeping.
-	// Tolerate BOTH valid loaded states the rest of the suite treats as
-	// non-guaranteed: the populated dashboard renders the exact <h1>Dashboard</h1>
-	// (dashboard.tsx), while the zero-data path renders DashboardEmptyState's
-	// "Welcome to TenantFlow" (no "Dashboard" heading). The synthetic owner's
-	// property/tenant data is not a guaranteed invariant, so hard-coupling to the
-	// populated path would time out and fail CI whenever the owner has no data.
-	// The exact h1 match still avoids resolving on a loose sub-heading mid-render.
-	// Empty-state branch is scoped to the EmptyTitle slot (a <div>, not a heading)
-	// so it can't collide with the onboarding tour's "Welcome to TenantFlow"
-	// TourTitle text (the tour is already suppressed above; this is belt-and-braces).
-	await expect(
-		page.getByRole("heading", { level: 1, name: "Dashboard", exact: true }).or(
-			page.locator('[data-slot="empty-title"]', {
-				hasText: "Welcome to TenantFlow",
-			}),
-		),
-	).toBeVisible({ timeout: 10000 });
-}
 
 test.describe("Dashboard accessibility (axe-core)", () => {
 	test.beforeEach(async ({ page }) => {
@@ -86,6 +54,69 @@ test.describe("Dashboard accessibility (axe-core)", () => {
 			.analyze();
 
 		expect(results.violations).toEqual([]);
+	});
+});
+
+test.describe("Dashboard chart focus indicator (WCAG 2.4.7)", () => {
+	test.beforeEach(async ({ page }) => {
+		await gotoAuthedDashboard(page);
+	});
+
+	test("a chart surface focused by Tab draws a visible ring-colored outline", async ({
+		page,
+	}) => {
+		// Recharts' accessibility layer makes every surface a tab stop. axe has no
+		// rule for a missing focus indicator, so this reads the computed outline.
+		const surface = page
+			.locator('[data-slot="chart"] .recharts-surface[tabindex="0"]')
+			.first();
+		await expect(surface).toBeAttached({ timeout: 20000 });
+		await surface.evaluate((node) => {
+			const tabbable = Array.from(
+				document.querySelectorAll<HTMLElement | SVGElement>(
+					'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])',
+				),
+			).filter(
+				(element) =>
+					element.tabIndex >= 0 &&
+					element.getClientRects().length > 0 &&
+					element.closest("[inert]") === null,
+			);
+			const previous = tabbable[tabbable.indexOf(node as SVGElement) - 1];
+			if (previous === undefined) {
+				throw new Error("no tabbable element precedes the chart surface");
+			}
+			previous.focus({ preventScroll: true });
+		});
+		await page.keyboard.press("Tab");
+		await expect(surface).toBeFocused();
+
+		const ring = await page.evaluate(() => {
+			const probe = document.createElement("span");
+			probe.style.color = "var(--color-ring)";
+			document.body.appendChild(probe);
+			const value = getComputedStyle(probe).color;
+			probe.remove();
+			return value;
+		});
+		// Positive control: the surface has a laid-out box to draw around.
+		expect((await boxOf(surface)).height).toBeGreaterThan(0);
+		const outline = await surface.evaluate((node) => {
+			const style = getComputedStyle(node);
+			return {
+				focusVisible: node.matches(":focus-visible"),
+				style: style.outlineStyle,
+				width: style.outlineWidth,
+				color: style.outlineColor,
+				offset: style.outlineOffset,
+			};
+		});
+		expect(outline.focusVisible).toBe(true);
+		expect(outline.style).toBe("solid");
+		expect(outline.width).toBe("2px");
+		expect(outline.color).toBe(ring);
+		// Inset by its own width, so an overflow-hidden card cannot clip it.
+		expect(outline.offset).toBe("-2px");
 	});
 });
 

@@ -1,0 +1,8 @@
+{
+  "VD-27": "[data-slot=\"sidebar-menu-sub\"]",
+  "VD-28": "[data-slot=\"sidebar-footer\"] a[href=\"/help\"]",
+  "VD-29": "[data-slot=\"sidebar-trigger\"]",
+  "VD-31": "[data-slot=\"sidebar-trigger\"] svg.lucide-panel-left",
+  "VD-35": "[data-slot=\"sidebar-content\"]",
+  "VD-37": "[data-testid=\"quick-actions-dock\"]"
+}

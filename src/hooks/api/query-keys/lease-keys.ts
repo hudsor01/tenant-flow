@@ -7,14 +7,69 @@ import { queryOptions } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
-import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { PaginatedResponse } from "#types/api-contracts";
-import type { Lease, LeaseStatsResponse } from "#types/core";
-import { revenueTrendsQuery } from "./analytics-keys";
+import type { Lease, Property, Tenant, Unit } from "#types/core";
 import {
 	type ExpiringLeaseRow,
 	mapExpiringLeaseRow,
 } from "./expiring-leases-mapper";
+
+/**
+ * The detail's select: the lease's columns, its primary tenant and its unit
+ * with the unit's property, each embedded through the lease's own foreign
+ * key. No capped or filtered tenant or unit list can name a lease's 51st
+ * tenant or unit, or a deleted one; the embed always does.
+ */
+const LEASE_DETAIL_SELECT =
+	"*, tenants:primary_tenant_id(id, name, first_name, last_name, email), units(id, unit_number, bedrooms, bathrooms, square_feet, property_id, properties(name, address_line1, city, state))" as const;
+
+type LeaseDetailTenant = Pick<
+	Tenant,
+	"id" | "name" | "first_name" | "last_name" | "email"
+>;
+
+type LeaseDetailProperty = Pick<
+	Property,
+	"name" | "address_line1" | "city" | "state"
+>;
+
+type LeaseDetailUnit = Pick<
+	Unit,
+	| "id"
+	| "unit_number"
+	| "bedrooms"
+	| "bathrooms"
+	| "square_feet"
+	| "property_id"
+> & { property: LeaseDetailProperty | null };
+
+/**
+ * A lease as its detail page and its edit form read it: the row, its primary
+ * tenant and its unit with the unit's property, from the detail's own embeds
+ * (each null with no row).
+ */
+export interface LeaseDetailRow extends Lease {
+	tenant: LeaseDetailTenant | null;
+	unit: LeaseDetailUnit | null;
+}
+
+/** The detail's embeds under the names its readers use. */
+function mapLeaseDetailRow({
+	tenants,
+	units,
+	...lease
+}: Lease & {
+	tenants: LeaseDetailTenant | null;
+	units:
+		| (Omit<LeaseDetailUnit, "property"> & {
+				properties: LeaseDetailProperty | null;
+		  })
+		| null;
+}): LeaseDetailRow {
+	if (units === null) return { ...lease, tenant: tenants, unit: null };
+	const { properties, ...unit } = units;
+	return { ...lease, tenant: tenants, unit: { ...unit, property: properties } };
+}
 
 export interface LeaseFilters {
 	unit_id?: string;
@@ -35,21 +90,6 @@ export interface SignatureStatus {
 	sent_for_signature_at: string | null;
 	both_signed: boolean;
 }
-
-/** Subset of Lease columns for list/summary views (expiring leases, etc.) */
-export type LeaseListItem = Pick<
-	Lease,
-	| "id"
-	| "unit_id"
-	| "primary_tenant_id"
-	| "owner_user_id"
-	| "rent_amount"
-	| "lease_status"
-	| "start_date"
-	| "end_date"
-	| "created_at"
-	| "updated_at"
->;
 
 export const leaseQueries = {
 	all: () => ["leases"] as const,
@@ -100,43 +140,18 @@ export const leaseQueries = {
 	detail: (id: string) =>
 		queryOptions({
 			queryKey: [...leaseQueries.details(), id],
-			queryFn: async (): Promise<Lease> => {
+			queryFn: async (): Promise<LeaseDetailRow> => {
 				const supabase = createClient();
 				const { data, error } = await supabase
 					.from("leases")
-					.select(
-						"*, tenants:primary_tenant_id(id, name, email, phone), units(id, unit_number, bedrooms, bathrooms, square_feet, property_id, properties(id, name, address_line1, city, state, postal_code))",
-					)
+					.select(LEASE_DETAIL_SELECT)
 					.eq("id", id)
 					.single();
 				if (error) handlePostgrestError(error, "leases");
-				return data as Lease;
+				return mapLeaseDetailRow(data);
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id,
-		}),
-
-	expiring: (days: number = 30) =>
-		queryOptions({
-			queryKey: [...leaseQueries.all(), "expiring", days],
-			queryFn: async (): Promise<LeaseListItem[]> => {
-				const supabase = createClient();
-				const now = new Date();
-				const future = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
-				const { data, error } = await supabase
-					.from("leases")
-					.select(
-						"id, unit_id, primary_tenant_id, owner_user_id, rent_amount, lease_status, start_date, end_date, created_at, updated_at",
-					)
-					.eq("lease_status", "active")
-					.lte("end_date", future.toISOString())
-					.gte("end_date", now.toISOString())
-					.order("end_date", { ascending: true })
-					.limit(50);
-				if (error) handlePostgrestError(error, "leases");
-				return data ?? [];
-			},
-			...QUERY_CACHE_TIMES.DETAIL,
 		}),
 
 	/**
@@ -176,32 +191,6 @@ export const leaseQueries = {
 				return (data ?? []).map((row) => mapExpiringLeaseRow(row));
 			},
 			staleTime: 5 * 60 * 1000,
-		}),
-
-	stats: () =>
-		queryOptions({
-			queryKey: [...leaseQueries.all(), "stats"],
-			queryFn: async (): Promise<LeaseStatsResponse> => {
-				const supabase = createClient();
-				const user = await getCachedUser();
-				if (!user) throw new Error("Not authenticated");
-				const { data, error } = await supabase.rpc("get_lease_stats", {
-					p_user_id: user.id,
-				});
-				if (error) handlePostgrestError(error, "leases");
-				const stats = data as Record<string, number>;
-				return {
-					totalLeases: stats.totalLeases ?? 0,
-					activeLeases: stats.activeLeases ?? 0,
-					expiredLeases: stats.expiredLeases ?? 0,
-					terminatedLeases: stats.terminatedLeases ?? 0,
-					totalMonthlyRent: stats.totalMonthlyRent ?? 0,
-					averageRent: stats.averageRent ?? 0,
-					total_security_deposits: stats.total_security_deposits ?? 0,
-					expiringLeases: stats.expiringLeases ?? 0,
-				};
-			},
-			...QUERY_CACHE_TIMES.STATS,
 		}),
 
 	signedDocument: (leaseId: string, enabled = true) =>
@@ -284,31 +273,4 @@ export const leaseQueries = {
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id,
 		}),
-
-	analytics: {
-		performance: () =>
-			queryOptions({
-				// get_property_performance_analytics returns SETOF (property_id,
-				// property_name, occupancy_rate, total_revenue, total_expenses,
-				// net_income, timeframe). Surface the actual array shape instead
-				// of pretending it's an object.
-				queryKey: [...leaseQueries.all(), "analytics", "performance"],
-				queryFn: async () => {
-					const supabase = createClient();
-					const user = await getCachedUser();
-					if (!user) throw new Error("Not authenticated");
-					const { data, error } = await supabase.rpc(
-						"get_property_performance_analytics",
-						{ p_user_id: user.id },
-					);
-					if (error) handlePostgrestError(error, "leases");
-					return data ?? [];
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000,
-			}),
-		duration: () => revenueTrendsQuery({ months: 12 }),
-		turnover: () => revenueTrendsQuery({ months: 12 }),
-		revenue: () => revenueTrendsQuery({ months: 12 }),
-	},
 };

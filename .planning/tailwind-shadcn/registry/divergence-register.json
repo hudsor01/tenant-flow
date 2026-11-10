@@ -1,0 +1,1289 @@
+{
+ "schema": 1,
+ "registry": "new-york-v4",
+ "files": {
+  "src/components/ui/accordion.tsx": {
+   "item": "accordion",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "AccordionTrigger uses typography-small in place of text-sm font-medium",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC §Preserved Customizations (typography-small)"
+    },
+    {
+     "what": "class token order in AccordionTrigger, its ChevronDownIcon and AccordionContent",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    }
+   ]
+  },
+  "src/components/ui/alert-dialog.tsx": {
+   "item": "alert-dialog",
+   "plan": "66.2-23",
+   "divergences": [
+    {
+     "what": "local AlertDialogContent, AlertDialogHeader (flex flex-col gap-2 text-center sm:text-left), AlertDialogFooter (flex flex-col-reverse gap-2 sm:flex-row sm:justify-end) and AlertDialogTitle (text-lg font-semibold) layout kept byte-identical; only AlertDialogAction and AlertDialogCancel follow upstream (Button asChild, variant/size, alert-dialog-action and alert-dialog-cancel data-slots)",
+     "reason": "D-26 customization",
+     "ref": "D-26; ledger C14, C16"
+    },
+    {
+     "what": "AlertDialogContent size prop (default | sm), its data-size attribute, the group/alert-dialog-content group and the data-[size=sm]:max-w-xs / data-[size=default]:sm:max-w-lg widths",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; ledger C14, C16"
+    },
+    {
+     "what": "grid AlertDialogHeader (grid-rows-[auto_1fr], place-items-center, gap-1.5 and its size-group and media-row variants)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; ledger C14, C16"
+    },
+    {
+     "what": "size-group AlertDialogFooter classes (group-data-[size=sm]/alert-dialog-content grid two-column footer) and the AlertDialogTitle media col-start-2 class",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; ledger C14, C16"
+    },
+    {
+     "what": "AlertDialogMedia export and its alert-dialog-media data-slot (upstream exports 12 data-slots, manifest-w5.json; this repo vendors and exports 11, no consumer uses a media part)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; ledger C14, C16"
+    },
+    {
+     "what": "AlertDialogOverlay and AlertDialogPortal exports (both stay internal to AlertDialogContent; the export list is unchanged)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; ledger C14, C16"
+    },
+    {
+     "what": "class token order in AlertDialogOverlay and AlertDialogDescription",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "AlertDialogContent grid-cols-1 (a minmax(0, 1fr) column), the same bound as DialogContent, where upstream leaves the grid's implicit auto track",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
+    },
+    {
+     "what": "AlertDialogContent max-h-[calc(100dvh-2rem)] and overflow-y-auto, where upstream sets no bound: centered on a fixed position with the page's scroll locked, a dialog taller than the viewport had no way to reach its ends (at 320x900 the record receipt dialog was 917.56px, 8.78px past the top and the bottom)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.10; 66.2-39 fix round 4 Part 8e (closure-reflow-states.tsv)"
+    }
+   ]
+  },
+  "src/components/ui/alert.tsx": {
+   "item": "alert",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "destructive variant text uses text-destructive-text and [&_.text-muted-foreground]:text-destructive-text/90 instead of upstream text-destructive and *:data-[slot=alert-description]:text-destructive/90",
+     "reason": "D-26 customization",
+     "ref": "D-26; CLAUDE.md AA -text companions"
+    },
+    {
+     "what": "class token order in alertVariants base and AlertDescription kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/avatar.tsx": {
+   "item": "avatar",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "Avatar has no size prop, data-size attribute, group/avatar or select-none, and AvatarFallback keeps its shorter class list (no text-sm, text-muted-foreground or sm text size)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "upstream AvatarBadge, AvatarGroup and AvatarGroupCount (avatar-badge, avatar-group, avatar-group-count data-slots) not adopted: never vendored, no consumer",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "class token order in AvatarFallback",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/badge.tsx": {
+   "item": "badge",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "size axis (default, sm, lg, trust) carries rounded-md/rounded-full, px, py, text size, gap and [&>svg]:size-*; the base string has no rounded-full, px-2, py-0.5, text-xs, gap-1 or [&>svg]:size-3, and each filled variant adds border-transparent",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "local variants success, warning, info and trustIndicator",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "destructive text uses text-destructive-foreground instead of the upstream named-white text utility",
+     "reason": "D-26 customization",
+     "ref": "D-26; D-29 (the Button destructive pairing)"
+    },
+    {
+     "what": "upstream ghost and link variants, outline border-border, the data-variant attribute and the variant = \"default\" parameter default are not adopted",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; 66.2-20 Task 1 not-adopted list"
+    },
+    {
+     "what": "asChild uses Slot.Slot, not upstream Slot.Root",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; the Slot.Root switch belongs to Button in 66.2-22"
+    },
+    {
+     "what": "badgeVariants export removed",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "class token order in badgeVariants base and the destructive variant kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "the default and destructive anchor hovers fill with bg-primary-text and bg-destructive-text in light, keeping /90 in dark (as Button)",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "destructive variant focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    }
+   ]
+  },
+  "src/components/ui/breadcrumb.tsx": {
+   "item": "breadcrumb",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "BreadcrumbList uses text-foreground text-base font-medium gap-2 sm:gap-3 (no text-muted-foreground, text-sm, gap-1.5, sm:gap-2.5 or break-words); BreadcrumbLink uses hover:text-primary-text font-medium instead of hover:text-foreground",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "BreadcrumbList adds the base-rule neutralizers pl-0 mt-0 mb-0 [&>li]:mb-0 (every trail sat 24px right of the content it heads, with 16px base margins above and below)",
+     "reason": "D-26 customization",
+     "ref": "D-49 (the SidebarMenu V4 pattern); 66.2-39 fix round 3, part 7b"
+    },
+    {
+     "what": "local export type BreadcrumbItem ({ href, label })",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "BreadcrumbPage role=\"link\" and BreadcrumbSeparator role=\"presentation\" are not adopted",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; 66.2-20 Task 1 not-adopted list"
+    },
+    {
+     "what": "asChild uses Slot.Slot, not upstream Slot.Root",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; the Slot.Root switch belongs to Button in 66.2-22"
+    },
+    {
+     "what": "BreadcrumbEllipsis and its breadcrumb-ellipsis data-slot removed",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "class token order in BreadcrumbPage kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/button-group.tsx": {
+   "item": "button-group",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "[&>.select-trigger:not([class*='w-'])]:w-fit and has-[select[aria-hidden=true]:last-child]:[&>.select-trigger:last-of-type]:rounded-r-md key on the select-trigger class instead of upstream [data-slot=select-trigger]",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "ledger C13; D-05"
+    },
+    {
+     "what": "ButtonGroupText, ButtonGroupSeparator (with its button-group-separator data-slot) and the buttonGroupVariants export removed",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "class token order in buttonGroupVariants base kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/button.tsx": {
+   "item": "button",
+   "plan": "66.2-22",
+   "divergences": [
+    {
+     "what": "base string uses typography-small instead of text-sm font-medium",
+     "reason": "D-26 customization",
+     "ref": "D-26; D-29"
+    },
+    {
+     "what": "the 44px touch floor: min-h-11 on every size and min-w-11 on icon, with heights default h-10 px-4 py-2, sm h-9 px-3, lg h-11 px-8 and icon size-10 instead of upstream h-9, h-8 gap-1.5, h-10 px-6 and size-9",
+     "reason": "D-26 customization",
+     "ref": "D-26; D-29; UI-SPEC §Button"
+    },
+    {
+     "what": "destructive text uses text-destructive-foreground instead of the upstream named-white text utility",
+     "reason": "D-26 customization",
+     "ref": "D-26; D-29"
+    },
+    {
+     "what": "link variant uses text-primary-text (the AA text companion) instead of text-primary",
+     "reason": "D-26 customization",
+     "ref": "D-26; D-29; CLAUDE.md AA -text companions"
+    },
+    {
+     "what": "no has-[>svg] padding reductions on the default, sm and lg sizes, and no xs, icon-xs, icon-sm or icon-lg sizes",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; UI-SPEC §Button"
+    },
+    {
+     "what": "the default and destructive hovers fill with bg-primary-text and bg-destructive-text in light (primary-foreground 6.84:1, destructive-foreground 6.38:1) instead of upstream's /90 tints (4.16:1 and 4.39:1, under AA); dark keeps the /90 hovers through dark:hover:bg-primary/90 and dark:hover:bg-destructive/90",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "the outline and ghost variants add dark:hover:text-foreground: upstream's dark accent-foreground is near-white, this theme's is near-black (the dark accent is a bright emerald), so the dark hover label read 1.17:1 on input/50 (outline; 1.68:1 by token math since fix round 4 lightened --input) and 2.63:1 on accent/50 (ghost); the CP-2 fills dark:hover:bg-input/50 and dark:hover:bg-accent/50 are kept",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "destructive variant focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    }
+   ]
+  },
+  "src/components/ui/calendar.tsx": {
+   "item": "calendar",
+   "plan": "66.2-21",
+   "divergences": [
+    {
+     "what": "CalendarDayButton export removed (the function stays internal to Calendar)",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "local nav and caption classNames: month_caption flex-center, dropdowns typography-small, caption_label h-11 dropdown target",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "day cell uses first:[&[data-selected=true]_button]:rounded-l-md and last:[&[data-selected=true]_button]:rounded-r-md instead of the upstream showWeekNumber-dependent nth-child form; month_grid drops defaultClassNames.month_grid",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "class token order in the root, months, month, nav, button_previous, button_next, dropdown_root, dropdown, caption_label, weekday, week, week_number_header, week_number, today and CalendarDayButton class strings",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "the day button's dark hover label is text-foreground, not upstream's dark:hover:text-accent-foreground, which is near-black on this theme's emerald accent/50 hover (2.63:1)",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "the today cell restates accent-foreground as its button's hover label ([&>button]:hover:text-accent-foreground): it paints solid accent under the button, where the dark hover label text-foreground (the ghost Button's own too) read 2.19:1 and accent-foreground reads 8.01:1",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "the focused day's ring sits on a 2px background offset (ring-offset-2 ring-offset-background): on the today cell's solid accent the bare ring read 1.75:1",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "--cell-size is 44px ([--cell-size:--spacing(11)], upstream 32px): the Button's 44px floor (min-h-11 with aspect-square) already made every day 44px, so the caption inset and nav buttons match it; below md the root pads p-1 (md:p-3 as upstream), and the root is max-w-full beside w-fit: at 320 the month was 353.7px in a 318px popover, which scrolled sideways",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.10; 66.2-39 fix round 4 Part 8e (closure-reflow-states.tsv)"
+    },
+    {
+     "what": "the weekday, week_number_header, week_number and day cells add p-0 border-0 bg-transparent (the day cell border-0): the globals.css @layer base th/td rules gave the weekday cells 16px side padding, a muted fill and a bottom border, and every day cell a bottom border; upstream assumes no table base rules",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 8e (rendered sweep: the month was 329.7px at every width)"
+    },
+    {
+     "what": "labels.labelDayButton writes the day as the number the button shows (EEEE, MMMM d, yyyy, with react-day-picker's Today and selected wording), where upstream keeps the default PPPP label (November 1st), which does not contain the button's visible number",
+     "reason": "D-26 customization",
+     "ref": "WCAG 2.5.3; 66.2-39 fix round 4 Part 8h (rendered axe pass: label-content-name-mismatch on the vault date filter)"
+    }
+   ]
+  },
+  "src/components/ui/card.tsx": {
+   "item": "card",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "Card uses cardVariants (default, elevated, interactive, pricing, pricingPopular, stat) with rounded-md instead of the upstream rounded-xl gap-6 py-6 shadow-sm string, and the file also exports cardVariants",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "CardHeader gap-1.5 instead of upstream gap-2",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "class token order in CardDescription kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/chart.tsx": {
+   "item": "chart",
+   "plan": "66.2-25",
+   "divergences": [
+    {
+     "what": "ChartContainer keeps the requestAnimationFrame mount gate and ResponsiveContainer minWidth={1} minHeight={1} instead of upstream's initialDimension prop and INITIAL_DIMENSION constant (battle-test Session 8 width(-1) warnings)",
+     "reason": "D-26 customization",
+     "ref": "D-26; 66.2-25"
+    },
+    {
+     "what": "ChartTooltip, ChartTooltipContent, ChartLegend and ChartLegendContent (with the local TooltipNameType) live in the split chart-tooltip.tsx, so chart.tsx exports useChart and getPayloadConfigFromPayload for it",
+     "reason": "D-26 customization",
+     "ref": "D-26 (split chart-tooltip.tsx); ledger C15"
+    },
+    {
+     "what": "ChartStyle stays module-private (not exported) and keeps the SSR guard that returns null for an undefined or non-object config, with || fallbacks for the theme color and the chart id where upstream uses ??",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "the cartesian-grid, polar-grid, reference-line and dot recolour selectors match the stroke attribute's presence ([stroke]) instead of upstream's hex attribute values",
+     "reason": "D-26 customization",
+     "ref": "D-28; ledger C2; VD-16; VD-17"
+    },
+    {
+     "what": "the sector selector matches a stroke that is not a var() (.recharts-sector:not([stroke^='var('])) instead of upstream's [stroke='#fff'], so Recharts' default sector stroke is hidden and a Pie's token stroke (the occupancy donut's var(--color-card) wedge separator) still paints",
+     "reason": "D-26 customization",
+     "ref": "D-28; 66.2-39 fix round 3 F75; VD-53"
+    },
+    {
+     "what": "the axis tick text rule matches each tick label's own class ([&_.recharts-cartesian-axis-tick-value]:fill-muted-foreground) instead of upstream's [&_.recharts-cartesian-axis-tick_text], which targets recharts 2's markup: recharts 3 draws the labels in g.recharts-cartesian-axis-tick-labels, apart from g.recharts-cartesian-axis-tick, so upstream's rule matched no label and every axis painted recharts' fill=\"#666\" (5.58:1 on the light card, 3.37:1 on the dark one); chart-recharts-classes.test.tsx matches each ChartContainer recharts rule against the installed recharts' own SVG",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 3 part 6c; recharts 3.10.1 CartesianAxis"
+    },
+    {
+     "what": "ChartContainer adds [&_.recharts-surface:focus-visible]:outline-2, :-outline-offset-2, :outline-ring and :outline-solid after upstream's [&_.recharts-surface]:outline-hidden, so the tab-focusable recharts surface shows an inset 2px ring-colored focus outline (outline-solid because outline-hidden sets --tw-outline-style: none)",
+     "reason": "D-26 customization",
+     "ref": "D-26; WCAG 2.4.7; cycle-1 c1 A11Y (chart.tsx:75)"
+    },
+    {
+     "what": "class token order in ChartContainer",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "ChartConfig as a mapped type instead of Record, and getPayloadConfigFromPayload's payload typed Record<string, unknown> | undefined instead of unknown",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "a Pie's focused layer paints its sectors' stroke in the ring color ([&_.recharts-pie:focus-visible_.recharts-sector]:stroke-ring): the SVG group paints no outline, so keyboard focus showed only the base ring/20 halo (1.35:1)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 2.4.7; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    }
+   ]
+  },
+  "src/components/ui/checkbox.tsx": {
+   "item": "checkbox",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "indicator uses flex-center instead of grid place-content-center",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "root uses rounded-sm instead of upstream rounded-[4px]",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "class token order in the Checkbox root kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    }
+   ]
+  },
+  "src/components/ui/combobox.tsx": {
+   "item": "combobox",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "the local file is the Dice UI combobox on @diceui/combobox (Combobox, ComboboxAnchor, ComboboxInput, ComboboxTrigger, ComboboxContent, ComboboxEmpty, ComboboxItem); upstream new-york-v4 combobox is a different component on @base-ui/react and is not adopted, so its ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxCollection, ComboboxGroup, ComboboxLabel, ComboboxList, ComboboxSeparator, ComboboxValue and useComboboxAnchor exports and its combobox-value, combobox-trigger-icon, combobox-clear, input-group-button, combobox-list, combobox-item-indicator, combobox-group, combobox-label, combobox-collection, combobox-separator, combobox-chips, combobox-chip, combobox-chip-remove and combobox-chip-input data-slots are absent",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-04 (no new dependency); D-05; CLAUDE.md Primitives (no Base UI)"
+    },
+    {
+     "what": "the local Dice UI ComboboxLabel, ComboboxCancel, ComboboxBadgeList, ComboboxBadgeItem, ComboboxLoading, ComboboxGroup, ComboboxGroupLabel and ComboboxSeparator parts removed",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "ComboboxContent max-h-(--dice-available-height), max-w-(--dice-available-width) and overflow-x-hidden overflow-y-auto where the Dice UI source declares max-h-fit and overflow-hidden: the lease wizard's property list opened 778px tall above its input at 1280x800, 378px of it above the viewport, and 11 of its 24 options could not take a pointer",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
+    },
+    {
+     "what": "ComboboxContent w-max (width: max-content), which the Dice UI source does not set: the positioner places the list by top and left, and an absolutely positioned box's shrink-to-fit width is the room right of its left edge, so the list's width followed wherever it last sat (opened at 480 and again at 320, 268px wide at x 51.63; 1280 to 390 while open, 325px at x 65 where a fresh page opens it 390px wide at x 0)",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 8f (overlay viewport-change sweep; Floating UI computePosition initial layout)"
+    },
+    {
+     "what": "the list has an id (useId, through a context the Root provides) and the input and trigger point aria-controls at it, where Dice UI 2.0.0 points both at an id it never gives the list; the trigger carries aria-label \"Show options\" unless its caller names it, where Dice UI's is a bare chevron button; the input and list take their name from the caller through aria-labelledby",
+     "reason": "D-26 customization",
+     "ref": "WCAG 4.1.2; 66.2-39 fix round 4 Part 8h (rendered axe pass: aria-valid-attr-value, button-name, aria-input-field-name on the lease wizard)"
+    }
+   ]
+  },
+  "src/components/ui/command.tsx": {
+   "item": "command",
+   "plan": "66.2-21",
+   "divergences": [
+    {
+     "what": "CommandInput wrapper h-11 (44px row outside CommandDialog) instead of h-9; inside the dialog the upstream **:data-[slot=command-input-wrapper]:h-12 raises it to 48px",
+     "reason": "D-26 customization",
+     "ref": "D-26; ledger C3; VD-18"
+    },
+    {
+     "what": "CommandList max-h-75 instead of the equal max-h-[300px]",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "class token order in Command, CommandInput, CommandGroup, CommandSeparator, CommandItem and CommandShortcut",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "a selected item's icons take text-accent-foreground through data-[selected=true]:[&_svg:not([class*='text-'])]:, so they do not stay muted-foreground on the emerald fill (1.86:1 light, 1.06:1 dark)",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "the CommandInput wrapper's bottom border, the field's only boundary, is border-input (3:1) and turns border-ring while the input has focus (focus-within), where upstream draws the default border (1.4:1) and no focus mark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 2.4.7; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "CommandShortcut restates text-accent-foreground while its item is selected (in-data-[selected=true]:), where upstream keeps text-muted-foreground on the selected item's accent fill (1.85:1)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.3; 66.2-39 fix round 4 Part 5c (F1 gaps sweep)"
+    },
+    {
+     "what": "CommandDialog takes a label and hands it to its Command, where upstream passes none: cmdk names the input by the Command's visually hidden label (aria-labelledby), which was empty, so the palette's input had only its placeholder for a name",
+     "reason": "D-26 customization",
+     "ref": "WCAG 4.1.2 / 3.3.2; 66.2-39 fix round 4 Part 8h (static control-name sweep)"
+    }
+   ]
+  },
+  "src/components/ui/dialog.tsx": {
+   "item": "dialog",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "DialogContent intent variants (default, create, read, edit, delete) through dialogContentVariants and the exported DialogIntent type",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC §Preserved Customizations (Dialog intent + DialogBody)"
+    },
+    {
+     "what": "DialogBody export (space-y-4 wrapper)",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC §Preserved Customizations (Dialog intent + DialogBody)"
+    },
+    {
+     "what": "DialogOverlay and DialogPortal are module-private (not exported)",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "DialogFooter has no showCloseButton prop and renders no footer Close button",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "DialogContent base string has no outline-none",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "class token order in DialogOverlay, the DialogContent close button and DialogDescription",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "DialogContent grid-cols-1 (a minmax(0, 1fr) column) where upstream leaves the grid's implicit auto track: content wider than the dialog widened the track past max-w, so at 390x844 the bulk-import dialog's preview table drew the stepper and footer buttons 564px wide in a 308px body",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
+    },
+    {
+     "what": "DialogContent max-h-[calc(100dvh-2rem)] and overflow-y-auto, where upstream sets no bound: centered on a fixed position with the page's scroll locked, a dialog taller than the viewport had no way to reach its ends (at 320x900 the record receipt dialog was 917.56px, 8.78px past the top and the bottom)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.10; 66.2-39 fix round 4 Part 8e (closure-reflow-states.tsv)"
+    }
+   ]
+  },
+  "src/components/ui/dropdown-menu.tsx": {
+   "item": "dropdown-menu",
+   "plan": "66.2-26",
+   "divergences": [
+    {
+     "what": "DropdownMenuItem destructive text uses data-[variant=destructive]:text-destructive-text and data-[variant=destructive]:focus:text-destructive-text instead of text-destructive (AA text companion); the destructive icon keeps the vivid data-[variant=destructive]:*:[svg]:text-destructive! class",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC Preserved Customizations"
+    },
+    {
+     "what": "DropdownMenuLabel uses typography-small instead of text-sm font-medium",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC Preserved Customizations"
+    },
+    {
+     "what": "DropdownMenuPortal, DropdownMenuGroup, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubTrigger and DropdownMenuSubContent are not exported, so their dropdown-menu-portal, dropdown-menu-group, dropdown-menu-radio-group, dropdown-menu-radio-item, dropdown-menu-shortcut, dropdown-menu-sub, dropdown-menu-sub-trigger and dropdown-menu-sub-content data-slots are absent (the manifest lists 15 upstream data-slots; the local file carries the 7 of its exported parts)",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "a focused item's icons take text-accent-foreground through focus:[&_svg:not([class*='text-'])]:, so they do not stay muted-foreground on the emerald focus fill (1.86:1 light, 1.06:1 dark)",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "a focused destructive item paints bg-destructive with a destructive-foreground label and icons, where upstream paints destructive/10 (dark /20) under destructive text",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 2.4.7; 66.2-39 fix round 4 Part 5c (F1 gaps sweep)"
+    },
+    {
+     "what": "DropdownMenuContent max-w-(--radix-dropdown-menu-content-available-width) beside upstream's height bound, so no menu box runs past the viewport's side (the overlay rule the select's 414.4px list broke)",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
+    }
+   ]
+  },
+  "src/components/ui/empty.tsx": {
+   "item": "empty",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "EmptyMedia carries data-slot empty-media where upstream writes empty-icon",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "EmptyDescription renders a p element where upstream renders a div",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "EmptyDescription link hover uses text-primary-text in place of text-primary",
+     "reason": "D-26 customization",
+     "ref": "D-26; CLAUDE.md status text on -text AA companions"
+    },
+    {
+     "what": "class token order in emptyMediaVariants and its icon variant",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/field.tsx": {
+   "item": "field",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "FieldSet, FieldLegend, FieldContent, FieldTitle and FieldSeparator removed (field-set, field-legend, field-content, field-separator, field-separator-content data-slots)",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "invalid field text and FieldError use text-destructive-text, FieldDescription link hover uses text-primary-text",
+     "reason": "D-26 customization",
+     "ref": "D-26; CLAUDE.md status text on -text AA companions"
+    },
+    {
+     "what": "FieldError accepts string and null entries, builds its message list without useMemo and keys list items by message",
+     "reason": "D-26 customization",
+     "ref": "D-26 (local behavior kept)"
+    },
+    {
+     "what": "class token order in the horizontal fieldVariants orientation, FieldLabel and FieldDescription",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/input-group.tsx": {
+   "item": "input-group",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "InputGroup h-11 instead of h-9; InputGroupAddon typography-small instead of text-sm font-medium",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "focus and error state selectors has-[>input:focus-visible]:* and has-[input[aria-invalid=true]]:* instead of upstream has-[[data-slot=input-group-control]:focus-visible]:* and has-[[data-slot][aria-invalid=true]]:*",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "InputGroupButton (with inputGroupButtonVariants), InputGroupText and InputGroupTextarea removed",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "class token order in InputGroup and inputGroupAddonVariants kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    }
+   ]
+  },
+  "src/components/ui/input-otp.tsx": {
+   "item": "input-otp",
+   "plan": "66.2-21",
+   "divergences": [
+    {
+     "what": "InputOTPSlot size-11 (44px) instead of upstream h-9 w-9",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC Input OTP (C1, wave 5)"
+    },
+    {
+     "what": "fake-caret wrapper uses flex-center instead of flex items-center justify-center",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "class token order in InputOTPSlot and the caret line",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "the InputOTP container overflow-clip with a 4px overflow-clip-margin: input-otp widens its transparent input 40px past the slots (room for a password manager's badge) when the point it probes near the row's right edge is not the row (the slots always cover it) and it measures room in the nearest box that clips; the widened input ran past the MFA dialog, which scrolls (302px in 286px at 320, at 320-400). The row is now that box, so the input keeps the row's width (238px at 320, 350px at 1280) and a badge, if one shows, sits over the last slot, as wherever input-otp finds no room; the 4px margin keeps the slots' 3px focus ring",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 8f (states sweep; input-otp 1.5.0 pushPasswordManagerStrategy increase-width)"
+    }
+   ]
+  },
+  "src/components/ui/input.tsx": {
+   "item": "input",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "inputVariants cva with variant (default, invalid) and inputSize (default h-11, sm, lg, xl) props replaces the upstream h-9 three-string class list",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    }
+   ]
+  },
+  "src/components/ui/item.tsx": {
+   "item": "item",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "ItemHeader and ItemFooter removed (item-header, item-footer data-slots)",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "Item asChild renders Slot.Slot where upstream renders Slot.Root",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "ItemDescription link hover uses text-primary-text in place of text-primary",
+     "reason": "D-26 customization",
+     "ref": "D-26; CLAUDE.md status text on -text AA companions"
+    },
+    {
+     "what": "class token order in itemVariants (the default size string keeps a trailing space), itemMediaVariants and ItemDescription",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "the anchor hover fill is accent/25, not upstream's accent/50: muted-foreground descriptions read 3.43:1 (light) and 3.07:1 (dark) on the emerald accent/50",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "an Item inside an ItemGroup takes role listitem (the group provides a context; the file is a client module for it), where upstream gives the group role list and its items no role, so the list owned no listitem",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.3.1; 66.2-39 fix round 4 Part 8h (rendered axe pass: aria-required-children on /about and /help)"
+    }
+   ]
+  },
+  "src/components/ui/popover.tsx": {
+   "item": "popover",
+   "plan": "66.2-21",
+   "divergences": [
+    {
+     "what": "PopoverAnchor and its popover-anchor data-slot removed",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a); D-26"
+    },
+    {
+     "what": "upstream PopoverHeader, PopoverTitle and PopoverDescription (popover-header, popover-title, popover-description data-slots) not adopted: no consumer; manifest-w5 lists 7 upstream popover slots",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; D-26; 66.2-20 slot-count notes"
+    },
+    {
+     "what": "class token order in PopoverContent",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "PopoverContent max-h-(--radix-popover-content-available-height), max-w-(--radix-popover-content-available-width) and overflow-y-auto, where upstream sets no bound: the document vault's date-range calendar opened 777.5px tall in the 444px above its trigger at 390x844 and its category filter 1251px tall at 1280x800",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
+    }
+   ]
+  },
+  "src/components/ui/progress.tsx": {
+   "item": "progress",
+   "plan": "66.2-26",
+   "divergences": [
+    {
+     "what": "progressVariants and progressIndicatorVariants cva maps (variant default, success, warning, destructive; size default, sm, lg, xl) replace upstream's fixed h-2 bg-primary/20 track and bg-primary indicator classes",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC Progress (C5, wave 5)"
+    },
+    {
+     "what": "the success, warning and destructive indicators fill with bg-success-text, bg-warning-text and bg-destructive-text instead of the vivid bg-success, bg-warning and bg-destructive (2.62:1 and 2.18:1 on the light card, 2.97:1 for destructive on its dark track); the unused secondary variant (1.11:1) is removed",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC VD-55 (WCAG 1.4.11 meter fills, 66.2-39 fix round 1)"
+    },
+    {
+     "what": "Progress passes value={value} to the Radix root explicitly, so the bar exposes aria-valuenow, aria-valuetext and data-state; upstream destructures value for the indicator transform and never forwards it",
+     "reason": "D-26 customization",
+     "ref": "D-05; ledger C5"
+    }
+   ]
+  },
+  "src/components/ui/select.tsx": {
+   "item": "select",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "SelectTrigger keeps the select-trigger hook class that button-group's selectors key on",
+     "reason": "D-26 customization",
+     "ref": "D-26; ledger C13"
+    },
+    {
+     "what": "SelectTrigger data-[size=default]:h-11 and data-[size=sm]:h-11 instead of h-9 and h-8",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "SelectContent position defaults to popper instead of item-aligned",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "SelectTrigger children use [&>*]:line-clamp-1 [&>*]:flex [&>*]:items-center [&>*]:gap-2 instead of upstream *:data-[slot=select-value]:*",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "SelectGroup, SelectLabel and SelectSeparator (with their select-group, select-label and select-separator data-slots) removed; SelectScrollUpButton and SelectScrollDownButton stay as internal functions without an export",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "class token order in SelectTrigger, SelectContent and SelectItem kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "a focused item's icons (the selected check included) take text-accent-foreground through focus:[&_svg:not([class*='text-'])]:, so they do not stay muted-foreground on the emerald focus fill (1.86:1 light, 1.06:1 dark)",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "SelectContent max-w-(--radix-select-content-available-width) beside upstream's height bound: /applications' unit filter stood 414.4px wide at x=10 in a 390px viewport",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
+    },
+    {
+     "what": "SelectTrigger min-w-11 max-w-full: upstream's w-fit with whitespace-nowrap grew to the selected label, so the Add Unit dialog's property trigger stood 285px wide in a 150px column at 390, 94px past the viewport; the definite minimum keeps the cap in grid and flex cells, where an automatic minimum keeps the text's width",
+     "reason": "D-26 customization",
+     "ref": "66.2-39 fix round 4 Part 5d (overlay geometry sweep; closure-overlay-overflow.tsv)"
+    }
+   ]
+  },
+  "src/components/ui/separator.tsx": {
+   "item": "separator",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "class token order in Separator",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/sheet.tsx": {
+   "item": "sheet",
+   "plan": "66.2-21",
+   "divergences": [
+    {
+     "what": "SheetContent corner close keeps the always-on 44px target (inline-flex items-center justify-center min-h-11 min-w-11) and aria-label=\"Close\" in place of upstream's sr-only Close text",
+     "reason": "D-26 customization",
+     "ref": "D-26; D-46; research H10"
+    },
+    {
+     "what": "SheetClose and its sheet-close data-slot removed (no consumer; never re-added)",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a); D-26"
+    },
+    {
+     "what": "upstream showCloseButton prop not adopted: SheetContent always renders its corner close, which the sidebar sheet hides with the canonical [&>button]:hidden (D-46); no caller passes the prop",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05; D-46"
+    },
+    {
+     "what": "class token order in SheetOverlay, SheetContent (base and all four sides), the corner close, SheetTitle and SheetDescription",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/sidebar.tsx": {
+   "item": "sidebar",
+   "plan": "66.2-32",
+   "divergences": [
+    {
+     "what": "V1: `#` subpath imports (#components/ui/button, separator, sheet, tooltip, #hooks/use-mobile, #lib/sidebar-state, #lib/utils); React hooks and the ComponentProps type imported by name instead of the `React` namespace; Biome formatting",
+     "reason": "D-26 customization",
+     "ref": "D-04; D-32 (V1)"
+    },
+    {
+     "what": "V2: SIDEBAR_WIDTH, SIDEBAR_WIDTH_MOBILE and SIDEBAR_WIDTH_ICON constants and both static style objects removed; widths come from the globals.css :root --sidebar-width / --sidebar-width-mobile / --sidebar-width-icon tokens; the mobile SheetContent uses w-(--sidebar-width-mobile); SidebarProvider no longer destructures `style`",
+     "reason": "D-26 customization",
+     "ref": "CLAUDE.md rule 5; D-32 (V2)"
+    },
+    {
+     "what": "V3: lg:block on the outer desktop div and lg:flex on sidebar-container replace md:block / md:flex, and lg:flex on SidebarRail replaces sm:flex, so the rail the mobile sheet also renders never shows there (66.2-39 fix round 4, G42); useIsMobile matches (width < 64rem)",
+     "reason": "D-26 customization",
+     "ref": "D-33 (V3)"
+    },
+    {
+     "what": "V4: base-rule neutralizers: SidebarMenu adds mt-0 mb-0 pl-0 [&>li]:mb-0, SidebarMenuSub adds mt-0 mb-0 [&>li]:mb-0, sidebarMenuButtonVariants base and SidebarMenuSubButton add no-underline; SidebarMenuItem and SidebarMenuSubItem stay upstream",
+     "reason": "D-26 customization",
+     "ref": "D-49 (V4); PATTERNS #1; S8"
+    },
+    {
+     "what": "V5: SidebarSeparator passes data-[orientation=horizontal]:w-auto in place of w-auto so tailwind-merge drops the Separator's data-[orientation=horizontal]:w-full",
+     "reason": "D-26 customization",
+     "ref": "S11 (V5)"
+    },
+    {
+     "what": "V6: SheetTitle \"Navigation menu\", SheetDescription \"Main navigation for your TenantFlow account\"; SidebarRail aria-label and title \"Toggle navigation menu\"",
+     "reason": "D-26 customization",
+     "ref": "D-41 (V6); UI-SPEC §Copywriting Contract"
+    },
+    {
+     "what": "V7: SidebarTrigger reads isMobile/open/openMobile, sets aria-label \"Toggle navigation menu\" and aria-expanded={isMobile ? openMobile : open}, renders PanelLeftIcon with size-5 and drops the sr-only \"Toggle Sidebar\" span",
+     "reason": "D-26 customization",
+     "ref": "D-41 (V7)"
+    },
+    {
+     "what": "V8: the keydown handler returns at once when event.key is not a string (Chrome's autofill keydown carries no key), then compares event.key.toLowerCase() to SIDEBAR_KEYBOARD_SHORTCUT",
+     "reason": "D-26 customization",
+     "ref": "D-52 (V8)"
+    },
+    {
+     "what": "V9: setOpen calls persistSidebarOpen(openState) from #lib/sidebar-state in place of the document.cookie assignment; SIDEBAR_COOKIE_NAME and SIDEBAR_COOKIE_MAX_AGE are not redeclared",
+     "reason": "D-26 customization",
+     "ref": "D-36 (V9); CLAUDE.md rule 3"
+    },
+    {
+     "what": "V10: no useCallback / useMemo (React Compiler): setOpen, toggleSidebar and contextValue are plain consts, and the keydown useEffect calls toggleSidebar through useEffectEvent with an empty dependency array (attached once)",
+     "reason": "D-26 customization",
+     "ref": "D-32 (V10)"
+    },
+    {
+     "what": "V11: the mobile SheetContent adds data-[state=closed]:duration-200 data-[state=open]:duration-200 ease-out",
+     "reason": "D-26 customization",
+     "ref": "D-41 (V11); UI-SPEC S-4"
+    },
+    {
+     "what": "V12: the file exports the 16 upstream parts it keeps, plus the D-34 useCollapsedInert hook; the trimmed upstream parts are listed one per entry below, and the Input and Skeleton imports are gone with them",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-32 (V12)"
+    },
+    {
+     "what": "D-34: useCollapsedInert() puts inert on SidebarHeader, SidebarContent and SidebarFooter when !isMobile && state === \"collapsed\", and is exported so the owner shell puts the same inert on its nav; the container stays non-inert so the SidebarRail child keeps re-expanding the rail; before a desktop collapse, setOpen moves focus held in the desktop sidebar to the wrapper's [data-slot=\"sidebar-trigger\"]",
+     "reason": "D-26 customization",
+     "ref": "D-34; S12; UI-SPEC S-5"
+    },
+    {
+     "what": "D-46: the mobile SheetContent keeps the canonical [&>button]:hidden, so the sheet's own corner \"Close\" button never shows; the visible \"Close navigation menu\" button is rendered by the owner shell in SidebarHeader",
+     "reason": "D-26 customization",
+     "ref": "D-46; UI-SPEC S-4"
+    },
+    {
+     "what": "D-52: isEditableTarget() and hasBlockingDialog() guards; the shortcut returns without preventDefault on Shift, Alt, event.repeat, an input/textarea/select/[contenteditable] target (not contenteditable=\"false\"), or an open dialog/alertdialog other than [data-slot=\"sidebar\"]",
+     "reason": "D-26 customization",
+     "ref": "D-52 (V8); D-34"
+    },
+    {
+     "what": "SidebarInset and its data-slot sidebar-inset (it renders a <main>; the shell owns the only main landmark)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-35; D-32 (V12)"
+    },
+    {
+     "what": "SidebarInput and its data-slot sidebar-input",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-32 (V12)"
+    },
+    {
+     "what": "SidebarGroupLabel and its data-slot sidebar-group-label",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-32 (V12)"
+    },
+    {
+     "what": "SidebarGroupAction and its data-slot sidebar-group-action",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-32 (V12)"
+    },
+    {
+     "what": "SidebarGroupContent and its data-slot sidebar-group-content",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-32 (V12)"
+    },
+    {
+     "what": "SidebarMenuAction and its data-slot sidebar-menu-action",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-32 (V12)"
+    },
+    {
+     "what": "SidebarMenuBadge and its data-slot sidebar-menu-badge",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-32 (V12)"
+    },
+    {
+     "what": "SidebarMenuSkeleton and its data-slot sidebar-menu-skeleton",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-32 (V12)"
+    }
+   ]
+  },
+  "src/components/ui/skeleton.tsx": {
+   "item": "skeleton",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "skeletonVariants cva (variant default, circle, text, card; size default, sm, md, lg, xl, avatar, avatar-sm, avatar-lg, icon, button, input) on bg-muted, in place of the upstream single class list on bg-accent",
+     "reason": "D-26 customization",
+     "ref": "D-26 (local variants kept)"
+    }
+   ]
+  },
+  "src/components/ui/slider.tsx": {
+   "item": "slider",
+   "plan": "66.2-26",
+   "divergences": [
+    {
+     "what": "Slider thumb uses bg-background instead of upstream's literal white fill utility, which the design-token drift test bans",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC Preserved Customizations"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    }
+   ]
+  },
+  "src/components/ui/sonner.tsx": {
+   "item": "sonner",
+   "plan": "66.2-26",
+   "divergences": [
+    {
+     "what": "theme guard useTheme().theme ?? \"system\" with one NonNullable<ToasterProps[\"theme\"]> cast instead of the destructured default and the ToasterProps[\"theme\"] cast, which fails TS2375 under exactOptionalPropertyTypes",
+     "reason": "D-26 customization",
+     "ref": "D-26; ledger C10"
+    },
+    {
+     "what": "token map as important arbitrary properties on the toaster className ([--normal-bg:var(--color-popover)]!, [--normal-text:var(--color-popover-foreground)]!, [--normal-border:var(--color-border)]!, [--border-radius:var(--radius)]!) instead of upstream's static style object and its toaster group classes",
+     "reason": "D-26 customization",
+     "ref": "D-26; D-31; RESEARCH N20 and A2; zero-tolerance rule 5"
+    },
+    {
+     "what": "toastOptions gets a 4000 ms default duration; a caller duration still wins",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "className and toastOptions are destructured and the caller className is merged with cn; the lucide icon map is a module constant (TOAST_ICONS, typed with satisfies) instead of an inline object",
+     "reason": "D-26 customization",
+     "ref": "D-26; D-04"
+    },
+    {
+     "what": "rich-color map: the success, info, warning and error toast variables point at the AA -text companions on a 10% status tint over the popover (Sonner's light palette read 4.26 / 4.35:1)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    }
+   ]
+  },
+  "src/components/ui/switch.tsx": {
+   "item": "switch",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "Switch has no size prop or data-size attribute (upstream default and sm sizes, group/switch size selectors); the track is fixed h-[1.15rem] w-8 and the thumb size-4",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "class token order in the Switch root and thumb",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "the unchecked track is bg-input in dark too, where upstream fades it to bg-input/80: the faded track read 2.61-2.65:1 against the page",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    }
+   ]
+  },
+  "src/components/ui/table.tsx": {
+   "item": "table",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "TableCell without whitespace-nowrap",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC §Preserved Customizations (table cells without nowrap)"
+    },
+    {
+     "what": "TableRow has no has-aria-expanded:bg-muted/50",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "TableHead and TableCell checkbox selectors written has-[[role=checkbox]]:pr-0 and *:[[role=checkbox]]:translate-y-[2px], where upstream writes the arbitrary-variant forms of the same selectors",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "class token order in TableFooter, TableRow, TableHead and TableCaption",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "the container is a ScrollRegion (first-party, src/components/ui/scroll-region.tsx), which takes tabIndex 0 while the table is wider than it, where upstream renders a plain div, so a table with no control inside could not be scrolled from the keyboard",
+     "reason": "D-26 customization",
+     "ref": "WCAG 2.1.1; 66.2-39 fix round 4 Part 8h (rendered axe pass: scrollable-region-focusable on the lease ledger and property performance tables)"
+    }
+   ]
+  },
+  "src/components/ui/tabs.tsx": {
+   "item": "tabs",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "TabsTrigger brand active state data-[state=active]:bg-primary text-primary-foreground shadow-md font-semibold, inactive text-muted-foreground hover:bg-muted/50, typography-small and duration-200; TabsList h-11",
+     "reason": "D-26 customization",
+     "ref": "D-26"
+    },
+    {
+     "what": "upstream orientation handling (orientation default, data-orientation, group/tabs and the vertical classes), the line variant with tabsListVariants and data-variant, the after: underline indicator, relative, text-foreground/60 and the dark active border-input/bg-input/30 are not adopted",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "TabsContent draws a focus-visible ring (ring-[3px] ring-ring, rounded-md): upstream's outline-none tab panel, a tab stop, showed only the base 4px ring/20 halo (1.32:1)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 2.4.7; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    }
+   ]
+  },
+  "src/components/ui/textarea.tsx": {
+   "item": "textarea",
+   "plan": "66.2-20",
+   "divergences": [
+    {
+     "what": "class token order in the Textarea class string kept as written locally (upstream re-sorted the same tokens)",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    }
+   ]
+  },
+  "src/components/ui/toggle-group.tsx": {
+   "item": "toggle-group",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "ToggleGroup has no spacing prop (no data-spacing attribute, --gap custom property, context spacing or spacing-0 item selectors): items always join (rounded-none, shadow-none, first/last rounded, outline border-l-0 with first:border-l) and grow with flex-1 in place of w-auto px-3",
+     "reason": "upstream drift not adopted (D-05)",
+     "ref": "D-05"
+    }
+   ]
+  },
+  "src/components/ui/toggle.tsx": {
+   "item": "toggle",
+   "plan": "66.2-29",
+   "divergences": [
+    {
+     "what": "Toggle component removed; only toggleVariants is exported (no toggle data-slot)",
+     "reason": "Phase 19 trim",
+     "ref": "Phase 19 (d825f7b6a)"
+    },
+    {
+     "what": "toggleVariants base uses inline-flex-center and typography-small, transition-all duration-200, and a primary on-state (bg-primary, text-primary-foreground, shadow-md, font-semibold, and its hover fill, recorded separately) in place of the upstream accent on-state; the outline variant hovers bg-muted and adds data-[state=on]:border-primary",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC §Preserved Customizations (typography-small, flex-center)"
+    },
+    {
+     "what": "44px targets: sizes default h-11 min-w-11, sm h-11 min-w-11, lg h-12 min-w-12",
+     "reason": "D-26 customization",
+     "ref": "D-26; UI-SPEC §Preserved Customizations (44px targets)"
+    },
+    {
+     "what": "the on-state hover fills with bg-primary-text in light (primary-foreground 6.84:1), keeping primary/90 in dark, instead of primary/90 in both (4.16:1 light)",
+     "reason": "D-26 customization",
+     "ref": "UI-SPEC VD-59; status-colors.md section 7 (66.2-39 fix round 1, part F: WCAG 1.4.3 in every state)"
+    },
+    {
+     "what": "focus ring ring-ring (opaque) where upstream draws ring-ring/50: the half-alpha ring read 2.17-2.58:1 on the page, card and popover in both themes, under WCAG 1.4.11's 3:1 (66.2-39 fix round 4, Part 5b)",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    },
+    {
+     "what": "invalid focus ring ring-destructive-text where upstream draws ring-destructive/20 (dark /40): 1.43:1 light, 1.08-1.33:1 dark",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.4.11 / 1.4.3; 66.2-39 fix round 4 Part 5b (F1 rendered sweep)"
+    }
+   ]
+  },
+  "src/components/ui/tooltip.tsx": {
+   "item": "tooltip",
+   "plan": "66.2-24",
+   "divergences": [
+    {
+     "what": "TooltipPrimitive.Arrow carries aria-hidden=\"true\", where upstream leaves the arrow svg exposed: Chrome reads it as an unnamed image inside the tooltip",
+     "reason": "D-26 customization",
+     "ref": "WCAG 1.1.1; 66.2-39 fix round 4 Part 5c (F1 gaps sweep)"
+    }
+   ]
+  }
+ }
+}

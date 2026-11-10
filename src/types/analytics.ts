@@ -28,13 +28,20 @@ export interface MonthlyRevenuePoint {
 	value: number; // dollars
 }
 
-// Analytics trend indicator
+/**
+ * One of get_dashboard_data_v2's `trends` (20261102184501): today's figure
+ * against the earlier day's. `percentChange` is the change over the earlier
+ * figure, null when that was 0 (no prior figure, never 0%); `window` the two
+ * days compared, null from a body that states none (its figures are no
+ * change: mapMetricTrend).
+ */
 export interface MetricTrend {
 	current: number;
 	previous: number | null;
 	change: number; // Absolute change
-	percentChange: number; // Percentage change
+	percentChange: number | null; // Percentage change; null with no prior figure
 	trend: "up" | "down" | "stable"; // Direction derived from change sign
+	window: DateWindow | null;
 }
 
 // Common analytics metric summary
@@ -156,7 +163,7 @@ export interface FinancialMetricSummary {
 	/**
 	 * SCHEDULED rent: lease-derived expected revenue, surfaced under the
 	 * explicit "Scheduled" label (D-07). Unchanged calculation — every downstream
-	 * derivation (netIncome, cashFlow, profitMargin) still uses THIS figure, not
+	 * derivation (netIncome, profitMargin) still uses THIS figure, not
 	 * `totalCollected`.
 	 */
 	totalRevenue: number;
@@ -166,94 +173,43 @@ export interface FinancialMetricSummary {
 	 * to `totalRevenue` and never re-bases profit or NOI.
 	 */
 	totalCollected: number;
-	totalExpenses: number;
+	/** Scheduled rent less expenses: not income on a received basis. */
 	netIncome: number;
-	cashFlow: number;
-	revenueTrend?: number | null;
-	expenseTrend?: number | null;
+	/** netIncome over totalRevenue, in percent: a margin on scheduled rent. */
 	profitMargin?: number | null;
 }
 
 export interface FinancialBreakdownRow {
 	label: string;
 	value: number;
-	percentage?: number | null;
 	change?: number | null;
 }
 
 export interface RevenueExpenseBreakdown {
-	revenue: FinancialBreakdownRow[];
 	expenses: FinancialBreakdownRow[];
-	totals: {
-		revenue: number;
-		expenses: number;
-		netIncome: number;
-	};
 }
 
+/**
+ * One bar of the financial page's Scheduled Net chart: `propertyName` is the
+ * month it covers (the schema has no per-property expense split) and `noi`
+ * that month's scheduled rent less expenses.
+ */
 export interface NetOperatingIncomeByProperty {
-	property_id: string;
 	propertyName: string;
 	noi: number;
-	revenue: number;
-	expenses: number;
-	margin: number;
 }
 
-export interface FinancialOverviewSnapshot {
-	overview: {
-		totalRevenue: number;
-		totalExpenses: number;
-		netIncome: number;
-		accountsReceivable: number;
-		accountsPayable: number;
-	};
-	highlights: Array<{
-		label: string;
-		value: number;
-		trend?: number | null;
-	}>;
-}
-
-export interface BillingInsightsTimelinePoint {
-	period: string;
-	invoiced: number;
-	paid: number;
-	overdue: number;
-}
-
-export interface BillingInsightsTimeline {
-	points: BillingInsightsTimelinePoint[];
-	totals: {
-		invoiced: number;
-		paid: number;
-		overdue: number;
-	};
-}
-
+/**
+ * One of get_expense_summary's `categories`: a period's expenses by vendor
+ * (the expenses page's year to date, the tax documents' tax year). A
+ * "category" is the vendor's name as the owner entered it, or NO_VENDOR_LABEL
+ * for the expenses with none (the mappers name them, expenseVendorLabel); the
+ * data model has no expense category of its own.
+ */
 export interface ExpenseCategorySummary {
 	category: string;
 	amount: number;
 	percentage: number;
-}
-
-export interface ExpenseSummaryResponse {
-	categories: ExpenseCategorySummary[];
-	monthlyTotals: Array<{
-		month: string;
-		amount: number;
-	}>;
-	totals: {
-		amount: number;
-		monthlyAverage: number;
-		yearOverYearChange?: number | null;
-	};
-}
-
-export interface InvoiceStatusSummary {
-	status: string;
-	count: number;
-	amount: number;
 }
 
 export interface MonthlyFinancialMetric {
@@ -261,78 +217,64 @@ export interface MonthlyFinancialMetric {
 	revenue: number;
 	expenses: number;
 	netIncome: number;
-	cashFlow: number;
 }
 
-export interface LeaseFinancialSummary {
-	totalLeases: number;
-	activeLeases: number;
-	expiringSoon: number;
-	totalrent_amount: number;
-	averageLeaseValue: number;
-}
-
-export interface LeaseFinancialInsight {
-	lease_id: string;
+/**
+ * One lease's profitability over a period (get_financial_overview's
+ * `lease_profitability`, 20261102184504): the rent received on it (the rent
+ * ledger) less the expenses on its unit's maintenance requests dated in the
+ * period on a day it ran. Dollars.
+ */
+export interface LeaseProfitabilityRow {
+	/** As the report label map prints it: a property deleted since says so. */
 	propertyName: string;
-	tenantName: string;
-	rent_amount: number;
-	outstandingBalance: number;
-	profitabilityScore?: number | null;
+	unitNumber: string | null;
+	tenantName: string | null;
+	rentReceived: number;
+	expenses: number;
+	net: number;
 }
 
-export interface FinancialAnalyticsPageResponse {
-	metrics: FinancialMetricSummary;
-	breakdown: RevenueExpenseBreakdown;
-	netOperatingIncome: NetOperatingIncomeByProperty[];
-	financialOverview: FinancialOverviewSnapshot;
-	billingInsights: BillingInsightsTimeline;
-	expenseSummary: ExpenseSummaryResponse;
-	invoiceSummary: InvoiceStatusSummary[];
-	monthlyMetrics: MonthlyFinancialMetric[];
-	leaseSummary: LeaseFinancialSummary;
-	leaseAnalytics: LeaseFinancialInsight[];
-}
-
-export interface LeaseLifecyclePoint {
-	period: string;
-	renewals: number;
-	expirations: number;
-	noticesGiven: number;
-}
-
-export interface LeaseStatusBreakdown {
-	status: string;
-	count: number;
-	percentage: number;
-}
-
-export interface LeaseAnalyticsPageResponse {
-	metrics: LeaseFinancialSummary;
-	profitability: LeaseFinancialInsight[];
-	lifecycle: LeaseLifecyclePoint[];
-	statusBreakdown: LeaseStatusBreakdown[];
-}
-
-export interface MaintenanceMetricSummary {
-	openRequests: number;
-	inProgressRequests: number;
-	completedRequests: number;
-	averageResponseTimeHours: number;
-	totalCost: number;
-}
+/**
+ * The lease profitability table's data: `ready` beside the period it covers,
+ * `unavailable` from a body that reports none (the bodies before
+ * 20261102184504 return no `lease_profitability`), never an empty table.
+ */
+export type LeaseProfitability =
+	| {
+			readonly status: "ready";
+			readonly window: DateWindow;
+			readonly leases: LeaseProfitabilityRow[];
+	  }
+	| { readonly status: "unavailable" };
 
 export interface MaintenanceCostBreakdownEntry {
 	category: string;
 	amount: number;
-	percentage: number;
 }
 
 export interface MaintenanceTrendPoint {
 	period: string;
+	/** Requests completed in the month. */
 	completed: number;
+	/** Requests open at the month's end. */
 	pending: number;
-	avgResolutionTime: number;
+}
+
+/**
+ * get_maintenance_analytics' spend (20261102184503), to date, in dollars: the
+ * expenses on the owner's maintenance requests, never actual_cost.
+ */
+export interface MaintenanceCostSummary {
+	totalCost: number;
+	/** The requests with at least one expense: averageCost's denominator. */
+	costedRequests: number;
+	/** totalCost / costedRequests; null when no request has a cost. */
+	averageCost: number | null;
+	/** The trailing 12 calendar months, oldest first. */
+	monthlyCost: Array<{ month: string; cost: number }>;
+	/** By vendor, largest spend first; jobs are the requests it was on. */
+	vendors: Array<{ vendorName: string; totalSpend: number; jobs: number }>;
 }
 
 export interface MaintenanceCategoryBreakdown {
@@ -340,79 +282,85 @@ export interface MaintenanceCategoryBreakdown {
 	count: number;
 }
 
-export interface MaintenanceAnalyticsPageResponse {
-	metrics: MaintenanceMetricSummary;
-	costBreakdown: MaintenanceCostBreakdownEntry[];
-	trends: MaintenanceTrendPoint[];
-	categoryBreakdown: MaintenanceCategoryBreakdown[];
-}
-
-export interface OccupancyMetricSummary {
-	currentOccupancy: number;
-	averageVacancyDays: number;
-	seasonalPeakOccupancy: number;
-	trend: number;
-}
-
 export interface OccupancyTrendPoint {
 	period: string;
 	occupancyRate: number;
-	occupiedUnits: number;
-	totalUnits: number;
 }
 
-export interface VacancyAnalysisEntry {
-	property_id: string;
-	propertyName: string;
-	vacancyDays: number;
-	turnovers: number;
-	notes?: string;
+/**
+ * The days a figure covers, both included, as local YYYY-MM-DD: a period a
+ * page requests (the income statement's, a property report's), or one an RPC
+ * states ('YYYY-MM-DD/YYYY-MM-DD', read by `#lib/stated-window`): the window
+ * get_property_performance_analytics states in its `timeframe` column
+ * (20261102163709), the two days the dashboard trends compare
+ * (20261102184501), the prior period an expense year over year compares with
+ * (20261102184502).
+ */
+export interface DateWindow {
+	start_date: string;
+	end_date: string;
 }
 
-export interface OccupancyAnalyticsPageResponse {
-	metrics: OccupancyMetricSummary;
-	trends: OccupancyTrendPoint[];
-	vacancyAnalysis: VacancyAnalysisEntry[];
+/**
+ * The analytics overview's two trends, from get_dashboard_data_v2
+ * (20261102184501). `unavailable`: the server's body states no window, so its
+ * figure (a literal 0, or a comparison against only the leases still active
+ * today) is no figure. `percent` is null when nothing was scheduled on the
+ * window's first day: there is no prior figure.
+ */
+export interface PortfolioTrends {
+	occupancy:
+		| { status: "ready"; points: number; window: DateWindow }
+		| { status: "unavailable" };
+	revenue:
+		| { status: "ready"; percent: number | null; window: DateWindow }
+		| { status: "unavailable" };
 }
+
+/**
+ * get_expense_summary's year over year (20261102184502): the change against
+ * `priorPeriod`, the same dates a year earlier, or null when nothing was spent
+ * then. `unavailable`: the server states no prior period (its null is no
+ * figure).
+ */
+export type ExpenseYearOverYear =
+	| { status: "ready"; change: number | null; priorPeriod: DateWindow }
+	| { status: "unavailable" };
 
 export interface PropertyPerformanceEntry {
 	property_id: string;
 	propertyName: string;
 	occupancyRate: number;
-	monthlyRevenue: number;
-	annualRevenue: number;
+	/**
+	 * Rent received over the page's window, from the rent ledger, in dollars;
+	 * null when the server cannot report it yet (the body before
+	 * 20261102163709, whose 0 is no figure).
+	 */
+	rentReceived: number | null;
 	totalUnits: number;
 	occupiedUnits: number;
-	vacantUnits: number;
-	address?: string;
-	status?: string;
-	property_type?: string;
-	trend: "up" | "down" | "stable";
-	trendPercentage: number;
 }
-
-// Alias for backwards compatibility
-export type PropertyPerformanceData = PropertyPerformanceEntry;
 
 export interface PropertyPerformanceSummary {
 	totalProperties: number;
 	totalUnits: number;
 	occupiedUnits: number;
 	averageOccupancy: number;
-	totalRevenue: number;
+	/** Rent received across the properties over the window; null as above. */
+	rentReceived: number | null;
+	/** The window rent received covers; null when it is unavailable. */
+	rentReceivedWindow: DateWindow | null;
 	bestPerformer?: string;
-	worstPerformer?: string;
 }
 
 export interface PropertyUnitDetail {
 	property_id: string;
-	unit_id: string;
-	unit_number: string;
+	/** NULL when the owner gave the unit none. */
+	unit_number: string | null;
 	status: string;
 	bedrooms?: number | null;
 	bathrooms?: number | null;
 	rent?: number | null;
-	square_feet?: number | null;
 }
 
 export interface UnitStatisticEntry {
@@ -421,31 +369,11 @@ export interface UnitStatisticEntry {
 	trend?: number | null;
 }
 
-export interface VisitorAnalyticsPoint {
-	period: string;
-	visits: number;
-	inquiries: number;
-	conversions: number;
-}
-
-export interface VisitorAnalyticsSummary {
-	totalVisits: number;
-	totalInquiries: number;
-	totalConversions: number;
-	conversionRate: number;
-}
-
-export interface VisitorAnalyticsResponse {
-	summary: VisitorAnalyticsSummary;
-	timeline: VisitorAnalyticsPoint[];
-}
-
 export interface PropertyPerformancePageResponse {
 	metrics: PropertyPerformanceSummary;
 	performance: PropertyPerformanceEntry[];
 	units: PropertyUnitDetail[];
 	unitStats: UnitStatisticEntry[];
-	visitorAnalytics: VisitorAnalyticsResponse;
 }
 
 /**

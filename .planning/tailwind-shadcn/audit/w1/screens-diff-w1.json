@@ -1,0 +1,2659 @@
+[
+ {
+  "capture": "owner/analytics_overview-dark-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 379,
+  "sizeBasenow": [
+   1280,
+   1599
+  ],
+  "sizeW1": [
+   1280,
+   1599
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 99
+  },
+  "repeatChangedPixels": 336,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2136,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono; the only other change is the top-right badge (data drift); bbox is the header strip",
+  "crop": "m1.png/m2.png"
+ },
+ {
+  "capture": "owner/analytics_overview-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 1297,
+  "sizeBasenow": [
+   390,
+   2487
+  ],
+  "sizeW1": [
+   390,
+   2487
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 2,
+   "width": 342,
+   "height": 42
+  },
+  "repeatChangedPixels": 240,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1779,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "header icon buttons below 48rem are 44x44 with padding 0 (forced 12px padding gone): Saved/bell/avatar shift left; plus badge data drift",
+  "crop": "m3.png"
+ },
+ {
+  "capture": "owner/analytics_overview-light-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 283,
+  "sizeBasenow": [
+   1280,
+   1599
+  ],
+  "sizeW1": [
+   1280,
+   1599
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 99
+  },
+  "repeatChangedPixels": 240,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2102,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono; the only other change is the top-right badge (data drift); bbox is the header strip",
+  "crop": "m1.png/m2.png"
+ },
+ {
+  "capture": "owner/analytics_overview-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 1289,
+  "sizeBasenow": [
+   390,
+   2487
+  ],
+  "sizeW1": [
+   390,
+   2487
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 2,
+   "width": 342,
+   "height": 42
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1744,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "header icon buttons below 48rem are 44x44 with padding 0 (forced 12px padding gone): Saved/bell/avatar shift left; plus badge data drift",
+  "crop": "m3.png"
+ },
+ {
+  "capture": "owner/applications-dark-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 5263,
+  "sizeBasenow": [
+   1280,
+   2960
+  ],
+  "sizeW1": [
+   1280,
+   2960
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 2638
+  },
+  "repeatChangedPixels": 336,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 3942,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "application link panel URL renders in Geist Mono; sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono",
+  "crop": "m6.png"
+ },
+ {
+  "capture": "owner/applications-dark-320.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 4283,
+  "sizeBasenow": [
+   320,
+   3233
+  ],
+  "sizeW1": [
+   320,
+   3233
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 2,
+   "width": 282,
+   "height": 2847
+  },
+  "repeatChangedPixels": 336,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2656,
+  "class": "intended",
+  "vd": "VD-04",
+  "vdAll": [
+   "VD-04",
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "status strip: tab triggers shrink so more labels fit (E-22 geometry); link panel URL in Geist Mono",
+  "crop": "m6.png/m16.png"
+ },
+ {
+  "capture": "owner/applications-dark-375.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 5740,
+  "sizeBasenow": [
+   375,
+   3161
+  ],
+  "sizeW1": [
+   375,
+   3161
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 2,
+   "width": 327,
+   "height": 2791
+  },
+  "repeatChangedPixels": 336,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2907,
+  "class": "intended",
+  "vd": "VD-04",
+  "vdAll": [
+   "VD-04",
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "status strip: tab triggers shrink so more labels fit (E-22 geometry); link panel URL in Geist Mono",
+  "crop": "m6.png/m16.png"
+ },
+ {
+  "capture": "owner/applications-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 5435,
+  "sizeBasenow": [
+   390,
+   3141
+  ],
+  "sizeW1": [
+   390,
+   3141
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 2,
+   "width": 342,
+   "height": 2775
+  },
+  "repeatChangedPixels": 240,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 3026,
+  "class": "intended",
+  "vd": "VD-02",
+  "vdAll": [
+   "VD-02",
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "status tab triggers (role=tab) back to own geometry below 48rem; application link panel URL in Geist Mono",
+  "crop": "m6.png/m16.png"
+ },
+ {
+  "capture": "owner/applications-light-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 5205,
+  "sizeBasenow": [
+   1280,
+   2960
+  ],
+  "sizeW1": [
+   1280,
+   2960
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 2638
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 3846,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "application link panel URL renders in Geist Mono; sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono",
+  "crop": "m6.png"
+ },
+ {
+  "capture": "owner/applications-light-320.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 137495,
+  "sizeBasenow": [
+   320,
+   3233
+  ],
+  "sizeW1": [
+   320,
+   3351
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 2,
+   "width": 320,
+   "height": 3349
+  },
+  "repeatChangedPixels": 134347,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2600,
+  "class": "intended",
+  "vd": "VD-04",
+  "vdAll": [
+   "VD-04",
+   "VD-06"
+  ],
+  "dataDrift": "property link cards differ in order and count (production properties; page 3233->3351; also differs w1 vs w1-repeat 134347 px)",
+  "evidence": "status strip VD-04 at top; below it the per-property link list order differs (rls-sign-test vs Ledger Append-Only), data",
+  "crop": "m7.png/m16.png"
+ },
+ {
+  "capture": "owner/applications-light-375.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 5733,
+  "sizeBasenow": [
+   375,
+   3161
+  ],
+  "sizeW1": [
+   375,
+   3161
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 2,
+   "width": 327,
+   "height": 2791
+  },
+  "repeatChangedPixels": 240,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2852,
+  "class": "intended",
+  "vd": "VD-04",
+  "vdAll": [
+   "VD-04",
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "status strip: tab triggers shrink so more labels fit (E-22 geometry); link panel URL in Geist Mono",
+  "crop": "m6.png/m16.png"
+ },
+ {
+  "capture": "owner/applications-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 5523,
+  "sizeBasenow": [
+   390,
+   3141
+  ],
+  "sizeW1": [
+   390,
+   3141
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 2,
+   "width": 342,
+   "height": 2775
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2961,
+  "class": "intended",
+  "vd": "VD-02",
+  "vdAll": [
+   "VD-02",
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "status tab triggers (role=tab) back to own geometry below 48rem; application link panel URL in Geist Mono",
+  "crop": "m6.png/m16.png"
+ },
+ {
+  "capture": "owner/dashboard-dark-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 26615,
+  "sizeBasenow": [
+   1280,
+   3060
+  ],
+  "sizeW1": [
+   1280,
+   3060
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 2742
+  },
+  "repeatChangedPixels": 26786,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 9209,
+  "class": "data-drift",
+  "vd": null,
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "activity feed rows, occupancy 33%->32%, units 18->19, properties 24->25, open-maintenance state (production data; also differs w1 vs w1-repeat)",
+  "evidence": "KPI values and Recent Activity rows differ (data); sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono",
+  "crop": "m8.png"
+ },
+ {
+  "capture": "owner/dashboard-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 217664,
+  "sizeBasenow": [
+   390,
+   6343
+  ],
+  "sizeW1": [
+   390,
+   6359
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 2,
+   "width": 390,
+   "height": 6357
+  },
+  "repeatChangedPixels": 155613,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 5720,
+  "class": "data-drift",
+  "vd": null,
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": "revenue $7,500 vs $8,734 and occupancy 33% vs 37% (production data; also differs w1 vs w1-repeat)",
+  "evidence": "KPI numbers differ (data); 30d/6mo, Status and search input at own padding (VD-03)",
+  "crop": "m9.png"
+ },
+ {
+  "capture": "owner/dashboard-light-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 19387,
+  "sizeBasenow": [
+   1280,
+   3060
+  ],
+  "sizeW1": [
+   1280,
+   3060
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 2742
+  },
+  "repeatChangedPixels": 19536,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 9220,
+  "class": "data-drift",
+  "vd": null,
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "activity feed rows, occupancy 33%->32%, units 18->19, properties 24->25, open-maintenance state (production data; also differs w1 vs w1-repeat)",
+  "evidence": "KPI values and Recent Activity rows differ (data); sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono",
+  "crop": "m8.png"
+ },
+ {
+  "capture": "owner/dashboard-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 172441,
+  "sizeBasenow": [
+   390,
+   6343
+  ],
+  "sizeW1": [
+   390,
+   6335
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 2,
+   "width": 390,
+   "height": 6341
+  },
+  "repeatChangedPixels": 13131,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 5607,
+  "class": "data-drift",
+  "vd": null,
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": "revenue $7,500 vs $8,734 and occupancy 33% vs 37% (production data; also differs w1 vs w1-repeat)",
+  "evidence": "KPI numbers differ (data); 30d/6mo, Status and search input at own padding (VD-03)",
+  "crop": "m9.png"
+ },
+ {
+  "capture": "owner/documents-dark-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 379,
+  "sizeBasenow": [
+   1280,
+   1314
+  ],
+  "sizeW1": [
+   1280,
+   1314
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 99
+  },
+  "repeatChangedPixels": 336,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2859,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono; the only other change is the top-right badge (data drift); bbox is the header strip",
+  "crop": "m1.png/m2.png"
+ },
+ {
+  "capture": "owner/documents-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 1595,
+  "sizeBasenow": [
+   390,
+   1881
+  ],
+  "sizeW1": [
+   390,
+   1881
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 2,
+   "width": 342,
+   "height": 42
+  },
+  "repeatChangedPixels": 240,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2531,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "header icon buttons below 48rem are 44x44 with padding 0 (forced 12px padding gone): Saved/bell/avatar shift left; plus badge data drift",
+  "crop": "m3.png"
+ },
+ {
+  "capture": "owner/documents-light-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 283,
+  "sizeBasenow": [
+   1280,
+   1314
+  ],
+  "sizeW1": [
+   1280,
+   1314
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 99
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2801,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono; the only other change is the top-right badge (data drift); bbox is the header strip",
+  "crop": "m1.png/m2.png"
+ },
+ {
+  "capture": "owner/documents-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 1590,
+  "sizeBasenow": [
+   390,
+   1881
+  ],
+  "sizeW1": [
+   390,
+   1881
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 2,
+   "width": 342,
+   "height": 42
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2473,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "header icon buttons below 48rem are 44x44 with padding 0 (forced 12px padding gone): Saved/bell/avatar shift left; plus badge data drift",
+  "crop": "m3.png"
+ },
+ {
+  "capture": "owner/documents_lease-template-dark-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 154472,
+  "sizeBasenow": [
+   1280,
+   6178
+  ],
+  "sizeW1": [
+   1280,
+   6178
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 5183
+  },
+  "repeatChangedPixels": 336,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 18181,
+  "class": "intended",
+  "vd": "VD-10",
+  "vdAll": [
+   "VD-10",
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "preview prose turns readable in dark (dark:prose-invert): headings/body were near-invisible in basenow",
+  "crop": "m10.png"
+ },
+ {
+  "capture": "owner/documents_lease-template-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 1247096,
+  "sizeBasenow": [
+   405,
+   10341
+  ],
+  "sizeW1": [
+   390,
+   10609
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 0,
+   "width": 405,
+   "height": 10609
+  },
+  "repeatChangedPixels": 240,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 17882,
+  "class": "intended",
+  "vd": "VD-02",
+  "vdAll": [
+   "VD-02",
+   "VD-03"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "clause checkboxes (role=checkbox) back to own size from the forced 44x44, which also removes the 405px horizontal overflow (width 405->390); dark adds VD-10",
+  "crop": "m12.png"
+ },
+ {
+  "capture": "owner/documents_lease-template-light-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 4501,
+  "sizeBasenow": [
+   1280,
+   6178
+  ],
+  "sizeW1": [
+   1280,
+   6178
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 2113
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 19959,
+  "class": "intended",
+  "vd": "VD-01",
+  "vdAll": [
+   "VD-01",
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "the two 'Recommended' secondary badges change fill from rgb(255,0,255)-tinted to the light secondary blue",
+  "crop": "m10.png"
+ },
+ {
+  "capture": "owner/documents_lease-template-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 1328768,
+  "sizeBasenow": [
+   405,
+   10341
+  ],
+  "sizeW1": [
+   390,
+   10609
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 0,
+   "width": 405,
+   "height": 10609
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 19597,
+  "class": "intended",
+  "vd": "VD-02",
+  "vdAll": [
+   "VD-02",
+   "VD-03"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "clause checkboxes (role=checkbox) back to own size from the forced 44x44, which also removes the 405px horizontal overflow (width 405->390); dark adds VD-10",
+  "crop": "m12.png"
+ },
+ {
+  "capture": "owner/leases-dark-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 283,
+  "sizeBasenow": [
+   1280,
+   1169
+  ],
+  "sizeW1": [
+   1280,
+   1169
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 99
+  },
+  "repeatChangedPixels": 240,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1762,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono; the only other change is the top-right badge (data drift); bbox is the header strip",
+  "crop": "m1.png/m2.png"
+ },
+ {
+  "capture": "owner/leases-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 40585,
+  "sizeBasenow": [
+   390,
+   1466
+  ],
+  "sizeW1": [
+   390,
+   1462
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 2,
+   "width": 390,
+   "height": 1464
+  },
+  "repeatChangedPixels": 480,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1014,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03",
+   "VD-02"
+  ],
+  "dataDrift": "Total Leases 17 (basenow) vs 18 (w1): production lease count; plus badge",
+  "evidence": "same button/tab reflow as the light capture; Total Leases number differs (data)",
+  "crop": "m16.png"
+ },
+ {
+  "capture": "owner/leases-light-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 283,
+  "sizeBasenow": [
+   1280,
+   1169
+  ],
+  "sizeW1": [
+   1280,
+   1169
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 99
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1729,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono; the only other change is the top-right badge (data drift); bbox is the header strip",
+  "crop": "m1.png/m2.png"
+ },
+ {
+  "capture": "owner/leases-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 43817,
+  "sizeBasenow": [
+   390,
+   1466
+  ],
+  "sizeW1": [
+   390,
+   1462
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 2,
+   "width": 390,
+   "height": 1464
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 990,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03",
+   "VD-02"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "Import/New Lease buttons own padding; Overview/Insights tab triggers back to own geometry; page 1466->1462",
+  "crop": "m4.png"
+ },
+ {
+  "capture": "owner/maintenance-dark-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 601545,
+  "sizeBasenow": [
+   1280,
+   800
+  ],
+  "sizeW1": [
+   1280,
+   1075
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 2,
+   "width": 1280,
+   "height": 1073
+  },
+  "repeatChangedPixels": 601502,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 983,
+  "class": "data-drift",
+  "vd": null,
+  "vdAll": [],
+  "dataDrift": "w1 captured one open maintenance request (KPIs Open 1, kanban); basenow and w1-repeat show the empty state; height 800->1075",
+  "evidence": "whole content area differs: empty state vs populated board (data)",
+  "crop": "m11.png"
+ },
+ {
+  "capture": "owner/maintenance-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 1595,
+  "sizeBasenow": [
+   390,
+   844
+  ],
+  "sizeW1": [
+   390,
+   844
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 2,
+   "width": 342,
+   "height": 42
+  },
+  "repeatChangedPixels": 240,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 641,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "header icon buttons below 48rem are 44x44 with padding 0 (forced 12px padding gone): Saved/bell/avatar shift left; plus badge data drift",
+  "crop": "m3.png"
+ },
+ {
+  "capture": "owner/maintenance-light-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 283,
+  "sizeBasenow": [
+   1280,
+   800
+  ],
+  "sizeW1": [
+   1280,
+   800
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 99
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 974,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono; the only other change is the top-right badge (data drift); bbox is the header strip",
+  "crop": "m1.png/m2.png"
+ },
+ {
+  "capture": "owner/maintenance-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 1590,
+  "sizeBasenow": [
+   390,
+   844
+  ],
+  "sizeW1": [
+   390,
+   844
+  ],
+  "bbox": {
+   "x": 26,
+   "y": 2,
+   "width": 342,
+   "height": 42
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 629,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "header icon buttons below 48rem are 44x44 with padding 0 (forced 12px padding gone): Saved/bell/avatar shift left; plus badge data drift",
+  "crop": "m3.png"
+ },
+ {
+  "capture": "owner/properties-dark-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 10665,
+  "sizeBasenow": [
+   1280,
+   1346
+  ],
+  "sizeW1": [
+   1280,
+   1346
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 950
+  },
+  "repeatChangedPixels": 10622,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1889,
+  "class": "data-drift",
+  "vd": null,
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "properties 24->25, units 12->13, $250.00->$243.00/unit avg, card order (production portfolio rows)",
+  "evidence": "KPI numbers and grid cards differ (data); sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono; it also differs between w1 and w1-repeat (10622 px)",
+  "crop": "m10.png"
+ },
+ {
+  "capture": "owner/properties-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 45684,
+  "sizeBasenow": [
+   390,
+   1741
+  ],
+  "sizeW1": [
+   390,
+   1733
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 2,
+   "width": 390,
+   "height": 1739
+  },
+  "repeatChangedPixels": 240,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1047,
+  "class": "intended",
+  "vd": "VD-02",
+  "vdAll": [
+   "VD-02",
+   "VD-03"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "Overview/Insights tabs own geometry; Bulk Import/Add Property own padding 8px 16px. Their lucide icons render 4.4px wide (basenow 12.4px): the pre-existing flex-shrink squash of Button svgs (754c91802 already squashes them), owned by 66.2-22's shrink-0 Button; see icon-census-390.json",
+  "crop": "m4.png/m16.png"
+ },
+ {
+  "capture": "owner/properties-light-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 283,
+  "sizeBasenow": [
+   1280,
+   1346
+  ],
+  "sizeW1": [
+   1280,
+   1346
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 99
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1862,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono; the only other change is the top-right badge (data drift); bbox is the header strip",
+  "crop": "m1.png/m2.png"
+ },
+ {
+  "capture": "owner/properties-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 52623,
+  "sizeBasenow": [
+   390,
+   1741
+  ],
+  "sizeW1": [
+   390,
+   1733
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 2,
+   "width": 390,
+   "height": 1739
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1023,
+  "class": "intended",
+  "vd": "VD-02",
+  "vdAll": [
+   "VD-02",
+   "VD-03"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "Overview/Insights tabs own geometry; Bulk Import/Add Property own padding 8px 16px. Their lucide icons render 4.4px wide (basenow 12.4px): the pre-existing flex-shrink squash of Button svgs (754c91802 already squashes them), owned by 66.2-22's shrink-0 Button; see icon-census-390.json",
+  "crop": "m4.png/m16.png"
+ },
+ {
+  "capture": "owner/reports_cash-flow-dark-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 379,
+  "sizeBasenow": [
+   1280,
+   1188
+  ],
+  "sizeW1": [
+   1280,
+   1188
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 99
+  },
+  "repeatChangedPixels": 336,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1676,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono; the only other change is the top-right badge (data drift); bbox is the header strip",
+  "crop": "m1.png/m2.png"
+ },
+ {
+  "capture": "owner/reports_cash-flow-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 75809,
+  "sizeBasenow": [
+   390,
+   2136
+  ],
+  "sizeW1": [
+   390,
+   2132
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 2,
+   "width": 390,
+   "height": 2134
+  },
+  "repeatChangedPixels": 240,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1327,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "Monthly/2026 select triggers and Export button own padding; balance card shifts up 4px. Export icon squashed 4.5px (basenow 6.8px, pre-existing class, 66.2-22)",
+  "crop": "m4.png/m16.png"
+ },
+ {
+  "capture": "owner/reports_cash-flow-light-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 283,
+  "sizeBasenow": [
+   1280,
+   1188
+  ],
+  "sizeW1": [
+   1280,
+   1188
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 99
+  },
+  "repeatChangedPixels": 240,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1651,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono; the only other change is the top-right badge (data drift); bbox is the header strip",
+  "crop": "m1.png/m2.png"
+ },
+ {
+  "capture": "owner/reports_cash-flow-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 80571,
+  "sizeBasenow": [
+   390,
+   2136
+  ],
+  "sizeW1": [
+   390,
+   2132
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 2,
+   "width": 390,
+   "height": 2134
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1304,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "Monthly/2026 select triggers and Export button own padding; balance card shifts up 4px. Export icon squashed 4.5px (basenow 6.8px, pre-existing class, 66.2-22)",
+  "crop": "m4.png/m16.png"
+ },
+ {
+  "capture": "owner/settings-dark-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 379,
+  "sizeBasenow": [
+   1280,
+   1611
+  ],
+  "sizeW1": [
+   1280,
+   1611
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 99
+  },
+  "repeatChangedPixels": 336,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2025,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono; the only other change is the top-right badge (data drift); bbox is the header strip",
+  "crop": "m1.png/m2.png"
+ },
+ {
+  "capture": "owner/settings-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 35376,
+  "sizeBasenow": [
+   390,
+   2134
+  ],
+  "sizeW1": [
+   390,
+   2122
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 2,
+   "width": 390,
+   "height": 2132
+  },
+  "repeatChangedPixels": 240,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1779,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "Save Changes button and inputs at own padding (4px 12px); page 2134->2122",
+  "crop": "m5.png/m16.png"
+ },
+ {
+  "capture": "owner/settings-light-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 283,
+  "sizeBasenow": [
+   1280,
+   1611
+  ],
+  "sizeW1": [
+   1280,
+   1611
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 99
+  },
+  "repeatChangedPixels": 240,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2005,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono; the only other change is the top-right badge (data drift); bbox is the header strip",
+  "crop": "m1.png/m2.png"
+ },
+ {
+  "capture": "owner/settings-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 45073,
+  "sizeBasenow": [
+   390,
+   2134
+  ],
+  "sizeW1": [
+   390,
+   2122
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 2,
+   "width": 390,
+   "height": 2132
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1755,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "Save Changes button and inputs at own padding (4px 12px); page 2134->2122",
+  "crop": "m5.png/m16.png"
+ },
+ {
+  "capture": "owner/tenants-dark-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 393,
+  "sizeBasenow": [
+   1280,
+   1132
+  ],
+  "sizeW1": [
+   1280,
+   1132
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 251
+  },
+  "repeatChangedPixels": 240,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2166,
+  "class": "intended",
+  "vd": "VD-11",
+  "vdAll": [
+   "VD-11",
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "Total Tenants card shows the primary BorderBeam fragment on its top edge (basenow: none); sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono",
+  "crop": "m2.png"
+ },
+ {
+  "capture": "owner/tenants-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 91093,
+  "sizeBasenow": [
+   390,
+   1435
+  ],
+  "sizeW1": [
+   390,
+   1427
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 2,
+   "width": 390,
+   "height": 1433
+  },
+  "repeatChangedPixels": 240,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1502,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03",
+   "VD-11"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "Import/Add Tenant buttons and card stack reflow with own button padding (page 1435->1427); Total Tenants beam fragment visible",
+  "crop": "m5.png"
+ },
+ {
+  "capture": "owner/tenants-light-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 393,
+  "sizeBasenow": [
+   1280,
+   1132
+  ],
+  "sizeW1": [
+   1280,
+   1132
+  ],
+  "bbox": {
+   "x": 184,
+   "y": 2,
+   "width": 1024,
+   "height": 251
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2134,
+  "class": "intended",
+  "vd": "VD-11",
+  "vdAll": [
+   "VD-11",
+   "VD-06"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "Total Tenants card shows the primary BorderBeam fragment on its top edge (basenow: none); sidebar search Cmd+K kbd hint at x184 y92 renders in Geist Mono",
+  "crop": "m2.png"
+ },
+ {
+  "capture": "owner/tenants-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 89145,
+  "sizeBasenow": [
+   390,
+   1435
+  ],
+  "sizeW1": [
+   390,
+   1427
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 2,
+   "width": 390,
+   "height": 1433
+  },
+  "repeatChangedPixels": 210,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 1474,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03",
+   "VD-11"
+  ],
+  "dataDrift": "owner header notification badge differs (w1 shows a count, basenow none: production notifications)",
+  "evidence": "Import/Add Tenant buttons and card stack reflow with own button padding (page 1435->1427); Total Tenants beam fragment visible",
+  "crop": "m5.png"
+ },
+ {
+  "capture": "public/auth_confirm-email-dark-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   1062
+  ],
+  "sizeW1": [
+   1280,
+   1062
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 41974,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/auth_confirm-email-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 6070,
+  "sizeBasenow": [
+   390,
+   1220
+  ],
+  "sizeW1": [
+   390,
+   1219
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 962,
+   "width": 390,
+   "height": 258
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 934,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": null,
+  "evidence": "Resend Email / Back to Sign In buttons at own padding; page 1220->1219",
+  "crop": "m13.png/m17.png"
+ },
+ {
+  "capture": "public/auth_confirm-email-light-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   1062
+  ],
+  "sizeW1": [
+   1280,
+   1062
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 41936,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/auth_confirm-email-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 6081,
+  "sizeBasenow": [
+   390,
+   1220
+  ],
+  "sizeW1": [
+   390,
+   1219
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 962,
+   "width": 390,
+   "height": 258
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 923,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": null,
+  "evidence": "Resend Email / Back to Sign In buttons at own padding; page 1220->1219",
+  "crop": "m13.png/m17.png"
+ },
+ {
+  "capture": "public/auth_update-password-dark-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   800
+  ],
+  "sizeW1": [
+   1280,
+   800
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 28377,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/auth_update-password-dark-390.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   390,
+   844
+  ],
+  "sizeW1": [
+   390,
+   844
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 619,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/auth_update-password-light-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   800
+  ],
+  "sizeW1": [
+   1280,
+   800
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 28356,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/auth_update-password-light-390.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   390,
+   844
+  ],
+  "sizeW1": [
+   390,
+   844
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 606,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   11887
+  ],
+  "sizeW1": [
+   1280,
+   11887
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 44434,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 49708,
+  "sizeBasenow": [
+   390,
+   20932
+  ],
+  "sizeW1": [
+   390,
+   20930
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 18820,
+   "width": 390,
+   "height": 2112
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 44876,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": null,
+  "evidence": "newsletter email input (4px 12px) and Subscribe button padding; rest shifts 2px",
+  "crop": "m15.png/m17.png"
+ },
+ {
+  "capture": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   11887
+  ],
+  "sizeW1": [
+   1280,
+   11887
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 43835,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 50776,
+  "sizeBasenow": [
+   390,
+   20932
+  ],
+  "sizeW1": [
+   390,
+   20930
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 18820,
+   "width": 390,
+   "height": 2112
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 44227,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": null,
+  "evidence": "newsletter email input (4px 12px) and Subscribe button padding; rest shifts 2px",
+  "crop": "m15.png/m17.png"
+ },
+ {
+  "capture": "public/contact-dark-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   1312
+  ],
+  "sizeW1": [
+   1280,
+   1312
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2539,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/contact-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 45473,
+  "sizeBasenow": [
+   390,
+   2307
+  ],
+  "sizeW1": [
+   390,
+   2299
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 815,
+   "width": 390,
+   "height": 1492
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2371,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": null,
+  "evidence": "form inputs/textarea at own padding, Send Message button 44px; page 2307->2299",
+  "crop": "m13.png"
+ },
+ {
+  "capture": "public/contact-light-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   1312
+  ],
+  "sizeW1": [
+   1280,
+   1312
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2488,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/contact-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 44637,
+  "sizeBasenow": [
+   390,
+   2307
+  ],
+  "sizeW1": [
+   390,
+   2299
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 815,
+   "width": 390,
+   "height": 1492
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 2320,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": null,
+  "evidence": "form inputs/textarea at own padding, Send Message button 44px; page 2307->2299",
+  "crop": "m13.png"
+ },
+ {
+  "capture": "public/faq-dark-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 2214,
+  "sizeBasenow": [
+   1280,
+   3654
+  ],
+  "sizeW1": [
+   1280,
+   3654
+  ],
+  "bbox": {
+   "x": 843,
+   "y": 141,
+   "width": 234,
+   "height": 24
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 3891,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": null,
+  "evidence": "hero mockup URL bar 'app.tenantflow.app/dashboard' renders in Geist Mono (bbox 843,141 234x24)",
+  "crop": "m17.png"
+ },
+ {
+  "capture": "public/faq-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 788170,
+  "sizeBasenow": [
+   390,
+   4514
+  ],
+  "sizeW1": [
+   390,
+   4889
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 709,
+   "width": 390,
+   "height": 4180
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 3720,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03",
+   "VD-06"
+  ],
+  "dataDrift": null,
+  "evidence": "FAQ accordion triggers (buttons) regain their own padding, so items grow (page 4514->4889); mockup tiles and URL bar (VD-06)",
+  "crop": "side-public_faq-light-390-1900.png/m17.png"
+ },
+ {
+  "capture": "public/faq-light-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 10284,
+  "sizeBasenow": [
+   1280,
+   3654
+  ],
+  "sizeW1": [
+   1280,
+   3654
+  ],
+  "bbox": {
+   "x": 467,
+   "y": 141,
+   "width": 610,
+   "height": 3055
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 3835,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06",
+   "VD-01"
+  ],
+  "dataDrift": null,
+  "evidence": "hero mockup URL bar in Geist Mono; 'Contact Sales' secondary CTA fill becomes the light secondary blue",
+  "crop": "m14.png"
+ },
+ {
+  "capture": "public/faq-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 818043,
+  "sizeBasenow": [
+   390,
+   4514
+  ],
+  "sizeW1": [
+   390,
+   4889
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 709,
+   "width": 390,
+   "height": 4180
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 3659,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03",
+   "VD-06"
+  ],
+  "dataDrift": null,
+  "evidence": "FAQ accordion triggers (buttons) regain their own padding, so items grow (page 4514->4889); mockup tiles and URL bar (VD-06)",
+  "crop": "side-public_faq-light-390-1900.png/m17.png"
+ },
+ {
+  "capture": "public/help-dark-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   2730
+  ],
+  "sizeW1": [
+   1280,
+   2730
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 4529,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/help-dark-390.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   390,
+   4040
+  ],
+  "sizeW1": [
+   390,
+   4040
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 4316,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/help-light-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 9665,
+  "sizeBasenow": [
+   1280,
+   2730
+  ],
+  "sizeW1": [
+   1280,
+   2730
+  ],
+  "bbox": {
+   "x": 435,
+   "y": 2228,
+   "width": 223,
+   "height": 44
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 4424,
+  "class": "intended",
+  "vd": "VD-01",
+  "vdAll": [
+   "VD-01"
+  ],
+  "dataDrift": null,
+  "evidence": "'Start free — no card' secondary CTA fill: magenta -> light secondary blue (dark capture identical)",
+  "crop": "m14.png"
+ },
+ {
+  "capture": "public/help-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 14903,
+  "sizeBasenow": [
+   390,
+   4040
+  ],
+  "sizeW1": [
+   390,
+   4040
+  ],
+  "bbox": {
+   "x": 24,
+   "y": 3234,
+   "width": 342,
+   "height": 44
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 4222,
+  "class": "intended",
+  "vd": "VD-01",
+  "vdAll": [
+   "VD-01"
+  ],
+  "dataDrift": null,
+  "evidence": "'Start free — no card' secondary CTA fill: magenta -> light secondary blue (dark capture identical)",
+  "crop": "m14.png"
+ },
+ {
+  "capture": "public/login-dark-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   903
+  ],
+  "sizeW1": [
+   1280,
+   903
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 67136,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/login-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 13730,
+  "sizeBasenow": [
+   390,
+   874
+  ],
+  "sizeW1": [
+   390,
+   870
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 374,
+   "width": 390,
+   "height": 500
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 825,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": null,
+  "evidence": "Forgot password / Create account link buttons and Google button lose the forced 12px padding (page 874->870); the GoogleButton trust row is not in these bboxes and /login 1280 is identical",
+  "crop": "m14.png"
+ },
+ {
+  "capture": "public/login-light-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   903
+  ],
+  "sizeW1": [
+   1280,
+   903
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 67103,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/login-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 13763,
+  "sizeBasenow": [
+   390,
+   874
+  ],
+  "sizeW1": [
+   390,
+   870
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 374,
+   "width": 390,
+   "height": 500
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 804,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03"
+  ],
+  "dataDrift": null,
+  "evidence": "Forgot password / Create account link buttons and Google button lose the forced 12px padding (page 874->870); the GoogleButton trust row is not in these bboxes and /login 1280 is identical",
+  "crop": "m14.png"
+ },
+ {
+  "capture": "public/pricing-dark-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   4051
+  ],
+  "sizeW1": [
+   1280,
+   4051
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 7271,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/pricing-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 462588,
+  "sizeBasenow": [
+   390,
+   7024
+  ],
+  "sizeW1": [
+   390,
+   7008
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 514,
+   "width": 390,
+   "height": 6510
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 12,
+  "baselineVsBasenowChangedPixels": 7003,
+  "class": "intended",
+  "vd": "VD-02",
+  "vdAll": [
+   "VD-02",
+   "VD-03"
+  ],
+  "dataDrift": null,
+  "evidence": "billing Switch: 44x44 grey donut -> 32x18.4; plan cards and CTAs reflow (page 7024->7008)",
+  "crop": "m15.png/m17.png"
+ },
+ {
+  "capture": "public/pricing-light-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   4051
+  ],
+  "sizeW1": [
+   1280,
+   4051
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 7090,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/pricing-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 451630,
+  "sizeBasenow": [
+   390,
+   7024
+  ],
+  "sizeW1": [
+   390,
+   7008
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 514,
+   "width": 390,
+   "height": 6510
+  },
+  "repeatChangedPixels": 22,
+  "basenowRepeatChangedPixels": 12,
+  "baselineVsBasenowChangedPixels": 6814,
+  "class": "intended",
+  "vd": "VD-02",
+  "vdAll": [
+   "VD-02",
+   "VD-03"
+  ],
+  "dataDrift": null,
+  "evidence": "billing Switch: 44x44 grey donut -> 32x18.4; plan cards and CTAs reflow (page 7024->7008)",
+  "crop": "m15.png/m17.png"
+ },
+ {
+  "capture": "public/privacy-dark-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   6383
+  ],
+  "sizeW1": [
+   1280,
+   6383
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 20165,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/privacy-dark-390.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   390,
+   9761
+  ],
+  "sizeW1": [
+   390,
+   9761
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 20361,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/privacy-light-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   6383
+  ],
+  "sizeW1": [
+   1280,
+   6383
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 20062,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/privacy-light-390.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   390,
+   9761
+  ],
+  "sizeW1": [
+   390,
+   9761
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 20232,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/root-dark-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 2214,
+  "sizeBasenow": [
+   1280,
+   6029
+  ],
+  "sizeW1": [
+   1280,
+   6029
+  ],
+  "bbox": {
+   "x": 843,
+   "y": 141,
+   "width": 234,
+   "height": 24
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 11146,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": null,
+  "evidence": "hero mockup URL bar 'app.tenantflow.app/dashboard' renders in Geist Mono (bbox 843,141 234x24)",
+  "crop": "m17.png"
+ },
+ {
+  "capture": "public/root-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 377553,
+  "sizeBasenow": [
+   390,
+   9583
+  ],
+  "sizeW1": [
+   390,
+   9757
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 6972,
+   "width": 390,
+   "height": 2785
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 10022,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03",
+   "VD-06"
+  ],
+  "dataDrift": null,
+  "evidence": "FAQ accordion triggers regain own padding (page 9583->9757)",
+  "crop": "m15.png/m17.png"
+ },
+ {
+  "capture": "public/root-light-1280.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 2228,
+  "sizeBasenow": [
+   1280,
+   6029
+  ],
+  "sizeW1": [
+   1280,
+   6029
+  ],
+  "bbox": {
+   "x": 843,
+   "y": 141,
+   "width": 234,
+   "height": 24
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 10868,
+  "class": "intended",
+  "vd": "VD-06",
+  "vdAll": [
+   "VD-06"
+  ],
+  "dataDrift": null,
+  "evidence": "hero mockup URL bar 'app.tenantflow.app/dashboard' renders in Geist Mono (bbox 843,141 234x24)",
+  "crop": "m17.png"
+ },
+ {
+  "capture": "public/root-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 377797,
+  "sizeBasenow": [
+   390,
+   9583
+  ],
+  "sizeW1": [
+   390,
+   9757
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 6972,
+   "width": 390,
+   "height": 2785
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 9752,
+  "class": "intended",
+  "vd": "VD-03",
+  "vdAll": [
+   "VD-03",
+   "VD-06"
+  ],
+  "dataDrift": null,
+  "evidence": "FAQ accordion triggers regain own padding (page 9583->9757)",
+  "crop": "m15.png/m17.png"
+ },
+ {
+  "capture": "public/signup-dark-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   4051
+  ],
+  "sizeW1": [
+   1280,
+   4051
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 7271,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/signup-dark-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 462588,
+  "sizeBasenow": [
+   390,
+   7024
+  ],
+  "sizeW1": [
+   390,
+   7008
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 514,
+   "width": 390,
+   "height": 6510
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 12,
+  "baselineVsBasenowChangedPixels": 7003,
+  "class": "intended",
+  "vd": "VD-02",
+  "vdAll": [
+   "VD-02",
+   "VD-03"
+  ],
+  "dataDrift": null,
+  "evidence": "billing Switch: 44x44 grey donut -> 32x18.4; plan cards and CTAs reflow (page 7024->7008)",
+  "crop": "m15.png/m17.png"
+ },
+ {
+  "capture": "public/signup-light-1280.png",
+  "reference": "basenow",
+  "differs": false,
+  "changedPixels": 0,
+  "sizeBasenow": [
+   1280,
+   4051
+  ],
+  "sizeW1": [
+   1280,
+   4051
+  ],
+  "bbox": null,
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 0,
+  "baselineVsBasenowChangedPixels": 7090,
+  "class": "identical",
+  "vd": null,
+  "evidence": "0 changed pixels, equal sizes"
+ },
+ {
+  "capture": "public/signup-light-390.png",
+  "reference": "basenow",
+  "differs": true,
+  "changedPixels": 451623,
+  "sizeBasenow": [
+   390,
+   7024
+  ],
+  "sizeW1": [
+   390,
+   7008
+  ],
+  "bbox": {
+   "x": 0,
+   "y": 514,
+   "width": 390,
+   "height": 6510
+  },
+  "repeatChangedPixels": 0,
+  "basenowRepeatChangedPixels": 12,
+  "baselineVsBasenowChangedPixels": 6826,
+  "class": "intended",
+  "vd": "VD-02",
+  "vdAll": [
+   "VD-02",
+   "VD-03"
+  ],
+  "dataDrift": null,
+  "evidence": "billing Switch: 44x44 grey donut -> 32x18.4; plan cards and CTAs reflow (page 7024->7008)",
+  "crop": "m15.png/m17.png"
+ }
+]

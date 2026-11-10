@@ -35,11 +35,13 @@ export function LeaseSignatureStatus({
 
 	if (error) {
 		return (
+			// 16px above and below the line: py-4 on the Card, whose own py-6 a
+			// v3 py-4 on CardContent added to (40px each).
 			<Card
-				className={cn("border-destructive/50", className)}
+				className={cn("border-destructive/50 py-4", className)}
 				data-testid="signature-status-error"
 			>
-				<CardContent className="py-4">
+				<CardContent>
 					<div className="flex items-center gap-2 text-destructive-text">
 						<AlertCircle className="h-4 w-4" />
 						<span className="text-sm">
@@ -160,10 +162,7 @@ function FullSignatureStatus({
 			<CardContent className="space-y-4">
 				<div className="flex-between">
 					<span className="text-muted-foreground">Overall Status</span>
-					<Badge
-						variant={status.both_signed ? "default" : "secondary"}
-						className={cn(status.both_signed && "bg-success hover:bg-success")}
-					>
+					<Badge variant={status.both_signed ? "success" : "secondary"}>
 						{getStatusText()}
 					</Badge>
 				</div>
@@ -182,7 +181,7 @@ function FullSignatureStatus({
 				</div>
 
 				{status.sent_for_signature_at && (
-					<div className="flex items-center gap-2 text-caption pt-2 border-t">
+					<div className="flex items-center gap-2 text-caption text-muted-foreground pt-2 border-t">
 						<Send className="h-3 w-3" />
 						<span>
 							Sent for signature on{" "}
@@ -206,8 +205,8 @@ function SignatureBadge({
 }) {
 	return (
 		<Badge
-			variant={signed ? "default" : "outline"}
-			className={cn("gap-1", signed && "bg-success hover:bg-success")}
+			variant={signed ? "success" : "outline"}
+			className="gap-1"
 			title={
 				signedAt
 					? `Signed on ${new Date(signedAt).toLocaleString()}`

@@ -1,21 +1,13 @@
 "use client";
 
 import { TrendingUp } from "lucide-react";
-import { useState } from "react";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
-	Bar,
-	BarChart,
-	CartesianGrid,
-	Line,
-	LineChart,
-	XAxis,
-	YAxis,
-} from "recharts";
-
+	moneyAxisTick,
+	moneyTooltipFormatter,
+} from "#components/shared/chart-series";
 import { type ChartConfig, ChartContainer } from "#components/ui/chart";
 import {
-	ChartLegend,
-	ChartLegendContent,
 	ChartTooltip,
 	ChartTooltipContent,
 } from "#components/ui/chart-tooltip";
@@ -26,26 +18,11 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#components/ui/empty";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "#components/ui/select";
-import type {
-	BillingInsightsTimeline,
-	NetOperatingIncomeByProperty,
-} from "#types/analytics";
-
-const billingTimelineConfig = {
-	invoiced: { label: "Invoiced", color: "oklch(0.72 0.08 45)" },
-	paid: { label: "Paid", color: "oklch(0.55 0.18 140)" },
-	overdue: { label: "Overdue", color: "oklch(0.72 0.15 30)" },
-} satisfies ChartConfig;
+import type { NetOperatingIncomeByProperty } from "#types/analytics";
 
 const noiConfig = {
-	noi: { label: "NOI", color: "oklch(0.68 0.1 255)" },
+	// Scheduled rent less expenses: not net operating income on money received.
+	noi: { label: "Scheduled Net", color: "var(--color-chart-1)" },
 } satisfies ChartConfig;
 
 type NetOperatingIncomeChartProps = { data: NetOperatingIncomeByProperty[] };
@@ -61,7 +38,7 @@ export function NetOperatingIncomeChart({
 						<TrendingUp />
 					</EmptyMedia>
 					<EmptyTitle>No financial data</EmptyTitle>
-					<EmptyDescription>
+					<EmptyDescription className="mb-0">
 						Financial trends will appear once transactions are recorded
 					</EmptyDescription>
 				</EmptyHeader>
@@ -88,120 +65,22 @@ export function NetOperatingIncomeChart({
 					height={80}
 					tickMargin={8}
 				/>
-				<YAxis tickLine={false} axisLine={false} />
+				<YAxis
+					tickLine={false}
+					axisLine={false}
+					tickFormatter={moneyAxisTick}
+				/>
 				<ChartTooltip
 					cursor={false}
-					content={<ChartTooltipContent hideLabel />}
+					content={
+						<ChartTooltipContent
+							hideLabel
+							formatter={moneyTooltipFormatter(noiConfig)}
+						/>
+					}
 				/>
 				<Bar dataKey="noi" fill="var(--color-noi)" radius={[6, 6, 0, 0]} />
 			</BarChart>
 		</ChartContainer>
-	);
-}
-
-type BillingTimelineChartProps = { data: BillingInsightsTimeline };
-
-export function BillingTimelineChart({ data }: BillingTimelineChartProps) {
-	const [timeRange, setTimeRange] = useState("all");
-
-	const chartData = (() => {
-		const timeline = data?.points ?? [];
-		if (!timeline.length) return [];
-		return timeline.map((point) => ({
-			period: point.period,
-			invoiced: point.invoiced,
-			paid: point.paid,
-			overdue: point.overdue,
-		}));
-	})();
-
-	const filteredData = (() => {
-		if (timeRange === "all" || chartData.length <= 3) return chartData;
-		const periods =
-			timeRange === "3m" ? 3 : timeRange === "6m" ? 6 : chartData.length;
-		return chartData.slice(-periods);
-	})();
-
-	const timeline = data?.points ?? [];
-	if (!timeline.length) {
-		return (
-			<Empty className="py-12">
-				<EmptyHeader>
-					<EmptyMedia variant="icon">
-						<TrendingUp />
-					</EmptyMedia>
-					<EmptyTitle>No financial data</EmptyTitle>
-					<EmptyDescription>
-						Financial trends will appear once transactions are recorded
-					</EmptyDescription>
-				</EmptyHeader>
-			</Empty>
-		);
-	}
-
-	return (
-		<div className="space-y-4">
-			{chartData.length > 3 && (
-				<div className="flex justify-end">
-					<Select value={timeRange} onValueChange={setTimeRange}>
-						<SelectTrigger className="w-[160px]" aria-label="Select time range">
-							<SelectValue placeholder="All time" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="all">All time</SelectItem>
-							<SelectItem value="6m">Last 6 months</SelectItem>
-							<SelectItem value="3m">Last 3 months</SelectItem>
-						</SelectContent>
-					</Select>
-				</div>
-			)}
-			<ChartContainer
-				className="aspect-auto h-80 w-full"
-				config={billingTimelineConfig}
-			>
-				<LineChart data={filteredData}>
-					<CartesianGrid vertical={false} />
-					<XAxis
-						dataKey="period"
-						tickLine={false}
-						axisLine={false}
-						tickMargin={8}
-						minTickGap={32}
-					/>
-					<YAxis tickLine={false} axisLine={false} />
-					<ChartTooltip
-						cursor={false}
-						content={
-							<ChartTooltipContent
-								labelFormatter={(value) => value}
-								indicator="line"
-							/>
-						}
-					/>
-					<Line
-						type="natural"
-						dataKey="invoiced"
-						stroke="var(--color-invoiced)"
-						strokeWidth={2}
-						dot={false}
-					/>
-					<Line
-						type="natural"
-						dataKey="paid"
-						stroke="var(--color-paid)"
-						strokeWidth={2}
-						dot={false}
-					/>
-					<Line
-						type="natural"
-						dataKey="overdue"
-						stroke="var(--color-overdue)"
-						strokeWidth={2}
-						dot={false}
-					/>
-					<ChartLegend content={<ChartLegendContent />} />
-				</LineChart>
-			</ChartContainer>
-		</div>
 	);
 }

@@ -34,7 +34,7 @@ describe("KpiSparkline", () => {
 		});
 		expect(img).toBeInTheDocument();
 		expect(img.tagName.toLowerCase()).toBe("div");
-		expect(img.className).toContain("[grid-column:1/-1]");
+		expect(img.className.split(/\s+/)).toContain("col-span-full");
 		expect(img.className).toContain("h-16");
 		expect(img.className).toContain("w-full");
 	});

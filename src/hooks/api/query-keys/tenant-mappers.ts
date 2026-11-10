@@ -19,6 +19,7 @@
  */
 
 import { z } from "zod";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import {
 	TENANT_ACTIVE_STATUSES,
 	tenantStatusSchema,
@@ -50,7 +51,7 @@ function requireString(
 ): string {
 	const value = raw[field];
 	if (typeof value !== "string") {
-		throw new Error(
+		throw new DiagnosticError(
 			`${mapper}: NOT NULL field '${field}' missing or non-string from PostgREST response`,
 		);
 	}
@@ -65,7 +66,7 @@ function requireString(
 function requireTenantStatus(value: unknown, mapper: string): string {
 	const parsed = tenantPersistedStatusSchema.safeParse(value);
 	if (!parsed.success) {
-		throw new Error(
+		throw new DiagnosticError(
 			`${mapper}: invalid 'status' value '${String(value)}' from PostgREST response`,
 		);
 	}
@@ -97,6 +98,8 @@ export function mapTenantBaseRow(raw: unknown): Tenant {
 			(row.emergency_contact_relationship as string | null) ?? null,
 		identity_verified: (row.identity_verified as boolean | null) ?? null,
 		ssn_last_four: (row.ssn_last_four as string | null) ?? null,
+		move_out_date: (row.move_out_date as string | null) ?? null,
+		move_out_reason: (row.move_out_reason as string | null) ?? null,
 		created_at: (row.created_at as string | null) ?? null,
 		updated_at: (row.updated_at as string | null) ?? null,
 	};
@@ -119,6 +122,8 @@ export interface TenantPostgrestRow {
 	emergency_contact_relationship: string | null;
 	identity_verified: boolean | null;
 	ssn_last_four: string | null;
+	move_out_date: string | null;
+	move_out_reason: string | null;
 	lease_tenants?: Array<{
 		lease_id: string;
 		is_primary: boolean | null;
@@ -207,7 +212,7 @@ export function mapTenantRow(row: TenantPostgrestRow): TenantWithLeaseInfo {
 	// select can legally observe a NULL during transitional states); a
 	// non-null status must be a recognized value.
 	if (typeof row.id !== "string") {
-		throw new Error(
+		throw new DiagnosticError(
 			"mapTenantRow: NOT NULL field 'id' missing or non-string from PostgREST response",
 		);
 	}
@@ -253,6 +258,8 @@ export function mapTenantRow(row: TenantPostgrestRow): TenantWithLeaseInfo {
 		emergency_contact_relationship: row.emergency_contact_relationship,
 		identity_verified: row.identity_verified,
 		ssn_last_four: row.ssn_last_four,
+		move_out_date: row.move_out_date ?? null,
+		move_out_reason: row.move_out_reason ?? null,
 		phone: displayPhone,
 		first_name: displayFirstName,
 		last_name: displayLastName,

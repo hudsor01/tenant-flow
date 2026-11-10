@@ -25,6 +25,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { escapeRegExp } from "#test/utils/regexp-source";
 import {
 	decideForwardedClientIp,
 	decideRateLimit,
@@ -718,9 +719,10 @@ describe("5. decideForwardedClientIp -- the trust matrix, against the real compa
 	});
 
 	it("row 4: a valid secret with a valid address IS trusted", () => {
-		// The non-vacuity row. Without it every denial below is satisfied by a
-		// mechanism that never grants anything -- which is a real failure mode, not
-		// a hypothetical one: an inert trust boundary passes all six other rows.
+		// The non-vacuity row. Without it every denial in this block is satisfied by
+		// a mechanism that never grants anything -- which is a real failure mode, not
+		// a hypothetical one: an inert trust boundary passes all eight rows that
+		// expect `trusted` false (only this row and row 11 expect it true).
 		const decision = decide({
 			configuredSecret: CONFIGURED,
 			presentedSecret: CONFIGURED,
@@ -1214,7 +1216,7 @@ describe("7. the Vercel side and the Supabase side agree", () => {
 				// available: prefixing the secret so Next.js inlines it into the
 				// browser bundle, handing every visitor the ability to forge its own
 				// rate-limit identity.
-				`(?<![\\w])${literal.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\w-])`,
+				`(?<![\\w])${escapeRegExp(literal)}(?![\\w-])`,
 			);
 			expect(LIMITER_CODE).toMatch(bounded);
 			expect(APPLY_CONTEXT_CODE).toMatch(bounded);

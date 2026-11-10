@@ -1,0 +1,226 @@
+{
+ "capturedAt": "2026-10-26T02:32:58.545Z",
+ "head": "2115ec79831f5e22e080c211ecb7f57f659aa79e",
+ "srcBaseline": "754c91802",
+ "M1": {
+  "scannedFiles": 1553,
+  "projectedSrcOnly": 914
+ },
+ "M2": {
+  "count": 1,
+  "items": [
+   "..*.{ts,tsx}"
+  ]
+ },
+ "M3": {
+  "count": 1,
+  "items": [
+   "L166 oklch(95.46% 3.51 246.58)"
+  ]
+ },
+ "M4": {
+  "count": 11,
+  "items": [
+   "L26 --font-sans: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+   "L29 --font-display: var(--font-display), \"Playfair Display\", Georgia, \"Times New Roman\", serif",
+   "L31 --font-mono: var(--font-geist-mono), ui-monospace, \"SF Mono\", \"Cascadia Code\", monospace",
+   "L193 --color-sidebar: var(--color-background)",
+   "L194 --color-sidebar-foreground: var(--color-foreground)",
+   "L195 --color-sidebar-primary: var(--color-primary)",
+   "L196 --color-sidebar-primary-foreground: var(--color-primary-foreground)",
+   "L197 --color-sidebar-accent: var(--color-accent)",
+   "L198 --color-sidebar-accent-foreground: var(--color-accent-foreground)",
+   "L199 --color-sidebar-border: var(--color-border)",
+   "L200 --color-sidebar-ring: var(--color-ring)"
+  ]
+ },
+ "M5": {
+  "count": 2,
+  "items": [
+   "text-muted",
+   "text-caption"
+  ]
+ },
+ "M6": {
+  "count": 14,
+  "items": [
+   "--color-white: oklch(1 0 0)",
+   "--color-black: oklch(0 0 0)",
+   "--color-label-primary: oklch(0 0 0 / 85%)",
+   "--color-label-secondary: oklch(0 0 0 / 50%)",
+   "--color-label-tertiary: oklch(0 0 0 / 35%)",
+   "--color-fill-primary: oklch(0 0 0 / 6%)",
+   "--color-fill-secondary: oklch(0 0 0 / 10%)",
+   "--color-fill-tertiary: oklch(0 0 0 / 14%)",
+   "--color-separator: oklch(0.31 0 0 / 29%)",
+   "--color-chart-1: oklch(0.63 0.22 259)",
+   "--color-chart-2: oklch(0.7 0.18 180)",
+   "--color-chart-3: oklch(0.72 0.16 85)",
+   "--color-chart-4: oklch(0.65 0.18 20)",
+   "--color-chart-5: oklch(0.55 0.12 250)"
+  ]
+ },
+ "M7": {
+  "count": 12,
+  "items": [
+   "text-display-hero",
+   "text-display-lg",
+   "text-display",
+   "text-display-sm",
+   "text-title-1",
+   "text-title-2",
+   "text-title-3",
+   "text-title-4",
+   "text-caption",
+   "text-stat",
+   "text-stat-lg",
+   "text-stat-xl"
+  ]
+ },
+ "M8": {
+  "themeVars": 55,
+  "customProperties": 47,
+  "utilities": "90/133",
+  "keyframes": 1,
+  "plainClassSelectors": 20
+ },
+ "M9": {
+  "classes": 39,
+  "deadClasses": 33,
+  "varsNotDefinedByGlobals": [
+   "--text-responsive-h2",
+   "--leading-title-1",
+   "--text-responsive-h3",
+   "--leading-title-2"
+  ]
+ },
+ "M10": {
+  "classes": 146,
+  "firstPartyFiles": 53,
+  "vendoredUiFiles": 15,
+  "firstPartyDistinctCandidatesG8": 97
+ },
+ "R1": {
+  "light": [
+   255,
+   0,
+   255
+  ],
+  "dark": [
+   37,
+   41,
+   46
+  ]
+ },
+ "R2": {
+  "light": {
+   "html": "Times",
+   "body": "Stubfontsans",
+   "fontMono": "Stubfontsans",
+   "codeTag": "ui-monospace, SFMono-Regular, \"SF Mono\", Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace",
+   "fontDisplay": "Stubfontdisplay"
+  },
+  "dark": {
+   "html": "Times",
+   "body": "Stubfontsans",
+   "fontMono": "Stubfontsans",
+   "codeTag": "ui-monospace, SFMono-Regular, \"SF Mono\", Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace",
+   "fontDisplay": "Stubfontdisplay"
+  }
+ },
+ "R3": {
+  "light": {
+   "html": "Times",
+   "body": "Stubfontsans",
+   "fontMono": "Stubfontsans",
+   "codeTag": "ui-monospace, SFMono-Regular, \"SF Mono\", Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace",
+   "fontDisplay": "Stubfontdisplay"
+  },
+  "dark": {
+   "html": "Times",
+   "body": "Stubfontsans",
+   "fontMono": "Stubfontsans",
+   "codeTag": "ui-monospace, SFMono-Regular, \"SF Mono\", Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace",
+   "fontDisplay": "Stubfontdisplay"
+  }
+ },
+ "R4": {
+  "light": {
+   "renew-lease heading": 11.28,
+   "renew-lease body": 3.7,
+   "renew-lease icon": 2.34,
+   "badge secondary": 5.77,
+   "lease template preview h2": 16.98,
+   "lease template preview p": 9.86,
+   "lease template preview strong": 16.98,
+   "lease template preview a": 16.98,
+   "admin blog review h2": 16.98,
+   "admin blog review p": 17.31,
+   "admin blog review strong": 16.98,
+   "admin blog review a": 16.98
+  },
+  "dark": {
+   "renew-lease heading": 1.04,
+   "renew-lease body": 1.02,
+   "renew-lease icon": 1.02,
+   "badge secondary": 10.89,
+   "lease template preview h2": 1.12,
+   "lease template preview p": 1.93,
+   "lease template preview strong": 1.12,
+   "lease template preview a": 1.12,
+   "admin blog review h2": 1.12,
+   "admin blog review p": 17.74,
+   "admin blog review strong": 1.12,
+   "admin blog review a": 1.12
+  }
+ },
+ "R5": {
+  "switch": {
+   "width": 44,
+   "height": 44,
+   "padding": "12px",
+   "minHeight": "44px"
+  },
+  "buttonSecondary": {
+   "width": 62.1,
+   "height": 44,
+   "padding": "12px",
+   "minHeight": "44px"
+  },
+  "iconButton": {
+   "width": 44,
+   "height": 44,
+   "padding": "12px",
+   "minHeight": "44px"
+  },
+  "iconButtonSize8": {
+   "width": 44,
+   "height": 44,
+   "padding": "12px",
+   "minHeight": "44px"
+  },
+  "input": {
+   "width": 390,
+   "height": 44,
+   "padding": "12px",
+   "minHeight": "44px"
+  },
+  "inputH9": {
+   "width": 190,
+   "height": 44,
+   "padding": "12px",
+   "minHeight": "44px"
+  }
+ },
+ "G": {
+  "G1": 1,
+  "G2": 11,
+  "G3": 2,
+  "G6": 1,
+  "G4": 6,
+  "G5": 44,
+  "G7": 8,
+  "G8": 97
+ },
+ "tokenCount": 71
+}

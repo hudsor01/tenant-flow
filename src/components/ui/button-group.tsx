@@ -4,7 +4,7 @@ import type { ComponentProps } from "react";
 import { cn } from "#lib/utils";
 
 const buttonGroupVariants = cva(
-	"flex w-fit items-stretch [&>*]:focus-visible:z-10 [&>*]:focus-visible:relative [&>.select-trigger:not([class*='w-'])]:w-fit [&>input]:flex-1 has-[select[aria-hidden=true]:last-child]:[&>.select-trigger:last-of-type]:rounded-r-md has-[>.button-group]:gap-2",
+	"flex w-fit items-stretch [&>*]:focus-visible:z-10 [&>*]:focus-visible:relative [&>.select-trigger:not([class*='w-'])]:w-fit [&>input]:flex-1 has-[select[aria-hidden=true]:last-child]:[&>.select-trigger:last-of-type]:rounded-r-md has-[>[data-slot=button-group]]:gap-2",
 	{
 		variants: {
 			orientation: {
@@ -28,6 +28,7 @@ function ButtonGroup({
 	return (
 		<div
 			role="group"
+			data-slot="button-group"
 			data-orientation={orientation}
 			className={cn(buttonGroupVariants({ orientation }), className)}
 			{...props}

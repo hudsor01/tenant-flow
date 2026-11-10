@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { MaintenanceForm } from "#components/maintenance/maintenance-form.client";
+import { OwnerErrorBox } from "#components/shared/owner-error-box";
 import { Skeleton } from "#components/ui/skeleton";
 import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
 
@@ -35,16 +36,10 @@ export default function MaintenanceEditPage({
 	if (error) {
 		return (
 			<div className="mx-auto w-full max-w-4xl space-y-10">
-				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
-					<h2 className="text-lg font-semibold text-destructive-text mb-2">
-						Error Loading Request
-					</h2>
-					<p className="text-muted-foreground">
-						{error instanceof Error
-							? error.message
-							: "Failed to load maintenance request"}
-					</p>
-				</div>
+				<OwnerErrorBox
+					title="Error Loading Request"
+					message="Failed to load maintenance request"
+				/>
 			</div>
 		);
 	}

@@ -32,10 +32,11 @@ export function ConfirmEmailImagePanel() {
 				<div className="relative max-w-lg mx-auto px-8">
 					<div className="absolute inset-0 rounded-3xl bg-card/85 backdrop-blur-sm border border-border/20 shadow-2xl" />
 					<div className="relative text-center space-y-6 section-spacing-compact px-8 z-20">
-						<div className="size-16 mx-auto mb-8 relative group">
-							<div className="absolute inset-0 bg-linear-to-r from-primary/50 to-primary/60 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500" />
+						<div className="size-16 mx-auto mb-8 relative">
+							<div className="absolute inset-0 bg-linear-to-r from-primary/50 to-primary/60 rounded-2xl blur-xl" />
 							<div className="relative w-full h-full bg-primary rounded-2xl flex-center border border-glass-light shadow-lg">
 								<svg
+									aria-hidden="true"
 									viewBox="0 0 24 24"
 									fill="none"
 									xmlns="http://www.w3.org/2000/svg"
@@ -64,7 +65,7 @@ export function ConfirmEmailImagePanel() {
 								{ value: "E-Sign", label: ["Built-in", "Signing"] },
 								{ value: "Reports", label: ["Tax-ready", "Exports"] },
 							].map((stat) => (
-								<div key={stat.value} className="text-center group">
+								<div key={stat.value} className="text-center">
 									<div className="text-foreground font-bold text-2xl mb-1">
 										{stat.value}
 									</div>
@@ -89,6 +90,7 @@ export function ConfirmEmailMobileLogo() {
 			<div className="flex items-center space-x-3">
 				<div className="size-10 rounded-xl overflow-hidden bg-primary border border-border flex-center shadow-lg">
 					<svg
+						aria-hidden="true"
 						viewBox="0 0 24 24"
 						fill="none"
 						xmlns="http://www.w3.org/2000/svg"
@@ -116,10 +118,10 @@ export function ConfirmEmailErrorBanner() {
 		<div className="p-4 rounded-lg border border-destructive/30 bg-destructive/10 flex items-start gap-3">
 			<AlertTriangle className="size-5 text-destructive shrink-0 mt-0.5" />
 			<div className="text-sm">
-				<p className="font-medium text-destructive-text">
+				<p className="mb-0 font-medium text-destructive-text">
 					Confirmation link expired or invalid
 				</p>
-				<p className="text-destructive-text/80 mt-1">
+				<p className="text-destructive-text mt-1 mb-0">
 					The confirmation link you clicked is no longer valid. Please request a
 					new one using the button below.
 				</p>
@@ -153,7 +155,7 @@ export function ConfirmEmailInstructions() {
 				<CheckCircle2 className="size-5 text-primary" />
 				What&apos;s next?
 			</h3>
-			<ol className="space-y-4">
+			<ol className="flex flex-col gap-4 pl-0 mt-0 mb-0 [&>li]:mb-0">
 				{[
 					{
 						step: 1,
@@ -176,8 +178,8 @@ export function ConfirmEmailInstructions() {
 							{item.step}
 						</span>
 						<div className="pt-0.5">
-							<p className="text-foreground font-medium">{item.title}</p>
-							<p className="text-muted-foreground">{item.desc}</p>
+							<p className="mb-0 text-foreground font-medium">{item.title}</p>
+							<p className="mb-0 text-muted-foreground">{item.desc}</p>
 						</div>
 					</li>
 				))}
@@ -272,7 +274,7 @@ export function ConfirmEmailFooter() {
 					</Link>
 				</p>
 			</div>
-			<div className="flex-center gap-8 text-caption pt-4">
+			<div className="flex-center gap-8 text-caption text-muted-foreground pt-4">
 				<div className="flex items-center gap-2">
 					<CheckCircle2 className="size-4" />
 					<span>Encrypted at rest</span>

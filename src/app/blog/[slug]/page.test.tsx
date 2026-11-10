@@ -106,6 +106,7 @@ vi.mock("lucide-react", async (importOriginal) => {
 	};
 });
 
+import { BLOG_TO_COMPETITOR, BLOG_TO_RESOURCE } from "#lib/content-links";
 import BlogArticlePage from "./blog-post-page";
 
 // --- Mock data ---
@@ -181,6 +182,37 @@ const mockRelatedPosts = [
 		tags: ["maintenance"],
 	},
 ];
+
+// The comparison and resource links sit on tinted boxes (bg-primary/5,
+// bg-muted), where a faded hover label read 4.21 and 4.17:1 in Chrome. The
+// hover keeps the full primary-text label and underlines it (66.2-39 fix
+// round 3, F29, OD-16).
+describe("BlogArticlePage cross-links", () => {
+	beforeEach(() => {
+		mockUseRelatedPosts.mockReturnValue({ data: [], isLoading: false });
+	});
+
+	it.each([
+		["See Full Comparison", Object.keys(BLOG_TO_COMPETITOR)[0]],
+		["View Resource", Object.keys(BLOG_TO_RESOURCE)[0]],
+	])("%s keeps a full-strength label on hover", (name, slug) => {
+		expect(slug).toBeDefined();
+		render(
+			<BlogArticlePage
+				post={mockPost}
+				slug={slug ?? ""}
+				articleBody={mockArticleBody}
+			/>,
+		);
+		const classes = screen
+			.getByRole("link", { name: new RegExp(name) })
+			.className.split(/\s+/);
+		expect(classes).toEqual(
+			expect.arrayContaining(["text-primary-text", "hover:underline"]),
+		);
+		expect(classes.filter((c) => /^hover:text-.*\/\d+$/.test(c))).toEqual([]);
+	});
+});
 
 describe("BlogArticlePage", () => {
 	beforeEach(() => {

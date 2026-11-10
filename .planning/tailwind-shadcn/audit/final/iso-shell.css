@@ -1,0 +1,8 @@
+/* 66.2-37 shell isolation, applied to both sides of the iso pair: hides the shell chrome while
+   keeping its layout box. The sidebar-wrapper provider root is excluded because it wraps the
+   content column, and visibility inherits. */
+aside:not(main#main-content aside),
+header:not(main#main-content header),
+[data-slot^="sidebar"]:not([data-slot="sidebar-wrapper"]):not(main#main-content [data-slot^="sidebar"]) {
+	visibility: hidden !important;
+}

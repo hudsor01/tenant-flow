@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("#lib/generate-metadata", () => ({
@@ -5,6 +7,7 @@ vi.mock("#lib/generate-metadata", () => ({
 }));
 
 import {
+	matchesRoutePrefix,
 	PRIVATE_ROUTE_PREFIXES,
 	ROBOTS_ONLY_PRIVATE_PATHS,
 } from "#lib/routes/private-routes";
@@ -169,18 +172,14 @@ describe("robots()", () => {
 	});
 });
 
-// The exact predicate `proxy.ts#isPrivateRoute` uses. Duplicated here on
-// purpose: importing proxy.ts would pull in @supabase/ssr, next/server and the
-// validated env module, none of which this suite needs. The predicate is three
-// lines and pinned by the assertions below, so a drift in proxy.ts's matching
-// rule surfaces as a behavioural test failure elsewhere rather than silently.
+// The prefixes that capture `pathname`, by the predicate `proxy.ts`'s
+// `isPrivateRoute` uses (`matchesRoutePrefix`, imported from the same module
+// as the prefixes, so this suite tests the proxy's rule, not a copy of it).
 function matchesPrefix(
 	pathname: string,
 	prefixes: readonly string[],
 ): string[] {
-	return prefixes.filter(
-		(prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
-	);
+	return prefixes.filter((prefix) => matchesRoutePrefix(pathname, prefix));
 }
 
 // Assertions 3 and 4 below are a PAIR, and neither means much alone: one proves
@@ -224,5 +223,30 @@ describe("/apply is public by absence (D-13/D-14)", () => {
 				PRIVATE_PATHS,
 			),
 		).toContain("/applications");
+	});
+});
+
+// A disallow on a URL nothing serves does harm, not good: a crawler that may not
+// fetch the URL never sees its 404, so a stale index entry is never dropped. So
+// every robots-only path is served: a src/app route, or one of the two paths
+// Next serves without one (its data route, and the Sentry tunnel that
+// next.config.ts mounts at tunnelRoute).
+const NON_APP_ROBOTS_PATHS: readonly string[] = ["/_next/data", "/monitoring"];
+
+describe("every robots-only path is served", () => {
+	const appPaths = ROBOTS_ONLY_PRIVATE_PATHS.filter(
+		(path) => !NON_APP_ROBOTS_PATHS.includes(path),
+	);
+
+	it.each(appPaths)("%s has a src/app route", (path) => {
+		expect(
+			existsSync(join(process.cwd(), "src/app", path)),
+			`${path}: no src/app route serves it, so its disallow only hides a 404`,
+		).toBe(true);
+	});
+
+	it("/monitoring is still the Sentry tunnel", () => {
+		const config = readFileSync(join(process.cwd(), "next.config.ts"), "utf8");
+		expect(config).toContain('tunnelRoute: "/monitoring"');
 	});
 });

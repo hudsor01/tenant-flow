@@ -15,6 +15,19 @@ import {
 } from "#components/ui/select";
 import type { DynamicField } from "./dynamic-form";
 
+/** The name the owner sees for each field type in the builder's picker. */
+const FIELD_TYPE_LABELS: Record<DynamicField["type"], string> = {
+	text: "Text",
+	email: "Email",
+	tel: "Phone",
+	number: "Number",
+	date: "Date",
+	textarea: "Long Text",
+	select: "Dropdown",
+	checkbox: "Checkbox",
+	list: "List",
+};
+
 const fieldTypes: Array<DynamicField["type"]> = [
 	"text",
 	"email",
@@ -116,10 +129,10 @@ export function FormBuilderPanel({
 
 	return (
 		<Card>
-			<CardHeader className="flex flex-row items-center justify-between">
+			<CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
 				<div>
 					<CardTitle>Form builder</CardTitle>
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						Add custom fields that appear in the live template form and PDF.
 					</p>
 				</div>
@@ -136,7 +149,7 @@ export function FormBuilderPanel({
 			</CardHeader>
 			<CardContent className="space-y-4">
 				{fields.length === 0 ? (
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						No custom fields added yet.
 					</p>
 				) : null}
@@ -146,7 +159,9 @@ export function FormBuilderPanel({
 						className="space-y-3 rounded border p-4"
 					>
 						<div className="flex items-center justify-between">
-							<p className="text-sm font-semibold">Custom field {index + 1}</p>
+							<p className="mb-0 text-sm font-semibold">
+								Custom field {index + 1}
+							</p>
 							<Button
 								type="button"
 								variant="ghost"
@@ -157,7 +172,7 @@ export function FormBuilderPanel({
 								<Trash2 className="size-4" />
 							</Button>
 						</div>
-						<div className="grid gap-3 sm:grid-cols-2">
+						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 							<div className="space-y-2">
 								<Label htmlFor={`builder-field-${index}-label`}>Label</Label>
 								<Input
@@ -179,7 +194,7 @@ export function FormBuilderPanel({
 									className={fieldErrors[index] ? "border-destructive" : ""}
 								/>
 								{fieldErrors[index] ? (
-									<p className="text-xs text-destructive-text">
+									<p className="mb-0 text-xs text-destructive-text">
 										{fieldErrors[index]}
 									</p>
 								) : null}
@@ -198,7 +213,7 @@ export function FormBuilderPanel({
 									<SelectContent>
 										{fieldTypes.map((type) => (
 											<SelectItem key={type} value={type}>
-												{type}
+												{FIELD_TYPE_LABELS[type]}
 											</SelectItem>
 										))}
 									</SelectContent>

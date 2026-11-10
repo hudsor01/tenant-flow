@@ -1,5 +1,54 @@
 import { describe, expect, it } from "vitest";
-import { computeColumnWidths, sanitizeSheetName } from "../generate-excel";
+import {
+	buildSectionSheetData,
+	computeColumnWidths,
+	sanitizeSheetName,
+} from "../generate-excel";
+
+// An empty table said "No data for the selected period." under every
+// heading, a to-date or last-12-months section included, and above a note
+// saying the table could not be loaded (cycle 2, F122).
+describe("an empty table's sheet", () => {
+	it("says what its builder says for it", () => {
+		expect(
+			buildSectionSheetData({
+				heading: "By Status (to date)",
+				table: {
+					headers: ["Status", "Count"],
+					rows: [],
+					emptyText: "No requests to date.",
+				},
+			}),
+		).toEqual([
+			["By Status (to date)"],
+			[],
+			["Status", "Count"],
+			["No requests to date."],
+		]);
+	});
+
+	it("says nothing of its own when its note says why it is empty", () => {
+		expect(
+			buildSectionSheetData({
+				heading: "Vendor Spend to Date",
+				table: {
+					headers: ["Vendor", "Jobs", "Total Spend"],
+					rows: [],
+					emptyText: null,
+				},
+				note: "This table couldn't be loaded, so it lists nothing here. Try generating the report again.",
+			}),
+		).toEqual([
+			["Vendor Spend to Date"],
+			[],
+			["Vendor", "Jobs", "Total Spend"],
+			[],
+			[
+				"Note: This table couldn't be loaded, so it lists nothing here. Try generating the report again.",
+			],
+		]);
+	});
+});
 
 describe("sanitizeSheetName", () => {
 	it("strips Excel-forbidden chars [ ] : * ? / \\", () => {

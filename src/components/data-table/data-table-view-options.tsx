@@ -44,7 +44,7 @@ export function DataTableViewOptions<TData>({
 		<Popover>
 			<PopoverTrigger asChild>
 				<Button
-					aria-label="Toggle columns"
+					aria-label="View columns"
 					role="combobox"
 					variant="outline"
 					size="sm"
@@ -56,7 +56,7 @@ export function DataTableViewOptions<TData>({
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent className="w-44 p-0" {...props}>
-				<Command>
+				<Command label="Search columns">
 					<CommandInput placeholder="Search columns..." />
 					<CommandList>
 						<CommandEmpty>No columns found.</CommandEmpty>

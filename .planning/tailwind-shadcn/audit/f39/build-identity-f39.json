@@ -1,0 +1,79 @@
+{
+	"purpose": "Fix round 2 changed no application source (f39/fix-round-2-paths.json). This proves the served app is unchanged, so the screenshot, component-probe and CSP-manifest evidence measured on the 4433ca833 build (f39/screens-diff-f39.json, f39/probes-diff-f39.json, f39/csp-f39.json) carries forward to f8de0175e.",
+	"method": "One worktree, one node_modules, one .next cache, one session (2026-11-04). For b628eb9f1 and 4433ca833 the non-.planning paths that differ from f8de0175e (42 and 44) were set to that commit's content in the worktree only (git restore --source=<sha> --worktree; the 3 added files removed; git diff <sha> -- . :(exclude).planning printed nothing), the audit and the capture build ran, and every path was restored from HEAD (git status clean). Build: NEXT_PUBLIC_APP_URL=http://localhost:3062 SKIP_ENV_VALIDATION=true NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder bun run build. Hash: every file of .next/static (the browser bundle, its 2 CSS chunks included), .next/server (route bundles, prerendered pages, server manifests) and the top-level .next/*.json manifests, with the random BUILD_ID replaced by <BUILD_ID> in paths and contents, as path<TAB>sha256 lines (5002 files); manifestSha256 is the sha256 of those lines. No build was copied.",
+	"compiledCss": {
+		"b628eb9f1": "de12912060d9f1892b0c130aa3ed3b4e6ca1f7f81dda0b86f4f137a575f274d0",
+		"4433ca833": "de12912060d9f1892b0c130aa3ed3b4e6ca1f7f81dda0b86f4f137a575f274d0",
+		"f8de0175e": "de12912060d9f1892b0c130aa3ed3b4e6ca1f7f81dda0b86f4f137a575f274d0"
+	},
+	"compiledCssNote": "audit.mjs compiled.css (Tailwind source detection exactly as @tailwindcss/postcss does it); f8de0175e scans 938 files, one more than b628eb9f1 (src/test/utils/regexp-source.ts), with identical valid candidates",
+	"builds": [
+		{
+			"tree": "b628eb9f1",
+			"exit": 0,
+			"buildId": "hsyxmZau3jMu4P-7l9MT-",
+			"files": 5002,
+			"staticPages": 276,
+			"manifestSha256": "68fe080ba93b6396d46eba2b6f70c14be9083736203bc601ee8727a8d7c1acbf"
+		},
+		{
+			"tree": "4433ca833",
+			"exit": 0,
+			"buildId": "G_901rACNjIQ7A9akMhwI",
+			"files": 5002,
+			"staticPages": 276,
+			"manifestSha256": "68fe080ba93b6396d46eba2b6f70c14be9083736203bc601ee8727a8d7c1acbf"
+		},
+		{
+			"tree": "f8de0175e",
+			"exit": 0,
+			"buildId": "G7JbV6FzY8LNla6PmYg4o",
+			"files": 5002,
+			"staticPages": 276,
+			"manifestSha256": "68fe080ba93b6396d46eba2b6f70c14be9083736203bc601ee8727a8d7c1acbf"
+		},
+		{
+			"tree": "f8de0175e",
+			"exit": 0,
+			"buildId": "u0ENmcL1A6QLG3GtjIIe3",
+			"files": 5002,
+			"staticPages": 276,
+			"manifestSha256": "68fe080ba93b6396d46eba2b6f70c14be9083736203bc601ee8727a8d7c1acbf",
+			"note": "rebuilt after the positive control (determinism)"
+		},
+		{
+			"tree": "f8de0175e",
+			"exit": 0,
+			"buildId": "mX1421BwvdbXHGSS8JPAs",
+			"files": 5002,
+			"staticPages": 276,
+			"manifestSha256": "68fe080ba93b6396d46eba2b6f70c14be9083736203bc601ee8727a8d7c1acbf",
+			"note": "rebuilt after the 4433ca833 build; the build the E2E run and the CSP probe served"
+		}
+	],
+	"comparisons": [
+		{
+			"a": "b628eb9f1",
+			"b": "f8de0175e",
+			"differingFiles": 0
+		},
+		{
+			"a": "4433ca833",
+			"b": "f8de0175e",
+			"differingFiles": 0
+		},
+		{
+			"a": "f8de0175e",
+			"b": "f8de0175e (rebuilds)",
+			"differingFiles": 0
+		}
+	],
+	"positiveControl": {
+		"change": "src/app/(owner)/reports/statement-basis-note.tsx BlurFade delay 0.4 -> 0.5 (worktree only, restored from HEAD)",
+		"exit": 0,
+		"manifestSha256": "6d86a033e3d82fc9d61d8055faf0d9bc60abba44cfe5ae0e04a6b391778ec68c",
+		"differingFiles": 13,
+		"note": "6 server app files, 4 SSR chunks, 3 browser chunks"
+	},
+	"staticPagesNote": "276 static pages: production now has 239 published posts (137 pages and 100 posts at the previous freeze); blog content is data, read at build time, and was the same for every build here"
+}

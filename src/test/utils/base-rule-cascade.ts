@@ -1,7 +1,8 @@
 /**
  * A jsdom harness that decides whether a rendered list or paragraph ACTUALLY
  * defeats the unscoped `ul, ol`, `li` and `p` base rules in `globals.css` — by
- * reading the computed value, never the class string.
+ * reading the computed value, never the class string — and whether the base
+ * anchor rules reach a rendered link at all (`computeAnchorRuleReach`).
  *
  * NOT A BARREL FILE. Everything below is declared here and nothing is
  * re-exported (CLAUDE.md zero-tolerance rule 2).
@@ -31,9 +32,10 @@
  *     passing against nothing.
  *
  * WHAT IT DOES NOT PROVE. Not Tailwind's real emitted CSS, not `@layer` order,
- * not geometry, and not the unlayered `@media (max-width: 768px)` block at
- * `globals.css:1536`. Those stay with plan 66-17's Playwright rows E-17, E-18
- * and E-20, which measure a real browser against the compiled bundle.
+ * not geometry, and not the `@layer base` touch-target rule under
+ * `@media (width < 48rem)` (D-08). Those stay with plan 66-17's Playwright
+ * rows E-17, E-18 and E-20, which measure a real browser against the compiled
+ * bundle.
  */
 
 import { readFileSync } from "node:fs";
@@ -258,5 +260,87 @@ export function computeParagraphCascade(
 	} finally {
 		probe.remove();
 		style.remove();
+	}
+}
+
+/**
+ * The base anchor rules' selector: `a` and its `:not(…)` guards (none nests a
+ * parenthesis), as `extractBaseRuleSelectors` finds it in the normalized CSS.
+ */
+const ANCHOR_SELECTOR_SOURCE = "a(?::not\\(\\s*[^(){}]*?\\s*\\))+";
+
+export interface AnchorRuleReach {
+	/** The text-link rule (`color` and a transparent underline) matches. */
+	rest: boolean;
+	/** The `:hover` rule (the underline's color, a faded color) would match. */
+	hover: boolean;
+	/** The same two for an unclassed `<a href>` in the same document. */
+	baseline: { rest: boolean; hover: boolean };
+}
+
+/**
+ * The rest and `:hover` selectors of the base anchor rules, read from
+ * `globals.css` at run time. Throws unless there is exactly one of each, so a
+ * second anchor rule cannot slip past the harness.
+ */
+function extractAnchorSelectors(): { rest: string; hover: string } {
+	const css = stripComments(readFileSync(GLOBALS_CSS_PATH, "utf8")).replace(
+		/\s+/g,
+		" ",
+	);
+	const pattern = new RegExp(
+		`[{}]\\s*(${ANCHOR_SELECTOR_SOURCE})(:hover)?\\s*\\{`,
+		"g",
+	);
+	const rest: string[] = [];
+	const hover: string[] = [];
+	for (const match of css.matchAll(pattern)) {
+		(match[2] ? hover : rest).push(match[1] ?? "");
+	}
+	const restSelector = rest[0];
+	const hoverSelector = hover[0];
+	if (
+		rest.length !== 1 ||
+		hover.length !== 1 ||
+		restSelector === undefined ||
+		hoverSelector === undefined
+	) {
+		throw new Error(
+			`base-rule-cascade: expected one base anchor rule and one :hover rule in globals.css, found ${rest.length} and ${hover.length}`,
+		);
+	}
+	return { rest: restSelector, hover: hoverSelector };
+}
+
+/**
+ * Whether the base anchor rules reach `anchor`, decided by the browser's own
+ * selector matching against the selectors in `globals.css`: the guards are
+ * attribute and class tests, which jsdom matches exactly. The `:hover` rule is
+ * matched without its `:hover`, i.e. as it applies once the pointer is over the
+ * link. The unclassed probe is the positive control: a harness that read the
+ * wrong rule would leave it unmatched.
+ *
+ * WHY MATCHING, NOT COMPUTED VALUES. jsdom resolves neither `var()` nor the
+ * `text-decoration` shorthand into the longhands a browser reports, so a
+ * computed `color` or `text-decoration-line` here would not be the value Chrome
+ * paints; whether the rule applies at all is exactly decidable.
+ */
+export function computeAnchorRuleReach(anchor: Element): AnchorRuleReach {
+	const tag = anchor.tagName.toLowerCase();
+	if (tag !== "a") {
+		throw new Error(`base-rule-cascade: expected an a, received <${tag}>`);
+	}
+	const { rest, hover } = extractAnchorSelectors();
+	const probe = anchor.ownerDocument.createElement("a");
+	probe.setAttribute("href", "/probe");
+	anchor.ownerDocument.body.appendChild(probe);
+	try {
+		return {
+			rest: anchor.matches(rest),
+			hover: anchor.matches(hover),
+			baseline: { rest: probe.matches(rest), hover: probe.matches(hover) },
+		};
+	} finally {
+		probe.remove();
 	}
 }

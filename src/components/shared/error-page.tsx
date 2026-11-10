@@ -19,12 +19,12 @@ export function ErrorPage({
 	dashboardHref = "/dashboard",
 }: ErrorPageProps) {
 	return (
-		<div className="flex min-h-[400px] w-full items-center justify-center p-8">
+		<div className="flex min-h-100 w-full items-center justify-center p-8">
 			<div className="flex max-w-md flex-col items-center gap-4 text-center">
 				<AlertCircle className="size-12 text-destructive" />
 				<div className="space-y-2">
 					<h2 className="typography-h4">Something went wrong</h2>
-					<p className="text-muted-foreground">
+					<p className="mb-0 text-muted-foreground">
 						An unexpected error occurred. Please try again.
 					</p>
 				</div>

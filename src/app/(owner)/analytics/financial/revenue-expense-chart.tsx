@@ -1,6 +1,13 @@
 import { DollarSign } from "lucide-react";
 import { useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import {
+	chartLineKey,
+	moneyAxisTick,
+	moneyTooltipFormatter,
+	SECOND_SERIES_DASH,
+	THIRD_SERIES_DASH,
+} from "#components/shared/chart-series";
 import { type ChartConfig, ChartContainer } from "#components/ui/chart";
 import {
 	ChartLegend,
@@ -24,10 +31,28 @@ import {
 } from "#components/ui/select";
 import type { MonthlyFinancialMetric } from "#types/analytics";
 
+/**
+ * get_revenue_trends_optimized's revenue is the month's lease rent_amount:
+ * scheduled rent, not money received, so its net is scheduled too. The three
+ * areas' strokes are solid, dashed and dotted, and the legend and tooltip
+ * keys draw each as it is drawn, so they differ by more than hue (WCAG 1.4.1).
+ */
 const revenueExpenseConfig = {
-	revenue: { label: "Revenue", color: "oklch(0.6 0.16 138)" },
-	expenses: { label: "Expenses", color: "oklch(0.75 0.08 20)" },
-	netIncome: { label: "Net Income", color: "oklch(0.64 0.19 162)" },
+	revenue: {
+		label: "Scheduled Rent",
+		color: "var(--color-success-text)",
+		icon: chartLineKey("var(--color-revenue)"),
+	},
+	expenses: {
+		label: "Expenses",
+		color: "var(--color-destructive-text)",
+		icon: chartLineKey("var(--color-expenses)", SECOND_SERIES_DASH),
+	},
+	netIncome: {
+		label: "Scheduled Net",
+		color: "var(--color-chart-1)",
+		icon: chartLineKey("var(--color-netIncome)", THIRD_SERIES_DASH),
+	},
 } satisfies ChartConfig;
 
 type RevenueExpenseChartProps = { data: MonthlyFinancialMetric[] };
@@ -59,9 +84,10 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 					<EmptyMedia variant="icon">
 						<DollarSign />
 					</EmptyMedia>
-					<EmptyTitle>No revenue data</EmptyTitle>
-					<EmptyDescription>
-						Revenue and expense data will appear once transactions are recorded
+					<EmptyTitle>No scheduled rent or expenses</EmptyTitle>
+					<EmptyDescription className="mb-0">
+						Each month&apos;s scheduled rent and expenses will appear once
+						leases and expenses are recorded
 					</EmptyDescription>
 				</EmptyHeader>
 			</Empty>
@@ -73,7 +99,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 			{chartData.length > 3 && (
 				<div className="flex justify-end">
 					<Select value={timeRange} onValueChange={setTimeRange}>
-						<SelectTrigger className="w-[160px]" aria-label="Select time range">
+						<SelectTrigger className="w-40" aria-label="Select time range">
 							<SelectValue placeholder="All time" />
 						</SelectTrigger>
 						<SelectContent>
@@ -135,12 +161,17 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 						tickMargin={8}
 						minTickGap={32}
 					/>
-					<YAxis tickLine={false} axisLine={false} />
+					<YAxis
+						tickLine={false}
+						axisLine={false}
+						tickFormatter={moneyAxisTick}
+					/>
 					<ChartTooltip
 						cursor={false}
 						content={
 							<ChartTooltipContent
 								labelFormatter={(value) => value}
+								formatter={moneyTooltipFormatter(revenueExpenseConfig)}
 								indicator="dot"
 							/>
 						}
@@ -150,6 +181,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 						dataKey="revenue"
 						fill="url(#fillRevenue)"
 						stroke="var(--color-revenue)"
+						strokeWidth={2}
 						stackId="a"
 					/>
 					<Area
@@ -157,6 +189,8 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 						dataKey="expenses"
 						fill="url(#fillExpenses)"
 						stroke="var(--color-expenses)"
+						strokeWidth={2}
+						strokeDasharray={SECOND_SERIES_DASH}
 						stackId="b"
 					/>
 					<Area
@@ -164,6 +198,8 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 						dataKey="netIncome"
 						fill="url(#fillNetIncome)"
 						stroke="var(--color-netIncome)"
+						strokeWidth={2}
+						strokeDasharray={THIRD_SERIES_DASH}
 					/>
 					<ChartLegend content={<ChartLegendContent />} />
 				</AreaChart>

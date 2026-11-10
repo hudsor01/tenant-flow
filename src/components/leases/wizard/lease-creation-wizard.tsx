@@ -20,10 +20,12 @@ import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
 import { assertNever } from "#lib/assert-never";
 import { omitUndefined } from "#lib/db-insert";
+import { DiagnosticError } from "#lib/diagnostic-error";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
-import { cn } from "#lib/utils";
 import type {
 	LeaseDetailsStepData,
 	SelectionStepData,
@@ -142,7 +144,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 			};
 			for (const [k, v] of Object.entries(requiredCheck)) {
 				if (v === undefined || v === null) {
-					throw new Error(`Lease draft missing required field: ${k}`);
+					throw new DiagnosticError(`Lease draft missing required field: ${k}`);
 				}
 			}
 			const insertPayload = omitUndefined({
@@ -168,7 +170,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 				.insert(insertPayload)
 				.select("id")
 				.single();
-			if (error) throw new Error(error.message || "Failed to create lease");
+			if (error) handlePostgrestError(error, "leases");
 			return data;
 		},
 		onSuccess: (data) => {
@@ -180,9 +182,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 			}
 		},
 		onError: (error) => {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to create lease",
-			);
+			handleMutationError(error, "Create lease");
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() });
@@ -264,9 +264,10 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 				onStepChange={advanceTo}
 			/>
 
+			{/* The v4 Card pads itself (py-6): a v3 pt-6 here doubled the top. */}
 			<Card>
-				<CardContent className="pt-6">
-					<div className="min-h-[400px]">
+				<CardContent>
+					<div className="min-h-100">
 						{currentStep === "selection" && (
 							<SelectionStep
 								data={selectionData}
@@ -307,12 +308,11 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 				</CardContent>
 			</Card>
 
-			<div
-				className={cn(
-					"flex items-center",
-					isFirstStep ? "justify-end" : "justify-between",
-				)}
-			>
+			{/* The step controls wrap: at 320px Previous and Create Draft Lease
+			    (180.45px, which buttons never shrink) did not fit one line, and
+			    the page scrolled sideways to 341px. The forward control keeps the
+			    right edge on its own line (66.2-39 fix round 4, Part 8e). */}
+			<div className="flex flex-wrap items-center gap-2">
 				{!isFirstStep && (
 					<Button
 						type="button"
@@ -328,6 +328,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 				{!isLastStep ? (
 					<Button
 						type="button"
+						className="ml-auto"
 						onClick={goToNextStep}
 						disabled={createLeaseMutation.isPending}
 					>
@@ -337,6 +338,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 				) : (
 					<Button
 						type="button"
+						className="ml-auto"
 						onClick={handleSubmit}
 						disabled={createLeaseMutation.isPending}
 					>

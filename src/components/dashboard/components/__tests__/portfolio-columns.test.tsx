@@ -1,16 +1,17 @@
 /**
  * Pin the DT-03/DT-04/DT-05 + W-3 portfolio column-model contract.
  *
- * - Exports exactly 7 columns (property, units, tenant, status, rent, maintenance, actions).
- * - Sortable flags: property/units/status/rent sortable; tenant/maintenance/actions not.
+ * - Exports exactly 6 columns (property, units, occupancy, rent, maintenance, actions):
+ *   no tenants column, which repeated the occupied units as "N tenants" (66.2-39).
+ * - Sortable flags: property/units/occupancy/rent sortable; maintenance/actions not.
  * - W-3: the Property filterFn matches NAME or ADDRESS (case-insensitive substring),
  *   so an address-only match passes and a no-match fails (search-parity guard).
- * - DT-04: status column is faceted-filterable (enableColumnFilter + meta.variant +
- *   meta.options active/expiring/vacant).
+ * - DT-04: the occupancy column is faceted-filterable (enableColumnFilter +
+ *   meta.variant + meta.options occupied/partly-vacant/vacant/no-units).
  * - DT-05: every column has meta.label; actions is enableHiding:false.
  * - B-1: rendered through a real table whose <th> carry aria-sort={getAriaSort(column)},
  *   the sortable header's <th role=columnheader> exposes aria-sort (NOT the inner button);
- *   cells render formatCurrency rent, occupied/total units, "--" for null tenant.
+ *   cells render formatCurrency rent, occupied/total units, "--" for no open request.
  */
 
 import {
@@ -35,9 +36,7 @@ function makeRow(overrides: Partial<PortfolioRow> = {}): PortfolioRow {
 		property: "Maple Court",
 		address: "123 Elm Street",
 		units: { occupied: 3, total: 4 },
-		tenant: "Jane Doe",
-		leaseStatus: "active",
-		leaseEnd: null,
+		occupancy: "occupied",
 		rent: 1850,
 		maintenanceOpen: 0,
 		...overrides,
@@ -92,14 +91,13 @@ function Harness({ row }: { row: PortfolioRow }) {
 }
 
 describe("portfolioColumns", () => {
-	it("exports 7 columns with the expected ids", () => {
-		expect(portfolioColumns).toHaveLength(7);
+	it("exports 6 columns with the expected ids, no tenants column", () => {
+		expect(portfolioColumns).toHaveLength(6);
 		const ids = portfolioColumns.map((c) => c.id);
 		expect(ids).toEqual([
 			"property",
 			"units",
-			"tenant",
-			"status",
+			"occupancy",
 			"rent",
 			"maintenance",
 			"actions",
@@ -109,9 +107,8 @@ describe("portfolioColumns", () => {
 	it("sets sortable flags correctly", () => {
 		expect(findColumn("property").enableSorting).toBe(true);
 		expect(findColumn("units").enableSorting).toBe(true);
-		expect(findColumn("status").enableSorting).toBe(true);
+		expect(findColumn("occupancy").enableSorting).toBe(true);
 		expect(findColumn("rent").enableSorting).toBe(true);
-		expect(findColumn("tenant").enableSorting).toBe(false);
 		expect(findColumn("maintenance").enableSorting).toBe(false);
 		expect(findColumn("actions").enableSorting).toBe(false);
 	});
@@ -197,29 +194,33 @@ describe("portfolioColumns", () => {
 		expect(filterFn(noMatch, "property", "zzz")).toBe(false);
 	});
 
-	it("status column is faceted-filterable (DT-04)", () => {
-		const status = findColumn("status");
-		expect(status.enableColumnFilter).toBe(true);
-		const variant = status.meta?.variant;
+	it("occupancy column is faceted-filterable from the one label map (DT-04)", () => {
+		const occupancy = findColumn("occupancy");
+		expect(occupancy.enableColumnFilter).toBe(true);
+		const variant = occupancy.meta?.variant;
 		expect(variant === "select" || variant === "multiSelect").toBe(true);
-		const optionValues = (status.meta?.options ?? []).map((o) => o.value);
-		expect(optionValues).toContain("active");
-		expect(optionValues).toContain("expiring");
-		expect(optionValues).toContain("vacant");
+		expect(occupancy.meta?.options).toEqual([
+			{ label: "Occupied", value: "occupied" },
+			{ label: "Partly vacant", value: "partly-vacant" },
+			{ label: "Vacant", value: "vacant" },
+			{ label: "No units", value: "no-units" },
+		]);
 	});
 
-	it("status filterFn includes rows whose status is in the selected values", () => {
-		const status = findColumn("status");
-		const filterFn = status.filterFn as (
+	it("occupancy filterFn includes rows whose occupancy is in the selected values", () => {
+		const occupancy = findColumn("occupancy");
+		const filterFn = occupancy.filterFn as (
 			row: Row<PortfolioRow>,
 			columnId: string,
 			value: unknown,
 		) => boolean;
-		const expiringRow = {
-			original: makeRow({ leaseStatus: "expiring" }),
+		const partlyVacantRow = {
+			original: makeRow({ occupancy: "partly-vacant" }),
 		} as Row<PortfolioRow>;
-		expect(filterFn(expiringRow, "status", ["expiring", "vacant"])).toBe(true);
-		expect(filterFn(expiringRow, "status", ["active"])).toBe(false);
+		expect(
+			filterFn(partlyVacantRow, "occupancy", ["partly-vacant", "vacant"]),
+		).toBe(true);
+		expect(filterFn(partlyVacantRow, "occupancy", ["occupied"])).toBe(false);
 	});
 
 	it("every column has meta.label and actions is not hideable (DT-05)", () => {
@@ -251,7 +252,7 @@ describe("portfolioColumns", () => {
 	});
 
 	it("renders cells + exposes aria-sort on the <th> (B-1)", () => {
-		render(<Harness row={makeRow({ tenant: null, rent: 1850 })} />);
+		render(<Harness row={makeRow({ maintenanceOpen: 0, rent: 1850 })} />);
 
 		// rent cell uses formatCurrency with 0 fraction digits.
 		const rentText = formatCurrency(1850, {
@@ -260,11 +261,22 @@ describe("portfolioColumns", () => {
 		});
 		expect(screen.getByText(rentText)).toBeInTheDocument();
 
-		// units cell renders occupied/total.
+		// units cell renders occupied/total, the row's only count of its units:
+		// no "Tenants" header and no "N tenants" cell beside it.
 		expect(screen.getByText("3/4")).toBeInTheDocument();
+		expect(screen.queryByRole("columnheader", { name: /tenants/i })).toBeNull();
+		expect(screen.queryByText(/\btenants?\b/i)).toBeNull();
 
-		// null tenant renders the muted "--" placeholder.
-		expect(screen.getByLabelText("No tenants")).toBeInTheDocument();
+		// no open request renders the muted "--" placeholder, hidden from
+		// assistive tech, beside sr-only text that says what it means. An
+		// aria-label on the role-less span would not be announced (66.2-39).
+		const placeholder = screen.getByText("No open requests");
+		expect(placeholder).toHaveClass("sr-only");
+		expect(placeholder.previousElementSibling).toHaveAttribute(
+			"aria-hidden",
+			"true",
+		);
+		expect(placeholder.parentElement).not.toHaveAttribute("aria-label");
 
 		// the sortable Property header's <th> exposes aria-sort (NOT the button).
 		const th = screen.getByRole("columnheader", { name: /property/i });

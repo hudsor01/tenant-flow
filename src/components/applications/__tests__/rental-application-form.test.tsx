@@ -121,10 +121,7 @@ function checkAttestation(): void {
 }
 
 function jsonResponse(body: unknown, status = 200): Response {
-	return {
-		status,
-		json: async () => body,
-	} as unknown as Response;
+	return Response.json(body, { status });
 }
 
 /**

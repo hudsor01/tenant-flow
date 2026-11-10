@@ -1,0 +1,41 @@
+{
+  "head": {
+    "exit": 0,
+    "fontRetry": false,
+    "tree": "git archive HEAD at 8361a45d8 (after the fix(66.2-29) commit)",
+    "firstRun": {
+      "commit": "e789b15b1 tree",
+      "exit": 0
+    }
+  },
+  "prew5": {
+    "exit": 0,
+    "fontRetry": false,
+    "tree": "git archive PRE_W5"
+  },
+  "control754": {
+    "exit": 0,
+    "fontRetry": false,
+    "tree": "git archive 754c91802 (CSP control)"
+  },
+  "envKeys": [
+    "E2E_OWNER_EMAIL",
+    "E2E_OWNER_PASSWORD",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    "NEXT_PUBLIC_SUPABASE_URL"
+  ],
+  "envKeysSource": "credential gate test -f .env.local (Execution mode; no printenv). Presence of the four names is witnessed by screens.mjs ownerCredentialsPresent() in all four runs (no owner.skipped, 48 owner captures each) and by 255 prerendered pages (blog posts present) in each build",
+  "envDelivery": "bun with-env.mjs from the worktree root; archive trees hold no .env file",
+  "inline": {
+    "NEXT_PUBLIC_APP_URL": "http://localhost:3062",
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_placeholder",
+    "SKIP_ENV_VALIDATION": "true"
+  },
+  "appUrlSet": true,
+  "blogSlug": "turbotenant-vs-apartments-com-complete-comparison-for-2025",
+  "staticPages": {
+    "head": 255,
+    "prew5": 255,
+    "control754": 255
+  }
+}

@@ -20,6 +20,8 @@ function tenant(
 		emergency_contact_relationship: null,
 		identity_verified: false,
 		ssn_last_four: null,
+		move_out_date: null,
+		move_out_reason: null,
 		updated_at: "2026-01-01T00:00:00Z",
 		name: "Alice Tenant",
 		email: "alice@example.com",

@@ -25,7 +25,7 @@ import {
  *   1. KPI numbers match get_dashboard_data_v2 (RPC-vs-DOM, not hardcoded)
  *   2. Occupancy donut matches stats.units
  *   3. DataTable sort (mouse + keyboard) flips aria-sort
- *   4. Faceted status filter writes the `status` nuqs param + Reset clears it
+ *   4. Faceted occupancy filter writes the `occupancy` nuqs param + Reset clears it
  *   5. Column-visibility toggle hides/restores a hideable column
  *   6. Preset save + restore (incl. survival across reload — DT-08)
  *   7. Grid/Table view toggle (aria-checked + the rendered surface)
@@ -44,9 +44,10 @@ import {
  */
 
 /**
- * Authenticate in-test, suppress the onboarding tour, and wait for a definitive
- * loaded marker (populated heading OR empty-state title). Mirrors
- * dashboard-a11y.e2e.spec.ts gotoAuthedDashboard.
+ * Authenticate in-test, suppress the onboarding tour, and wait for the terminal
+ * data state the RPC predicts (the KPI row OR the empty-state title). It
+ * follows `gotoAuthedDashboard` in `lib/authed-dashboard.ts` up to the reload,
+ * then waits for that one predicted marker rather than accepting either.
  */
 async function gotoAuthedDashboard(page: Page): Promise<void> {
 	await loginAsOwner(page);
@@ -179,8 +180,9 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 			return;
 		}
 
-		// Revenue tile formats with 0 fraction digits; compare the rounded dollars.
-		expect(await readKpiTileNumber(page, "Revenue")).toBe(
+		// The scheduled rent tile formats with 0 fraction digits; compare the
+		// rounded dollars.
+		expect(await readKpiTileNumber(page, "Scheduled Rent")).toBe(
 			Math.round(stats.revenue.monthly),
 		);
 		// Occupancy tile renders stats.units.occupancyRate (rounded by safeOccupancy).
@@ -256,7 +258,7 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 		await expect(propertyHeader).toHaveAttribute("aria-sort", "descending");
 	});
 
-	test("faceted status filter writes the status param and Reset clears it", async ({
+	test("faceted occupancy filter writes the occupancy param and Reset clears it", async ({
 		page,
 	}) => {
 		if (await isEmptyState(page)) {
@@ -265,20 +267,24 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 		}
 		await ensureTableView(page);
 
-		// Open the Status faceted filter and select "Vacant". `exact: true` is
-		// required: the portfolio table also renders a "Lease Status" column-header
-		// button, so a substring "Status" match is a strict-mode violation.
-		await page.getByRole("button", { name: "Status", exact: true }).click();
-		await page.getByRole("option", { name: "Vacant" }).click();
+		// Open the Occupancy faceted filter and select "Vacant". The column
+		// header is an "Occupancy" button too (a sort menu, aria-haspopup="menu");
+		// the filter is the popover trigger (aria-haspopup="dialog").
+		await page
+			.getByRole("button", { name: "Occupancy", exact: true })
+			.and(page.locator('[aria-haspopup="dialog"]'))
+			.click();
+		// `exact`: "Partly vacant" is an option too.
+		await page.getByRole("option", { name: "Vacant", exact: true }).click();
 		// Close the popover so the URL settles and the toolbar Reset surfaces.
 		await page.keyboard.press("Escape");
 
-		await expect(page).toHaveURL(/[?&]status=/);
+		await expect(page).toHaveURL(/[?&]occupancy=/);
 		const reset = page.getByRole("button", { name: "Reset filters" });
 		await expect(reset).toBeVisible();
 
 		await reset.click();
-		await expect(page).not.toHaveURL(/[?&]status=/);
+		await expect(page).not.toHaveURL(/[?&]occupancy=/);
 	});
 
 	test("column-visibility toggle hides and restores a column", async ({
@@ -293,8 +299,8 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 		const maintenanceHeader = columnHeader(page, "Maintenance");
 		await expect(maintenanceHeader).toBeVisible();
 
-		// Open the DataTableViewOptions popover (combobox "Toggle columns").
-		const viewOptions = page.getByRole("combobox", { name: "Toggle columns" });
+		// Open the DataTableViewOptions popover (combobox "View columns").
+		const viewOptions = page.getByRole("combobox", { name: "View columns" });
 		await viewOptions.click();
 		await page.getByRole("option", { name: "Maintenance" }).click();
 		await page.keyboard.press("Escape");
@@ -322,11 +328,15 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 
 		// Save a uniquely-named preset.
 		const presetName = `smoke-${Date.now()}`;
+		// The name field is in the dialog the menu's "Save current view…" item
+		// opens; saving closes it.
 		await page.getByRole("button", { name: "Presets" }).click();
+		await page.getByRole("menuitem", { name: "Save current view…" }).click();
 		await page.getByLabel("Preset name").fill(presetName);
 		await page.getByRole("button", { name: "Save preset" }).click();
-		// Close the menu so the next interactions are unobstructed.
-		await page.keyboard.press("Escape");
+		await expect(
+			page.getByRole("dialog", { name: "Save current view" }),
+		).toHaveCount(0);
 
 		// Clear the filter and confirm the param is gone. The preset-save Zustand
 		// write can re-render/remount the toolbar right as fill() lands, dropping
@@ -340,7 +350,9 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 
 		// Re-open Presets and apply the saved preset — the filter must restore.
 		await page.getByRole("button", { name: "Presets" }).click();
-		await page.getByRole("menuitem", { name: presetName }).click();
+		// `exact`: each preset row is two menu items, apply (the preset's name)
+		// and "Delete preset <name>".
+		await page.getByRole("menuitem", { name: presetName, exact: true }).click();
 		await expect(page).toHaveURL(/[?&]property=a(?:[&]|$)/);
 		await expect(search).toHaveValue("a");
 
@@ -358,7 +370,7 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 		).toBeVisible({ timeout: 10000 });
 		await page.getByRole("button", { name: "Presets" }).click();
 		await expect(
-			page.getByRole("menuitem", { name: presetName }),
+			page.getByRole("menuitem", { name: presetName, exact: true }),
 		).toBeVisible();
 	});
 

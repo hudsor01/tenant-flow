@@ -64,13 +64,13 @@ export function ExpiringLeasesWidget() {
 			</CardHeader>
 			<CardContent>
 				{leases.length === 0 ? (
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						You&apos;re all caught up. New reminders will appear here 60 days
 						before each lease ends.
 					</p>
 				) : (
 					<>
-						<ul className="divide-y divide-border">
+						<ul className="divide-y divide-border pl-0 mt-0 mb-0 [&>li]:mb-0">
 							{leases.map((lease) => {
 								const days = daysUntil(lease.end_date);
 								const urgent = days <= 7;
@@ -78,14 +78,14 @@ export function ExpiringLeasesWidget() {
 									<li key={lease.id} className="py-3">
 										<Link
 											href={`/leases/${lease.id}`}
-											className="flex items-center justify-between gap-3 rounded-md -mx-2 px-2 py-1.5 transition-colors hover:bg-accent"
+											className="flex items-center justify-between gap-3 rounded-md -mx-2 px-2 py-1.5 transition-colors hover:bg-muted"
 										>
 											<div className="min-w-0 flex-1">
-												<p className="truncate text-sm font-medium text-foreground">
+												<p className="mb-0 truncate text-sm font-medium text-foreground">
 													{lease.tenant_name ?? "Tenant"}
 													{lease.unit_name ? ` · ${lease.unit_name}` : ""}
 												</p>
-												<p className="truncate text-xs text-muted-foreground">
+												<p className="mb-0 truncate text-xs text-muted-foreground">
 													{lease.property_name ?? "Property"} · ends{" "}
 													{formatDate(lease.end_date, {
 														formatOptions: {

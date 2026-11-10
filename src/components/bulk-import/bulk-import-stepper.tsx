@@ -67,7 +67,7 @@ export function BulkImportStepper<T>({
 	const indicatorCls = cn(
 		"size-9 rounded-lg transition-all duration-200",
 		"data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md",
-		"data-[state=completed]:bg-success data-[state=completed]:text-success-foreground",
+		"data-[state=completed]:bg-success/10 data-[state=completed]:text-success-text",
 		"data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground",
 	);
 
@@ -105,7 +105,10 @@ export function BulkImportStepper<T>({
 								<StepperIndicator className={indicatorCls}>
 									<step.icon className="size-4" />
 								</StepperIndicator>
-								<div className="flex flex-col items-start ml-3">
+								{/* Below sm the three steps' text does not fit beside their
+								    indicators (564px in a 308px dialog body at 390): it stays the
+								    triggers' accessible names, out of sight. */}
+								<div className="flex flex-col items-start ml-3 max-sm:sr-only">
 									<StepperTitle className="text-sm font-semibold">
 										{step.title}
 									</StepperTitle>
@@ -115,7 +118,7 @@ export function BulkImportStepper<T>({
 								</div>
 							</StepperTrigger>
 							{step.hasSep && (
-								<StepperSeparator className="mx-2 data-[state=completed]:bg-success" />
+								<StepperSeparator className="mx-2 data-[state=completed]:bg-success-text" />
 							)}
 						</StepperItem>
 					))}
@@ -168,7 +171,7 @@ export function BulkImportStepper<T>({
 						variant="outline"
 						onClick={handleBack}
 						disabled={isImporting}
-						className="gap-2 hover:bg-muted/50"
+						className="gap-2 hover:bg-muted/50 dark:hover:bg-muted/50"
 					>
 						<ArrowLeft className="size-4" />
 						{currentStep === "validate" ? "Back" : "Cancel"}

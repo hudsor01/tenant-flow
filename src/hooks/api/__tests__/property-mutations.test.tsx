@@ -356,9 +356,14 @@ describe("useDeletePropertyImageMutation", () => {
 	});
 
 	it("should throw error when database delete fails", async () => {
-		mockSupabaseEq.mockResolvedValue({
-			error: { message: "DB delete failed" },
+		// The PostgREST error goes through handlePostgrestError (which rethrows
+		// it, code intact) rather than being rewrapped in a plain Error that
+		// drops its code (66.2-39 fix round 4, Part 5d).
+		const dbError = { message: "DB delete failed", code: "42501" };
+		mockHandlePostgrestError.mockImplementation((error: unknown) => {
+			throw error;
 		});
+		mockSupabaseEq.mockResolvedValue({ error: dbError });
 
 		const { result } = renderHook(() => useDeletePropertyImageMutation(), {
 			wrapper: createWrapper(),
@@ -371,7 +376,11 @@ describe("useDeletePropertyImageMutation", () => {
 				imageId: "img-123",
 				property_id: "prop-123",
 			}),
-		).rejects.toMatchObject({ message: "DB delete failed" });
+		).rejects.toMatchObject({ message: "DB delete failed", code: "42501" });
+		expect(mockHandlePostgrestError).toHaveBeenCalledWith(
+			dbError,
+			"delete property image",
+		);
 	});
 
 	it("should not fail when storage delete fails (non-blocking)", async () => {

@@ -17,8 +17,15 @@ import {
 	SelectValue,
 } from "#components/ui/select";
 import { Textarea } from "#components/ui/textarea";
+import {
+	MOVE_OUT_NOTES_MAX_LENGTH,
+	MOVE_OUT_REASON_LABELS,
+} from "#lib/constants/status-types";
+import { pluralNoun } from "#lib/formatters/count";
 
 interface MoveOutDialogProps {
+	/** The tenant the confirmation names. */
+	tenantName: string | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	moveOutDate: string;
@@ -42,15 +49,25 @@ export function MoveOutDialog({
 	onAdditionalNotesChange,
 	isPending,
 	onSubmit,
+	tenantName,
 }: MoveOutDialogProps) {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Mark Tenant as Moved Out</DialogTitle>
-					<DialogDescription>
-						This will mark the tenant as moved out and remove them from active
-						listings. All data will be retained for legal compliance.
+					<DialogTitle>
+						{tenantName
+							? `Mark ${tenantName} as moved out?`
+							: "Mark this tenant as moved out?"}
+					</DialogTitle>
+					{/* One UPDATE: the status becomes moved_out and the date and
+					    reason (`slug` or `slug: notes`) are saved on the tenant,
+					    whose page shows them; the tenant lists show the tenant
+					    (they hide only 'inactive'), and the leases are untouched. */}
+					<DialogDescription className="mb-0">
+						This changes the tenant's status to Moved out and saves the date,
+						reason and notes on their page. They stay in your tenant list, and
+						their leases are kept.
 					</DialogDescription>
 				</DialogHeader>
 
@@ -73,14 +90,11 @@ export function MoveOutDialog({
 								<SelectValue placeholder="Select reason" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="lease_expired">Lease Expired</SelectItem>
-								<SelectItem value="early_termination">
-									Early Termination
-								</SelectItem>
-								<SelectItem value="eviction">Eviction</SelectItem>
-								<SelectItem value="purchase">Purchased Property</SelectItem>
-								<SelectItem value="relocation">Relocation</SelectItem>
-								<SelectItem value="other">Other</SelectItem>
+								{Object.entries(MOVE_OUT_REASON_LABELS).map(([slug, label]) => (
+									<SelectItem key={slug} value={slug}>
+										{label}
+									</SelectItem>
+								))}
 							</SelectContent>
 						</Select>
 					</div>
@@ -93,7 +107,16 @@ export function MoveOutDialog({
 							onChange={(e) => onAdditionalNotesChange(e.target.value)}
 							placeholder="Any additional details..."
 							rows={3}
+							maxLength={MOVE_OUT_NOTES_MAX_LENGTH}
+							aria-describedby="additionalNotesHint"
 						/>
+						<p
+							id="additionalNotesHint"
+							className="mb-0 text-xs text-muted-foreground"
+						>
+							Up to {MOVE_OUT_NOTES_MAX_LENGTH.toLocaleString("en-US")}{" "}
+							{pluralNoun(MOVE_OUT_NOTES_MAX_LENGTH, "character")}.
+						</p>
 					</div>
 				</div>
 

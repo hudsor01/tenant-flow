@@ -41,7 +41,6 @@ export interface UnitStats {
 	averageRent: number;
 	available: number;
 	occupancyRate: number;
-	occupancyChange: number; // Period-over-period occupancy rate change percentage
 	totalPotentialRent: number;
 	totalActualRent: number;
 }
@@ -120,7 +119,6 @@ export interface DashboardStats {
 	revenue: {
 		monthly: number;
 		yearly: number;
-		growth: number;
 	};
 
 	totalProperties?: number;

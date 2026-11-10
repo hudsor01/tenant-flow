@@ -18,7 +18,7 @@ export function BlogCard({ post, className }: BlogCardProps) {
 				className,
 			)}
 		>
-			<div className="relative aspect-[16/10] overflow-hidden">
+			<div className="relative aspect-16/10 overflow-hidden">
 				{/* Posts without a curated featured_image fall back to the generated
 				    per-post cover (/api/og/blog/[slug]): category-themed palette +
 				    slug-hashed composition — unique, on-brand art for every post
@@ -48,7 +48,7 @@ export function BlogCard({ post, className }: BlogCardProps) {
 				</h3>
 
 				{post.excerpt && (
-					<p className="line-clamp-3 text-sm text-muted-foreground">
+					<p className="mb-0 line-clamp-3 text-sm text-muted-foreground">
 						{post.excerpt}
 					</p>
 				)}

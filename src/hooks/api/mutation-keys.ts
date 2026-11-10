@@ -13,10 +13,7 @@ export const mutationKeys = {
 		create: ["mutations", "properties", "create"] as const,
 		update: ["mutations", "properties", "update"] as const,
 		delete: ["mutations", "properties", "delete"] as const,
-		markSold: ["mutations", "properties", "markSold"] as const,
-		uploadImage: ["mutations", "properties", "uploadImage"] as const,
 		deleteImage: ["mutations", "properties", "deleteImage"] as const,
-		reorderImages: ["mutations", "properties", "reorderImages"] as const,
 	},
 
 	// Tenants
@@ -25,18 +22,12 @@ export const mutationKeys = {
 		update: ["mutations", "tenants", "update"] as const,
 		delete: ["mutations", "tenants", "delete"] as const,
 		markMovedOut: ["mutations", "tenants", "markMovedOut"] as const,
-		updateNotificationPreferences: [
-			"mutations",
-			"tenants",
-			"updateNotificationPreferences",
-		] as const,
 	},
 
 	// Leases
 	leases: {
 		create: ["mutations", "leases", "create"] as const,
 		update: ["mutations", "leases", "update"] as const,
-		delete: ["mutations", "leases", "delete"] as const,
 		sign: ["mutations", "leases", "sign"] as const,
 		sendForSignature: ["mutations", "leases", "sendForSignature"] as const,
 		cancelSignature: ["mutations", "leases", "cancelSignature"] as const,
@@ -51,10 +42,6 @@ export const mutationKeys = {
 		create: ["mutations", "maintenance", "create"] as const,
 		update: ["mutations", "maintenance", "update"] as const,
 		delete: ["mutations", "maintenance", "delete"] as const,
-		complete: ["mutations", "maintenance", "complete"] as const,
-		assign: ["mutations", "maintenance", "assign"] as const,
-		addComment: ["mutations", "maintenance", "addComment"] as const,
-		updateStatus: ["mutations", "maintenance", "updateStatus"] as const,
 		uploadPhoto: ["mutations", "maintenance", "uploadPhoto"] as const,
 		deletePhoto: ["mutations", "maintenance", "deletePhoto"] as const,
 	},
@@ -64,15 +51,12 @@ export const mutationKeys = {
 		create: ["mutations", "units", "create"] as const,
 		update: ["mutations", "units", "update"] as const,
 		delete: ["mutations", "units", "delete"] as const,
-		bulkCreate: ["mutations", "units", "bulkCreate"] as const,
 	},
 
 	// Documents
 	documents: {
-		create: ["mutations", "documents", "create"] as const,
 		delete: ["mutations", "documents", "delete"] as const,
 		upload: ["mutations", "documents", "upload"] as const,
-		generatePdf: ["mutations", "documents", "generatePdf"] as const,
 	},
 
 	// Document Categories (v2.6 Phase 66)
@@ -89,26 +73,15 @@ export const mutationKeys = {
 
 	// Auth
 	auth: {
-		login: ["mutations", "auth", "login"] as const,
 		logout: ["mutations", "auth", "logout"] as const,
-		signup: ["mutations", "auth", "signup"] as const,
 		resetPassword: ["mutations", "auth", "resetPassword"] as const,
 		updatePassword: ["mutations", "auth", "updatePassword"] as const,
-		updateProfile: ["mutations", "auth", "updateProfile"] as const,
 	},
 
 	// Notifications
 	notifications: {
 		markRead: ["mutations", "notifications", "markRead"] as const,
 		markAllRead: ["mutations", "notifications", "markAllRead"] as const,
-		markBulkRead: ["mutations", "notifications", "markBulkRead"] as const,
-		delete: ["mutations", "notifications", "delete"] as const,
-		sendTest: ["mutations", "notifications", "sendTest"] as const,
-		createMaintenance: [
-			"mutations",
-			"notifications",
-			"createMaintenance",
-		] as const,
 	},
 
 	// Profile
@@ -117,16 +90,6 @@ export const mutationKeys = {
 		uploadAvatar: ["mutations", "profile", "uploadAvatar"] as const,
 		deleteAvatar: ["mutations", "profile", "deleteAvatar"] as const,
 		updatePhone: ["mutations", "profile", "updatePhone"] as const,
-		updateEmergencyContact: [
-			"mutations",
-			"profile",
-			"updateEmergencyContact",
-		] as const,
-		deleteEmergencyContact: [
-			"mutations",
-			"profile",
-			"deleteEmergencyContact",
-		] as const,
 	},
 
 	// MFA
@@ -139,12 +102,6 @@ export const mutationKeys = {
 	// Sessions
 	sessions: {
 		revoke: ["mutations", "sessions", "revoke"] as const,
-	},
-
-	// Expenses
-	expenses: {
-		create: ["mutations", "expenses", "create"] as const,
-		delete: ["mutations", "expenses", "delete"] as const,
 	},
 
 	// Rent ledger (v10.0 Phase 55) — append-only bookkeeping. `reverseEntry`
@@ -176,14 +133,11 @@ export const mutationKeys = {
 
 	// Reports
 	reports: {
-		delete: ["mutations", "reports", "delete"] as const,
-		download: ["mutations", "reports", "download"] as const,
-		downloadYearEndCsv: [
+		exportFinancialAnalytics: [
 			"mutations",
 			"reports",
-			"download-year-end-csv",
+			"export-financial-analytics",
 		] as const,
-		download1099Csv: ["mutations", "reports", "download-1099-csv"] as const,
 		downloadYearEndPdf: [
 			"mutations",
 			"reports",
@@ -198,10 +152,6 @@ export const mutationKeys = {
 
 	// Subscriptions
 	subscriptions: {
-		create: ["mutations", "subscriptions", "create"] as const,
-		update: ["mutations", "subscriptions", "update"] as const,
-		pause: ["mutations", "subscriptions", "pause"] as const,
-		resume: ["mutations", "subscriptions", "resume"] as const,
 		cancel: ["mutations", "subscriptions", "cancel"] as const,
 		reactivate: ["mutations", "subscriptions", "reactivate"] as const,
 	},
@@ -209,13 +159,6 @@ export const mutationKeys = {
 	// Owner Notification Settings
 	ownerNotificationSettings: {
 		update: ["mutations", "ownerNotificationSettings", "update"] as const,
-	},
-
-	// Emergency Contact (tenant-side)
-	emergencyContact: {
-		create: ["mutations", "emergencyContact", "create"] as const,
-		update: ["mutations", "emergencyContact", "update"] as const,
-		delete: ["mutations", "emergencyContact", "delete"] as const,
 	},
 
 	// Emergency Contact (owner-side, public.users)

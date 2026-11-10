@@ -10,6 +10,10 @@
  *   bun scripts/assert-migration-replay.ts applied <expected> <applied>
  *   bun scripts/assert-migration-replay.ts no-network <wrappers> <server> <tables>
  *   bun scripts/assert-migration-replay.ts test-cast   # rows on stdin
+ *   bun scripts/assert-migration-replay.ts billing-insights   # JSON on stdin
+ *   bun scripts/assert-migration-replay.ts property-performance   # JSON on stdin
+ *   bun scripts/assert-migration-replay.ts owner-figures   # JSON on stdin
+ *   bun scripts/assert-migration-replay.ts blog-banlist   # JSON on stdin
  *
  * Exit 0 on success, 1 on a failed assertion (with a GitHub `::error::`
  * annotation), 2 on misuse.
@@ -21,15 +25,23 @@ import {
 	warningAnnotation,
 } from "./assertion-result";
 import {
+	assertBillingInsightsFromLedger,
+	assertBlogBanlistGate,
 	assertEveryMigrationApplied,
 	assertNoMigrationReachedTheNetwork,
+	assertOwnerFiguresComputed,
+	assertPropertyPerformanceRentReceived,
 	assertSeededCast,
 } from "./migration-replay-assertions";
 
 const USAGE = `usage:
   bun scripts/assert-migration-replay.ts applied <expected> <applied>
   bun scripts/assert-migration-replay.ts no-network <wrappers> <server> <tables>
-  bun scripts/assert-migration-replay.ts test-cast   # rows on stdin`;
+  bun scripts/assert-migration-replay.ts test-cast   # rows on stdin
+  bun scripts/assert-migration-replay.ts billing-insights   # JSON on stdin
+  bun scripts/assert-migration-replay.ts property-performance   # JSON on stdin
+  bun scripts/assert-migration-replay.ts owner-figures   # JSON on stdin
+  bun scripts/assert-migration-replay.ts blog-banlist   # JSON on stdin`;
 
 function finish(result: AssertionResult): never {
 	if (!result.ok) {
@@ -81,5 +93,17 @@ if (subcommand === "no-network") {
 if (subcommand === "test-cast") {
 	// fd 0, so this works the same under bun and node.
 	finish(assertSeededCast(readFileSync(0, "utf8")));
+}
+if (subcommand === "billing-insights") {
+	finish(assertBillingInsightsFromLedger(readFileSync(0, "utf8")));
+}
+if (subcommand === "property-performance") {
+	finish(assertPropertyPerformanceRentReceived(readFileSync(0, "utf8")));
+}
+if (subcommand === "owner-figures") {
+	finish(assertOwnerFiguresComputed(readFileSync(0, "utf8")));
+}
+if (subcommand === "blog-banlist") {
+	finish(assertBlogBanlistGate(readFileSync(0, "utf8")));
 }
 misuse(`unknown subcommand ${JSON.stringify(subcommand ?? "")}`);

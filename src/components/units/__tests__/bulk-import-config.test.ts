@@ -66,8 +66,8 @@ describe("unitBulkImportConfig", () => {
 			["101", "2", "1", "850", "1800", "available"],
 		]);
 		const result = config.parseAndValidate(csv);
-		const parsed = result.rows[0]?.parsed as unknown as Record<string, unknown>;
-		expect(parsed.property_id).toBe(PROPERTY_ID);
+		const parsed = result.rows[0]?.parsed;
+		expect(parsed?.property_id).toBe(PROPERTY_ID);
 	});
 
 	it("rejects an unknown status value (no silent coercion)", () => {

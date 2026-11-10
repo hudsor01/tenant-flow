@@ -1,0 +1,770 @@
+[
+  {
+    "label": "final-iso",
+    "capture": "owner/dashboard-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/properties-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/tenants-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/leases-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/applications-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/maintenance-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/documents-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/documents_lease-template-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/analytics_overview-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/reports_cash-flow-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/settings-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/dashboard-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/properties-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/tenants-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/leases-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/applications-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/maintenance-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/documents-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/documents_lease-template-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/analytics_overview-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/reports_cash-flow-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/settings-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/applications-light-375.png",
+    "width": 375,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/applications-light-320.png",
+    "width": 320,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/dashboard-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/properties-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/tenants-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/leases-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/applications-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/maintenance-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/documents-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/documents_lease-template-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/analytics_overview-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/reports_cash-flow-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/settings-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/dashboard-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/properties-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/tenants-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/leases-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/applications-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/maintenance-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/documents-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/documents_lease-template-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/analytics_overview-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/reports_cash-flow-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/settings-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/applications-dark-375.png",
+    "width": 375,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "final-iso",
+    "capture": "owner/applications-dark-320.png",
+    "width": 320,
+    "main": "visible",
+    "dock": "visible",
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/dashboard-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/properties-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/tenants-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/leases-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/applications-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/maintenance-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/documents-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/documents_lease-template-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/analytics_overview-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/reports_cash-flow-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/settings-light-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/dashboard-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/properties-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/tenants-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/leases-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/applications-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/maintenance-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/documents-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/documents_lease-template-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/analytics_overview-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/reports_cash-flow-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/settings-light-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/applications-light-375.png",
+    "width": 375,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/applications-light-320.png",
+    "width": 320,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/dashboard-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/properties-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/tenants-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/leases-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/applications-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/maintenance-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/documents-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/documents_lease-template-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/analytics_overview-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/reports_cash-flow-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/settings-dark-390.png",
+    "width": 390,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/dashboard-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/properties-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/tenants-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/leases-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/applications-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/maintenance-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/documents-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/documents_lease-template-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/analytics_overview-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/reports_cash-flow-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/settings-dark-1280.png",
+    "width": 1280,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/applications-dark-375.png",
+    "width": 375,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  },
+  {
+    "label": "w5-shell-iso",
+    "capture": "owner/applications-dark-320.png",
+    "width": 320,
+    "main": "visible",
+    "dock": null,
+    "preW6Dock": "visible"
+  }
+]

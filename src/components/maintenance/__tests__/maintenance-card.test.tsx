@@ -30,13 +30,10 @@ describe("MaintenanceCard", () => {
 		});
 
 		test("renders description when title is not present", () => {
-			// Arrange
-			// Use null since component uses ?? (nullish coalescing)
-			// Cast to unknown first since title is normally required
-			const requestWithoutTitle = {
-				...defaultRequest,
-				title: null as unknown as string,
-			};
+			// Arrange: a row whose select omitted `title` (the type says it is
+			// always there; the card still falls back, via `??`, at runtime).
+			const requestWithoutTitle = { ...defaultRequest };
+			Reflect.deleteProperty(requestWithoutTitle, "title");
 
 			// Act
 			render(<MaintenanceCard request={requestWithoutTitle} />);
@@ -69,20 +66,21 @@ describe("MaintenanceCard", () => {
 			expect(screen.getByText("Today")).toBeInTheDocument();
 		});
 
-		test("renders without property when property is null", () => {
-			// Arrange
+		test("renders without property when the list names none", () => {
+			// Arrange: no property or unit row was visible to the list's embed.
 			const requestWithoutProperty = {
 				...defaultRequest,
-				property: null,
-				unit: null,
-				unit_id: null as unknown as string,
+				propertyName: null,
+				unitNumber: null,
 			};
 
 			// Act
 			render(<MaintenanceCard request={requestWithoutProperty} />);
 
-			// Assert - shows "Unknown Property" as fallback (no unit suffix when unit_id is null)
+			// Assert - "Unknown Property", and no unit suffix: the unit's id is
+			// never shown in place of its number.
 			expect(screen.getByText("Unknown Property")).toBeInTheDocument();
+			expect(document.body.textContent).not.toContain(defaultRequest.unit_id);
 		});
 
 		test("renders with title even when description is empty", () => {
@@ -234,7 +232,7 @@ describe("MaintenanceCard", () => {
 			// Arrange
 			const requestWithTenant = {
 				...defaultRequest,
-				tenant: { name: "John Doe" },
+				tenantName: "John Doe",
 			};
 
 			// Act
@@ -245,10 +243,10 @@ describe("MaintenanceCard", () => {
 		});
 
 		test("does not show tenant section when tenant is not provided", () => {
-			// Arrange - default request has no tenant
+			// Arrange - no tenant name
 			const requestWithoutTenant = {
 				...defaultRequest,
-				tenant: null,
+				tenantName: null,
 			};
 
 			// Act

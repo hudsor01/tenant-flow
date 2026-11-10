@@ -180,7 +180,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 					<h1 className="text-responsive-display-xl font-bold tracking-tight">
 						The blog for independent landlords
 					</h1>
-					<p className="mt-4 text-lg text-muted-foreground">
+					<p className="mt-4 mb-0 text-lg text-muted-foreground">
 						Operational guides for leases, maintenance, tax season, and the
 						document vault.
 					</p>
@@ -195,10 +195,10 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 								<Link
 									key={cat.slug}
 									href={`/blog/category/${cat.slug}`}
-									className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+									className="group inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
 								>
 									{categoryLabel(cat.slug)}
-									<span className="text-muted-foreground">
+									<span className="text-muted-foreground group-hover:text-inherit">
 										({cat.post_count})
 									</span>
 								</Link>
@@ -217,7 +217,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 								<BlogCard
 									key={post.id}
 									post={post}
-									className="min-w-[280px] flex-shrink-0 snap-start md:min-w-[320px]"
+									className="min-w-70 shrink-0 snap-start md:min-w-[320px]"
 								/>
 							))}
 						</div>
@@ -232,7 +232,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 						<BlogEmptyState message="New articles appear here as we write them. Subscribe below to follow along." />
 					) : (
 						<>
-							<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+							<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 								{posts.map((post) => (
 									<BlogCard key={post.id} post={post} />
 								))}

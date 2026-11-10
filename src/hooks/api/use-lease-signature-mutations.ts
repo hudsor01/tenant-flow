@@ -1,7 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { logger } from "#lib/frontend-logger";
-import { handleMutationError } from "#lib/mutation-error-handler";
+import {
+	handleMutationError,
+	PAYWALL_BILLING_TOAST,
+	userFacingErrorMessage,
+} from "#lib/mutation-error-handler";
 
 import { leaseQueries } from "./query-keys/lease-keys";
 import { leaseMutations } from "./query-keys/lease-mutation-options";
@@ -11,18 +15,33 @@ import { unitQueries } from "./query-keys/unit-keys";
 import { usageQueries } from "./query-keys/usage-keys";
 
 /**
- * Over-cap e-sign send error handler. When the lease-signature edge fn returned
- * a 402 (Growth owner past the 25/month cap), the wrapper throws a PaywallError
- * carrying the upgrade_url — surface it as an actionable Upgrade toast CTA that
- * navigates to /billing/plans?source=esign_quota (keeping the Stripe checkout
- * source attribution). Any other error falls through to the shared handler.
+ * E-sign send 402 handler. The lease-signature edge fn returns a 402 for its
+ * tier gate or its monthly meter, and the wrapper throws a PaywallError
+ * carrying the upgrade_url; surface it as an actionable toast CTA that keeps
+ * the URL's checkout source attribution. The title follows the 402's reason:
+ * the meter's (no reason: a Growth owner past the 25/month cap) is "E-sign
+ * limit reached"; the gate's `plan` (a plan without e-sign) is "Upgrade
+ * required", since no limit was reached; its `subscription_inactive` (Growth
+ * or Max, the subscription not active) opens Billing Settings, not a plan
+ * (66.2-39 fix round 4, Part 8n). Any other error falls through to the shared
+ * handler.
  */
 function handleSendSignatureError(err: unknown): void {
 	if (err instanceof PaywallError) {
-		toast.error("E-sign limit reached", {
-			description: err.message,
+		const copy =
+			err.reason === "subscription_inactive"
+				? PAYWALL_BILLING_TOAST
+				: {
+						title:
+							err.reason === "plan"
+								? "Upgrade required"
+								: "E-sign limit reached",
+						action: "Upgrade",
+					};
+		toast.error(copy.title, {
+			description: userFacingErrorMessage(err),
 			action: {
-				label: "Upgrade",
+				label: copy.action,
 				onClick: () => {
 					window.location.assign(err.upgradeUrl);
 				},

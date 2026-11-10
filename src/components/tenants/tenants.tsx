@@ -14,10 +14,12 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#components/ui/empty";
-import { createLogger } from "#lib/frontend-logger";
 import { intersectSelection } from "#lib/intersect-selection";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { CSV_MIME_TYPE } from "#lib/reports/csv";
+import { downloadBlob } from "#lib/reports/download-blob";
 import { useTenantsStore } from "#stores/tenants-store";
-import type { TenantsProps } from "#types/sections/tenants";
+import type { TenantItem, TenantsProps } from "#types/sections/tenants";
 import { tenantBulkImportConfig } from "./bulk-import-config";
 import { TenantActionBar } from "./tenant-action-bar";
 import { TenantDetailSheet } from "./tenant-detail-sheet";
@@ -26,8 +28,22 @@ import { TenantQuickActions } from "./tenant-quick-actions";
 import { TenantStats } from "./tenant-stats";
 import { TenantTable } from "./tenant-table";
 import { TenantToolbar } from "./tenant-toolbar";
+import { buildTenantsCsv, tenantsCsvFilename } from "./tenants-csv";
 
-const logger = createLogger({ component: "Tenants" });
+function exportTenantsCsv(list: readonly TenantItem[]): void {
+	try {
+		downloadBlob(
+			new Blob([buildTenantsCsv(list)], { type: CSV_MIME_TYPE }),
+			tenantsCsvFilename(new Date()),
+		);
+	} catch (exportError) {
+		handleMutationError(
+			exportError,
+			"Export tenants",
+			"Couldn't export the tenants. Please try again.",
+		);
+	}
+}
 
 export function Tenants({
 	tenants,
@@ -131,11 +147,22 @@ export function Tenants({
 		onBulkDelete(ids, clearSelection);
 	};
 
+	// The selected tenants still in the list (the delete guard's STATE-12 rule),
+	// in list order. Exporting writes a file and leaves the selection as it is.
 	const handleBulkExport = () => {
-		logger.info("Bulk export initiated", {
-			selectedIds: Array.from(selectedIds),
-		});
-		clearSelection();
+		const ids = new Set(
+			intersectSelection(
+				selectedIds,
+				tenants.map((t) => t.id),
+			),
+		);
+		if (ids.size === 0) return;
+		exportTenantsCsv(tenants.filter((t) => ids.has(t.id)));
+	};
+
+	// The tenants the list shows under the current search and status filter.
+	const handleExportShown = () => {
+		exportTenantsCsv(filteredTenants);
 	};
 
 	const handleViewTenant = (tenantId: string) => {
@@ -146,21 +173,21 @@ export function Tenants({
 	if (tenants.length === 0) {
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					<Empty>
 						<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
 							<Users />
 						</EmptyMedia>
 						<EmptyHeader>
 							<EmptyTitle>No tenants yet</EmptyTitle>
-							<EmptyDescription>
+							<EmptyDescription className="mb-0">
 								Tenants are records you keep for your own tracking — they
 								don&apos;t log in. Add one to start building a lease.
 							</EmptyDescription>
 						</EmptyHeader>
 						<EmptyContent>
 							<Button onClick={handleAddClick}>
-								<UserPlus className="w-5 h-5 mr-2" />
+								<UserPlus className="size-5 mr-2" />
 								Add Your First Tenant
 							</Button>
 						</EmptyContent>
@@ -173,22 +200,25 @@ export function Tenants({
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
 			{/* Page Header */}
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Tenants</h1>
-						<p className="text-sm text-muted-foreground mt-1">
+						<p className="mb-0 text-sm text-muted-foreground mt-1">
 							Manage your tenant records
 						</p>
 					</div>
-					<div className="flex items-center gap-2">
+					{/* The actions wrap, and Add Tenant keeps its width: at 320 it
+					    shrank beside Import Tenants and its label ran 2.84px past
+					    it (66.2-39 fix round 4, Part 8e). */}
+					<div className="flex flex-wrap items-center gap-2">
 						<BulkImportDialog
 							config={tenantBulkImportConfig()}
 							triggerLabel="Import Tenants"
 						/>
 						<button
 							onClick={handleAddClick}
-							className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
+							className="inline-flex shrink-0 items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
 						>
 							<UserPlus className="w-4 h-4" />
 							Add Tenant
@@ -204,10 +234,14 @@ export function Tenants({
 				endedTenants={endedTenants}
 			/>
 
-			<TenantQuickActions onAdd={handleAddClick} />
+			<TenantQuickActions
+				onAdd={handleAddClick}
+				onExport={handleExportShown}
+				exportDisabled={filteredTenants.length === 0}
+			/>
 
 			{/* View Toggle & Filters */}
-			<BlurFade delay={0.6} inView>
+			<BlurFade delay={0.6}>
 				<div className="bg-card border border-border rounded-lg overflow-hidden">
 					<TenantToolbar
 						searchQuery={searchQuery}

@@ -19,7 +19,7 @@ import {
 	AlertDialogTitle,
 } from "#components/ui/alert-dialog";
 import { Badge } from "#components/ui/badge";
-import { Button, buttonVariants } from "#components/ui/button";
+import { Button } from "#components/ui/button";
 import { cardVariants } from "#components/ui/card";
 import {
 	DropdownMenu,
@@ -29,15 +29,16 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "#components/ui/dropdown-menu";
+import type { UnitListRow } from "#hooks/api/query-keys/unit-keys";
 import { useDeleteUnitMutation } from "#hooks/api/use-unit";
 import { createLogger } from "#lib/frontend-logger";
 import { cn } from "#lib/utils";
-import type { UnitRowWithRelations as UnitRow, UnitStatus } from "#types/core";
+import type { UnitStatus } from "#types/core";
 import { UnitEditDialog, UnitViewDialog } from "./unit-detail-dialogs";
 import { statusConfig } from "./unit-status-badge";
 
 interface UnitActionsProps {
-	unit: UnitRow;
+	unit: UnitListRow;
 }
 
 export function UnitActions({ unit }: UnitActionsProps) {
@@ -81,10 +82,7 @@ export function UnitActions({ unit }: UnitActionsProps) {
 						<Button
 							variant="ghost"
 							size="sm"
-							className={cn(
-								buttonVariants({ variant: "ghost", size: "sm" }),
-								"size-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all",
-							)}
+							className="size-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50 dark:hover:bg-muted/50 transition-all"
 						>
 							<span className="sr-only">
 								Open actions menu for unit {unit.unit_number}
@@ -97,7 +95,8 @@ export function UnitActions({ unit }: UnitActionsProps) {
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end" className="w-56">
 						<DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-							Unit {unit.unit_number} Actions
+							Unit <span className="normal-case">{unit.unit_number}</span>{" "}
+							Actions
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
@@ -118,11 +117,10 @@ export function UnitActions({ unit }: UnitActionsProps) {
 						<DropdownMenuItem
 							onClick={() => setDeleteOpen(true)}
 							disabled={!canDelete}
+							variant="destructive"
 							className={cn(
 								"gap-2",
-								canDelete
-									? "cursor-pointer text-destructive-text focus:text-destructive-text"
-									: "opacity-50 cursor-not-allowed",
+								canDelete ? "cursor-pointer" : "opacity-50 cursor-not-allowed",
 							)}
 						>
 							<TrashIcon className="size-4" />
@@ -149,53 +147,43 @@ export function UnitActions({ unit }: UnitActionsProps) {
 							<TrashIcon className="size-6 text-destructive" />
 						</div>
 						<AlertDialogTitle className="text-center typography-large">
-							Delete Unit {unit.unit_number}?
+							Delete unit {unit.unit_number}?
 						</AlertDialogTitle>
-						<AlertDialogDescription className="text-center text-muted-foreground">
-							This action cannot be undone. The unit will be permanently removed
-							from your property management system.
-							{unit.status === "occupied" && (
-								<div
-									className={cn(
-										cardVariants({ variant: "default" }),
-										"mt-4 p-3 border-destructive/20 bg-destructive/5",
-									)}
-								>
-									<div className="flex items-center gap-2 text-destructive-text">
-										<AlertTriangle className="size-4" />
-										<span className="font-medium text-sm">
-											This unit is currently occupied and cannot be deleted.
-										</span>
-									</div>
-								</div>
-							)}
+						{/* A soft delete (status 'inactive'), not a permanent one. */}
+						<AlertDialogDescription className="mb-0 text-center text-muted-foreground">
+							This marks the unit as inactive, so it leaves your unit lists. Its
+							lease history is kept.
 						</AlertDialogDescription>
+						{/* Beside the description, not in it: the description is a <p>. */}
+						{unit.status === "occupied" && (
+							<div
+								className={cn(
+									cardVariants({ variant: "default" }),
+									"p-3 border-destructive/20 bg-destructive/5",
+								)}
+							>
+								<div className="flex items-center gap-2 text-destructive-text">
+									<AlertTriangle className="size-4" />
+									<span className="font-medium text-sm">
+										This unit is occupied, so it can't be deleted.
+									</span>
+								</div>
+							</div>
+						)}
 					</AlertDialogHeader>
 					<AlertDialogFooter className="flex gap-3">
-						<AlertDialogCancel
-							disabled={isDeleting}
-							className={cn(buttonVariants({ variant: "outline" }), "flex-1")}
-						>
+						<AlertDialogCancel disabled={isDeleting} className="flex-1">
 							Cancel
 						</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={handleDelete}
 							disabled={isDeleting || !canDelete}
-							className={cn(
-								buttonVariants({ variant: "destructive" }),
-								"flex-1",
-							)}
+							variant="destructive"
+							className="flex-1"
 						>
 							{isDeleting ? (
 								<div className="flex items-center gap-2">
-									<div
-										className="size-4 animate-spin rounded-full border-2"
-										style={{
-											borderColor:
-												"color-mix(in oklab, var(--color-fill-secondary) 60%, transparent)",
-											borderTopColor: "var(--color-label-primary)",
-										}}
-									/>
+									<div className="size-4 animate-spin rounded-full border-2 border-destructive-foreground/30 border-t-destructive-foreground" />
 									<span>Deleting...</span>
 								</div>
 							) : (

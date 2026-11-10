@@ -1,6 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
+import { unitStatusLabel } from "#app/(owner)/properties/units/components/unit-status-badge";
 import { DataTable } from "#components/data-table/data-table";
 import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
 import { Badge } from "#components/ui/badge";
@@ -8,7 +9,18 @@ import { useClientDataTable } from "#hooks/use-client-data-table";
 import { formatCurrency, formatNumber } from "#lib/utils/currency";
 import type { PropertyUnitDetail } from "#types/analytics";
 
-export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
+/**
+ * The units with their property named: `propertyNames` maps a property id to
+ * the name the page's performance rows carry. The subtitle printed the unit's
+ * property_id, a UUID; a unit whose property is not in the map gets none.
+ */
+export function ActiveUnitsTable({
+	units,
+	propertyNames,
+}: {
+	units: PropertyUnitDetail[];
+	propertyNames: ReadonlyMap<string, string>;
+}) {
 	const columns: ColumnDef<PropertyUnitDetail>[] = [
 		{
 			id: "unit_number",
@@ -22,8 +34,16 @@ export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 			enableColumnFilter: true,
 			cell: ({ row }) => (
 				<div className="flex flex-col">
-					<span className="font-medium">{row.original.unit_number}</span>
-					<span className="text-caption">{row.original.property_id}</span>
+					{row.original.unit_number === null ? (
+						<span className="text-muted-foreground">No unit number</span>
+					) : (
+						<span className="font-medium">{row.original.unit_number}</span>
+					)}
+					{propertyNames.has(row.original.property_id) && (
+						<span className="text-caption text-muted-foreground">
+							{propertyNames.get(row.original.property_id)}
+						</span>
+					)}
 				</div>
 			),
 		},
@@ -37,7 +57,9 @@ export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 				placeholder: "Search status...",
 			},
 			enableColumnFilter: true,
-			cell: ({ row }) => <Badge variant="outline">{row.original.status}</Badge>,
+			cell: ({ row }) => (
+				<Badge variant="outline">{unitStatusLabel(row.original.status)}</Badge>
+			),
 		},
 		{
 			id: "bedrooms",

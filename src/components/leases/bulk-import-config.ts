@@ -137,7 +137,7 @@ export function leaseBulkImportConfig(): BulkImportConfig<LeaseImportInput> {
 				p_payment_day: row.payment_day,
 				...(row.rent_currency ? { p_rent_currency: row.rent_currency } : {}),
 			});
-			return { error: error ? new Error(error.message) : null };
+			return { error };
 		},
 		invalidateKeys: [
 			leaseQueries.all(),

@@ -35,8 +35,6 @@ export function PropertyCard({
 			data-testid="property-card"
 			className={cn(
 				"bg-card border rounded-sm overflow-hidden",
-				"hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 hover:-translate-y-1",
-				"transition-all duration-300 group",
 				isSelected && "border-primary ring-2 ring-primary/20",
 			)}
 		>
@@ -47,7 +45,7 @@ export function PropertyCard({
 						src={property.imageUrl}
 						alt={property.name}
 						fill
-						className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+						className="object-cover"
 						sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
 					/>
 				) : (
@@ -61,7 +59,7 @@ export function PropertyCard({
 						<Checkbox
 							checked={isSelected ?? false}
 							onCheckedChange={() => onSelect(property.id)}
-							className="bg-background/80 border-border"
+							className="bg-background/80"
 							aria-label={`Select ${property.name}`}
 						/>
 					</div>
@@ -100,9 +98,9 @@ export function PropertyCard({
 					</div>
 					<div className="w-px h-8 bg-border" />
 					<div className="text-center">
-						<p className="text-muted-foreground mb-1">Revenue</p>
+						<p className="text-muted-foreground mb-1">Occupied Rent</p>
 						<div className="flex items-center justify-center gap-1">
-							<DollarSign className="w-3.5 h-3.5 text-emerald-600" />
+							<DollarSign className="w-3.5 h-3.5 text-success-text" />
 							<span className="font-semibold text-foreground">
 								{formatCompactCurrency(property.monthlyRevenue)}
 							</span>

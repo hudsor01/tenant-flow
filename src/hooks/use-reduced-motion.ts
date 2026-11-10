@@ -2,29 +2,41 @@
 
 /**
  * SSR-safe shared hook returning whether the user has
- * `prefers-reduced-motion: reduce` set. Extracts the canonical matchMedia
- * subscription pattern (search `BlurFade` in `src/components/ui/blur-fade.tsx`
- * — line numbers omitted to avoid drift) so Phase 3+ surfaces can gate
- * motion through a single canonical source (03-UI-SPEC § 5.4).
+ * `prefers-reduced-motion: reduce` set: one canonical matchMedia subscription
+ * so surfaces that branch their markup on reduced motion (e.g. KpiBentoRow)
+ * gate it through a single source (03-UI-SPEC § 5.4). Components that only
+ * need to drop an animation use the CSS `motion-reduce:` variant instead.
  *
- * Returns `false` during SSR (initial state) and on the first client render
- * before the effect runs — same shape `BlurFade` already uses to avoid
- * hydration mismatches.
+ * It reads matchMedia during render through `useSyncExternalStore`, so a
+ * component that mounts on the client (every owner surface: owner data loads
+ * in the browser) has the preference on its first render. When the hook set it
+ * from an effect instead, every fresh mount committed its motion-on markup
+ * first: the dashboard's KPI tiles committed "$0" and "0%" before their
+ * figures, and Chrome painted that frame (66.2-39 fix round 4, G16).
+ *
+ * During server render and hydration it returns the server snapshot, `false`,
+ * so the hydrated markup matches the server's; React then re-renders the
+ * hydrated component with the client's value.
  */
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function subscribe(onChange: () => void): () => void {
+	const mql = window.matchMedia(REDUCED_MOTION_QUERY);
+	mql.addEventListener("change", onChange);
+	return () => mql.removeEventListener("change", onChange);
+}
+
+function getSnapshot(): boolean {
+	return window.matchMedia(REDUCED_MOTION_QUERY).matches;
+}
+
+function getServerSnapshot(): boolean {
+	return false;
+}
 
 export function useReducedMotion(): boolean {
-	const [reduced, setReduced] = useState(false);
-
-	useEffect(() => {
-		if (typeof window === "undefined") return;
-		const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-		setReduced(mq.matches);
-		const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
-		mq.addEventListener("change", handler);
-		return () => mq.removeEventListener("change", handler);
-	}, []);
-
-	return reduced;
+	return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

@@ -27,12 +27,21 @@ dotenv.config({ path: path.join(__dirname, ".env.test"), override: true });
 const TEST_FRONTEND_PORT = 3050;
 const TEST_FRONTEND_URL = `http://localhost:${TEST_FRONTEND_PORT}`;
 
-// Local Supabase configuration (from .env.test)
+// Supabase configuration: CI sets both from repository variables; locally
+// they come from .env.test (loaded above). The publishable key has NO literal
+// fallback -- a key belongs in the environment, never in a tracked file, and
+// the old fallback (the local stack's legacy demo JWT) could not authenticate
+// against the hosted project anyway, where legacy JWT keys are disabled.
 const LOCAL_SUPABASE_URL =
 	process.env.NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321";
 const LOCAL_SUPABASE_PUBLISHABLE_KEY =
-	process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-	"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
+	process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
+
+// A missing key must not break IMPORTING this file (typecheck, `--list`, and a
+// run that reuses a server already on :3050 need no key). It fails only when
+// Playwright has to START the app server, with a message that names the fix.
+const MISSING_PUBLISHABLE_KEY_MESSAGE =
+	"NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is not set. Set it in the environment or in tests/e2e/.env.test before starting the e2e web server.";
 
 const OWNER_AUTH_FILE = path.join(__dirname, "playwright/.auth/owner.json");
 
@@ -71,7 +80,7 @@ export default defineConfig({
 	// failures". 0 is Playwright's default: run everything, report everything.
 	maxFailures: process.env.CI ? 0 : 1,
 	// With maxFailures 0, a SYSTEMIC failure (broken build, dead auth) no
-	// longer stops after the first spec -- 137 tests x 3 attempts could run
+	// longer stops after the first spec -- every test x 3 attempts could run
 	// past the job's `timeout-minutes: 15`. GitHub then CANCELS the job
 	// mid-run: no Playwright summary, no honest end state. Playwright's
 	// globalTimeout ends the run itself ("timedout"), still calls every
@@ -79,13 +88,16 @@ export default defineConfig({
 	// log -- the only triage surface while nothing is uploaded -- and exits
 	// 1: a FAILED job with a cause, not a cancelled one, with budget left
 	// for the always() revoke step. The deadline is armed BEFORE the
-	// webServer plugin starts, so these 9 min include `next build && next
-	// start` (measured 58 s on CI) plus the suite (measured ~3 min for 137
-	// tests); the webServer `timeout: 240_000` below is a ceiling, not a
-	// measurement. Job budget: ~1 min setup + 9 min + revoke (<= 2.4 min
-	// worst case for one account), inside `timeout-minutes: 15`. 0 (the
-	// default) locally.
-	globalTimeout: process.env.CI ? 9 * 60_000 : 0,
+	// webServer plugin starts, so these 11 min include `next build && next
+	// start` plus the suite. Measured on CI at 3977aa58d (260 tests): 7.5 min,
+	// 72 s of it build and start; the 9 min this was then left 1.5 min of
+	// headroom, and the suite has grown since (313 tests at fix round 4,
+	// about 8.1 min by the same per-test cost). The webServer `timeout:
+	// 240_000` below is a ceiling, not a measurement. Job budget: setup
+	// (27 s measured) + 11 min + revoke (<= 2.4 min worst case for one
+	// account) = 13.9 min, inside `timeout-minutes: 15`. 0 (the default)
+	// locally.
+	globalTimeout: process.env.CI ? 11 * 60_000 : 0,
 	workers: process.env.CI ? 2 : 1, // Single worker locally for sequential debugging
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
@@ -210,6 +222,10 @@ export default defineConfig({
 				// owner-axe rather than three times across owner/firefox/mobile-chrome
 				// is both the CI-gating placement and the bound on that write.
 				"**/owner/applications.spec.ts",
+				// Phase 66.2 sidebar spec — owner-axe only, see the note there.
+				"**/owner/app-shell-sidebar.spec.ts",
+				// 66.2-39 fix round 4, Part 8h — owner-axe only, see the note there.
+				"**/owner/properties-table-a11y.e2e.spec.ts",
 			],
 		},
 
@@ -260,6 +276,24 @@ export default defineConfig({
 				// `@layer base` rules in globals.css. Listing it here is what makes it
 				// gate a PR — CI runs `--project=owner-axe` and never runs `owner`.
 				"**/owner/applications.spec.ts",
+				// Phase 66.2 wave 6 owner Sidebar proofs (UI-SPEC S-10) —
+				// self-authenticates via loginAsOwner (no storageState). It carries the
+				// ONLY real-browser proofs of the canonical owner Sidebar: the cascade
+				// against the `@layer base` list and link rules, the rail and sheet
+				// geometry, Radix focus trapping and hideOthers, the collapsed rail's
+				// `inert`, and the SSR `sidebar_state` cookie state against hydration.
+				// jsdom can decide none of them. Listing it here is what makes it gate
+				// a PR — CI runs `--project=owner-axe` and never runs `owner`.
+				"**/owner/app-shell-sidebar.spec.ts",
+				// 66.2-39 fix round 4, Part 8h: the /properties table view, which no
+				// URL names, by axe at 320 and 1280 (CI's axe runs saw /dashboard and
+				// the shell only). Listing it here is what makes it gate a PR.
+				"**/owner/properties-table-a11y.e2e.spec.ts",
+				// Phase 66.2 WCAG 1.4.10 reflow sweep (fix round 1, part F) — every
+				// owner page at 320px, self-authenticating via loginAsOwner (no
+				// storageState). Listed here so it gates a PR; the public half runs
+				// under the `public` project (tests/public/reflow-320.spec.ts).
+				"**/owner-reflow-320.spec.ts",
 			],
 		},
 
@@ -282,6 +316,7 @@ export default defineConfig({
 				"**/notifications.spec.ts",
 				"**/reports-hub.spec.ts",
 				"**/documents-hub.spec.ts",
+				"**/owner-reflow-320.spec.ts",
 			],
 		},
 
@@ -332,6 +367,10 @@ export default defineConfig({
 				"**/owner/dashboard-smoke.e2e.spec.ts",
 				// Phase 66 applications spec — owner-axe only, see the note there.
 				"**/owner/applications.spec.ts",
+				// Phase 66.2 sidebar spec — owner-axe only, see the note there.
+				"**/owner/app-shell-sidebar.spec.ts",
+				// 66.2-39 fix round 4, Part 8h — owner-axe only, see the note there.
+				"**/owner/properties-table-a11y.e2e.spec.ts",
 			],
 		},
 
@@ -353,6 +392,10 @@ export default defineConfig({
 				"**/owner/dashboard-smoke.e2e.spec.ts",
 				// Phase 66 applications spec — owner-axe only, see the note there.
 				"**/owner/applications.spec.ts",
+				// Phase 66.2 sidebar spec — owner-axe only, see the note there.
+				"**/owner/app-shell-sidebar.spec.ts",
+				// 66.2-39 fix round 4, Part 8h — owner-axe only, see the note there.
+				"**/owner/properties-table-a11y.e2e.spec.ts",
 			],
 		},
 	],
@@ -378,9 +421,11 @@ export default defineConfig({
 			// needs, and Next's env loader
 			// never overrides a variable that is already set in process.env, so
 			// the deletion protected nothing and destroyed real configuration.
-			const command = process.env.CI
-				? `rm -rf .next && bash -c "${sharedEnv} && npx next build && exec npx next start --port ${TEST_FRONTEND_PORT}"`
-				: `rm -rf .next && bash -c "${sharedEnv} && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`;
+			const command = !LOCAL_SUPABASE_PUBLISHABLE_KEY
+				? `echo '${MISSING_PUBLISHABLE_KEY_MESSAGE}' >&2 && exit 1`
+				: process.env.CI
+					? `rm -rf .next && bash -c "${sharedEnv} && npx next build && exec npx next start --port ${TEST_FRONTEND_PORT}"`
+					: `rm -rf .next && bash -c "${sharedEnv} && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`;
 			return {
 				command,
 				url: TEST_FRONTEND_URL,

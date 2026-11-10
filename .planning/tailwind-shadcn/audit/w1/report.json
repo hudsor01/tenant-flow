@@ -1,0 +1,45 @@
+{
+ "scannedFiles": 1556,
+ "explicitSourcesMatchingNothing": [],
+ "noncanonical": {
+  "classes": 139,
+  "firstPartyFiles": 53,
+  "vendoredUiFiles": 15
+ },
+ "dead": {
+  "themeVars": 44,
+  "customProperties": 46,
+  "utilities": "89/131",
+  "keyframes": 1,
+  "plainClassSelectors": 12
+ },
+ "utilityCollisions": [],
+ "invalidOklch": [],
+ "nonInlineThemeVarsReferencingVars": [],
+ "lightOnlyColorTokensInUse": [
+  "--color-white: oklch(1 0 0)",
+  "--color-black: oklch(0 0 0)",
+  "--color-chart-1: oklch(0.63 0.22 259)",
+  "--color-chart-2: oklch(0.7 0.18 180)",
+  "--color-chart-3: oklch(0.72 0.16 85)",
+  "--color-chart-4: oklch(0.65 0.18 20)",
+  "--color-chart-5: oklch(0.55 0.12 250)"
+ ],
+ "twMerge": {
+  "projectCnUsesExtendTailwindMerge": true,
+  "evaluatedWith": "src/lib/utils.ts cn",
+  "fontSizesDroppedNextToAColor": []
+ },
+ "otherStylesheets": {
+  "src/app/(owner)/dashboard.css": {
+   "classes": 39,
+   "deadClasses": 33,
+   "varsNotDefinedByGlobals": [
+    "--text-responsive-h2",
+    "--leading-title-1",
+    "--text-responsive-h3",
+    "--leading-title-2"
+   ]
+  }
+ }
+}

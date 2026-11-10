@@ -40,6 +40,11 @@ export function MaintenanceFormFields({
 	const { data: allTenants } = useAllTenants();
 	const fullName = (t: NonNullable<typeof allTenants>[number]): string =>
 		`${t.first_name ?? ""} ${t.last_name ?? ""}`.trim();
+	// An option's text is its name: a tenant saved with only `name` (or only
+	// an email) rendered an empty option, which axe's aria-toggle-field-name
+	// failed on the open tenant list (66.2-39 fix round 4, Part 8h).
+	const optionLabel = (t: NonNullable<typeof allTenants>[number]): string =>
+		fullName(t) || t.name?.trim() || t.email?.trim() || "Unnamed tenant";
 	const tenants = [...(allTenants ?? [])].sort((a, b) => {
 		const nameA = fullName(a);
 		const nameB = fullName(b);
@@ -67,7 +72,10 @@ export function MaintenanceFormFields({
 				}}
 			>
 				{(field) => (
-					<Field>
+					// min-w-0: the form's grid is one auto track, and a Select value is
+					// nowrap, so a long one (a unit or tenant name) would widen the track
+					// past the dialog at 320 instead of clipping in its trigger.
+					<Field className="min-w-0">
 						<FieldLabel id={unitLabelId} htmlFor="unit_id">
 							Unit *
 						</FieldLabel>
@@ -115,7 +123,7 @@ export function MaintenanceFormFields({
 				}}
 			>
 				{(field) => (
-					<Field>
+					<Field className="min-w-0">
 						<FieldLabel id={tenantLabelId} htmlFor="tenant_id">
 							Tenant *
 						</FieldLabel>
@@ -138,7 +146,7 @@ export function MaintenanceFormFields({
 								) : (
 									tenants.map((tenant) => (
 										<SelectItem key={tenant.id} value={tenant.id}>
-											{tenant.first_name} {tenant.last_name}
+											{optionLabel(tenant)}
 										</SelectItem>
 									))
 								)}

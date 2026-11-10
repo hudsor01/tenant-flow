@@ -1,6 +1,10 @@
 "use client";
 
 import { ChevronDown, Search } from "lucide-react";
+import {
+	EXPIRING_LEASE_LABEL,
+	LEASE_STATUS_LABELS,
+} from "#lib/constants/status-types";
 import type { StatusFilter } from "#stores/leases-store";
 
 interface LeasesTableToolbarProps {
@@ -32,7 +36,7 @@ export function LeasesTableToolbar({
 					aria-label="Search leases"
 					value={searchQuery}
 					onChange={(e) => onSearchChange(e.target.value)}
-					className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+					className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-input rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
 				/>
 			</div>
 
@@ -53,15 +57,17 @@ export function LeasesTableToolbar({
 						onChange={(e) =>
 							onStatusFilterChange(e.target.value as StatusFilter)
 						}
-						className="appearance-none pl-3 pr-8 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all"
+						className="appearance-none pl-3 pr-8 py-2 text-sm bg-background border border-input rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all"
 					>
 						<option value="all">All Statuses</option>
-						<option value="active">Active</option>
-						<option value="expiring">Expiring Soon</option>
-						<option value="pending_signature">Pending Signature</option>
-						<option value="ended">Ended</option>
-						<option value="expired">Expired</option>
-						<option value="terminated">Terminated</option>
+						<option value="active">{LEASE_STATUS_LABELS.active}</option>
+						<option value="expiring">{EXPIRING_LEASE_LABEL}</option>
+						<option value="pending_signature">
+							{LEASE_STATUS_LABELS.pending_signature}
+						</option>
+						<option value="ended">{LEASE_STATUS_LABELS.ended}</option>
+						<option value="expired">{LEASE_STATUS_LABELS.expired}</option>
+						<option value="terminated">{LEASE_STATUS_LABELS.terminated}</option>
 					</select>
 					<ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
 				</div>

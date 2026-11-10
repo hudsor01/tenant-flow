@@ -72,7 +72,7 @@ export function ActiveSessionsSection() {
 	};
 
 	return (
-		<BlurFade delay={0.35} inView>
+		<BlurFade delay={0.35}>
 			<section className="rounded-lg border bg-card p-6">
 				<div className="flex items-center justify-between mb-4">
 					<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
@@ -96,13 +96,11 @@ export function ActiveSessionsSection() {
 								session.os || "Unknown OS"
 							}`;
 							return (
-								<BlurFade key={session.id} delay={0.4 + idx * 0.05} inView>
+								<BlurFade key={session.id} delay={0.4 + idx * 0.05}>
 									<div
 										className={`flex items-center justify-between p-3 rounded-lg border ${
-											session.is_current
-												? "bg-primary/5 border-primary/20"
-												: "hover:bg-muted/30"
-										} transition-colors`}
+											session.is_current ? "bg-primary/5 border-primary/20" : ""
+										}`}
 									>
 										<div className="flex items-center gap-3">
 											<User className="h-5 w-5 text-muted-foreground" />
@@ -115,7 +113,7 @@ export function ActiveSessionsSection() {
 														</span>
 													)}
 												</p>
-												<p className="text-xs text-muted-foreground">
+												<p className="mb-0 text-xs text-muted-foreground">
 													{session.device === "mobile"
 														? "Mobile"
 														: session.device === "tablet"
@@ -135,7 +133,7 @@ export function ActiveSessionsSection() {
 												)
 											}
 											disabled={revokeSession.isPending || bulkPending}
-											className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+											className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive-text transition-colors disabled:opacity-50"
 											aria-label={
 												session.is_current
 													? "Sign out this device (you will be signed out)"
@@ -153,16 +151,16 @@ export function ActiveSessionsSection() {
 							);
 						})
 					) : sessionsLoading ? (
-						<p className="text-sm text-muted-foreground text-center py-4">
+						<p className="mb-0 text-sm text-muted-foreground text-center py-4">
 							Loading sessions…
 						</p>
 					) : sessionsError ? (
-						<p className="text-sm text-muted-foreground text-center py-4">
+						<p className="mb-0 text-sm text-muted-foreground text-center py-4">
 							Couldn&apos;t load your active sessions. Try refreshing the page
 							or signing in again.
 						</p>
 					) : (
-						<p className="text-sm text-muted-foreground text-center py-4">
+						<p className="mb-0 text-sm text-muted-foreground text-center py-4">
 							No active sessions found
 						</p>
 					)}
@@ -177,12 +175,12 @@ export function ActiveSessionsSection() {
 				title={
 					pendingRevoke?.isCurrent
 						? "Sign out of this device?"
-						: "Sign out the other device?"
+						: `Sign out ${pendingRevoke?.deviceLabel ?? "the other device"}?`
 				}
 				description={
 					pendingRevoke?.isCurrent
-						? `You are about to sign yourself out of ${pendingRevoke.deviceLabel}. You'll need to log in again to continue.`
-						: `Sign out of ${pendingRevoke?.deviceLabel ?? "this device"}? The session will be revoked immediately and that device will need to log in again.`
+						? `This ends your session on ${pendingRevoke.deviceLabel}, and you sign in again to continue. Your other devices stay signed in.`
+						: "Its session ends now, and that device has to sign in again."
 				}
 				confirmText={
 					pendingRevoke?.isCurrent ? "Sign me out" : "Revoke session"
@@ -197,7 +195,7 @@ export function ActiveSessionsSection() {
 					if (!open && !bulkPending) setBulkOpen(false);
 				}}
 				title="Sign out all other devices?"
-				description={`This will revoke ${otherSessions.length} other ${otherSessions.length === 1 ? "session" : "sessions"} immediately. Each device will need to log in again.`}
+				description={`This ends the other ${otherSessions.length === 1 ? "session" : `${otherSessions.length} sessions`} now. Each device has to sign in again.`}
 				confirmText="Sign out all others"
 				onConfirm={() => {
 					void confirmBulkRevoke();

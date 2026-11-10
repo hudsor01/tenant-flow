@@ -1,0 +1,29 @@
+{
+ "scannedFiles": 945,
+ "explicitSourcesMatchingNothing": [],
+ "noncanonical": {
+  "classes": 48,
+  "firstPartyFiles": 0,
+  "vendoredUiFiles": 17
+ },
+ "dead": {
+  "themeVars": 6,
+  "customProperties": 0,
+  "utilities": "0/42",
+  "keyframes": 0,
+  "plainClassSelectors": 0
+ },
+ "utilityCollisions": [],
+ "invalidOklch": [],
+ "nonInlineThemeVarsReferencingVars": [],
+ "lightOnlyColorTokensInUse": [
+  "--color-chart-1: oklch(0.63 0.22 259)",
+  "--color-chart-4: oklch(0.65 0.18 20)"
+ ],
+ "twMerge": {
+  "projectCnUsesExtendTailwindMerge": true,
+  "evaluatedWith": "src/lib/utils.ts cn",
+  "fontSizesDroppedNextToAColor": []
+ },
+ "otherStylesheets": {}
+}

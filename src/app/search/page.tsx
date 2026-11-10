@@ -73,7 +73,7 @@ export default async function SearchPage({
 			<div className="max-w-6xl mx-auto px-6 lg:px-8 section-spacing flex flex-col gap-6">
 				<div className="flex flex-col gap-2">
 					<h1 className="typography-h2">Search the blog</h1>
-					<p className="text-muted-foreground">
+					<p className="mb-0 text-muted-foreground">
 						Find guides for independent landlords — leases, maintenance, tax
 						season, and the document vault.
 					</p>
@@ -83,7 +83,7 @@ export default async function SearchPage({
 					<div className="relative flex-1">
 						<Search
 							aria-hidden="true"
-							className="absolute left-3 top-1/2 size-4 translate-y-[-50%] text-muted-foreground"
+							className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
 						/>
 						<Input
 							id="blog-search"
@@ -108,7 +108,7 @@ export default async function SearchPage({
 								<Search />
 							</EmptyMedia>
 							<EmptyTitle>Start searching</EmptyTitle>
-							<EmptyDescription>
+							<EmptyDescription className="mb-0">
 								Enter a keyword above to search our property management
 								articles.
 							</EmptyDescription>
@@ -120,15 +120,18 @@ export default async function SearchPage({
 							<EmptyMedia variant="icon">
 								<Search />
 							</EmptyMedia>
-							<EmptyTitle>No results for &ldquo;{query}&rdquo;</EmptyTitle>
-							<EmptyDescription>
+							{/* The search box above shows the query. The title does not
+							    repeat it: anyone can link here with any ?q=, so a title
+							    quoting it would show their sentence on tenantflow.app. */}
+							<EmptyTitle>No matching articles</EmptyTitle>
+							<EmptyDescription className="mb-0">
 								We couldn&rsquo;t find any articles matching your search. Try a
 								different keyword.
 							</EmptyDescription>
 						</EmptyHeader>
 					</Empty>
 				) : (
-					<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+					<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 						{posts.map((post) => (
 							<BlogCard key={post.id} post={post} />
 						))}

@@ -61,9 +61,11 @@ export default function HelpPage() {
 							</ItemMedia>
 							<ItemContent>
 								<ItemTitle>Email Support</ItemTitle>
-								<ItemDescription>Available on every plan</ItemDescription>
+								<ItemDescription className="mb-0">
+									Available on every plan
+								</ItemDescription>
 								<div className="mt-2">
-									<p className="text-muted-foreground">
+									<p className="mb-0 text-muted-foreground">
 										support@tenantflow.app
 									</p>
 								</div>
@@ -83,9 +85,11 @@ export default function HelpPage() {
 							</ItemMedia>
 							<ItemContent>
 								<ItemTitle>Phone Support</ItemTitle>
-								<ItemDescription>Growth and Max plans</ItemDescription>
+								<ItemDescription className="mb-0">
+									Growth and Max plans
+								</ItemDescription>
 								<div className="mt-2">
-									<p className="text-muted-foreground">
+									<p className="mb-0 text-muted-foreground">
 										Talk to a real person about onboarding, billing, or feature
 										questions
 									</p>
@@ -106,11 +110,11 @@ export default function HelpPage() {
 							</ItemMedia>
 							<ItemContent>
 								<ItemTitle>Contact Sales</ItemTitle>
-								<ItemDescription>
+								<ItemDescription className="mb-0">
 									Pre-purchase questions or migration help
 								</ItemDescription>
 								<div className="mt-2">
-									<p className="text-muted-foreground">
+									<p className="mb-0 text-muted-foreground">
 										Walk through your portfolio with our team and pick the right
 										plan
 									</p>
@@ -136,7 +140,7 @@ export default function HelpPage() {
 						</p>
 					</div>
 
-					<div className="grid md:grid-cols-2 gap-8">
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 						{[
 							{
 								title: "Set up the document vault",
@@ -205,12 +209,17 @@ export default function HelpPage() {
 					<h2 className="typography-h1 text-primary-foreground mb-4">
 						Ready to centralize your portfolio?
 					</h2>
-					<p className="text-xl text-primary-foreground/90 mb-8">
+					<p className="text-xl text-primary-foreground mb-8">
 						Replace spreadsheets, Dropbox, and email with a single landlord-only
 						platform. Our team is here to help you migrate and get going.
 					</p>
 					<div className="flex flex-col sm:flex-row gap-4 justify-center">
-						<Button size="lg" variant="secondary" className="px-8" asChild>
+						<Button
+							size="lg"
+							variant="secondary"
+							className="px-8 focus-visible:ring-primary-foreground/80"
+							asChild
+						>
 							<Link href="/pricing">
 								Start free — no card
 								<ArrowRight className="size-5 ml-2" />
@@ -219,7 +228,7 @@ export default function HelpPage() {
 						<Button
 							size="lg"
 							variant="outline"
-							className="px-8 text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary-text"
+							className="px-8 bg-transparent text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary-text dark:bg-transparent dark:border-primary-foreground/50 dark:hover:bg-primary-foreground dark:hover:text-primary-text focus-visible:border-primary-foreground focus-visible:ring-primary-foreground/80"
 							asChild
 						>
 							<Link href="/contact">Talk to an Expert</Link>

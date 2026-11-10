@@ -1,7 +1,7 @@
 "use client";
 
 import { ClipboardCheck, Download, FileText, Table } from "lucide-react";
-import { type FormEvent, useRef, useState } from "react";
+import { type SubmitEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "#components/ui/button";
@@ -32,7 +32,7 @@ export function LeadMagnetCta({
 	const [unlocked, setUnlocked] = useState(false);
 	const Icon = resourceIcons[resourceType];
 
-	function handleSubmit(e: FormEvent<HTMLFormElement>) {
+	function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
 		e.preventDefault();
 		const email = inputRef.current?.value?.trim();
 		if (!email) return;
@@ -50,19 +50,21 @@ export function LeadMagnetCta({
 	}
 
 	return (
-		<div className="not-prose my-12 rounded-2xl border border-primary/20 bg-linear-to-br from-primary/5 via-primary/[0.02] to-transparent p-8">
+		<div className="not-prose my-12 rounded-2xl border border-primary/20 bg-linear-to-br from-primary/5 via-primary/2 to-transparent p-8">
 			<div className="flex flex-col gap-4">
 				<div className="flex items-center gap-2">
 					<Icon className="size-5 text-primary" />
-					<p className="text-sm font-semibold uppercase tracking-wider text-primary-text">
+					<p className="mb-0 text-sm font-semibold uppercase tracking-wider text-primary-text">
 						Free {resourceType}
 					</p>
 				</div>
 				{/* Styled as a heading but rendered as <p>: this lead-magnet CTA is
 				    injected into post bodies, so an <h3> here pollutes each post's
 				    heading outline with non-content marketing copy. */}
-				<p className="text-2xl font-bold text-foreground">{title}</p>
-				<p className="text-muted-foreground leading-relaxed">{description}</p>
+				<p className="mb-0 text-2xl font-bold text-foreground">{title}</p>
+				<p className="mb-0 text-muted-foreground leading-relaxed">
+					{description}
+				</p>
 
 				{unlocked ? (
 					<div className="mt-2">

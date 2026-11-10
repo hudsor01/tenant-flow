@@ -3,9 +3,22 @@
  * selection against the fetched (active) list, and the bulk-delete guard only
  * targets still-listed ids so a soft-deleted property can't be resurrected.
  * Heavy children + mutations are mocked; PropertyActionBar is mocked to expose
- * its onBulkDelete so the guard can be invoked directly.
+ * its onBulkDelete so the action bar's Delete can be pressed directly.
+ *
+ * The bulk delete asks through the app's ConfirmDialog, not the browser's
+ * `window.confirm` (66.2-39 fix round 4, Part 8g): the action bar's Delete
+ * only opens it, naming the rows it will act on, and the deletes run only
+ * from its Delete.
  */
-import { cleanup, render, waitFor } from "@testing-library/react";
+import {
+	act,
+	cleanup,
+	render,
+	screen,
+	waitFor,
+	within,
+} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { usePropertiesStore } from "#stores/properties-store";
 import type { PropertiesProps, PropertyItem } from "../types";
@@ -43,13 +56,21 @@ function property(id: string): PropertyItem {
 	return {
 		id,
 		name: `Property ${id}`,
-		addressLine: "1 Main St",
+		addressLine1: "1 Main St",
+		addressLine2: null,
 		city: "Townsville",
-		availableUnits: 1,
-		maintenanceUnits: 0,
+		state: "TX",
+		postalCode: "78701",
 		propertyType: "single_family",
 		status: "active",
-	} as unknown as PropertyItem;
+		imageUrl: undefined,
+		totalUnits: 1,
+		occupiedUnits: 0,
+		availableUnits: 1,
+		maintenanceUnits: 0,
+		occupancyRate: 0,
+		monthlyRevenue: 0,
+	};
 }
 
 async function renderProperties(properties: PropertyItem[]) {
@@ -67,7 +88,6 @@ describe("Properties state wiring (STATE-05)", () => {
 		cleanup();
 		usePropertiesStore.getState().reset();
 		vi.clearAllMocks();
-		vi.unstubAllGlobals();
 	});
 
 	it("prunes a phantom selected id absent from the fetched list", async () => {
@@ -80,12 +100,83 @@ describe("Properties state wiring (STATE-05)", () => {
 		});
 	});
 
-	it("bulk delete only targets still-listed property ids", async () => {
-		vi.stubGlobal("confirm", () => true);
+	async function pressBulkDelete() {
+		await act(async () => {
+			(actionBarProps.onBulkDelete as () => void)();
+		});
+		return screen.getByRole("alertdialog");
+	}
+
+	it("opens the confirmation on the action bar's Delete, and deletes nothing", async () => {
 		usePropertiesStore.setState({ selectedRows: new Set(["p1", "p2"]) });
 		await renderProperties([property("p1"), property("p2")]);
-		await (actionBarProps.onBulkDelete as () => Promise<void>)();
+		const dialog = await pressBulkDelete();
+		expect(within(dialog).getByText("Delete 2 properties?")).toBeVisible();
+		expect(
+			within(dialog).getByText(
+				"This marks the 2 selected properties as inactive, so they leave your property list. Their units and leases are kept.",
+			),
+		).toBeVisible();
+		expect(deleteMutateAsync).not.toHaveBeenCalled();
+	});
+
+	it("names the one property it will delete", async () => {
+		usePropertiesStore.setState({ selectedRows: new Set(["p1"]) });
+		await renderProperties([property("p1"), property("p2")]);
+		const dialog = await pressBulkDelete();
+		expect(within(dialog).getByText("Delete 1 property?")).toBeVisible();
+		expect(
+			within(dialog).getByText(
+				'This marks "Property p1" as inactive, so it leaves your property list. Its units and leases are kept.',
+			),
+		).toBeVisible();
+	});
+
+	it("deletes each still-listed property once, only from the confirmation's Delete", async () => {
+		usePropertiesStore.setState({ selectedRows: new Set(["p1", "p2"]) });
+		await renderProperties([property("p1"), property("p2")]);
+		const dialog = await pressBulkDelete();
+		await userEvent.click(
+			within(dialog).getByRole("button", { name: "Delete" }),
+		);
 		const targeted = deleteMutateAsync.mock.calls.map((c) => c[0]).sort();
 		expect(targeted).toEqual(["p1", "p2"]);
+		await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+		expect(usePropertiesStore.getState().selectedRows.size).toBe(0);
+	});
+
+	it("deletes nothing on Cancel, and keeps the selection", async () => {
+		usePropertiesStore.setState({ selectedRows: new Set(["p1", "p2"]) });
+		await renderProperties([property("p1"), property("p2")]);
+		const dialog = await pressBulkDelete();
+		await userEvent.click(
+			within(dialog).getByRole("button", { name: "Cancel" }),
+		);
+		await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+		expect(deleteMutateAsync).not.toHaveBeenCalled();
+		expect([...usePropertiesStore.getState().selectedRows].sort()).toEqual([
+			"p1",
+			"p2",
+		]);
+	});
+
+	it("skips a named property that left the list while the confirmation was open", async () => {
+		usePropertiesStore.setState({ selectedRows: new Set(["p1", "p2"]) });
+		const { Properties } = await import("../properties");
+		const props: Omit<PropertiesProps, "properties"> = {
+			summary: {} as PropertiesProps["summary"],
+			onAddProperty: vi.fn(),
+		};
+		const { rerender } = render(
+			<Properties {...props} properties={[property("p1"), property("p2")]} />,
+		);
+		await pressBulkDelete();
+		rerender(<Properties {...props} properties={[property("p1")]} />);
+		await userEvent.click(
+			within(screen.getByRole("alertdialog")).getByRole("button", {
+				name: "Delete",
+			}),
+		);
+		expect(deleteMutateAsync.mock.calls.map((c) => c[0])).toEqual(["p1"]);
 	});
 });

@@ -33,6 +33,7 @@ vi.mock("sonner", () => ({
 }));
 
 import { authKeys } from "#hooks/api/use-auth";
+import { expectLabelInName } from "#test/utils/label-in-name";
 import { GdprDataActions } from "../gdpr-data-actions";
 
 function renderWithClient(ui: ReactNode) {
@@ -78,11 +79,11 @@ describe("GdprDataActions", () => {
 		cleanup();
 		renderWithClient(<GdprDataActions />);
 		expect(
-			screen.getByRole("button", { name: /download my data as json/i }),
+			screen.getByRole("button", { name: /^download my data$/i }),
 		).toBeInTheDocument();
 		expect(
 			screen.getByRole("button", {
-				name: /request permanent account deletion|delete account/i,
+				name: /^delete account$/i,
 			}),
 		).toBeInTheDocument();
 		// Standalone framing includes the Danger Zone eyebrow
@@ -95,11 +96,11 @@ describe("GdprDataActions", () => {
 			<GdprDataActions variant="inline" />,
 		);
 		expect(
-			screen.getByRole("button", { name: /download my data as json/i }),
+			screen.getByRole("button", { name: /^download my data$/i }),
 		).toBeInTheDocument();
 		expect(
 			screen.getByRole("button", {
-				name: /request permanent account deletion|delete account/i,
+				name: /^delete account$/i,
 			}),
 		).toBeInTheDocument();
 		// Inline variant MUST NOT render the Danger Zone eyebrow
@@ -114,10 +115,10 @@ describe("GdprDataActions", () => {
 		cleanup();
 		renderWithClient(<GdprDataActions />);
 		await userEvent.click(
-			screen.getByRole("button", { name: /download my data as json/i }),
+			screen.getByRole("button", { name: /^download my data$/i }),
 		);
 		// The component calls fetch() against /functions/v1/export-user-data
-		const fetchMock = globalThis.fetch as unknown as ReturnType<typeof vi.fn>;
+		const fetchMock = vi.mocked(globalThis.fetch);
 		expect(fetchMock).toHaveBeenCalled();
 		const firstCallUrl = String(fetchMock.mock.calls[0]?.[0] ?? "");
 		expect(firstCallUrl).toContain("export-user-data");
@@ -133,7 +134,7 @@ describe("GdprDataActions", () => {
 
 		// Open the type-to-confirm form
 		const trigger = screen.getByRole("button", {
-			name: /request permanent account deletion|delete account/i,
+			name: /^delete account$/i,
 		});
 		await userEvent.click(trigger);
 
@@ -145,7 +146,7 @@ describe("GdprDataActions", () => {
 
 		// Submit (Request Account Deletion button inside the confirm panel)
 		const confirm = screen.getByRole("button", {
-			name: /confirm account deletion|request account deletion/i,
+			name: /^request account deletion$/i,
 		});
 		await userEvent.click(confirm);
 
@@ -165,7 +166,30 @@ describe("GdprDataActions", () => {
 			screen.getByText(/account scheduled for deletion/i),
 		).toBeInTheDocument();
 		expect(
-			screen.getByRole("button", { name: /cancel (account )?deletion/i }),
+			screen.getByRole("button", { name: /^cancel deletion$/i }),
 		).toBeInTheDocument();
+	});
+
+	// WCAG 2.5.3 (66.2-39 sweep 2): each action carried an aria-label that did
+	// not contain its visible text ("Download my data as JSON" on "Download My
+	// Data", "Request permanent account deletion" on "Delete Account", and so
+	// on). Every button in each state is named by what it shows.
+	it("names every action by its visible text, in every state", async () => {
+		cleanup();
+		renderWithClient(<GdprDataActions />);
+		await userEvent.click(
+			screen.getByRole("button", { name: /^delete account$/i }),
+		);
+		for (const button of screen.getAllByRole("button")) {
+			expectLabelInName(button);
+		}
+		cleanup();
+		hooks.deletionStatusData = {
+			deletion_requested_at: new Date().toISOString(),
+		};
+		renderWithClient(<GdprDataActions />);
+		for (const button of screen.getAllByRole("button")) {
+			expectLabelInName(button);
+		}
 	});
 });

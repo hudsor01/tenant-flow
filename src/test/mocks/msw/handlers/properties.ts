@@ -1,10 +1,17 @@
 import { http } from "msw";
 import { DEFAULT_PROPERTY } from "#test/utils/test-data";
-import { postgrestList, postgrestSingle, supabaseUrl } from "../utils";
+import {
+	postgrestList,
+	postgrestSingle,
+	supabaseUrl,
+	wantsOneRow,
+} from "../utils";
 
 export const propertyHandlers = [
-	http.get(supabaseUrl("/rest/v1/properties"), () => {
-		return postgrestList([DEFAULT_PROPERTY], 1);
+	http.get(supabaseUrl("/rest/v1/properties"), ({ request }) => {
+		return wantsOneRow(request)
+			? postgrestSingle(DEFAULT_PROPERTY)
+			: postgrestList([DEFAULT_PROPERTY], 1);
 	}),
 
 	http.post(supabaseUrl("/rest/v1/properties"), () => {

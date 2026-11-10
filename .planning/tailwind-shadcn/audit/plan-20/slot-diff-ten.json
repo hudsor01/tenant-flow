@@ -1,0 +1,128 @@
+{
+  "base": "84f3c58d3870b980b11599c99712255b85dcc867",
+  "mode": "biome-stdin",
+  "files": [
+    {
+      "file": "src/components/ui/alert.tsx",
+      "equal": true,
+      "addedSlots": [
+        "alert",
+        "alert-title",
+        "alert-description"
+      ],
+      "unknownSlots": [],
+      "replacementsApplied": 0,
+      "problems": []
+    },
+    {
+      "file": "src/components/ui/badge.tsx",
+      "equal": true,
+      "addedSlots": [
+        "badge"
+      ],
+      "unknownSlots": [],
+      "replacementsApplied": 0,
+      "problems": []
+    },
+    {
+      "file": "src/components/ui/breadcrumb.tsx",
+      "equal": true,
+      "addedSlots": [
+        "breadcrumb",
+        "breadcrumb-list",
+        "breadcrumb-item",
+        "breadcrumb-link",
+        "breadcrumb-page",
+        "breadcrumb-separator"
+      ],
+      "unknownSlots": [],
+      "replacementsApplied": 0,
+      "problems": []
+    },
+    {
+      "file": "src/components/ui/checkbox.tsx",
+      "equal": true,
+      "addedSlots": [
+        "checkbox",
+        "checkbox-indicator"
+      ],
+      "unknownSlots": [],
+      "replacementsApplied": 0,
+      "problems": []
+    },
+    {
+      "file": "src/components/ui/collapsible.tsx",
+      "equal": true,
+      "addedSlots": [
+        "collapsible",
+        "collapsible-trigger",
+        "collapsible-content"
+      ],
+      "unknownSlots": [],
+      "replacementsApplied": 0,
+      "problems": []
+    },
+    {
+      "file": "src/components/ui/input.tsx",
+      "equal": true,
+      "addedSlots": [
+        "input"
+      ],
+      "unknownSlots": [],
+      "replacementsApplied": 0,
+      "problems": []
+    },
+    {
+      "file": "src/components/ui/input-group.tsx",
+      "equal": true,
+      "addedSlots": [
+        "input-group",
+        "input-group-addon",
+        "input-group-control"
+      ],
+      "unknownSlots": [],
+      "replacementsApplied": 0,
+      "problems": []
+    },
+    {
+      "file": "src/components/ui/select.tsx",
+      "equal": true,
+      "addedSlots": [
+        "select",
+        "select-value",
+        "select-trigger",
+        "select-content",
+        "select-item",
+        "select-item-indicator",
+        "select-scroll-up-button",
+        "select-scroll-down-button"
+      ],
+      "unknownSlots": [],
+      "replacementsApplied": 0,
+      "problems": []
+    },
+    {
+      "file": "src/components/ui/tabs.tsx",
+      "equal": true,
+      "addedSlots": [
+        "tabs",
+        "tabs-list",
+        "tabs-trigger",
+        "tabs-content"
+      ],
+      "unknownSlots": [],
+      "replacementsApplied": 0,
+      "problems": []
+    },
+    {
+      "file": "src/components/ui/textarea.tsx",
+      "equal": true,
+      "addedSlots": [
+        "textarea"
+      ],
+      "unknownSlots": [],
+      "replacementsApplied": 0,
+      "problems": []
+    }
+  ]
+}

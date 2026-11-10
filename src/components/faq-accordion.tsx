@@ -81,12 +81,12 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 	const panelId = useId();
 
 	return (
-		<div className="group overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg">
+		<div className="overflow-hidden rounded-lg border border-border bg-card">
 			<button
 				onClick={onToggle}
 				aria-expanded={isOpen}
 				aria-controls={panelId}
-				className="flex w-full items-center justify-between p-6 text-left transition-colors hover:bg-muted/50 focus:outline-none focus:bg-muted/50"
+				className="flex w-full items-center justify-between p-6 text-left transition-colors hover:bg-muted/50 focus:outline-none focus:bg-muted/50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
 			>
 				<h3 className="text-foreground typography-large pr-4">
 					{faq.question}
@@ -111,7 +111,7 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 				<div className="overflow-hidden">
 					<div className="px-6 pb-6">
 						<div className="border-t border-border pt-4">
-							<p className="text-muted-foreground leading-relaxed">
+							<p className="mb-0 text-muted-foreground leading-relaxed">
 								{faq.answer}
 							</p>
 						</div>

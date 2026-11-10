@@ -15,13 +15,26 @@ import {
 } from "lucide-react";
 import { Badge } from "#components/ui/badge";
 import { Separator } from "#components/ui/separator";
+import { formatCount } from "#lib/formatters/count";
 import { formatDate, getOrdinalSuffix } from "#lib/formatters/date";
 import { formatCurrency } from "#lib/utils/currency";
 import type { LeaseWizardData } from "#lib/validation/lease-wizard.schemas";
+import { utilityLabel } from "./utility-options";
 
 // Format a dollar amount to currency, returning '-' for null/undefined
 const formatAmountOrDash = (amount?: number | null) =>
 	typeof amount === "number" ? formatCurrency(amount) : "-";
+
+// The term grids step on the step's own width, never the viewport's: at 320px
+// a fixed three-column grid left 44.66px a term, so $1,500.00 (80.66px) ran
+// into the next term. One column until the step is 20rem (two terms of
+// 8.75rem beside the 1.5rem indent), the financial terms three from 30rem
+// (8.83rem each): at the 25 widths measured from 320 to 1600 no label wraps
+// and each row's values sit at one y. A value wraps inside its term (a long
+// property name is one unbroken word) (66.2-39 fix round 4, Part 8e).
+const TERMS =
+	"grid grid-cols-1 gap-4 pl-6 @min-[20rem]/review-step:grid-cols-2";
+const TERMS_3 = `${TERMS} @min-[30rem]/review-step:grid-cols-3`;
 
 interface ReviewStepProps {
 	data: Partial<LeaseWizardData>;
@@ -40,7 +53,7 @@ export function ReviewStep({
 		dateStr ? formatDate(dateStr, { style: "long" }) || "-" : "-";
 
 	return (
-		<div className="space-y-6">
+		<div className="@container/review-step space-y-6">
 			<div>
 				<h3 className="text-lg font-medium mb-4">Review Lease Details</h3>
 				<p className="text-muted-foreground text-sm mb-6">
@@ -54,22 +67,30 @@ export function ReviewStep({
 					<Home className="h-4 w-4 text-muted-foreground" />
 					<h4 className="font-medium">Property & Tenant</h4>
 				</div>
-				<div className="grid grid-cols-2 gap-4 pl-6">
+				<div className={TERMS}>
 					<div>
 						<p className="text-sm text-muted-foreground">Property</p>
-						<p className="font-medium">{propertyName || "Not selected"}</p>
+						<p className="mb-0 font-medium wrap-break-word">
+							{propertyName || "Not selected"}
+						</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Unit</p>
-						<p className="font-medium">{unitNumber || "Not selected"}</p>
+						<p className="mb-0 font-medium wrap-break-word">
+							{unitNumber || "Not selected"}
+						</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Tenant</p>
-						<p className="font-medium">{tenantName || "Not selected"}</p>
+						<p className="mb-0 font-medium wrap-break-word">
+							{tenantName || "Not selected"}
+						</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Governing State</p>
-						<p className="font-medium">{data.governing_state || "TX"}</p>
+						<p className="mb-0 font-medium wrap-break-word">
+							{data.governing_state || "TX"}
+						</p>
 					</div>
 				</div>
 			</div>
@@ -82,14 +103,18 @@ export function ReviewStep({
 					<Calendar className="h-4 w-4 text-muted-foreground" />
 					<h4 className="font-medium">Lease Duration</h4>
 				</div>
-				<div className="grid grid-cols-2 gap-4 pl-6">
+				<div className={TERMS}>
 					<div>
 						<p className="text-sm text-muted-foreground">Start Date</p>
-						<p className="font-medium">{formatLeaseDate(data.start_date)}</p>
+						<p className="mb-0 font-medium wrap-break-word">
+							{formatLeaseDate(data.start_date)}
+						</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">End Date</p>
-						<p className="font-medium">{formatLeaseDate(data.end_date)}</p>
+						<p className="mb-0 font-medium wrap-break-word">
+							{formatLeaseDate(data.end_date)}
+						</p>
 					</div>
 				</div>
 			</div>
@@ -102,22 +127,22 @@ export function ReviewStep({
 					<DollarSign className="h-4 w-4 text-muted-foreground" />
 					<h4 className="font-medium">Financial Terms</h4>
 				</div>
-				<div className="grid grid-cols-3 gap-4 pl-6">
+				<div className={TERMS_3}>
 					<div>
 						<p className="text-sm text-muted-foreground">Monthly Rent</p>
-						<p className="font-medium text-lg">
+						<p className="mb-0 font-medium text-lg wrap-break-word">
 							{formatAmountOrDash(data.rent_amount)}
 						</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Security Deposit</p>
-						<p className="font-medium">
+						<p className="mb-0 font-medium wrap-break-word">
 							{formatAmountOrDash(data.security_deposit)}
 						</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Rent Due Day</p>
-						<p className="font-medium">
+						<p className="mb-0 font-medium wrap-break-word">
 							{data.payment_day
 								? `${data.payment_day}${getOrdinalSuffix(data.payment_day)} of month`
 								: "-"}
@@ -125,15 +150,15 @@ export function ReviewStep({
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Grace Period</p>
-						<p className="font-medium">
+						<p className="mb-0 font-medium wrap-break-word">
 							{data.grace_period_days !== undefined
-								? `${data.grace_period_days} days`
+								? formatCount(data.grace_period_days, "day")
 								: "-"}
 						</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Late Fee</p>
-						<p className="font-medium">
+						<p className="mb-0 font-medium wrap-break-word">
 							{formatAmountOrDash(data.late_fee_amount)}
 						</p>
 					</div>
@@ -148,16 +173,16 @@ export function ReviewStep({
 					<User className="h-4 w-4 text-muted-foreground" />
 					<h4 className="font-medium">Occupancy & Pets</h4>
 				</div>
-				<div className="grid grid-cols-2 gap-4 pl-6">
+				<div className={TERMS}>
 					<div>
 						<p className="text-sm text-muted-foreground">Max Occupants</p>
-						<p className="font-medium">
+						<p className="mb-0 font-medium wrap-break-word">
 							{data.max_occupants || "Not specified"}
 						</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Pets</p>
-						<div className="flex items-center gap-2">
+						<div className="flex flex-wrap items-center gap-2">
 							{data.pets_allowed ? (
 								<>
 									<Badge variant="outline" className="gap-1">
@@ -191,7 +216,7 @@ export function ReviewStep({
 					<Zap className="h-4 w-4 text-muted-foreground" />
 					<h4 className="font-medium">Utilities</h4>
 				</div>
-				<div className="grid grid-cols-2 gap-4 pl-6">
+				<div className={TERMS}>
 					<div>
 						<p className="text-sm text-muted-foreground mb-2">
 							Included in Rent
@@ -199,8 +224,8 @@ export function ReviewStep({
 						<div className="flex flex-wrap gap-1">
 							{data.utilities_included?.length ? (
 								data.utilities_included.map((u) => (
-									<Badge key={u} variant="outline" className="capitalize">
-										{u.replace("_", " ")}
+									<Badge key={u} variant="outline">
+										{utilityLabel(u)}
 									</Badge>
 								))
 							) : (
@@ -215,8 +240,8 @@ export function ReviewStep({
 						<div className="flex flex-wrap gap-1">
 							{data.tenant_responsible_utilities?.length ? (
 								data.tenant_responsible_utilities.map((u) => (
-									<Badge key={u} variant="secondary" className="capitalize">
-										{u.replace("_", " ")}
+									<Badge key={u} variant="secondary">
+										{utilityLabel(u)}
 									</Badge>
 								))
 							) : (
@@ -236,7 +261,7 @@ export function ReviewStep({
 							<FileText className="h-4 w-4 text-muted-foreground" />
 							<h4 className="font-medium">Property Rules</h4>
 						</div>
-						<p className="text-sm pl-6 whitespace-pre-wrap">
+						<p className="mb-0 text-sm pl-6 whitespace-pre-wrap">
 							{data.property_rules}
 						</p>
 					</div>
@@ -252,17 +277,15 @@ export function ReviewStep({
 							<CheckCircle2
 								className={`h-4 w-4 ${
 									data.lead_paint_disclosure_acknowledged
-										? "text-green-500"
-										: "text-amber-500"
+										? "text-success-text"
+										: "text-warning-text"
 								}`}
 							/>
 							<h4 className="font-medium">Lead Paint Disclosure</h4>
 						</div>
 						<div className="pl-6">
 							{data.lead_paint_disclosure_acknowledged ? (
-								<Badge variant="outline" className="text-green-600">
-									Disclosure Acknowledged
-								</Badge>
+								<Badge variant="success">Disclosure Acknowledged</Badge>
 							) : (
 								<Badge variant="destructive">Acknowledgment Required</Badge>
 							)}

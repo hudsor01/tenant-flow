@@ -134,11 +134,11 @@ export function DataTableFacetedFilter<TData, TValue>({
 				</PopoverTrigger>
 			</div>
 			<PopoverContent className="w-50 p-0" align="start">
-				<Command>
+				<Command label={title ? `Search ${title}` : "Search options"}>
 					<CommandInput placeholder={title} />
 					<CommandList className="max-h-full">
 						<CommandEmpty>No results found.</CommandEmpty>
-						<CommandGroup className="max-h-[300px] scroll-py-1 overflow-y-auto overflow-x-hidden">
+						<CommandGroup className="max-h-75 scroll-py-1 overflow-y-auto overflow-x-hidden">
 							{options.map((option) => {
 								const isSelected = selectedValues.has(option.value);
 
@@ -155,7 +155,7 @@ export function DataTableFacetedFilter<TData, TValue>({
 													: "opacity-50 [&_svg]:invisible",
 											)}
 										>
-											<Check />
+											<Check className="text-primary-foreground" />
 										</div>
 										{option.icon && <option.icon />}
 										<span className="truncate">{option.label}</span>

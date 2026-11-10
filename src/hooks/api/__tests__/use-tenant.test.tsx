@@ -12,20 +12,17 @@
  * @vitest-environment jsdom
  */
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+	QueryClient,
+	QueryClientProvider,
+	useQuery,
+} from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
 import { tenantQueries } from "../query-keys/tenant-keys";
-import {
-	useAllTenants,
-	usePrefetchTenantDetail,
-	useTenant,
-	useTenantList,
-	useTenantStats,
-	useTenantWithLease,
-} from "../use-tenant";
+import { useAllTenants, useTenantList } from "../use-tenant";
 import {
 	useCreateTenantMutation,
 	useDeleteTenantMutation,
@@ -156,6 +153,8 @@ const mockTenant = {
 	emergency_contact_relationship: null,
 	identity_verified: null,
 	ssn_last_four: null,
+	move_out_date: null,
+	move_out_reason: null,
 };
 
 const mockTenantWithLease = {
@@ -193,11 +192,14 @@ describe("Query Hooks", () => {
 		});
 	});
 
-	describe("useTenant", () => {
+	describe("tenantQueries.detail", () => {
 		it("should query tenants table by ID", async () => {
-			const { result } = renderHook(() => useTenant("tenant-123"), {
-				wrapper: createWrapper(),
-			});
+			const { result } = renderHook(
+				() => useQuery(tenantQueries.detail("tenant-123")),
+				{
+					wrapper: createWrapper(),
+				},
+			);
 
 			await waitFor(() => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true);
@@ -207,7 +209,7 @@ describe("Query Hooks", () => {
 		});
 
 		it("should not fetch when ID is empty", () => {
-			const { result } = renderHook(() => useTenant(""), {
+			const { result } = renderHook(() => useQuery(tenantQueries.detail("")), {
 				wrapper: createWrapper(),
 			});
 
@@ -215,7 +217,7 @@ describe("Query Hooks", () => {
 		});
 	});
 
-	describe("useTenantWithLease", () => {
+	describe("tenantQueries.withLease", () => {
 		it("should query tenants table with lease join", async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === "tenants") {
@@ -224,9 +226,12 @@ describe("Query Hooks", () => {
 				return createQueryChain({ data: null });
 			});
 
-			const { result } = renderHook(() => useTenantWithLease("tenant-123"), {
-				wrapper: createWrapper(),
-			});
+			const { result } = renderHook(
+				() => useQuery(tenantQueries.withLease("tenant-123")),
+				{
+					wrapper: createWrapper(),
+				},
+			);
 
 			await waitFor(() => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true);
@@ -236,9 +241,12 @@ describe("Query Hooks", () => {
 		});
 
 		it("should not fetch when ID is empty", () => {
-			const { result } = renderHook(() => useTenantWithLease(""), {
-				wrapper: createWrapper(),
-			});
+			const { result } = renderHook(
+				() => useQuery(tenantQueries.withLease("")),
+				{
+					wrapper: createWrapper(),
+				},
+			);
 
 			expect(result.current.isFetching).toBe(false);
 		});
@@ -283,36 +291,6 @@ describe("Query Hooks", () => {
 			});
 
 			expect(supabaseFromMock).toHaveBeenCalledWith("tenants");
-		});
-	});
-
-	describe("useTenantStats", () => {
-		it("aggregates tenant counts via the get_tenant_stats RPC through mapTenantStats", async () => {
-			supabaseRpcMock.mockResolvedValue({
-				data: { total: 15, active: 12, inactive: 3 },
-				error: null,
-			});
-
-			const { result } = renderHook(() => useTenantStats(), {
-				wrapper: createWrapper(),
-			});
-
-			await waitFor(() => {
-				expect(result.current.isSuccess).toBe(true);
-			});
-
-			// Single owner-scoped RPC — no HEAD counts, no users.status filter.
-			expect(supabaseRpcMock).toHaveBeenCalledWith("get_tenant_stats", {
-				p_user_id: "owner-user-123",
-			});
-			expect(result.current.data).toMatchObject({
-				total: 15,
-				active: 12,
-				inactive: 3,
-				totalTenants: 15,
-				activeTenants: 12,
-				newThisMonth: 0,
-			});
 		});
 	});
 });
@@ -562,15 +540,20 @@ describe("Mutation Hooks", () => {
 	});
 
 	describe("useMarkTenantAsMovedOutMutation (TEN-06)", () => {
+		const tenantsUpdate = vi.fn();
+		const tenantsUpdateEq = vi.fn();
+
 		beforeEach(() => {
-			// markMovedOut updates tenants.status then re-selects the row with the
+			// markMovedOut updates the tenant then re-selects the row with the
 			// lease join and returns it — mock both chains so the mutation resolves.
+			tenantsUpdateEq
+				.mockReset()
+				.mockResolvedValue({ data: null, error: null });
+			tenantsUpdate.mockReset().mockReturnValue({ eq: tenantsUpdateEq });
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === "tenants") {
 					return {
-						update: vi.fn().mockReturnValue({
-							eq: vi.fn().mockResolvedValue({ data: null, error: null }),
-						}),
+						update: tenantsUpdate,
 						select: vi.fn().mockReturnValue({
 							eq: vi.fn().mockReturnValue({
 								single: vi.fn().mockResolvedValue({
@@ -583,6 +566,40 @@ describe("Mutation Hooks", () => {
 				}
 				return createQueryChain({ data: null });
 			});
+		});
+
+		it("saves the status, the move-out date and the trimmed reason in one UPDATE", async () => {
+			const queryClient = new QueryClient({
+				defaultOptions: {
+					queries: { retry: false },
+					mutations: { retry: false },
+				},
+			});
+			const wrapper = ({ children }: { children: ReactNode }) => (
+				<QueryClientProvider client={queryClient}>
+					{children}
+				</QueryClientProvider>
+			);
+			const { result } = renderHook(() => useMarkTenantAsMovedOutMutation(), {
+				wrapper,
+			});
+
+			await result.current.mutateAsync({
+				id: "tenant-123",
+				data: {
+					moveOutDate: "2026-07-07",
+					moveOutReason: "  relocation: took a job in Denver  ",
+				},
+			});
+
+			expect(tenantsUpdate).toHaveBeenCalledTimes(1);
+			expect(tenantsUpdate).toHaveBeenCalledWith({
+				status: "moved_out",
+				move_out_date: "2026-07-07",
+				move_out_reason: "relocation: took a job in Denver",
+				updated_at: expect.any(String),
+			});
+			expect(tenantsUpdateEq).toHaveBeenCalledWith("id", "tenant-123");
 		});
 
 		it("resolves without throwing and leaves the real list cache key a PaginatedResponse object", async () => {
@@ -651,27 +668,6 @@ describe("Mutation Hooks", () => {
 	});
 });
 
-describe("Utility Hooks", () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-
-		supabaseFromMock.mockImplementation(() => createQueryChain({ data: null }));
-	});
-
-	describe("usePrefetchTenantDetail", () => {
-		it("should be a declarative prefetch hook", () => {
-			const { result } = renderHook(
-				() => usePrefetchTenantDetail("tenant-123"),
-				{
-					wrapper: createWrapper(),
-				},
-			);
-
-			expect(result.current).toBeUndefined();
-		});
-	});
-});
-
 describe("Error Handling", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -690,9 +686,12 @@ describe("Error Handling", () => {
 			}),
 		);
 
-		const { result } = renderHook(() => useTenant("tenant-123"), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(tenantQueries.detail("tenant-123")),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isError).toBe(true);

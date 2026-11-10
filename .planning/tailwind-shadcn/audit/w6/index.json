@@ -1,0 +1,70 @@
+{
+  "head": "2c0d86378462ef449116613e94263adaa6f514bd",
+  "preW6": "9ab6f9b11c82d55eca9da59b4d706823476ce9e7",
+  "preW5": "84f3c58d3870b980b11599c99712255b85dcc867",
+  "artifacts": [
+    {
+      "path": "registry-w6.json",
+      "sha256": "0c495d57ec3cfeb9115b204787c0fbc4ae1893661a6a5cd3a51f60d97782b7b5",
+      "producedBy": "sidebar-registry-check.mjs",
+      "command": "TW_AUDIT_OUT=$SCR/out node .planning/tailwind-shadcn/audit/sidebar-registry-check.mjs",
+      "committedIn": "92b7f4e438bf67591f357e62a22e70dde46eff45"
+    },
+    {
+      "path": "registry/sidebar.headers",
+      "sha256": "b8f8655369725b542e5169f02bd7d19b7bcd004a5dccac0c1e5a32b750c11e0e",
+      "producedBy": "sidebar-registry-check.mjs",
+      "command": "TW_AUDIT_OUT=$SCR/out node .planning/tailwind-shadcn/audit/sidebar-registry-check.mjs (copy of $SCR/out/registry/sidebar.headers)",
+      "committedIn": "92b7f4e438bf67591f357e62a22e70dde46eff45"
+    },
+    {
+      "path": "registry/sidebar.json",
+      "sha256": "421f1735955361a12466c5c6e7d4c1124cc7f76422b4fdd5dcdf8451b8ae4052",
+      "producedBy": "sidebar-registry-check.mjs",
+      "command": "TW_AUDIT_OUT=$SCR/out node .planning/tailwind-shadcn/audit/sidebar-registry-check.mjs (copy of $SCR/out/registry/sidebar.json)",
+      "committedIn": "92b7f4e438bf67591f357e62a22e70dde46eff45"
+    },
+    {
+      "path": "registry/use-mobile.headers",
+      "sha256": "548a0f996bc466f82a61097aa2b4fe8c4b13da293192f3857854f39b412b3426",
+      "producedBy": "sidebar-registry-check.mjs",
+      "command": "TW_AUDIT_OUT=$SCR/out node .planning/tailwind-shadcn/audit/sidebar-registry-check.mjs (copy of $SCR/out/registry/use-mobile.headers)",
+      "committedIn": "92b7f4e438bf67591f357e62a22e70dde46eff45"
+    },
+    {
+      "path": "registry/use-mobile.json",
+      "sha256": "4cd4736a08751c89e2ebc10f9d329c430ddb6194f46bf848e5ed470c0407bca1",
+      "producedBy": "sidebar-registry-check.mjs",
+      "command": "TW_AUDIT_OUT=$SCR/out node .planning/tailwind-shadcn/audit/sidebar-registry-check.mjs (copy of $SCR/out/registry/use-mobile.json)",
+      "committedIn": "92b7f4e438bf67591f357e62a22e70dde46eff45"
+    },
+    {
+      "path": "sidebar-before-manifest.json",
+      "sha256": "09b88bc6e45a6bf11e37d45004be4c9b23ee4805360185a6b3960d9e901e8fa4",
+      "producedBy": "sidebar-step0.mjs shots",
+      "command": "NEXT_PUBLIC_APP_URL=http://localhost:3062 TW_AUDIT_OUT=$SCR/out bun .planning/tailwind-shadcn/audit/sidebar-step0.mjs shots w6-before --start --port 3062 (copy of $SCR/out/screens-w6-before/manifest.json)",
+      "committedIn": "2c0d86378462ef449116613e94263adaa6f514bd"
+    },
+    {
+      "path": "sidebar-before-noise.json",
+      "sha256": "2f5c463d8e0a3ff15bb364be37dfddc6be8b1ad61ff0ad5b5869848c135b0602",
+      "producedBy": "screens.mjs --diff + noise array",
+      "command": "TW_AUDIT_OUT=$SCR/out bun .planning/tailwind-shadcn/audit/screens.mjs --diff w6-before w6-before-repeat (diff-w6-before-vs-w6-before-repeat.json plus noise[])",
+      "committedIn": "2c0d86378462ef449116613e94263adaa6f514bd"
+    },
+    {
+      "path": "step0-claims.json",
+      "sha256": "13e9d56b9e628db0467d3e55e9b14862fe995773f23435e20389a93da3c70e21",
+      "producedBy": "sidebar-step0.mjs claims",
+      "command": "NEXT_PUBLIC_APP_URL=http://localhost:3062 TW_AUDIT_OUT=$SCR/out bun .planning/tailwind-shadcn/audit/sidebar-step0.mjs claims --start --port 3062",
+      "committedIn": "c0fe38a043f86dd3606c4eedbacca4504347845b"
+    },
+    {
+      "path": "tsc-sidebar-w6.json",
+      "sha256": "dd3009176a5809560432fae442600f69726498b50ce0b230067e2b1fa6a30922",
+      "producedBy": "sidebar-registry-check.mjs",
+      "command": "TW_AUDIT_OUT=$SCR/out node .planning/tailwind-shadcn/audit/sidebar-registry-check.mjs",
+      "committedIn": "92b7f4e438bf67591f357e62a22e70dde46eff45"
+    }
+  ]
+}

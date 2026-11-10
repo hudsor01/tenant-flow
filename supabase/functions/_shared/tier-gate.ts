@@ -15,6 +15,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getJsonHeaders } from "./cors.ts";
 import { captureWebhookError } from "./errors.ts";
+import { tierGateRefusal } from "./tier-gate-decision.ts";
 
 const ACTIVE_SUB_STATUSES: ReadonlySet<string> = new Set([
 	"active",
@@ -81,7 +82,16 @@ export async function checkTierEntitlement(
 	const hasActiveSub = !!ownerStatus && ACTIVE_SUB_STATUSES.has(ownerStatus);
 	const onEntitledPlan = !!ownerPlan && config.entitled_plans.has(ownerPlan);
 
-	if (hasActiveSub && onEntitledPlan) return null;
+	// An owner on Growth or Max whose subscription is not active (past due, in
+	// the app) is refused with Billing Settings, not "upgrade" to a plan they
+	// have (`tier-gate-decision.ts`, 66.2-39 fix round 4, Part 8n).
+	const refusal = tierGateRefusal({
+		onEntitledPlan,
+		hasActiveSub,
+		status: ownerStatus,
+		upgradeSource: config.upgrade_source,
+	});
+	if (refusal === null) return null;
 
 	// Record the gate hit for admin analytics. We fire-and-forget (don't await)
 	// so the 402 response returns as fast as possible, but the Deno Edge runtime
@@ -92,22 +102,24 @@ export async function checkTierEntitlement(
 	// Phase 46 gate hit.
 	//
 	// Reference: https://supabase.com/docs/guides/functions/background-tasks
-	const insertPromise = supabase
-		.from("gate_events")
-		.insert({
+	//
+	// An async function, so waitUntil gets the Promise its contract names: the
+	// query builder's own `.then()` is typed PromiseLike, which is not one.
+	const recordGateHit = async (): Promise<void> => {
+		const { error } = await supabase.from("gate_events").insert({
 			user_id: userId,
 			feature: config.feature,
 			current_plan: ownerPlan,
 			current_status: ownerStatus,
-		})
-		.then(({ error }) => {
-			if (error) {
-				captureWebhookError(error, {
-					message: `gate_events insert failed (${config.feature})`,
-					user_id: userId,
-				});
-			}
 		});
+		if (error) {
+			captureWebhookError(error, {
+				message: `gate_events insert failed (${config.feature})`,
+				user_id: userId,
+			});
+		}
+	};
+	const insertPromise = recordGateHit();
 
 	// EdgeRuntime is a Deno Edge runtime global. In the local `deno test`
 	// harness or a non-Edge runtime it may be undefined, so we feature-detect.
@@ -124,9 +136,7 @@ export async function checkTierEntitlement(
 
 	return new Response(
 		JSON.stringify({
-			error: `This feature requires a Growth or Max subscription.`,
-			upgrade_required: true,
-			upgrade_url: `/billing/plans?source=${config.upgrade_source}`,
+			...refusal,
 			current_plan: ownerPlan,
 			current_status: ownerStatus,
 		}),

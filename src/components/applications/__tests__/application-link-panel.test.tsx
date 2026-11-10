@@ -31,6 +31,7 @@
  * `useQuery` never invokes it.
  */
 
+import { readFileSync } from "node:fs";
 import {
 	act,
 	cleanup,
@@ -44,6 +45,10 @@ import ApplicationsPage from "#app/(owner)/applications/page";
 import type { ApplicationLinkRow } from "#hooks/api/query-keys/application-link-keys";
 import { computeListCascade } from "#test/utils/base-rule-cascade";
 import { computeFontSizeAt } from "#test/utils/responsive-font-size-cascade";
+import {
+	GLOBALS_CSS_PATH,
+	loadProjectDesignSystem,
+} from "#test/utils/tailwind-engine";
 import { ApplicationLinkPanel } from "../application-link-panel";
 
 const {
@@ -676,7 +681,8 @@ describe("ApplicationLinkPanel — a link whose unit is no longer listed", () =>
  * THE COMPUTED VALUE, NOT THE CLASS STRING. This band renders TWO `<ul>`s — the
  * listed-unit rows and the orphaned-link rows — and both shipped
  * `pl-0 mt-0 [&>li]:mb-0`, every class present and correct, while both still
- * carried a 16px bottom margin: `margin: 1rem 0` at globals.css:517-524 is a
+ * carried a 16px bottom margin: `margin: 1rem 0` in the `@layer base`
+ * `ul, ol` / `li` rules in globals.css is a
  * SHORTHAND writing both vertical margins, `mt-0` cancels only the top, and
  * `[&>li]:mb-0` targets the child `<li>` rather than the list. A class-presence
  * assertion passes against that build, which is precisely why this one reads
@@ -730,14 +736,15 @@ describe("ApplicationLinkPanel — the lists defeat the ul/ol base rules", () =>
 /**
  * THE URL FIELD IS 12px AT EVERY WIDTH, AND `text-xs` ALONE DOES NOT DELIVER IT.
  *
- * `Input`'s cva base ends `… text-base … md:text-sm …` (`ui/input.tsx:8`) — the
- * shadcn 16px-on-mobile / 14px-on-desktop pattern that stops iOS zooming on
- * focus. The panel passes `font-mono text-xs` for §C row "Active", and
- * `tailwind-merge` puts an unmodified utility and a variant-modified one in
- * DIFFERENT buckets: running the real strings through the repo's own `cn()`
- * yields `… md:text-sm … font-mono text-xs`. `text-base` was dropped;
- * `md:text-sm` was not. Above 768px the variant wins and the field renders 14px,
- * not the 12px `66-UI-SPEC.md:975` declares.
+ * `Input`'s cva base (`inputVariants`, `ui/input.tsx`) holds `… text-base …
+ * md:text-sm …` — the shadcn 16px-on-mobile / 14px-on-desktop pattern that
+ * stops iOS zooming on focus. The panel passes `font-mono text-xs` for §C row
+ * "Active", and `tailwind-merge` puts an unmodified utility and a
+ * variant-modified one in DIFFERENT buckets: running the real strings through
+ * the repo's own `cn()` yields `… md:text-sm … font-mono text-xs`. `text-base`
+ * was dropped; `md:text-sm` was not. Above 768px the variant wins and the
+ * field renders 14px, not the 12px that row declares (66-UI-SPEC.md §C, the
+ * link-state table).
  *
  * NO ASSERTION IN THIS REPO COULD SEE THAT. E-19 reads `inputValue()` at 1280px
  * and never a computed size, and every other check here is about text or roles.
@@ -748,7 +755,7 @@ describe("ApplicationLinkPanel — the lists defeat the ul/ol base rules", () =>
  * not prove.
  */
 describe("ApplicationLinkPanel — the link URL is 12px at every viewport", () => {
-	it("models the defect it is checking for, on a probe with the broken classes", () => {
+	it("models the defect it is checking for, on a probe with the broken classes", async () => {
 		// POSITIVE CONTROL ON THE HARNESS, and it is the load-bearing one. Without
 		// it, a harness that always answered "12px" would pass the real assertion
 		// below while being unable to detect anything. This probe carries EXACTLY
@@ -759,14 +766,14 @@ describe("ApplicationLinkPanel — the link URL is 12px at every viewport", () =
 		document.body.appendChild(probe);
 
 		try {
-			expect(computeFontSizeAt(probe, 375).computed).toBe("12px");
-			expect(computeFontSizeAt(probe, 1280).computed).toBe("14px");
+			expect((await computeFontSizeAt(probe, 375)).computed).toBe("12px");
+			expect((await computeFontSizeAt(probe, 1280)).computed).toBe("14px");
 		} finally {
 			probe.remove();
 		}
 	});
 
-	it("renders 12px at 375px AND at 1280px, not 14px above the md breakpoint", () => {
+	it("renders 12px at 375px AND at 1280px, not 14px above the md breakpoint", async () => {
 		mockQueries(linksState([makeLink()]), propertiesState());
 		render(<ApplicationLinkPanel />);
 
@@ -775,8 +782,8 @@ describe("ApplicationLinkPanel — the link URL is 12px at every viewport", () =
 		// other textbox that happened to render.
 		expect(field).toHaveValue(EXPECTED_URL);
 
-		const mobile = computeFontSizeAt(field, 375);
-		const desktop = computeFontSizeAt(field, 1280);
+		const mobile = await computeFontSizeAt(field, 375);
+		const desktop = await computeFontSizeAt(field, 1280);
 
 		// Positive control on the stylesheet: an unclassed <input> in the same
 		// document reads the UA default. If the harness had failed to attach its
@@ -796,6 +803,47 @@ describe("ApplicationLinkPanel — the link URL is 12px at every viewport", () =
 		// message rather than as an unexplained pixel count.
 		expect(desktop.applied).not.toContain("md:text-sm");
 	});
+
+	it("resolves sizes and breakpoints through Tailwind's design system, defaults included", async () => {
+		const designSystem = await loadProjectDesignSystem();
+		expect(designSystem.resolveThemeValue("--text-xs")).toBe("0.75rem");
+		expect(designSystem.resolveThemeValue("--text-sm")).toBe("0.875rem");
+		expect(designSystem.resolveThemeValue("--text-caption")).toMatch(
+			/^\d*\.?\d+rem$/,
+		);
+		expect(designSystem.resolveThemeValue("--breakpoint-md")).toBe("48rem");
+		// Not sizes: a colour and an alignment share the `text-` prefix.
+		expect(designSystem.resolveThemeValue("--text-foreground")).toBeUndefined();
+		expect(designSystem.resolveThemeValue("--text-center")).toBeUndefined();
+
+		// The property that lets a project copy of a default size go: with every
+		// default-valued size line removed, Tailwind's own default theme still
+		// supplies the value. The stripped text provably declares no `--text-xs`,
+		// so the answer cannot be coming from the project stylesheet.
+		const css = readFileSync(GLOBALS_CSS_PATH, "utf8");
+		const stripped = css
+			.split("\n")
+			.filter(
+				(line) => /^\s*--text-(xs|sm|base|lg|xl|[2-6]xl):/.test(line) === false,
+			)
+			.join("\n");
+		expect(stripped).not.toMatch(/^\s*--text-xs:/m);
+		const defaultsOnly = await loadProjectDesignSystem(stripped);
+		expect(defaultsOnly.resolveThemeValue("--text-xs")).toBe("0.75rem");
+
+		// A responsive variant the design system has no breakpoint for is refused,
+		// naming the missing token, rather than modelled as some other width.
+		const probe = document.createElement("input");
+		probe.className = "3xl:text-sm";
+		document.body.appendChild(probe);
+		try {
+			await expect(computeFontSizeAt(probe, 1280)).rejects.toMatchObject({
+				message: expect.stringContaining("--breakpoint-3xl"),
+			});
+		} finally {
+			probe.remove();
+		}
+	}, 30_000);
 });
 
 describe("ApplicationLinkPanel — the owner has no units", () => {

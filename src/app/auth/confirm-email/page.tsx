@@ -5,6 +5,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { GridPattern } from "#components/ui/grid-pattern";
 import { logger } from "#lib/frontend-logger";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import {
 	ConfirmEmailActions,
@@ -118,10 +119,10 @@ function ConfirmEmailContent() {
 				},
 			});
 			toast.error("Failed to resend email", {
-				description:
-					error instanceof Error
-						? error.message
-						: "Please try again or contact support.",
+				description: userFacingErrorMessage(
+					error,
+					"Please try again or contact support.",
+				),
 			});
 		} finally {
 			setIsResending(false);
@@ -172,7 +173,7 @@ export default function ConfirmEmailPage() {
 				<div className="min-h-screen flex-center bg-background">
 					<div className="text-center space-y-4">
 						<div className="size-16 mx-auto rounded-full border-4 border-primary border-t-transparent animate-spin" />
-						<p className="text-muted-foreground">Loading...</p>
+						<p className="mb-0 text-muted-foreground">Loading...</p>
 					</div>
 				</div>
 			}

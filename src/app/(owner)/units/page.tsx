@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { DataTable } from "#components/data-table/data-table";
 import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
+import { OwnerErrorBox } from "#components/shared/owner-error-box";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -35,9 +36,10 @@ import {
 	EmptyTitle,
 } from "#components/ui/empty";
 import { Skeleton } from "#components/ui/skeleton";
-import { unitQueries } from "#hooks/api/query-keys/unit-keys";
+import { type UnitListRow, unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useDeleteUnitMutation } from "#hooks/api/use-unit";
 import { useClientDataTable } from "#hooks/use-client-data-table";
+import { formatCurrency } from "#lib/utils/currency";
 import type { Unit } from "#types/core";
 
 export default function UnitsPage() {
@@ -52,6 +54,9 @@ export default function UnitsPage() {
 	} = useQuery(unitQueries.list({ limit: 100 }));
 
 	const units = unitsResponse?.data ?? [];
+	// The confirmation names the unit it deletes.
+	const unitToDeleteNumber =
+		units.find((unit) => unit.id === deleteunit_id)?.unit_number ?? null;
 
 	const handleDeleteClick = (unit_id: string) => {
 		setDeleteunit_id(unit_id);
@@ -88,7 +93,7 @@ export default function UnitsPage() {
 		return <Badge variant={variants[status]}>{labels[status]}</Badge>;
 	};
 
-	const columns: ColumnDef<Unit>[] = [
+	const columns: ColumnDef<UnitListRow>[] = [
 		{
 			id: "unit_number",
 			accessorKey: "unit_number",
@@ -104,11 +109,16 @@ export default function UnitsPage() {
 			),
 		},
 		{
+			// Each unit's property by name, from the list's own embed: the column
+			// printed the first eight characters of its id ("Property ID:
+			// 3f2a9c1e..."), and a lookup in the select options (active
+			// properties only) left a deleted property's units with none.
 			accessorKey: "property_id",
 			header: "Property",
+			meta: { label: "Property" },
 			cell: ({ row }) => (
 				<span className="text-muted-foreground">
-					Property ID: {row.original.property_id.substring(0, 8)}...
+					{row.original.propertyName ?? "-"}
 				</span>
 			),
 		},
@@ -155,7 +165,7 @@ export default function UnitsPage() {
 			enableColumnFilter: true,
 			cell: ({ row }) =>
 				row.original.rent_amount
-					? `$${row.original.rent_amount.toLocaleString()}/mo`
+					? `${formatCurrency(row.original.rent_amount, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/mo`
 					: "-",
 		},
 		{
@@ -199,7 +209,7 @@ export default function UnitsPage() {
 							<DropdownMenuItem
 								disabled={unit.status === "occupied"}
 								onClick={() => handleDeleteClick(unit.id)}
-								className="text-destructive-text focus:text-destructive-text"
+								variant="destructive"
 							>
 								<Trash2 className="mr-2 size-4" />
 								Delete
@@ -225,14 +235,10 @@ export default function UnitsPage() {
 	if (error) {
 		return (
 			<div className="p-6 lg:p-8">
-				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-					<h2 className="typography-large text-destructive-text">
-						Error Loading Units
-					</h2>
-					<p className="text-muted-foreground">
-						{error instanceof Error ? error.message : "Failed to load units"}
-					</p>
-				</div>
+				<OwnerErrorBox
+					title="Error Loading Units"
+					message="Failed to load units"
+				/>
 			</div>
 		);
 	}
@@ -264,13 +270,13 @@ export default function UnitsPage() {
 			<div className="flex-between">
 				<div>
 					<h1 className="typography-h1">Units</h1>
-					<p className="text-muted-foreground">
+					<p className="mb-0 text-muted-foreground">
 						Manage your rental units across all properties
 					</p>
 				</div>
-				<Link href="/units/new">
-					<Button>Add Unit</Button>
-				</Link>
+				<Button asChild>
+					<Link href="/units/new">Add Unit</Link>
+				</Button>
 			</div>
 
 			{/* DataTable with Toolbar */}
@@ -281,7 +287,7 @@ export default function UnitsPage() {
 							<Home />
 						</EmptyMedia>
 						<EmptyTitle>No units found</EmptyTitle>
-						<EmptyDescription>
+						<EmptyDescription className="mb-0">
 							Get started by creating your first unit
 						</EmptyDescription>
 					</EmptyHeader>
@@ -299,10 +305,15 @@ export default function UnitsPage() {
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete unit</AlertDialogTitle>
-						<AlertDialogDescription>
-							Are you sure you want to delete this unit? This action cannot be
-							undone.
+						<AlertDialogTitle>
+							{unitToDeleteNumber
+								? `Delete unit ${unitToDeleteNumber}?`
+								: "Delete this unit?"}
+						</AlertDialogTitle>
+						{/* A soft delete (status 'inactive'), not a permanent one. */}
+						<AlertDialogDescription className="mb-0">
+							This marks the unit as inactive, so it leaves your unit lists. Its
+							lease history is kept.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
@@ -310,7 +321,7 @@ export default function UnitsPage() {
 						<AlertDialogAction
 							onClick={handleDeleteConfirm}
 							disabled={deleteUnitMutation.isPending}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							variant="destructive"
 						>
 							{deleteUnitMutation.isPending ? "Deleting..." : "Delete"}
 						</AlertDialogAction>

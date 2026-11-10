@@ -1,0 +1,56 @@
+{
+ "deadTheme": [
+  {
+   "name": "--color-sidebar-foreground",
+   "value": "var(--sidebar-foreground)",
+   "line": 909,
+   "mode": "inline"
+  },
+  {
+   "name": "--color-sidebar-primary",
+   "value": "var(--sidebar-primary)",
+   "line": 910,
+   "mode": "inline"
+  },
+  {
+   "name": "--color-sidebar-primary-foreground",
+   "value": "var(--sidebar-primary-foreground)",
+   "line": 911,
+   "mode": "inline"
+  },
+  {
+   "name": "--color-sidebar-accent",
+   "value": "var(--sidebar-accent)",
+   "line": 912,
+   "mode": "inline"
+  },
+  {
+   "name": "--color-sidebar-accent-foreground",
+   "value": "var(--sidebar-accent-foreground)",
+   "line": 913,
+   "mode": "inline"
+  },
+  {
+   "name": "--color-sidebar-border",
+   "value": "var(--sidebar-border)",
+   "line": 914,
+   "mode": "inline"
+  },
+  {
+   "name": "--color-sidebar-ring",
+   "value": "var(--sidebar-ring)",
+   "line": 915,
+   "mode": "inline"
+  }
+ ],
+ "deadOther": [
+  {
+   "name": "--sidebar-transition",
+   "line": 122,
+   "context": ":root"
+  }
+ ],
+ "deadUtil": [],
+ "deadKf": [],
+ "deadClass": []
+}

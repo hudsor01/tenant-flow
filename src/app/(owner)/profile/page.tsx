@@ -10,7 +10,6 @@
 
 "use client";
 
-import { useRouter } from "next/navigation";
 import { type ChangeEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ChangePasswordDialog } from "#components/auth/change-password-dialog";
@@ -34,7 +33,6 @@ import {
 } from "#hooks/api/use-profile-mutations";
 
 export default function OwnerProfilePage() {
-	const router = useRouter();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [isEditing, setIsEditing] = useState(false);
 	const [showChangePasswordDialog, setShowChangePasswordDialog] =
@@ -155,13 +153,11 @@ export default function OwnerProfilePage() {
 		}
 	};
 
-	const handleSignOut = async () => {
-		try {
-			await signOut.mutateAsync();
-			router.push("/login");
-		} catch {
-			// Error handled by mutation
-		}
+	// useSignOutMutation lands on /login after a success or an incomplete
+	// sign-out, and toasts a failure; a failed first request keeps the
+	// session, so the owner stays here and can try again.
+	const handleSignOut = () => {
+		signOut.mutate();
 	};
 
 	if (isLoading) {
@@ -195,7 +191,7 @@ export default function OwnerProfilePage() {
 	return (
 		<div className="space-y-6">
 			{/* Header */}
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div>
 					<h1 className="text-2xl font-bold">My Profile</h1>
 					<p className="text-muted-foreground">
@@ -204,7 +200,7 @@ export default function OwnerProfilePage() {
 				</div>
 			</BlurFade>
 
-			<div className="grid gap-6 lg:grid-cols-3">
+			<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 				{/* Profile Card */}
 				<ProfileCard
 					profile={profile}

@@ -96,6 +96,74 @@ describe("BillingPlansPage — BILL-01 portal-vs-checkout routing", () => {
 		expect(screen.queryByText(/undefined plan/i)).not.toBeInTheDocument();
 	});
 
+	// 66.2-39 fix round 4, Part 8l: a live but locked subscription is not
+	// "active" (the proxy sends unpaid, paused and incomplete to /pricing).
+	it.each([
+		["unpaid", "Your subscription is unpaid"],
+		["past_due", "Your subscription is past due"],
+		["paused", "Your subscription is paused"],
+	])(
+		"names a %s subscription whose plan is unresolved by its status, not as active",
+		(status, copy) => {
+			mockStatus({
+				subscriptionStatus: status,
+				stripeCustomerId: "cus_test",
+				stripePriceId: "price_legacy_comp",
+				currentPeriodEnd: "2026-06-15T12:00:00Z",
+				cancelAtPeriodEnd: false,
+			});
+			render(<BillingPlansPage />);
+
+			expect(screen.getByText(copy)).toBeInTheDocument();
+			expect(
+				screen.queryByText(/you have an active subscription/i),
+			).not.toBeInTheDocument();
+		},
+	);
+
+	// Main session, Part 8m: a known plan is named with its status beside it.
+	// "You are currently on the Growth plan" read the same for an unpaid owner,
+	// whom the proxy locks out, as for an active one.
+	it.each([
+		["active", "You are currently on the Growth plan"],
+		["trialing", "You are currently on the Growth plan"],
+		["past_due", "Your Growth subscription is past due"],
+		["unpaid", "Your Growth subscription is unpaid"],
+		["paused", "Your Growth subscription is paused"],
+		["incomplete", "Your Growth subscription is incomplete"],
+	])(
+		"names a %s subscription's known plan with its status: %s",
+		(status, copy) => {
+			mockStatus({
+				subscriptionStatus: status,
+				stripeCustomerId: "cus_test",
+				stripePriceId: "price_1TVTaIP3WCR53SdoqnUe1Inv",
+				currentPeriodEnd: "2026-06-15T12:00:00Z",
+				cancelAtPeriodEnd: false,
+			});
+			render(<BillingPlansPage />);
+
+			expect(screen.getByText(copy)).toBeInTheDocument();
+			expect(screen.getByText("Current Plan: Growth")).toBeInTheDocument();
+		},
+	);
+
+	it("goes back to billing settings, which an owner whose plan has lapsed still reaches", () => {
+		mockStatus({
+			subscriptionStatus: "canceled",
+			stripeCustomerId: "cus_test",
+			stripePriceId: null,
+			currentPeriodEnd: null,
+			cancelAtPeriodEnd: false,
+		});
+		render(<BillingPlansPage />);
+
+		expect(
+			screen.getByRole("link", { name: /back to billing settings/i }),
+		).toHaveAttribute("href", "/settings?tab=billing");
+		expect(screen.queryByRole("link", { name: /dashboard/i })).toBeNull();
+	});
+
 	it("keeps an abandoned-checkout trial (trialing, customer set, no synced period) on the checkout path", () => {
 		// stripe-checkout persists stripe_customer_id BEFORE the session, so a
 		// DB-trial owner who abandons checkout returns with a customer id but no

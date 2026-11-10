@@ -1,0 +1,11 @@
+{
+  "root": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-19/head-mut",
+  "guards": {
+    "G8": {
+      "count": 1,
+      "violations": [
+        "flex-shrink-0 -> shrink-0"
+      ]
+    }
+  }
+}

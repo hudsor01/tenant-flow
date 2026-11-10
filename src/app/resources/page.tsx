@@ -96,11 +96,11 @@ export default function ResourcesPage() {
 
 				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 					<div className="text-center max-w-4xl mx-auto space-y-8">
-						<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground">
+						<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-display text-foreground">
 							Resources for <span className="hero-highlight">landlords</span>
 						</h1>
 
-						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
+						<p className="mb-0 text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
 							Setup guides, downloadable checklists, and reference material for
 							running your portfolio with TenantFlow.
 						</p>
@@ -120,7 +120,7 @@ export default function ResourcesPage() {
 						</p>
 					</div>
 
-					<div className="grid md:grid-cols-3 gap-8">
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 						{mainResources.map((resource) => (
 							<Link
 								key={resource.title}
@@ -172,7 +172,7 @@ export default function ResourcesPage() {
 						</p>
 					</div>
 
-					<div className="grid md:grid-cols-3 gap-8">
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 						{downloadResources.map((resource) => (
 							<Link
 								key={resource.title}
@@ -233,7 +233,7 @@ export default function ResourcesPage() {
 							<Button
 								variant="outline"
 								size="lg"
-								className="border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 typography-large px-8 py-4"
+								className="border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 dark:border-muted-foreground/30 dark:hover:bg-primary/5 typography-large px-8 py-4"
 								asChild
 							>
 								<Link href="/help">Browse Help Center</Link>

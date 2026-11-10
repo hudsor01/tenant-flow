@@ -10,6 +10,7 @@
 
 import { queryOptions } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import type { PaginatedResponse } from "#types/api-contracts";
@@ -39,8 +40,6 @@ const INSPECTION_DETAIL_SELECT =
 export const inspectionQueries = {
 	all: () => ["inspections"] as const,
 	lists: () => [...inspectionQueries.all(), "list"] as const,
-	byLease: (leaseId: string) =>
-		[...inspectionQueries.all(), "lease", leaseId] as const,
 	details: () => [...inspectionQueries.all(), "detail"] as const,
 	detail: (id: string) => [...inspectionQueries.details(), id] as const,
 
@@ -104,26 +103,6 @@ export const inspectionQueries = {
 			...QUERY_CACHE_TIMES.LIST,
 		}),
 
-	byLeaseQuery: (leaseId: string) =>
-		queryOptions({
-			queryKey: inspectionQueries.byLease(leaseId),
-			queryFn: async (): Promise<Inspection[]> => {
-				const supabase = createClient();
-				const { data, error } = await supabase
-					.from("inspections")
-					.select(INSPECTION_SELECT_COLUMNS)
-					.eq("lease_id", leaseId)
-					.order("created_at", { ascending: true })
-					.limit(50);
-
-				if (error) handlePostgrestError(error, "inspections");
-
-				return (data ?? []).map(narrowInspectionEnums);
-			},
-			enabled: !!leaseId,
-			...QUERY_CACHE_TIMES.DETAIL,
-		}),
-
 	detailQuery: (id: string) =>
 		queryOptions({
 			queryKey: inspectionQueries.detail(id),
@@ -137,7 +116,7 @@ export const inspectionQueries = {
 
 				if (error) handlePostgrestError(error, "inspections");
 				if (!data) {
-					throw new Error(`Inspection ${id} not found`);
+					throw new DiagnosticError(`Inspection ${id} not found`);
 				}
 
 				// Strip the raw PostgREST `inspection_rooms` embed -- the

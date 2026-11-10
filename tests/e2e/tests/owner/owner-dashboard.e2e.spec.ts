@@ -85,8 +85,7 @@ test.describe("Owner Dashboard", () => {
 			"Properties",
 			"Active Tenants",
 			"Tenants",
-			"Monthly Revenue",
-			"Revenue",
+			"Scheduled Rent",
 			"Maintenance Requests",
 			"Maintenance",
 			"Occupancy",
@@ -96,7 +95,7 @@ test.describe("Owner Dashboard", () => {
 		// At least 3 stat cards should be visible
 		let visibleStats = 0;
 		for (const label of statLabels) {
-			const stat = page.getByText(new RegExp(label, "i"));
+			const stat = page.getByText(label);
 			const count = await stat.count();
 			if (count > 0 && (await stat.first().isVisible())) {
 				visibleStats++;

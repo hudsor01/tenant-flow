@@ -32,11 +32,11 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { BlurFade } from "#components/ui/blur-fade";
 import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
+import type { MaintenanceListRow } from "#hooks/api/query-keys/maintenance-mappers";
 import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { createLogger } from "#lib/frontend-logger";
 import { createClient } from "#lib/supabase/client";
 import type { MaintenanceStatus } from "#types/core";
-import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
 import { MaintenanceCard } from "../cards/maintenance-card";
 import { MaintenanceSortableCard } from "../cards/maintenance-sortable-card";
 
@@ -71,10 +71,8 @@ const COLUMNS: ColumnConfig[] = [
 	{
 		id: "needs_reassignment",
 		title: "Needs Reassignment",
-		colorClass: "bg-orange-500/10",
-		icon: (
-			<RotateCcw className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-		),
+		colorClass: "bg-warning/10",
+		icon: <RotateCcw className="w-4 h-4 text-warning-text" />,
 	},
 	{
 		id: "completed",
@@ -135,7 +133,7 @@ function getDaysOpen(timestamp: string | null | undefined): number {
 
 interface KanbanColumnProps {
 	column: ColumnConfig;
-	requests: MaintenanceDisplayRequest[];
+	requests: MaintenanceListRow[];
 	columnIndex: number;
 	onView: (id: string) => void;
 }
@@ -161,8 +159,8 @@ function KanbanColumn({
 	});
 
 	return (
-		<BlurFade delay={0.3 + columnIndex * 0.1} inView>
-			<div className="flex flex-col min-w-[280px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink bg-muted/30 rounded-lg">
+		<BlurFade delay={0.3 + columnIndex * 0.1}>
+			<div className="flex flex-col min-w-70 sm:min-w-0 snap-start shrink-0 sm:shrink bg-muted/30 rounded-lg">
 				{/* Column Header */}
 				<div className="flex items-center gap-3 p-4 border-b border-border">
 					<div
@@ -192,7 +190,6 @@ function KanbanColumn({
 							<BlurFade
 								key={request.id}
 								delay={0.4 + columnIndex * 0.1 + idx * 0.03}
-								inView
 							>
 								<MaintenanceSortableCard
 									request={request}
@@ -205,7 +202,7 @@ function KanbanColumn({
 
 					{requests.length === 0 && (
 						<div className="text-center py-8">
-							<p className="text-sm text-muted-foreground">No requests</p>
+							<p className="mb-0 text-sm text-muted-foreground">No requests</p>
 						</div>
 					)}
 				</div>
@@ -215,7 +212,7 @@ function KanbanColumn({
 }
 
 interface MaintenanceKanbanProps {
-	initialRequests: MaintenanceDisplayRequest[];
+	initialRequests: MaintenanceListRow[];
 }
 
 export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
@@ -228,8 +225,9 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 	const [statusOverrides, setStatusOverrides] = useState<
 		Record<string, MaintenanceStatus>
 	>({});
-	const [activeRequest, setActiveRequest] =
-		useState<MaintenanceDisplayRequest | null>(null);
+	const [activeRequest, setActiveRequest] = useState<MaintenanceListRow | null>(
+		null,
+	);
 	const [, startTransition] = useTransition();
 
 	const requests = (initialRequests || []).map((request) => {
@@ -258,7 +256,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 			if (status) acc[status].push(request);
 			return acc;
 		},
-		{} as Record<MaintenanceStatus, MaintenanceDisplayRequest[]>,
+		{} as Record<MaintenanceStatus, MaintenanceListRow[]>,
 	);
 
 	const clearStatusOverride = (requestId: string) => {

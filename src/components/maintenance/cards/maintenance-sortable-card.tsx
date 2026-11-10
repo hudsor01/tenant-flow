@@ -2,11 +2,11 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
+import type { MaintenanceListRow } from "#hooks/api/query-keys/maintenance-mappers";
 import { MaintenanceCard } from "./maintenance-card";
 
 interface MaintenanceSortableCardProps {
-	request: MaintenanceDisplayRequest;
+	request: MaintenanceListRow;
 	columnId: string;
 	onView?: (id: string) => void;
 }
@@ -16,21 +16,20 @@ export function MaintenanceSortableCard({
 	columnId,
 	onView,
 }: MaintenanceSortableCardProps) {
-	const {
-		attributes,
-		listeners,
-		setNodeRef,
-		transform,
-		transition,
-		isDragging,
-	} = useSortable({
-		id: request.id,
-		data: {
-			type: "maintenance-request",
-			request,
-			columnId,
-		},
-	});
+	// Pointer listeners only. The board has no KeyboardSensor, so dnd-kit's
+	// `attributes` (role="button", tabIndex 0, the drag instructions) made a tab
+	// stop that no key operates, wrapped around the card's own link: axe's
+	// nested-interactive failed every card (WCAG 4.1.2; 66.2-39 fix round 4,
+	// Part 8h). The card's link stays the keyboard control.
+	const { listeners, setNodeRef, transform, transition, isDragging } =
+		useSortable({
+			id: request.id,
+			data: {
+				type: "maintenance-request",
+				request,
+				columnId,
+			},
+		});
 
 	const style = {
 		transform: CSS.Transform.toString(transform),
@@ -39,7 +38,7 @@ export function MaintenanceSortableCard({
 	};
 
 	return (
-		<div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+		<div ref={setNodeRef} style={style} {...listeners}>
 			<MaintenanceCard
 				request={request}
 				isDragging={isDragging}

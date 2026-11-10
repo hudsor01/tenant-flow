@@ -42,7 +42,7 @@ export function AddRoomForm({ inspectionId, onCancel }: AddRoomFormProps) {
 		if (isConditionRating(value)) setConditionRating(value);
 	}
 
-	async function handleSubmit(e: React.FormEvent) {
+	async function handleSubmit(e: React.SubmitEvent) {
 		e.preventDefault();
 		await createRoom.mutateAsync({
 			inspection_id: inspectionId,

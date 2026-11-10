@@ -82,7 +82,7 @@ export function DynamicForm({ form, fields }: DynamicFormProps) {
 					<h3 className="text-sm font-semibold text-muted-foreground">
 						{section}
 					</h3>
-					<div className="grid gap-4 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						{sectionFields.map((field) => (
 							<formApi.Field key={field.name} name={field.name}>
 								{(fieldApi) => {
@@ -105,9 +105,6 @@ export function DynamicForm({ form, fields }: DynamicFormProps) {
 									return (
 										<div className={isFullWidth ? "sm:col-span-2" : undefined}>
 											<div className="space-y-2">
-												{field.type !== "checkbox" && field.type !== "list" ? (
-													<Label htmlFor={field.name}>{field.label}</Label>
-												) : null}
 												{field.type === "list" ? (
 													<div className="space-y-3">
 														<p className="text-sm font-medium">{field.label}</p>
@@ -126,7 +123,7 @@ export function DynamicForm({ form, fields }: DynamicFormProps) {
 																	className="space-y-3 rounded border p-3"
 																>
 																	<div className="flex items-center justify-between">
-																		<p className="text-sm font-medium">
+																		<p className="mb-0 text-sm font-medium">
 																			{field.itemLabel ?? `Item ${index + 1}`}
 																		</p>
 																		<Button
@@ -144,7 +141,7 @@ export function DynamicForm({ form, fields }: DynamicFormProps) {
 																			<Trash2 className="size-4" />
 																		</Button>
 																	</div>
-																	<div className="grid gap-3 sm:grid-cols-2">
+																	<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 																		{field.itemFields?.map((itemField) => {
 																			const itemValue = item?.[itemField.key];
 																			const updateItem = (
@@ -171,14 +168,18 @@ export function DynamicForm({ form, fields }: DynamicFormProps) {
 																					className="flex items-center gap-2"
 																				>
 																					<Checkbox
+																						id={`${field.name}-${index}-${itemField.key}`}
 																						checked={Boolean(itemValue)}
 																						onCheckedChange={(checked) =>
 																							updateItem(Boolean(checked))
 																						}
 																					/>
-																					<span className="text-sm">
+																					<label
+																						htmlFor={`${field.name}-${index}-${itemField.key}`}
+																						className="text-sm"
+																					>
 																						{itemField.label}
-																					</span>
+																					</label>
 																				</div>
 																			) : (
 																				<div
@@ -220,67 +221,89 @@ export function DynamicForm({ form, fields }: DynamicFormProps) {
 															{field.addLabel ?? "Add item"}
 														</Button>
 													</div>
-												) : field.type === "textarea" ? (
-													<Textarea
-														id={field.name}
-														value={String(value ?? "")}
-														onChange={(event) =>
-															fieldApi.handleChange(event.target.value)
-														}
-														onBlur={fieldApi.handleBlur}
-														rows={field.rows ?? 4}
-														placeholder={field.placeholder}
-													/>
-												) : field.type === "select" ? (
-													<Select
-														value={String(value ?? "")}
-														onValueChange={fieldApi.handleChange}
-													>
-														<SelectTrigger id={field.name}>
-															<SelectValue placeholder={field.placeholder} />
-														</SelectTrigger>
-														<SelectContent>
-															{field.options?.map((option) => (
-																<SelectItem
-																	key={option.value}
-																	value={option.value}
-																>
-																	{option.label}
-																</SelectItem>
-															))}
-														</SelectContent>
-													</Select>
 												) : field.type === "checkbox" ? (
 													<div className="flex items-start gap-3 rounded border p-3">
 														<Checkbox
 															id={field.name}
+															aria-describedby={
+																field.description
+																	? `${field.name}-description`
+																	: undefined
+															}
 															checked={Boolean(value)}
 															onCheckedChange={(checked) =>
 																fieldApi.handleChange(Boolean(checked))
 															}
 														/>
 														<div>
-															<p className="text-sm font-medium">
+															{/* The checkbox's name is its visible label, and its
+															    description is described-by (WCAG 4.1.2). */}
+															<label
+																htmlFor={field.name}
+																className="block text-sm font-medium"
+															>
 																{field.label}
-															</p>
+															</label>
 															{field.description ? (
-																<p className="text-sm text-muted-foreground">
+																<p
+																	id={`${field.name}-description`}
+																	className="mb-0 text-sm text-muted-foreground"
+																>
 																	{field.description}
 																</p>
 															) : null}
 														</div>
 													</div>
 												) : (
-													<Input
-														id={field.name}
-														type={field.type}
-														value={String(value ?? "")}
-														onChange={(event) =>
-															fieldApi.handleChange(event.target.value)
-														}
-														onBlur={fieldApi.handleBlur}
-														placeholder={field.placeholder}
-													/>
+													// Every other control is named by the Label above it,
+													// rendered in the same branch as the control.
+													<>
+														<Label htmlFor={field.name}>{field.label}</Label>
+														{field.type === "textarea" ? (
+															<Textarea
+																id={field.name}
+																value={String(value ?? "")}
+																onChange={(event) =>
+																	fieldApi.handleChange(event.target.value)
+																}
+																onBlur={fieldApi.handleBlur}
+																rows={field.rows ?? 4}
+																placeholder={field.placeholder}
+															/>
+														) : field.type === "select" ? (
+															<Select
+																value={String(value ?? "")}
+																onValueChange={fieldApi.handleChange}
+															>
+																<SelectTrigger id={field.name}>
+																	<SelectValue
+																		placeholder={field.placeholder}
+																	/>
+																</SelectTrigger>
+																<SelectContent>
+																	{field.options?.map((option) => (
+																		<SelectItem
+																			key={option.value}
+																			value={option.value}
+																		>
+																			{option.label}
+																		</SelectItem>
+																	))}
+																</SelectContent>
+															</Select>
+														) : (
+															<Input
+																id={field.name}
+																type={field.type}
+																value={String(value ?? "")}
+																onChange={(event) =>
+																	fieldApi.handleChange(event.target.value)
+																}
+																onBlur={fieldApi.handleBlur}
+																placeholder={field.placeholder}
+															/>
+														)}
+													</>
 												)}
 												{field.description && field.type !== "checkbox" ? (
 													<p className="text-sm text-muted-foreground">

@@ -23,6 +23,10 @@ import { Button } from "#components/ui/button";
 import { ButtonGroup } from "#components/ui/button-group";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
 import { useDeletePropertyMutation } from "#hooks/api/use-property-mutations";
+import {
+	propertyStatusLabel,
+	propertyTypeLabel,
+} from "#lib/constants/status-types";
 import { createLogger } from "#lib/frontend-logger";
 import type { Property } from "#types/core";
 
@@ -90,21 +94,26 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					<div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-sm text-muted-foreground">
 						<span className="flex items-center gap-1.5">
 							<Building className="size-3.5" />
-							<span className="capitalize">
-								{property.property_type?.toLowerCase().replace(/_/g, " ") ||
-									"Not specified"}
+							<span>
+								{property.property_type
+									? propertyTypeLabel(property.property_type)
+									: "Not specified"}
 							</span>
 						</span>
-						<span className="text-border">·</span>
+						<span className="text-border" aria-hidden="true">
+							·
+						</span>
 						<Badge
 							variant="outline"
 							className={`border-0 text-xs px-2 py-0 ${getStatusBadgeClass(property.status)}`}
 						>
-							{property.status || "Active"}
+							{propertyStatusLabel(property.status)}
 						</Badge>
 						{property.created_at && (
 							<>
-								<span className="text-border">·</span>
+								<span className="text-border" aria-hidden="true">
+									·
+								</span>
 								<span>
 									Added{" "}
 									{new Date(property.created_at).toLocaleDateString("en-US", {
@@ -127,7 +136,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					<Button
 						variant="outline"
 						size="sm"
-						className="min-h-11 text-destructive hover:text-destructive hover:bg-destructive/10"
+						className="min-h-11 text-destructive-text hover:text-destructive-text hover:bg-destructive/10 dark:hover:bg-destructive/20 dark:hover:text-destructive-text"
 						onClick={() => setDeleteOpen(true)}
 						aria-label="Delete property"
 					>
@@ -163,19 +172,19 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 			<AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete Property?</AlertDialogTitle>
-						<AlertDialogDescription>
-							Are you sure you want to delete <strong>{property.name}</strong>?
-							This will also delete all units associated with this property.
-							This action cannot be undone.
+						<AlertDialogTitle>
+							Delete property "{property.name}"?
+						</AlertDialogTitle>
+						{/* A soft delete (status 'inactive'): it does not cascade to the
+						    units, and the app has no way to restore it. */}
+						<AlertDialogDescription className="mb-0">
+							This marks the property as inactive, so it leaves your property
+							list. Its units and leases are kept.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
-						<AlertDialogAction
-							onClick={handleDelete}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-						>
+						<AlertDialogAction onClick={handleDelete} variant="destructive">
 							{deletePropertyMutation.isPending ? "Deleting..." : "Delete"}
 						</AlertDialogAction>
 					</AlertDialogFooter>

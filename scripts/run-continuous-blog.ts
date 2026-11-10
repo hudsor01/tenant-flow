@@ -24,6 +24,7 @@
  */
 import { spawnSync } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
+import { loadDotenv } from "./_shared/load-dotenv";
 import { formatGenFailure } from "./generate-blog-draft";
 import {
 	acquireLock,
@@ -36,19 +37,21 @@ import {
 	STOP_SENTINEL_PATH,
 } from "./run-scheduled-blog";
 
-const MAX_ATTEMPTS = Math.max(
-	1,
-	Number(process.env.CONTINUOUS_MAX_ATTEMPTS ?? "2"),
-);
+/** Outer retries before a topic is skipped (CONTINUOUS_MAX_ATTEMPTS, read by main). */
+function maxAttempts(): number {
+	return Math.max(1, Number(process.env.CONTINUOUS_MAX_ATTEMPTS ?? "2"));
+}
 const TRANSIENT_RETRY_MS = 30_000;
 // Wait out an in-flight n8n tick (a tick holds the lock for one generation,
 // then releases — up to the 30-min generation timeout) so the runner can be
 // launched at any moment without timing the n8n cycle. Past this window,
 // assume another continuous runner is active and bail.
-const ACQUIRE_WAIT_MS = Math.max(
-	0,
-	Number(process.env.CONTINUOUS_ACQUIRE_WAIT_MS ?? String(40 * 60_000)),
-);
+function acquireWaitMs(): number {
+	return Math.max(
+		0,
+		Number(process.env.CONTINUOUS_ACQUIRE_WAIT_MS ?? String(40 * 60_000)),
+	);
+}
 const ACQUIRE_POLL_MS = 15_000;
 
 const sleep = (ms: number): Promise<void> =>
@@ -112,7 +115,8 @@ export async function main(): Promise<number> {
 	// Hold the shared factory lock for the whole run so concurrent n8n ticks
 	// (and a second continuous runner) cleanly no-op. Wait out an in-flight n8n
 	// generation rather than exiting immediately, so launch timing never matters.
-	const deadline = Date.now() + ACQUIRE_WAIT_MS;
+	const attemptLimit = maxAttempts();
+	const deadline = Date.now() + acquireWaitMs();
 	let acquired = acquireLock(process.pid);
 	while (!acquired && Date.now() < deadline) {
 		console.log(
@@ -157,7 +161,7 @@ export async function main(): Promise<number> {
 
 			if (!next) {
 				console.log(
-					`\nCONTINUOUS RUN COMPLETE — ${generated} generated this run, ${skipped.size} skipped after ${MAX_ATTEMPTS} attempts. ${writtenCount}/${topics.length} bank slugs now written.`,
+					`\nCONTINUOUS RUN COMPLETE — ${generated} generated this run, ${skipped.size} skipped after ${attemptLimit} attempts. ${writtenCount}/${topics.length} bank slugs now written.`,
 				);
 				if (skipped.size > 0) {
 					console.log(`skipped (investigate): ${[...skipped].join(", ")}`);
@@ -176,14 +180,14 @@ export async function main(): Promise<number> {
 
 			const n = (failCount.get(next.slug) ?? 0) + 1;
 			failCount.set(next.slug, n);
-			if (n >= MAX_ATTEMPTS) {
+			if (n >= attemptLimit) {
 				skipped.add(next.slug);
 				console.error(
 					`  SKIPPING poison topic after ${n} failed attempt(s): ${next.slug}`,
 				);
 			} else {
 				console.error(
-					`  generation failed (attempt ${n}/${MAX_ATTEMPTS}) — will retry: ${next.slug}`,
+					`  generation failed (attempt ${n}/${attemptLimit}) — will retry: ${next.slug}`,
 				);
 			}
 		}
@@ -193,7 +197,10 @@ export async function main(): Promise<number> {
 }
 
 // CLI guard — import-safe for unit tests (same pattern as the sibling runners).
+// The CLI alone loads the env files (generate-blog-draft.ts loaded them at
+// import, which this runner relied on; importing reads none now).
 if (process.argv[1]?.endsWith("/run-continuous-blog.ts")) {
+	loadDotenv(process.cwd());
 	main()
 		.then((code) => process.exit(code))
 		.catch((e: unknown) => {

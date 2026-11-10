@@ -14,16 +14,19 @@ import { describe, expect, it } from "vitest";
 
 import { NavbarDesktopNav } from "#components/layout/navbar/navbar-desktop-nav";
 import { DEFAULT_NAV_ITEMS } from "#components/layout/navbar/types";
+import { escapeRegExp } from "#test/utils/regexp-source";
 
 describe("NavbarDesktopNav", () => {
-	it('emits no aria-current="page" on the homepage (CONS-03)', () => {
+	// aria-current at all, not only "page": navAriaCurrent also writes "true"
+	// for a section match (cycle 2, F55).
+	it("emits no aria-current on the homepage (CONS-03)", () => {
 		render(<NavbarDesktopNav navItems={DEFAULT_NAV_ITEMS} pathname="/" />);
 		// No top-level nav link — Compare included — may be marked current on `/`.
 		for (const item of DEFAULT_NAV_ITEMS) {
 			const link = screen.getByRole("link", {
-				name: new RegExp(`^${item.name}`),
+				name: new RegExp(`^${escapeRegExp(item.name)}`),
 			});
-			expect(link).not.toHaveAttribute("aria-current", "page");
+			expect(link).not.toHaveAttribute("aria-current");
 		}
 	});
 
@@ -40,15 +43,17 @@ describe("NavbarDesktopNav", () => {
 			<NavbarDesktopNav navItems={DEFAULT_NAV_ITEMS} pathname="/pricing" />,
 		);
 		const compare = screen.getByRole("link", { name: /^Compare/ });
-		expect(compare).not.toHaveAttribute("aria-current", "page");
+		expect(compare).not.toHaveAttribute("aria-current");
 		const pricing = screen.getByRole("link", { name: /^Pricing/ });
 		expect(pricing).toHaveAttribute("aria-current", "page");
 	});
 
-	it('marks Compare aria-current="page" on a /compare child route (CONS-03)', () => {
+	it('marks Compare aria-current="true", not "page", on a /compare child route', () => {
 		// Pins isActiveLink's descendant-route prefix branch
-		// (`pathname.startsWith(`${href}/`)`). A revert to a pure exact-match
-		// matcher (`pathname === href`) would fail here.
+		// (`pathname.startsWith(`${href}/`)`): a revert to a pure exact-match
+		// matcher (`pathname === href`) would drop the attribute here. Compare is
+		// the current section of /compare/yardi, not the page itself, so only an
+		// exact match is "page" (navAriaCurrent).
 		render(
 			<NavbarDesktopNav
 				navItems={DEFAULT_NAV_ITEMS}
@@ -56,7 +61,8 @@ describe("NavbarDesktopNav", () => {
 			/>,
 		);
 		const compare = screen.getByRole("link", { name: /^Compare/ });
-		expect(compare).toHaveAttribute("aria-current", "page");
+		expect(compare).toHaveAttribute("aria-current", "true");
+		expect(document.querySelectorAll('[aria-current="page"]')).toHaveLength(0);
 	});
 
 	it("does not false-highlight Compare on a /compare-prefixed sibling (CONS-03)", () => {
@@ -69,6 +75,6 @@ describe("NavbarDesktopNav", () => {
 			/>,
 		);
 		const compare = screen.getByRole("link", { name: /^Compare/ });
-		expect(compare).not.toHaveAttribute("aria-current", "page");
+		expect(compare).not.toHaveAttribute("aria-current");
 	});
 });

@@ -18,9 +18,11 @@
  * instead of cascading undefined-field reads downstream.
  */
 
+import { DiagnosticError } from "#lib/diagnostic-error";
+
 export function jsonObject<T extends object>(data: unknown): T {
 	if (data === null || typeof data !== "object" || Array.isArray(data)) {
-		throw new Error(
+		throw new DiagnosticError(
 			"Expected JSON object from RPC return; got " +
 				(data === null ? "null" : Array.isArray(data) ? "array" : typeof data),
 		);
@@ -30,7 +32,7 @@ export function jsonObject<T extends object>(data: unknown): T {
 
 export function jsonArray<T>(data: unknown): T[] {
 	if (!Array.isArray(data)) {
-		throw new Error(
+		throw new DiagnosticError(
 			"Expected JSON array from RPC return; got " +
 				(data === null ? "null" : typeof data),
 		);

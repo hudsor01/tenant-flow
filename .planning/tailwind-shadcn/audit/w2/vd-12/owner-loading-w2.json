@@ -1,0 +1,1802 @@
+{
+ "label": "w2",
+ "mode": "harness",
+ "captures": [
+  {
+   "theme": "light",
+   "width": 390,
+   "status": "ok",
+   "checks": [
+    {
+     "name": "root.display",
+     "expected": "flex",
+     "actual": "flex",
+     "pass": true
+    },
+    {
+     "name": "root.flexDirection",
+     "expected": "column",
+     "actual": "column",
+     "pass": true
+    },
+    {
+     "name": "root.rowGap",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "section.paddingTop",
+     "expected": "4px",
+     "actual": "4px",
+     "pass": true
+    },
+    {
+     "name": "section.paddingBottom",
+     "expected": "4px",
+     "actual": "4px",
+     "pass": true
+    },
+    {
+     "name": "header.display",
+     "expected": "flex",
+     "actual": "flex",
+     "pass": true
+    },
+    {
+     "name": "header.flexDirection",
+     "expected": "column",
+     "actual": "column",
+     "pass": true
+    },
+    {
+     "name": "header.rowGap",
+     "expected": "8px",
+     "actual": "8px",
+     "pass": true
+    },
+    {
+     "name": "actionInner.columnGap",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "grid.display",
+     "expected": "grid",
+     "actual": "grid",
+     "pass": true
+    },
+    {
+     "name": "grid.rowGap",
+     "expected": "24px",
+     "actual": "24px",
+     "pass": true
+    },
+    {
+     "name": "grid.columnGap",
+     "expected": "24px",
+     "actual": "24px",
+     "pass": true
+    },
+    {
+     "name": "grid.marginBottom",
+     "expected": "0px",
+     "actual": "0px",
+     "pass": true
+    },
+    {
+     "name": "grid.gridTemplateColumns",
+     "expected": "1 track >= 320px",
+     "actual": "390px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopLeftRadius",
+     "expected": "12px",
+     "actual": "12px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopColor",
+     "expected": "oklch(0.88 0.01 245)",
+     "actual": "oklch(0.88 0.01 245)",
+     "pass": true
+    },
+    {
+     "name": "card.backgroundColor",
+     "expected": "oklch(0.99 0.003 240)",
+     "actual": "oklch(0.99 0.003 240)",
+     "pass": true
+    },
+    {
+     "name": "card.boxShadow",
+     "expected": "not none",
+     "actual": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.15 0.02 250 / 0.05) 0px 1px 2px 0px",
+     "pass": true
+    },
+    {
+     "name": "card.overflow",
+     "expected": "hidden",
+     "actual": "hidden",
+     "pass": true
+    },
+    {
+     "name": "cardInner.paddingTop",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "table.borderTopLeftRadius",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "table.borderTopWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "table.borderTopColor",
+     "expected": "oklch(0.88 0.01 245)",
+     "actual": "oklch(0.88 0.01 245)",
+     "pass": true
+    },
+    {
+     "name": "table.backgroundColor",
+     "expected": "oklch(0.99 0.003 240)",
+     "actual": "oklch(0.99 0.003 240)",
+     "pass": true
+    },
+    {
+     "name": "table.boxShadow",
+     "expected": "not none",
+     "actual": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.15 0.02 250 / 0.05) 0px 1px 2px 0px",
+     "pass": true
+    },
+    {
+     "name": "tableInner.paddingTop",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.columnGap",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.marginBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.paddingBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.borderBottomWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "row.paddingTop",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "row.paddingBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "skeletonCount",
+     "expected": "37",
+     "actual": "37",
+     "pass": true
+    },
+    {
+     "name": "dashboardClassCount",
+     "expected": "0",
+     "actual": "0",
+     "pass": true
+    },
+    {
+     "name": "horizontalOverflow",
+     "expected": "<= 0",
+     "actual": "0",
+     "pass": true
+    }
+   ],
+   "allPass": true,
+   "png": "owner-loading-w2/harness-light-390.png",
+   "skeletonRects": [
+    [
+     0,
+     4,
+     192,
+     32
+    ],
+    [
+     0,
+     44,
+     384,
+     16
+    ],
+    [
+     0,
+     96,
+     180.52,
+     40
+    ],
+    [
+     196.52,
+     96,
+     90.25,
+     40
+    ],
+    [
+     286.77,
+     96,
+     103.23,
+     40
+    ],
+    [
+     17,
+     185,
+     96,
+     16
+    ],
+    [
+     17,
+     209,
+     64,
+     32
+    ],
+    [
+     17,
+     299,
+     96,
+     16
+    ],
+    [
+     17,
+     323,
+     64,
+     32
+    ],
+    [
+     17,
+     413,
+     96,
+     16
+    ],
+    [
+     17,
+     437,
+     64,
+     32
+    ],
+    [
+     17,
+     527,
+     96,
+     16
+    ],
+    [
+     17,
+     551,
+     64,
+     32
+    ],
+    [
+     33,
+     665,
+     58.84,
+     16
+    ],
+    [
+     123.84,
+     665,
+     88.25,
+     16
+    ],
+    [
+     244.09,
+     665,
+     44.13,
+     16
+    ],
+    [
+     320.22,
+     665,
+     36.78,
+     16
+    ],
+    [
+     33,
+     730,
+     58.84,
+     20
+    ],
+    [
+     123.84,
+     730,
+     88.25,
+     20
+    ],
+    [
+     244.09,
+     730,
+     44.13,
+     20
+    ],
+    [
+     320.22,
+     730,
+     36.78,
+     20
+    ],
+    [
+     33,
+     782,
+     58.84,
+     20
+    ],
+    [
+     123.84,
+     782,
+     88.25,
+     20
+    ],
+    [
+     244.09,
+     782,
+     44.13,
+     20
+    ],
+    [
+     320.22,
+     782,
+     36.78,
+     20
+    ],
+    [
+     33,
+     834,
+     58.84,
+     20
+    ],
+    [
+     123.84,
+     834,
+     88.25,
+     20
+    ],
+    [
+     244.09,
+     834,
+     44.13,
+     20
+    ],
+    [
+     320.22,
+     834,
+     36.78,
+     20
+    ],
+    [
+     33,
+     886,
+     58.84,
+     20
+    ],
+    [
+     123.84,
+     886,
+     88.25,
+     20
+    ],
+    [
+     244.09,
+     886,
+     44.13,
+     20
+    ],
+    [
+     320.22,
+     886,
+     36.78,
+     20
+    ],
+    [
+     33,
+     938,
+     58.84,
+     20
+    ],
+    [
+     123.84,
+     938,
+     88.25,
+     20
+    ],
+    [
+     244.09,
+     938,
+     44.13,
+     20
+    ],
+    [
+     320.22,
+     938,
+     36.78,
+     20
+    ]
+   ]
+  },
+  {
+   "theme": "light",
+   "width": 1280,
+   "status": "ok",
+   "checks": [
+    {
+     "name": "root.display",
+     "expected": "flex",
+     "actual": "flex",
+     "pass": true
+    },
+    {
+     "name": "root.flexDirection",
+     "expected": "column",
+     "actual": "column",
+     "pass": true
+    },
+    {
+     "name": "root.rowGap",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "section.paddingTop",
+     "expected": "4px",
+     "actual": "4px",
+     "pass": true
+    },
+    {
+     "name": "section.paddingBottom",
+     "expected": "4px",
+     "actual": "4px",
+     "pass": true
+    },
+    {
+     "name": "header.display",
+     "expected": "flex",
+     "actual": "flex",
+     "pass": true
+    },
+    {
+     "name": "header.flexDirection",
+     "expected": "column",
+     "actual": "column",
+     "pass": true
+    },
+    {
+     "name": "header.rowGap",
+     "expected": "8px",
+     "actual": "8px",
+     "pass": true
+    },
+    {
+     "name": "actionInner.columnGap",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "grid.display",
+     "expected": "grid",
+     "actual": "grid",
+     "pass": true
+    },
+    {
+     "name": "grid.rowGap",
+     "expected": "24px",
+     "actual": "24px",
+     "pass": true
+    },
+    {
+     "name": "grid.columnGap",
+     "expected": "24px",
+     "actual": "24px",
+     "pass": true
+    },
+    {
+     "name": "grid.marginBottom",
+     "expected": "0px",
+     "actual": "0px",
+     "pass": true
+    },
+    {
+     "name": "grid.gridTemplateColumns",
+     "expected": "every track >= 320px",
+     "actual": "410.656px 410.672px 410.656px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopLeftRadius",
+     "expected": "12px",
+     "actual": "12px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopColor",
+     "expected": "oklch(0.88 0.01 245)",
+     "actual": "oklch(0.88 0.01 245)",
+     "pass": true
+    },
+    {
+     "name": "card.backgroundColor",
+     "expected": "oklch(0.99 0.003 240)",
+     "actual": "oklch(0.99 0.003 240)",
+     "pass": true
+    },
+    {
+     "name": "card.boxShadow",
+     "expected": "not none",
+     "actual": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.15 0.02 250 / 0.05) 0px 1px 2px 0px",
+     "pass": true
+    },
+    {
+     "name": "card.overflow",
+     "expected": "hidden",
+     "actual": "hidden",
+     "pass": true
+    },
+    {
+     "name": "cardInner.paddingTop",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "table.borderTopLeftRadius",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "table.borderTopWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "table.borderTopColor",
+     "expected": "oklch(0.88 0.01 245)",
+     "actual": "oklch(0.88 0.01 245)",
+     "pass": true
+    },
+    {
+     "name": "table.backgroundColor",
+     "expected": "oklch(0.99 0.003 240)",
+     "actual": "oklch(0.99 0.003 240)",
+     "pass": true
+    },
+    {
+     "name": "table.boxShadow",
+     "expected": "not none",
+     "actual": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.15 0.02 250 / 0.05) 0px 1px 2px 0px",
+     "pass": true
+    },
+    {
+     "name": "tableInner.paddingTop",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.columnGap",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.marginBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.paddingBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.borderBottomWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "row.paddingTop",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "row.paddingBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "skeletonCount",
+     "expected": "37",
+     "actual": "37",
+     "pass": true
+    },
+    {
+     "name": "dashboardClassCount",
+     "expected": "0",
+     "actual": "0",
+     "pass": true
+    },
+    {
+     "name": "horizontalOverflow",
+     "expected": "<= 0",
+     "actual": "0",
+     "pass": true
+    }
+   ],
+   "allPass": true,
+   "png": "owner-loading-w2/harness-light-1280.png",
+   "skeletonRects": [
+    [
+     0,
+     4,
+     192,
+     32
+    ],
+    [
+     0,
+     44,
+     384,
+     16
+    ],
+    [
+     0,
+     96,
+     256,
+     40
+    ],
+    [
+     272,
+     96,
+     128,
+     40
+    ],
+    [
+     1136,
+     96,
+     144,
+     40
+    ],
+    [
+     17,
+     185,
+     96,
+     16
+    ],
+    [
+     17,
+     209,
+     64,
+     32
+    ],
+    [
+     451.66,
+     185,
+     96,
+     16
+    ],
+    [
+     451.66,
+     209,
+     64,
+     32
+    ],
+    [
+     886.33,
+     185,
+     96,
+     16
+    ],
+    [
+     886.33,
+     209,
+     64,
+     32
+    ],
+    [
+     17,
+     299,
+     96,
+     16
+    ],
+    [
+     17,
+     323,
+     64,
+     32
+    ],
+    [
+     33,
+     437,
+     128,
+     16
+    ],
+    [
+     193,
+     437,
+     192,
+     16
+    ],
+    [
+     417,
+     437,
+     96,
+     16
+    ],
+    [
+     545,
+     437,
+     80,
+     16
+    ],
+    [
+     33,
+     502,
+     128,
+     20
+    ],
+    [
+     193,
+     502,
+     192,
+     20
+    ],
+    [
+     417,
+     502,
+     96,
+     20
+    ],
+    [
+     545,
+     502,
+     80,
+     20
+    ],
+    [
+     33,
+     554,
+     128,
+     20
+    ],
+    [
+     193,
+     554,
+     192,
+     20
+    ],
+    [
+     417,
+     554,
+     96,
+     20
+    ],
+    [
+     545,
+     554,
+     80,
+     20
+    ],
+    [
+     33,
+     606,
+     128,
+     20
+    ],
+    [
+     193,
+     606,
+     192,
+     20
+    ],
+    [
+     417,
+     606,
+     96,
+     20
+    ],
+    [
+     545,
+     606,
+     80,
+     20
+    ],
+    [
+     33,
+     658,
+     128,
+     20
+    ],
+    [
+     193,
+     658,
+     192,
+     20
+    ],
+    [
+     417,
+     658,
+     96,
+     20
+    ],
+    [
+     545,
+     658,
+     80,
+     20
+    ],
+    [
+     33,
+     710,
+     128,
+     20
+    ],
+    [
+     193,
+     710,
+     192,
+     20
+    ],
+    [
+     417,
+     710,
+     96,
+     20
+    ],
+    [
+     545,
+     710,
+     80,
+     20
+    ]
+   ]
+  },
+  {
+   "theme": "dark",
+   "width": 390,
+   "status": "ok",
+   "checks": [
+    {
+     "name": "root.display",
+     "expected": "flex",
+     "actual": "flex",
+     "pass": true
+    },
+    {
+     "name": "root.flexDirection",
+     "expected": "column",
+     "actual": "column",
+     "pass": true
+    },
+    {
+     "name": "root.rowGap",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "section.paddingTop",
+     "expected": "4px",
+     "actual": "4px",
+     "pass": true
+    },
+    {
+     "name": "section.paddingBottom",
+     "expected": "4px",
+     "actual": "4px",
+     "pass": true
+    },
+    {
+     "name": "header.display",
+     "expected": "flex",
+     "actual": "flex",
+     "pass": true
+    },
+    {
+     "name": "header.flexDirection",
+     "expected": "column",
+     "actual": "column",
+     "pass": true
+    },
+    {
+     "name": "header.rowGap",
+     "expected": "8px",
+     "actual": "8px",
+     "pass": true
+    },
+    {
+     "name": "actionInner.columnGap",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "grid.display",
+     "expected": "grid",
+     "actual": "grid",
+     "pass": true
+    },
+    {
+     "name": "grid.rowGap",
+     "expected": "24px",
+     "actual": "24px",
+     "pass": true
+    },
+    {
+     "name": "grid.columnGap",
+     "expected": "24px",
+     "actual": "24px",
+     "pass": true
+    },
+    {
+     "name": "grid.marginBottom",
+     "expected": "0px",
+     "actual": "0px",
+     "pass": true
+    },
+    {
+     "name": "grid.gridTemplateColumns",
+     "expected": "1 track >= 320px",
+     "actual": "390px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopLeftRadius",
+     "expected": "12px",
+     "actual": "12px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopColor",
+     "expected": "oklch(0.3 0.015 255)",
+     "actual": "oklch(0.3 0.015 255)",
+     "pass": true
+    },
+    {
+     "name": "card.backgroundColor",
+     "expected": "oklch(0.16 0.02 255)",
+     "actual": "oklch(0.16 0.02 255)",
+     "pass": true
+    },
+    {
+     "name": "card.boxShadow",
+     "expected": "not none",
+     "actual": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.15 0.02 250 / 0.05) 0px 1px 2px 0px",
+     "pass": true
+    },
+    {
+     "name": "card.overflow",
+     "expected": "hidden",
+     "actual": "hidden",
+     "pass": true
+    },
+    {
+     "name": "cardInner.paddingTop",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "table.borderTopLeftRadius",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "table.borderTopWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "table.borderTopColor",
+     "expected": "oklch(0.3 0.015 255)",
+     "actual": "oklch(0.3 0.015 255)",
+     "pass": true
+    },
+    {
+     "name": "table.backgroundColor",
+     "expected": "oklch(0.16 0.02 255)",
+     "actual": "oklch(0.16 0.02 255)",
+     "pass": true
+    },
+    {
+     "name": "table.boxShadow",
+     "expected": "not none",
+     "actual": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.15 0.02 250 / 0.05) 0px 1px 2px 0px",
+     "pass": true
+    },
+    {
+     "name": "tableInner.paddingTop",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.columnGap",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.marginBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.paddingBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.borderBottomWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "row.paddingTop",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "row.paddingBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "skeletonCount",
+     "expected": "37",
+     "actual": "37",
+     "pass": true
+    },
+    {
+     "name": "dashboardClassCount",
+     "expected": "0",
+     "actual": "0",
+     "pass": true
+    },
+    {
+     "name": "horizontalOverflow",
+     "expected": "<= 0",
+     "actual": "0",
+     "pass": true
+    }
+   ],
+   "allPass": true,
+   "png": "owner-loading-w2/harness-dark-390.png",
+   "skeletonRects": [
+    [
+     0,
+     4,
+     192,
+     32
+    ],
+    [
+     0,
+     44,
+     384,
+     16
+    ],
+    [
+     0,
+     96,
+     180.52,
+     40
+    ],
+    [
+     196.52,
+     96,
+     90.25,
+     40
+    ],
+    [
+     286.77,
+     96,
+     103.23,
+     40
+    ],
+    [
+     17,
+     185,
+     96,
+     16
+    ],
+    [
+     17,
+     209,
+     64,
+     32
+    ],
+    [
+     17,
+     299,
+     96,
+     16
+    ],
+    [
+     17,
+     323,
+     64,
+     32
+    ],
+    [
+     17,
+     413,
+     96,
+     16
+    ],
+    [
+     17,
+     437,
+     64,
+     32
+    ],
+    [
+     17,
+     527,
+     96,
+     16
+    ],
+    [
+     17,
+     551,
+     64,
+     32
+    ],
+    [
+     33,
+     665,
+     58.84,
+     16
+    ],
+    [
+     123.84,
+     665,
+     88.25,
+     16
+    ],
+    [
+     244.09,
+     665,
+     44.13,
+     16
+    ],
+    [
+     320.22,
+     665,
+     36.78,
+     16
+    ],
+    [
+     33,
+     730,
+     58.84,
+     20
+    ],
+    [
+     123.84,
+     730,
+     88.25,
+     20
+    ],
+    [
+     244.09,
+     730,
+     44.13,
+     20
+    ],
+    [
+     320.22,
+     730,
+     36.78,
+     20
+    ],
+    [
+     33,
+     782,
+     58.84,
+     20
+    ],
+    [
+     123.84,
+     782,
+     88.25,
+     20
+    ],
+    [
+     244.09,
+     782,
+     44.13,
+     20
+    ],
+    [
+     320.22,
+     782,
+     36.78,
+     20
+    ],
+    [
+     33,
+     834,
+     58.84,
+     20
+    ],
+    [
+     123.84,
+     834,
+     88.25,
+     20
+    ],
+    [
+     244.09,
+     834,
+     44.13,
+     20
+    ],
+    [
+     320.22,
+     834,
+     36.78,
+     20
+    ],
+    [
+     33,
+     886,
+     58.84,
+     20
+    ],
+    [
+     123.84,
+     886,
+     88.25,
+     20
+    ],
+    [
+     244.09,
+     886,
+     44.13,
+     20
+    ],
+    [
+     320.22,
+     886,
+     36.78,
+     20
+    ],
+    [
+     33,
+     938,
+     58.84,
+     20
+    ],
+    [
+     123.84,
+     938,
+     88.25,
+     20
+    ],
+    [
+     244.09,
+     938,
+     44.13,
+     20
+    ],
+    [
+     320.22,
+     938,
+     36.78,
+     20
+    ]
+   ]
+  },
+  {
+   "theme": "dark",
+   "width": 1280,
+   "status": "ok",
+   "checks": [
+    {
+     "name": "root.display",
+     "expected": "flex",
+     "actual": "flex",
+     "pass": true
+    },
+    {
+     "name": "root.flexDirection",
+     "expected": "column",
+     "actual": "column",
+     "pass": true
+    },
+    {
+     "name": "root.rowGap",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "section.paddingTop",
+     "expected": "4px",
+     "actual": "4px",
+     "pass": true
+    },
+    {
+     "name": "section.paddingBottom",
+     "expected": "4px",
+     "actual": "4px",
+     "pass": true
+    },
+    {
+     "name": "header.display",
+     "expected": "flex",
+     "actual": "flex",
+     "pass": true
+    },
+    {
+     "name": "header.flexDirection",
+     "expected": "column",
+     "actual": "column",
+     "pass": true
+    },
+    {
+     "name": "header.rowGap",
+     "expected": "8px",
+     "actual": "8px",
+     "pass": true
+    },
+    {
+     "name": "actionInner.columnGap",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "grid.display",
+     "expected": "grid",
+     "actual": "grid",
+     "pass": true
+    },
+    {
+     "name": "grid.rowGap",
+     "expected": "24px",
+     "actual": "24px",
+     "pass": true
+    },
+    {
+     "name": "grid.columnGap",
+     "expected": "24px",
+     "actual": "24px",
+     "pass": true
+    },
+    {
+     "name": "grid.marginBottom",
+     "expected": "0px",
+     "actual": "0px",
+     "pass": true
+    },
+    {
+     "name": "grid.gridTemplateColumns",
+     "expected": "every track >= 320px",
+     "actual": "410.656px 410.672px 410.656px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopLeftRadius",
+     "expected": "12px",
+     "actual": "12px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "card.borderTopColor",
+     "expected": "oklch(0.3 0.015 255)",
+     "actual": "oklch(0.3 0.015 255)",
+     "pass": true
+    },
+    {
+     "name": "card.backgroundColor",
+     "expected": "oklch(0.16 0.02 255)",
+     "actual": "oklch(0.16 0.02 255)",
+     "pass": true
+    },
+    {
+     "name": "card.boxShadow",
+     "expected": "not none",
+     "actual": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.15 0.02 250 / 0.05) 0px 1px 2px 0px",
+     "pass": true
+    },
+    {
+     "name": "card.overflow",
+     "expected": "hidden",
+     "actual": "hidden",
+     "pass": true
+    },
+    {
+     "name": "cardInner.paddingTop",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "table.borderTopLeftRadius",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "table.borderTopWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "table.borderTopColor",
+     "expected": "oklch(0.3 0.015 255)",
+     "actual": "oklch(0.3 0.015 255)",
+     "pass": true
+    },
+    {
+     "name": "table.backgroundColor",
+     "expected": "oklch(0.16 0.02 255)",
+     "actual": "oklch(0.16 0.02 255)",
+     "pass": true
+    },
+    {
+     "name": "table.boxShadow",
+     "expected": "not none",
+     "actual": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.15 0.02 250 / 0.05) 0px 1px 2px 0px",
+     "pass": true
+    },
+    {
+     "name": "tableInner.paddingTop",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.columnGap",
+     "expected": "32px",
+     "actual": "32px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.marginBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.paddingBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "headerRow.borderBottomWidth",
+     "expected": "1px",
+     "actual": "1px",
+     "pass": true
+    },
+    {
+     "name": "row.paddingTop",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "row.paddingBottom",
+     "expected": "16px",
+     "actual": "16px",
+     "pass": true
+    },
+    {
+     "name": "skeletonCount",
+     "expected": "37",
+     "actual": "37",
+     "pass": true
+    },
+    {
+     "name": "dashboardClassCount",
+     "expected": "0",
+     "actual": "0",
+     "pass": true
+    },
+    {
+     "name": "horizontalOverflow",
+     "expected": "<= 0",
+     "actual": "0",
+     "pass": true
+    }
+   ],
+   "allPass": true,
+   "png": "owner-loading-w2/harness-dark-1280.png",
+   "skeletonRects": [
+    [
+     0,
+     4,
+     192,
+     32
+    ],
+    [
+     0,
+     44,
+     384,
+     16
+    ],
+    [
+     0,
+     96,
+     256,
+     40
+    ],
+    [
+     272,
+     96,
+     128,
+     40
+    ],
+    [
+     1136,
+     96,
+     144,
+     40
+    ],
+    [
+     17,
+     185,
+     96,
+     16
+    ],
+    [
+     17,
+     209,
+     64,
+     32
+    ],
+    [
+     451.66,
+     185,
+     96,
+     16
+    ],
+    [
+     451.66,
+     209,
+     64,
+     32
+    ],
+    [
+     886.33,
+     185,
+     96,
+     16
+    ],
+    [
+     886.33,
+     209,
+     64,
+     32
+    ],
+    [
+     17,
+     299,
+     96,
+     16
+    ],
+    [
+     17,
+     323,
+     64,
+     32
+    ],
+    [
+     33,
+     437,
+     128,
+     16
+    ],
+    [
+     193,
+     437,
+     192,
+     16
+    ],
+    [
+     417,
+     437,
+     96,
+     16
+    ],
+    [
+     545,
+     437,
+     80,
+     16
+    ],
+    [
+     33,
+     502,
+     128,
+     20
+    ],
+    [
+     193,
+     502,
+     192,
+     20
+    ],
+    [
+     417,
+     502,
+     96,
+     20
+    ],
+    [
+     545,
+     502,
+     80,
+     20
+    ],
+    [
+     33,
+     554,
+     128,
+     20
+    ],
+    [
+     193,
+     554,
+     192,
+     20
+    ],
+    [
+     417,
+     554,
+     96,
+     20
+    ],
+    [
+     545,
+     554,
+     80,
+     20
+    ],
+    [
+     33,
+     606,
+     128,
+     20
+    ],
+    [
+     193,
+     606,
+     192,
+     20
+    ],
+    [
+     417,
+     606,
+     96,
+     20
+    ],
+    [
+     545,
+     606,
+     80,
+     20
+    ],
+    [
+     33,
+     658,
+     128,
+     20
+    ],
+    [
+     193,
+     658,
+     192,
+     20
+    ],
+    [
+     417,
+     658,
+     96,
+     20
+    ],
+    [
+     545,
+     658,
+     80,
+     20
+    ],
+    [
+     33,
+     710,
+     128,
+     20
+    ],
+    [
+     193,
+     710,
+     192,
+     20
+    ],
+    [
+     417,
+     710,
+     96,
+     20
+    ],
+    [
+     545,
+     710,
+     80,
+     20
+    ]
+   ]
+  }
+ ]
+}

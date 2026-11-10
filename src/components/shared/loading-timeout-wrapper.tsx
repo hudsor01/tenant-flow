@@ -53,9 +53,7 @@ export function LoadingTimeoutWrapper({
 		return (
 			<div className="flex flex-col items-center justify-center p-8 text-center">
 				<AlertCircle className="size-12 text-destructive mb-4" />
-				<h3 className="typography-large mb-2">
-					{error.message || "Failed to load data"}
-				</h3>
+				<h3 className="typography-large mb-2">Failed to load data</h3>
 				<p className="text-sm text-muted-foreground mb-4">
 					Please try again or contact support if the problem persists.
 				</p>

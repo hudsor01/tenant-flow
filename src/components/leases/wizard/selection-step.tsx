@@ -101,24 +101,31 @@ export function SelectionStep({
 			<div className="space-y-4">
 				{/* Property Selection */}
 				<div className="space-y-2">
-					<Label htmlFor="property">Property *</Label>
+					<Label id="property-label" htmlFor="property">
+						Property *
+					</Label>
 					{propertiesLoading ? (
 						<Skeleton className="h-10 w-full" />
 					) : propertiesError ? (
 						<div className="flex items-center gap-2 text-destructive-text text-sm p-3 bg-destructive/10 rounded-md">
 							<AlertCircle className="h-4 w-4" />
-							Failed to load properties: {propertiesError.message}
+							Failed to load properties. Please try again.
 						</div>
 					) : (
 						<Combobox
 							value={data.property_id ?? ""}
 							onValueChange={handlePropertyChange}
 						>
-							<ComboboxAnchor id="property">
-								<ComboboxInput placeholder="Search properties..." autoFocus />
-								<ComboboxTrigger />
+							<ComboboxAnchor>
+								<ComboboxInput
+									id="property"
+									aria-labelledby="property-label"
+									placeholder="Search properties..."
+									autoFocus
+								/>
+								<ComboboxTrigger aria-label="Show properties" />
 							</ComboboxAnchor>
-							<ComboboxContent>
+							<ComboboxContent aria-labelledby="property-label">
 								<ComboboxEmpty>No properties found</ComboboxEmpty>
 								{properties?.map((property) => (
 									<ComboboxItem key={property.id} value={property.id}>
@@ -135,7 +142,9 @@ export function SelectionStep({
 
 				{/* Unit Selection */}
 				<div className="space-y-2">
-					<Label htmlFor="unit">Unit *</Label>
+					<Label id="unit-label" htmlFor="unit">
+						Unit *
+					</Label>
 					{!data.property_id ? (
 						<div className="flex items-center gap-2 text-muted-foreground text-sm p-3 bg-muted rounded-md">
 							<AlertCircle className="h-4 w-4" />
@@ -146,7 +155,7 @@ export function SelectionStep({
 					) : unitsError ? (
 						<div className="flex items-center gap-2 text-destructive-text text-sm p-3 bg-destructive/10 rounded-md">
 							<AlertCircle className="h-4 w-4" />
-							Failed to load units: {unitsError.message}
+							Failed to load units. Please try again.
 						</div>
 					) : units?.length === 0 ? (
 						<div className="flex items-center gap-2 text-muted-foreground text-sm p-3 bg-muted rounded-md">
@@ -158,11 +167,15 @@ export function SelectionStep({
 							value={data.unit_id ?? ""}
 							onValueChange={handleUnitChange}
 						>
-							<ComboboxAnchor id="unit">
-								<ComboboxInput placeholder="Search units..." />
-								<ComboboxTrigger />
+							<ComboboxAnchor>
+								<ComboboxInput
+									id="unit"
+									aria-labelledby="unit-label"
+									placeholder="Search units..."
+								/>
+								<ComboboxTrigger aria-label="Show units" />
 							</ComboboxAnchor>
-							<ComboboxContent>
+							<ComboboxContent aria-labelledby="unit-label">
 								<ComboboxEmpty>No units found</ComboboxEmpty>
 								{units?.map((unit) => (
 									<ComboboxItem key={unit.id} value={unit.id}>
@@ -178,7 +191,9 @@ export function SelectionStep({
 				{/* Tenant Selection */}
 				<div className="space-y-2">
 					<div className="flex items-center justify-between">
-						<Label htmlFor="tenant">Primary Tenant *</Label>
+						<Label id="tenant-label" htmlFor="tenant">
+							Primary Tenant *
+						</Label>
 						<TenantModeToggle
 							inviteMode={inviteMode}
 							onToggle={() => setInviteMode(!inviteMode)}
@@ -195,7 +210,7 @@ export function SelectionStep({
 					) : tenantsError ? (
 						<div className="flex items-center gap-2 text-destructive-text text-sm p-3 bg-destructive/10 rounded-md">
 							<AlertCircle className="h-4 w-4" />
-							Failed to load tenants: {tenantsError.message}
+							Failed to load tenants. Please try again.
 						</div>
 					) : tenants?.length === 0 ? (
 						<Empty>
@@ -204,7 +219,7 @@ export function SelectionStep({
 									<UserPlus />
 								</EmptyMedia>
 								<EmptyTitle>No Tenants Available</EmptyTitle>
-								<EmptyDescription>
+								<EmptyDescription className="mb-0">
 									{data.property_id
 										? 'No tenants added to this property yet. Use "Add Tenant" above to get started.'
 										: 'No tenants found. Use "Add Tenant" above to get started.'}
@@ -216,11 +231,15 @@ export function SelectionStep({
 							value={data.primary_tenant_id ?? ""}
 							onValueChange={handleTenantChange}
 						>
-							<ComboboxAnchor id="tenant">
-								<ComboboxInput placeholder="Search tenants..." />
-								<ComboboxTrigger />
+							<ComboboxAnchor>
+								<ComboboxInput
+									id="tenant"
+									aria-labelledby="tenant-label"
+									placeholder="Search tenants..."
+								/>
+								<ComboboxTrigger aria-label="Show tenants" />
 							</ComboboxAnchor>
-							<ComboboxContent>
+							<ComboboxContent aria-labelledby="tenant-label">
 								<ComboboxEmpty>No tenants found</ComboboxEmpty>
 								{tenants?.map((tenant) => (
 									<ComboboxItem key={tenant.id} value={tenant.id}>

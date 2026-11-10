@@ -10,18 +10,18 @@ const benefits = [
 
 export function BlogInlineCta() {
 	return (
-		<div className="not-prose my-12 rounded-2xl border border-primary/20 bg-linear-to-br from-primary/5 via-primary/[0.02] to-transparent p-8">
+		<div className="not-prose my-12 rounded-2xl border border-primary/20 bg-linear-to-br from-primary/5 via-primary/2 to-transparent p-8">
 			<div className="flex flex-col gap-4">
-				<p className="text-sm font-semibold uppercase tracking-wider text-primary-text">
+				<p className="mb-0 text-sm font-semibold uppercase tracking-wider text-primary-text">
 					TenantFlow
 				</p>
 				{/* Styled as a heading but rendered as <p>: this CTA is repeated
 				    inside every post body, so an <h3> here pollutes each post's
 				    heading outline with non-content marketing copy. */}
-				<p className="text-2xl font-bold text-foreground">
+				<p className="mb-0 text-2xl font-bold text-foreground">
 					Managing rentals shouldn&apos;t be this hard
 				</p>
-				<p className="text-muted-foreground leading-relaxed">
+				<p className="mb-0 text-muted-foreground leading-relaxed">
 					Track leases, maintenance, and tenants in one platform. Replace your
 					spreadsheets and Dropbox folders with a single document vault.
 				</p>

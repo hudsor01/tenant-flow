@@ -1,0 +1,40 @@
+{
+ "baseline": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-12/cc-b9.json",
+ "current": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-12/cc-b10.json",
+ "strict": false,
+ "total": 1893,
+ "identical": 1878,
+ "changed": 15,
+ "counts": {
+  "spacing-equivalent": 0,
+  "color-inline": 0,
+  "added": 8,
+  "removed": 7,
+  "unclassified": 0
+ },
+ "lists": {
+  "spacing-equivalent": [],
+  "color-inline": [],
+  "added": [
+   "gap-(--layout-gap-group)",
+   "gap-(--layout-gap-items)",
+   "grid-cols-[repeat(auto-fit,minmax(20rem,1fr))]",
+   "mb-(--layout-gap-items)",
+   "p-(--layout-content-padding)",
+   "p-(--layout-content-padding-compact)",
+   "pb-(--layout-gap-items)",
+   "py-(--layout-gap-items)"
+  ],
+  "removed": [
+   "gap-[var(--layout-gap-group)]",
+   "gap-[var(--layout-gap-items)]",
+   "mb-[var(--layout-gap-items)]",
+   "p-[var(--layout-content-padding)]",
+   "p-[var(--layout-content-padding-compact)]",
+   "pb-[var(--layout-gap-items)]",
+   "py-[var(--layout-gap-items)]"
+  ],
+  "unclassified": []
+ },
+ "unclassified": []
+}

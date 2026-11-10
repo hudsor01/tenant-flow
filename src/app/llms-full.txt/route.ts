@@ -41,7 +41,7 @@ The product is operated by Hudson Digital Solutions. It runs on Next.js 16 + Sup
 - **Tenant records.** Contact info, lease history, emergency contact, and document attachments. Tenants are records, not users — they do not log in.
 - **Maintenance request tracking.** Submission, vendor assignment, status, photos, completion timestamps.
 - **Document vault.** Global search across leases, tenant docs, inspections, maintenance records, with custom categories per owner.
-- **Financial reporting.** Income/expense ledger with category tagging, tax-ready exports (year-end, 1099, financial statement, income statement, cash flow).
+- **Financial reporting.** Rent ledger of charges and receipts, expenses by vendor, and exports of the year-end report, tax documents, balance sheet, income statement and cash flow.
 - **Inspections.** Move-in / move-out / periodic inspection records with photo evidence.
 
 ## Pricing (USD, billed monthly or annually)

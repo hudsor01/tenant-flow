@@ -10,6 +10,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ClauseSelector } from "#components/leases/template/clause-selector";
+import { TooltipProvider } from "#components/ui/tooltip";
 
 describe("ClauseSelector a11y", () => {
 	it("exposes an accessible name on each icon-only info tooltip trigger", () => {
@@ -20,6 +21,7 @@ describe("ClauseSelector a11y", () => {
 				recommendedClauses={new Set<string>()}
 				state="CA"
 			/>,
+			{ wrapper: TooltipProvider },
 		);
 
 		const infoButtons = screen.getAllByRole("button", {

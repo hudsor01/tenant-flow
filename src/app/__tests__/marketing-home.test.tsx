@@ -15,6 +15,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { escapeRegExp } from "#test/utils/regexp-source";
 
 const homeSrc = readFileSync(
 	resolve(__dirname, "..", "marketing-home.tsx"),
@@ -49,7 +50,9 @@ describe("CONS-14 — comparison-table de-duplication", () => {
 			/import\s*\{[^}]*\bComparisonTable\s+as\s+(\w+)[^}]*\}/,
 		);
 		if (aliasMatch?.[1]) {
-			expect(homeSrc).not.toMatch(new RegExp(`<${aliasMatch[1]}\\b`));
+			expect(homeSrc).not.toMatch(
+				new RegExp(`<${escapeRegExp(aliasMatch[1])}\\b`),
+			);
 		}
 	});
 

@@ -13,7 +13,7 @@
  */
 export const QUERY_CACHE_TIMES = {
 	/**
-	 * Detail/single item queries (e.g., useProperty(id), useTenant(id))
+	 * Detail/single item queries (e.g., propertyQueries.detail(id))
 	 * Used when viewing a specific entity
 	 */
 	DETAIL: {

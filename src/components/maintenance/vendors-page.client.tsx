@@ -35,6 +35,7 @@ import {
 import { Skeleton } from "#components/ui/skeleton";
 import { useDeleteVendorMutation, useVendors } from "#hooks/api/use-vendor";
 import { useDebouncedCallback } from "#hooks/use-debounced-callback";
+import { formatCurrency } from "#lib/utils/currency";
 import type { Vendor, VendorFilters } from "#types/domain";
 
 const TRADE_LABELS: Record<string, string> = {
@@ -55,7 +56,10 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 	return (
 		<Card className="relative">
 			<CardHeader className="pb-2">
-				<div className="flex items-start justify-between gap-2">
+				{/* The CardHeader is a grid: min-w-0 lets its one column shrink, so a
+				    long vendor name truncates where it pushed the actions, and the
+				    page, to 631px at 320 (66.2-39 fix round 4, Part 8f). */}
+				<div className="flex min-w-0 items-start justify-between gap-2">
 					<div className="flex-1 min-w-0">
 						<h3 className="font-semibold truncate">{vendor.name}</h3>
 						<Badge variant="secondary" className="mt-1 text-xs capitalize">
@@ -69,7 +73,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 								<Button
 									variant="ghost"
 									size="sm"
-									className="text-destructive hover:text-destructive min-h-11"
+									className="text-destructive-text hover:text-destructive-text hover:bg-destructive/10 dark:hover:bg-destructive/10 dark:hover:text-destructive-text min-h-11"
 									aria-label={`Delete ${vendor.name}`}
 								>
 									<Trash2 className="size-4" />
@@ -77,20 +81,24 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 							</AlertDialogTrigger>
 							<AlertDialogContent>
 								<AlertDialogHeader>
-									<AlertDialogTitle>Remove vendor?</AlertDialogTitle>
-									<AlertDialogDescription>
-										This will remove <strong>{vendor.name}</strong> from your
-										vendor list. Existing maintenance requests with this vendor
-										will retain their assignment.
+									<AlertDialogTitle>
+										Delete vendor "{vendor.name}"?
+									</AlertDialogTitle>
+									{/* A hard delete; maintenance_requests.vendor_id is ON DELETE
+									    SET NULL, so the requests stay and lose the vendor. */}
+									<AlertDialogDescription className="mb-0">
+										This permanently deletes the vendor from your vendor list.
+										Maintenance requests assigned to them are kept and become
+										unassigned. This can't be undone.
 									</AlertDialogDescription>
 								</AlertDialogHeader>
 								<AlertDialogFooter>
 									<AlertDialogCancel>Cancel</AlertDialogCancel>
 									<AlertDialogAction
 										onClick={() => deleteMutation.mutate(vendor.id)}
-										className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+										variant="destructive"
 									>
-										Remove
+										Delete vendor
 									</AlertDialogAction>
 								</AlertDialogFooter>
 							</AlertDialogContent>
@@ -114,11 +122,11 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 				{vendor.hourly_rate && (
 					<div className="flex items-center gap-2 text-sm text-muted-foreground">
 						<DollarSign className="size-3.5 shrink-0" />
-						<span>${vendor.hourly_rate}/hour</span>
+						<span>{formatCurrency(vendor.hourly_rate)}/hour</span>
 					</div>
 				)}
 				{vendor.notes && (
-					<p className="text-xs text-muted-foreground line-clamp-2 pt-1">
+					<p className="mb-0 text-xs text-muted-foreground line-clamp-2 pt-1">
 						{vendor.notes}
 					</p>
 				)}
@@ -129,7 +137,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 
 function VendorsSkeleton() {
 	return (
-		<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 			{Array.from({ length: 6 }).map((_, i) => (
 				<Card key={i}>
 					<CardHeader className="pb-2">
@@ -171,7 +179,7 @@ export function VendorsPageClient() {
 					<Building2 className="size-6 text-primary" />
 					<div>
 						<h1 className="text-2xl font-bold">Vendors</h1>
-						<p className="text-sm text-muted-foreground">
+						<p className="mb-0 text-sm text-muted-foreground">
 							{total > 0
 								? `${total} vendor${total !== 1 ? "s" : ""}`
 								: "No vendors yet"}
@@ -196,7 +204,10 @@ export function VendorsPageClient() {
 					/>
 				</div>
 				<Select value={tradeFilter} onValueChange={setTradeFilter}>
-					<SelectTrigger className="w-full sm:w-48 h-11">
+					<SelectTrigger
+						className="w-full sm:w-48 h-11"
+						aria-label={`${tradeFilter === "all" ? "All trades" : (TRADE_LABELS[tradeFilter] ?? tradeFilter)} (trade)`}
+					>
 						<SelectValue placeholder="All trades" />
 					</SelectTrigger>
 					<SelectContent>
@@ -228,7 +239,7 @@ export function VendorsPageClient() {
 					{!search && tradeFilter === "all" && <VendorFormDialog />}
 				</div>
 			) : (
-				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{vendors.map((vendor) => (
 						<VendorCard key={vendor.id} vendor={vendor} />
 					))}

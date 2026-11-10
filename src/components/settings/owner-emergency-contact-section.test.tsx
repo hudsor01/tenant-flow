@@ -50,7 +50,9 @@ describe("OwnerEmergencyContactSection delete confirmation", () => {
 		);
 
 		expect(mockDelete).not.toHaveBeenCalled();
-		expect(screen.getByText("Remove emergency contact?")).toBeInTheDocument();
+		expect(
+			screen.getByText("Remove Jane Roe as your emergency contact?"),
+		).toBeInTheDocument();
 	});
 
 	it("deletes only after confirming in the dialog", async () => {

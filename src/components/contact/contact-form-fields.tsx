@@ -31,7 +31,7 @@ export function ContactFormFields({
 }: ContactFormFieldsProps) {
 	return (
 		<>
-			<div className="grid md:grid-cols-2 gap-4">
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<Field>
 					<FieldLabel htmlFor="name">Full Name *</FieldLabel>
 					<InputGroup>
@@ -80,7 +80,7 @@ export function ContactFormFields({
 				</Field>
 			</div>
 
-			<div className="grid md:grid-cols-2 gap-4">
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<Field>
 					<FieldLabel htmlFor="company">Company Name</FieldLabel>
 					<Input

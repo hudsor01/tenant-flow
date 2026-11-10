@@ -1,5 +1,53 @@
 "use client";
 
+/**
+ * shadcn new-york-v4 registry item `calendar`.
+ *
+ * Local divergences (recorded in the divergence register):
+ * - CalendarDayButton export removed (the function stays internal to
+ *   Calendar);
+ * - local nav and caption classNames: month_caption flex-center, dropdowns
+ *   typography-small, caption_label h-11 dropdown target;
+ * - day cell uses first:[&[data-selected=true]_button]:rounded-l-md and
+ *   last:[&[data-selected=true]_button]:rounded-r-md instead of the upstream
+ *   showWeekNumber-dependent nth-child form; month_grid drops
+ *   defaultClassNames.month_grid;
+ * - class token order in the root, months, month, nav, button_previous,
+ *   button_next, dropdown_root, dropdown, caption_label, weekday, week,
+ *   week_number_header, week_number, today and CalendarDayButton class
+ *   strings;
+ * - the day button's dark hover label is text-foreground, not upstream's
+ *   dark:hover:text-accent-foreground, which is near-black on this theme's
+ *   emerald accent/50 hover (2.63:1).
+ *
+ * Fix round 4, Part 5b (66.2-39; recorded in the divergence register):
+ * - focus ring `ring-ring`, opaque, where upstream draws `ring-ring/50`: the
+ *   half-alpha ring read 2.17-2.58:1 on the page, card and popover, under
+ *   WCAG 1.4.11's 3:1;
+ * - the today cell restates accent-foreground as its button's hover label: it
+ *   paints solid accent under the button, where the dark hover label above
+ *   (and the ghost Button's own) read 2.19:1; accent-foreground reads 8.01:1;
+ * - the focused day's ring sits on a 2px background offset: on the today
+ *   cell's solid accent the bare ring read 1.75:1.
+ *
+ * Fix round 4, Part 8e (66.2-39; recorded in the divergence register):
+ * - `--cell-size` is 44px, not 32: the Button's 44px floor (`min-h-11`, with
+ *   `aspect-square`) already makes every day 44px, and the caption's inset
+ *   and the nav buttons now match it; below md the root pads 4px, not 12, and
+ *   it is at most its container's width (`max-w-full`): at 320 the month was
+ *   353.7px in a 318px popover, which scrolled sideways (WCAG 1.4.10);
+ * - the weekday, week-number and day cells cancel the `@layer base` table
+ *   rules (`p-0 border-0 bg-transparent`): their 16px side padding made each
+ *   weekday 46-50px wide, so the month was 329.7px at every width, and the
+ *   header painted muted cells with a border under them and under each week.
+ *
+ * Fix round 4, Part 8h (66.2-39; recorded in the divergence register):
+ * - a day button's name writes the day as the number it shows ("Sunday,
+ *   November 1, 2026"): react-day-picker's default ("PPPP") reads "November
+ *   1st", which does not contain the button's visible "1", so axe's
+ *   label-content-name-mismatch failed every day of an open calendar
+ *   (WCAG 2.5.3).
+ */
 import {
 	ChevronDownIcon,
 	ChevronLeftIcon,
@@ -8,13 +56,31 @@ import {
 import type { ComponentProps } from "react";
 import { useEffect, useRef } from "react";
 import {
+	DateLib,
 	type DayButton,
 	DayPicker,
 	getDefaultClassNames,
+	type Labels,
 } from "react-day-picker";
 
 import { Button, buttonVariants } from "#components/ui/button";
 import { cn } from "#lib/utils";
+
+/** react-day-picker's day label, with the day written as the number the button shows. */
+const labelDayButton: Labels["labelDayButton"] = (
+	date,
+	modifiers,
+	options,
+	dateLib,
+) => {
+	let label = (dateLib ?? new DateLib(options)).format(
+		date,
+		"EEEE, MMMM d, yyyy",
+	);
+	if (modifiers.today) label = `Today, ${label}`;
+	if (modifiers.selected) label = `${label}, selected`;
+	return label;
+};
 
 function Calendar({
 	className,
@@ -23,6 +89,7 @@ function Calendar({
 	captionLayout = "label",
 	buttonVariant = "ghost",
 	formatters,
+	labels,
 	components,
 	...props
 }: ComponentProps<typeof DayPicker> & {
@@ -34,19 +101,20 @@ function Calendar({
 		<DayPicker
 			showOutsideDays={showOutsideDays}
 			className={cn(
-				"bg-background group/calendar p-3 [--cell-size:--spacing(8)]",
+				"bg-background group/calendar p-1 md:p-3 [--cell-size:--spacing(11)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
 				String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
 				String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
 				className,
 			)}
 			captionLayout={captionLayout}
+			labels={{ labelDayButton, ...labels }}
 			formatters={{
 				formatMonthDropdown: (date) =>
 					date.toLocaleString("default", { month: "short" }),
 				...formatters,
 			}}
 			classNames={{
-				root: cn("w-fit", defaultClassNames.root),
+				root: cn("w-fit max-w-full", defaultClassNames.root),
 				months: cn(
 					"flex gap-4 flex-col md:flex-row relative",
 					defaultClassNames.months,
@@ -75,7 +143,7 @@ function Calendar({
 					defaultClassNames.dropdowns,
 				),
 				dropdown_root: cn(
-					"relative has-focus:border-ring border border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] rounded-md",
+					"relative has-focus:border-ring border border-input shadow-xs has-focus:ring-ring has-focus:ring-[3px] rounded-md",
 					defaultClassNames.dropdown_root,
 				),
 				dropdown: cn(
@@ -92,20 +160,20 @@ function Calendar({
 				month_grid: "w-full border-collapse",
 				weekdays: cn("flex", defaultClassNames.weekdays),
 				weekday: cn(
-					"text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] select-none",
+					"text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] select-none p-0 border-0 bg-transparent",
 					defaultClassNames.weekday,
 				),
 				week: cn("flex w-full mt-2", defaultClassNames.week),
 				week_number_header: cn(
-					"select-none w-(--cell-size)",
+					"select-none w-(--cell-size) p-0 border-0 bg-transparent",
 					defaultClassNames.week_number_header,
 				),
 				week_number: cn(
-					"text-[0.8rem] select-none text-muted-foreground",
+					"text-[0.8rem] select-none text-muted-foreground p-0 border-0",
 					defaultClassNames.week_number,
 				),
 				day: cn(
-					"relative w-full h-full p-0 text-center first:[&[data-selected=true]_button]:rounded-l-md last:[&[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none",
+					"relative w-full h-full p-0 border-0 text-center first:[&[data-selected=true]_button]:rounded-l-md last:[&[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none",
 					defaultClassNames.day,
 				),
 				range_start: cn(
@@ -115,7 +183,7 @@ function Calendar({
 				range_middle: cn("rounded-none", defaultClassNames.range_middle),
 				range_end: cn("rounded-r-md bg-accent", defaultClassNames.range_end),
 				today: cn(
-					"bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none",
+					"bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none [&>button]:hover:text-accent-foreground",
 					defaultClassNames.today,
 				),
 				outside: cn(
@@ -131,7 +199,14 @@ function Calendar({
 			}}
 			components={{
 				Root: ({ className, rootRef, ...props }) => {
-					return <div ref={rootRef} className={cn(className)} {...props} />;
+					return (
+						<div
+							data-slot="calendar"
+							ref={rootRef}
+							className={cn(className)}
+							{...props}
+						/>
+					);
 				},
 				Chevron: ({ className, orientation, ...props }) => {
 					if (orientation === "left") {
@@ -199,7 +274,7 @@ function CalendarDayButton({
 			data-range-end={modifiers.range_end}
 			data-range-middle={modifiers.range_middle}
 			className={cn(
-				"data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 dark:hover:text-accent-foreground flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
+				"data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring dark:hover:text-foreground flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-offset-2 group-data-[focused=true]/day:ring-offset-background data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
 				defaultClassNames.day,
 				className,
 			)}

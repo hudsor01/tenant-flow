@@ -1,13 +1,14 @@
 "use client";
 
 import { Phone } from "lucide-react";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { useEffect, useId, useState } from "react";
 
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
 import { ConfirmDialog } from "#components/ui/confirm-dialog";
 import { Field, FieldLabel } from "#components/ui/field";
+import { Input } from "#components/ui/input";
 import { Skeleton } from "#components/ui/skeleton";
 import {
 	useDeleteOwnerEmergencyContactMutation,
@@ -61,7 +62,7 @@ export function OwnerEmergencyContactSection() {
 		setFormData((prev) => ({ ...prev, [field]: value }));
 	};
 
-	const handleSave = async (e: FormEvent) => {
+	const handleSave = async (e: SubmitEvent) => {
 		e.preventDefault();
 		// FORMFIX-08: catch the mutateAsync rejection locally so it does not escape
 		// the async submit handler as an unhandled rejection (duplicate Sentry +
@@ -133,13 +134,12 @@ export function OwnerEmergencyContactSection() {
 			description="Someone we can contact in case of emergency"
 		>
 			<form onSubmit={handleSave} className="space-y-6">
-				<div className="grid gap-6 md:grid-cols-2">
+				<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 					<Field>
 						<FieldLabel htmlFor={nameId}>Contact Name</FieldLabel>
-						<input
+						<Input
 							id={nameId}
 							type="text"
-							className="input w-full"
 							placeholder="Full name"
 							value={formData.name}
 							onChange={(e) => handleChange("name", e.target.value)}
@@ -150,10 +150,9 @@ export function OwnerEmergencyContactSection() {
 
 					<Field>
 						<FieldLabel htmlFor={relationshipId}>Relationship</FieldLabel>
-						<input
+						<Input
 							id={relationshipId}
 							type="text"
-							className="input w-full"
 							placeholder="e.g., Spouse, Parent"
 							value={formData.relationship}
 							onChange={(e) => handleChange("relationship", e.target.value)}
@@ -169,10 +168,9 @@ export function OwnerEmergencyContactSection() {
 							<span>Phone Number</span>
 						</div>
 					</FieldLabel>
-					<input
+					<Input
 						id={phoneId}
 						type="tel"
-						className="input w-full"
 						placeholder="(555) 123-4567"
 						value={formData.phone}
 						onChange={(e) => handleChange("phone", e.target.value)}
@@ -230,7 +228,11 @@ export function OwnerEmergencyContactSection() {
 			<ConfirmDialog
 				open={confirmOpen}
 				onOpenChange={setConfirmOpen}
-				title="Remove emergency contact?"
+				title={
+					contact?.name
+						? `Remove ${contact.name} as your emergency contact?`
+						: "Remove your emergency contact?"
+				}
 				description="This clears the saved name, phone, and relationship."
 				confirmText="Remove"
 				loading={isDeleting}

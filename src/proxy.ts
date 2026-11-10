@@ -2,38 +2,69 @@ import * as Sentry from "@sentry/nextjs";
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "#env";
-import { PRIVATE_ROUTE_PREFIXES } from "#lib/routes/private-routes";
+import {
+	matchesAnyRoutePrefix,
+	matchesRoutePrefix,
+	PRIVATE_ROUTE_PREFIXES,
+	PROXY_ADMITTED_SUBSCRIPTION_STATUSES,
+} from "#lib/routes/private-routes";
 import { requiresMfaStepUp } from "#lib/supabase/mfa-assurance";
 import { updateSession } from "#lib/supabase/middleware";
 import type { Database } from "#types/supabase";
 
-/**
- * Stripe subscription statuses that grant dashboard access.
- *
- * `past_due` is admitted so a delinquent owner keeps access during Stripe's
- * dunning/retry window (the grace period promised in the dunning email +
- * banner) and can reach the in-app payment-fix surface. When Stripe exhausts
- * its retries it emits `customer.subscription.updated`→`unpaid` or
- * `.deleted`→`canceled`, and the gate then locks the owner out. `unpaid`,
- * `canceled`, `expired`, etc. stay locked (they recover via /billing/plans).
- */
-const ACTIVE_SUBSCRIPTION_STATUSES = new Set([
-	"active",
-	"trialing",
-	"past_due",
-]);
+// The statuses step 7 admits are `PROXY_ADMITTED_SUBSCRIPTION_STATUSES`
+// (`#lib/routes/private-routes`, shared with the checkout success page):
+// `active`, `trialing` and `past_due`. `unpaid`, `canceled`, `expired`, etc.
+// stay locked out of every private route except Settings
+// (`SUBSCRIPTION_EXEMPT_PREFIXES`); they recover via /billing/plans.
 
 /**
- * Private route prefixes that require an authenticated user. Anything NOT
- * in this list is treated as public — including unknown URLs, which then
- * fall through to Next.js so the built-in `not-found.tsx` renders a real
- * 404 page instead of a hostile "redirect to login" loop.
- *
- * Add a prefix here when you ship a new route group that gates on auth.
- * Owner-dashboard prefixes mirror the directories under `src/app/(owner)/`;
- * `/admin/*` is the (admin) route group; `/billing/*` is gated EXCEPT for
- * the checkout + plans subpaths (those are handled inside the subscription
- * gate below).
+ * Private routes a signed-in owner reaches whatever their subscription
+ * status (owner, 2026-11-09): Settings and its subpaths, where an owner whose
+ * plan or trial has lapsed downloads their data, requests account deletion and
+ * resubscribes. Only the subscription requirement is lifted: sign-in, the MFA
+ * step-up and the `users` read still apply. Matched on a path-segment
+ * boundary, so `/settingsx` or `/settings-old` would not be Settings.
+ */
+const SUBSCRIPTION_EXEMPT_PREFIXES = ["/settings"] as const;
+
+function isSubscriptionExempt(pathname: string): boolean {
+	return matchesAnyRoutePrefix(pathname, SUBSCRIPTION_EXEMPT_PREFIXES);
+}
+
+/**
+ * Paths that skip the `users` read and the subscription gate (step 5): the
+ * plan pages, where a lapsed owner resubscribes, and the Stripe checkout's
+ * return. `/pricing` and `/auth` are not private, so they pass at step 3 and
+ * never reach this check; they stay listed so that a future private route
+ * under either cannot send a lapsed owner from `/pricing` to `/pricing`.
+ */
+const SUBSCRIPTION_ALLOWLIST_PREFIXES = [
+	"/pricing",
+	"/billing/checkout",
+	"/billing/plans",
+	"/auth",
+] as const;
+
+/**
+ * The gate, in the order `proxy()` runs it:
+ *   1. `/blog` and `/blog/*` pass with no session refresh.
+ *   2. `updateSession()` refreshes the session and reads the MFA assurance
+ *      level.
+ *   3. A path outside `PRIVATE_ROUTE_PREFIXES` (`#lib/routes/private-routes`)
+ *      passes: the gate is a deny-list, so an unknown URL reaches Next's
+ *      `not-found.tsx` instead of a "redirect to login" loop. Add a prefix
+ *      there when you ship a new gated route.
+ *   4. No user, or an aal1 session that must step up to MFA, goes to
+ *      `/login?redirect=<path+query>`.
+ *   5. `/billing/checkout` and `/billing/plans` and their subpaths
+ *      (`SUBSCRIPTION_ALLOWLIST_PREFIXES`) pass with no `users` read.
+ *   6. One `users` read (`is_admin`, `subscription_status`): a failure goes to
+ *      `/login` (fail-secure); `/admin*` without `is_admin` goes to
+ *      `/dashboard`.
+ *   7. A non-admin needs an active, trialing or past_due subscription, else
+ *      `/pricing`, except on Settings and its subpaths
+ *      (`SUBSCRIPTION_EXEMPT_PREFIXES`). Admins bypass.
  */
 
 /** Combined row read once per request and used by both gates. */
@@ -43,9 +74,7 @@ type UserGateRow = {
 };
 
 function isPrivateRoute(pathname: string): boolean {
-	return PRIVATE_ROUTE_PREFIXES.some(
-		(prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
-	);
+	return matchesAnyRoutePrefix(pathname, PRIVATE_ROUTE_PREFIXES);
 }
 
 // Public-but-credential-sensitive routes: the login form and the auth
@@ -58,9 +87,7 @@ function isPrivateRoute(pathname: string): boolean {
 const AUTH_ROUTE_PREFIXES = ["/login", "/auth"];
 
 function isAuthRoute(pathname: string): boolean {
-	return AUTH_ROUTE_PREFIXES.some(
-		(prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
-	);
+	return matchesAnyRoutePrefix(pathname, AUTH_ROUTE_PREFIXES);
 }
 
 /**
@@ -199,7 +226,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 	// browser Supabase client refreshes the token client-side, and every private
 	// route below still runs updateSession + the auth gates. /blog is never
 	// private- or auth-gated, so nothing here depends on the refreshed session.
-	if (pathname === "/blog" || pathname.startsWith("/blog/")) {
+	if (matchesRoutePrefix(pathname, "/blog")) {
 		return NextResponse.next();
 	}
 
@@ -253,12 +280,11 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 	// sensitive surfaces (Stripe redirect-back round-trip lands on
 	// /billing/checkout). Admin routes still need the gate, so check
 	// /admin separately below.
-	const isSubscriptionAllowlisted =
-		pathname.startsWith("/pricing") ||
-		pathname.startsWith("/billing/checkout") ||
-		pathname.startsWith("/billing/plans") ||
-		pathname.startsWith("/auth/");
-	const isAdminRoute = pathname.startsWith("/admin");
+	const isSubscriptionAllowlisted = matchesAnyRoutePrefix(
+		pathname,
+		SUBSCRIPTION_ALLOWLIST_PREFIXES,
+	);
+	const isAdminRoute = matchesRoutePrefix(pathname, "/admin");
 	if (!isAdminRoute && isSubscriptionAllowlisted) {
 		return withCsp(supabaseResponse);
 	}
@@ -350,14 +376,15 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 		);
 	}
 
-	// Subscription gate: authenticated non-admin users need an active or
-	// trialing Stripe subscription to reach private routes. Admins bypass.
-	// The /pricing, /billing/checkout, /billing/plans, /auth/ allowlist
-	// was already short-circuited above; we only reach here for routes
-	// that genuinely require an active subscription.
-	if (!gateRow.is_admin && !isAdminRoute) {
+	// Subscription gate: authenticated non-admin users need an active,
+	// trialing or past_due subscription to reach private routes. Admins
+	// bypass. The allowlist (SUBSCRIPTION_ALLOWLIST_PREFIXES) was already
+	// short-circuited above, before the `users` read;
+	// Settings is exempt here, after it (SUBSCRIPTION_EXEMPT_PREFIXES), so a
+	// lapsed owner still passes sign-in, MFA and the read to reach it.
+	if (!gateRow.is_admin && !isAdminRoute && !isSubscriptionExempt(pathname)) {
 		const status = gateRow.subscription_status;
-		if (!status || !ACTIVE_SUBSCRIPTION_STATUSES.has(status)) {
+		if (!status || !PROXY_ADMITTED_SUBSCRIPTION_STATUSES.has(status)) {
 			return withCsp(
 				redirectWithCookies(new URL("/pricing", request.url), supabaseResponse),
 			);
@@ -367,8 +394,14 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 	return withCsp(supabaseResponse);
 }
 
+// Skips Next's static assets and image optimizer, the favicon, image files,
+// the Sentry tunnel and the API routes, each on a path-segment boundary (the
+// rule of `matchesRoutePrefix`, which Next cannot call: it reads the matcher
+// as a literal at build time):
+// `/monitoring` and `/monitoring/x`, never `/monitoringx`; the dot in
+// `favicon.ico` is literal (66.2-39 fix round 4, Part 8l).
 export const config = {
 	matcher: [
-		"/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|monitoring|api/).*)",
+		"/((?!_next/static(?:/|$)|_next/image(?:/|$)|favicon\\.ico$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|monitoring(?:/|$)|api(?:/|$)).*)",
 	],
 };

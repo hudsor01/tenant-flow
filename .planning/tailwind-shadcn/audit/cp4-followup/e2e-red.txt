@@ -1,0 +1,661 @@
+$ bunx playwright test --config tests/e2e/playwright.config.ts "--project=owner-axe" "--reporter=list" "--max-failures=0" --grep "CP-4 follow-up"
+◇ injected env (0) from tests/e2e/.env.test
+
+Running 6 tests using 1 worker
+
+◇ injected env (0) from tests/e2e/.env.test
+  ✘  1 [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1638:2 › CP-4 follow-up: dashboard layout at every rail state › each KPI value stays on one line inside its tile (8.3s)
+◇ injected env (0) from tests/e2e/.env.test
+  ✘  2 [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1691:2 › CP-4 follow-up: dashboard layout at every rail state › the Quick Actions card's content stays inside its column (6.8s)
+◇ injected env (0) from tests/e2e/.env.test
+  ✘  3 [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1722:2 › CP-4 follow-up: dashboard layout at every rail state › the dock's band is reserved: main padding, scroll padding and scroll end (6.7s)
+◇ injected env (0) from tests/e2e/.env.test
+  ✘  4 [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1764:2 › CP-4 follow-up: dashboard layout at every rail state › a quick action focused by Tab under the dock scrolls clear of it (WCAG 2.4.11) (5.9s)
+◇ injected env (0) from tests/e2e/.env.test
+  ✓  5 [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1824:3 › CP-4 follow-up: dashboard layout at every rail state › 375px: no dock, so no reserved band (3.0s)
+  ✓  6 [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1824:3 › CP-4 follow-up: dashboard layout at every rail state › 900px: no dock, so no reserved band (2.8s)
+
+
+  1) [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1638:2 › CP-4 follow-up: dashboard layout at every rail state › each KPI value stays on one line inside its tile 
+
+    Error: 900px Revenue: a value part sits on another line (center 161.390625, ticker 177.390625..209.390625)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      1669 | 							`${where}: a value part sits on another line (center ${centerY}, ticker ${ticker.y}..${ticker.y + ticker.height})`,
+      1670 | 						)
+    > 1671 | 						.toBe(true);
+           | 						 ^
+      1672 | 					expect
+      1673 | 						.soft(part.x, `${where}: value parts run left to right on one line`)
+      1674 | 						.toBeGreaterThanOrEqual(previousRight - 0.5);
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1671:8
+
+    Error: 900px Revenue: value parts run left to right on one line
+
+    expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 144.0625
+    Received:    126.671875
+
+      1672 | 					expect
+      1673 | 						.soft(part.x, `${where}: value parts run left to right on one line`)
+    > 1674 | 						.toBeGreaterThanOrEqual(previousRight - 0.5);
+           | 						 ^
+      1675 | 					previousRight = part.x + part.width;
+      1676 | 					expect
+      1677 | 						.soft(part.x, `${where}: value starts inside the tile`)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1674:8
+
+    Error: 1024px collapsed Revenue: a value part sits on another line (center 181, ticker 197..229)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      1669 | 							`${where}: a value part sits on another line (center ${centerY}, ticker ${ticker.y}..${ticker.y + ticker.height})`,
+      1670 | 						)
+    > 1671 | 						.toBe(true);
+           | 						 ^
+      1672 | 					expect
+      1673 | 						.soft(part.x, `${where}: value parts run left to right on one line`)
+      1674 | 						.toBeGreaterThanOrEqual(previousRight - 0.5);
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1671:8
+
+    Error: 1024px collapsed Revenue: value parts run left to right on one line
+
+    expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 160.0625
+    Received:    142.671875
+
+      1672 | 					expect
+      1673 | 						.soft(part.x, `${where}: value parts run left to right on one line`)
+    > 1674 | 						.toBeGreaterThanOrEqual(previousRight - 0.5);
+           | 						 ^
+      1675 | 					previousRight = part.x + part.width;
+      1676 | 					expect
+      1677 | 						.soft(part.x, `${where}: value starts inside the tile`)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1674:8
+
+    Error: 1280px collapsed Revenue: a value part sits on another line (center 181, ticker 197..229)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      1669 | 							`${where}: a value part sits on another line (center ${centerY}, ticker ${ticker.y}..${ticker.y + ticker.height})`,
+      1670 | 						)
+    > 1671 | 						.toBe(true);
+           | 						 ^
+      1672 | 					expect
+      1673 | 						.soft(part.x, `${where}: value parts run left to right on one line`)
+      1674 | 						.toBeGreaterThanOrEqual(previousRight - 0.5);
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1671:8
+
+    Error: 1280px collapsed Revenue: value parts run left to right on one line
+
+    expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 160.0625
+    Received:    142.671875
+
+      1672 | 					expect
+      1673 | 						.soft(part.x, `${where}: value parts run left to right on one line`)
+    > 1674 | 						.toBeGreaterThanOrEqual(previousRight - 0.5);
+           | 						 ^
+      1675 | 					previousRight = part.x + part.width;
+      1676 | 					expect
+      1677 | 						.soft(part.x, `${where}: value starts inside the tile`)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1674:8
+
+    Error: 1280px collapsed Revenue: value ends inside the tile
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 207.5
+    Received:    232.015625
+
+      1679 | 					expect
+      1680 | 						.soft(part.x + part.width, `${where}: value ends inside the tile`)
+    > 1681 | 						.toBeLessThanOrEqual(contentRight + 0.5);
+           | 						 ^
+      1682 | 				}
+      1683 | 				expect
+      1684 | 					.soft(insets.scrollWidth, `${where}: tile scrollWidth vs clientWidth`)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1681:8
+
+    Error: 1280px collapsed Revenue: tile scrollWidth vs clientWidth
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 182
+    Received:    183
+
+      1683 | 				expect
+      1684 | 					.soft(insets.scrollWidth, `${where}: tile scrollWidth vs clientWidth`)
+    > 1685 | 					.toBeLessThanOrEqual(insets.clientWidth);
+           | 					 ^
+      1686 | 			}
+      1687 | 		}
+      1688 | 		expect(errors).toEqual([]);
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1685:7
+
+    Error: 1280px collapsed Occupancy: a value part sits on another line (center 213, ticker 165..197)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      1669 | 							`${where}: a value part sits on another line (center ${centerY}, ticker ${ticker.y}..${ticker.y + ticker.height})`,
+      1670 | 						)
+    > 1671 | 						.toBe(true);
+           | 						 ^
+      1672 | 					expect
+      1673 | 						.soft(part.x, `${where}: value parts run left to right on one line`)
+      1674 | 						.toBeGreaterThanOrEqual(previousRight - 0.5);
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1671:8
+
+    Error: 1280px collapsed Occupancy: value parts run left to right on one line
+
+    expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 397.875
+    Received:    358.4375
+
+      1672 | 					expect
+      1673 | 						.soft(part.x, `${where}: value parts run left to right on one line`)
+    > 1674 | 						.toBeGreaterThanOrEqual(previousRight - 0.5);
+           | 						 ^
+      1675 | 					previousRight = part.x + part.width;
+      1676 | 					expect
+      1677 | 						.soft(part.x, `${where}: value starts inside the tile`)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1674:8
+
+    Error: 1440px expanded Revenue: a value part sits on another line (center 181, ticker 197..229)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      1669 | 							`${where}: a value part sits on another line (center ${centerY}, ticker ${ticker.y}..${ticker.y + ticker.height})`,
+      1670 | 						)
+    > 1671 | 						.toBe(true);
+           | 						 ^
+      1672 | 					expect
+      1673 | 						.soft(part.x, `${where}: value parts run left to right on one line`)
+      1674 | 						.toBeGreaterThanOrEqual(previousRight - 0.5);
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1671:8
+
+    Error: 1440px expanded Revenue: value parts run left to right on one line
+
+    expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 384.0625
+    Received:    366.671875
+
+      1672 | 					expect
+      1673 | 						.soft(part.x, `${where}: value parts run left to right on one line`)
+    > 1674 | 						.toBeGreaterThanOrEqual(previousRight - 0.5);
+           | 						 ^
+      1675 | 					previousRight = part.x + part.width;
+      1676 | 					expect
+      1677 | 						.soft(part.x, `${where}: value starts inside the tile`)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1674:8
+
+    Error: 1440px collapsed Revenue: a value part sits on another line (center 181, ticker 197..229)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      1669 | 							`${where}: a value part sits on another line (center ${centerY}, ticker ${ticker.y}..${ticker.y + ticker.height})`,
+      1670 | 						)
+    > 1671 | 						.toBe(true);
+           | 						 ^
+      1672 | 					expect
+      1673 | 						.soft(part.x, `${where}: value parts run left to right on one line`)
+      1674 | 						.toBeGreaterThanOrEqual(previousRight - 0.5);
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1671:8
+
+    Error: 1440px collapsed Revenue: value parts run left to right on one line
+
+    expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 160.0625
+    Received:    142.671875
+
+      1672 | 					expect
+      1673 | 						.soft(part.x, `${where}: value parts run left to right on one line`)
+    > 1674 | 						.toBeGreaterThanOrEqual(previousRight - 0.5);
+           | 						 ^
+      1675 | 					previousRight = part.x + part.width;
+      1676 | 					expect
+      1677 | 						.soft(part.x, `${where}: value starts inside the tile`)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1674:8
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    tests/e2e/test-results/owner-app-shell-sidebar-CP-abc12-on-one-line-inside-its-tile-owner-axe/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    tests/e2e/test-results/owner-app-shell-sidebar-CP-abc12-on-one-line-inside-its-tile-owner-axe/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: tests/e2e/test-results/owner-app-shell-sidebar-CP-abc12-on-one-line-inside-its-tile-owner-axe/error-context.md
+
+  2) [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1691:2 › CP-4 follow-up: dashboard layout at every rail state › the Quick Actions card's content stays inside its column 
+
+    Error: 1024px expanded: Quick Actions scrollWidth vs clientWidth
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 156
+    Received:    167
+
+      1707 | 					`${where}: Quick Actions scrollWidth vs clientWidth`,
+      1708 | 				)
+    > 1709 | 				.toBeLessThanOrEqual(insets.clientWidth);
+           | 				 ^
+      1710 | 			for (const button of buttons) {
+      1711 | 				expect
+      1712 | 					.soft(
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1709:6
+
+    Error: 1024px expanded: a quick action ends inside the card
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 975.5
+    Received:    986.3125
+
+      1714 | 						`${where}: a quick action ends inside the card`,
+      1715 | 					)
+    > 1716 | 					.toBeLessThanOrEqual(cardBox.x + cardBox.width - insets.right + 0.5);
+           | 					 ^
+      1717 | 			}
+      1718 | 		}
+      1719 | 		expect(errors).toEqual([]);
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1716:7
+
+    Error: 1024px expanded: a quick action ends inside the card
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 975.5
+    Received:    986.3125
+
+      1714 | 						`${where}: a quick action ends inside the card`,
+      1715 | 					)
+    > 1716 | 					.toBeLessThanOrEqual(cardBox.x + cardBox.width - insets.right + 0.5);
+           | 					 ^
+      1717 | 			}
+      1718 | 		}
+      1719 | 		expect(errors).toEqual([]);
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1716:7
+
+    Error: 1024px expanded: a quick action ends inside the card
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 975.5
+    Received:    986.3125
+
+      1714 | 						`${where}: a quick action ends inside the card`,
+      1715 | 					)
+    > 1716 | 					.toBeLessThanOrEqual(cardBox.x + cardBox.width - insets.right + 0.5);
+           | 					 ^
+      1717 | 			}
+      1718 | 		}
+      1719 | 		expect(errors).toEqual([]);
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1716:7
+
+    Error: 1024px expanded: a quick action ends inside the card
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 975.5
+    Received:    986.3125
+
+      1714 | 						`${where}: a quick action ends inside the card`,
+      1715 | 					)
+    > 1716 | 					.toBeLessThanOrEqual(cardBox.x + cardBox.width - insets.right + 0.5);
+           | 					 ^
+      1717 | 			}
+      1718 | 		}
+      1719 | 		expect(errors).toEqual([]);
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1716:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    tests/e2e/test-results/owner-app-shell-sidebar-CP-7523d-ent-stays-inside-its-column-owner-axe/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    tests/e2e/test-results/owner-app-shell-sidebar-CP-7523d-ent-stays-inside-its-column-owner-axe/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: tests/e2e/test-results/owner-app-shell-sidebar-CP-7523d-ent-stays-inside-its-column-owner-axe/error-context.md
+
+  3) [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1722:2 › CP-4 follow-up: dashboard layout at every rail state › the dock's band is reserved: main padding, scroll padding and scroll end 
+
+    Error: 1024px expanded: main padding-bottom: measured 112, expected 90 ±0.5
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 0.5
+    Received:    22
+
+      298 | 			`${label}: measured ${actual}, expected ${expected} ±0.5`,
+      299 | 		)
+    > 300 | 		.toBeLessThanOrEqual(0.5);
+          | 		 ^
+      301 | }
+      302 |
+      303 | /** `actual` within ±0.5px of `expected`, with the measured value in the failure. */
+        at expectNearSoft (/Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:300:4)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1738:4
+
+    Error: 1024px expanded: html scroll-padding-bottom: measured NaN, expected 90 ±0.5
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 0.5
+    Received:    NaN
+
+      298 | 			`${label}: measured ${actual}, expected ${expected} ±0.5`,
+      299 | 		)
+    > 300 | 		.toBeLessThanOrEqual(0.5);
+          | 		 ^
+      301 | }
+      302 |
+      303 | /** `actual` within ±0.5px of `expected`, with the measured value in the failure. */
+        at expectNearSoft (/Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:300:4)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1739:4
+
+    Error: 1024px collapsed: main padding-bottom: measured 112, expected 90 ±0.5
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 0.5
+    Received:    22
+
+      298 | 			`${label}: measured ${actual}, expected ${expected} ±0.5`,
+      299 | 		)
+    > 300 | 		.toBeLessThanOrEqual(0.5);
+          | 		 ^
+      301 | }
+      302 |
+      303 | /** `actual` within ±0.5px of `expected`, with the measured value in the failure. */
+        at expectNearSoft (/Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:300:4)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1738:4
+
+    Error: 1024px collapsed: html scroll-padding-bottom: measured NaN, expected 90 ±0.5
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 0.5
+    Received:    NaN
+
+      298 | 			`${label}: measured ${actual}, expected ${expected} ±0.5`,
+      299 | 		)
+    > 300 | 		.toBeLessThanOrEqual(0.5);
+          | 		 ^
+      301 | }
+      302 |
+      303 | /** `actual` within ±0.5px of `expected`, with the measured value in the failure. */
+        at expectNearSoft (/Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:300:4)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1739:4
+
+    Error: 1280px expanded: main padding-bottom: measured 112, expected 90 ±0.5
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 0.5
+    Received:    22
+
+      298 | 			`${label}: measured ${actual}, expected ${expected} ±0.5`,
+      299 | 		)
+    > 300 | 		.toBeLessThanOrEqual(0.5);
+          | 		 ^
+      301 | }
+      302 |
+      303 | /** `actual` within ±0.5px of `expected`, with the measured value in the failure. */
+        at expectNearSoft (/Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:300:4)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1738:4
+
+    Error: 1280px expanded: html scroll-padding-bottom: measured NaN, expected 90 ±0.5
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 0.5
+    Received:    NaN
+
+      298 | 			`${label}: measured ${actual}, expected ${expected} ±0.5`,
+      299 | 		)
+    > 300 | 		.toBeLessThanOrEqual(0.5);
+          | 		 ^
+      301 | }
+      302 |
+      303 | /** `actual` within ±0.5px of `expected`, with the measured value in the failure. */
+        at expectNearSoft (/Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:300:4)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1739:4
+
+    Error: 1280px collapsed: main padding-bottom: measured 112, expected 90 ±0.5
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 0.5
+    Received:    22
+
+      298 | 			`${label}: measured ${actual}, expected ${expected} ±0.5`,
+      299 | 		)
+    > 300 | 		.toBeLessThanOrEqual(0.5);
+          | 		 ^
+      301 | }
+      302 |
+      303 | /** `actual` within ±0.5px of `expected`, with the measured value in the failure. */
+        at expectNearSoft (/Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:300:4)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1738:4
+
+    Error: 1280px collapsed: html scroll-padding-bottom: measured NaN, expected 90 ±0.5
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 0.5
+    Received:    NaN
+
+      298 | 			`${label}: measured ${actual}, expected ${expected} ±0.5`,
+      299 | 		)
+    > 300 | 		.toBeLessThanOrEqual(0.5);
+          | 		 ^
+      301 | }
+      302 |
+      303 | /** `actual` within ±0.5px of `expected`, with the measured value in the failure. */
+        at expectNearSoft (/Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:300:4)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1739:4
+
+    Error: 1440px expanded: main padding-bottom: measured 112, expected 90 ±0.5
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 0.5
+    Received:    22
+
+      298 | 			`${label}: measured ${actual}, expected ${expected} ±0.5`,
+      299 | 		)
+    > 300 | 		.toBeLessThanOrEqual(0.5);
+          | 		 ^
+      301 | }
+      302 |
+      303 | /** `actual` within ±0.5px of `expected`, with the measured value in the failure. */
+        at expectNearSoft (/Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:300:4)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1738:4
+
+    Error: 1440px expanded: html scroll-padding-bottom: measured NaN, expected 90 ±0.5
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 0.5
+    Received:    NaN
+
+      298 | 			`${label}: measured ${actual}, expected ${expected} ±0.5`,
+      299 | 		)
+    > 300 | 		.toBeLessThanOrEqual(0.5);
+          | 		 ^
+      301 | }
+      302 |
+      303 | /** `actual` within ±0.5px of `expected`, with the measured value in the failure. */
+        at expectNearSoft (/Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:300:4)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1739:4
+
+    Error: 1440px collapsed: main padding-bottom: measured 112, expected 90 ±0.5
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 0.5
+    Received:    22
+
+      298 | 			`${label}: measured ${actual}, expected ${expected} ±0.5`,
+      299 | 		)
+    > 300 | 		.toBeLessThanOrEqual(0.5);
+          | 		 ^
+      301 | }
+      302 |
+      303 | /** `actual` within ±0.5px of `expected`, with the measured value in the failure. */
+        at expectNearSoft (/Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:300:4)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1738:4
+
+    Error: 1440px collapsed: html scroll-padding-bottom: measured NaN, expected 90 ±0.5
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 0.5
+    Received:    NaN
+
+      298 | 			`${label}: measured ${actual}, expected ${expected} ±0.5`,
+      299 | 		)
+    > 300 | 		.toBeLessThanOrEqual(0.5);
+          | 		 ^
+      301 | }
+      302 |
+      303 | /** `actual` within ±0.5px of `expected`, with the measured value in the failure. */
+        at expectNearSoft (/Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:300:4)
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1739:4
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    tests/e2e/test-results/owner-app-shell-sidebar-CP-37b78-roll-padding-and-scroll-end-owner-axe/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    tests/e2e/test-results/owner-app-shell-sidebar-CP-37b78-roll-padding-and-scroll-end-owner-axe/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: tests/e2e/test-results/owner-app-shell-sidebar-CP-37b78-roll-padding-and-scroll-end-owner-axe/error-context.md
+
+  4) [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1764:2 › CP-4 follow-up: dashboard layout at every rail state › a quick action focused by Tab under the dock scrolls clear of it (WCAG 2.4.11) 
+
+    Error: 1024px expanded: the focused quick action ends above the dock
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 678.5
+    Received:    768
+
+      1816 | 					`${where}: the focused quick action ends above the dock`,
+      1817 | 				)
+    > 1818 | 				.toBeLessThanOrEqual(dockAfter.y + 0.5);
+           | 				 ^
+      1819 | 		}
+      1820 | 		expect(errors).toEqual([]);
+      1821 | 	});
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1818:6
+
+    Error: 1024px collapsed: the focused quick action ends above the dock
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 678.5
+    Received:    760
+
+      1816 | 					`${where}: the focused quick action ends above the dock`,
+      1817 | 				)
+    > 1818 | 				.toBeLessThanOrEqual(dockAfter.y + 0.5);
+           | 				 ^
+      1819 | 		}
+      1820 | 		expect(errors).toEqual([]);
+      1821 | 	});
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1818:6
+
+    Error: 1280px expanded: the focused quick action ends above the dock
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 630.5
+    Received:    712
+
+      1816 | 					`${where}: the focused quick action ends above the dock`,
+      1817 | 				)
+    > 1818 | 				.toBeLessThanOrEqual(dockAfter.y + 0.5);
+           | 				 ^
+      1819 | 		}
+      1820 | 		expect(errors).toEqual([]);
+      1821 | 	});
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1818:6
+
+    Error: 1280px collapsed: the focused quick action ends above the dock
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 630.5
+    Received:    665
+
+      1816 | 					`${where}: the focused quick action ends above the dock`,
+      1817 | 				)
+    > 1818 | 				.toBeLessThanOrEqual(dockAfter.y + 0.5);
+           | 				 ^
+      1819 | 		}
+      1820 | 		expect(errors).toEqual([]);
+      1821 | 	});
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1818:6
+
+    Error: 1440px expanded: the target is parked under the dock (target 721..783, dock 810..876)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      1784 | 				parked.y < dock.y + dock.height && parked.y + parked.height > dock.y,
+      1785 | 				`${where}: the target is parked under the dock (target ${parked.y}..${parked.y + parked.height}, dock ${dock.y}..${dock.y + dock.height})`,
+    > 1786 | 			).toBe(true);
+           | 			  ^
+      1787 |
+      1788 | 			await target.evaluate((node) => {
+      1789 | 				const tabbable = Array.from(
+        at /Users/richard/Developer/tenant-flow-tw-shadcn/tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1786:6
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    tests/e2e/test-results/owner-app-shell-sidebar-CP-8a584-ls-clear-of-it-WCAG-2-4-11--owner-axe/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    tests/e2e/test-results/owner-app-shell-sidebar-CP-8a584-ls-clear-of-it-WCAG-2-4-11--owner-axe/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: tests/e2e/test-results/owner-app-shell-sidebar-CP-8a584-ls-clear-of-it-WCAG-2-4-11--owner-axe/error-context.md
+
+  4 failed
+    [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1638:2 › CP-4 follow-up: dashboard layout at every rail state › each KPI value stays on one line inside its tile 
+    [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1691:2 › CP-4 follow-up: dashboard layout at every rail state › the Quick Actions card's content stays inside its column 
+    [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1722:2 › CP-4 follow-up: dashboard layout at every rail state › the dock's band is reserved: main padding, scroll padding and scroll end 
+    [owner-axe] › tests/e2e/tests/owner/app-shell-sidebar.spec.ts:1764:2 › CP-4 follow-up: dashboard layout at every rail state › a quick action focused by Tab under the dock scrolls clear of it (WCAG 2.4.11) 
+  2 passed (35.1s)
+error: script "test:e2e" exited with code 1

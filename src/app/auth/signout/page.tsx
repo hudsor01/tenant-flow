@@ -3,25 +3,43 @@
 import { useQuery } from "@tanstack/react-query";
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { Alert, AlertDescription } from "#components/ui/alert";
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
 import { authKeys } from "#hooks/api/use-auth";
-import { useSignOutMutation } from "#hooks/api/use-auth-mutations";
+import {
+	SignOutIncompleteError,
+	useSignOutMutation,
+} from "#hooks/api/use-auth-mutations";
 import { createClient } from "#lib/supabase/client";
+
+/**
+ * Centers the card at the width of the other `/auth/*` pages (update-password
+ * and confirm-email, `max-w-md`); without it the card filled the viewport
+ * (1568px wide at 1600, Part 8k). One frame for every state, the loading
+ * skeleton included.
+ */
+function SignOutFrame({ children }: { children: ReactNode }) {
+	return (
+		<div className="flex min-h-screen items-center justify-center p-4">
+			<div className="w-full max-w-md">{children}</div>
+		</div>
+	);
+}
 
 /**
  * AUTH-11: Signout confirmation page
  *
  * Does NOT auto-trigger signout on mount (CSRF protection).
- * If user is signed in: shows a "Sign out" confirmation button.
- * If user is already signed out: shows "You have been signed out" message.
+ * If user is signed in: shows a "Sign out" confirmation button. A success
+ * lands on /login at once (useSignOutMutation); there is no timed redirect.
+ * If user is already signed out: says so and offers "Sign In".
  */
 export default function SignOutPage() {
 	const router = useRouter();
-	const signOut = useSignOutMutation();
-	const [signedOut, setSignedOut] = useState(false);
+	// The failure is shown in the page, beside its retry, not as a toast.
+	const signOut = useSignOutMutation({ toastOnError: false });
 
 	// Check if user has an active session
 	const { data: session, isLoading } = useQuery({
@@ -34,32 +52,23 @@ export default function SignOutPage() {
 		staleTime: 0,
 	});
 
-	const isAuthenticated = !!session && !signedOut;
+	// AUTH-10: the page says "Signed Out" on arrival with no session, and for
+	// the moment between this page's successful sign-out and the landing on
+	// /login. After a failed attempt it never does, even once the session is
+	// gone: the mutation's second request (`scope: "local"`) removes this
+	// browser's session before it returns its error (auth-js 2.118.0), and
+	// AuthProvider's SIGNED_OUT handler then drops this page's session check,
+	// which refetches as null. A failed first request (`scope: "others"`)
+	// keeps the session: the page shows the error and "Try Again" sends it
+	// again. A failed second request is SignOutIncompleteError: the page says
+	// what ended and how to end the rest.
+	const incomplete =
+		signOut.error instanceof SignOutIncompleteError ? signOut.error : null;
+	const showSignedOut = signOut.isSuccess || (!session && signOut.isIdle);
 
-	// AUTH-10: only mark the user signed out when supabase-js actually cleared
-	// the session (onSuccess). A failed sign-out (network / auth-server 5xx keeps
-	// the local session) must NOT render the success card — it renders an honest
-	// failure state with a retry instead. The mutation's own onError logs.
-	function handleSignOut() {
-		signOut.mutate(undefined, {
-			onSuccess: () => {
-				setSignedOut(true);
-			},
-		});
-	}
-
-	// Redirect to login after showing signed-out confirmation
-	useEffect(() => {
-		if (!signedOut) return;
-		const timer = setTimeout(() => {
-			router.push("/login");
-		}, 3000);
-		return () => clearTimeout(timer);
-	}, [signedOut, router]);
-
-	if (isLoading) {
+	if (isLoading && signOut.isIdle) {
 		return (
-			<div className="flex min-h-screen items-center justify-center p-4">
+			<SignOutFrame>
 				<CardLayout
 					title="Sign Out"
 					description="Checking session..."
@@ -67,35 +76,44 @@ export default function SignOutPage() {
 				>
 					<div className="py-4" />
 				</CardLayout>
-			</div>
+			</SignOutFrame>
 		);
 	}
 
-	if (!isAuthenticated) {
+	if (incomplete) {
 		return (
-			<div className="flex min-h-screen items-center justify-center p-4">
+			<SignOutFrame>
+				<CardLayout title={incomplete.title} description={incomplete.detail}>
+					<Button className="w-full" onClick={() => router.push("/login")}>
+						Sign In
+					</Button>
+				</CardLayout>
+			</SignOutFrame>
+		);
+	}
+
+	if (showSignedOut) {
+		return (
+			<SignOutFrame>
 				<CardLayout
 					title="Signed Out"
-					description="You have been signed out successfully."
+					description="You are not signed in on this browser."
 				>
-					<div className="space-y-4">
-						<p className="text-sm text-muted-foreground text-center">
-							You will be redirected to the login page shortly.
-						</p>
-						<Button className="w-full" onClick={() => router.push("/login")}>
-							Back to Login
-						</Button>
-					</div>
+					<Button className="w-full" onClick={() => router.push("/login")}>
+						Sign In
+					</Button>
 				</CardLayout>
-			</div>
+			</SignOutFrame>
 		);
 	}
 
 	return (
-		<div className="flex min-h-screen items-center justify-center p-4">
+		<SignOutFrame>
+			{/* Sign Out ends every session of the account, on every device: the
+			    other sessions first, then this one (useSignOutMutation). */}
 			<CardLayout
-				title="Sign Out"
-				description="Are you sure you want to sign out?"
+				title="Sign out of TenantFlow?"
+				description="This signs you out here and on every other device where you are signed in."
 			>
 				<div className="space-y-4">
 					{signOut.isError && (
@@ -107,7 +125,7 @@ export default function SignOutPage() {
 					)}
 					<Button
 						className="w-full"
-						onClick={handleSignOut}
+						onClick={() => signOut.mutate()}
 						disabled={signOut.isPending}
 					>
 						<LogOut className="mr-2 size-4" />
@@ -126,6 +144,6 @@ export default function SignOutPage() {
 					</Button>
 				</div>
 			</CardLayout>
-		</div>
+		</SignOutFrame>
 	);
 }

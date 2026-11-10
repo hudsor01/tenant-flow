@@ -7,7 +7,9 @@ import {
 	X,
 } from "lucide-react";
 import { Badge } from "#components/ui/badge";
+import { ScrollRegion } from "#components/ui/scroll-region";
 import { formatBytes } from "#lib/format-bytes";
+import { formatCount } from "#lib/formatters/count";
 import { cn } from "#lib/utils";
 import type { ParsedRow } from "#types/api-contracts";
 
@@ -60,7 +62,7 @@ export function BulkImportValidateStep<T>({
 					</div>
 					<div className="flex-1 min-w-0">
 						<p className="text-sm font-semibold truncate">{file.name}</p>
-						<p className="text-xs text-muted-foreground">
+						<p className="mb-0 text-xs text-muted-foreground">
 							{formatBytes(file.size)} • CSV file
 						</p>
 					</div>
@@ -80,10 +82,10 @@ export function BulkImportValidateStep<T>({
 				<div className="flex items-start gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
 					<AlertCircle className="size-4 text-destructive shrink-0 mt-0.5" />
 					<div>
-						<p className="typography-small text-destructive-text">
+						<p className="mb-0 typography-small text-destructive-text">
 							Your CSV file is malformed
 						</p>
-						<p className="text-xs text-muted-foreground mt-0.5">
+						<p className="text-xs text-muted-foreground mt-0.5 mb-0">
 							Check for unclosed quotes, wrong delimiter (must be a comma), or
 							unsupported encoding. Re-save as CSV UTF-8 and try again.
 						</p>
@@ -96,10 +98,10 @@ export function BulkImportValidateStep<T>({
 				<div className="flex items-start gap-3 p-3 rounded-lg bg-warning/10 border border-warning/30">
 					<AlertTriangle className="size-4 text-warning shrink-0 mt-0.5" />
 					<div>
-						<p className="typography-small text-warning-foreground">
+						<p className="mb-0 typography-small text-warning-text">
 							Too many rows
 						</p>
-						<p className="text-xs text-muted-foreground mt-0.5">
+						<p className="text-xs text-muted-foreground mt-0.5 mb-0">
 							Your CSV has {parseResult.totalRowCount} rows. Maximum is 100 rows
 							per import. Only the first 100 rows are shown.
 						</p>
@@ -107,50 +109,59 @@ export function BulkImportValidateStep<T>({
 				</div>
 			)}
 
-			{/* Validation Summary */}
-			<div className="grid grid-cols-2 gap-3">
-				<div
-					className={cn(
-						"card-standard p-3 flex items-center gap-3",
-						validCount > 0 ? "bg-success/5 border-success/20" : "bg-muted/30",
-					)}
-				>
-					<div className="icon-container-sm bg-success/10 text-success">
-						<CheckCircle2 className="size-4" />
-					</div>
-					<div>
-						<p className="text-lg font-bold text-success-text">{validCount}</p>
-						<p className="text-xs text-muted-foreground">Valid rows</p>
-					</div>
-				</div>
-				<div
-					className={cn(
-						"card-standard p-3 flex items-center gap-3",
-						hasErrors
-							? "bg-destructive/5 border-destructive/20"
-							: "bg-muted/30",
-					)}
-				>
+			{/* Validation Summary. The columns step on the summary's own width,
+			    never the viewport's (66.2-39 fix round 4, Part 8d): one until two
+			    tiles are 10rem wide, where each holds its chip and its longest
+			    label, Errors found, on one line, so the two figures stay on one
+			    line (two columns at 352px wrapped one label and put the figures
+			    8px apart). The chips keep their size. */}
+			<div className="@container/import-validation">
+				<div className="grid grid-cols-1 @min-[20.75rem]/import-validation:grid-cols-2 gap-3">
 					<div
 						className={cn(
-							"icon-container-sm",
-							hasErrors
-								? "bg-destructive/10 text-destructive"
-								: "bg-muted text-muted-foreground",
+							"card-standard p-3 flex items-center gap-3",
+							validCount > 0 ? "bg-success/5 border-success/20" : "bg-muted/30",
 						)}
 					>
-						<AlertTriangle className="size-4" />
+						<div className="icon-container-sm shrink-0 bg-success/10 text-success">
+							<CheckCircle2 className="size-4" />
+						</div>
+						<div>
+							<p className="whitespace-nowrap text-lg font-bold text-success-text">
+								{validCount}
+							</p>
+							<p className="mb-0 text-xs text-muted-foreground">Valid rows</p>
+						</div>
 					</div>
-					<div>
-						<p
+					<div
+						className={cn(
+							"card-standard p-3 flex items-center gap-3",
+							hasErrors
+								? "bg-destructive/5 border-destructive/20"
+								: "bg-muted/30",
+						)}
+					>
+						<div
 							className={cn(
-								"text-lg font-bold",
-								hasErrors ? "text-destructive-text" : "text-muted-foreground",
+								"icon-container-sm shrink-0",
+								hasErrors
+									? "bg-destructive/10 text-destructive"
+									: "bg-muted text-muted-foreground",
 							)}
 						>
-							{errorCount}
-						</p>
-						<p className="text-xs text-muted-foreground">Errors found</p>
+							<AlertTriangle className="size-4" />
+						</div>
+						<div>
+							<p
+								className={cn(
+									"whitespace-nowrap text-lg font-bold",
+									hasErrors ? "text-destructive-text" : "text-muted-foreground",
+								)}
+							>
+								{errorCount}
+							</p>
+							<p className="mb-0 text-xs text-muted-foreground">Errors found</p>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -160,10 +171,11 @@ export function BulkImportValidateStep<T>({
 				<div className="flex items-start gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
 					<AlertCircle className="size-4 text-destructive shrink-0 mt-0.5" />
 					<div>
-						<p className="typography-small text-destructive-text">
-							{errorCount} row{errorCount > 1 ? "s" : ""} have errors
+						<p className="mb-0 typography-small text-destructive-text">
+							{formatCount(errorCount, "row")}{" "}
+							{errorCount === 1 ? "has" : "have"} errors
 						</p>
-						<p className="text-xs text-muted-foreground mt-0.5">
+						<p className="text-xs text-muted-foreground mt-0.5 mb-0">
 							Fix errors in your CSV and re-upload. All rows must be valid
 							before importing.
 						</p>
@@ -175,9 +187,9 @@ export function BulkImportValidateStep<T>({
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
 					<FileText className="size-4 text-muted-foreground" />
-					<p className="text-sm font-semibold">Data Preview</p>
+					<p className="mb-0 text-sm font-semibold">Data Preview</p>
 					<Badge variant="secondary" className="text-xs">
-						{parsedData.length} rows
+						{formatCount(parsedData.length, "row")}
 					</Badge>
 				</div>
 			</div>
@@ -185,7 +197,7 @@ export function BulkImportValidateStep<T>({
 			{/* Enhanced Preview Table */}
 			{parsedData.length > 0 ? (
 				<div className="card-standard overflow-hidden">
-					<div className="overflow-x-auto max-h-72">
+					<ScrollRegion className="overflow-x-auto max-h-72">
 						<table className="w-full text-sm">
 							<thead className="bg-muted/60 sticky top-0 z-10">
 								<tr>
@@ -209,12 +221,7 @@ export function BulkImportValidateStep<T>({
 								{parsedData.map((row) => (
 									<tr
 										key={row.row}
-										className={cn(
-											"transition-colors",
-											row.errors.length > 0
-												? "bg-destructive/5 hover:bg-destructive/10"
-												: "hover:bg-muted/30",
-										)}
+										className={cn(row.errors.length > 0 && "bg-destructive/5")}
 									>
 										<td className="px-4 py-3 text-muted-foreground font-mono text-xs">
 											#{row.row}
@@ -264,17 +271,17 @@ export function BulkImportValidateStep<T>({
 								))}
 							</tbody>
 						</table>
-					</div>
+					</ScrollRegion>
 				</div>
 			) : (
 				<div className="card-standard p-8 text-center">
 					<div className="icon-container-lg bg-muted text-muted-foreground mx-auto mb-3">
 						<FileText className="size-6" />
 					</div>
-					<p className="typography-small text-muted-foreground">
+					<p className="mb-0 typography-small text-muted-foreground">
 						No data to preview
 					</p>
-					<p className="text-xs text-muted-foreground mt-1">
+					<p className="text-xs text-muted-foreground mt-1 mb-0">
 						The uploaded file appears to be empty
 					</p>
 				</div>

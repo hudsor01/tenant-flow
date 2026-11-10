@@ -1,3 +1,32 @@
+/**
+ * shadcn new-york-v4 registry item `badge`.
+ *
+ * Local divergences (recorded in the divergence register):
+ * - size axis (default, sm, lg, trust) carries rounded-md/rounded-full, px,
+ *   py, text size, gap and [&>svg]:size-*; the base string has no
+ *   rounded-full, px-2, py-0.5, text-xs, gap-1 or [&>svg]:size-3, and each
+ *   filled variant adds border-transparent;
+ * - local variants success, warning, info and trustIndicator;
+ * - destructive text uses text-destructive-foreground instead of the upstream
+ *   named-white text utility;
+ * - upstream ghost and link variants, outline border-border, the data-variant
+ *   attribute and the variant = "default" parameter default are not adopted;
+ * - asChild uses Slot.Slot, not upstream Slot.Root;
+ * - badgeVariants export removed;
+ * - class token order in badgeVariants base and the destructive variant kept
+ *   as written locally (upstream re-sorted the same tokens);
+ * - the default and destructive anchor hovers fill with bg-primary-text and
+ *   bg-destructive-text in light, keeping /90 in dark (as Button).
+ *
+ * Fix round 4, Part 5b (66.2-39; recorded in the divergence register):
+ * - focus ring `ring-ring`, opaque, where upstream draws `ring-ring/50`: the
+ *   half-alpha ring read 2.17-2.58:1 on the page, card and popover, under
+ *   WCAG 1.4.11's 3:1;
+ * - destructive focus ring `ring-destructive-text` where upstream draws
+ *   `ring-destructive/20` (dark `/40`);
+ * - invalid focus ring `ring-destructive-text` where upstream draws
+ *   `ring-destructive/20` (dark `/40`), which read 1.43:1.
+ */
 import { cva, type VariantProps } from "class-variance-authority";
 import { Slot } from "radix-ui";
 import type { ComponentProps } from "react";
@@ -5,17 +34,17 @@ import type { ComponentProps } from "react";
 import { cn } from "#lib/utils";
 
 const badgeVariants = cva(
-	"inline-flex items-center justify-center border font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
+	"inline-flex items-center justify-center border font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive-text aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
 	{
 		variants: {
 			variant: {
 				// Base variants (shadcn defaults)
 				default:
-					"border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
+					"border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary-text dark:[a&]:hover:bg-primary/90",
 				secondary:
 					"border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
 				destructive:
-					"border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+					"border-transparent bg-destructive text-destructive-foreground [a&]:hover:bg-destructive-text dark:[a&]:hover:bg-destructive/90 focus-visible:ring-destructive-text dark:bg-destructive/60",
 				outline:
 					"text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
 				// Semantic status variants
@@ -55,6 +84,7 @@ function Badge({
 
 	return (
 		<Comp
+			data-slot="badge"
 			className={cn(badgeVariants({ variant, size }), className)}
 			{...props}
 		/>

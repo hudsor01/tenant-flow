@@ -1,0 +1,11 @@
+{
+  "root": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/exec/66.2-17/g4fx",
+  "guards": {
+    "G4": {
+      "count": 1,
+      "violations": [
+        "--color-muted-foreground (light var(--muted-foreground)) has no dark value; chain --color-muted-foreground -> --muted-foreground. Give it a dark-scope value or replace its consumers with a semantic token (MODE_INDEPENDENT_TOKENS is only for white, black and chart-1..5)"
+      ]
+    }
+  }
+}

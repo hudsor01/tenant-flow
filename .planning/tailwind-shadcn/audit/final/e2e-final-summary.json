@@ -1,0 +1,965 @@
+{
+  "exit": 0,
+  "build": "e2e-3050",
+  "projects": [
+    "smoke",
+    "public",
+    "owner-axe"
+  ],
+  "stats": {
+    "expected": 155,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 3
+  },
+  "tests": [
+    {
+      "file": "tests/e2e/tests/documents-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Documents landing (Phase 65, DOCS-01) > renders the landing for an authenticated owner, not a redirect",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/documents-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Documents landing (Phase 65, DOCS-01) > offers the vault CTA and every tile entry point",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/documents-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Documents landing (Phase 65, DOCS-01) > medallion ladder descends 48 -> 40 -> 32 as measured",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/documents-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Documents landing (Phase 65, DOCS-01) > band 3 lays out four tiles in one row at desktop",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/documents-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Documents landing (Phase 65, DOCS-01) > band 3 collapses to two rows at the sm breakpoint",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/documents-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Documents landing at 375px > stacks band 3 to a single column",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/documents-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Documents landing at 375px > does not scroll horizontally",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/documents-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Recent-documents panel (D-03, D-04) > never blocks the vault CTA and settles into a known state",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/documents-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Recent-documents panel (D-03, D-04) > renders recent rows as non-interactive previews (D-03)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/notifications.spec.ts",
+      "project": "owner-axe",
+      "title": "Notification center smoke (Phase 52) > bell opens the notification popover",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/notifications.spec.ts",
+      "project": "owner-axe",
+      "title": "Notification center smoke (Phase 52) > mark-all-read clears the unread badge when unread present",
+      "status": "skipped"
+    },
+    {
+      "file": "tests/e2e/tests/notifications.spec.ts",
+      "project": "owner-axe",
+      "title": "Notification center smoke (Phase 52) > /notifications renders the full inbox",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/notifications.spec.ts",
+      "project": "owner-axe",
+      "title": "Notification center smoke (Phase 52) > Settings notifications shows no SMS and no push channel (HONEST-01/02)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "S-10: no hydration error and no horizontal scroll > the hydration collector catches a planted hydration error",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "S-10: no hydration error and no horizontal scroll > sidebar_state absent: 375, 900, 1024 and 1280 hydrate cleanly with one main",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "S-10: no hydration error and no horizontal scroll > sidebar_state true: 375, 900, 1024 and 1280 hydrate cleanly with one main",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "S-10: no hydration error and no horizontal scroll > sidebar_state false: 375, 900, 1024 and 1280 hydrate cleanly with one main",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "desktop rail at 1280px > S-2/S-9: geometry, list neutralizers and locked navigation (D-40, D-49)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "desktop rail at 1280px > VD-27/VD-35: active section open, sub rows and pinned footer",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "desktop rail at 1280px > VD-26/VD-34: hover never underlines, current row keeps its tint, focus ring",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "desktop rail at 1280px > D-34/D-52/D-36: collapse controls, shortcut guards, cookie and SSR state (T-COOKIE)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "desktop rail at 1280px > S12/VD-37: collapsed rail is inert and skipped by Tab; dock re-centers",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "desktop rail at 1280px > D-41/D-44: zero WCAG 2.1 A/AA violations, rail expanded and collapsed",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "mobile sheet at 375px > open: named Radix dialog, 288px, focus moves in and stays trapped (D-41)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "mobile sheet at 375px > every close path returns focus to the trigger (D-46, D-47, D-48)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "mobile sheet at 375px > scoped axe on the open sheet, including aria-dialog-name (D-41)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "mobile sheet at 375px > every sheet row is at least 44px below 48rem (VD-33)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "mobile sheet at 900px > open: named Radix dialog, 288px, focus moves in and stays trapped (D-41)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "mobile sheet at 900px > every close path returns focus to the trigger (D-46, D-47, D-48)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "mobile sheet at 900px > scoped axe on the open sheet, including aria-dialog-name (D-41)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "tour step 5 targets the trigger when the sidebar is a sheet or collapsed (D-39, VD-36) > 375px sheet: step 5 sits below the trigger with the menu copy",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "tour step 5 targets the trigger when the sidebar is a sheet or collapsed (D-39, VD-36) > 900px sheet: step 5 sits below the trigger with the menu copy",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "tour step 5 targets the trigger when the sidebar is a sheet or collapsed (D-39, VD-36) > 1280px collapsed: step 5 sits below the trigger with the menu copy",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+      "project": "owner-axe",
+      "title": "tour step 5 targets the trigger when the sidebar is a sheet or collapsed (D-39, VD-36) > 1280px expanded: step 5 sits right of the rail with the rail copy",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/applications.spec.ts",
+      "project": "owner-axe",
+      "title": "/applications — the owner review queue > E-17: rows are at least 64px tall and never overlap at 375px",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/applications.spec.ts",
+      "project": "owner-axe",
+      "title": "/applications — the owner review queue > E-18: a queue row is undecorated and foreground-coloured at 1280px",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/applications.spec.ts",
+      "project": "owner-axe",
+      "title": "/applications — the owner review queue > E-20: the queue list defeats the unscoped ul/li base rules at 1280px",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/applications.spec.ts",
+      "project": "owner-axe",
+      "title": "/applications — the owner review queue > E-22: the status tabs fit or scroll in place at 375px, scroll at 320px, the page never scrolls, and no label clips",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/applications.spec.ts",
+      "project": "owner-axe",
+      "title": "/applications — the owner review queue > E-19: the link URL survives a reload and is re-copyable (D-03a)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/applications.spec.ts",
+      "project": "owner-axe",
+      "title": "/applications/[id] — the conversion href > E-21: the conversion link carries the id and no other parameter",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/dashboard-a11y.e2e.spec.ts",
+      "project": "owner-axe",
+      "title": "Dashboard accessibility (axe-core) > has zero WCAG 2.1 A/AA violations",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/dashboard-a11y.e2e.spec.ts",
+      "project": "owner-axe",
+      "title": "Dashboard responsiveness (375px) > has zero page-level horizontal scroll at 375px",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/dashboard-smoke.e2e.spec.ts",
+      "project": "owner-axe",
+      "title": "Dashboard smoke (POLISH-09) > KPI numbers match get_dashboard_data_v2",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/dashboard-smoke.e2e.spec.ts",
+      "project": "owner-axe",
+      "title": "Dashboard smoke (POLISH-09) > occupancy donut matches stats.units",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/dashboard-smoke.e2e.spec.ts",
+      "project": "owner-axe",
+      "title": "Dashboard smoke (POLISH-09) > DataTable sort works (mouse + keyboard)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/dashboard-smoke.e2e.spec.ts",
+      "project": "owner-axe",
+      "title": "Dashboard smoke (POLISH-09) > faceted status filter writes the status param and Reset clears it",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/dashboard-smoke.e2e.spec.ts",
+      "project": "owner-axe",
+      "title": "Dashboard smoke (POLISH-09) > column-visibility toggle hides and restores a column",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/dashboard-smoke.e2e.spec.ts",
+      "project": "owner-axe",
+      "title": "Dashboard smoke (POLISH-09) > preset save + restore survives reload (DT-08)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/owner/dashboard-smoke.e2e.spec.ts",
+      "project": "owner-axe",
+      "title": "Dashboard smoke (POLISH-09) > grid/table view toggle works",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/reports-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Reports hub routes (Phase 56 — RPTHUB-04) > renders Reports at /reports",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/reports-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Reports hub routes (Phase 56 — RPTHUB-04) > renders Income Statement at /reports/income-statement",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/reports-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Reports hub routes (Phase 56 — RPTHUB-04) > renders Cash Flow at /reports/cash-flow",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/reports-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Reports hub routes (Phase 56 — RPTHUB-04) > renders Balance Sheet at /reports/balance-sheet",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/reports-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Reports hub routes (Phase 56 — RPTHUB-04) > renders Expenses at /reports/expenses",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/reports-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Reports hub routes (Phase 56 — RPTHUB-04) > renders Tax Documents at /reports/tax-documents",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/reports-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Reports hub routes (Phase 56 — RPTHUB-04) > renders Generate Reports at /reports/generate",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/reports-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Reports hub routes (Phase 56 — RPTHUB-04) > renders Year-End Reports at /reports/year-end",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/reports-hub.spec.ts",
+      "project": "owner-axe",
+      "title": "Reports hub routes (Phase 56 — RPTHUB-04) > hub index groups Statements and Exports with no Analytics group (D-31)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/smoke/critical-paths.smoke.spec.ts",
+      "project": "smoke",
+      "title": "🚨 CRITICAL PATH SMOKE TESTS — Login Flow 🚨 > 🔥 P0: Owner can login",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/smoke/critical-paths.smoke.spec.ts",
+      "project": "smoke",
+      "title": "🚨 AUTHENTICATED CRITICAL PATHS 🚨 > 🔥 P0: Dashboard loads for owner",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/smoke/critical-paths.smoke.spec.ts",
+      "project": "smoke",
+      "title": "🚨 AUTHENTICATED CRITICAL PATHS 🚨 > 🔥 P0: Properties page loads",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/smoke/critical-paths.smoke.spec.ts",
+      "project": "smoke",
+      "title": "🚨 AUTHENTICATED CRITICAL PATHS 🚨 > 🔥 P0: Navigation works",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/smoke/critical-paths.smoke.spec.ts",
+      "project": "smoke",
+      "title": "🚨 AUTHENTICATED CRITICAL PATHS 🚨 > 🔥 P0: No console errors on critical pages",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/smoke/critical-paths.smoke.spec.ts",
+      "project": "smoke",
+      "title": "🔍 SMOKE: Environment Sanity Checks > Environment variables are set",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/smoke/critical-paths.smoke.spec.ts",
+      "project": "smoke",
+      "title": "🔍 SMOKE: Environment Sanity Checks > Frontend is reachable",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/apply-token.spec.ts",
+      "project": "public",
+      "title": "/apply — the rendered head and the unavailable card > E-9: the rendered head carries noindex, nofollow (APPLY-01)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/apply-token.spec.ts",
+      "project": "public",
+      "title": "/apply — the rendered head and the unavailable card > a token that does not exist answers HTTP 200, never 404",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/apply-token.spec.ts",
+      "project": "public",
+      "title": "/apply — token-state non-enumeration (E-10, APPLY-01) > a dead token and an absent token render byte-identical text",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/apply-token.spec.ts",
+      "project": "public",
+      "title": "/apply — the rendered applicant form > E-1: the APPLY-06 disclaimer sits above submit at 375px and 1280px",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/apply-token.spec.ts",
+      "project": "public",
+      "title": "/apply — the rendered applicant form > E-2: every applicant input renders exactly 48px tall at 375px",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/apply-token.spec.ts",
+      "project": "public",
+      "title": "/apply — the rendered applicant form > E-3: every textarea renders at least 96px tall at 375px",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/apply-token.spec.ts",
+      "project": "public",
+      "title": "/apply — the rendered applicant form > E-4: every field container is exactly 309px wide at 375px",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/apply-token.spec.ts",
+      "project": "public",
+      "title": "/apply — the rendered applicant form > E-13: every field container shares one x at 375px (single column)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/apply-token.spec.ts",
+      "project": "public",
+      "title": "/apply — the rendered applicant form > E-5 and E-14: the card caps at 672px and pairs the name fields at 1280px",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/apply-token.spec.ts",
+      "project": "public",
+      "title": "/apply — the rendered applicant form > E-6: the honeypot is outside the viewport, measured (APPLY-02)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/apply-token.spec.ts",
+      "project": "public",
+      "title": "/apply — the rendered applicant form > E-7: Tab from the attestation lands on submit, never the trap (APPLY-02)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/apply-token.spec.ts",
+      "project": "public",
+      "title": "/apply — the rendered applicant form > E-8: no forbidden field exists anywhere in the rendered DOM (APPLY-02)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/apply-token.spec.ts",
+      "project": "public",
+      "title": "/apply — the rendered applicant form > E-11: the income total precedes every employer field, under one heading",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/apply-token.spec.ts",
+      "project": "public",
+      "title": "/apply — the rendered applicant form > E-12: the fair-housing note renders inside section 3",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/apply-token.spec.ts",
+      "project": "public",
+      "title": "/apply — the rendered applicant form > E-15: a successful submit leaves the applicant's email nowhere on the page",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/apply-token.spec.ts",
+      "project": "public",
+      "title": "/apply — the rendered applicant form > E-16: a 429 keeps the typed answers and keeps submit enabled",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/mobile-nav-375px.spec.ts",
+      "project": "public",
+      "title": "Mobile nav at 375px viewport > hero does not horizontally overflow viewport",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/mobile-nav-375px.spec.ts",
+      "project": "public",
+      "title": "Mobile nav at 375px viewport > \"Start free\" hero CTA is fully visible",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/mobile-nav-375px.spec.ts",
+      "project": "public",
+      "title": "Mobile nav at 375px viewport > hamburger toggle is visible top-right with 44x44 hit target",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/mobile-nav-375px.spec.ts",
+      "project": "public",
+      "title": "Mobile nav at 375px viewport > tapping hamburger opens drawer with all 7 items",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/mobile-nav-375px.spec.ts",
+      "project": "public",
+      "title": "Mobile nav at 375px viewport > tapping Pricing link closes drawer and navigates",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/mobile-nav-375px.spec.ts",
+      "project": "public",
+      "title": "Mobile nav at 375px viewport > Escape key closes the drawer",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/mobile-nav-375px.spec.ts",
+      "project": "public",
+      "title": "Mobile nav at 375px viewport > clicking close button (X) closes the drawer",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/mobile-nav-375px.spec.ts",
+      "project": "public",
+      "title": "Mobile nav at 375px viewport > clicking outside the drawer closes it",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — sitewide > No \"property owners\" persona word on any public marketing page",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — sitewide > No \"real estate investors\" on key entry-point pages",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — sitewide > No fabricated subscriber-count claims appear on any marketing page",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — homepage hero (COPY-01 + COPY-03) > Hero subhead does NOT contain the contradiction phrase",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — homepage hero (COPY-01 + COPY-03) > Hero subhead contains \"landlords with small portfolios\"",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — homepage hero (COPY-01 + COPY-03) > Hero subhead contains \"tenants stay off the platform\"",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — homepage hero (COPY-01 + COPY-03) > Mobile 375px: hero fits in viewport without horizontal scroll",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — about page (CONS-01) > About page contains zero \"property managers\" body-text occurrences",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — about page (CONS-01) > About page hero contains \"landlords\"",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — pricing page (COPY-02) > Pricing page metadata description references landlords",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — compare pages (CONS-01) > /compare/buildium hero contains \"landlords\"",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — compare pages (CONS-01) > /compare/appfolio hero contains \"landlords\"",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — compare pages (CONS-01) > /compare/rentredi hero contains \"landlords\"",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — compare pages (CONS-01) > /compare/buildium preserves Buildium audience descriptor (carve-out)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — DocuSeal fully removed (COPY-04) > no public marketing page renders a visible DocuSeal mention",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — DocuSeal fully removed (COPY-04) > /about renders zero visible DocuSeal mentions",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — DocuSeal fully removed (COPY-04) > /pricing renders zero visible DocuSeal mentions",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — FAQ canon (COPY-05, Wave 2) > Homepage FAQ does NOT contain \"Is my data secure?\"",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — FAQ canon (COPY-05, Wave 2) > Pricing FAQ does NOT contain \"How does the 14-day free trial work?\"",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — FAQ canon (COPY-05, Wave 2) > Pricing-FAQ footer links to /faq with \"View all FAQs\"",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — bulk-zip softening (COPY-06, Wave 2) > Homepage contains \"Tax-season zip exports\" or \"Tax-Season Bulk Zip\"",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/persona-consistency.spec.ts",
+      "project": "public",
+      "title": "Persona consistency — bulk-zip softening (COPY-06, Wave 2) > No \"500 / request\" technical jargon on any public page",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: /financials 301/308s to /reports",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: /financials/balance-sheet 301/308s to /reports/balance-sheet",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: /financials/cash-flow 301/308s to /reports/cash-flow",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: /financials/expenses 301/308s to /reports/expenses",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: /financials/income-statement 301/308s to /reports/income-statement",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: /financials/tax-documents 301/308s to /reports/tax-documents",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: THE INVERSION — /reports/analytics is the ONE redirect pointing AWAY from the hub, and it targets the concrete /analytics/overview",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: Guard A — /reports emits no permanent redirect",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: Guard A — /reports/generate emits no permanent redirect",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: Guard A — /reports/year-end emits no permanent redirect",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: Guard B — /analytics/financial emits no permanent redirect (the highest-risk guard)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: Guard B — /analytics emits no permanent redirect",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: Guard B — /analytics/leases emits no permanent redirect",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: Guard B — /analytics/maintenance emits no permanent redirect",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: Guard B — /analytics/occupancy emits no permanent redirect",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: Guard B — /analytics/overview emits no permanent redirect",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/reporting-redirects.spec.ts",
+      "project": "public",
+      "title": "Reporting hub redirects — Phase 56 (RPTHUB-02) > RPTHUB-02: Guard B — /analytics/property-performance emits no permanent redirect",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/routing-aliases.spec.ts",
+      "project": "public",
+      "title": "Routing aliases — Phase 3 (CRIT-05 + CRIT-06) > CRIT-05: /signup 301/308s to /pricing",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/routing-aliases.spec.ts",
+      "project": "public",
+      "title": "Routing aliases — Phase 3 (CRIT-05 + CRIT-06) > CRIT-06: /terms-of-service 301/308s to /terms",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/routing-aliases.spec.ts",
+      "project": "public",
+      "title": "Routing aliases — Phase 3 (CRIT-05 + CRIT-06) > CRIT-06: /privacy-policy 301/308s to /privacy",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/routing-aliases.spec.ts",
+      "project": "public",
+      "title": "Routing aliases — Phase 3 (CRIT-05 + CRIT-06) > PUBUX-08: /help-center 404s (speculative alias removed)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/routing-aliases.spec.ts",
+      "project": "public",
+      "title": "Routing aliases — Phase 3 (CRIT-05 + CRIT-06) > PUBUX-08: /rss-feed 404s (speculative alias removed)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/routing-aliases.spec.ts",
+      "project": "public",
+      "title": "Routing aliases — Phase 3 (CRIT-05 + CRIT-06) > /help renders (the real help page — no alias needed)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/routing-aliases.spec.ts",
+      "project": "public",
+      "title": "Routing aliases — Phase 3 (CRIT-05 + CRIT-06) > Bonus: /feed.xml returns 200 with RSS content-type for anonymous readers",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > / has full SEO metadata",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /pricing has full SEO metadata (SoftwareApplication, not Product)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /features has full SEO metadata",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /blog has full SEO metadata",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /faq has full SEO metadata",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /about has full SEO metadata",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /contact has full SEO metadata",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /help has full SEO metadata",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /resources has full SEO metadata",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /terms has full SEO metadata",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /privacy has full SEO metadata",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /security-policy has full SEO metadata",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /login has SEO metadata",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /compare/buildium has SEO metadata",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /resources/seasonal-maintenance-checklist has SEO metadata",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /resources/landlord-tax-deduction-tracker has SEO metadata",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /resources/security-deposit-reference-card has SEO metadata",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /blog/[slug] has Article schema",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /blog/[slug] renders visible breadcrumb + dynamic /api/og/blog/ OG image (Plan 06-02)",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /blog/this-slug-does-not-exist returns real HTTP 404 (no soft-200)",
+      "status": "skipped"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > canonical tag on tenantflow-vs-buildium points at /compare/buildium (Blocker-#1)",
+      "status": "skipped"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > /blog/category/[category] has BreadcrumbList schema",
+      "status": "expected"
+    },
+    {
+      "file": "tests/e2e/tests/public/seo-smoke.spec.ts",
+      "project": "public",
+      "title": "SEO Smoke Tests > title tag has no double brand suffix on Phase 40 target paths",
+      "status": "expected"
+    }
+  ]
+}

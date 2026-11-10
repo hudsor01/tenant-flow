@@ -58,7 +58,7 @@ export const LEDGER_LINE_TYPES = [
 export type LedgerLineType = (typeof LEDGER_LINE_TYPES)[number];
 
 const recordReceiptSchema = z.object({
-	chargeId: z.uuid({ message: "Choose which charge this payment applies to." }),
+	chargeId: z.uuid({ error: "Choose which charge this payment applies to." }),
 	leaseId: uuidSchema,
 	amount: amountSchema,
 	method: z

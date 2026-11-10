@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { OwnerErrorBox } from "#components/shared/owner-error-box";
 import { Tenants } from "#components/tenants/tenants";
 import {
 	AlertDialog,
@@ -43,6 +44,10 @@ export default function TenantsPage() {
 	const tenants = rawTenants.map((tenant) =>
 		transformToTenantItem(tenant, totalPaidByTenant),
 	);
+
+	// The single delete's confirmation names its tenant.
+	const tenantToDeleteName =
+		tenants.find((tenant) => tenant.id === tenantToDelete)?.fullName ?? null;
 
 	// Get selected tenant detail
 	const selectedTenant = (() => {
@@ -106,14 +111,10 @@ export default function TenantsPage() {
 	if (error) {
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
-				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
-					<h2 className="text-lg font-semibold text-destructive-text mb-2">
-						Error Loading Tenants
-					</h2>
-					<p className="text-muted-foreground">
-						{error instanceof Error ? error.message : "Failed to load tenants"}
-					</p>
-				</div>
+				<OwnerErrorBox
+					title="Error Loading Tenants"
+					message="Failed to load tenants"
+				/>
 			</div>
 		);
 	}
@@ -140,18 +141,24 @@ export default function TenantsPage() {
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete Tenant</AlertDialogTitle>
-						<AlertDialogDescription>
-							This will mark the tenant as inactive and remove them from active
-							listings. Their data will be retained for legal compliance. Are
-							you sure you want to continue?
+						<AlertDialogTitle>
+							{tenantToDeleteName
+								? `Delete tenant ${tenantToDeleteName}?`
+								: "Delete this tenant?"}
+						</AlertDialogTitle>
+						{/* A soft delete (status 'inactive'), refused for a tenant on an
+						    active lease (useDeleteTenantMutation). */}
+						<AlertDialogDescription className="mb-0">
+							This marks the tenant as inactive, so they leave your tenant list.
+							Their leases are kept. A tenant on an active lease can't be
+							deleted.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={confirmDeleteTenant}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							variant="destructive"
 						>
 							Delete
 						</AlertDialogAction>
@@ -174,20 +181,19 @@ export default function TenantsPage() {
 					<AlertDialogHeader>
 						<AlertDialogTitle>
 							Delete {bulkDeleteIds?.length ?? 0} tenant
-							{(bulkDeleteIds?.length ?? 0) === 1 ? "" : "s"}
+							{(bulkDeleteIds?.length ?? 0) === 1 ? "" : "s"}?
 						</AlertDialogTitle>
-						<AlertDialogDescription>
-							This will mark the selected tenants as inactive and remove them
-							from active listings. Their data will be retained for legal
-							compliance. Any tenant with an active lease will be skipped and
-							show an error. Are you sure you want to continue?
+						<AlertDialogDescription className="mb-0">
+							This marks the selected tenants as inactive, so they leave your
+							tenant list. Their leases are kept. A tenant on an active lease is
+							skipped, with an error.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={confirmBulkDelete}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							variant="destructive"
 						>
 							Delete
 						</AlertDialogAction>

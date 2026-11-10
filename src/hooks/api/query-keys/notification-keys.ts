@@ -5,9 +5,8 @@
  * bell (Plan 05) and the inbox page (Plan 06). Two read paths:
  *
  *  - `unreadCount()` — a HEAD `count: 'exact'` query (zero rows transferred)
- *    scoped to the current user + `is_read = false`, polled every 60s. This is
- *    the ONLY head:true read besides propertyStatsQueries; never count via
- *    `data.length` (CLAUDE.md Data Access).
+ *    scoped to the current user + `is_read = false`, polled every 60s. Never
+ *    count via `data.length` (CLAUDE.md Data Access).
  *  - `list()` — a bounded inbox read: `.limit(10)` for the popover, or
  *    `.range(from, to)` + `{ count: 'exact' }` for the paginated page. Always
  *    ordered `created_at` desc; every row passes through `mapNotificationRow`.
@@ -18,6 +17,7 @@
  */
 
 import { queryOptions } from "@tanstack/react-query";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
@@ -52,7 +52,7 @@ export function mapNotificationRow(
 	function requireString(field: string): string {
 		const value = raw[field];
 		if (typeof value !== "string") {
-			throw new Error(
+			throw new DiagnosticError(
 				`mapNotificationRow: NOT NULL field '${field}' missing or non-string from PostgREST response`,
 			);
 		}

@@ -52,8 +52,8 @@ describe("tenantBulkImportConfig", () => {
 			["a@b.com", "Alice", "Smith", "415-555-0101", "Active"],
 		]);
 		const result = config.parseAndValidate(csv);
-		const parsed = result.rows[0]?.parsed as unknown as Record<string, unknown>;
-		expect(parsed.status).toBe("active");
+		const parsed = result.rows[0]?.parsed;
+		expect(parsed?.status).toBe("active");
 	});
 
 	it("sample rows must align with header length", () => {

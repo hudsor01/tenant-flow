@@ -18,6 +18,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#components/ui/card";
+import { portfolioOccupancy } from "#lib/constants/status-types";
 import { useDashboardPresetsStore } from "#stores/dashboard-presets-store";
 import { useDashboardViewMode } from "#stores/dashboard-store";
 import type { DashboardProps } from "#types/sections/dashboard";
@@ -105,14 +106,7 @@ export function Dashboard({
 		property: prop.name,
 		address: prop.address,
 		units: { occupied: prop.occupiedUnits, total: prop.totalUnits },
-		tenant: prop.occupiedUnits > 0 ? `${prop.occupiedUnits} tenants` : null,
-		leaseStatus:
-			prop.occupancyRate === 100
-				? "active"
-				: prop.occupancyRate >= 80
-					? "expiring"
-					: "vacant",
-		leaseEnd: null,
+		occupancy: portfolioOccupancy(prop.occupiedUnits, prop.totalUnits),
 		rent: prop.monthlyRevenue,
 		maintenanceOpen: prop.openMaintenance,
 	}));
@@ -135,7 +129,7 @@ export function Dashboard({
 	};
 
 	return (
-		<div className="flex flex-1 flex-col gap-6 p-6">
+		<div className="@container/dashboard flex flex-1 flex-col gap-6 p-6">
 			{/* Header */}
 			<div data-testid="dashboard-stats">
 				<h1 className="typography-h1">Dashboard</h1>
@@ -149,9 +143,14 @@ export function Dashboard({
 				</div>
 			</div>
 
-			{/* Main Content: Revenue chart (50%) + Occupancy donut (25%) + Quick Actions (25%) */}
+			{/* Main Content: Revenue chart (50%) + Occupancy donut (25%) + Quick Actions (25%).
+			    The four columns key on this dashboard's own width (the
+			    `dashboard` container, 56rem), not the viewport: the content
+			    column narrows when the sidebar is expanded, and below 56rem a
+			    quarter column is too narrow for a quick action's icon and label,
+			    so the three cards stack (CP-4 follow-up). */}
 			<div
-				className="grid grid-cols-1 gap-6 lg:grid-cols-4"
+				className="grid grid-cols-1 gap-6 @4xl/dashboard:grid-cols-4"
 				data-tour="trends-section"
 			>
 				<RevenueAreaChart

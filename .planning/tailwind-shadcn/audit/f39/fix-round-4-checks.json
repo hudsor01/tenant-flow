@@ -1,0 +1,1501 @@
+{
+	"mode": "fix-round-4",
+	"checks": [
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/app/(auth)/login/__tests__/login-mfa-cancel.test.tsx (part 8k (182de2bc8)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 1,
+				"numPassed": 1,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/app/(auth)/login/__tests__/login-mfa-cancel.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/app/(owner)/analytics/financial/_components/__tests__/financial-analytics-skeleton.test.tsx (part 5 (7da0456ad)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/app/(owner)/analytics/financial/_components/__tests__/financial-analytics-skeleton.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/app/(owner)/billing/checkout/cancel/page.test.tsx (part 8l (e8d5c2da4)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 1,
+				"numPassed": 1,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/app/(owner)/billing/checkout/cancel/page.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/app/(owner)/billing/checkout/success/page.test.tsx (part 8m (5da054158)) present and passing, with its 6 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 13,
+				"numPassed": 13,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/app/(owner)/billing/checkout/success/page.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/app/(owner)/dashboard/__tests__/dashboard-page-portfolio-rows.test.tsx (part 2 (75ede0b66)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 1,
+				"numPassed": 1,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/app/(owner)/dashboard/__tests__/dashboard-page-portfolio-rows.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/app/(owner)/documents/templates/components/dynamic-form-control-names.test.tsx (part 8h (350bdf99e)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 1,
+				"numPassed": 1,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/app/(owner)/documents/templates/components/dynamic-form-control-names.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/app/(owner)/properties/__tests__/property-delete-confirmation.test.tsx (part 8h (936041dc7)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/app/(owner)/properties/__tests__/property-delete-confirmation.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/app/(owner)/properties/units/components/__tests__/unit-actions-spinner.test.tsx (part 5 (f79a26902)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 1,
+				"numPassed": 1,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/app/(owner)/properties/units/components/__tests__/unit-actions-spinner.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/app/(owner)/tenants/components/__tests__/move-out-dialog.test.tsx (part 8j (73dc01687)) present and passing, with its 3 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 3,
+				"numPassed": 3,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/app/(owner)/tenants/components/__tests__/move-out-dialog.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/app/(owner)/tenants/components/__tests__/move-out-record.test.tsx (part 8j (73dc01687)) present and passing, with its 6 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 6,
+				"numPassed": 6,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/app/(owner)/tenants/components/__tests__/move-out-record.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/app/__tests__/reduced-motion-transitions.test.ts (part 8f (e37a20b8a)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/app/__tests__/reduced-motion-transitions.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/app/__tests__/url-text-is-never-shown.test.tsx (part 7 (cdd28a8cf)) present and passing, with its 6 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 8,
+				"numPassed": 8,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/app/__tests__/url-text-is-never-shown.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/app/auth/signout/__tests__/signout-page.test.tsx (part 8l (9ae65c7cb)) present and passing, with its 4 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/app/auth/signout/__tests__/signout-page.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/__tests__/confirmation-copy-voice.test.ts (part 8h (4da185a01)) present and passing, with its 3 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 3,
+				"numPassed": 3,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/__tests__/confirmation-copy-voice.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/__tests__/controls-have-accessible-names.test.ts (part 8h (bf0ed2052)) present and passing, with its 6 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 6,
+				"numPassed": 6,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/__tests__/controls-have-accessible-names.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/__tests__/dialog-rows-fit-narrow-screens.test.tsx (part 5d (8aff69588)) present and passing, with its 4 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/__tests__/dialog-rows-fit-narrow-screens.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/__tests__/icon-only-values-have-text.test.tsx (part 5c (15defea36)) present and passing, with its 5 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 5,
+				"numPassed": 5,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/__tests__/icon-only-values-have-text.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/__tests__/inline-svg-names.test.ts (part 5c (3346b053d)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/__tests__/inline-svg-names.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/__tests__/menu-item-focus-labels.test.ts (part 5c (098de0896)) present and passing, with its 3 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 3,
+				"numPassed": 3,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/__tests__/menu-item-focus-labels.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/__tests__/no-native-browser-dialogs.test.ts (part 8g (f64eef8c8)) present and passing, with its 5 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 5,
+				"numPassed": 5,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/__tests__/no-native-browser-dialogs.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/__tests__/paragraph-base-margin.test.ts (part 6 (e86105e85)) present and passing, with its 7 title(s) and its code markers",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 7,
+				"numPassed": 7,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/__tests__/paragraph-base-margin.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/__tests__/paragraph-margin-pins.test.tsx (part 6 (061a948db)) present and passing, with its 6 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 7,
+				"numPassed": 7,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/__tests__/paragraph-margin-pins.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/__tests__/raw-field-boundary.test.ts (part 5c (d97a286fd)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/__tests__/raw-field-boundary.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/__tests__/reservation-release-keys-on-the-row.test.ts (part 5 (1dfbba30d)) present and passing, with its 4 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/__tests__/reservation-release-keys-on-the-row.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/__tests__/stat-rows-hold-their-figures.test.tsx (part 8c (1d14ffb22)) present and passing, with its 6 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 7,
+				"numPassed": 7,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/__tests__/stat-rows-hold-their-figures.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/__tests__/submit-buttons-inside-a-form.test.ts (part 5d (8e39dcac7)) present and passing, with its 4 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/__tests__/submit-buttons-inside-a-form.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/__tests__/submit-buttons-submit-their-form.test.tsx (part 5d (8e39dcac7)) present and passing, with its 5 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 5,
+				"numPassed": 5,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/__tests__/submit-buttons-submit-their-form.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/__tests__/untyped-buttons-outside-forms.test.ts (part 8f (f9f80cc43)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/__tests__/untyped-buttons-outside-forms.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/auth/__tests__/two-factor-setup-enroll-once.test.tsx (part 8b (b12ed3aa3)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/auth/__tests__/two-factor-setup-enroll-once.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/dashboard/components/__tests__/portfolio-preset-menu-roles.test.tsx (part 8h (1e5289d09)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 1,
+				"numPassed": 1,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/dashboard/components/__tests__/portfolio-preset-menu-roles.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/inspections/__tests__/inspection-room-card.test.tsx (part 8g (694886452)) present and passing, with its 3 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 3,
+				"numPassed": 3,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/inspections/__tests__/inspection-room-card.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/leases/detail/__tests__/lease-timeline-disc.test.tsx (part 5 (2c9129491)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 1,
+				"numPassed": 1,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/leases/detail/__tests__/lease-timeline-disc.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/maintenance/__tests__/maintenance-sortable-card-roles.test.tsx (part 8h (644853fa0)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 1,
+				"numPassed": 1,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/maintenance/__tests__/maintenance-sortable-card-roles.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/maintenance/__tests__/maintenance-tenant-option-names.test.tsx (part 8h (ec4c49289)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 1,
+				"numPassed": 1,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/maintenance/__tests__/maintenance-tenant-option-names.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/maintenance/detail/__tests__/maintenance-details-delete.test.tsx (part 8g (46c4f858e)) present and passing, with its 4 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/maintenance/detail/__tests__/maintenance-details-delete.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/properties/__tests__/property-table-checkbox-names.test.tsx (part 8h (565c9d781)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 1,
+				"numPassed": 1,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/properties/__tests__/property-table-checkbox-names.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/settings/__tests__/account-deletion-claims.test.tsx (part 8i (06e5cb82f)) present and passing, with its 6 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 18,
+				"numPassed": 18,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/settings/__tests__/account-deletion-claims.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/settings/__tests__/category-rename-error-toast.test.tsx (part 5d (a41de08ae)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/settings/__tests__/category-rename-error-toast.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/settings/__tests__/deletion-scheduled-notice.test.tsx (part 6 (d0dc01daa)) present and passing, with its 4 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/settings/__tests__/deletion-scheduled-notice.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/shared/__tests__/date-range-picker-months.test.tsx (part 5d (8aff69588)) present and passing, with its 4 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/shared/__tests__/date-range-picker-months.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/shared/__tests__/owner-error-box.test.tsx (part 6 (22f316658)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/shared/__tests__/owner-error-box.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/shell/__tests__/app-shell-sign-out.test.tsx (part 8l (9ae65c7cb)) present and passing, with its 6 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 6,
+				"numPassed": 6,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/shell/__tests__/app-shell-sign-out.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/ui/__tests__/calendar-day-label.test.tsx (part 8h (7a5c2eb2c)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 1,
+				"numPassed": 1,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/ui/__tests__/calendar-day-label.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/ui/__tests__/card-header-flex-is-live.test.ts (part 8e (47a12e556)) present and passing, with its 3 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 3,
+				"numPassed": 3,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/ui/__tests__/card-header-flex-is-live.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/ui/__tests__/combobox-aria.test.tsx (part 8h (73f04f269)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 1,
+				"numPassed": 1,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/ui/__tests__/combobox-aria.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/ui/__tests__/dropzone.test.tsx (part 4 (c7da0d673)) present and passing, with its 3 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 3,
+				"numPassed": 3,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/ui/__tests__/dropzone.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/ui/__tests__/input-otp-row-clip.test.tsx (part 8f (95a473255)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 1,
+				"numPassed": 1,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/ui/__tests__/input-otp-row-clip.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/ui/__tests__/item-roles.test.tsx (part 8h (c99ec947b)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 1,
+				"numPassed": 1,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/ui/__tests__/item-roles.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/ui/__tests__/overlay-content-bounds.test.tsx (part 5d (8aff69588)) present and passing, with its 5 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 5,
+				"numPassed": 5,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/ui/__tests__/overlay-content-bounds.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/ui/__tests__/scroll-region.test.tsx (part 8h (536e4d9f1)) present and passing, with its 3 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 3,
+				"numPassed": 3,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/ui/__tests__/scroll-region.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/ui/__tests__/stepper-trigger-aria.test.tsx (part 8h (565147221)) present and passing, with its 4 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/ui/__tests__/stepper-trigger-aria.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/ui/__tests__/tour-step-order.test.tsx (part 8f (3fb6c7fc2)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 1,
+				"numPassed": 1,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/ui/__tests__/tour-step-order.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/hooks/__tests__/use-reduced-motion-consumers.test.tsx (part 4 (146710b61)) present and passing, with its 6 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 6,
+				"numPassed": 6,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/hooks/__tests__/use-reduced-motion-consumers.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/hooks/api/__tests__/sign-out-real-auth-js.test.tsx (part 8k (182de2bc8)) present and passing, with its 6 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 21,
+				"numPassed": 21,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/hooks/api/__tests__/sign-out-real-auth-js.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/hooks/api/__tests__/tour-progress-e2e-answer.test.ts (part 7 (f044623ca)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/hooks/api/__tests__/tour-progress-e2e-answer.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/lib/__tests__/exports-have-readers.test.ts (part 2 (41364e700)) present and passing, with its 4 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/lib/__tests__/exports-have-readers.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/lib/__tests__/no-duplicate-exported-type-names.test.ts (part 2 (9f2f56b8c)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/lib/__tests__/no-duplicate-exported-type-names.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/lib/__tests__/no-duplicate-type-shapes.test.ts (part 3 (47cb521a9)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/lib/__tests__/no-duplicate-type-shapes.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/lib/__tests__/no-enabled-matcher-beside-aria-disabled.test.ts (part 3 (f4e09d56b)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/lib/__tests__/no-enabled-matcher-beside-aria-disabled.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/lib/__tests__/thrown-error-messages-are-reviewed.test.ts (part 5d (a41de08ae)) present and passing, with its 4 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/lib/__tests__/thrown-error-messages-are-reviewed.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/lib/__tests__/vi-mock-hoisted-bindings.test.ts (part 2 (2dd52fb4b)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/lib/__tests__/vi-mock-hoisted-bindings.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/lib/constants/__tests__/move-out-reason.test.ts (part 8j (73dc01687)) present and passing, with its 5 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 5,
+				"numPassed": 5,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/lib/constants/__tests__/move-out-reason.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/test/__tests__/msw-handlers-contract.test.ts (part 2 (e31848448)) present and passing, with its 6 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 12,
+				"numPassed": 12,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/test/__tests__/msw-handlers-contract.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/types/__tests__/tenant-row-not-hand-kept.test.ts (part 8k (5db409c85)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 2,
+				"numPassed": 2,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/types/__tests__/tenant-row-not-hand-kept.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard supabase/functions/__tests__/billing-email-claims.test.ts (part 8n (51889b3fa)) present and passing, with its 6 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 11,
+				"numPassed": 11,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:supabase/functions/__tests__/billing-email-claims.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard supabase/functions/__tests__/tier-gate-decision.test.ts (part 8n (4ff4f987a)) present and passing, with its 6 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 7,
+				"numPassed": 7,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:supabase/functions/__tests__/tier-gate-decision.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard tests/e2e/lib/__tests__/reflow-route-accounting.test.ts (part 7 (01b3cf044)) present and passing, with its 4 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:tests/e2e/lib/__tests__/reflow-route-accounting.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/__tests__/list-base-rule-neutralized.test.ts (part 6, 8b (blob-keyed ratchet, 98430d7cf)) present and passing, with its 1 title(s) and its code markers",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 4,
+				"numPassed": 4,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/__tests__/list-base-rule-neutralized.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/app/__tests__/state-fill-contrast.test.ts (part 5 (STACK_FIXTURES), 5b, 5c) present and passing, with its 6 title(s) and its code markers",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 39,
+				"numPassed": 39,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/app/__tests__/state-fill-contrast.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/lib/__tests__/no-deprecated-library-api.test.ts (part 7 (ab6d35a87, the comment scan)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 11,
+				"numPassed": 11,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/lib/__tests__/no-deprecated-library-api.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/lib/__tests__/mutation-error-handler.test.ts (part 2 (G62), 5d) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 36,
+				"numPassed": 36,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/lib/__tests__/mutation-error-handler.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/ui/__tests__/button-caller-states.test.ts (part 3 (G15)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 6,
+				"numPassed": 6,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/ui/__tests__/button-caller-states.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/shell/__tests__/app-shell.test.tsx (part 4 (G42)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 48,
+				"numPassed": 48,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/shell/__tests__/app-shell.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/components/ui/__tests__/sidebar.test.tsx (part 4 (G42)) present and passing, with its 1 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 49,
+				"numPassed": 49,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/components/ui/__tests__/sidebar.test.tsx"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard scripts/mutation-sweep.test.ts (part 1 (G51)) present and passing, with its 3 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 9,
+				"numPassed": 9,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:scripts/mutation-sweep.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 guard src/app/robots.test.ts (part main session (7f6fcc67c)) present and passing, with its 2 title(s)",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"status": "passed",
+				"numTests": 17,
+				"numPassed": 17,
+				"missingTitles": [],
+				"missingMarkers": []
+			},
+			"group": "fr4-guard:src/app/robots.test.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 E2E spec tests/e2e/tests/owner/properties-table-a11y.e2e.spec.ts (part 8h (af37b6b5d)) ran in the CI set, all passed, with its tests in the source",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"passed": 2,
+				"failed": 0,
+				"skipped": 0,
+				"missingMarkers": []
+			},
+			"group": "fr4-e2e:tests/e2e/tests/owner/properties-table-a11y.e2e.spec.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 E2E spec tests/e2e/tests/public/text-contrast-axe.spec.ts (part 5b (4bed12d10), 7) ran in the CI set, all passed, with its tests in the source",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"passed": 46,
+				"failed": 0,
+				"skipped": 0,
+				"missingMarkers": []
+			},
+			"group": "fr4-e2e:tests/e2e/tests/public/text-contrast-axe.spec.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 E2E spec tests/e2e/tests/owner-reflow-320.spec.ts (part 8e, 8f (the states, the overlay across a viewport change)) ran in the CI set, all passed, with its tests in the source",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"passed": 30,
+				"failed": 0,
+				"skipped": 0,
+				"missingMarkers": []
+			},
+			"group": "fr4-e2e:tests/e2e/tests/owner-reflow-320.spec.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 E2E spec tests/e2e/tests/public/reflow-320.spec.ts (part 8e (the states)) ran in the CI set, all passed, with its tests in the source",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"passed": 24,
+				"failed": 0,
+				"skipped": 0,
+				"missingMarkers": []
+			},
+			"group": "fr4-e2e:tests/e2e/tests/public/reflow-320.spec.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 E2E spec tests/e2e/tests/owner/app-shell-sidebar.spec.ts (part 8b, 8c (the /properties stat row)) ran in the CI set, all passed, with its tests in the source",
+			"pass": true,
+			"expected": "passed",
+			"measured": {
+				"passed": 32,
+				"failed": 0,
+				"skipped": 0,
+				"missingMarkers": []
+			},
+			"group": "fr4-e2e:tests/e2e/tests/owner/app-shell-sidebar.spec.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 E2E helper tests/e2e/lib/reflow-states.ts (part 8e (the CI states guard's write boundary)) still holds its code",
+			"pass": true,
+			"expected": "present",
+			"measured": {
+				"bytes": 25695,
+				"missingMarkers": []
+			},
+			"group": "fr4-helper:tests/e2e/lib/reflow-states.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 E2E helper tests/e2e/lib/measure.ts (part 8e (readReflow)) still holds its code",
+			"pass": true,
+			"expected": "present",
+			"measured": {
+				"bytes": 19720,
+				"missingMarkers": []
+			},
+			"group": "fr4-helper:tests/e2e/lib/measure.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4 E2E helper tests/e2e/lib/reflow.ts (part 7 (G47, REFLOW_UNLISTED_PAGES)) still holds its code",
+			"pass": true,
+			"expected": "present",
+			"measured": {
+				"bytes": 10195,
+				"missingMarkers": []
+			},
+			"group": "fr4-helper:tests/e2e/lib/reflow.ts"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "the retired heading-block-paragraph-margin.test.ts is out of FR3_GUARD_TESTS, the tree and the suite, and paragraph-base-margin.test.ts replaces it",
+			"pass": true,
+			"expected": "retired",
+			"measured": {
+				"retiredInList": false,
+				"retiredExists": false,
+				"retiredInSummary": false
+			},
+			"group": "fr4-retired"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "the code state is 7f6fcc67c (the last commit outside .planning/)",
+			"pass": true,
+			"expected": "7f6fcc67c3d2d939a2f765713510b2943fc6b6f8",
+			"measured": "7f6fcc67c3d2d939a2f765713510b2943fc6b6f8",
+			"group": "fr4-code-state"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "every evidence file this re-freeze owns was measured on 7f6fcc67c (nothing carried), and the screenshot and probe diffs against a same-session 3977aa58d",
+			"pass": true,
+			"expected": "all on the code state",
+			"measured": {
+				"stale": [],
+				"screenBaselines": [
+					"3977aa58d"
+				],
+				"screensFresh": true,
+				"probesBaseline": "3977aa58d"
+			},
+			"group": "fr4-fresh"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "the replay applies all 358 files from empty, 20261109141151_tenants_move_out_record.sql among them; the PR body records it as already applied and keeps it out of After merge step 1's apply list",
+			"pass": true,
+			"expected": {
+				"files": 358
+			},
+			"measured": {
+				"files": 358,
+				"applied": 358,
+				"moveOutInTree": true,
+				"inApplyList": false,
+				"appliedLine": true
+			},
+			"group": "fr4-replay"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "the mutation sweep holds 185 rows (fix round 4 changed comments only), every one caught unsharded and in shards of 24, 23, 23, 23, 23, 23, 23, 23",
+			"pass": true,
+			"expected": {
+				"rows": 185,
+				"shards": [
+					24,
+					23,
+					23,
+					23,
+					23,
+					23,
+					23,
+					23
+				]
+			},
+			"measured": {
+				"scriptRows": 185,
+				"unsharded": "185/185",
+				"shards": [
+					"24/24",
+					"23/23",
+					"23/23",
+					"23/23",
+					"23/23",
+					"23/23",
+					"23/23",
+					"23/23"
+				]
+			},
+			"group": "fr4-sweep"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "deno check is clean on all 17 functions and the six in-process test files pass at their counts (export-report 17)",
+			"pass": true,
+			"expected": {
+				"send-lease-reminders-test.ts": 25,
+				"lease-signature-metering-test.ts": 5,
+				"lease-signing-test.ts": 12,
+				"rate-limit-sentry-test.ts": 2,
+				"export-report-test.ts": 17,
+				"generate-pdf-test.ts": 9
+			},
+			"measured": {
+				"functions": 17,
+				"tests": {
+					"send-lease-reminders-test.ts": {
+						"passed": 25,
+						"failed": 0
+					},
+					"lease-signature-metering-test.ts": {
+						"passed": 5,
+						"failed": 0
+					},
+					"lease-signing-test.ts": {
+						"passed": 12,
+						"failed": 0
+					},
+					"rate-limit-sentry-test.ts": {
+						"passed": 2,
+						"failed": 0
+					},
+					"export-report-test.ts": {
+						"passed": 17,
+						"failed": 0
+					},
+					"generate-pdf-test.ts": {
+						"passed": 9,
+						"failed": 0
+					}
+				}
+			},
+			"group": "fr4-deno"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "the redeploy list is exactly the 5 functions whose bundle differs from d9c7329f0 (all 17 bundled), and the PR body's deploy command names exactly them",
+			"pass": true,
+			"expected": [
+				"export-report",
+				"generate-pdf",
+				"lease-signature",
+				"n8n-blog-ingest",
+				"stripe-webhooks"
+			],
+			"measured": {
+				"differing": [
+					"export-report",
+					"generate-pdf",
+					"lease-signature",
+					"n8n-blog-ingest",
+					"stripe-webhooks"
+				],
+				"deploy": [
+					"export-report",
+					"generate-pdf",
+					"lease-signature",
+					"n8n-blog-ingest",
+					"stripe-webhooks"
+				],
+				"prBodyCommand": [
+					"export-report",
+					"generate-pdf",
+					"lease-signature",
+					"n8n-blog-ingest",
+					"stripe-webhooks"
+				]
+			},
+			"group": "fr4-edge"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "rule parity: every key fix round 4 added, removed, changed or took back, and every compiled-CSS change outside the utilities, has its commit and VD row; the FINAL -> f39 diff classifies exactly those keys as fix round 4's",
+			"pass": true,
+			"expected": "0 unclassified, 0 unattributed",
+			"measured": {
+				"unclassified": 0,
+				"added": 205,
+				"removed": 39,
+				"utilityChanged": 1,
+				"reversed": 4,
+				"outsideUtilities": 4,
+				"badKeys": [],
+				"badHunks": [],
+				"unattributed": []
+			},
+			"group": "fr4-parity"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "the CSP the proxy builds is PRE_39's: AUTH_ROUTE_PREFIXES, needsNonceCsp, THEME_NO_FLASH_SCRIPT_HASH and buildNonceCsp, the per-request nonce block, withCsp, PRIVATE_ROUTE_PREFIXES (code lines) unchanged, and the prefix rule the same comparison (inline at PRE_39, matchesRoutePrefix now)",
+			"pass": true,
+			"expected": "unchanged",
+			"measured": {
+				"changedParts": [],
+				"ruleOk": true
+			},
+			"group": "fr4-csp-code"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "the CSP probe: 0 events beyond the control, and every nonce and static route's CSP header (nonce normalized) equal to the same-session 3977aa58d's",
+			"pass": true,
+			"expected": "equal",
+			"measured": {
+				"total": 0,
+				"routes": 13,
+				"nonceRoutes": 7,
+				"headerDiff": []
+			},
+			"group": "fr4-csp"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "the PR body carries the fix-round-4 section after fix round 3 and before After merge, with cycle 3's comment link and no placeholder, in at most 64500 bytes",
+			"pass": true,
+			"expected": {
+				"section": "## Fix round 4 (after perfect-PR cycle 3)",
+				"maxBytes": 64500
+			},
+			"measured": {
+				"section": 15419,
+				"fixRound3": 10238,
+				"afterMerge": 23246,
+				"comment": true,
+				"placeholder": false,
+				"bytes": 63144
+			},
+			"group": "fr4-pr-body"
+		},
+		{
+			"cp": "FR-4",
+			"choice": "fix-round-4",
+			"name": "fix round 4's code diff b7f25511b..7f6fcc67c equals f39/fix-round-4-paths.json",
+			"pass": true,
+			"expected": 574,
+			"measured": {
+				"paths": 574,
+				"recorded": 574,
+				"missing": [],
+				"extra": []
+			},
+			"group": "fr4-scope"
+		}
+	],
+	"failedGroups": [],
+	"failed": 0
+}

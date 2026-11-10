@@ -48,7 +48,9 @@ export async function generateSigningToken(): Promise<{
 	return { raw, hash: await sha256Hex(raw) };
 }
 
-export async function sha256Hex(input: string | Uint8Array): Promise<string> {
+export async function sha256Hex(
+	input: string | Uint8Array<ArrayBuffer>,
+): Promise<string> {
 	const data =
 		typeof input === "string" ? new TextEncoder().encode(input) : input;
 	const digest = await crypto.subtle.digest("SHA-256", data);

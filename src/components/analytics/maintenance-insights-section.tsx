@@ -6,12 +6,17 @@ import { DollarSign, TrendingUp, Wrench } from "lucide-react";
 import dynamic from "next/dynamic";
 import { DataTable } from "#components/data-table/data-table";
 import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
+import { maintenanceStatusLabel } from "#components/maintenance/detail/maintenance-utils";
 import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Skeleton } from "#components/ui/skeleton";
 import { analyticsQueries } from "#hooks/api/use-analytics";
 import { useClientDataTable } from "#hooks/use-client-data-table";
-import type { MaintenanceCategoryBreakdown } from "#types/analytics";
+import { formatCurrency } from "#lib/utils/currency";
+import type {
+	MaintenanceCategoryBreakdown,
+	MaintenanceCostSummary,
+} from "#types/analytics";
 
 const MaintenanceTrendChart = dynamic(
 	() => import("./maintenance-charts").then((mod) => mod.MaintenanceTrendChart),
@@ -54,17 +59,24 @@ function CategoryBreakdownTable({
 }) {
 	const columns: ColumnDef<MaintenanceCategoryBreakdown>[] = [
 		{
+			// get_maintenance_analytics has no category taxonomy: each row is a
+			// request status (by_status), so the column says so and names it. It
+			// filters and sorts on the label it shows ("In Progress"), not the
+			// stored slug ("in_progress"), so a search for what is on screen
+			// finds it.
 			id: "category",
-			accessorKey: "category",
-			header: "Category",
+			accessorFn: (row) => maintenanceStatusLabel(row.category),
+			header: "Status",
 			meta: {
-				label: "Category",
+				label: "Status",
 				variant: "text",
-				placeholder: "Search category...",
+				placeholder: "Search status...",
 			},
 			enableColumnFilter: true,
 			cell: ({ row }) => (
-				<span className="font-medium">{row.original.category}</span>
+				<span className="font-medium">
+					{maintenanceStatusLabel(row.original.category)}
+				</span>
 			),
 		},
 		{
@@ -105,7 +117,7 @@ function CategoryBreakdownTable({
 	if (!entries.length) {
 		return (
 			<div className="text-center text-muted-foreground py-8">
-				No category breakdown data available
+				No maintenance requests yet
 			</div>
 		);
 	}
@@ -117,22 +129,38 @@ function CategoryBreakdownTable({
 	);
 }
 
+/**
+ * The cost card's line: the spend to date, and the average per request with
+ * costs, naming its denominator (get_maintenance_analytics, 20261102184503).
+ */
+export function costSummaryLine(costs: MaintenanceCostSummary | null): string {
+	if (costs === null) return "Spend on your requests, to date";
+	if (costs.costedRequests === 0 || costs.averageCost === null) {
+		return "No expenses recorded on your requests yet";
+	}
+	const requests =
+		costs.costedRequests === 1
+			? "1 request with costs"
+			: `${costs.costedRequests} requests with costs`;
+	return `${formatCurrency(costs.totalCost)} to date · ${formatCurrency(costs.averageCost)} average across ${requests}`;
+}
+
 export function MaintenanceInsightsSection() {
 	const { data } = useSuspenseQuery(analyticsQueries.maintenancePageData());
 
-	const { trends = [], costBreakdown = [], categoryBreakdown = [] } = data;
+	const { trends, costs, costBreakdown, categoryBreakdown } = data;
 
 	return (
 		<div className="space-y-6">
 			{/* Charts Row */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<BlurFade delay={0.1} inView>
-					<div className="bg-card border border-border rounded-lg p-6">
+				<BlurFade delay={0.1} className="h-full">
+					<div className="h-full bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
 								<h3 className="font-medium text-foreground">Request trends</h3>
-								<p className="text-sm text-muted-foreground">
-									Completed vs pending requests over time
+								<p className="mb-0 text-sm text-muted-foreground">
+									Completed each month, and open at month end
 								</p>
 							</div>
 							<TrendingUp className="w-5 h-5 text-muted-foreground" />
@@ -141,30 +169,35 @@ export function MaintenanceInsightsSection() {
 					</div>
 				</BlurFade>
 
-				<BlurFade delay={0.2} inView>
-					<div className="bg-card border border-border rounded-lg p-6">
+				<BlurFade delay={0.2} className="h-full">
+					<div className="h-full bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
-								<h3 className="font-medium text-foreground">Cost breakdown</h3>
-								<p className="text-sm text-muted-foreground">
-									Maintenance costs by category
+								<h3 className="font-medium text-foreground">Spend by vendor</h3>
+								<p className="mb-0 text-sm text-muted-foreground">
+									{costSummaryLine(costs)}
 								</p>
 							</div>
 							<DollarSign className="w-5 h-5 text-muted-foreground" />
 						</div>
-						<MaintenanceCostChart entries={costBreakdown} />
+						<MaintenanceCostChart
+							entries={costBreakdown}
+							available={costs !== null}
+						/>
 					</div>
 				</BlurFade>
 			</div>
 
-			{/* Category Breakdown Table */}
-			<BlurFade delay={0.3} inView>
+			{/* Requests by status (get_maintenance_analytics' by_status) */}
+			<BlurFade delay={0.3}>
 				<div className="bg-card border border-border rounded-lg p-6">
 					<div className="flex items-center justify-between mb-6">
 						<div>
-							<h3 className="font-medium text-foreground">Category analysis</h3>
-							<p className="text-sm text-muted-foreground">
-								Request counts by category
+							<h3 className="font-medium text-foreground">
+								Requests by status
+							</h3>
+							<p className="mb-0 text-sm text-muted-foreground">
+								Request counts by status
 							</p>
 						</div>
 						<Wrench className="w-5 h-5 text-muted-foreground" />

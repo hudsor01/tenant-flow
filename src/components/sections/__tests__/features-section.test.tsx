@@ -20,7 +20,7 @@ describe("FeaturesSectionDemo", () => {
 			(h) => h.textContent === "Multi-Property Dashboard",
 		);
 		expect(heading).toBeTruthy();
-		const card = heading?.closest("div.group\\/feature");
+		const card = heading?.parentElement;
 		expect(card).toBeTruthy();
 		// lucide-react emits class "lucide lucide-layout-dashboard" on the <svg>.
 		expect(card?.querySelector("svg.lucide-layout-dashboard")).not.toBeNull();
@@ -34,7 +34,7 @@ describe("FeaturesSectionDemo", () => {
 		const heading = [...container.querySelectorAll("h3")].find(
 			(h) => h.textContent === "Multi-Property Dashboard",
 		);
-		const card = heading?.closest("div.group\\/feature");
+		const card = heading?.parentElement;
 		expect(card?.querySelector("svg.lucide-arrow-left")).toBeNull();
 	});
 

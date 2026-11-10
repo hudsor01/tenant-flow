@@ -50,7 +50,7 @@ export function ExpenseTable({
 	onClearFilters,
 }: ExpenseTableProps) {
 	return (
-		<BlurFade delay={0.4} inView>
+		<BlurFade delay={0.4}>
 			<div className="bg-card border border-border rounded-lg overflow-hidden">
 				{/* Toolbar */}
 				<div className="px-4 py-3 border-b border-border flex flex-col sm:flex-row items-start sm:items-center gap-3">
@@ -108,11 +108,11 @@ export function ExpenseTable({
 								</TableCell>
 								<TableCell>
 									<div>
-										<p className="font-medium text-foreground text-sm">
+										<p className="mb-0 font-medium text-foreground text-sm">
 											{expense.description || "Expense"}
 										</p>
 										{expense.vendor_name && (
-											<p className="text-xs text-muted-foreground">
+											<p className="mb-0 text-xs text-muted-foreground">
 												{expense.vendor_name}
 											</p>
 										)}
@@ -151,7 +151,7 @@ export function ExpenseTable({
 						</EmptyMedia>
 						<EmptyHeader>
 							<EmptyTitle>No expenses yet</EmptyTitle>
-							<EmptyDescription>
+							<EmptyDescription className="mb-0">
 								Expenses from maintenance requests will appear here.
 							</EmptyDescription>
 						</EmptyHeader>

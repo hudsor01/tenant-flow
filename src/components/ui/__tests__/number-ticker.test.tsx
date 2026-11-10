@@ -90,7 +90,7 @@ describe("NumberTicker", () => {
 
 	it("snaps to the final value immediately under prefers-reduced-motion (D-04)", () => {
 		// matchMedia is not in jsdom by default; stub it to report reduced-motion
-		// as matching BEFORE render so useReducedMotion() seeds true after its effect.
+		// as matching BEFORE render so useReducedMotion() reads true on the first render.
 		// No timer advance: the snap happens when the effect commits, no rAF scheduled.
 		vi.stubGlobal("matchMedia", (query: string) => ({
 			matches: query.includes("prefers-reduced-motion"),
@@ -157,8 +157,7 @@ describe("NumberTicker", () => {
 		}
 
 		// Direct assignment works because the property is writable (unit-setup.ts sets writable: true)
-		window.IntersectionObserver =
-			CapturingObserver as unknown as typeof IntersectionObserver;
+		window.IntersectionObserver = CapturingObserver;
 
 		render(<NumberTicker value={5} duration={2000} />);
 
@@ -197,5 +196,85 @@ describe("NumberTicker", () => {
 
 		// Restore original mock for subsequent tests
 		window.IntersectionObserver = OriginalObserver;
+	});
+
+	describe("currency", () => {
+		it("puts a negative amount's sign before the symbol, as formatCurrency does", async () => {
+			const { container } = render(
+				<NumberTicker value={-250} currency duration={1000} />,
+			);
+			await act(async () => {
+				await vi.advanceTimersByTimeAsync(1100);
+			});
+			expect(container.textContent).toBe("-$250");
+			expect(container.textContent).not.toContain("$-");
+		});
+
+		it("never shows the sign after the symbol while it counts down", async () => {
+			const { container } = render(
+				<NumberTicker value={-1250} currency duration={1000} />,
+			);
+			const frames: string[] = [];
+			for (let step = 0; step < 12; step += 1) {
+				await act(async () => {
+					await vi.advanceTimersByTimeAsync(100);
+				});
+				frames.push(container.textContent ?? "");
+			}
+			expect(frames.at(-1)).toBe("-$1,250");
+			for (const frame of frames) {
+				expect(frame).toMatch(/^-?\$[\d,]+$/);
+			}
+			// It animated: some frame showed a value short of the target.
+			expect(frames.some((frame) => frame !== "-$1,250")).toBe(true);
+		});
+
+		it("formats cents and grouping with decimalPlaces", async () => {
+			const { container } = render(
+				<NumberTicker
+					value={1250.5}
+					currency
+					decimalPlaces={2}
+					duration={500}
+				/>,
+			);
+			await act(async () => {
+				await vi.advanceTimersByTimeAsync(600);
+			});
+			expect(container.textContent).toBe("$1,250.50");
+		});
+
+		it("gives the symbol its own span for the card to size", async () => {
+			const { container } = render(
+				<NumberTicker value={40} currency symbolClassName="text-lg" />,
+			);
+			await act(async () => {
+				await vi.advanceTimersByTimeAsync(2100);
+			});
+			const [sign, symbol, digits] = Array.from(
+				container.querySelectorAll("span span"),
+			);
+			expect(symbol?.textContent).toBe("$");
+			expect(symbol?.className).toBe("text-lg");
+			// The symbol keeps the surrounding text's letter-spacing, as the
+			// hand-placed "$" did; the sign and the digits keep the ticker's.
+			expect(sign?.className).toBe("tracking-wider");
+			expect(digits?.className).toBe("tracking-wider");
+			expect(digits?.textContent).toBe("40");
+			expect(container.firstElementChild?.className).not.toContain(
+				"tracking-wider",
+			);
+		});
+
+		it("renders a plain number without currency", async () => {
+			const { container } = render(
+				<NumberTicker value={-250} duration={500} />,
+			);
+			await act(async () => {
+				await vi.advanceTimersByTimeAsync(600);
+			});
+			expect(container.textContent).toBe("-250");
+			expect(container.querySelector("span span")).toBeNull();
+		});
 	});
 });

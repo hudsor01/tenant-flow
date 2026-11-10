@@ -15,7 +15,6 @@
  *   - vacant            = available
  *   - occupancyRate     = total > 0 ? round(occupied / total * 100) : 0
  *   - averageRent       = total > 0 ? totalActualRent / total : 0
- *   - occupancyChange   = 0  (preserved hardcoded stub)
  *   - totalPotentialRent = totalActualRent  (preserved alias)
  *
  * The old path divided `totalActualRent` by `rentAmounts.length`, which equals
@@ -24,6 +23,7 @@
  */
 
 import { z } from "zod";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import type { UnitStats } from "#types/stats";
 
 // The raw jsonb aggregate contract from `get_unit_stats` (Plan 03-01). Each
@@ -39,14 +39,14 @@ const unitStatsRpcSchema = z.object({
 
 /**
  * Map the `get_unit_stats` RPC jsonb to the strictly-typed `UnitStats`,
- * deriving vacant / occupancyRate / averageRent / occupancyChange /
- * totalPotentialRent per the LOCKED contract. Throws a descriptive
+ * deriving vacant / occupancyRate / averageRent / totalPotentialRent per the
+ * LOCKED contract. Throws a descriptive
  * `mapUnitStats:` error if any numeric count field is missing or non-numeric.
  */
 export function mapUnitStats(raw: unknown): UnitStats {
 	const parsed = unitStatsRpcSchema.safeParse(raw);
 	if (!parsed.success) {
-		throw new Error(
+		throw new DiagnosticError(
 			`mapUnitStats: malformed get_unit_stats response — ${parsed.error.message}`,
 		);
 	}
@@ -66,7 +66,6 @@ export function mapUnitStats(raw: unknown): UnitStats {
 		available,
 		averageRent,
 		occupancyRate,
-		occupancyChange: 0,
 		totalPotentialRent: totalActualRent,
 		totalActualRent,
 	};

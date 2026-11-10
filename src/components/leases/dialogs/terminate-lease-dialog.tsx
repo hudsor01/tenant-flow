@@ -51,10 +51,12 @@ export function TerminateLeaseDialog({
 		<AlertDialog open={open} onOpenChange={onOpenChange}>
 			<AlertDialogContent className="sm:max-w-125">
 				<AlertDialogHeader>
-					<AlertDialogTitle>Terminate Lease</AlertDialogTitle>
-					<AlertDialogDescription>
-						This action will terminate the lease early and mark it as
-						TERMINATED. This action cannot be undone.
+					<AlertDialogTitle>Terminate this lease?</AlertDialogTitle>
+					{/* lease_status 'terminated' and end_date today; the lease's edit page
+					    can still change both, so nothing here is permanent. */}
+					<AlertDialogDescription className="mb-0">
+						This ends the lease today: its status becomes Terminated and its end
+						date is set to today's date.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<div className="space-y-6">
@@ -66,7 +68,7 @@ export function TerminateLeaseDialog({
 								<p className="typography-small text-destructive-text">
 									Early Termination Warning
 								</p>
-								<p className="text-muted-foreground">
+								<p className="mb-0 text-muted-foreground">
 									This lease will be marked as terminated immediately. Ensure
 									all financial settlements are complete before proceeding.
 								</p>
@@ -81,7 +83,7 @@ export function TerminateLeaseDialog({
 					<AlertDialogAction
 						onClick={handleConfirm}
 						disabled={terminateLease.isPending}
-						className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						variant="destructive"
 					>
 						{terminateLease.isPending ? "Terminating..." : "Terminate Lease"}
 					</AlertDialogAction>

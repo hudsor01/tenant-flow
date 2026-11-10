@@ -34,7 +34,8 @@ vi.mock("#lib/supabase/client", () => ({
 
 // The storage-quota Upgrade toast is unit-tested in mutation-error-handler.test;
 // here we only assert the hook ROUTES a plan-limit rejection to the handler.
-vi.mock("#lib/mutation-error-handler", () => ({
+vi.mock("#lib/mutation-error-handler", async (importOriginal) => ({
+	...(await importOriginal<typeof import("#lib/mutation-error-handler")>()),
 	handleMutationError: vi.fn(),
 	showStorageQuotaUpgradeToast: vi.fn(),
 }));

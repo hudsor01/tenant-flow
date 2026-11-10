@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v10.0
 milestone_name: Claims Integrity + Canonical Feature Expansion
 status: executing
-last_updated: "2026-08-18T03:57:50.362Z"
-last_activity: 2026-08-18 -- Phase 66.1 plan 04 COMPLETE (trusted client-IP forward: RSC forwards Vercel's attested address under a constant-time-verified secret; apply-token consumes it in a GATED per-client bucket; nothing deployed, no secret set)
+last_updated: "2026-11-01T14:54:50.337Z"
+last_activity: 2026-11-01
 progress:
-  total_phases: 15
-  completed_phases: 7
-  total_plans: 60
-  completed_plans: 59
-  percent: 47
-stopped_at: "Phase 66.1 plan 04 COMPLETE (4 of 5). RATE-03's trust boundary is built and has a consumer. src/app/apply/[token]/apply-context.ts forwards Vercel's PLATFORM-ATTESTED x-vercel-forwarded-for (falling back to x-forwarded-for, never x-real-ip, refusing any multi-segment value) as x-tf-client-ip under x-tf-forward-secret; supabase/functions/_shared/rate-limit-decision.ts gained decideForwardedClientIp + normalizeForwardedIp -- still zero imports, comparator INJECTED -- so the whole trust matrix is EXECUTED by Vitest against the real timingSafeEqualStr (rate-limit.test.ts now 98 tests). getTrustedClientIp is step 0 of an otherwise byte-identical getClientIp, and apply-token/index.ts enters a 60/60s `apply-context-client` bucket ONLY when verification succeeds -- ungated it would key on the Vercel egress and cap every apply page load product-wide. The 3,000/min tokenHash ceiling is kept (it bounds the SUM that per-client buckets cannot) with its obsolete `per-client is impossible here` justification rewritten in both index.ts and the contract test. timing-safe.ts: comments only, zero code lines changed, now recording which branch runs as UNVERIFIED. NOTHING DEPLOYED AND NO SECRET SET: CLIENT_IP_FORWARD_SECRET exists on neither side, so every path resolves to today's exact behaviour -- all four provisioning orders were WALKED BY EXECUTION and every one falls back, so 66.1-05 may provision in any order. RATE-03 deliberately left Pending (source has the mechanism, production does not). 66.1-05 handoffs: reconcile deferred-items.md's D5 + `proxy.ts` notes (superseded), run an explicit FORGED x-forwarded-for check against prod /apply/[token], decide whether rate_limit_hit's `key` field should narrow now that it carries a true client IP on the trusted path, and probe `typeof crypto.subtle.timingSafeEqual` from a deployed isolate. Branch gsd/phase-66.1-postgres-rate-limiting."
+  total_phases: 16
+  completed_phases: 8
+  total_plans: 99
+  completed_plans: 98
+  percent: 50
+stopped_at: "Phase 66.2 EXECUTING: 66.2-38 complete, next 66.2-39 (39 plans, sequential, use_worktrees=false). Worktree /Users/richard/Developer/tenant-flow-tw-shadcn, branch gsd/phase-66.2-tailwind-v4-and-shadcn-ui-canonical-remediation."
 ---
 
 <!--
@@ -65,12 +65,19 @@ See: .planning/PROJECT.md
 
 **Core value (v10.0):** Every claim sold on the marketing surface is delivered end-to-end in the product, the built-but-unshipped backend becomes user-facing features, and the canonical landlord feature set ships within Next.js 16 idioms — extending, never violating, the landlord-only / no-rent-facilitation / tenants-are-records positioning. Grounded in the 2026-07-19 full feature audit (4 confirmed claims gaps + orphaned backend + canonical feature roadmap).
 
-**Current focus:** Phase 66.1 — Postgres-backed rate limiting + trusted client-IP forwarding
+**Current focus:** Phase 66.2 — tailwind-v4-and-shadcn-ui-canonical-remediation
 
 ## Current Position
 
-Phase: 66.1 (postgres-backed-rate-limiting-with-trusted-client-ip-forward) — EXECUTING
-Plan: 4 of 5 complete
+Phase: 66.2 (tailwind-v4-and-shadcn-ui-canonical-remediation) — EXECUTING
+Plan: 39 of 39
+Status: PR open for the merge gates; the owner merges (2026-11-09). Re-frozen after perfect-PR
+cycle 3 (70 kept findings on `3977aa58d`) and fix round 4 (232 commits, Parts 1-8, 5b-5d, 8b-8o,
+`ae038ed02`, `7f6fcc67c`): code state `7f6fcc67c` (`.planning/tailwind-shadcn/audit/f39/freeze.json`);
+CI `checks` / `e2e-smoke` / `rls-security` and two consecutive clean perfect-PR cycles run again on
+the new PR head. After merge: the nine migrations (the move-out migration is already applied), five
+Edge deploys and the rename PR in the PR body's "After merge, in this order"; the blog writer stays
+paused until its prune step is removed.
 
 66.1-01 authored the migration; **66.1-02 APPLIED IT TO PRODUCTION** as version
 `20260818031338` (see that plan's ADDENDUM — the earlier "BLOCKED on a dead PAT" body is
@@ -167,7 +174,7 @@ RLS suites are authored but have never run locally — see the env note below.
 matrix from `config.toml` and pins itself to a superseded commit — both must be edited for
 any new function. And 29 production migration versions have no repo file, which blocks
 `supabase db push` project-wide (a history repair would falsely claim they never ran; not done).
-Status: Phase complete — ready for verification
+Status: Ready to execute
 is 8 doc commits ahead of `origin/main` with nothing missing from main. Phase 65 shipped,
 merged (#960) and is live; 66-73 remain.
 
@@ -193,7 +200,7 @@ Separately, RESEARCH's honeypot assertion (`toBeHidden()`) is wrong — Playwrig
 is geometric, so `left:-9999px` reads as visible; UI-SPEC §E-6/E-7 carries the fix.
 Numeric order now equals execution order, so the tool and the roadmap agree — see
 the note in the frontmatter above for why that matters.
-Last activity: 2026-08-18
+Last activity: 2026-11-01
 perfect-PR two consecutive clean cycles; merged as `8dce5c6d6` and deployed
 (`dpl_CYSWsXj68wT7pj7KABdzi9Mranw4`, READY, zero runtime errors)
 
@@ -327,6 +334,7 @@ Progress: [██████████] 98%
 - 2026-07-10: v8.0 "Correctness Restoration" shipped + archived (11 phases 25-35, 71/72 + remediation).
 - 2026-07-17: v9.0 "Full-Surface Remediation" shipped + archived (16 phases 36-51, 296/296 accounted).
 - 2026-07-19: v10.0 "Claims Integrity + Canonical Feature Expansion" started — REQUIREMENTS (58 reqs, traceability filled) + ROADMAP (13 phases 52-64) authored. Integer phase numbers continue across milestones (v9.0 ended at 51; v10.0 is 52-64).
+- 2026-10-25: Phase 66.2 "Tailwind v4 and shadcn/ui canonical remediation" INSERTED after 66 (URGENT), requirements UIC-01..08. Two defects are live in production: light `bg-secondary` renders magenta, and Radix controls deform below 768px. It is a decimal, not integer 74, so `phase.complete` cannot stamp v10.0 complete with 67-73 outstanding. It runs on one branch with one PR, `gsd/phase-66.2-tailwind-v4-and-shadcn-ui-canonical-remediation`. The source package is `.planning/tailwind-shadcn/`. This entry was hand-written: `state.add-roadmap-evolution` created a duplicate section and rewrote the frontmatter (status → verifying, `stopped_at` dropped), so the file was restored and corrected by hand.
 
 ## Next Action
 

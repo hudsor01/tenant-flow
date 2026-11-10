@@ -15,14 +15,14 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#components/ui/card";
+import type { MaintenanceListRow } from "#hooks/api/query-keys/maintenance-mappers";
 import { useDataTable } from "#hooks/use-data-table";
-import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
 
 const PAGE_SIZE = 10;
 
 interface MaintenanceTableClientProps {
-	columns: ColumnDef<MaintenanceDisplayRequest>[];
-	initialRequests: MaintenanceDisplayRequest[];
+	columns: ColumnDef<MaintenanceListRow>[];
+	initialRequests: MaintenanceListRow[];
 }
 
 export function MaintenanceTableClient({
@@ -77,7 +77,10 @@ export function MaintenanceTableClient({
 
 	return (
 		<Card>
-			<CardHeader className="flex-between flex-row">
+			{/* The header primitive is a grid, and the compiled grid rule follows
+			    the flex-between utility, so the title and New Request stacked; it
+			    is a flex row that wraps (66.2-39 fix round 4, Part 8e). */}
+			<CardHeader className="flex flex-wrap items-center justify-between gap-3">
 				<div>
 					<CardTitle>Maintenance Requests</CardTitle>
 					<CardDescription>

@@ -28,8 +28,10 @@ export function NotificationBell() {
 	const count = data ?? 0;
 	const hasUnread = count > 0;
 	const badgeText = count > 9 ? "9+" : String(count);
+	// The label carries the badge text the user sees ("9+" above 9), so it
+	// always contains the visible text (WCAG 2.5.3 label in name).
 	const ariaLabel = hasUnread
-		? `Notifications, ${count} unread`
+		? `Notifications, ${badgeText} unread`
 		: "Notifications";
 
 	return (

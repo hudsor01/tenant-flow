@@ -1,0 +1,2407 @@
+{
+  "phase": "66.2",
+  "plan": "66.2-38",
+  "reviewedHead": "838a43c0cf271e408adb97531c446370bbc6967a",
+  "recordedAt": "2026-11-01T14:49:53Z",
+  "autoModeActive": true,
+  "autoModeNote": "`gsd-sdk query check auto-mode --pick active` printed true. The plan's Task 4 rule assumes auto mode auto-selects without showing the owner; here the orchestrator put CP-1..CP-5 to the owner with AskUserQuestion on 2026-11-01 and relayed the selected labels, so every entry is recorded as the owner's decision at the orchestrator's direction.",
+  "decisionChannel": "AskUserQuestion (orchestrator session), 2026-11-01; ownerReply is the selected option label verbatim",
+  "checkpoints": [
+    {
+      "id": "CP-1",
+      "vd": [
+        "VD-22"
+      ],
+      "sources": [
+        "C12a"
+      ],
+      "status": "decided",
+      "decision": "default",
+      "choice": [
+        "cp1-default"
+      ],
+      "decidedBy": "owner",
+      "ownerReply": "Keep grid (Recommended)",
+      "ownerReview": "closed",
+      "defaultMeasured": {
+        "pass": true,
+        "checks": [
+          {
+            "name": "page-layout.tsx: showGridPattern = true default (grep -cF)",
+            "expected": "1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "marketing-home.tsx: explicit showGridPattern={true} (fallback step target)",
+            "expected": "1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "auth/confirm-email/page.tsx renders <GridPattern",
+            "expected": "1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "auth/update-password/page.tsx renders <GridPattern",
+            "expected": "1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "probe grid-pattern.light.svgStroke paints (not none)",
+            "expected": "!= none",
+            "measured": "oklab(0.2 -0.00845236 -0.0181262 / 0.25) (rgba [16,24,32,0.251])",
+            "pass": true
+          },
+          {
+            "name": "probe grid-pattern.dark.svgStroke paints (not none)",
+            "expected": "!= none",
+            "measured": "oklab(0.96 -0.005 -0.00866025 / 0.25) (rgba [235,243,247,0.251])",
+            "pass": true
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "surface": "/",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_root-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_root-light-390.png",
+          "changedPixels": 408340,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_root-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_root-light-1280.png",
+          "changedPixels": 18863,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_root-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_root-dark-390.png",
+          "changedPixels": 431337,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_root-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_root-dark-1280.png",
+          "changedPixels": 34056,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/pricing",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_pricing-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_pricing-light-390.png",
+          "changedPixels": 451912,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/pricing",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_pricing-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_pricing-light-1280.png",
+          "changedPixels": 1751,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/pricing",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_pricing-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_pricing-dark-390.png",
+          "changedPixels": 477831,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/pricing",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_pricing-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_pricing-dark-1280.png",
+          "changedPixels": 23441,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/help",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_help-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_help-light-390.png",
+          "changedPixels": 17549,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/help",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_help-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_help-light-1280.png",
+          "changedPixels": 11909,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/help",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_help-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_help-dark-390.png",
+          "changedPixels": 29754,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/help",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_help-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_help-dark-1280.png",
+          "changedPixels": 21276,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/faq",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_faq-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_faq-light-390.png",
+          "changedPixels": 819565,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/faq",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_faq-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_faq-light-1280.png",
+          "changedPixels": 11274,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/faq",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_faq-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_faq-dark-390.png",
+          "changedPixels": 815954,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/faq",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_faq-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_faq-dark-1280.png",
+          "changedPixels": 13540,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/contact",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_contact-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_contact-light-390.png",
+          "changedPixels": 44637,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/contact",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_contact-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_contact-light-1280.png",
+          "changedPixels": 0,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/contact",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_contact-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_contact-dark-390.png",
+          "changedPixels": 45473,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/contact",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_contact-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_contact-dark-1280.png",
+          "changedPixels": 0,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-390.png",
+          "changedPixels": 50776,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-light-1280.png",
+          "changedPixels": 0,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-390.png",
+          "changedPixels": 49708,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_blog_turbotenant-vs-apartments-com-complete-comparison-for-2025-dark-1280.png",
+          "changedPixels": 0,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/privacy",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_privacy-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_privacy-light-390.png",
+          "changedPixels": 0,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/privacy",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_privacy-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_privacy-light-1280.png",
+          "changedPixels": 0,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/privacy",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_privacy-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_privacy-dark-390.png",
+          "changedPixels": 0,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/privacy",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_privacy-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_privacy-dark-1280.png",
+          "changedPixels": 0,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/auth/confirm-email",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_confirm-email-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_confirm-email-light-390.png",
+          "changedPixels": 6893,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/auth/confirm-email",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_confirm-email-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_confirm-email-light-1280.png",
+          "changedPixels": 1030,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/auth/confirm-email",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_confirm-email-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_confirm-email-dark-390.png",
+          "changedPixels": 19730,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/auth/confirm-email",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_confirm-email-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_confirm-email-dark-1280.png",
+          "changedPixels": 8888,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/auth/update-password",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_update-password-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_update-password-light-390.png",
+          "changedPixels": 1522,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/auth/update-password",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_update-password-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_update-password-light-1280.png",
+          "changedPixels": 1030,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/auth/update-password",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_update-password-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_update-password-dark-390.png",
+          "changedPixels": 14001,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/auth/update-password",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-1/before/public_auth_update-password-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-1/after/public_auth_update-password-dark-1280.png",
+          "changedPixels": 8854,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/login (no GridPattern on either side; completes the public set)",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/basenow37/public/login-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/final/public/login-light-390.png",
+          "changedPixels": 14479,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/login (no GridPattern on either side; completes the public set)",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/basenow37/public/login-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/final/public/login-light-1280.png",
+          "changedPixels": 834,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/login (no GridPattern on either side; completes the public set)",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/basenow37/public/login-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/final/public/login-dark-390.png",
+          "changedPixels": 24529,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/login (no GridPattern on either side; completes the public set)",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/basenow37/public/login-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/final/public/login-dark-1280.png",
+          "changedPixels": 14539,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/signup (no GridPattern on either side; completes the public set)",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/basenow37/public/signup-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/final/public/signup-light-390.png",
+          "changedPixels": 451917,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/signup (no GridPattern on either side; completes the public set)",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/basenow37/public/signup-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/final/public/signup-light-1280.png",
+          "changedPixels": 1751,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/signup (no GridPattern on either side; completes the public set)",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/basenow37/public/signup-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/final/public/signup-dark-390.png",
+          "changedPixels": 477826,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/signup (no GridPattern on either side; completes the public set)",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/basenow37/public/signup-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/final/public/signup-dark-1280.png",
+          "changedPixels": 23441,
+          "newState": false,
+          "pairing": "same-state"
+        }
+      ],
+      "fallback": {
+        "options": [
+          "cp1-default",
+          "cp1-fallback"
+        ],
+        "files": [
+          "src/components/layout/page-layout.tsx",
+          "src/app/marketing-home.tsx",
+          "src/app/auth/confirm-email/page.tsx",
+          "src/app/auth/update-password/page.tsx",
+          "src/components/ui/grid-pattern.tsx",
+          "src/components/ui/grid-pattern.test.tsx",
+          "src/app/blog/[slug]/page.test.tsx",
+          "src/app/blog/category/[category]/page.test.tsx",
+          "src/app/blog/loading.test.tsx",
+          "src/app/blog/page.test.tsx",
+          "src/app/search/page.test.tsx"
+        ],
+        "edits": [
+          {
+            "option": "cp1-fallback",
+            "file": "src/components/layout/page-layout.tsx",
+            "edit": "the default becomes `showGridPattern = false`, and the JSDoc says \"Default: false\" (the grid is opt-in). The prop and its GridPattern render path stay, as the UI-SPEC wording \"defaults to false\" states."
+          },
+          {
+            "option": "cp1-fallback",
+            "file": "src/app/marketing-home.tsx",
+            "edit": "drop the explicit `showGridPattern={true}`, so `/` follows the new default. This was found while planning: the UI-SPEC wording names only the default."
+          },
+          {
+            "option": "cp1-fallback",
+            "file": "src/app/auth/confirm-email/page.tsx",
+            "edit": "delete the `<GridPattern …/>` element and its import, plus any wrapper or `relative`/`isolate` class that existed only to host the grid (the 66.2-28 SUMMARY lists what it added)."
+          },
+          {
+            "option": "cp1-fallback",
+            "file": "src/app/auth/update-password/page.tsx",
+            "edit": "delete the `<GridPattern …/>` element and its import, plus any wrapper or `relative`/`isolate` class that existed only to host the grid (the 66.2-28 SUMMARY lists what it added)."
+          },
+          {
+            "option": "cp1-fallback",
+            "file": "src/components/ui/grid-pattern.tsx",
+            "edit": "not edited: the repaired classes stay, and the broken classes are never restored."
+          }
+        ],
+        "testsToUpdate": [
+          {
+            "option": "cp1-fallback",
+            "file": "src/components/ui/grid-pattern.test.tsx",
+            "update": "re-run, no edit expected"
+          },
+          {
+            "option": "cp1-fallback",
+            "file": "src/app/blog/[slug]/page.test.tsx",
+            "update": "assert the new default false and the removed auth-page grids where the file pins them"
+          },
+          {
+            "option": "cp1-fallback",
+            "file": "src/app/blog/category/[category]/page.test.tsx",
+            "update": "assert the new default false and the removed auth-page grids where the file pins them"
+          },
+          {
+            "option": "cp1-fallback",
+            "file": "src/app/blog/loading.test.tsx",
+            "update": "assert the new default false and the removed auth-page grids where the file pins them"
+          },
+          {
+            "option": "cp1-fallback",
+            "file": "src/app/blog/page.test.tsx",
+            "update": "assert the new default false and the removed auth-page grids where the file pins them"
+          },
+          {
+            "option": "cp1-fallback",
+            "file": "src/app/search/page.test.tsx",
+            "update": "assert the new default false and the removed auth-page grids where the file pins them"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CP-2",
+      "vd": [
+        "VD-19"
+      ],
+      "sources": [
+        "D-29"
+      ],
+      "status": "decided",
+      "decision": "default",
+      "choice": [
+        "cp2-default"
+      ],
+      "decidedBy": "owner",
+      "ownerReply": "Keep v4 (Recommended)",
+      "ownerReview": "closed",
+      "defaultMeasured": {
+        "pass": true,
+        "checks": [
+          {
+            "name": "button.tsx non-comment lines contain shadow-xs",
+            "expected": ">=1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "button.tsx non-comment lines contain dark:bg-input/30",
+            "expected": ">=1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "button.tsx non-comment lines contain dark:hover:bg-input/50",
+            "expected": ">=1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "button.tsx non-comment lines contain dark:hover:bg-accent/50",
+            "expected": ">=1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "button.tsx non-comment lines contain dark:bg-destructive/60",
+            "expected": ">=1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "button.tsx non-comment lines: no light (unprefixed) border-input",
+            "expected": "0",
+            "measured": "0",
+            "pass": true
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "surface": "owner/dashboard",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_dashboard-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_dashboard-dark-1280.png",
+          "changedPixels": 47732,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "owner/dashboard",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_dashboard-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_dashboard-dark-390.png",
+          "changedPixels": 313180,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "owner/dashboard",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_dashboard-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_dashboard-light-1280.png",
+          "changedPixels": 33859,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "owner/dashboard",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_dashboard-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_dashboard-light-390.png",
+          "changedPixels": 364320,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "owner/properties",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_properties-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_properties-dark-1280.png",
+          "changedPixels": 8507,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "owner/properties",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_properties-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_properties-dark-390.png",
+          "changedPixels": 208762,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "owner/properties",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_properties-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_properties-light-1280.png",
+          "changedPixels": 3733,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "owner/properties",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_properties-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_properties-light-390.png",
+          "changedPixels": 226933,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "owner/settings",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_settings-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_settings-dark-1280.png",
+          "changedPixels": 22833,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "owner/settings",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_settings-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_settings-dark-390.png",
+          "changedPixels": 13201,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "owner/settings",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_settings-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_settings-light-1280.png",
+          "changedPixels": 11729,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "owner/settings",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/owner_settings-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/owner_settings-light-390.png",
+          "changedPixels": 2082,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "public/pricing",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/public_pricing-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/public_pricing-dark-1280.png",
+          "changedPixels": 23441,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "public/pricing",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/public_pricing-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/public_pricing-dark-390.png",
+          "changedPixels": 31991,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "public/pricing",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/public_pricing-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/public_pricing-light-1280.png",
+          "changedPixels": 1751,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "public/pricing",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/public_pricing-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/public_pricing-light-390.png",
+          "changedPixels": 2393,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "Button element shot (all variants)",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/button-light.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/button-light.png",
+          "changedPixels": 2277,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "Button element shot (all variants)",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-2/before/button-dark.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-2/after/button-dark.png",
+          "changedPixels": 11509,
+          "newState": false,
+          "pairing": "same-state"
+        }
+      ],
+      "fallback": {
+        "options": [
+          "cp2-default",
+          "cp2-fallback-border-input",
+          "cp2-fallback-dark-outline",
+          "cp2-fallback-dark-ghost",
+          "cp2-fallback-dark-destructive"
+        ],
+        "files": [
+          "src/components/ui/button.tsx",
+          ".planning/tailwind-shadcn/registry/divergence-register.json",
+          ".planning/tailwind-shadcn/registry/inventory/66.2-39.json",
+          "src/components/ui/__tests__/naming-conventions.test.tsx",
+          "src/components/ui/__tests__/alert-dialog.test.tsx"
+        ],
+        "edits": [
+          {
+            "option": "cp2-fallback-border-input",
+            "file": "src/components/ui/button.tsx",
+            "edit": "in the outline variant, replace the bare `border` + `dark:border-input` pair with `border border-input` (light regains `border-input`; dark is unchanged); keep `shadow-xs`."
+          },
+          {
+            "option": "cp2-fallback-dark-outline",
+            "file": "src/components/ui/button.tsx",
+            "edit": "replace the outline variant's `dark:bg-input/30 dark:hover:bg-input/50` with that variant's `dark:` classes from `git show \"$PRE_22\":src/components/ui/button.tsx` (none, if it had none)."
+          },
+          {
+            "option": "cp2-fallback-dark-ghost",
+            "file": "src/components/ui/button.tsx",
+            "edit": "the same for the ghost variant's `dark:hover:bg-accent/50`."
+          },
+          {
+            "option": "cp2-fallback-dark-destructive",
+            "file": "src/components/ui/button.tsx",
+            "edit": "the same for the destructive variant's `dark:bg-destructive/60`; the `focus-visible:ring-destructive/*` tokens stay (D-29)."
+          },
+          {
+            "option": "cp2-fallback-border-input",
+            "file": "src/components/ui/button.tsx",
+            "edit": "one divergence line in the header comment that cites CP-2 and the owner decision date, in neutral wording, with no color value and no line number."
+          },
+          {
+            "option": "cp2-fallback-border-input",
+            "file": ".planning/tailwind-shadcn/registry/divergence-register.json",
+            "edit": "add to the `src/components/ui/button.tsx` entry one divergence for the option, `what` naming the kept classes, `reason` `D-26 customization`, `ref` `CP-2 (owner decision, 66.2-38)`, and set the entry's `plan` to `66.2-39`."
+          },
+          {
+            "option": "cp2-fallback-border-input",
+            "file": ".planning/tailwind-shadcn/registry/inventory/66.2-39.json",
+            "edit": "run the 66.2-20 register recipe for `src/components/ui/button.tsx` with label `66.2-39`, which writes this file, until it reports `problems: []`."
+          },
+          {
+            "option": "cp2-fallback-dark-outline",
+            "file": "src/components/ui/button.tsx",
+            "edit": "one divergence line in the header comment that cites CP-2 and the owner decision date, in neutral wording, with no color value and no line number."
+          },
+          {
+            "option": "cp2-fallback-dark-outline",
+            "file": ".planning/tailwind-shadcn/registry/divergence-register.json",
+            "edit": "add to the `src/components/ui/button.tsx` entry one divergence for the option, `what` naming the kept classes, `reason` `D-26 customization`, `ref` `CP-2 (owner decision, 66.2-38)`, and set the entry's `plan` to `66.2-39`."
+          },
+          {
+            "option": "cp2-fallback-dark-outline",
+            "file": ".planning/tailwind-shadcn/registry/inventory/66.2-39.json",
+            "edit": "run the 66.2-20 register recipe for `src/components/ui/button.tsx` with label `66.2-39`, which writes this file, until it reports `problems: []`."
+          },
+          {
+            "option": "cp2-fallback-dark-ghost",
+            "file": "src/components/ui/button.tsx",
+            "edit": "one divergence line in the header comment that cites CP-2 and the owner decision date, in neutral wording, with no color value and no line number."
+          },
+          {
+            "option": "cp2-fallback-dark-ghost",
+            "file": ".planning/tailwind-shadcn/registry/divergence-register.json",
+            "edit": "add to the `src/components/ui/button.tsx` entry one divergence for the option, `what` naming the kept classes, `reason` `D-26 customization`, `ref` `CP-2 (owner decision, 66.2-38)`, and set the entry's `plan` to `66.2-39`."
+          },
+          {
+            "option": "cp2-fallback-dark-ghost",
+            "file": ".planning/tailwind-shadcn/registry/inventory/66.2-39.json",
+            "edit": "run the 66.2-20 register recipe for `src/components/ui/button.tsx` with label `66.2-39`, which writes this file, until it reports `problems: []`."
+          },
+          {
+            "option": "cp2-fallback-dark-destructive",
+            "file": "src/components/ui/button.tsx",
+            "edit": "one divergence line in the header comment that cites CP-2 and the owner decision date, in neutral wording, with no color value and no line number."
+          },
+          {
+            "option": "cp2-fallback-dark-destructive",
+            "file": ".planning/tailwind-shadcn/registry/divergence-register.json",
+            "edit": "add to the `src/components/ui/button.tsx` entry one divergence for the option, `what` naming the kept classes, `reason` `D-26 customization`, `ref` `CP-2 (owner decision, 66.2-38)`, and set the entry's `plan` to `66.2-39`."
+          },
+          {
+            "option": "cp2-fallback-dark-destructive",
+            "file": ".planning/tailwind-shadcn/registry/inventory/66.2-39.json",
+            "edit": "run the 66.2-20 register recipe for `src/components/ui/button.tsx` with label `66.2-39`, which writes this file, until it reports `problems: []`."
+          }
+        ],
+        "testsToUpdate": [
+          {
+            "option": "cp2-fallback-border-input",
+            "file": "src/components/ui/__tests__/naming-conventions.test.tsx",
+            "update": "update the matching variant assertions"
+          },
+          {
+            "option": "cp2-fallback-dark-outline",
+            "file": "src/components/ui/__tests__/naming-conventions.test.tsx",
+            "update": "update the matching variant assertions"
+          },
+          {
+            "option": "cp2-fallback-dark-ghost",
+            "file": "src/components/ui/__tests__/naming-conventions.test.tsx",
+            "update": "update the matching variant assertions"
+          },
+          {
+            "option": "cp2-fallback-dark-destructive",
+            "file": "src/components/ui/__tests__/naming-conventions.test.tsx",
+            "update": "update the matching variant assertions"
+          },
+          {
+            "option": "cp2-fallback-dark-destructive",
+            "file": "src/components/ui/__tests__/alert-dialog.test.tsx",
+            "update": "re-derive `VD19_DESTRUCTIVE_DELTA` from the new base and destructive strings as 66.2-23 did, never by hand"
+          }
+        ],
+        "context": {
+          "PRE_22": "dd48395f39273d29c8733693705906f0a4f03f44",
+          "PRE_22_rule": "the parent of the oldest commit whose subject contains `(66.2-22)` in 754c91802..HEAD",
+          "pre22DarkClasses": {
+            "outline": [],
+            "ghost": [],
+            "destructive": []
+          },
+          "note": "the focus ring is never an option (D-29); every option inherits G8 / PATTERNS #6 canonical classes, the PATTERNS #7 copy banlist and no hex literal"
+        }
+      }
+    },
+    {
+      "id": "CP-3",
+      "vd": [
+        "VD-19",
+        "VD-34"
+      ],
+      "sources": [
+        "D-29"
+      ],
+      "status": "decided",
+      "decision": "default",
+      "choice": [
+        "cp3-default"
+      ],
+      "decidedBy": "owner",
+      "ownerReply": "Keep v4 rings (Recommended)",
+      "ownerReview": "closed",
+      "supersededBy": {
+        "round": "66.2-39 fix round 4",
+        "decidedBy": "main session",
+        "recordedAt": "2026-11-07",
+        "authority": "the owner's 2026-11-07 contrast directive: text or UI below WCAG AA contrast that a sweep finds is fixed, wherever it is, never deferred",
+        "what": "the ring color only: upstream's ring-ring/50 (and ring-destructive/20, dark /40, on destructive and invalid controls) read 2.17-2.58:1 (1.08-1.43:1) against the page, card and popover, under WCAG 1.4.11's 3:1, so every primitive's focus ring is opaque: ring-ring, and ring-destructive-text on destructive and invalid controls",
+        "kept": "the Button's 3px ring width and border-ring, and the sidebar rows' 2px ring-sidebar-ring (VD-34), which was already opaque",
+        "commits": [
+          "552d56931",
+          "2f54b8ad7",
+          "f6b286670"
+        ],
+        "vd": [
+          "VD-19",
+          "VD-161"
+        ],
+        "note": "defaultMeasured records the 66.2-38 reviewed head; its 'button.tsx non-comment lines contain focus-visible:ring-ring/50' check no longer holds, by this decision"
+      },
+      "defaultMeasured": {
+        "pass": true,
+        "checks": [
+          {
+            "name": "button.tsx non-comment lines contain focus-visible:ring-[3px]",
+            "expected": ">=1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "button.tsx non-comment lines contain focus-visible:ring-ring/50",
+            "expected": ">=1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "button.tsx non-comment lines: no ring-offset-2",
+            "expected": "0",
+            "measured": "0",
+            "pass": true
+          },
+          {
+            "name": "sidebar.tsx non-comment lines contain ring-sidebar-ring",
+            "expected": ">=1",
+            "measured": "2",
+            "pass": true
+          },
+          {
+            "name": "sidebar.tsx non-comment lines contain focus-visible:ring-2",
+            "expected": ">=1",
+            "measured": "2",
+            "pass": true
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "surface": "Button focus-visible (outline variant focused)",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/button-focus-light.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/button-focus-light.png",
+          "changedPixels": 3033,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "Button focus-visible (outline variant focused)",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/button-focus-dark.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/button-focus-dark.png",
+          "changedPixels": 12679,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "sidebar row-focus",
+          "theme": "light",
+          "width": 1024,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/sidebar_row-focus-light-1024.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/sidebar_row-focus-light-1024.png",
+          "changedPixels": 4752,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "sidebar row-focus",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/sidebar_row-focus-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/sidebar_row-focus-light-1280.png",
+          "changedPixels": 4752,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "sidebar row-focus",
+          "theme": "dark",
+          "width": 1024,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/sidebar_row-focus-dark-1024.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/sidebar_row-focus-dark-1024.png",
+          "changedPixels": 4740,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "sidebar row-focus",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-3/before/sidebar_row-focus-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-3/after/sidebar_row-focus-dark-1280.png",
+          "changedPixels": 4740,
+          "newState": false,
+          "pairing": "same-state"
+        }
+      ],
+      "fallback": {
+        "options": [
+          "cp3-default",
+          "cp3-fallback"
+        ],
+        "files": [
+          "src/components/shell/main-nav.tsx",
+          "src/components/shell/__tests__/main-nav.test.tsx",
+          "tests/e2e/tests/owner/app-shell-sidebar.spec.ts"
+        ],
+        "edits": [
+          {
+            "option": "cp3-fallback",
+            "file": "src/components/shell/main-nav.tsx",
+            "edit": "append the six tokens `focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:ring-4 focus-visible:ring-ring/20` to the className of every SidebarMenuButton and SidebarMenuSubButton call site: the core rows, the section toggles, the sub rows and the two footer links. tailwind-merge then drops the canonical `focus-visible:ring-2` for `focus-visible:ring-4`. The classes are verified canonical (UI-SPEC CP-3). The vendored `src/components/ui/sidebar.tsx` is never edited for this, and the Button ring is unchanged (D-29)."
+          }
+        ],
+        "testsToUpdate": [
+          {
+            "option": "cp3-fallback",
+            "file": "src/components/shell/__tests__/main-nav.test.tsx",
+            "update": "each row kind's merged class list contains the six tokens and not `focus-visible:ring-2`"
+          },
+          {
+            "option": "cp3-fallback",
+            "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+            "update": "Test C: a keyboard-focused row computes `outline-style: solid`, `outline-width: 2px`, `outline-offset: 2px`, an outline color equal to the resolved `--color-ring`, and a box-shadow with a 4px spread"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CP-4",
+      "vd": [
+        "VD-29",
+        "VD-31"
+      ],
+      "sources": [
+        "D-34",
+        "D-52"
+      ],
+      "status": "decided",
+      "decision": "default",
+      "choice": [
+        "cp4-default"
+      ],
+      "decidedBy": "owner",
+      "ownerReply": "Keep + fix layout (Recommended)",
+      "ownerReview": "closed",
+      "followUp": {
+        "requestedBy": "owner",
+        "note": "The owner asked to fix the layout defects the 66.2-38 review found, if this phase caused them. Recorded as a follow-up, not a fallback; run separately after 66.2-38 and before 66.2-39 (deferred-items.md).",
+        "defects": [
+          "collapsed desktop rail at 1024 and 1280: the dashboard KPI values wrap (\"$\" / \"7,500\" at both widths, \"33\" / \"%\" at 1280)",
+          "expanded rail at 1024: the Quick Actions \"Add Property\" card overflows its column by about 10px, and the quick-actions dock overlaps the occupancy donut"
+        ],
+        "evidence": [
+          ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/collapsed-vs-rail-expanded-light-1280.png",
+          ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/collapsed-vs-rail-expanded-dark-1024.png",
+          ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/sidebar_rail-expanded-light-1024.png"
+        ]
+      },
+      "defaultMeasured": {
+        "pass": true,
+        "checks": [
+          {
+            "name": "<SidebarRail rendered under src/components/shell (files)",
+            "expected": ">=1",
+            "measured": "1 (src/components/shell/app-shell-sidebar.tsx)",
+            "pass": true
+          },
+          {
+            "name": "app-shell-header.tsx <SidebarTrigger element extracted",
+            "expected": "1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "app-shell-header.tsx <SidebarTrigger element has no lg:hidden",
+            "expected": "0",
+            "measured": "0",
+            "pass": true
+          },
+          {
+            "name": "sidebar.tsx non-comment lines contain SIDEBAR_KEYBOARD_SHORTCUT",
+            "expected": ">=1",
+            "measured": "2",
+            "pass": true
+          },
+          {
+            "name": "src/lib/sidebar-state.ts names the sidebar_state cookie",
+            "expected": ">=1",
+            "measured": "2",
+            "pass": true
+          },
+          {
+            "name": "66.2-37 owner-axe: app-shell-sidebar.spec.ts all expected (S-10 collapse, cookie, guards)",
+            "expected": "21 expected, 0 unexpected",
+            "measured": "21 expected (66.2-37 SUMMARY (k))",
+            "pass": true
+          },
+          {
+            "name": "66.2-37 E2E run (smoke+public+owner-axe)",
+            "expected": "exit 0, unexpected 0",
+            "measured": "exit 0; expected 155, unexpected 0, flaky 0, skipped 3",
+            "pass": true
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "surface": "rail-expanded + header",
+          "theme": "light",
+          "width": 1024,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/sidebar_rail-expanded-light-1024.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/sidebar_rail-expanded-light-1024.png",
+          "changedPixels": 2839,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "rail-expanded + header",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/sidebar_rail-expanded-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/sidebar_rail-expanded-light-1280.png",
+          "changedPixels": 2839,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "rail-expanded + header",
+          "theme": "dark",
+          "width": 1024,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/sidebar_rail-expanded-dark-1024.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/sidebar_rail-expanded-dark-1024.png",
+          "changedPixels": 2824,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "rail-expanded + header",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/sidebar_rail-expanded-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/sidebar_rail-expanded-dark-1280.png",
+          "changedPixels": 2824,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "header-390",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/owner_dashboard-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/owner_dashboard-light-390.png",
+          "changedPixels": 360473,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "header-390",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/owner_dashboard-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/owner_dashboard-dark-390.png",
+          "changedPixels": 300511,
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "collapsed",
+          "theme": "light",
+          "width": 1024,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/collapsed-vs-rail-expanded-light-1024.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/collapsed-vs-rail-expanded-light-1024.png",
+          "changedPixels": 346904,
+          "newState": true,
+          "pairing": "no-before-state (VD-29)"
+        },
+        {
+          "surface": "collapsed",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/collapsed-vs-rail-expanded-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/collapsed-vs-rail-expanded-light-1280.png",
+          "changedPixels": 445190,
+          "newState": true,
+          "pairing": "no-before-state (VD-29)"
+        },
+        {
+          "surface": "collapsed",
+          "theme": "dark",
+          "width": 1024,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/collapsed-vs-rail-expanded-dark-1024.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/collapsed-vs-rail-expanded-dark-1024.png",
+          "changedPixels": 311787,
+          "newState": true,
+          "pairing": "no-before-state (VD-29)"
+        },
+        {
+          "surface": "collapsed",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/collapsed-vs-rail-expanded-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/collapsed-vs-rail-expanded-dark-1280.png",
+          "changedPixels": 415719,
+          "newState": true,
+          "pairing": "no-before-state (VD-29)"
+        },
+        {
+          "surface": "rail-hover",
+          "theme": "light",
+          "width": 1024,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/rail-hover-vs-rail-expanded-light-1024.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/rail-hover-vs-rail-expanded-light-1024.png",
+          "changedPixels": 3638,
+          "newState": true,
+          "pairing": "no-before-state (VD-29)"
+        },
+        {
+          "surface": "rail-hover",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/rail-hover-vs-rail-expanded-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/rail-hover-vs-rail-expanded-light-1280.png",
+          "changedPixels": 3638,
+          "newState": true,
+          "pairing": "no-before-state (VD-29)"
+        },
+        {
+          "surface": "rail-hover",
+          "theme": "dark",
+          "width": 1024,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/rail-hover-vs-rail-expanded-dark-1024.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/rail-hover-vs-rail-expanded-dark-1024.png",
+          "changedPixels": 3623,
+          "newState": true,
+          "pairing": "no-before-state (VD-29)"
+        },
+        {
+          "surface": "rail-hover",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-4/before/rail-hover-vs-rail-expanded-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-4/after/rail-hover-vs-rail-expanded-dark-1280.png",
+          "changedPixels": 3623,
+          "newState": true,
+          "pairing": "no-before-state (VD-29)"
+        }
+      ],
+      "fallback": {
+        "options": [
+          "cp4-default",
+          "cp4-fallback"
+        ],
+        "files": [
+          "src/components/shell/app-shell-header.tsx",
+          "src/components/shell/app-shell-sidebar.tsx",
+          "src/components/shell/app-shell.tsx",
+          "src/app/(owner)/owner-dashboard-layout.tsx",
+          "src/lib/sidebar-state.ts",
+          "src/components/shell/__tests__/app-shell.test.tsx",
+          "src/app/(owner)/__tests__/owner-dashboard-layout.test.tsx",
+          "src/lib/__tests__/sidebar-state.test.ts",
+          "tests/e2e/tests/owner/app-shell-sidebar.spec.ts"
+        ],
+        "edits": [
+          {
+            "option": "cp4-fallback",
+            "file": "src/components/shell/app-shell-header.tsx",
+            "edit": "add `lg:hidden` to the `<SidebarTrigger …>` className; keep its ref and its \"Toggle navigation menu\" label."
+          },
+          {
+            "option": "cp4-fallback",
+            "file": "src/components/shell/app-shell-sidebar.tsx",
+            "edit": "remove `<SidebarRail />` and its import (66.2-33 renders the rail here)."
+          },
+          {
+            "option": "cp4-fallback",
+            "file": "src/components/shell/app-shell.tsx",
+            "edit": "in `AppShellFrame`, a `useEffect` registers a `document` `keydown` listener in the bubble phase that calls `event.stopPropagation()` when `(event.metaKey || event.ctrlKey) && event.key.toLowerCase() === \"b\"`, and removes it on cleanup. It never calls `preventDefault`. The provider listens on `window`, which a `document` bubble-phase stop precedes. The literal `\"b\"` is used because `SIDEBAR_KEYBOARD_SHORTCUT` is a module constant that sidebar.tsx does not export, and sidebar.tsx is not edited; a one-line comment says so."
+          },
+          {
+            "option": "cp4-fallback",
+            "file": "src/app/(owner)/owner-dashboard-layout.tsx",
+            "edit": "stop reading `sidebar_state` (drop the `cookies()` call and the `#lib/sidebar-state` import) and render `<AppShell>` without `defaultSidebarOpen`, so SidebarProvider always starts expanded. Otherwise a stale or hand-set `false` would strand the desktop rail collapsed with no control left to reopen it."
+          },
+          {
+            "option": "cp4-fallback",
+            "file": "src/lib/sidebar-state.ts",
+            "edit": "delete every export left without a non-test importer (check each name with `rg -n \"<name>\" src -g '!**/__tests__/**' -g '!*.test.*'`; expected: `parseSidebarOpen`, while `SIDEBAR_COOKIE_NAME`, `SIDEBAR_COOKIE_MAX_AGE` and `persistSidebarOpen` stay imported by sidebar.tsx). The tour step-5 helper and the dock's collapsed branch stay: they are state-driven, and their collapsed branches become unreachable at desktop width only."
+          }
+        ],
+        "testsToUpdate": [
+          {
+            "option": "cp4-fallback",
+            "file": "src/components/shell/__tests__/app-shell.test.tsx",
+            "update": "the trigger carries `lg:hidden`; no `[data-slot=\"sidebar-rail\"]` renders; a Meta+B and a Control+B keydown dispatched on `document.body` leave the desktop state `expanded`"
+          },
+          {
+            "option": "cp4-fallback",
+            "file": "src/app/(owner)/__tests__/owner-dashboard-layout.test.tsx",
+            "update": "`cookies` is never called and AppShell receives exactly the `children` key"
+          },
+          {
+            "option": "cp4-fallback",
+            "file": "src/lib/__tests__/sidebar-state.test.ts",
+            "update": "drop the cases of deleted exports"
+          },
+          {
+            "option": "cp4-fallback",
+            "file": "tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+            "update": "Test D at 1280: the trigger computes `display: none`, the rail count is 0, after `Meta+B` and `Control+B` the desktop `data-state` stays `expanded` and `context.cookies()` holds no `sidebar_state`, and a seeded `sidebar_state=false` still renders `expanded`; Test E keeps its expanded half; Test F keeps its expanded pass; tour T3 becomes \"seeded `false` at 1280, step 5 targets the rail\" with the T4 assertions; at 375 the trigger still opens the sheet"
+          }
+        ],
+        "context": {
+          "keptReason": "The tour step-5 helper and the dock's collapsed branch stay: they are state-driven, and their collapsed branches become unreachable at desktop width only.",
+          "d52": "the recorded D-52 fallback plus the cookie-read step (T-66.2-38-04)"
+        }
+      }
+    },
+    {
+      "id": "CP-5",
+      "vd": [
+        "VD-23"
+      ],
+      "sources": [
+        "D-30",
+        "C12c"
+      ],
+      "status": "decided",
+      "decision": "default",
+      "choice": [
+        "cp5-default"
+      ],
+      "decidedBy": "owner",
+      "ownerReply": "Keep entrance (Recommended)",
+      "ownerReview": "closed",
+      "defaultMeasured": {
+        "pass": true,
+        "checks": [
+          {
+            "name": "blur-fade.tsx non-comment lines contain animate-in",
+            "expected": ">=1",
+            "measured": "6",
+            "pass": true
+          },
+          {
+            "name": "blur-fade.tsx non-comment lines contain motion-reduce:animate-none",
+            "expected": ">=1",
+            "measured": "6",
+            "pass": true
+          },
+          {
+            "name": "blur-fade.tsx non-comment lines: no IntersectionObserver / aria-hidden",
+            "expected": "0",
+            "measured": "0",
+            "pass": true
+          },
+          {
+            "name": "probe blur-fade-no-js.light.opacityAtEnd",
+            "expected": "1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "probe blur-fade-no-js.light.ssrHtmlHasOpacity0",
+            "expected": "false",
+            "measured": "false",
+            "pass": true
+          },
+          {
+            "name": "probe blur-fade-no-js.dark.opacityAtEnd",
+            "expected": "1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "probe blur-fade-no-js.dark.ssrHtmlHasOpacity0",
+            "expected": "false",
+            "measured": "false",
+            "pass": true
+          },
+          {
+            "name": "probe blur-fade-reduced-motion.light.opacityAtEnd",
+            "expected": "1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "probe blur-fade-reduced-motion.light.ssrHtmlHasOpacity0",
+            "expected": "false",
+            "measured": "false",
+            "pass": true
+          },
+          {
+            "name": "probe blur-fade-reduced-motion.dark.opacityAtEnd",
+            "expected": "1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "probe blur-fade-reduced-motion.dark.ssrHtmlHasOpacity0",
+            "expected": "false",
+            "measured": "false",
+            "pass": true
+          },
+          {
+            "name": "probe blur-fade-io-stub.light.opacityAtEnd",
+            "expected": "1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "probe blur-fade-io-stub.light.ssrHtmlHasOpacity0",
+            "expected": "false",
+            "measured": "false",
+            "pass": true
+          },
+          {
+            "name": "probe blur-fade-io-stub.dark.opacityAtEnd",
+            "expected": "1",
+            "measured": "1",
+            "pass": true
+          },
+          {
+            "name": "probe blur-fade-io-stub.dark.ssrHtmlHasOpacity0",
+            "expected": "false",
+            "measured": "false",
+            "pass": true
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "frame": "literal-root-light-t0.png",
+          "route": "/",
+          "theme": "light",
+          "mode": "literal",
+          "t": 0,
+          "opacity": 0,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "literal-root-light-t100.png",
+          "route": "/",
+          "theme": "light",
+          "mode": "literal",
+          "t": 100,
+          "opacity": 0.808428,
+          "minBlurFadeOpacity": 0.532374
+        },
+        {
+          "frame": "literal-root-light-t200.png",
+          "route": "/",
+          "theme": "light",
+          "mode": "literal",
+          "t": 200,
+          "opacity": 0.999155,
+          "minBlurFadeOpacity": 0.954544
+        },
+        {
+          "frame": "literal-root-light-t400.png",
+          "route": "/",
+          "theme": "light",
+          "mode": "literal",
+          "t": 400,
+          "opacity": 1,
+          "minBlurFadeOpacity": 1
+        },
+        {
+          "frame": "literal-root-light-t980.png",
+          "route": "/",
+          "theme": "light",
+          "mode": "literal",
+          "t": 980,
+          "opacity": 1,
+          "minBlurFadeOpacity": 1
+        },
+        {
+          "frame": "isolated-root-light-t0.png",
+          "route": "/",
+          "theme": "light",
+          "mode": "isolated",
+          "t": 0,
+          "opacity": 0,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "isolated-root-light-t100.png",
+          "route": "/",
+          "theme": "light",
+          "mode": "isolated",
+          "t": 100,
+          "opacity": 0.808428,
+          "minBlurFadeOpacity": 0.532374
+        },
+        {
+          "frame": "isolated-root-light-t200.png",
+          "route": "/",
+          "theme": "light",
+          "mode": "isolated",
+          "t": 200,
+          "opacity": 0.999155,
+          "minBlurFadeOpacity": 0.954544
+        },
+        {
+          "frame": "isolated-root-light-t400.png",
+          "route": "/",
+          "theme": "light",
+          "mode": "isolated",
+          "t": 400,
+          "opacity": 1,
+          "minBlurFadeOpacity": 1
+        },
+        {
+          "frame": "isolated-root-light-t980.png",
+          "route": "/",
+          "theme": "light",
+          "mode": "isolated",
+          "t": 980,
+          "opacity": 1,
+          "minBlurFadeOpacity": 1
+        },
+        {
+          "frame": "literal-dashboard-light-t0.png",
+          "route": "/dashboard",
+          "theme": "light",
+          "mode": "literal",
+          "t": 0,
+          "opacity": 0,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "literal-dashboard-light-t100.png",
+          "route": "/dashboard",
+          "theme": "light",
+          "mode": "literal",
+          "t": 100,
+          "opacity": 0.5,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "literal-dashboard-light-t200.png",
+          "route": "/dashboard",
+          "theme": "light",
+          "mode": "literal",
+          "t": 200,
+          "opacity": 0.755263,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "literal-dashboard-light-t400.png",
+          "route": "/dashboard",
+          "theme": "light",
+          "mode": "literal",
+          "t": 400,
+          "opacity": 0.977559,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "literal-dashboard-light-t980.png",
+          "route": "/dashboard",
+          "theme": "light",
+          "mode": "literal",
+          "t": 980,
+          "opacity": 1,
+          "minBlurFadeOpacity": 1
+        },
+        {
+          "frame": "isolated-dashboard-light-t0.png",
+          "route": "/dashboard",
+          "theme": "light",
+          "mode": "isolated",
+          "t": 0,
+          "opacity": 0,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "isolated-dashboard-light-t100.png",
+          "route": "/dashboard",
+          "theme": "light",
+          "mode": "isolated",
+          "t": 100,
+          "opacity": 0.5,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "isolated-dashboard-light-t200.png",
+          "route": "/dashboard",
+          "theme": "light",
+          "mode": "isolated",
+          "t": 200,
+          "opacity": 0.755263,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "isolated-dashboard-light-t400.png",
+          "route": "/dashboard",
+          "theme": "light",
+          "mode": "isolated",
+          "t": 400,
+          "opacity": 0.977559,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "isolated-dashboard-light-t980.png",
+          "route": "/dashboard",
+          "theme": "light",
+          "mode": "isolated",
+          "t": 980,
+          "opacity": 1,
+          "minBlurFadeOpacity": 1
+        },
+        {
+          "frame": "literal-root-dark-t0.png",
+          "route": "/",
+          "theme": "dark",
+          "mode": "literal",
+          "t": 0,
+          "opacity": 0,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "literal-root-dark-t100.png",
+          "route": "/",
+          "theme": "dark",
+          "mode": "literal",
+          "t": 100,
+          "opacity": 0.808428,
+          "minBlurFadeOpacity": 0.532374
+        },
+        {
+          "frame": "literal-root-dark-t200.png",
+          "route": "/",
+          "theme": "dark",
+          "mode": "literal",
+          "t": 200,
+          "opacity": 0.999155,
+          "minBlurFadeOpacity": 0.954544
+        },
+        {
+          "frame": "literal-root-dark-t400.png",
+          "route": "/",
+          "theme": "dark",
+          "mode": "literal",
+          "t": 400,
+          "opacity": 1,
+          "minBlurFadeOpacity": 1
+        },
+        {
+          "frame": "literal-root-dark-t980.png",
+          "route": "/",
+          "theme": "dark",
+          "mode": "literal",
+          "t": 980,
+          "opacity": 1,
+          "minBlurFadeOpacity": 1
+        },
+        {
+          "frame": "isolated-root-dark-t0.png",
+          "route": "/",
+          "theme": "dark",
+          "mode": "isolated",
+          "t": 0,
+          "opacity": 0,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "isolated-root-dark-t100.png",
+          "route": "/",
+          "theme": "dark",
+          "mode": "isolated",
+          "t": 100,
+          "opacity": 0.808428,
+          "minBlurFadeOpacity": 0.532374
+        },
+        {
+          "frame": "isolated-root-dark-t200.png",
+          "route": "/",
+          "theme": "dark",
+          "mode": "isolated",
+          "t": 200,
+          "opacity": 0.999155,
+          "minBlurFadeOpacity": 0.954544
+        },
+        {
+          "frame": "isolated-root-dark-t400.png",
+          "route": "/",
+          "theme": "dark",
+          "mode": "isolated",
+          "t": 400,
+          "opacity": 1,
+          "minBlurFadeOpacity": 1
+        },
+        {
+          "frame": "isolated-root-dark-t980.png",
+          "route": "/",
+          "theme": "dark",
+          "mode": "isolated",
+          "t": 980,
+          "opacity": 1,
+          "minBlurFadeOpacity": 1
+        },
+        {
+          "frame": "literal-dashboard-dark-t0.png",
+          "route": "/dashboard",
+          "theme": "dark",
+          "mode": "literal",
+          "t": 0,
+          "opacity": 0,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "literal-dashboard-dark-t100.png",
+          "route": "/dashboard",
+          "theme": "dark",
+          "mode": "literal",
+          "t": 100,
+          "opacity": 0.5,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "literal-dashboard-dark-t200.png",
+          "route": "/dashboard",
+          "theme": "dark",
+          "mode": "literal",
+          "t": 200,
+          "opacity": 0.755263,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "literal-dashboard-dark-t400.png",
+          "route": "/dashboard",
+          "theme": "dark",
+          "mode": "literal",
+          "t": 400,
+          "opacity": 0.977559,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "literal-dashboard-dark-t980.png",
+          "route": "/dashboard",
+          "theme": "dark",
+          "mode": "literal",
+          "t": 980,
+          "opacity": 1,
+          "minBlurFadeOpacity": 1
+        },
+        {
+          "frame": "isolated-dashboard-dark-t0.png",
+          "route": "/dashboard",
+          "theme": "dark",
+          "mode": "isolated",
+          "t": 0,
+          "opacity": 0,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "isolated-dashboard-dark-t100.png",
+          "route": "/dashboard",
+          "theme": "dark",
+          "mode": "isolated",
+          "t": 100,
+          "opacity": 0.5,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "isolated-dashboard-dark-t200.png",
+          "route": "/dashboard",
+          "theme": "dark",
+          "mode": "isolated",
+          "t": 200,
+          "opacity": 0.755263,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "isolated-dashboard-dark-t400.png",
+          "route": "/dashboard",
+          "theme": "dark",
+          "mode": "isolated",
+          "t": 400,
+          "opacity": 0.977559,
+          "minBlurFadeOpacity": 0
+        },
+        {
+          "frame": "isolated-dashboard-dark-t980.png",
+          "route": "/dashboard",
+          "theme": "dark",
+          "mode": "isolated",
+          "t": 980,
+          "opacity": 1,
+          "minBlurFadeOpacity": 1
+        },
+        {
+          "surface": "/dashboard",
+          "theme": "light",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-5/before/owner_dashboard-light-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-5/after/owner_dashboard-light-390.png",
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/dashboard",
+          "theme": "light",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-5/before/owner_dashboard-light-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-5/after/owner_dashboard-light-1280.png",
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/dashboard",
+          "theme": "dark",
+          "width": 390,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-5/before/owner_dashboard-dark-390.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-5/after/owner_dashboard-dark-390.png",
+          "newState": false,
+          "pairing": "same-state"
+        },
+        {
+          "surface": "/dashboard",
+          "theme": "dark",
+          "width": 1280,
+          "before": ".planning/tailwind-shadcn/audit/screens/review/CP-5/before/owner_dashboard-dark-1280.png",
+          "after": ".planning/tailwind-shadcn/audit/screens/review/CP-5/after/owner_dashboard-dark-1280.png",
+          "newState": false,
+          "pairing": "same-state"
+        }
+      ],
+      "fallback": {
+        "options": [
+          "cp5-default",
+          "cp5-fallback"
+        ],
+        "files": [
+          "src/components/ui/blur-fade.tsx",
+          "src/types/frontend.ts",
+          ".planning/tailwind-shadcn/audit/strip-blur-fade-props.mjs",
+          "src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
+          "src/app/(owner)/analytics/financial/_components/invoice-summary-list.tsx",
+          "src/app/(owner)/analytics/financial/page.tsx",
+          "src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+          "src/app/(owner)/analytics/overview/page.tsx",
+          "src/app/(owner)/analytics/property-performance/page.tsx",
+          "src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
+          "src/app/(owner)/leases/page.tsx",
+          "src/app/(owner)/profile/page.tsx",
+          "src/app/(owner)/reports/balance-sheet/page.tsx",
+          "src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx",
+          "src/app/(owner)/reports/cash-flow/cash-flow-balance-summary.tsx",
+          "src/app/(owner)/reports/cash-flow/cash-flow-breakdown.tsx",
+          "src/app/(owner)/reports/cash-flow/cash-flow-header.tsx",
+          "src/app/(owner)/reports/cash-flow/cash-flow-stats.tsx",
+          "src/app/(owner)/reports/expenses/_components/expense-category-breakdown.tsx",
+          "src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
+          "src/app/(owner)/reports/expenses/_components/expense-table.tsx",
+          "src/app/(owner)/reports/expenses/page.tsx",
+          "src/app/(owner)/reports/income-statement/income-statement-page-breakdowns.tsx",
+          "src/app/(owner)/reports/income-statement/income-statement-page-header.tsx",
+          "src/app/(owner)/reports/income-statement/income-statement-page-net-summary.tsx",
+          "src/app/(owner)/reports/income-statement/income-statement-page-stats.tsx",
+          "src/app/(owner)/reports/tax-documents/page.tsx",
+          "src/app/(owner)/settings/page.tsx",
+          "src/app/about/page.tsx",
+          "src/app/compare/page.tsx",
+          "src/components/analytics/lease-insights-section.tsx",
+          "src/components/analytics/maintenance-insights-section.tsx",
+          "src/components/analytics/property-insights-section.tsx",
+          "src/components/dashboard/components/kpi-bento-row.tsx",
+          "src/components/dashboard/components/portfolio-data-table.tsx",
+          "src/components/landing/bento-features-section.tsx",
+          "src/components/landing/final-cta-section.tsx",
+          "src/components/landing/hero-section.tsx",
+          "src/components/landing/results-proof-section.tsx",
+          "src/components/landing/testimonials-section.tsx",
+          "src/components/leases/table/leases-page-skeleton.tsx",
+          "src/components/leases/table/leases-table.tsx",
+          "src/components/maintenance/kanban/maintenance-kanban.client.tsx",
+          "src/components/maintenance/maintenance-view-tabs.tsx",
+          "src/components/maintenance/maintenance-view.client.tsx",
+          "src/components/profiles/owner/personal-info-section.tsx",
+          "src/components/profiles/owner/profile-card.tsx",
+          "src/components/profiles/owner/quick-links-section.tsx",
+          "src/components/profiles/owner/security-section.tsx",
+          "src/components/sections/comparison-table.tsx",
+          "src/components/sections/features-section.tsx",
+          "src/components/sections/home-faq.tsx",
+          "src/components/sections/how-it-works.tsx",
+          "src/components/sections/logo-cloud.tsx",
+          "src/components/sections/premium-cta.tsx",
+          "src/components/sections/stats-showcase.tsx",
+          "src/components/sections/testimonials-section.tsx",
+          "src/components/settings/account-data-section.tsx",
+          "src/components/settings/billing-settings.tsx",
+          "src/components/settings/gdpr-data-actions.tsx",
+          "src/components/settings/general-settings.tsx",
+          "src/components/settings/notification-settings.tsx",
+          "src/components/settings/sections/active-sessions-section.tsx",
+          "src/components/settings/sections/billing-history-section.tsx",
+          "src/components/settings/sections/password-section.tsx",
+          "src/components/settings/sections/subscription-cancel-section.tsx",
+          "src/components/settings/sections/two-factor-section.tsx",
+          "src/components/settings/sections/usage-section.tsx",
+          "src/components/settings/security-settings.tsx",
+          "src/components/tenants/tenant-grid.tsx",
+          "src/components/tenants/tenant-stats.tsx",
+          "src/components/tenants/tenants.tsx",
+          "src/components/ui/__tests__/blur-fade.test.tsx",
+          "tests/e2e/tests/owner/dashboard-a11y.e2e.spec.ts",
+          "src/components/ui/__tests__/blur-fade-classes.test.ts",
+          "src/components/dashboard/components/__tests__/kpi-bento-row.test.tsx"
+        ],
+        "edits": [
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/ui/blur-fade.tsx",
+            "edit": "render `<div data-slot=\"blur-fade\" className={cn(\"animate-none\", className)}>` with no other animation class and no `style`. Delete the entrance machinery that becomes unread: `BLUR_FADE_PRESET_CLASSES`, `BLUR_FADE_DURATION_CLASSES`, `BLUR_FADE_DELAY_STEP_MS`, `BLUR_FADE_MAX_DELAY_MS` and any other export 66.2-27 names."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/types/frontend.ts",
+            "edit": "(rule 3): remove from `BlurFadeProps` every prop the component no longer reads (the delay, duration, preset and `reducedMotion` props by their 66.2-27 names)."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": ".planning/tailwind-shadcn/audit/strip-blur-fade-props.mjs",
+            "edit": "(66.2-27): its `REMOVED` list is fixed to the 66.2-27 props, so add an `--attrs <comma-separated names>` option (default: that list) with one new `--self-test` fixture for it."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/analytics/financial/_components/financial-overview-stats.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/analytics/financial/_components/invoice-summary-list.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/analytics/financial/page.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/analytics/overview/analytics-stat-cards.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/analytics/overview/page.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/analytics/property-performance/page.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/analytics/property-performance/performance-stat-cards.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/leases/page.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/profile/page.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/reports/balance-sheet/page.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/reports/cash-flow/cash-flow-activity.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/reports/cash-flow/cash-flow-balance-summary.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/reports/cash-flow/cash-flow-breakdown.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/reports/cash-flow/cash-flow-header.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/reports/cash-flow/cash-flow-stats.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/reports/expenses/_components/expense-category-breakdown.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/reports/expenses/_components/expense-stats.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/reports/expenses/_components/expense-table.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/reports/expenses/page.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/reports/income-statement/income-statement-page-breakdowns.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/reports/income-statement/income-statement-page-header.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/reports/income-statement/income-statement-page-net-summary.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/reports/income-statement/income-statement-page-stats.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/reports/tax-documents/page.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/(owner)/settings/page.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/about/page.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/app/compare/page.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/analytics/lease-insights-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/analytics/maintenance-insights-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/analytics/property-insights-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/dashboard/components/kpi-bento-row.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/dashboard/components/portfolio-data-table.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/landing/bento-features-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/landing/final-cta-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/landing/hero-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/landing/results-proof-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/landing/testimonials-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/leases/table/leases-page-skeleton.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/leases/table/leases-table.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/maintenance/kanban/maintenance-kanban.client.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/maintenance/maintenance-view-tabs.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/maintenance/maintenance-view.client.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/profiles/owner/personal-info-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/profiles/owner/profile-card.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/profiles/owner/quick-links-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/profiles/owner/security-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/sections/comparison-table.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/sections/features-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/sections/home-faq.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/sections/how-it-works.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/sections/logo-cloud.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/sections/premium-cta.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/sections/stats-showcase.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/sections/testimonials-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/settings/account-data-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/settings/billing-settings.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/settings/gdpr-data-actions.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/settings/general-settings.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/settings/notification-settings.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/settings/sections/active-sessions-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/settings/sections/billing-history-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/settings/sections/password-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/settings/sections/subscription-cancel-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/settings/sections/two-factor-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/settings/sections/usage-section.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/settings/security-settings.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/tenants/tenant-grid.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/tenants/tenant-stats.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/tenants/tenants.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/ui/__tests__/blur-fade.test.tsx",
+            "edit": "strip the removed props with `strip-blur-fade-props.mjs --attrs <the names removed from BlurFadeProps>` (`--self-test`, then a dry run, then `--write`); the `<BlurFade` occurrence count stays equal and `bun run typecheck` passes."
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "tests/e2e/tests/owner/dashboard-a11y.e2e.spec.ts",
+            "edit": "remove the \"wait for `enter` animations\" step that 66.2-27 added; with no animation it is dead logic."
+          }
+        ],
+        "testsToUpdate": [
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/ui/__tests__/blur-fade-classes.test.ts",
+            "update": "delete: it guarded the deleted class literals"
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/ui/__tests__/blur-fade.test.tsx",
+            "update": "rewrite: `renderToString` output has `data-slot=\"blur-fade\"` and `animate-none`, with no `animate-in`, no `opacity-0`, no `aria-hidden` and no `style=`; the caller className is merged last; a re-render never adds a class"
+          },
+          {
+            "option": "cp5-fallback",
+            "file": "src/components/dashboard/components/__tests__/kpi-bento-row.test.tsx",
+            "update": "re-run, unchanged"
+          }
+        ],
+        "context": {
+          "blurFadeFilesCommand": "rg -l '<BlurFade' src -g '*.tsx'",
+          "blurFadeFileCount": 70,
+          "note": "the never-invisible probes are re-run by 66.2-39"
+        }
+      }
+    }
+  ]
+}

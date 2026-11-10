@@ -1,0 +1,66 @@
+{
+  "light": {
+    "tenant-stats.tsx#1": {
+      "from": "var(--color-primary)",
+      "to": "color-mix(in oklab, var(--color-primary) 30%, transparent)",
+      "backgroundImage": "linear-gradient(to left, oklch(0.54 0.23 257), oklab(0.54 -0.0517387 -0.224105 / 0.3), rgba(0, 0, 0, 0))",
+      "ok": true
+    },
+    "tenant-stats.tsx#2": {
+      "from": "hsl(45 93% 47%)",
+      "to": "hsl(45 93% 47% / 0.3)",
+      "backgroundImage": "linear-gradient(to left, rgb(231, 176, 8), rgba(231, 176, 8, 0.3), rgba(0, 0, 0, 0))",
+      "ok": true
+    },
+    "tenant-grid.tsx#1": {
+      "from": "color-mix(in oklab, var(--color-primary) 50%, transparent)",
+      "to": "transparent",
+      "backgroundImage": "linear-gradient(to left, oklab(0.54 -0.0517387 -0.224105 / 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+      "ok": true
+    },
+    "control-invalid": {
+      "from": "hsl(var(--primary))",
+      "to": "hsl(var(--primary)/0.3)",
+      "backgroundImage": "none",
+      "ok": false
+    },
+    "control-valid": {
+      "from": "var(--color-primary)",
+      "to": "transparent",
+      "backgroundImage": "linear-gradient(to left, oklch(0.54 0.23 257), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+      "ok": true
+    }
+  },
+  "dark": {
+    "tenant-stats.tsx#1": {
+      "from": "var(--color-primary)",
+      "to": "color-mix(in oklab, var(--color-primary) 30%, transparent)",
+      "backgroundImage": "linear-gradient(to left, oklch(0.72 0.22 259), oklab(0.72 -0.0419779 -0.215958 / 0.3), rgba(0, 0, 0, 0))",
+      "ok": true
+    },
+    "tenant-stats.tsx#2": {
+      "from": "hsl(45 93% 47%)",
+      "to": "hsl(45 93% 47% / 0.3)",
+      "backgroundImage": "linear-gradient(to left, rgb(231, 176, 8), rgba(231, 176, 8, 0.3), rgba(0, 0, 0, 0))",
+      "ok": true
+    },
+    "tenant-grid.tsx#1": {
+      "from": "color-mix(in oklab, var(--color-primary) 50%, transparent)",
+      "to": "transparent",
+      "backgroundImage": "linear-gradient(to left, oklab(0.72 -0.0419779 -0.215958 / 0.5), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+      "ok": true
+    },
+    "control-invalid": {
+      "from": "hsl(var(--primary))",
+      "to": "hsl(var(--primary)/0.3)",
+      "backgroundImage": "none",
+      "ok": false
+    },
+    "control-valid": {
+      "from": "var(--color-primary)",
+      "to": "transparent",
+      "backgroundImage": "linear-gradient(to left, oklch(0.72 0.22 259), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0))",
+      "ok": true
+    }
+  }
+}

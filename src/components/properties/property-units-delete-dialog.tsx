@@ -34,19 +34,20 @@ export function UnitDeleteDialog({
 		>
 			<AlertDialogContent>
 				<AlertDialogHeader>
-					<AlertDialogTitle>Delete Unit?</AlertDialogTitle>
-					<AlertDialogDescription>
-						Are you sure you want to delete unit{" "}
-						<strong>{deletingUnit?.unit_number}</strong>? This action cannot be
-						undone.
+					<AlertDialogTitle>
+						{deletingUnit?.unit_number
+							? `Delete unit ${deletingUnit.unit_number}?`
+							: "Delete this unit?"}
+					</AlertDialogTitle>
+					{/* A soft delete (status 'inactive'), not a permanent one. */}
+					<AlertDialogDescription className="mb-0">
+						This marks the unit as inactive, so it leaves your unit lists. Its
+						lease history is kept.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>
 					<AlertDialogCancel>Cancel</AlertDialogCancel>
-					<AlertDialogAction
-						onClick={onConfirm}
-						className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-					>
+					<AlertDialogAction onClick={onConfirm} variant="destructive">
 						{isPending ? "Deleting..." : "Delete"}
 					</AlertDialogAction>
 				</AlertDialogFooter>

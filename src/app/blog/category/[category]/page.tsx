@@ -174,7 +174,7 @@ export default async function BlogCategoryPage({
 					<h1 className="text-responsive-display-xl font-bold tracking-tight">
 						{label}
 					</h1>
-					<p className="mt-4 text-lg text-muted-foreground">
+					<p className="mt-4 mb-0 text-lg text-muted-foreground">
 						{total} article{total === 1 ? "" : "s"} on {label.toLowerCase()}.
 					</p>
 				</div>
@@ -186,7 +186,7 @@ export default async function BlogCategoryPage({
 						<BlogEmptyState message="No posts in this category yet." />
 					) : (
 						<>
-							<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+							<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 								{posts.map((post) => (
 									<BlogCard key={post.id} post={post} />
 								))}

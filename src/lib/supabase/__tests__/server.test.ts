@@ -3,10 +3,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 // ── Hoisted mocks ──────────────────────────────────────────
 
 const { mockCreateServerClient } = vi.hoisted(() => ({
-	mockCreateServerClient: vi.fn(() => ({
-		auth: { getUser: vi.fn() },
-		from: vi.fn(),
-	})),
+	mockCreateServerClient: vi.fn(
+		(
+			_url: string,
+			_key: string,
+			_options: { cookies: Record<string, unknown> },
+		) => ({
+			auth: { getUser: vi.fn() },
+			from: vi.fn(),
+		}),
+	),
 }));
 
 const { mockCookieStore } = vi.hoisted(() => ({
@@ -43,7 +49,7 @@ function getCallArgs(): MockCallArgs {
 	const call = mockCreateServerClient.mock.calls[0];
 	if (!call || call.length < 3)
 		throw new Error("Expected 3 arguments in mock call");
-	return call as unknown as MockCallArgs;
+	return call;
 }
 
 function getCallOptions(): { cookies: Record<string, unknown> } {

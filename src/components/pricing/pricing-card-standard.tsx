@@ -6,7 +6,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { calculateAnnualSavings } from "#config/pricing";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { createLogger } from "#lib/frontend-logger";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { checkoutRateLimiter } from "#lib/security";
 import { createCheckoutSession } from "#lib/stripe/stripe-client";
 import { createClient } from "#lib/supabase/client";
@@ -68,7 +70,9 @@ export function PricingCardStandard({
 					: plan.stripeMonthlyPriceId;
 
 			if (!stripePriceId) {
-				throw new Error(`No ${billingCycle} price configured for ${plan.name}`);
+				throw new DiagnosticError(
+					`No ${billingCycle} price configured for ${plan.name}`,
+				);
 			}
 
 			toast.loading("Creating checkout session...", { id: "checkout" });
@@ -93,9 +97,7 @@ export function PricingCardStandard({
 			logger.error("Checkout failed", {
 				metadata: { error: error.message },
 			});
-			toast.error(
-				error.message || "Failed to start checkout. Please try again.",
-			);
+			handleMutationError(error, "Start checkout");
 		},
 		onSettled: () => {
 			toast.dismiss("checkout");
@@ -130,7 +132,6 @@ export function PricingCardStandard({
 			<div
 				className={cn(
 					"h-full rounded-2xl border border-border/50 bg-card p-6 flex flex-col",
-					"hover:border-primary/30 hover:shadow-lg transition-all duration-300",
 					className,
 				)}
 			>
@@ -139,7 +140,13 @@ export function PricingCardStandard({
 					<h3 className="text-xl font-bold text-foreground mb-1">
 						{plan.name}
 					</h3>
-					<p className="text-sm text-muted-foreground">{plan.description}</p>
+					{/* Four lines at lg, where Starter and Max stand in one row: Max's
+					    description takes four at 1024 and three from 1152 beside
+					    Starter's two, and put its price 40 and 20px lower (66.2-39
+					    fix round 4, Part 8c). */}
+					<p className="text-sm text-muted-foreground lg:min-h-[4lh]">
+						{plan.description}
+					</p>
 				</div>
 
 				{/* Price — CONS-09: whitespace-nowrap keeps `$XX` + `/mo` on the
@@ -164,7 +171,7 @@ export function PricingCardStandard({
 					    displayed monthly rate become arithmetically inconsistent.
 					    The featured card has shipped this format since PR #725;
 					    standard now matches. */}
-					<p className="text-xs text-muted-foreground mt-1">
+					<p className="text-xs text-muted-foreground mt-1 mb-0">
 						{billingCycle === "yearly"
 							? `Billed annually (${formatCurrency(plan.annualTotal, { maximumFractionDigits: 0, minimumFractionDigits: 0 })}/year)`
 							: "Billed monthly"}
@@ -207,7 +214,7 @@ export function PricingCardStandard({
 				<Button
 					variant="outline"
 					size="lg"
-					className="w-full group transition-all duration-300 border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary-text"
+					className="w-full group transition-all duration-300 border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary-text dark:border-border dark:hover:bg-primary/5 dark:hover:text-primary-text"
 					disabled={subscriptionMutation.isPending}
 					onClick={handleSubscribe}
 				>

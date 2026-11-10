@@ -74,13 +74,15 @@ async function assertPageSeo(
 	// POLL: ONE READ OF THE DOM IS NOT ENOUGH HERE. Measured on CI -- /blog
 	// failed with exactly ["Organization"] and passed on the retry, which is the
 	// layout's SeoJsonLd (the only site-wide schema) without the page's own
-	// BreadcrumbList. So the page's schemas were not yet queryable when the read
-	// was taken, even though `goto` had resolved on `load`. The exact timing
-	// cause is not pinned down and this comment does not guess at one; what is
-	// established is that /blog and /blog/category/[category] render on demand
-	// behind `src/app/blog/loading.tsx` (/blog/[slug] shares that boundary but
-	// is ISR-prerendered), and that polling makes the assertion stable without
-	// weakening it -- it still fails when a schema never renders.
+	// BreadcrumbList. The page's schemas were not yet in the document when the
+	// read was taken, though `goto` had resolved on `load`: /blog and
+	// /blog/category/[category] render on demand behind
+	// `src/app/blog/loading.tsx`, and react-dom 19.3's streamed reveal (`$RC`)
+	// queues a resolved boundary and swaps it in on a later animation frame or
+	// up to 300ms after the previous reveal, so `load` can fire before the
+	// page's own content (its JSON-LD, its h1, its links) is in the document
+	// (`firstBlogHref` below has the measurement). Polling makes the assertion
+	// stable without weakening it: it still fails when a schema never renders.
 	await expect
 		.poll(async () => (await getJsonLdSchemas(page)).map((s) => s["@type"]), {
 			message: `${path}: JSON-LD @type values`,
@@ -92,6 +94,41 @@ async function assertPageSeo(
 		schemas.length,
 		`${path}: at least one JSON-LD schema should exist`,
 	).toBeGreaterThan(0);
+}
+
+/** A post's link on /blog: a slug with a hyphen, not a category page. */
+const POST_LINK = 'a[href^="/blog/"][href*="-"]:not([href^="/blog/category/"])';
+const CATEGORY_LINK = 'a[href^="/blog/category/"]';
+
+/**
+ * Opens /blog and returns the href of the first link matching `selector`,
+ * once the page shows one; fails when it never does (the blog is populated,
+ * so no post or no category is a defect, not a reason to skip).
+ *
+ * WHY IT WAITS. Counting the links right after `goto(..., { waitUntil:
+ * "load" })` raced the render, and these tests skipped at random (3 to 5 of
+ * them per run in fix round 3). The links are server-rendered, not fetched by
+ * the client: they are in the HTML response, streamed inside the
+ * `loading.tsx` Suspense boundary. But react-dom 19.3's reveal script (`$RC`)
+ * queues a completed boundary and applies it on a later animation frame or
+ * after its 300ms throttle, so the document can reach `load` first. Sampled
+ * on a production build (66.2-39 part 7, six loads): at `load` the page had
+ * no post link, no category link and no h1; all of them (15 post links,
+ * 5 category links) were in the document 145-266ms later.
+ */
+async function firstBlogHref(
+	page: Page,
+	selector: string,
+	what: string,
+): Promise<string> {
+	await page.goto("/blog", { waitUntil: "load", timeout: 30000 });
+	const link = page.locator(selector).first();
+	await expect(link, `/blog shows no ${what}`).toBeAttached({
+		timeout: 15000,
+	});
+	const href = await link.getAttribute("href");
+	if (!href) throw new Error(`/blog's first ${what} has no href`);
+	return href;
 }
 
 test.describe("SEO Smoke Tests", () => {
@@ -198,40 +235,14 @@ test.describe("SEO Smoke Tests", () => {
 	});
 
 	test("/blog/[slug] has Article schema", async ({ page }) => {
-		await page.goto("/blog", { waitUntil: "load", timeout: 30000 });
-		const firstLink = page
-			.locator('a[href^="/blog/"][href*="-"]:not([href^="/blog/category/"])')
-			.first();
-		const count = await firstLink.count();
-		if (count === 0) {
-			test.skip();
-			return;
-		}
-		const href = await firstLink.getAttribute("href", { timeout: 5000 });
-		if (!href) {
-			test.skip();
-			return;
-		}
+		const href = await firstBlogHref(page, POST_LINK, "post link");
 		await assertPageSeo(page, href, ["Article", "BreadcrumbList"]);
 	});
 
 	test("/blog/[slug] renders visible breadcrumb + dynamic /api/og/blog/ OG image (Plan 06-02)", async ({
 		page,
 	}) => {
-		await page.goto("/blog", { waitUntil: "load", timeout: 30000 });
-		const firstLink = page
-			.locator('a[href^="/blog/"][href*="-"]:not([href^="/blog/category/"])')
-			.first();
-		const count = await firstLink.count();
-		if (count === 0) {
-			test.skip(true, "no published posts yet — re-run after Plan 06-04 ships");
-			return;
-		}
-		const href = await firstLink.getAttribute("href", { timeout: 5000 });
-		if (!href) {
-			test.skip(true, "no published post href resolved");
-			return;
-		}
+		const href = await firstBlogHref(page, POST_LINK, "post link");
 		await page.goto(href, { waitUntil: "load", timeout: 30000 });
 
 		// Visible breadcrumb nav landmark must be present (Phase 6 SEO-05).
@@ -255,22 +266,10 @@ test.describe("SEO Smoke Tests", () => {
 		page,
 	}) => {
 		// Phase 6 (BLOG-02): generateStaticParams + dynamicParams=false must
-		// emit a real 404 for slugs outside the published set. With Next.js
-		// dev's turbopack, dynamicParams enforcement requires at least one
-		// statically generated path to anchor the 404 behavior — when 0 posts
-		// are published the test result is ambiguous, so skip until Plan 06-04
-		// editorial flip ships ≥1 post.
-		await page.goto("/blog", { waitUntil: "load", timeout: 30000 });
-		const postLink = page
-			.locator('a[href^="/blog/"][href*="-"]:not([href^="/blog/category/"])')
-			.first();
-		if ((await postLink.count()) === 0) {
-			test.skip(
-				true,
-				"no published posts — soft-404 enforcement is meaningful only after Plan 06-04 ships ≥1 post",
-			);
-			return;
-		}
+		// emit a real 404 for slugs outside the published set. dynamicParams
+		// enforcement needs at least one statically generated path to anchor the
+		// 404, so the test first requires a published post on /blog.
+		await firstBlogHref(page, POST_LINK, "post link");
 		const bogusSlug = `this-slug-does-not-exist-${Date.now()}`;
 		const response = await page.goto(`/blog/${bogusSlug}`, {
 			waitUntil: "load",
@@ -327,18 +326,7 @@ test.describe("SEO Smoke Tests", () => {
 	test("/blog/category/[category] has BreadcrumbList schema", async ({
 		page,
 	}) => {
-		await page.goto("/blog", { waitUntil: "load", timeout: 30000 });
-		const categoryLink = page.locator('a[href^="/blog/category/"]').first();
-		const count = await categoryLink.count();
-		if (count === 0) {
-			test.skip();
-			return;
-		}
-		const href = await categoryLink.getAttribute("href", { timeout: 5000 });
-		if (!href) {
-			test.skip();
-			return;
-		}
+		const href = await firstBlogHref(page, CATEGORY_LINK, "category link");
 		await assertPageSeo(page, href, ["BreadcrumbList"]);
 	});
 

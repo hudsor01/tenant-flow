@@ -10,12 +10,19 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthStoreProvider } from "#providers/auth-provider";
+import type { UserProfile } from "#types/api-contracts";
 
 // Mock next/navigation
-const mockPush = vi.fn();
+const { mockPush, mockReplace, mockSignOut, mockGetUser } = vi.hoisted(() => ({
+	mockPush: vi.fn(),
+	mockReplace: vi.fn(),
+	mockSignOut: vi.fn(),
+	mockGetUser: vi.fn(),
+}));
 vi.mock("next/navigation", () => ({
 	useRouter: () => ({
 		push: mockPush,
+		replace: mockReplace,
 		refresh: vi.fn(),
 	}),
 }));
@@ -52,13 +59,14 @@ vi.mock("#lib/supabase/client", () => ({
 				}, 0);
 				return { data: { subscription: { unsubscribe: vi.fn() } } };
 			}),
-			signOut: vi.fn().mockResolvedValue({ error: null }),
+			getUser: mockGetUser,
+			signOut: mockSignOut,
 		},
 	}),
 }));
 
 // Mock profile data
-const mockOwnerProfile = {
+const mockOwnerProfile: UserProfile = {
 	id: "test-user-id",
 	email: "owner@test.com",
 	first_name: "Test",
@@ -77,7 +85,7 @@ const mockOwnerProfile = {
 };
 
 // Mock use-profile hooks
-let mockProfileData = mockOwnerProfile;
+let mockProfileData: UserProfile = mockOwnerProfile;
 const mockUpdateProfile = vi.fn();
 const mockUploadAvatar = vi.fn();
 const mockRemoveAvatar = vi.fn();
@@ -113,19 +121,21 @@ vi.mock("#hooks/api/use-profile-avatar-mutations", () => ({
 	}),
 }));
 
-// Mock use-auth hooks
-const mockSignOut = vi.fn();
+// Mock use-auth hooks. "Sign out" runs the real useSignOutMutation against
+// the client stub above (66.2-39 fix round 4, Part 8l: it owns the landing).
 const mockChangePassword = vi.fn();
-vi.mock("#hooks/api/use-auth-mutations", () => ({
-	useSignOutMutation: () => ({
-		mutateAsync: mockSignOut,
-		isPending: false,
-	}),
-	useChangePasswordMutation: () => ({
-		mutateAsync: mockChangePassword,
-		isPending: false,
-	}),
-}));
+vi.mock("#hooks/api/use-auth-mutations", async () => {
+	const actual = await vi.importActual<
+		typeof import("#hooks/api/use-auth-mutations")
+	>("#hooks/api/use-auth-mutations");
+	return {
+		...actual,
+		useChangePasswordMutation: () => ({
+			mutateAsync: mockChangePassword,
+			isPending: false,
+		}),
+	};
+});
 
 // Mock sonner
 vi.mock("sonner", () => ({
@@ -167,6 +177,11 @@ describe("Owner Profile Page", () => {
 		vi.clearAllMocks();
 		mockProfileData = mockOwnerProfile;
 		mockPush.mockClear();
+		mockGetUser.mockResolvedValue({
+			data: { user: { id: "test-user-id", email: "owner@test.com" } },
+			error: null,
+		});
+		mockSignOut.mockResolvedValue({ error: null });
 
 		originalMatchMedia = window.matchMedia;
 		window.matchMedia = vi.fn().mockImplementation((query) => ({
@@ -309,23 +324,63 @@ describe("Owner Profile Page", () => {
 		);
 	});
 
-	it("handles sign out action", async () => {
+	// 66.2-39 fix round 4, Part 8l: every "Sign out" lands on /login with
+	// router.replace as soon as it succeeds, once (useSignOutMutation).
+	it("lands on /login once after a successful sign out", async () => {
 		const user = userEvent.setup();
-		mockSignOut.mockResolvedValueOnce(undefined);
 
 		render(
 			<TestWrapper>
 				<OwnerProfilePage />
 			</TestWrapper>,
 		);
+		await user.click(await screen.findByText("Sign Out"));
 
-		await waitFor(() => {
-			expect(screen.getByText("Sign Out")).toBeInTheDocument();
-		});
+		await waitFor(() => expect(mockReplace).toHaveBeenCalled());
+		expect(mockReplace).toHaveBeenCalledTimes(1);
+		expect(mockReplace).toHaveBeenCalledWith("/login");
+		expect(mockPush).not.toHaveBeenCalled();
+		expect(mockSignOut.mock.calls).toEqual([
+			[{ scope: "others" }],
+			[{ scope: "local" }],
+		]);
+	});
 
-		await user.click(screen.getByText("Sign Out"));
+	// Part 8k: the mutation's onError shows the toast.
+	it("stays on the page after a failed first request, whose session is kept", async () => {
+		const user = userEvent.setup();
+		mockSignOut.mockResolvedValueOnce({ error: new Error("Failed to fetch") });
 
-		expect(mockSignOut).toHaveBeenCalled();
+		render(
+			<TestWrapper>
+				<OwnerProfilePage />
+			</TestWrapper>,
+		);
+		await user.click(await screen.findByText("Sign Out"));
+
+		await waitFor(() => expect(mockSignOut).toHaveBeenCalledTimes(1));
+		expect(mockReplace).not.toHaveBeenCalled();
+		expect(mockPush).not.toHaveBeenCalled();
+		expect(screen.getByText("Sign Out")).toBeInTheDocument();
+	});
+
+	it("lands on /login once after a failed second request, whose browser session is gone", async () => {
+		const user = userEvent.setup();
+		mockSignOut
+			.mockResolvedValueOnce({ error: null })
+			.mockResolvedValueOnce({ error: new Error("server error") });
+
+		render(
+			<TestWrapper>
+				<OwnerProfilePage />
+			</TestWrapper>,
+		);
+		await user.click(await screen.findByText("Sign Out"));
+
+		await waitFor(() => expect(mockReplace).toHaveBeenCalled());
+		expect(mockReplace).toHaveBeenCalledTimes(1);
+		expect(mockReplace).toHaveBeenCalledWith("/login");
+		expect(mockPush).not.toHaveBeenCalled();
 	});
 
 	it("navigates to settings page from quick links", async () => {
@@ -445,7 +500,7 @@ describe("Profile Avatar Upload", () => {
 		mockProfileData = {
 			...mockOwnerProfile,
 			avatar_url: "https://example.com/avatar.jpg",
-		} as unknown as typeof mockOwnerProfile;
+		};
 
 		render(
 			<TestWrapper>

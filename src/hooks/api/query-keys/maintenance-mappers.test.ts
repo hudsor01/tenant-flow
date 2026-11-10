@@ -7,16 +7,21 @@
  * via Zod `safeParse`, and nullable-in-DB fields stay nullable.
  *
  * The critical pins here: persisted `status` is validated against the FULL
- * 7-value DB CHECK set (migration 20260221120000), NOT the stale 5-value input
- * `maintenanceStatusSchema`. So `status: "assigned"` and `status:
- * "needs_reassignment"` (written by vendorMutations.assign / unassign) MUST map
- * cleanly — validating against the 5-value input enum would throw on those rows
- * and break the maintenance list/detail/urgent/kanban surfaces in prod. The
- * `status` safeParse is unconditional, so an absent/null status throws too.
+ * 7-value DB CHECK set (migration 20260221120000), through the mapper's own
+ * persisted-status schema rather than the input `maintenanceStatusSchema`, so a
+ * narrowing of the input schema cannot reject a stored row. `status:
+ * "assigned"` and `status: "needs_reassignment"` (set from the kanban and the
+ * detail StatusSelect) MUST map cleanly, or the maintenance list, detail and
+ * kanban would throw on those rows. The `status` safeParse is unconditional,
+ * so an absent/null status throws too.
  */
 
 import { describe, expect, it } from "vitest";
-import { mapMaintenanceRow } from "./maintenance-mappers";
+import {
+	mapMaintenanceDetailRow,
+	mapMaintenanceListRow,
+	mapMaintenanceRow,
+} from "./maintenance-mappers";
 
 const validRow = {
 	id: "00000000-0000-0000-0000-000000000001",
@@ -31,7 +36,6 @@ const validRow = {
 	requested_by: null,
 	assigned_to: null,
 	estimated_cost: null,
-	actual_cost: null,
 	scheduled_date: null,
 	completed_at: null,
 	inspection_date: null,
@@ -50,7 +54,6 @@ describe("mapMaintenanceRow", () => {
 		expect(mapped.priority).toBe("high");
 		expect(mapped.status).toBe("open");
 		// Nullable-in-DB fields stay nullable, not over-validated into throws.
-		expect(mapped.actual_cost).toBeNull();
 		expect(mapped.scheduled_date).toBeNull();
 		expect(mapped.completed_at).toBeNull();
 		expect(mapped.vendor_id).toBeNull();
@@ -78,12 +81,12 @@ describe("mapMaintenanceRow", () => {
 		).toThrow(/priority/);
 	});
 
-	it("accepts status='assigned' (written by vendorMutations.assign)", () => {
+	it("accepts status='assigned' (set from the kanban or StatusSelect)", () => {
 		const mapped = mapMaintenanceRow({ ...validRow, status: "assigned" });
 		expect(mapped.status).toBe("assigned");
 	});
 
-	it("accepts status='needs_reassignment' (written by vendorMutations.unassign)", () => {
+	it("accepts status='needs_reassignment' (set from the kanban or StatusSelect)", () => {
 		const mapped = mapMaintenanceRow({
 			...validRow,
 			status: "needs_reassignment",
@@ -108,7 +111,7 @@ describe("mapMaintenanceRow", () => {
 		);
 	});
 
-	it("ignores an extra `units` embed key from the property_id join branch", () => {
+	it("ignores the list's `units` embed key", () => {
 		const mapped = mapMaintenanceRow({
 			...validRow,
 			units: { property_id: "00000000-0000-0000-0000-0000000000aa" },
@@ -117,7 +120,14 @@ describe("mapMaintenanceRow", () => {
 		expect("units" in mapped).toBe(false);
 	});
 
-	it("ignores an extra `vendors` embed key from the detail join branch", () => {
+	// actual_cost is written by nothing, so the select list does not ask for it
+	// and the row copies none, even from a row that carries one (66.2-39 part P).
+	it("carries no actual_cost", () => {
+		const mapped = mapMaintenanceRow({ ...validRow, actual_cost: 125.5 });
+		expect(mapped).not.toHaveProperty("actual_cost");
+	});
+
+	it("ignores any other embed key (a `vendors` one)", () => {
 		const mapped = mapMaintenanceRow({
 			...validRow,
 			vendors: { id: "v1", name: "Acme Plumbing", trade: "plumbing" },
@@ -129,13 +139,11 @@ describe("mapMaintenanceRow", () => {
 	it("passes populated nullable fields through unchanged", () => {
 		const mapped = mapMaintenanceRow({
 			...validRow,
-			actual_cost: 125.5,
 			estimated_cost: 100,
 			scheduled_date: "2026-02-01",
 			completed_at: "2026-02-03T12:00:00.000Z",
 			vendor_id: "00000000-0000-0000-0000-0000000000bb",
 		});
-		expect(mapped.actual_cost).toBe(125.5);
 		expect(mapped.estimated_cost).toBe(100);
 		expect(mapped.scheduled_date).toBe("2026-02-01");
 		expect(mapped.completed_at).toBe("2026-02-03T12:00:00.000Z");
@@ -148,5 +156,145 @@ describe("mapMaintenanceRow", () => {
 				message: expect.stringContaining("mapMaintenanceRow"),
 			}),
 		);
+	});
+});
+
+/**
+ * The list names each request from its own embeds (66.2-39 fix round 3, part
+ * 6c). Its rows carried none, so every board card printed "Unknown Property ·
+ * Unit <the unit's id>" and every table row "Unassigned".
+ */
+describe("mapMaintenanceListRow", () => {
+	const listRow = {
+		...validRow,
+		units: {
+			unit_number: "4B",
+			property_id: "00000000-0000-0000-0000-0000000000aa",
+			properties: { name: "Maple Court", status: "active" },
+		},
+		tenant: { name: "Dana Rivera", first_name: "Dana", last_name: "Rivera" },
+	};
+
+	it("names the request's property, unit and tenant from the embeds", () => {
+		const mapped = mapMaintenanceListRow(listRow);
+		expect(mapped.propertyName).toBe("Maple Court");
+		expect(mapped.unitNumber).toBe("4B");
+		expect(mapped.tenantName).toBe("Dana Rivera");
+		expect(mapped.unit_id).toBe(validRow.unit_id);
+		expect(mapped).not.toHaveProperty("units");
+		expect(mapped).not.toHaveProperty("tenant");
+	});
+
+	it("names a property the owner deleted as a report does", () => {
+		const mapped = mapMaintenanceListRow({
+			...listRow,
+			units: {
+				...listRow.units,
+				properties: { name: "Gamma Flats", status: "inactive" },
+			},
+		});
+		expect(mapped.propertyName).toBe("Gamma Flats (deleted)");
+	});
+
+	it("falls back to the tenant's first and last name", () => {
+		expect(
+			mapMaintenanceListRow({
+				...listRow,
+				tenant: { name: null, first_name: "Dana", last_name: null },
+			}).tenantName,
+		).toBe("Dana");
+		expect(
+			mapMaintenanceListRow({
+				...listRow,
+				tenant: { name: "", first_name: null, last_name: null },
+			}).tenantName,
+		).toBeNull();
+	});
+
+	it("names nothing, never an id, for a unit or tenant row it cannot see", () => {
+		const mapped = mapMaintenanceListRow({
+			...listRow,
+			units: null,
+			tenant: null,
+		});
+		expect(mapped.propertyName).toBeNull();
+		expect(mapped.unitNumber).toBeNull();
+		expect(mapped.tenantName).toBeNull();
+	});
+
+	it("keeps a unit without a number unnumbered", () => {
+		const mapped = mapMaintenanceListRow({
+			...listRow,
+			units: { ...listRow.units, unit_number: null },
+		});
+		expect(mapped.unitNumber).toBeNull();
+		expect(mapped.propertyName).toBe("Maple Court");
+	});
+
+	it("throws when the select dropped an embed", () => {
+		const { units: _omitUnits, ...withoutUnits } = listRow;
+		expect(() => mapMaintenanceListRow(withoutUnits)).toThrow(/units/);
+		const { tenant: _omitTenant, ...withoutTenant } = listRow;
+		expect(() => mapMaintenanceListRow(withoutTenant)).toThrow(/tenant/);
+		expect(() =>
+			mapMaintenanceListRow({
+				...listRow,
+				units: { unit_number: "4B", property_id: "p" },
+			}),
+		).toThrow(/properties/);
+	});
+
+	it("throws on a to-many embed shape and on a property without its name", () => {
+		expect(() =>
+			mapMaintenanceListRow({ ...listRow, units: [listRow.units] }),
+		).toThrow(/single row/);
+		expect(() =>
+			mapMaintenanceListRow({
+				...listRow,
+				units: { ...listRow.units, properties: { status: "active" } },
+			}),
+		).toThrow(/name/);
+	});
+});
+
+describe("mapMaintenanceDetailRow", () => {
+	const detailRow = {
+		...validRow,
+		units: {
+			unit_number: "2B",
+			property_id: "00000000-0000-0000-0000-0000000000aa",
+			properties: { name: "Gamma Flats", status: "inactive" },
+		},
+		tenant: {
+			name: null,
+			first_name: "Sam",
+			last_name: "Lee",
+			email: "sam@example.com",
+			phone: null,
+		},
+	};
+
+	it("names the unit, property and tenant, and how to reach the tenant", () => {
+		const mapped = mapMaintenanceDetailRow(detailRow);
+		expect(mapped.propertyName).toBe("Gamma Flats (deleted)");
+		expect(mapped.unitNumber).toBe("2B");
+		expect(mapped.tenantName).toBe("Sam Lee");
+		expect(mapped.tenantEmail).toBe("sam@example.com");
+		expect(mapped.tenantPhone).toBeNull();
+		expect(mapped).not.toHaveProperty("units");
+		expect(mapped).not.toHaveProperty("tenant");
+	});
+
+	it("reaches no one for a tenant row it cannot see", () => {
+		const mapped = mapMaintenanceDetailRow({ ...detailRow, tenant: null });
+		expect(mapped.tenantName).toBeNull();
+		expect(mapped.tenantEmail).toBeNull();
+		expect(mapped.tenantPhone).toBeNull();
+	});
+
+	it("throws when the select dropped an embed", () => {
+		expect(() => mapMaintenanceDetailRow(validRow)).toThrow(/units|tenant/);
+		const { tenant: _omitTenant, ...withoutTenant } = detailRow;
+		expect(() => mapMaintenanceDetailRow(withoutTenant)).toThrow(/tenant/);
 	});
 });

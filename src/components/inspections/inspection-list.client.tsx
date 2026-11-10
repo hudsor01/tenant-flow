@@ -111,16 +111,16 @@ export function InspectionListClient() {
 					<h1 className="text-2xl font-semibold text-foreground">
 						Inspections
 					</h1>
-					<p className="text-muted-foreground text-sm mt-1">
+					<p className="mb-0 text-muted-foreground text-sm mt-1">
 						Move-in and move-out inspection reports
 					</p>
 				</div>
-				<Link href="/inspections/new">
-					<Button className="shrink-0">
+				<Button asChild className="shrink-0">
+					<Link href="/inspections/new">
 						<Plus className="w-4 h-4 mr-2" aria-hidden="true" />
 						New Inspection
-					</Button>
-				</Link>
+					</Link>
+				</Button>
 			</div>
 
 			{/* Content */}
@@ -141,7 +141,7 @@ export function InspectionListClient() {
 
 				{error && (
 					<div className="p-8 text-center">
-						<p className="text-sm text-destructive-text">
+						<p className="mb-0 text-sm text-destructive-text">
 							Failed to load inspections. Please try again.
 						</p>
 					</div>
@@ -154,7 +154,7 @@ export function InspectionListClient() {
 						</EmptyMedia>
 						<EmptyHeader>
 							<EmptyTitle>No inspections yet</EmptyTitle>
-							<EmptyDescription>
+							<EmptyDescription className="mb-0">
 								Create a move-in or move-out inspection for your properties.
 							</EmptyDescription>
 						</EmptyHeader>
@@ -193,7 +193,7 @@ export function InspectionListClient() {
 						{/* Pagination controls — bounded DOM per SEO-07 */}
 						{total > 50 && (
 							<div className="flex items-center justify-between px-4 py-3 border-t">
-								<p className="text-sm text-muted-foreground">
+								<p className="mb-0 text-sm text-muted-foreground">
 									Showing {inspections.length} of {total} inspections
 								</p>
 								<div className="flex items-center gap-2">

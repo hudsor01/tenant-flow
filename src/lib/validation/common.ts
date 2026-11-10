@@ -17,7 +17,7 @@ import { VALIDATION_LIMITS } from "#lib/constants/billing";
  * @example emailSchema.parse('user@example.com')
  */
 export const emailSchema = z
-	.email({ message: "Please enter a valid email address" })
+	.email({ error: "Please enter a valid email address" })
 	.meta({
 		description: "Valid email address",
 		examples: ["user@example.com", "admin@tenantflow.app"],
@@ -28,7 +28,7 @@ export const emailSchema = z
  * RFC 9562/4122 compliant UUID validation
  * @example uuidSchema.parse('550e8400-e29b-41d4-a716-446655440000')
  */
-export const uuidSchema = z.uuid({ message: "Invalid UUID format" }).meta({
+export const uuidSchema = z.uuid({ error: "Invalid UUID format" }).meta({
 	description: "RFC 4122 compliant UUID identifier",
 	examples: ["550e8400-e29b-41d4-a716-446655440000"],
 	format: "uuid",
@@ -39,9 +39,9 @@ export const uuidSchema = z.uuid({ message: "Invalid UUID format" }).meta({
  * Only allows http/https protocols, blocks localhost in production
  */
 export const urlSchema = z
-	.url({ message: "Invalid URL format" })
+	.url({ error: "Invalid URL format" })
 	.refine((url) => isValidUrl(url), {
-		message: "URL must use http/https protocol",
+		error: "URL must use http/https protocol",
 	})
 	.meta({
 		description: "Valid HTTP/HTTPS URL",
@@ -123,7 +123,7 @@ export const optionalWholeDollarStringSchema = z
  * Safe integer schema (Zod 4)
  * Validates integers within JavaScript's safe integer range
  */
-export const safeIntegerSchema = z.int({ message: "Must be a valid integer" });
+export const safeIntegerSchema = z.int({ error: "Must be a valid integer" });
 
 /** Phone number validation schema */
 export const phoneSchema = z

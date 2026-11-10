@@ -2,7 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { Mail } from "lucide-react";
-import { type FormEvent, useRef } from "react";
+import { type SubmitEvent, useRef } from "react";
 import { toast } from "sonner";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
@@ -40,7 +40,7 @@ export function NewsletterSignup({ className }: NewsletterSignupProps) {
 			),
 	});
 
-	function handleSubmit(e: FormEvent<HTMLFormElement>) {
+	function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
 		e.preventDefault();
 		const email = inputRef.current?.value?.trim();
 		if (email) {
@@ -56,13 +56,16 @@ export function NewsletterSignup({ className }: NewsletterSignupProps) {
 			)}
 		>
 			<div className="flex items-center gap-2">
-				<Mail className="h-5 w-5 text-primary" />
+				<Mail className="h-5 w-5 shrink-0 text-primary" />
 				<h3 className="text-sm font-semibold">Landlord tips in your inbox</h3>
 			</div>
-			<p className="text-sm text-muted-foreground">
+			<p className="mb-0 text-sm text-muted-foreground">
 				Monthly tips on leases, maintenance, and tax season — written for
 				independent landlords.
 			</p>
+			{/* The email field shrinks, the button never does: at 320-336 the
+			    button shrank under its label and Subscribe ran 9.28px over the
+			    field (66.2-39 fix round 4, Part 8e). */}
 			<form
 				onSubmit={handleSubmit}
 				className="flex gap-2"
@@ -74,12 +77,12 @@ export function NewsletterSignup({ className }: NewsletterSignupProps) {
 					placeholder="your@email.com"
 					aria-label="Email address"
 					required
-					className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+					className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 				/>
 				<button
 					type="submit"
 					disabled={mutation.isPending}
-					className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+					className="inline-flex shrink-0 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary-text dark:hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
 				>
 					{mutation.isPending ? "Subscribing..." : "Subscribe"}
 				</button>

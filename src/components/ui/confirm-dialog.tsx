@@ -37,18 +37,16 @@ export function ConfirmDialog({
 			<AlertDialogContent>
 				<AlertDialogHeader>
 					<AlertDialogTitle>{title}</AlertDialogTitle>
-					<AlertDialogDescription>{description}</AlertDialogDescription>
+					<AlertDialogDescription className="mb-0">
+						{description}
+					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>
 					<AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
 					<AlertDialogAction
 						onClick={onConfirm}
 						disabled={loading}
-						className={
-							confirmVariant === "destructive"
-								? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
-								: ""
-						}
+						variant={confirmVariant}
 					>
 						{loading ? "Processing..." : confirmText}
 					</AlertDialogAction>

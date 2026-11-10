@@ -11,7 +11,7 @@ export const DASHBOARD_PRESETS_STORAGE_KEY = "tenantflow-dashboard-presets";
 /**
  * A FULL portfolio view snapshot (D-1). Applying a preset restores all four
  * dimensions. `filters` mirrors the flat nuqs filter keys `useClientDataTable`
- * writes (the faceted `status` array + the `property` search string per W-3) and
+ * writes (the faceted `occupancy` array + the `property` search string per W-3) and
  * stays JSON-serializable so the persist middleware round-trips it cleanly.
  *
  * The store is deliberately URL-free: Plan 05-03b feeds `filters`/`sort`/`page`

@@ -1,6 +1,6 @@
 // Shared constant-time string compare for Edge Functions.
 //
-// Structured after the resend-webhook pattern (resend-webhook/index.ts:145-168):
+// Structured after the resend-webhook pattern (its `verifySvixSignature`):
 // a runtime feature detection for crypto.subtle.timingSafeEqual, with an
 // XOR-loop beneath it.
 //
@@ -34,8 +34,8 @@
 // actually matters: Supabase Edge Runtime ships its own Deno build and was not
 // the thing measured above. Do not upgrade this note to a claim about
 // production. It is settled in one line against a deployed function -- log
-// `typeof (crypto.subtle as unknown as Record<string, unknown>).timingSafeEqual`
-// -- and the answer belongs back here once known. Tracked as deferred item D3;
+// `typeof Reflect.get(crypto.subtle, "timingSafeEqual")` -- and the answer
+// belongs back here once known. Tracked as deferred item D3;
 // it was previously assigned to 66.1-05, which shipped without doing it, so the
 // task existed only inside a comment nobody was accountable for.
 //
@@ -52,9 +52,18 @@
 // CALLERS: auth-email-send, send-lease-reminders, and _shared/rate-limit.ts,
 // which as of RATE-03 gates CLIENT_IP_FORWARD_SECRET through this function.
 //
-// The `crypto.subtle as unknown as { ... }` below is a runtime feature-detection
-// shim (matching resend-webhook:151), NOT an RPC/PostgREST boundary cast — so it
-// is outside the scope of CLAUDE.md rule #8 (which targets RPC/PostgREST returns).
+// `SubtleCryptoWithTimingSafeEqual` types the feature detection below without an
+// assertion: `SubtleCrypto` is assignable to it (the extra member is optional),
+// so the annotation compiles to a plain `const subtle = crypto.subtle`.
+
+/**
+ * `crypto.subtle` plus the Deno `timingSafeEqual` extension, which the
+ * `SubtleCrypto` type does not declare. Optional, because the global may not
+ * carry it (see the header).
+ */
+export type SubtleCryptoWithTimingSafeEqual = SubtleCrypto & {
+	timingSafeEqual?: (x: Uint8Array, y: Uint8Array) => boolean;
+};
 
 export function timingSafeEqualStr(a: string, b: string): boolean {
 	const enc = new TextEncoder();
@@ -64,11 +73,9 @@ export function timingSafeEqualStr(a: string, b: string): boolean {
 	// itself secret, and all three existing inline helpers do the same.
 	if (ab.length !== bb.length) return false;
 
-	// Feature-detect crypto.subtle.timingSafeEqual via a runtime shim cast. See
-	// the file header for what is established about this branch and what is not.
-	const subtle = crypto.subtle as unknown as {
-		timingSafeEqual?: (x: Uint8Array, y: Uint8Array) => boolean;
-	};
+	// Feature-detect crypto.subtle.timingSafeEqual. See the file header for what
+	// is established about this branch and what is not.
+	const subtle: SubtleCryptoWithTimingSafeEqual = crypto.subtle;
 	if (typeof subtle.timingSafeEqual === "function") {
 		try {
 			return subtle.timingSafeEqual(ab, bb);

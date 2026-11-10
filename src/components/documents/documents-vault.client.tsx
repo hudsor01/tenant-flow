@@ -49,7 +49,10 @@ import {
 } from "#hooks/api/query-keys/document-search-keys";
 import { useDocumentCategories } from "#hooks/api/use-document-categories";
 import { formatLocalYmd, parseLocalYmd } from "#lib/formatters/date";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { downloadBlob } from "#lib/reports/download-blob";
 import { createClient } from "#lib/supabase/client";
+import { ApiErrorCode, createApiErrorFromResponse } from "#lib/utils/api-error";
 import { type DocumentCategory } from "#lib/validation/documents";
 import { DocumentRow } from "./document-row";
 
@@ -308,11 +311,19 @@ export function DocumentsVaultClient() {
 				},
 			);
 			if (!res.ok) {
-				const body = (await res
-					.json()
-					.catch(() => ({ error: res.statusText }))) as { error?: string };
-				toast.error(body.error ?? "Download failed");
-				return;
+				// The function's own copy (a 4xx explains itself; anything
+				// unexpected is "An error occurred"); with none, a status's own
+				// copy (400, 401, 404, 429, 500, 503, as createApiErrorFromResponse
+				// maps them) or else the download copy -- never the status line.
+				const body = (await res.json().catch(() => ({}))) as {
+					error?: unknown;
+				};
+				throw typeof body.error === "string" && body.error !== ""
+					? new Error(body.error)
+					: createApiErrorFromResponse(
+							res,
+							ApiErrorCode.DOCUMENTS_DOWNLOAD_FAILED,
+						);
 			}
 			// NOTE: res.blob() buffers the entire zip in memory before
 			// triggering the download. The Edge Function streams server-
@@ -325,20 +336,10 @@ export function DocumentsVaultClient() {
 					`bulk download buffering ${totalCount} documents in memory; large archives may strain low-spec browsers`,
 				);
 			}
-			const blob = await res.blob();
-			const url = URL.createObjectURL(blob);
 			const today = new Date().toISOString().slice(0, 10);
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = `tenantflow-documents-${today}.zip`;
-			document.body.appendChild(a);
-			a.click();
-			a.remove();
-			URL.revokeObjectURL(url);
+			downloadBlob(await res.blob(), `tenantflow-documents-${today}.zip`);
 		} catch (err) {
-			toast.error(
-				err instanceof Error ? err.message : "Download failed unexpectedly.",
-			);
+			handleMutationError(err, "Download documents");
 		} finally {
 			downloadInFlightRef.current = false;
 			setIsDownloading(false);
@@ -368,7 +369,7 @@ export function DocumentsVaultClient() {
 				<FolderArchive className="size-8 text-primary" />
 				<div>
 					<h1 className="typography-h2">Document Vault</h1>
-					<p className="text-muted-foreground">
+					<p className="mb-0 text-muted-foreground">
 						Every PDF or image attached to your portfolio, in one place.
 					</p>
 				</div>
@@ -379,7 +380,7 @@ export function DocumentsVaultClient() {
 					<CardTitle className="text-base">Search & filter</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="grid gap-3 md:grid-cols-[1fr_160px_180px_220px]">
+					<div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_160px_180px_220px]">
 						<div className="relative">
 							<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
 							<Input
@@ -438,7 +439,7 @@ export function DocumentsVaultClient() {
 			</Card>
 
 			<Card aria-busy={isFetching}>
-				<CardHeader className="flex flex-row items-center justify-between space-y-0">
+				<CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 space-y-0">
 					<CardTitle className="text-base flex items-center gap-2">
 						{totalCount > 0
 							? `${totalCount} document${totalCount === 1 ? "" : "s"}`
@@ -450,9 +451,9 @@ export function DocumentsVaultClient() {
 							/>
 						)}
 					</CardTitle>
-					<div className="flex items-center gap-3">
+					<div className="flex flex-wrap items-center gap-3">
 						{showRangeHeader && (
-							<p className="text-xs text-muted-foreground">
+							<p className="mb-0 text-xs text-muted-foreground">
 								Showing {pageStart + 1}-{pageEnd} of {totalCount}
 							</p>
 						)}
@@ -530,7 +531,7 @@ export function DocumentsVaultClient() {
 										? "No documents match your search."
 										: "No documents uploaded yet."}
 								</EmptyTitle>
-								<EmptyDescription>
+								<EmptyDescription className="mb-0">
 									{queryParam ||
 									entityType ||
 									categories.length > 0 ||
@@ -543,7 +544,7 @@ export function DocumentsVaultClient() {
 						</Empty>
 					) : (
 						<>
-							<ul className="divide-y divide-border">
+							<ul className="divide-y divide-border pl-0 mt-0 mb-0 [&>li]:mb-0">
 								{data.rows.map((doc) => (
 									<DocumentVaultRow key={doc.id} doc={doc} />
 								))}

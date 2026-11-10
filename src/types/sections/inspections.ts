@@ -5,6 +5,8 @@
  * These match the database schema for inspections, inspection_rooms, and inspection_photos.
  */
 
+import { DiagnosticError } from "#lib/diagnostic-error";
+
 export const INSPECTION_TYPES = ["move_in", "move_out"] as const;
 export const INSPECTION_STATUSES = [
 	"pending",
@@ -64,12 +66,12 @@ export function narrowInspectionEnums<
 	T extends { id: string; inspection_type: string; status: string },
 >(row: T): T & { inspection_type: InspectionType; status: InspectionStatus } {
 	if (!isInspectionType(row.inspection_type)) {
-		throw new Error(
+		throw new DiagnosticError(
 			`Unexpected inspection_type "${row.inspection_type}" on inspection ${row.id}`,
 		);
 	}
 	if (!isInspectionStatus(row.status)) {
-		throw new Error(
+		throw new DiagnosticError(
 			`Unexpected status "${row.status}" on inspection ${row.id}`,
 		);
 	}
@@ -90,12 +92,12 @@ export function narrowInspectionRoomEnums<
 	T extends { id: string; room_type: string; condition_rating: string },
 >(room: T): T & { room_type: RoomType; condition_rating: ConditionRating } {
 	if (!isRoomType(room.room_type)) {
-		throw new Error(
+		throw new DiagnosticError(
 			`Unexpected room_type "${room.room_type}" on inspection room ${room.id}`,
 		);
 	}
 	if (!isConditionRating(room.condition_rating)) {
-		throw new Error(
+		throw new DiagnosticError(
 			`Unexpected condition_rating "${room.condition_rating}" on inspection room ${room.id}`,
 		);
 	}

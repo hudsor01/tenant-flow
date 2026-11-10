@@ -38,7 +38,7 @@ export function MobilePropertyForm({
 		<section className="md:hidden">
 			<Card
 				className={cn(
-					"border-none bg-card/90 shadow-2xl backdrop-blur supports-[backdrop-filter]:bg-card/80",
+					"border-none bg-card/90 shadow-2xl backdrop-blur supports-backdrop-filter:bg-card/80",
 					isHighContrast && "outline outline-2 outline-primary/60",
 				)}
 			>
@@ -51,7 +51,7 @@ export function MobilePropertyForm({
 							{formProps.mode === "create" ? "Add Property" : "Edit Property"}
 						</CardTitle>
 					</div>
-					<p className="text-muted-foreground">
+					<p className="mb-0 text-muted-foreground">
 						Mobile-first form with offline awareness and accessible touch
 						targets.
 					</p>

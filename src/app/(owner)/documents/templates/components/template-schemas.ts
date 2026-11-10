@@ -20,7 +20,12 @@ export const propertyInspectionSchema = z.object({
 
 export const rentalApplicationSchema = z.object({
 	applicantName: z.string().min(1, "Applicant name is required"),
-	email: z.string().email("Valid email required"),
+	email: z.email({
+		// Scoped to the format check, so a non-string keeps zod's own message,
+		// exactly as the string schema's email check reported it.
+		error: (issue) =>
+			issue.code === "invalid_format" ? "Valid email required" : undefined,
+	}),
 	phone: phoneSchema,
 	currentAddress: z.string().min(1, "Current address is required"),
 	employer: z.string().min(1, "Employer is required"),
@@ -53,7 +58,12 @@ export const maintenanceRequestSchema = z.object({
 	unit: z.string().min(1, "Unit is required"),
 	requesterName: z.string().min(1, "Requester name is required"),
 	requesterPhone: phoneSchema,
-	requesterEmail: z.string().email("Valid email required"),
+	requesterEmail: z.email({
+		// Scoped to the format check, so a non-string keeps zod's own message,
+		// exactly as the string schema's email check reported it.
+		error: (issue) =>
+			issue.code === "invalid_format" ? "Valid email required" : undefined,
+	}),
 	priority: z.enum(["low", "medium", "high", "urgent"]),
 	preferredDate: z.string().min(1, "Preferred date is required"),
 	description: z.string().min(1, "Issue description is required"),

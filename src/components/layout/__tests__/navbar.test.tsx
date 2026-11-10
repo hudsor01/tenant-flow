@@ -142,4 +142,26 @@ describe("Navbar — auth CTA branch", () => {
 		).toBeInTheDocument();
 		expect(screen.queryByRole("link", { name: /^Sign In$/i })).toBeNull();
 	});
+
+	// Owner, 2026-11-09 (66.2-39 fix round 4, Part 8k): the proxy sends an owner
+	// whose subscription has lapsed to /pricing from every owner page but
+	// Settings; the signed-in navbar is how they reach it from there.
+	it("links a signed-in visitor to Settings beside Dashboard, and a signed-out one to neither", async () => {
+		setAuthCookie();
+		useSupabaseSessionMock.mockReturnValue({
+			data: { access_token: "stub", user: { id: "stub-user" } },
+			isPending: false,
+		});
+		const { unmount } = await renderNavbar();
+		expect(screen.getByRole("link", { name: /^Settings$/ })).toHaveAttribute(
+			"href",
+			"/settings",
+		);
+		unmount();
+
+		clearAuthCookie();
+		useSupabaseSessionMock.mockReturnValue({ data: null, isPending: false });
+		await renderNavbar();
+		expect(screen.queryByRole("link", { name: /^Settings$/ })).toBeNull();
+	});
 });

@@ -15,6 +15,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
+import { createApiErrorFromResponse } from "#lib/utils/api-error";
 import type { SubscriptionStatusResponse } from "#types/api-contracts";
 import { mutationKeys } from "./mutation-keys";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
@@ -52,14 +53,14 @@ async function callStripeCancelSubscription(
 	);
 
 	if (!response.ok) {
-		const err = (await response
-			.json()
-			.catch(() => ({ error: response.statusText }))) as {
+		const err = (await response.json().catch(() => ({}))) as {
 			error?: string;
 		};
-		throw new Error(
-			err.error ?? `stripe-cancel-subscription failed: ${response.status}`,
-		);
+		// The function's own copy, else the status's product copy (never the
+		// status line or the function's name).
+		throw typeof err.error === "string" && err.error !== ""
+			? new Error(err.error)
+			: createApiErrorFromResponse(response);
 	}
 
 	return response.json() as Promise<CancelSubscriptionResponse>;
@@ -193,13 +194,12 @@ export function useBillingPortalMutation() {
 			);
 
 			if (!response.ok) {
-				const err = await response
-					.json()
-					.catch(() => ({ error: response.statusText }));
-				throw new Error(
-					(err as { error?: string }).error ??
-						`stripe-billing-portal failed: ${response.status}`,
-				);
+				const err = (await response.json().catch(() => ({}))) as {
+					error?: string;
+				};
+				throw typeof err.error === "string" && err.error !== ""
+					? new Error(err.error)
+					: createApiErrorFromResponse(response);
 			}
 
 			const result = (await response.json()) as { url: string };

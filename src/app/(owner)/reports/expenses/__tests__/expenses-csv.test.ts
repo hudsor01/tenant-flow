@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import type { ExpenseRow } from "#hooks/api/query-keys/expense-keys";
-import { buildExpensesCsv, escapeCsvCell } from "../expenses-csv";
+import * as expensesCsv from "../expenses-csv";
+import { buildExpensesCsv } from "../expenses-csv";
 
 const row = (overrides: Partial<ExpenseRow> = {}): ExpenseRow => ({
 	id: "exp-1",
@@ -16,37 +17,44 @@ const row = (overrides: Partial<ExpenseRow> = {}): ExpenseRow => ({
 	...overrides,
 });
 
-describe("escapeCsvCell", () => {
-	it("leaves plain values untouched", () => {
-		expect(escapeCsvCell("Maple Court")).toBe("Maple Court");
-	});
-
-	it("quotes values containing a comma", () => {
-		expect(escapeCsvCell("Repair, urgent")).toBe('"Repair, urgent"');
-	});
-
-	it("quotes and doubles embedded double-quotes", () => {
-		expect(escapeCsvCell('12" pipe')).toBe('"12"" pipe"');
-	});
-
-	it("quotes values containing a newline", () => {
-		expect(escapeCsvCell("line1\nline2")).toBe('"line1\nline2"');
-	});
-});
-
 describe("buildExpensesCsv", () => {
+	it("is the module's one export: the header is its own (cycle 2, F18)", () => {
+		expect(Object.keys(expensesCsv)).toEqual(["buildExpensesCsv"]);
+	});
+
 	it("emits a header row", () => {
 		const csv = buildExpensesCsv([row()]);
-		expect(csv.split("\n")[0]).toBe("Date,Description,Vendor,Property,Amount");
+		expect(csv.split("\r\n")[0]).toBe(
+			"Date,Description,Vendor,Property,Amount",
+		);
 	});
 
-	// COMP-07 + money class: amount is INTEGER dollars, emitted verbatim (never
+	// COMP-07 + money class: amount is dollars, written with 2 decimals (never
 	// /100). expense_date is emitted raw, never round-tripped through new Date().
-	it("emits the amount verbatim and the date raw", () => {
+	it("emits the amount in dollars and the date raw", () => {
 		const csv = buildExpensesCsv([row({ amount: 1500 })]);
-		const dataLine = csv.split("\n")[1];
+		const dataLine = csv.split("\r\n")[1];
 		expect(dataLine).toBe(
-			"2026-07-11,Plumbing repair,Acme Plumbing,Maple Court,1500",
+			"2026-07-11,Plumbing repair,Acme Plumbing,Maple Court,1500.00",
+		);
+		expect(buildExpensesCsv([row({ amount: 89.5 })]).split("\r\n")[1]).toBe(
+			"2026-07-11,Plumbing repair,Acme Plumbing,Maple Court,89.50",
+		);
+	});
+
+	// 66.2-39: a user-entered description, vendor or property name that starts
+	// like a formula is neutralized; the amount, a number cell, never is.
+	it("neutralizes formula-shaped text cells but not the amount", () => {
+		const csv = buildExpensesCsv([
+			row({
+				description: '=HYPERLINK("http://x")',
+				vendor_name: "@vendor",
+				property_name: "+1 Main",
+				amount: -25,
+			}),
+		]);
+		expect(csv.split("\r\n")[1]).toBe(
+			'2026-07-11,"\'=HYPERLINK(""http://x"")",\'@vendor,\'+1 Main,-25.00',
 		);
 	});
 
@@ -54,7 +62,7 @@ describe("buildExpensesCsv", () => {
 		const csv = buildExpensesCsv([
 			row({ description: 'HVAC, "emergency"', vendor_name: "Bob, Inc" }),
 		]);
-		const dataLine = csv.split("\n")[1];
+		const dataLine = csv.split("\r\n")[1];
 		expect(dataLine).toContain('"HVAC, ""emergency"""');
 		expect(dataLine).toContain('"Bob, Inc"');
 	});
@@ -63,11 +71,11 @@ describe("buildExpensesCsv", () => {
 		const csv = buildExpensesCsv([
 			row({ description: null, vendor_name: null, property_name: null }),
 		]);
-		expect(csv.split("\n")[1]).toBe("2026-07-11,,,,1500");
+		expect(csv.split("\r\n")[1]).toBe("2026-07-11,,,,1500.00");
 	});
 
 	it("emits one line per row plus the header", () => {
 		const csv = buildExpensesCsv([row(), row({ id: "exp-2" })]);
-		expect(csv.split("\n")).toHaveLength(3);
+		expect(csv.split("\r\n")).toHaveLength(3);
 	});
 });

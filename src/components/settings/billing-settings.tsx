@@ -15,6 +15,7 @@ import { getAllPricingPlans, type PricingConfig } from "#config/pricing";
 import { useUser } from "#hooks/api/use-auth";
 import { useSubscriptionStatus } from "#hooks/api/use-billing";
 import { useBillingPortalMutation } from "#hooks/api/use-billing-mutations";
+import { formatCurrency } from "#lib/utils/currency";
 
 // Resolve a plan from the `subscription_plan` column. The Stripe webhook
 // handlers write `subscription_plan: tier ?? planLookup ?? priceId`, so the
@@ -62,44 +63,50 @@ function formatNextBillingDate(currentPeriodEnd: string | null): string | null {
 	});
 }
 
+// The statuses whose subscription has ended: Stripe's terminal `canceled` and
+// `incomplete_expired`, and `expired`, a DB-managed trial that lapsed. Every
+// other status is a subscription the owner still has.
+const ENDED_STATUSES = new Set(["canceled", "incomplete_expired", "expired"]);
+
 // Resolve the plan-card title so the heading never contradicts the status
-// badge (the prior "No plan" + "Active" bug). Cases ordered by specificity:
-// known plan → trial → active-without-plan (synthetic / sync-lag) → no plan.
+// badge (the prior "No plan" + "Active" bug). A known plan is named whatever
+// the status, and the badge beside it states the status: only `active` and
+// `trialing` counted, so a past_due owner on Growth read "No plan" (main
+// session, 66.2-39 fix round 4, Part 8m). "No plan" is only for an owner who
+// has none: no subscription, or one that has ended. Cases ordered by
+// specificity: known plan → trial → active-without-plan (synthetic /
+// sync-lag) → no plan → another subscription whose plan is not known.
 function resolvePlanTitle(
 	status: string | null,
-	isActive: boolean,
 	currentPlan: PricingConfig | null,
 ): string {
-	if (isActive && currentPlan) return currentPlan.name;
+	if (currentPlan) return currentPlan.name;
 	if (status === "trialing") return "Free trial";
-	if (isActive) return "Active subscription";
-	return "No plan";
+	if (status === "active") return "Active subscription";
+	if (status === null || ENDED_STATUSES.has(status)) return "No plan";
+	return "Your subscription";
 }
 
 const STATUS_BADGE_VARIANTS = {
 	active: {
 		label: "Active",
-		className:
-			"bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300",
+		className: "bg-success/10 text-success-text",
 	},
 	trialing: {
 		label: "Trial",
-		className:
-			"bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300",
+		className: "bg-info/10 text-info-text",
 	},
 	past_due: {
 		label: "Past Due",
-		className:
-			"bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300",
+		className: "bg-warning/10 text-warning-text",
 	},
 	unpaid: {
 		label: "Unpaid",
-		className:
-			"bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300",
+		className: "bg-warning/10 text-warning-text",
 	},
 	canceled: {
 		label: "Canceled",
-		className: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
+		className: "bg-destructive/10 text-destructive-text",
 	},
 	incomplete: {
 		label: "Incomplete",
@@ -107,14 +114,14 @@ const STATUS_BADGE_VARIANTS = {
 	},
 	incomplete_expired: {
 		label: "Expired",
-		className: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
+		className: "bg-destructive/10 text-destructive-text",
 	},
 	paused: { label: "Paused", className: "bg-muted text-muted-foreground" },
 	// Written by `expire_trials()` when a DB-managed trial lapses — the cohort
 	// that most needs the resubscribe treatment (BILL-11).
 	expired: {
 		label: "Trial Expired",
-		className: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
+		className: "bg-destructive/10 text-destructive-text",
 	},
 } as const satisfies Record<string, { label: string; className: string }>;
 
@@ -142,8 +149,11 @@ function StatusBadge({ status }: { status: string | null }) {
 	);
 }
 
+// The statuses the proxy locks out of every owner page but Settings and the
+// plan pages. `past_due` is not one: the proxy admits it through Stripe's
+// retries, so it has its own line (it read "Resubscribe to restore access"
+// to an owner who had access, 66.2-39 fix round 4, Part 8l).
 const RESUBSCRIBE_STATUSES = new Set([
-	"past_due",
 	"unpaid",
 	"canceled",
 	"incomplete",
@@ -214,7 +224,7 @@ export function BillingSettings() {
 	if (isLoading) {
 		return (
 			<div className="space-y-6">
-				<div className="mb-6">
+				<div>
 					<Skeleton className="h-6 w-48 mb-2" />
 					<Skeleton className="h-4 w-64" />
 				</div>
@@ -240,8 +250,8 @@ export function BillingSettings() {
 		);
 		return (
 			<div className="space-y-6">
-				<BlurFade delay={0.1} inView>
-					<div className="mb-6">
+				<BlurFade delay={0.1}>
+					<div>
 						<h2 className="text-lg font-semibold">Billing & Subscription</h2>
 						<p className="text-sm text-muted-foreground">
 							We couldn&apos;t load your subscription details.
@@ -249,7 +259,7 @@ export function BillingSettings() {
 					</div>
 				</BlurFade>
 				<section className="rounded-lg border bg-card p-6">
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						{isAuthError ? (
 							<>
 								Your session appears to have expired.{" "}
@@ -289,8 +299,8 @@ export function BillingSettings() {
 
 	return (
 		<div className="space-y-6">
-			<BlurFade delay={0.1} inView>
-				<div className="mb-6">
+			<BlurFade delay={0.1}>
+				<div>
 					<h2 className="text-lg font-semibold">Billing & Subscription</h2>
 					<p className="text-sm text-muted-foreground">
 						Manage your subscription and payment methods
@@ -299,7 +309,7 @@ export function BillingSettings() {
 			</BlurFade>
 
 			{/* Current Plan */}
-			<BlurFade delay={0.15} inView>
+			<BlurFade delay={0.15}>
 				<section className="rounded-lg border bg-card p-6 relative overflow-hidden">
 					<BorderBeam
 						size={100}
@@ -313,24 +323,29 @@ export function BillingSettings() {
 
 					<div className="flex items-start justify-between">
 						<div>
-							<div className="flex items-center gap-2 mb-1">
+							{/* The badge wraps under a long title: "Your subscription"
+							    beside "Incomplete" held one line and pushed Manage Plan
+							    to 335.3px at 320 (Part 8m, measured). */}
+							<div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
 								<h4 className="text-xl font-bold">
-									{resolvePlanTitle(status, isActive, currentPlan)}
+									{resolvePlanTitle(status, currentPlan)}
 								</h4>
 								<StatusBadge status={status} />
 							</div>
 							{isActive && currentPlan && (
 								<>
-									<p className="text-2xl font-bold text-primary">
-										$
-										{currentPeriod === "annual"
-											? currentPlan.price.annual
-											: currentPlan.price.monthly}
+									<p className="mb-0 text-2xl font-bold text-primary-text">
+										{formatCurrency(
+											currentPeriod === "annual"
+												? currentPlan.price.annual
+												: currentPlan.price.monthly,
+											{ minimumFractionDigits: 0, maximumFractionDigits: 0 },
+										)}
 										<span className="text-sm font-normal text-muted-foreground">
 											/{currentPeriod === "annual" ? "year" : "month"}
 										</span>
 									</p>
-									<p className="text-sm text-muted-foreground mt-1">
+									<p className="text-sm text-muted-foreground mt-1 mb-0">
 										{formatUnitLimit(currentPlan.limits.units)} · Unlimited
 										tenant records
 									</p>
@@ -342,12 +357,19 @@ export function BillingSettings() {
 									    indefinitely-stale webhook isn't masked as "still
 									    syncing" forever (mirrors the "Plan details will sync
 									    shortly" copy below). */}
+									{/* A trial's period ends with the trial, where Stripe bills
+									    the plan only with a payment method on file and cancels it
+									    without one, so the date is the trial's end, not a billing
+									    date (66.2-39 fix round 4, Part 8n). */}
 									{nextBillingDate ? (
-										<p className="text-xs text-muted-foreground mt-2">
-											Next billing date: {nextBillingDate}
+										<p className="text-xs text-muted-foreground mt-2 mb-0">
+											{status === "trialing"
+												? "Trial ends"
+												: "Next billing date"}
+											: {nextBillingDate}
 										</p>
 									) : (
-										<p className="text-xs text-muted-foreground mt-2">
+										<p className="text-xs text-muted-foreground mt-2 mb-0">
 											Billing cycle syncing from Stripe…{" "}
 											<Link
 												href="/contact"
@@ -368,7 +390,7 @@ export function BillingSettings() {
 							    Single helpful message for both. Sentry-warns the
 							    unknown-priceId variant for ops follow-up. */}
 							{isActive && !currentPlan && status === "active" && (
-								<p className="text-sm text-muted-foreground mt-1">
+								<p className="text-sm text-muted-foreground mt-1 mb-0">
 									Your account has active access. Plan details will sync
 									shortly.{" "}
 									<Link
@@ -386,7 +408,7 @@ export function BillingSettings() {
 							    the user is on a trial without a committed plan choice,
 							    so the "Choose a plan" prompt applies. */}
 							{status === "trialing" && !currentPlan && (
-								<p className="text-sm text-muted-foreground mt-1">
+								<p className="text-sm text-muted-foreground mt-1 mb-0">
 									Your trial is active.{" "}
 									<Link
 										href="/billing/plans"
@@ -394,11 +416,17 @@ export function BillingSettings() {
 									>
 										Choose a plan
 									</Link>{" "}
-									to keep your account when the trial ends.
+									to keep using TenantFlow when the trial ends.
+								</p>
+							)}
+							{status === "past_due" && (
+								<p className="text-sm text-muted-foreground mt-1 mb-0">
+									Your payment is past due. Update your payment method to keep
+									access.
 								</p>
 							)}
 							{isResubscribeState && (
-								<p className="text-sm text-muted-foreground mt-1">
+								<p className="text-sm text-muted-foreground mt-1 mb-0">
 									{status === "expired"
 										? "Your trial has expired."
 										: `Your subscription is ${statusVariant.label.toLowerCase()}.`}{" "}
@@ -412,8 +440,8 @@ export function BillingSettings() {
 								</p>
 							)}
 							{!status && (
-								<p className="text-sm text-muted-foreground mt-1">
-									Upgrade to unlock premium features
+								<p className="text-sm text-muted-foreground mt-1 mb-0">
+									Other pages need an active plan.
 								</p>
 							)}
 						</div>
@@ -422,7 +450,7 @@ export function BillingSettings() {
 								type="button"
 								onClick={handlePrimaryAction}
 								disabled={createPortalSession.isPending}
-								className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+								className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary-text dark:hover:bg-primary/90 transition-colors disabled:opacity-50"
 							>
 								{createPortalSession.isPending ? (
 									<span className="flex items-center gap-2">

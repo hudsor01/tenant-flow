@@ -6,6 +6,7 @@ import { PageLayout } from "#components/layout/page-layout";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { PrintButton } from "#components/shared/print-button";
 import { Button } from "#components/ui/button";
+import { ScrollRegion } from "#components/ui/scroll-region";
 import { RESOURCE_TO_BLOGS } from "#lib/content-links";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
@@ -542,7 +543,7 @@ export default function SecurityDepositReferenceCardPage() {
 				<div className="flex flex-wrap gap-6 mb-8 p-4 rounded-xl border border-border bg-muted/30">
 					<div className="flex items-center gap-2 text-sm">
 						<span
-							className="size-3 rounded-full bg-success"
+							className="size-3 rounded-full bg-success-text"
 							aria-hidden="true"
 						/>
 						<span className="text-muted-foreground">
@@ -550,14 +551,17 @@ export default function SecurityDepositReferenceCardPage() {
 						</span>
 					</div>
 					<div className="flex items-center gap-2 text-sm">
-						<span className="size-3 rounded-full bg-info" aria-hidden="true" />
+						<span
+							className="size-3 rounded-full bg-info-text"
+							aria-hidden="true"
+						/>
 						<span className="text-muted-foreground">
 							Interest payment required
 						</span>
 					</div>
 					<div className="flex items-center gap-2 text-sm">
 						<span
-							className="size-3 rounded-full bg-muted-foreground/30"
+							className="size-3 rounded-full border-2 border-muted-foreground"
 							aria-hidden="true"
 						/>
 						<span className="text-muted-foreground">Not required</span>
@@ -565,7 +569,7 @@ export default function SecurityDepositReferenceCardPage() {
 				</div>
 
 				{/* Table */}
-				<div className="overflow-x-auto rounded-xl border border-border">
+				<ScrollRegion className="overflow-x-auto rounded-xl border border-border">
 					<table className="w-full text-sm">
 						<thead>
 							<tr className="bg-muted/50 border-b border-border">
@@ -612,8 +616,8 @@ export default function SecurityDepositReferenceCardPage() {
 											}
 											className={`inline-block size-3 rounded-full ${
 												s.itemizedRequired
-													? "bg-success"
-													: "bg-muted-foreground/30"
+													? "bg-success-text"
+													: "border-2 border-muted-foreground"
 											}`}
 										/>
 									</td>
@@ -627,8 +631,8 @@ export default function SecurityDepositReferenceCardPage() {
 											}
 											className={`inline-block size-3 rounded-full ${
 												s.interestRequired
-													? "bg-info"
-													: "bg-muted-foreground/30"
+													? "bg-info-text"
+													: "border-2 border-muted-foreground"
 											}`}
 										/>
 									</td>
@@ -639,11 +643,11 @@ export default function SecurityDepositReferenceCardPage() {
 							))}
 						</tbody>
 					</table>
-				</div>
+				</ScrollRegion>
 
 				{/* Disclaimer */}
 				<div className="mt-8 rounded-xl border border-warning/20 bg-warning/10 p-6">
-					<p className="text-sm text-warning-text">
+					<p className="mb-0 text-sm text-warning-text">
 						<strong>Disclaimer:</strong> This reference card provides a general
 						overview of state security deposit laws as of July 2026. Laws change
 						frequently and local jurisdictions may have additional requirements.
@@ -657,12 +661,12 @@ export default function SecurityDepositReferenceCardPage() {
 					<h2 className="text-2xl font-bold text-foreground mb-6">
 						Security Deposit Best Practices
 					</h2>
-					<div className="grid md:grid-cols-2 gap-6">
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 						<div className="rounded-xl border border-border p-6">
 							<h3 className="font-semibold text-foreground mb-2">
 								Document Everything
 							</h3>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								Take timestamped photos at move-in and move-out. Use a written
 								checklist signed by both parties. This is your strongest
 								protection against disputes.
@@ -672,7 +676,7 @@ export default function SecurityDepositReferenceCardPage() {
 							<h3 className="font-semibold text-foreground mb-2">
 								Separate Trust Account
 							</h3>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								Many states require deposits held in a separate account. Even
 								where not required, it protects you from commingling claims and
 								simplifies accounting.
@@ -682,7 +686,7 @@ export default function SecurityDepositReferenceCardPage() {
 							<h3 className="font-semibold text-foreground mb-2">
 								Return Early When Possible
 							</h3>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								Returning deposits quickly builds goodwill and reduces dispute
 								risk. Many states impose penalties (2-3x the deposit) for late
 								returns.
@@ -692,7 +696,7 @@ export default function SecurityDepositReferenceCardPage() {
 							<h3 className="font-semibold text-foreground mb-2">
 								Normal Wear vs Damage
 							</h3>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								Faded paint, worn carpet, and minor scuffs are normal wear.
 								Holes in walls, stained carpets, and broken fixtures are damage.
 								Know the difference — courts do.

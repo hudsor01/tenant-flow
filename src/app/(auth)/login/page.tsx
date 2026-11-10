@@ -10,6 +10,7 @@ import { ForgotPasswordModal } from "#components/auth/forgot-password-modal";
 import { MfaVerificationDialog } from "#components/auth/mfa-verification-dialog";
 import { authKeys } from "#hooks/api/use-auth";
 import { createLogger } from "#lib/frontend-logger";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { requiresMfaStepUp } from "#lib/supabase/mfa-assurance";
 import { LoginForm } from "./login-form";
@@ -191,9 +192,7 @@ function LoginPageContent() {
 				router.push(destination);
 			}
 		} catch (error) {
-			const message =
-				error instanceof Error ? error.message : "Please try again";
-			setAuthError(message);
+			setAuthError(userFacingErrorMessage(error, "Please try again"));
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -207,7 +206,10 @@ function LoginPageContent() {
 
 	const handleMfaCancel = async () => {
 		const supabase = createClient();
-		await supabase.auth.signOut();
+		// Abandoning the challenge ends this half-signed-in session only, on the
+		// server and in the browser. The default scope, "global", ended every
+		// session of the account on every device (66.2-39 fix round 4, Part 8k).
+		await supabase.auth.signOut({ scope: "local" });
 		setShowMfaDialog(false);
 		setMfaFactorId(null);
 		setPendingRedirect(null);
@@ -286,7 +288,7 @@ function LoginPageContent() {
 							</div>
 						</div>
 						<div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm border border-border/50">
-							<p className="text-muted-foreground">
+							<p className="mb-0 text-muted-foreground">
 								<strong className="text-foreground">New to TenantFlow?</strong>{" "}
 								<Link
 									href="/pricing"
@@ -313,22 +315,22 @@ function LoginPageContent() {
 
 						{/* Trust Indicators */}
 						<div className="text-center space-y-4 pt-4 border-t border-border/50">
-							<p className="text-muted-foreground/80 text-xs font-medium">
+							<p className="text-muted-foreground text-xs font-medium">
 								Built for landlords
 							</p>
 							<div className="flex-center flex-wrap gap-4 sm:gap-6 text-xs">
-								<div className="flex items-center gap-1.5 text-muted-foreground/70">
+								<div className="flex items-center gap-1.5 text-muted-foreground">
 									<Lock className="size-3" />
 									<span className="font-medium hidden sm:inline">
 										Encrypted at rest
 									</span>
 									<span className="font-medium sm:hidden">Secure</span>
 								</div>
-								<div className="flex items-center gap-1.5 text-muted-foreground/70">
+								<div className="flex items-center gap-1.5 text-muted-foreground">
 									<Zap className="size-3" />
 									<span className="font-medium">RLS isolation</span>
 								</div>
-								<div className="flex items-center gap-1.5 text-muted-foreground/70">
+								<div className="flex items-center gap-1.5 text-muted-foreground">
 									<Smartphone className="size-3" />
 									<span className="font-medium hidden sm:inline">
 										Mobile-friendly web

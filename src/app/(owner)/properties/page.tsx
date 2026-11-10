@@ -9,6 +9,7 @@ import {
 	PropertyInsightsSkeleton,
 } from "#components/analytics/property-insights-section";
 import { Properties } from "#components/properties/properties";
+import { OwnerErrorBox } from "#components/shared/owner-error-box";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -107,6 +108,10 @@ export default function PropertiesPage() {
 		setPropertyToDelete(propertyId);
 	};
 
+	// The confirmation names the property it deletes.
+	const propertyToDeleteName =
+		properties.find((p) => p.id === propertyToDelete)?.name ?? null;
+
 	const confirmDelete = () => {
 		if (propertyToDelete) {
 			deleteProperty(propertyToDelete);
@@ -121,16 +126,10 @@ export default function PropertiesPage() {
 	if (error) {
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
-				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
-					<h2 className="text-lg font-semibold text-destructive-text mb-2">
-						Error Loading Properties
-					</h2>
-					<p className="text-muted-foreground">
-						{error instanceof Error
-							? error.message
-							: "Failed to load properties"}
-					</p>
-				</div>
+				<OwnerErrorBox
+					title="Error Loading Properties"
+					message="Failed to load properties"
+				/>
 			</div>
 		);
 	}
@@ -174,18 +173,21 @@ export default function PropertiesPage() {
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete Property</AlertDialogTitle>
-						<AlertDialogDescription>
-							Are you sure you want to delete this property? This action cannot
-							be undone.
+						<AlertDialogTitle>
+							{propertyToDeleteName
+								? `Delete property "${propertyToDeleteName}"?`
+								: "Delete this property?"}
+						</AlertDialogTitle>
+						{/* A soft delete (status 'inactive'): the property leaves the
+						    list, and nothing cascades to its units or leases. */}
+						<AlertDialogDescription className="mb-0">
+							This marks the property as inactive, so it leaves your property
+							list. Its units and leases are kept.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
-						<AlertDialogAction
-							onClick={confirmDelete}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-						>
+						<AlertDialogAction onClick={confirmDelete} variant="destructive">
 							Delete
 						</AlertDialogAction>
 					</AlertDialogFooter>

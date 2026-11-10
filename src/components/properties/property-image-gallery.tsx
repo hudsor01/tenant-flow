@@ -106,7 +106,7 @@ export function PropertyImageGallery({
 	// Empty state
 	if (!images || images.length === 0) {
 		return (
-			<p className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+			<p className="mb-0 flex items-center gap-2 text-sm text-muted-foreground py-2">
 				<ImageIcon className="size-4 shrink-0" />
 				No images yet
 				{editable
@@ -148,14 +148,18 @@ export function PropertyImageGallery({
 
 							{/* Primary badge */}
 							{isPrimary && (
-								<Badge className="pointer-events-none absolute top-2 left-2 z-20 bg-primary text-white">
+								<Badge className="pointer-events-none absolute top-2 left-2 z-20">
 									Primary
 								</Badge>
 							)}
 
 							{/* Delete button (editable mode, hover state) */}
+							{/* type="button": on the edit page the gallery sits inside the
+							    property form, where an untyped button submits it (66.2-39
+							    fix round 4, Part 8f). */}
 							{editable && (
 								<Button
+									type="button"
 									variant="destructive"
 									size="icon"
 									className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity h-8 w-8"
@@ -208,17 +212,17 @@ export function PropertyImageGallery({
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete Image</AlertDialogTitle>
-						<AlertDialogDescription>
-							Are you sure you want to delete this image? This action cannot be
-							undone.
+						<AlertDialogTitle>Delete this image?</AlertDialogTitle>
+						<AlertDialogDescription className="mb-0">
+							This permanently deletes the image from the property's gallery.
+							This can't be undone.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={handleDeleteConfirm}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							variant="destructive"
 						>
 							{deleteMutation.isPending ? "Deleting..." : "Delete"}
 						</AlertDialogAction>

@@ -38,7 +38,7 @@ export const useErrorBoundaryStore = create<ErrorBoundaryState>((set, get) => ({
 	errorState: initialErrorState,
 
 	setError: (error: Error, context?: string) => {
-		const errorId = `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+		const errorId = `error_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
 		logger.error("Error boundary caught error", {
 			action: "error_boundary_set_error",

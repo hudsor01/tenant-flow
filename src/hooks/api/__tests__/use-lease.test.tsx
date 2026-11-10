@@ -15,9 +15,14 @@
  * @vitest-environment jsdom
  */
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+	QueryClient,
+	QueryClientProvider,
+	useQuery,
+} from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	type LeaseWithNestedRelations,
@@ -27,17 +32,14 @@ import {
 } from "#components/leases/table/lease-utils";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
 import type { Lease, Property } from "#types/core";
+import { tierGateRefusal } from "../../../../supabase/functions/_shared/tier-gate-decision";
 import { leaseQueries } from "../query-keys/lease-keys";
 import { ownerDashboardKeys } from "../query-keys/owner-dashboard-keys";
 import { tenantQueries } from "../query-keys/tenant-keys";
 import { unitQueries } from "../query-keys/unit-keys";
 import {
-	useExpiringLeases,
-	useLease,
 	useLeaseList,
 	useLeaseSignatureStatus,
-	useLeaseStats,
-	usePrefetchLeaseDetail,
 	useSignedDocumentUrl,
 } from "../use-lease";
 import {
@@ -46,7 +48,6 @@ import {
 } from "../use-lease-lifecycle-mutations";
 import {
 	useCreateLeaseMutation,
-	useDeleteLeaseMutation,
 	useUpdateLeaseMutation,
 } from "../use-lease-mutations";
 import {
@@ -219,11 +220,14 @@ describe("Query Hooks", () => {
 		});
 	});
 
-	describe("useLease", () => {
+	describe("leaseQueries.detail", () => {
 		it("should query leases table by ID", async () => {
-			const { result } = renderHook(() => useLease("lease-123"), {
-				wrapper: createWrapper(),
-			});
+			const { result } = renderHook(
+				() => useQuery(leaseQueries.detail("lease-123")),
+				{
+					wrapper: createWrapper(),
+				},
+			);
 
 			await waitFor(() => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true);
@@ -233,7 +237,7 @@ describe("Query Hooks", () => {
 		});
 
 		it("should not fetch when ID is empty", () => {
-			const { result } = renderHook(() => useLease(""), {
+			const { result } = renderHook(() => useQuery(leaseQueries.detail("")), {
 				wrapper: createWrapper(),
 			});
 
@@ -279,76 +283,6 @@ describe("Query Hooks", () => {
 			});
 
 			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
-		});
-	});
-
-	describe("useExpiringLeases", () => {
-		it("should query leases expiring within default 30 days", async () => {
-			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === "leases") {
-					return createQueryChain({ data: [mockLease] });
-				}
-				return createQueryChain({ data: null });
-			});
-
-			const { result } = renderHook(() => useExpiringLeases(), {
-				wrapper: createWrapper(),
-			});
-
-			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true);
-			});
-
-			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
-		});
-
-		it("should query leases expiring within custom days", async () => {
-			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === "leases") {
-					return createQueryChain({ data: [] });
-				}
-				return createQueryChain({ data: null });
-			});
-
-			const { result } = renderHook(() => useExpiringLeases(60), {
-				wrapper: createWrapper(),
-			});
-
-			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true);
-			});
-
-			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
-		});
-	});
-
-	describe("useLeaseStats", () => {
-		it("should call get_lease_stats RPC for aggregated counts", async () => {
-			supabaseRpcMock.mockResolvedValue({
-				data: {
-					totalLeases: 10,
-					activeLeases: 5,
-					expiredLeases: 2,
-					terminatedLeases: 1,
-					expiringLeases: 1,
-					totalMonthlyRent: 5000,
-					averageRent: 1000,
-					total_security_deposits: 2500,
-				},
-				error: null,
-			});
-
-			const { result } = renderHook(() => useLeaseStats(), {
-				wrapper: createWrapper(),
-			});
-
-			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true);
-			});
-
-			expect(supabaseRpcMock).toHaveBeenCalledWith("get_lease_stats", {
-				p_user_id: "user-123",
-			});
 		});
 	});
 
@@ -671,18 +605,6 @@ describe("Mutation Hooks", () => {
 		});
 	});
 
-	describe("useDeleteLeaseMutation", () => {
-		it("should soft-delete via status update in leases table", async () => {
-			const { result } = renderHook(() => useDeleteLeaseMutation(), {
-				wrapper: createWrapper(),
-			});
-
-			await result.current.mutateAsync("lease-123");
-
-			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
-		});
-	});
-
 	describe("useTerminateLeaseMutation", () => {
 		it("should update lease_status to terminated in leases table", async () => {
 			const terminatedLease = { ...mockLease, lease_status: "terminated" };
@@ -894,41 +816,78 @@ describe("Mutation Hooks", () => {
 				message: expect.stringContaining("Tenant email is required"),
 			});
 		});
-	});
-});
 
-describe("Utility Hooks", () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-
-		supabaseAuthGetUserMock.mockResolvedValue({
-			data: { user: { id: "user-123" } },
-		});
-
-		supabaseAuthGetSessionMock.mockResolvedValue({
-			data: { session: { access_token: "mock-token" } },
-		});
-
-		fetchMock.mockResolvedValue({
-			ok: true,
-			json: async () => ({ success: true }),
-		});
-
-		supabaseFromMock.mockImplementation((table: string) => {
-			if (table === "leases") {
-				return createQueryChain({ data: mockLease });
-			}
-			return createQueryChain({ data: null });
-		});
-	});
-
-	describe("usePrefetchLeaseDetail", () => {
-		it("should be a declarative prefetch hook", () => {
-			const { result } = renderHook(() => usePrefetchLeaseDetail("lease-123"), {
+		// 66.2-39 fix round 4, Part 8n: the send's 402 toast follows the
+		// refusal's reason. The bodies are the gate leaf's own.
+		const sendArgs = {
+			leaseId: "lease-123",
+			missingFields: {
+				immediate_family_members: "",
+				landlord_notice_address: "123 Main St",
+			},
+		};
+		async function sendRefused(body: Record<string, unknown>) {
+			vi.mocked(toast.error).mockClear();
+			fetchMock.mockResolvedValueOnce({ ok: false, json: async () => body });
+			const { result } = renderHook(() => useSendLeaseForSignatureMutation(), {
 				wrapper: createWrapper(),
 			});
+			await expect(result.current.mutateAsync(sendArgs)).rejects.toMatchObject({
+				name: "PaywallError",
+			});
+			await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));
+		}
 
-			expect(result.current).toBeUndefined();
+		it("titles a past-due Growth owner's refusal for billing, not an upgrade", async () => {
+			await sendRefused({
+				...tierGateRefusal({
+					onEntitledPlan: true,
+					hasActiveSub: false,
+					status: "past_due",
+					upgradeSource: "esign_gate",
+				}),
+			});
+			expect(toast.error).toHaveBeenCalledWith(
+				"Billing needs attention",
+				expect.objectContaining({
+					description:
+						"Your plan includes this, but it is paused while your subscription payment is past due. Update your payment method in Billing Settings.",
+					action: expect.objectContaining({ label: "Billing Settings" }),
+				}),
+			);
+		});
+
+		it("titles a plan without e-sign as an upgrade, since no limit was reached", async () => {
+			await sendRefused({
+				...tierGateRefusal({
+					onEntitledPlan: false,
+					hasActiveSub: true,
+					status: "active",
+					upgradeSource: "esign_gate",
+				}),
+			});
+			expect(toast.error).toHaveBeenCalledWith(
+				"Upgrade required",
+				expect.objectContaining({
+					description: "This feature requires a Growth or Max subscription.",
+					action: expect.objectContaining({ label: "Upgrade" }),
+				}),
+			);
+		});
+
+		it("keeps the meter's over-cap title, which names no reason", async () => {
+			await sendRefused({
+				error:
+					"You've used all 25 lease e-signs included in your plan this month. Upgrade to Max for unlimited e-signs.",
+				upgrade_required: true,
+				upgrade_url: "/billing/plans?source=esign_quota",
+			});
+			expect(toast.error).toHaveBeenCalledWith(
+				"E-sign limit reached",
+				expect.objectContaining({
+					action: expect.objectContaining({ label: "Upgrade" }),
+				}),
+			);
 		});
 	});
 });
@@ -964,9 +923,12 @@ describe("Error Handling", () => {
 			}),
 		);
 
-		const { result } = renderHook(() => useLease("lease-123"), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(leaseQueries.detail("lease-123")),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isError).toBe(true);
@@ -978,9 +940,12 @@ describe("Error Handling", () => {
 			throw new Error("Network error");
 		});
 
-		const { result } = renderHook(() => useLease("lease-123"), {
-			wrapper: createWrapper(),
-		});
+		const { result } = renderHook(
+			() => useQuery(leaseQueries.detail("lease-123")),
+			{
+				wrapper: createWrapper(),
+			},
+		);
 
 		await waitFor(() => {
 			expect(result.current.isError).toBe(true);
@@ -1000,7 +965,7 @@ describe("Error Handling", () => {
 			}),
 		);
 
-		const { result } = renderHook(() => useDeleteLeaseMutation(), {
+		const { result } = renderHook(() => useTerminateLeaseMutation(), {
 			wrapper: createWrapper(),
 		});
 
@@ -1112,6 +1077,8 @@ describe("transformLease (LEASE-01 list embed shape)", () => {
 		emergency_contact_relationship: null,
 		identity_verified: null,
 		ssn_last_four: null,
+		move_out_date: null,
+		move_out_reason: null,
 		created_at: "2025-01-01T00:00:00Z",
 		updated_at: "2025-01-01T00:00:00Z",
 	};

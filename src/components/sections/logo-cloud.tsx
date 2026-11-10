@@ -8,7 +8,7 @@ interface LogoCloudProps {
 
 /**
  * Logo cloud showing the technology stack.
- * SVG logos render at native color with a subtle opacity bump on hover.
+ * SVG logos render at native color at 90% opacity.
  */
 export function LogoCloud({
 	className,
@@ -27,7 +27,7 @@ export function LogoCloud({
 	return (
 		<section className={cn("border-t border-border/40 py-12", className)}>
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					<div className="text-center mb-6">
 						<p className="typography-small text-muted-foreground uppercase tracking-wider">
 							{title}
@@ -36,13 +36,13 @@ export function LogoCloud({
 
 					<div className="grid grid-cols-2 sm:grid-cols-4 place-items-center gap-x-8 gap-y-10">
 						{stack.map((item, index) => (
-							<BlurFade key={item.name} delay={0.1 + index * 0.05} inView>
-								<div className="group relative flex flex-col items-center gap-2">
+							<BlurFade key={item.name} delay={0.1 + index * 0.05}>
+								<div className="relative flex flex-col items-center gap-2">
 									{/* Uniform 40px height, width auto — logos render at their
 									    natural aspect ratio (no per-logo fixed width letterboxing
 									    them to sub-32px optical heights). */}
-									<div className="h-10 flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity duration-300">
-										<item.logo className="h-full w-auto" />
+									<div className="h-10 flex items-center justify-center opacity-90">
+										<item.logo className="h-full w-auto" label={item.name} />
 									</div>
 									<span className="text-xs text-muted-foreground">
 										{item.description}
@@ -57,10 +57,20 @@ export function LogoCloud({
 	);
 }
 
-// SVG Logo Components
-function StripeLogo({ className }: { className?: string }) {
+// SVG Logo Components. Each wordmark is the only thing that names its vendor
+// (the caption under it names the category), so the svg is an image with the
+// vendor's name (WCAG 1.1.1); role="img" also keeps a wordmark's own <text>
+// from being read a second time.
+interface LogoProps {
+	className?: string;
+	label: string;
+}
+
+function StripeLogo({ className, label }: LogoProps) {
 	return (
 		<svg
+			role="img"
+			aria-label={label}
 			className={className}
 			viewBox="0 0 60 25"
 			fill="none"
@@ -76,9 +86,11 @@ function StripeLogo({ className }: { className?: string }) {
 	);
 }
 
-function SupabaseWordmark({ className }: { className?: string }) {
+function SupabaseWordmark({ className, label }: LogoProps) {
 	return (
 		<svg
+			role="img"
+			aria-label={label}
 			className={className}
 			viewBox="0 0 385 113"
 			fill="none"
@@ -136,9 +148,11 @@ function SupabaseWordmark({ className }: { className?: string }) {
 	);
 }
 
-function VercelWordmark({ className }: { className?: string }) {
+function VercelWordmark({ className, label }: LogoProps) {
 	return (
 		<svg
+			role="img"
+			aria-label={label}
 			className={className}
 			viewBox="0 0 238 65"
 			fill="none"
@@ -160,9 +174,11 @@ function VercelWordmark({ className }: { className?: string }) {
 	);
 }
 
-function ResendLogo({ className }: { className?: string }) {
+function ResendLogo({ className, label }: LogoProps) {
 	return (
 		<svg
+			role="img"
+			aria-label={label}
 			className={className}
 			viewBox="0 0 72 25"
 			fill="none"

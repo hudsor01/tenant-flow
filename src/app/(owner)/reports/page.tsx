@@ -47,9 +47,11 @@ export default function ReportsPage() {
 						<h2 id={group.headingId} className="font-semibold text-foreground">
 							{group.title}
 						</h2>
-						<p className="text-sm text-muted-foreground">{group.description}</p>
+						<p className="mb-0 text-sm text-muted-foreground">
+							{group.description}
+						</p>
 					</div>
-					<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
 						{REPORTS_HUB_ENTRIES.filter(
 							(entry) => entry.group === group.id,
 						).map((entry) => (

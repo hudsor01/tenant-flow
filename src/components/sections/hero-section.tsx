@@ -24,7 +24,7 @@ export function HeroSection({
 				<div className="pb-8 text-center">
 					<div className="inline-flex-center px-6 py-3 rounded-full border border-primary/25 bg-primary/10">
 						<div
-							className="size-2 bg-success rounded-full mr-3 animate-pulse"
+							className="size-2 bg-success-text rounded-full mr-3 animate-pulse"
 							aria-hidden="true"
 						/>
 						<span className="text-muted-foreground font-medium text-sm">
@@ -48,12 +48,12 @@ export function HeroSection({
 						<div
 							className={
 								hasVisual
-									? "flex flex-col justify-center space-y-8"
+									? "@container flex flex-col justify-center space-y-8"
 									: "flex flex-col items-center space-y-8 max-w-4xl"
 							}
 						>
 							<div className="space-y-6">
-								<h1 className="text-responsive-display-xl font-bold text-foreground tracking-tight leading-[1.1]">
+								<h1 className="text-responsive-display-xl font-bold text-foreground tracking-tight leading-display">
 									{title}{" "}
 									{titleHighlight && (
 										<span className="hero-highlight">{titleHighlight}</span>
@@ -61,7 +61,7 @@ export function HeroSection({
 								</h1>
 
 								<p
-									className={`text-xl text-muted-foreground leading-relaxed ${hasVisual ? "max-w-lg" : "max-w-2xl"}`}
+									className={`mb-0 text-xl text-muted-foreground leading-relaxed ${hasVisual ? "max-w-lg" : "max-w-2xl"}`}
 								>
 									{subtitle}
 								</p>
@@ -80,7 +80,7 @@ export function HeroSection({
 							</div>
 
 							{trustSignals && (
-								<p className="text-muted-foreground font-medium">
+								<p className="mb-0 text-muted-foreground font-medium">
 									{trustSignals}
 								</p>
 							)}

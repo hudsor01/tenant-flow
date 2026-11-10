@@ -74,22 +74,3 @@ export const ROUTES = {
 	REPORTS_GENERATE: "/reports/generate",
 	REPORTS_YEAR_END: "/reports/year-end",
 } as const;
-
-/**
- * Helper function to wait for navigation to a route
- * Usage: await page.waitForURL(getRoutePattern(ROUTES.OWNER_DASHBOARD))
- */
-export function getRoutePattern(route: string): RegExp {
-	// Escape special regex characters except *
-	const escaped = route.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
-	// Convert * to regex wildcard
-	const pattern = escaped.replace(/\*/g, ".*");
-	return new RegExp(`^${pattern}$`);
-}
-
-/**
- * Helper to check if current URL matches a route
- */
-export function matchesRoute(url: string, route: string): boolean {
-	return getRoutePattern(route).test(url);
-}

@@ -57,7 +57,7 @@ export function PropertyImagesCreateSection({
 								? "Drop images here..."
 								: "Drag & drop images here, or click to browse"}
 						</p>
-						<p className="text-xs text-muted-foreground">
+						<p className="mb-0 text-xs text-muted-foreground">
 							JPG, PNG, WebP, or GIF (max 10MB each)
 						</p>
 					</div>
@@ -66,7 +66,7 @@ export function PropertyImagesCreateSection({
 						<p className="text-sm font-medium">
 							{filesWithStatus.length} image(s) selected
 						</p>
-						<p className="text-xs text-muted-foreground">
+						<p className="mb-0 text-xs text-muted-foreground">
 							{uploadingImages
 								? "Uploading..."
 								: "Click or drag to add more (max 10 total)"}
@@ -103,7 +103,7 @@ export function PropertyImagesCreateSection({
 							)}
 
 							{status !== "pending" && (
-								<div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+								<div className="dark absolute inset-0 bg-black/75 flex items-center justify-center">
 									{status === "uploading" && (
 										<div className="flex flex-col items-center gap-2 text-white">
 											<Loader2 className="h-6 w-6 animate-spin" />
@@ -111,14 +111,14 @@ export function PropertyImagesCreateSection({
 										</div>
 									)}
 									{status === "success" && (
-										<div className="flex flex-col items-center gap-2 text-green-400">
-											<CheckCircle className="h-6 w-6" />
+										<div className="flex flex-col items-center gap-2 text-white">
+											<CheckCircle className="h-6 w-6 text-success-text" />
 											<span className="text-xs font-medium">Uploaded</span>
 										</div>
 									)}
 									{status === "error" && (
-										<div className="flex flex-col items-center gap-2 text-red-400">
-											<X className="h-6 w-6" />
+										<div className="flex flex-col items-center gap-2 text-white">
+											<X className="h-6 w-6 text-destructive-text" />
 											<span className="text-xs font-medium">Failed</span>
 										</div>
 									)}

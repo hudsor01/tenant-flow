@@ -12,6 +12,7 @@
  */
 
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { createClient } from "#lib/supabase/client";
@@ -42,7 +43,7 @@ export interface DocumentCategoryRow {
 function requireString(raw: Record<string, unknown>, field: string): string {
 	const value = raw[field];
 	if (typeof value !== "string") {
-		throw new Error(
+		throw new DiagnosticError(
 			`mapDocumentCategoryRow: NOT NULL field '${field}' missing or non-string from PostgREST response`,
 		);
 	}
@@ -51,7 +52,7 @@ function requireString(raw: Record<string, unknown>, field: string): string {
 function requireBool(raw: Record<string, unknown>, field: string): boolean {
 	const value = raw[field];
 	if (typeof value !== "boolean") {
-		throw new Error(
+		throw new DiagnosticError(
 			`mapDocumentCategoryRow: NOT NULL field '${field}' missing or non-boolean from PostgREST response`,
 		);
 	}
@@ -60,7 +61,7 @@ function requireBool(raw: Record<string, unknown>, field: string): boolean {
 function requireNumber(raw: Record<string, unknown>, field: string): number {
 	const value = raw[field];
 	if (typeof value !== "number") {
-		throw new Error(
+		throw new DiagnosticError(
 			`mapDocumentCategoryRow: NOT NULL field '${field}' missing or non-number from PostgREST response`,
 		);
 	}
@@ -79,7 +80,7 @@ export function mapDocumentCategoryRow(
 	const slug = requireString(raw, "slug");
 	const slugCheck = documentCategorySlugSchema.safeParse(slug);
 	if (!slugCheck.success) {
-		throw new Error(
+		throw new DiagnosticError(
 			`mapDocumentCategoryRow: row '${requireString(raw, "id")}' has malformed slug '${slug}'`,
 		);
 	}

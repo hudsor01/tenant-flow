@@ -1,6 +1,6 @@
 "use client";
 
-import { useStore } from "@tanstack/react-form";
+import { useSelector } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -221,7 +221,7 @@ export function AddTenantForm({
 	// FORMFIX-01: read dirty REACTIVELY from the form store so the boolean
 	// re-renders as the user types (a `form.state.isDirty` snapshot is read once
 	// at mount and never re-arms the guard's effect).
-	const isDirty = useStore(form.store, (s) => s.isDirty);
+	const isDirty = useSelector(form.store, (s) => s.isDirty);
 	useUnsavedChangesWarning(isDirty);
 
 	// Filter units based on selected property
@@ -241,7 +241,18 @@ export function AddTenantForm({
 	}, [availableUnits, form]);
 
 	return (
-		<div className="space-y-6">
+		// A real <form>, so "Add Tenant" is a submit button of it: a click and
+		// Enter in a field both run the schema through `form.handleSubmit`.
+		// `noValidate`: the email input's own browser bubble would pre-empt the
+		// schema's message.
+		<form
+			noValidate
+			onSubmit={(event) => {
+				event.preventDefault();
+				void form.handleSubmit();
+			}}
+			className="space-y-6"
+		>
 			<AddTenantInfoFields form={form} />
 
 			<AddTenantPropertyFields
@@ -264,7 +275,6 @@ export function AddTenantForm({
 						<Button
 							type="submit"
 							disabled={!canSubmit || isSubmitting || isFormSubmitting}
-							onClick={form.handleSubmit}
 						>
 							<UserPlus className="size-4 mr-2" />
 							{isSubmitting || isFormSubmitting
@@ -274,6 +284,6 @@ export function AddTenantForm({
 					)}
 				</form.Subscribe>
 			</div>
-		</div>
+		</form>
 	);
 }

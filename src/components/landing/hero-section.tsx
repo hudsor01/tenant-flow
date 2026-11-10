@@ -10,7 +10,7 @@ export function HeroSection() {
 			<div className="absolute inset-0 opacity-[0.015] bg-[radial-gradient(circle_at_1px_1px,var(--color-foreground)_1px,transparent_0)] bg-size-[32px_32px]" />
 
 			<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					<div className="text-center max-w-5xl mx-auto space-y-8">
 						<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-tight">
 							<span className="text-foreground">Run your rentals from a</span>{" "}
@@ -29,7 +29,7 @@ export function HeroSection() {
 						<div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
 							<Button
 								size="lg"
-								className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 typography-large px-8 py-4"
+								className="shrink group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 typography-large px-8 py-4"
 								asChild
 							>
 								<Link href="/pricing" aria-label="Start free — no card">
@@ -42,17 +42,17 @@ export function HeroSection() {
 							<Button
 								size="lg"
 								variant="outline"
-								className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 typography-large px-8 py-4 transition-all duration-300"
+								className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 dark:border-muted-foreground/30 dark:hover:bg-primary/5 typography-large px-8 py-4 transition-all duration-300"
 								asChild
 							>
-								<Link href="/contact" aria-label="See TenantFlow in action">
+								<Link href="/contact">
 									<ArrowRight className="size-5 mr-3 opacity-70 group-hover:opacity-100" />
 									See it in action
 								</Link>
 							</Button>
 						</div>
 
-						<p className="text-muted-foreground/80 typography-small">
+						<p className="mb-0 text-muted-foreground typography-small">
 							<Check className="size-4 inline text-primary mr-2" />
 							14-day free trial • No credit card required
 						</p>

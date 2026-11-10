@@ -1,0 +1,25 @@
+{
+  "label": "66.2-28",
+  "generatedAt": "2026-10-31T20:28:46.521Z",
+  "files": [
+    {
+      "file": "src/components/ui/grid-pattern.tsx",
+      "item": "grid-pattern",
+      "derivativeOf": null,
+      "registryStatus": 404,
+      "status": "non-registry",
+      "normalizedDiffHunks": null,
+      "normalizedDiffPath": null,
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": false,
+      "divergenceCount": 0
+    }
+  ],
+  "counts": {
+    "inSync": 0,
+    "divergent": 0,
+    "nonRegistry": 1
+  },
+  "problems": []
+}

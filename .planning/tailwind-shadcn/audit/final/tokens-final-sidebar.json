@@ -1,0 +1,198 @@
+{
+ "light": {
+  "sidebar": [
+   250,
+   252,
+   254,
+   1
+  ],
+  "sidebar-foreground": [
+   14,
+   23,
+   31,
+   1
+  ],
+  "sidebar-primary": [
+   0,
+   100,
+   239,
+   1
+  ],
+  "sidebar-primary-foreground": [
+   244,
+   249,
+   255,
+   1
+  ],
+  "sidebar-accent": [
+   229,
+   236,
+   241,
+   1
+  ],
+  "sidebar-accent-foreground": [
+   14,
+   23,
+   31,
+   1
+  ],
+  "sidebar-border": [
+   210,
+   216,
+   222,
+   1
+  ],
+  "sidebar-ring": [
+   0,
+   91,
+   209,
+   1
+  ],
+  "card": [
+   250,
+   252,
+   254,
+   1
+  ],
+  "card-foreground": [
+   14,
+   23,
+   31,
+   1
+  ],
+  "primary": [
+   0,
+   100,
+   239,
+   1
+  ],
+  "primary-foreground": [
+   244,
+   249,
+   255,
+   1
+  ],
+  "muted": [
+   229,
+   236,
+   241,
+   1
+  ],
+  "foreground": [
+   14,
+   23,
+   31,
+   1
+  ],
+  "border": [
+   210,
+   216,
+   222,
+   1
+  ],
+  "ring": [
+   0,
+   91,
+   209,
+   1
+  ]
+ },
+ "dark": {
+  "sidebar": [
+   8,
+   14,
+   22,
+   1
+  ],
+  "sidebar-foreground": [
+   236,
+   243,
+   248,
+   1
+  ],
+  "sidebar-primary": [
+   67,
+   159,
+   255,
+   1
+  ],
+  "sidebar-primary-foreground": [
+   14,
+   18,
+   22,
+   1
+  ],
+  "sidebar-accent": [
+   20,
+   27,
+   36,
+   1
+  ],
+  "sidebar-accent-foreground": [
+   236,
+   243,
+   248,
+   1
+  ],
+  "sidebar-border": [
+   41,
+   46,
+   53,
+   1
+  ],
+  "sidebar-ring": [
+   67,
+   159,
+   255,
+   1
+  ],
+  "card": [
+   8,
+   14,
+   22,
+   1
+  ],
+  "card-foreground": [
+   236,
+   243,
+   248,
+   1
+  ],
+  "primary": [
+   67,
+   159,
+   255,
+   1
+  ],
+  "primary-foreground": [
+   14,
+   18,
+   22,
+   1
+  ],
+  "muted": [
+   20,
+   27,
+   36,
+   1
+  ],
+  "foreground": [
+   236,
+   243,
+   248,
+   1
+  ],
+  "border": [
+   41,
+   46,
+   53,
+   1
+  ],
+  "ring": [
+   67,
+   159,
+   255,
+   1
+  ]
+ }
+}

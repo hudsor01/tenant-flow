@@ -74,7 +74,7 @@ import {
  * details.
  */
 const DECLINE_COPY = {
-	title: "Decline this application",
+	title: "Decline this application?",
 	body: "Choose a reason. This is stored with the application and is kept after applicant details are removed, so you can show why a decision was made.",
 	/**
 	 * The trigger on the detail page reads the short `Decline`; the button that
@@ -155,7 +155,9 @@ export function ApplicationDeclineDialog({
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>{DECLINE_COPY.title}</DialogTitle>
-					<DialogDescription>{DECLINE_COPY.body}</DialogDescription>
+					<DialogDescription className="mb-0">
+						{DECLINE_COPY.body}
+					</DialogDescription>
 				</DialogHeader>
 
 				<Select

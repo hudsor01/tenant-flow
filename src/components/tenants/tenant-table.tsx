@@ -175,7 +175,7 @@ export function TenantTable({
 										allSelected ? true : someSelected ? "indeterminate" : false
 									}
 									onCheckedChange={handleSelectAll}
-									aria-label="Select all"
+									aria-label="Select all tenants"
 								/>
 							</th>
 							<th
@@ -284,7 +284,7 @@ export function TenantTable({
 			{/* Pagination */}
 			{totalPages > 1 && (
 				<div className="flex items-center justify-between px-4 py-2 border-t border-border">
-					<p className="text-sm text-muted-foreground">
+					<p className="mb-0 text-sm text-muted-foreground">
 						Showing {safePageIndex * pageSize + 1} to{" "}
 						{Math.min((safePageIndex + 1) * pageSize, sortedTenants.length)} of{" "}
 						{sortedTenants.length}

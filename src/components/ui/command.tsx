@@ -1,5 +1,30 @@
 "use client";
 
+/**
+ * shadcn new-york-v4 registry item `command`.
+ *
+ * Local divergences (recorded in the divergence register):
+ * - CommandInput wrapper h-11 (44px row outside CommandDialog) instead of h-9;
+ *   inside the dialog the upstream **:data-[slot=command-input-wrapper]:h-12
+ *   raises it to 48px;
+ * - CommandList max-h-75 instead of the equal max-h-[300px];
+ * - class token order in Command, CommandInput, CommandGroup,
+ *   CommandSeparator, CommandItem and CommandShortcut;
+ * - a selected item's icons take text-accent-foreground through
+ *   data-[selected=true]:[&_svg:not([class*='text-'])]:, so they do not stay
+ *   muted-foreground on the emerald fill (1.86:1 light, 1.06:1 dark);
+ * - the CommandInput wrapper's bottom border, the field's only boundary, is
+ *   border-input (3:1, WCAG 1.4.11) and turns border-ring while the input has
+ *   focus, where upstream draws the 1.4:1 default border and no focus mark
+ *   (66.2-39 fix round 4, Part 5b);
+ * - CommandShortcut restates text-accent-foreground while its item is
+ *   selected (in-data-[selected=true]:): the muted label read 1.85:1 on the
+ *   selected item's emerald fill (66.2-39 fix round 4, Part 5c);
+ * - CommandDialog takes a `label`, which it hands to its Command: cmdk names
+ *   the input by the Command's visually hidden label (aria-labelledby), and
+ *   with none that label was empty, so the palette's input had only its
+ *   placeholder for a name (66.2-39 fix round 4, Part 8h).
+ */
 import { Command as CommandPrimitive } from "cmdk";
 import { SearchIcon } from "lucide-react";
 import type { ComponentProps } from "react";
@@ -32,6 +57,7 @@ function Command({
 function CommandDialog({
 	title = "Command Palette",
 	description = "Search for a command to run...",
+	label,
 	children,
 	className,
 	showCloseButton = true,
@@ -39,6 +65,8 @@ function CommandDialog({
 }: ComponentProps<typeof Dialog> & {
 	title?: string;
 	description?: string;
+	/** The input's name (cmdk labels the input by the Command's label). */
+	label?: string;
 	className?: string;
 	showCloseButton?: boolean;
 }) {
@@ -52,7 +80,10 @@ function CommandDialog({
 				className={cn("overflow-hidden p-0", className)}
 				showCloseButton={showCloseButton}
 			>
-				<Command className="**:**:**:[&_[cmdk-group-heading]]:text-muted-foreground **:[&_*[data-slot=command-input-wrapper]]:h-12 **:**:[&_[cmdk-group-heading]]:px-2 **:**:[&_[cmdk-group-heading]]:font-medium **:[&_[cmdk-group]]:px-2 **:[&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 **:[&_[cmdk-input-wrapper]_svg]:h-5 **:[&_[cmdk-input-wrapper]_svg]:w-5 **:[&_[cmdk-input]]:h-12 **:[&_[cmdk-item]]:px-2 **:[&_[cmdk-item]]:py-3 **:[&_[cmdk-item]_svg]:h-5 **:[&_[cmdk-item]_svg]:w-5">
+				<Command
+					{...(label === undefined ? {} : { label })}
+					className="**:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
+				>
 					{children}
 				</Command>
 			</DialogContent>
@@ -67,7 +98,7 @@ function CommandInput({
 	return (
 		<div
 			data-slot="command-input-wrapper"
-			className="flex h-11 items-center gap-2 border-b px-3"
+			className="flex h-11 items-center gap-2 border-b border-input px-3 focus-within:border-ring"
 		>
 			<SearchIcon className="size-4 shrink-0 opacity-50" />
 			<CommandPrimitive.Input
@@ -147,7 +178,7 @@ function CommandItem({
 		<CommandPrimitive.Item
 			data-slot="command-item"
 			className={cn(
-				"data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+				"data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground data-[selected=true]:[&_svg:not([class*='text-'])]:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 				className,
 			)}
 			{...props}
@@ -160,7 +191,7 @@ function CommandShortcut({ className, ...props }: ComponentProps<"span">) {
 		<span
 			data-slot="command-shortcut"
 			className={cn(
-				"text-muted-foreground ml-auto text-xs tracking-widest",
+				"text-muted-foreground in-data-[selected=true]:text-accent-foreground ml-auto text-xs tracking-widest",
 				className,
 			)}
 			{...props}

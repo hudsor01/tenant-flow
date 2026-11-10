@@ -26,6 +26,7 @@ import {
 } from "#components/leases/table/lease-utils";
 import { LeasesPageSkeleton } from "#components/leases/table/leases-page-skeleton";
 import { LeasesTable } from "#components/leases/table/leases-table";
+import { OwnerErrorBox } from "#components/shared/owner-error-box";
 import { BlurFade } from "#components/ui/blur-fade";
 import {
 	Empty,
@@ -120,20 +121,11 @@ export default function LeasesPage() {
 		(l) => l.status === "pending_signature",
 	).length;
 
-	const filteredLeases = leases.filter((l) => {
-		if (searchQuery) {
-			const query = searchQuery.toLowerCase();
-			if (
-				!(l.tenantName ?? "").toLowerCase().includes(query) &&
-				!(l.propertyName ?? "").toLowerCase().includes(query)
-			)
-				return false;
-		}
-		if (statusFilter !== "all" && l.status !== statusFilter) return false;
-		return true;
-	});
-
-	const sortedLeases = [...filteredLeases].sort((a, b) => {
+	// Every fetched lease in the table's order. The table shows the ones the
+	// search and status filter keep; the selection bar's Export writes every
+	// selected lease from this list, one a filter hides included (a filter
+	// never clears the selection), in the same order.
+	const orderedLeases = [...leases].sort((a, b) => {
 		const cmp: Record<string, number> = {
 			tenant: a.tenantName.localeCompare(b.tenantName),
 			property: a.propertyName.localeCompare(b.propertyName),
@@ -146,6 +138,19 @@ export default function LeasesPage() {
 		return sortDirection === "asc"
 			? (cmp[sortField] ?? 0)
 			: -(cmp[sortField] ?? 0);
+	});
+
+	const sortedLeases = orderedLeases.filter((l) => {
+		if (searchQuery) {
+			const query = searchQuery.toLowerCase();
+			if (
+				!(l.tenantName ?? "").toLowerCase().includes(query) &&
+				!(l.propertyName ?? "").toLowerCase().includes(query)
+			)
+				return false;
+		}
+		if (statusFilter !== "all" && l.status !== statusFilter) return false;
+		return true;
 	});
 
 	const totalPages = Math.ceil(sortedLeases.length / itemsPerPage);
@@ -207,28 +212,24 @@ export default function LeasesPage() {
 	if (error) {
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
-				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
-					<h2 className="text-lg font-semibold text-destructive-text mb-2">
-						Error Loading Leases
-					</h2>
-					<p className="text-muted-foreground">
-						{error instanceof Error ? error.message : "Failed to load leases"}
-					</p>
-				</div>
+				<OwnerErrorBox
+					title="Error Loading Leases"
+					message="Failed to load leases"
+				/>
 			</div>
 		);
 	}
 
 	if (leases.length === 0)
 		return (
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<Empty>
 					<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
 						<FileText />
 					</EmptyMedia>
 					<EmptyHeader>
 						<EmptyTitle>No leases yet</EmptyTitle>
-						<EmptyDescription>
+						<EmptyDescription className="mb-0">
 							Create a lease between one of your properties and a tenant record
 							to start tracking dates, rent, and deposits.
 						</EmptyDescription>
@@ -236,7 +237,7 @@ export default function LeasesPage() {
 					<div className="flex items-center gap-3 mt-2">
 						<Link
 							href="/leases/new"
-							className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
+							className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
 						>
 							<Plus className="size-5" />
 							Create First Lease
@@ -248,11 +249,11 @@ export default function LeasesPage() {
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
-			<BlurFade delay={0.1} inView>
+			<BlurFade delay={0.1}>
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Leases</h1>
-						<p className="text-sm text-muted-foreground mt-1">
+						<p className="mb-0 text-sm text-muted-foreground mt-1">
 							Manage lease agreements and renewals
 						</p>
 					</div>
@@ -263,7 +264,7 @@ export default function LeasesPage() {
 						/>
 						<Link
 							href="/leases/new"
-							className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
+							className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
 						>
 							<Plus className="w-4 h-4" />
 							New Lease
@@ -292,6 +293,7 @@ export default function LeasesPage() {
 				<TabsContent value="overview">
 					<LeasesTable
 						leases={sortedLeases}
+						allLeases={orderedLeases}
 						paginatedLeases={paginatedLeases}
 						searchQuery={searchQuery}
 						statusFilter={statusFilter}

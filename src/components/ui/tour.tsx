@@ -12,6 +12,7 @@ import {
 	arrow as onArrow,
 	type Placement,
 	shift,
+	size,
 	useFloating,
 } from "@floating-ui/react-dom";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
@@ -69,6 +70,9 @@ const _ALIGN_OPTIONS = ["start", "center", "end"] as const;
 const DEFAULT_ALIGN_OFFSET = 0;
 const DEFAULT_SIDE_OFFSET = 16;
 const DEFAULT_SPOTLIGHT_PADDING = 4;
+// 66.2-39 divergence from DiceUI (upstream default 0): the step keeps 16px
+// (the side offset, and the shell's phone gutter) from every viewport edge.
+const DEFAULT_COLLISION_PADDING = 16;
 
 type Side = (typeof _SIDE_OPTIONS)[number];
 type Align = (typeof _ALIGN_OPTIONS)[number];
@@ -337,6 +341,8 @@ interface Store {
 	) => void;
 	notify: () => void;
 	addStep: (stepData: StepData) => { id: string; index: number };
+	updateStep: (id: string, stepData: StepData) => void;
+	getStepIndex: (id: string) => number;
 	removeStep: (id: string) => void;
 }
 
@@ -710,6 +716,23 @@ function Tour(props: TourProps) {
 				store.notify();
 				return { id, index };
 			},
+			// 66.2-39 divergence from DiceUI, with getStepIndex and TourStep's
+			// registration: a step whose props change keeps its place. DiceUI
+			// removes the step and adds it again, at the end, and each step
+			// holds the index it was added at: the owner tour's steps 2-4 take
+			// their side from the 48rem breakpoint, so a viewport that crossed
+			// it on step 2 moved them behind step 5, and no step's held index
+			// matched the current one. The tour's spotlight stayed and its step
+			// went (1280 to 390 on step 2; 390x844 to 844x390 and back).
+			updateStep: (id, stepData) => {
+				const index = stepIdsMapRef.current.get(id);
+				if (index === undefined) return;
+				stateRef.current.steps = stateRef.current.steps.map((step, i) =>
+					i === index ? stepData : step,
+				);
+				store.notify();
+			},
+			getStepIndex: (id) => stepIdsMapRef.current.get(id) ?? -1,
 			removeStep: (id) => {
 				const index = stepIdsMapRef.current.get(id);
 				if (index === undefined) return;
@@ -876,7 +899,7 @@ function TourStep(props: TourStepProps) {
 		align = "center",
 		alignOffset,
 		collisionBoundary = [],
-		collisionPadding = 0,
+		collisionPadding = DEFAULT_COLLISION_PADDING,
 		arrowPadding = 0,
 		sticky = "partial",
 		hideWhenDetached = false,
@@ -902,7 +925,6 @@ function TourStep(props: TourStepProps) {
 
 	const stepRef = useRef<StepElement | null>(null);
 	const stepIdRef = useRef<string>("");
-	const stepOrderRef = useRef<number>(-1);
 	const isPointerInsideReactTreeRef = useRef(false);
 	const isFocusInsideReactTreeRef = useRef(false);
 
@@ -914,8 +936,10 @@ function TourStep(props: TourStepProps) {
 	const resolvedSideOffset = sideOffset ?? context.sideOffset;
 	const resolvedAlignOffset = alignOffset ?? context.alignOffset;
 
+	// Added once, in mount order, and updated in place when a prop changes
+	// (see the store's updateStep); removed on unmount.
 	useIsomorphicLayoutEffect(() => {
-		const { id, index } = store.addStep({
+		const stepData: StepData = {
 			target,
 			align,
 			alignOffset: resolvedAlignOffset,
@@ -930,13 +954,12 @@ function TourStep(props: TourStepProps) {
 			onStepEnter,
 			onStepLeave,
 			required,
-		});
-		stepIdRef.current = id;
-		stepOrderRef.current = index;
-
-		return () => {
-			store.removeStep(stepIdRef.current);
 		};
+		if (stepIdRef.current === "") {
+			stepIdRef.current = store.addStep(stepData).id;
+		} else {
+			store.updateStep(stepIdRef.current, stepData);
+		}
 	}, [
 		target,
 		side,
@@ -953,11 +976,19 @@ function TourStep(props: TourStepProps) {
 		onStepLeave,
 		store,
 	]);
+	useIsomorphicLayoutEffect(
+		() => () => {
+			store.removeStep(stepIdRef.current);
+			stepIdRef.current = "";
+		},
+		[store],
+	);
 
 	const stepData = steps[value];
 	const targetElement = stepData ? getTargetElement(stepData.target) : null;
 
-	const isCurrentStep = stepOrderRef.current === value;
+	const isCurrentStep =
+		stepIdRef.current !== "" && store.getStepIndex(stepIdRef.current) === value;
 
 	const middleware = useMemo(() => {
 		if (!stepData) return [];
@@ -988,19 +1019,52 @@ function TourStep(props: TourStepProps) {
 			altBoundary: hasExplicitBoundaries,
 		};
 
+		// 66.2-39 divergence from DiceUI (which copies Radix Popper's offset,
+		// shift, flip, arrow, hide without its size step). The step is
+		// `position: fixed`, so content past the viewport is unreachable by
+		// pointer, and a step taller than the space on either side of its
+		// target ran off screen: the owner tour's step 1 put Skip and Next
+		// below the fold at 1280x800 and 1280x720, and its steps 1 and 2 sat
+		// 106px above the top edge at 390 and 375. So:
+		// - flip runs first and picks the side by side-axis overflow only
+		//   (crossAxis "alignment": the alignment axis decides only start/end
+		//   flips), the opposite side when it fits better, else the best fit;
+		// - shift then keeps the step inside the viewport on BOTH axes, and
+		//   on the side axis that means overlapping the target when neither
+		//   side has room (limitShift still keeps it touching the target);
+		// - size, after both and with the same padding (Floating UI's rule for
+		//   size after flip and shift), publishes the space left as
+		//   --tour-available-width/height, which cap the step; the header then
+		//   scrolls and the footer always stays on screen.
 		return [
 			offset({
 				mainAxis: mainAxisOffset,
 				alignmentAxis: crossAxisOffset,
 			}),
 			stepData.avoidCollisions &&
+				flip({ crossAxis: "alignment", ...detectOverflowOptions }),
+			stepData.avoidCollisions &&
 				shift({
 					mainAxis: true,
-					crossAxis: false,
+					crossAxis: true,
 					...(stepData.sticky === "partial" ? { limiter: limitShift() } : {}),
 					...detectOverflowOptions,
 				}),
-			stepData.avoidCollisions && flip({ ...detectOverflowOptions }),
+			size({
+				...detectOverflowOptions,
+				apply: ({ elements, availableWidth, availableHeight }) => {
+					// Both can be negative; Floating UI says to clamp them above 0.
+					const style = elements.floating.style;
+					style.setProperty(
+						"--tour-available-width",
+						`${Math.max(0, availableWidth)}px`,
+					);
+					style.setProperty(
+						"--tour-available-height",
+						`${Math.max(0, availableHeight)}px`,
+					);
+				},
+			}),
 			arrow &&
 				onArrow({
 					element: arrow,
@@ -1265,8 +1329,15 @@ function TourStep(props: TourStepProps) {
 				onPointerDownCapture={onPointerDownCapture}
 				onFocusCapture={onFocusCapture}
 				onBlurCapture={onBlurCapture}
+				// 66.2-39 divergences from DiceUI: max-h/max-w read the size step's
+				// variables (above). Below 48rem every button takes the 44px touch
+				// floor (globals.css, D-08), so TourClose (absolute, top-4 right-4)
+				// is a 44px box over the content's first 44px, where it covered the
+				// first line of the description (and, at 320, the title);
+				// max-md:pt-16 (16 + 44 + its 4px focus ring) starts the content
+				// below the button and its ring.
 				className={cn(
-					"fixed z-50 flex w-80 flex-col gap-4 rounded-lg border bg-popover p-4 text-popover-foreground shadow-md outline-none",
+					"fixed z-50 flex max-h-(--tour-available-height) w-80 max-w-(--tour-available-width) flex-col gap-4 rounded-lg border bg-popover p-4 text-popover-foreground shadow-md outline-none max-md:pt-16",
 					className,
 				)}
 				style={{
@@ -1404,6 +1475,7 @@ function TourArrow(props: TourArrowProps) {
 			}}
 		>
 			<svg
+				aria-hidden="true"
 				viewBox="0 0 30 10"
 				preserveAspectRatio="none"
 				width={width}
@@ -1417,10 +1489,48 @@ function TourArrow(props: TourArrowProps) {
 	);
 }
 
+/**
+ * Whether `node` has more content than its box shows vertically, kept current
+ * through a ResizeObserver on the node and its children (the box shrinks when
+ * the step's max-height drops; a child grows when its text rewraps).
+ */
+function useOverflowsVertically(node: HTMLElement | null): boolean {
+	const [overflows, setOverflows] = useState(false);
+
+	useIsomorphicLayoutEffect(() => {
+		if (!node) return;
+
+		const check = () => setOverflows(node.scrollHeight > node.clientHeight);
+		check();
+
+		if (typeof ResizeObserver === "undefined") return;
+		const observer = new ResizeObserver(check);
+		observer.observe(node);
+		for (const child of node.children) {
+			observer.observe(child);
+		}
+		return () => observer.disconnect();
+	}, [node]);
+
+	return overflows;
+}
+
 function TourHeader(props: DivProps) {
-	const { asChild, className, ...headerProps } = props;
+	const { asChild, className, ref, ...headerProps } = props;
 
 	const context = useTourContext(HEADER_NAME);
+
+	// 66.2-39 divergence from DiceUI: the header is the step's body, the one
+	// part that gives way when the step is capped at the viewport
+	// (--tour-available-height). It shrinks (min-h-0) and scrolls, so the
+	// footer keeps its size. While it scrolls it takes a tab stop (and the
+	// base *:focus-visible ring), so a keyboard can scroll it too (WCAG 2.1.1),
+	// and from 48rem up, where TourClose is a 16px box in its top-right corner
+	// rather than above it (max-md:pt-16 on the step), it keeps 24px clear on
+	// the right so scrolled text never runs under the close button.
+	const [headerNode, setHeaderNode] = useState<HTMLElement | null>(null);
+	const composedRef = useComposedRefs(ref, setHeaderNode);
+	const scrollable = useOverflowsVertically(headerNode);
 
 	const HeaderPrimitive = asChild ? Slot.Slot : "div";
 
@@ -1428,9 +1538,12 @@ function TourHeader(props: DivProps) {
 		<HeaderPrimitive
 			data-slot="tour-header"
 			dir={context.dir}
+			tabIndex={scrollable ? 0 : undefined}
+			data-scrollable={scrollable ? "" : undefined}
 			{...headerProps}
+			ref={composedRef}
 			className={cn(
-				"flex flex-col gap-1.5 text-center sm:text-left",
+				"flex min-h-0 flex-col gap-1.5 overflow-y-auto text-center sm:text-left md:data-scrollable:pr-6",
 				className,
 			)}
 		/>
@@ -1575,7 +1688,9 @@ function TourNext(props: ComponentProps<typeof Button>) {
 	return (
 		<Button
 			type="button"
-			aria-label="Next step"
+			// 66.2-39 divergence from DiceUI: the last step shows "Finish", so its
+			// name says so (WCAG 2.5.3 label in name; upstream always says "Next step").
+			aria-label={isLastStep ? "Finish tour" : "Next step"}
 			data-slot="tour-next"
 			{...nextButtonProps}
 			onClick={onClick}
@@ -1669,7 +1784,9 @@ function TourFooter(props: DivProps) {
 			{...footerProps}
 			ref={composedRef}
 			className={cn(
-				"flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+				// 66.2-39 divergence from DiceUI: shrink-0, so a capped step gives
+				// way in its header and never in its footer.
+				"flex shrink-0 flex-col-reverse gap-2 sm:flex-row sm:justify-end",
 				className,
 			)}
 		/>

@@ -18,6 +18,7 @@
 
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { computeParagraphCascade } from "#test/utils/base-rule-cascade";
 
 const useCollectionRateMock = vi.hoisted(() => vi.fn());
 
@@ -149,9 +150,22 @@ describe("ReportsSummaryStrip", () => {
 		render(<ReportsSummaryStrip />);
 
 		expect(
-			screen.getByText("Couldn't load this period's collection figures."),
+			screen.getByText("Couldn't load this month's collection figures."),
 		).toBeInTheDocument();
 		expect(screen.getByTestId("reports-summary-strip")).toBeInTheDocument();
+	});
+
+	// 66.2-39 fix round 4 (G14): the message is a grid item of the strip, so
+	// the base `p` margin stood 16px inside it (48px to the statements below
+	// where the hub's space-y-8 gives 32).
+	it("leaves no base paragraph margin under the error message", () => {
+		mockResult({ data: undefined, isError: true });
+		render(<ReportsSummaryStrip />);
+		const { neutralized, baseline } = computeParagraphCascade(
+			screen.getByText("Couldn't load this month's collection figures."),
+		);
+		expect(baseline.marginBottom).toBe("16px");
+		expect(neutralized.marginBottom).toBe("0px");
 	});
 
 	it("never renders a bare Revenue label", () => {

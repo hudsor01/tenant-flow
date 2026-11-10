@@ -1,0 +1,19 @@
+{
+  "w5": 914,
+  "final": 917,
+  "added": 5,
+  "deleted": 2,
+  "expected": 917,
+  "actual": 917,
+  "addedPaths": [
+    "src/components/tours/sidebar-tour-target.ts",
+    "src/components/ui/sidebar.tsx",
+    "src/hooks/use-mobile.ts",
+    "src/hooks/use-nav-section-state.ts",
+    "src/lib/sidebar-state.ts"
+  ],
+  "deletedPaths": [
+    "src/components/ui/server-sidebar-provider.tsx",
+    "src/components/ui/sidebar/context.tsx"
+  ]
+}

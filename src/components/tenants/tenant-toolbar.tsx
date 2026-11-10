@@ -1,6 +1,7 @@
 "use client";
 
 import { LayoutGrid, List } from "lucide-react";
+import { LEASE_STATUS_LABELS } from "#lib/constants/status-types";
 import type { TenantStatusFilter } from "#stores/tenants-store";
 
 interface TenantToolbarProps {
@@ -23,16 +24,20 @@ export function TenantToolbar({
 	filteredCount,
 }: TenantToolbarProps) {
 	return (
-		<div className="px-4 py-3 border-b border-border flex items-center gap-3">
+		// The toolbar wraps: the 16rem search, the status filter and the
+		// view toggle did not fit one line below 400px, and the card clips
+		// its overflow, so Table and Grid sat past the viewport, out of reach
+		// (66.2-39 fix round 4, Part 8e). Below sm the search takes the line.
+		<div className="px-4 py-3 border-b border-border flex flex-wrap items-center gap-3">
 			{/* LEFT: Search + Filters */}
-			<div className="relative w-64">
+			<div className="relative w-full sm:w-64">
 				<input
 					type="text"
 					aria-label="Search tenants"
 					placeholder="Search tenants..."
 					value={searchQuery}
 					onChange={(e) => onSearchChange(e.target.value)}
-					className="w-full pl-3 pr-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all h-9"
+					className="w-full pl-3 pr-3 py-2 text-sm bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all h-9"
 				/>
 			</div>
 
@@ -42,14 +47,16 @@ export function TenantToolbar({
 				onChange={(e) =>
 					onStatusFilterChange(e.target.value as TenantStatusFilter)
 				}
-				className="appearance-none px-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
+				className="appearance-none px-3 py-2 text-sm bg-background border border-input rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
 			>
 				<option value="all">All Statuses</option>
-				<option value="active">Active</option>
-				<option value="pending_signature">Pending</option>
-				<option value="ended">Ended</option>
-				<option value="expired">Expired</option>
-				<option value="terminated">Terminated</option>
+				<option value="active">{LEASE_STATUS_LABELS.active}</option>
+				<option value="pending_signature">
+					{LEASE_STATUS_LABELS.pending_signature}
+				</option>
+				<option value="ended">{LEASE_STATUS_LABELS.ended}</option>
+				<option value="expired">{LEASE_STATUS_LABELS.expired}</option>
+				<option value="terminated">{LEASE_STATUS_LABELS.terminated}</option>
 			</select>
 
 			{/* RIGHT: Count + View Toggle */}

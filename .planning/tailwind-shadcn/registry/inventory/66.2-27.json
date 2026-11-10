@@ -1,0 +1,25 @@
+{
+  "label": "66.2-27",
+  "generatedAt": "2026-10-31T20:07:05.096Z",
+  "files": [
+    {
+      "file": "src/components/ui/blur-fade.tsx",
+      "item": "blur-fade",
+      "derivativeOf": null,
+      "registryStatus": 404,
+      "status": "non-registry",
+      "normalizedDiffHunks": null,
+      "normalizedDiffPath": null,
+      "missingExports": [],
+      "missingDataSlots": [],
+      "registered": false,
+      "divergenceCount": 0
+    }
+  ],
+  "counts": {
+    "inSync": 0,
+    "divergent": 0,
+    "nonRegistry": 1
+  },
+  "problems": []
+}

@@ -8,7 +8,6 @@ interface GoogleButtonProps extends ComponentProps<typeof Button> {
 	isLoading?: boolean;
 	loadingText?: string;
 	children?: ReactNode;
-	showTrustIndicators?: boolean;
 	mode?: "login" | "signup";
 	ref?: Ref<HTMLButtonElement>;
 }
@@ -18,7 +17,6 @@ export function GoogleButton({
 	isLoading = false,
 	loadingText = "Connecting...",
 	children = "Continue with Google",
-	showTrustIndicators = false,
 	mode = "login",
 	ref,
 	...props
@@ -42,8 +40,7 @@ export function GoogleButton({
 					"hover:bg-linear-to-r hover:from-primary/5 hover:to-accent/5 dark:hover:from-primary/10 dark:hover:to-accent/10",
 					"hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]",
 					"active:scale-[0.98] active:shadow-md",
-					"border-2 border-border hover:border-primary dark:hover:border-primary",
-					"focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 dark:focus:ring-offset-background",
+					"border-2 border-border hover:border-primary dark:border-border dark:hover:border-primary",
 					"disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none",
 					isLoading && "animate-pulse",
 					className,
@@ -71,11 +68,6 @@ export function GoogleButton({
 								? loadingText || defaultLoadingText
 								: children || defaultText}
 						</span>
-						{showTrustIndicators && !isLoading && (
-							<span className="text-caption/75 leading-none mt-0.5">
-								Secure OAuth 2.0 authentication
-							</span>
-						)}
 					</div>
 				</div>
 
@@ -88,23 +80,6 @@ export function GoogleButton({
 					)}
 				/>
 			</Button>
-
-			{showTrustIndicators && (
-				<div className="flex-center gap-4 mt-2 text-caption/60">
-					<div className="flex items-center gap-1">
-						<div className="size-2 rounded-full bg-primary" />
-						<span>Encrypted</span>
-					</div>
-					<div className="flex items-center gap-1">
-						<div className="size-2 rounded-full bg-primary" />
-						<span>No password needed</span>
-					</div>
-					<div className="flex items-center gap-1">
-						<div className="size-2 rounded-full bg-primary" />
-						<span>One-click access</span>
-					</div>
-				</div>
-			)}
 		</div>
 	);
 }
@@ -121,7 +96,7 @@ function HighResGoogleIcon() {
 			height="18"
 			viewBox="0 0 48 48"
 			aria-hidden="true"
-			className="shrink-0"
+			className="size-4.5 shrink-0"
 		>
 			<path
 				fill="#FBBC05"

@@ -69,7 +69,7 @@ export function TestimonialsSection({
 			>
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-16 max-w-3xl mx-auto">
-						<BlurFade delay={0.1} inView>
+						<BlurFade delay={0.1}>
 							<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
 								What Our Customers Say
 							</h2>
@@ -81,11 +81,7 @@ export function TestimonialsSection({
 
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 						{testimonials.slice(0, 4).map((testimonial, index) => (
-							<BlurFade
-								key={testimonial.author}
-								delay={0.2 + index * 0.1}
-								inView
-							>
+							<BlurFade key={testimonial.author} delay={0.2 + index * 0.1}>
 								<TestimonialCard testimonial={testimonial} />
 							</BlurFade>
 						))}
@@ -98,7 +94,7 @@ export function TestimonialsSection({
 	return (
 		<section className={cn("section-spacing bg-muted/30", className)}>
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					<div className="text-center mb-16">
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
 							Built for <span className="hero-highlight">landlords</span>
@@ -110,7 +106,7 @@ export function TestimonialsSection({
 					</div>
 				</BlurFade>
 
-				<BlurFade delay={0.2} inView>
+				<BlurFade delay={0.2}>
 					<div className="relative max-w-4xl mx-auto">
 						<div className="relative bg-card rounded-2xl border border-border p-8 md:p-12 shadow-lg">
 							<div className="absolute -top-4 left-8 md:left-12">
@@ -125,7 +121,7 @@ export function TestimonialsSection({
 
 							<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
 								<div className="flex items-center gap-4">
-									<div className="size-14 rounded-full bg-primary/10 flex-center text-primary text-xl font-bold">
+									<div className="size-14 rounded-full bg-primary/10 flex-center text-primary-text text-xl font-bold">
 										{currentTestimonial?.author
 											.split(" ")
 											.map((n) => n[0])
@@ -146,7 +142,7 @@ export function TestimonialsSection({
 
 								{currentTestimonial?.metric && (
 									<div className="text-center md:text-right p-4 rounded-xl bg-primary/5 border border-primary/10">
-										<div className="typography-h2 text-primary">
+										<div className="typography-h2 text-primary-text">
 											{currentTestimonial.metric}
 										</div>
 										<div className="text-sm text-muted-foreground">
@@ -210,8 +206,8 @@ export function TestimonialsSection({
 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 	return (
-		<div className="relative group h-full">
-			<div className="card-standard p-8 h-full flex flex-col hover:border-primary/20 hover:shadow-lg transition-all duration-300">
+		<div className="relative h-full">
+			<div className="card-standard p-8 h-full flex flex-col">
 				<Quote className="size-8 text-primary/20 mb-4" />
 
 				<blockquote className="text-foreground/90 leading-relaxed mb-6 flex-1">
@@ -220,7 +216,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 
 				<div className="flex items-center justify-between pt-4 border-t border-border/50">
 					<div className="flex items-center gap-3">
-						<div className="size-10 rounded-full bg-primary/10 flex-center text-primary text-sm font-bold">
+						<div className="size-10 rounded-full bg-primary/10 flex-center text-primary-text text-sm font-bold">
 							{testimonial.author
 								.split(" ")
 								.map((n) => n[0])
@@ -238,7 +234,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 
 					{testimonial.metric && (
 						<div className="text-right">
-							<div className="text-lg font-bold text-primary">
+							<div className="text-lg font-bold text-primary-text">
 								{testimonial.metric}
 							</div>
 							<div className="text-xs text-muted-foreground">

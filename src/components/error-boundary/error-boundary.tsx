@@ -69,7 +69,12 @@ function DefaultErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 		router.refresh();
 	};
 
-	const message = error instanceof Error ? error.message : undefined;
+	// The raw message is for the developer, never the user (the Error ID is
+	// what support needs).
+	const message =
+		process.env.NODE_ENV === "development" && error instanceof Error
+			? error.message
+			: undefined;
 
 	return (
 		<div className="min-h-screen flex-center p-4">
@@ -78,16 +83,18 @@ function DefaultErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 					<AlertTriangle className="size-12 text-destructive" />
 					<div className="space-y-2">
 						<h2 className="typography-h4">Something went wrong</h2>
-						<p className="text-muted-foreground">
+						<p className="mb-0 text-muted-foreground">
 							An unexpected error occurred. Our team has been notified.
 						</p>
 						{message && (
-							<p className="text-muted-foreground font-mono bg-muted p-2 rounded">
+							<p className="mb-0 text-muted-foreground font-mono bg-muted p-2 rounded">
 								{message}
 							</p>
 						)}
 						{errorState.errorId && (
-							<p className="text-caption">Error ID: {errorState.errorId}</p>
+							<p className="mb-0 text-caption text-muted-foreground">
+								Error ID: {errorState.errorId}
+							</p>
 						)}
 					</div>
 					<div className="flex gap-2">

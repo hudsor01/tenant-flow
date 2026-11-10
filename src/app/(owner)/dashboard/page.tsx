@@ -17,7 +17,6 @@ import {
 } from "#hooks/api/use-dashboard-hooks";
 import { DashboardEmptyState } from "./components/dashboard-empty-state";
 import { DashboardLoadingSkeleton } from "./components/dashboard-loading-skeleton";
-import "../dashboard.css";
 
 /**
  * Dashboard Content - Wires API hooks to Dashboard UI component
@@ -68,9 +67,8 @@ function DashboardContent() {
 			address: prop.address_line1,
 			totalUnits: prop.totalUnits,
 			occupiedUnits: prop.occupiedUnits,
-			occupancyRate: prop.occupancyRate,
 			monthlyRevenue: prop.monthlyRevenue,
-			openMaintenance: prop.open_maintenance ?? 0,
+			openMaintenance: prop.open_maintenance,
 		}));
 	})();
 
@@ -115,7 +113,7 @@ function DashboardContent() {
 					<button
 						type="button"
 						onClick={() => window.location.reload()}
-						className="inline-flex items-center gap-2 px-4 py-2 min-h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
+						className="inline-flex items-center gap-2 px-4 py-2 min-h-11 bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
 					>
 						Refresh Page
 					</button>
@@ -191,7 +189,7 @@ export default function DashboardPage() {
 					fallback={
 						<div className="p-6 lg:p-8">
 							<div className="text-center py-16">
-								<p className="text-muted-foreground">
+								<p className="mb-0 text-muted-foreground">
 									Unable to load dashboard. Please refresh the page.
 								</p>
 							</div>

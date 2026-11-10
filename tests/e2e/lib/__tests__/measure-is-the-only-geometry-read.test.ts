@@ -36,8 +36,8 @@
  *     its exemption, so containment is verified independently.
  *
  * There is no exemption for an UNPOLLED read, at all. Every element measurement
- * this tree needs is expressible through `boxOf`, `widthOf`, `heightOf` or
- * `boxesOf`, and each of those polls.
+ * this tree needs is expressible through `boxOf`, `widthOf` or `boxesOf`, and
+ * each of those polls.
  */
 
 import { readdirSync, readFileSync, statSync } from "node:fs";

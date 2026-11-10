@@ -23,7 +23,7 @@ function Spinner({ className, ...props }: ComponentProps<"svg">) {
 
 // CVA variants for LoadingSpinner
 const spinnerVariants = cva(
-	"animate-spin [animation-duration:var(--duration-1000)] [animation-timing-function:var(--ease-linear)]",
+	"animate-spin [animation-duration:var(--duration-1000)] [animation-timing-function:linear]",
 	{
 		variants: {
 			size: {
@@ -33,9 +33,9 @@ const spinnerVariants = cva(
 				xl: "size-12",
 			},
 			variant: {
-				default: "text-(--color-label-secondary)",
-				primary: "text-(--color-accent-main)",
-				muted: "text-(--color-label-tertiary)",
+				default: "text-muted-foreground",
+				primary: "text-accent-main",
+				muted: "text-muted-foreground",
 			},
 		},
 		defaultVariants: {
@@ -46,19 +46,19 @@ const spinnerVariants = cva(
 );
 
 const spinnerTextVariants = cva(
-	"font-medium tracking-normal leading-normal animate-pulse animation-duration-(--duration-500) [animation-timing-function:var(--ease-in-out)]",
+	"font-medium tracking-normal animate-pulse animation-duration-(--duration-500) [animation-timing-function:var(--ease-in-out)]",
 	{
 		variants: {
 			size: {
-				sm: "text-(--font-footnote)",
-				default: "text-(--font-body)",
-				lg: "text-(--font-title-3)",
-				xl: "text-(--font-title-2)",
+				sm: "text-xs/normal",
+				default: "text-sm/normal",
+				lg: "text-base/normal",
+				xl: "text-lg/normal",
 			},
 			variant: {
-				default: "text-(--color-label-secondary)",
-				primary: "text-(--color-accent-main)",
-				muted: "text-(--color-label-tertiary)",
+				default: "text-muted-foreground",
+				primary: "text-accent-main",
+				muted: "text-muted-foreground",
 			},
 		},
 		defaultVariants: {
@@ -89,7 +89,9 @@ function LoadingSpinner({
 		>
 			<Loader2Icon className={cn(spinnerVariants({ size, variant }))} />
 			{text && (
-				<p className={cn(spinnerTextVariants({ size, variant }))}>{text}</p>
+				<p className={cn("mb-0", spinnerTextVariants({ size, variant }))}>
+					{text}
+				</p>
 			)}
 		</div>
 	);
@@ -110,7 +112,7 @@ function PageLoader({
 				<LoadingSpinner size="xl" variant="primary" />
 				<div className="space-y-2">
 					<p className="typography-large text-foreground">{text}</p>
-					<p className="text-sm text-(--color-label-tertiary)">
+					<p className="mb-0 text-sm text-muted-foreground">
 						This should only take a moment
 					</p>
 				</div>
@@ -157,9 +159,9 @@ const dotsVariants = cva("rounded-full animate-bounce bg-current", {
 			lg: "size-3",
 		},
 		variant: {
-			default: "text-(--color-label-secondary)",
-			primary: "text-(--color-accent-main)",
-			muted: "text-(--color-label-tertiary)",
+			default: "text-muted-foreground",
+			primary: "text-accent-main",
+			muted: "text-muted-foreground",
 		},
 	},
 	defaultVariants: {

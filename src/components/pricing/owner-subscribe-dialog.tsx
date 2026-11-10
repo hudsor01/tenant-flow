@@ -12,6 +12,7 @@ import {
 	DialogTitle,
 } from "#components/ui/dialog";
 import { useAppForm } from "#lib/forms/form-hook";
+import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { subscribeFormOptions } from "./owner-subscribe-form-options";
 import { SubscribeFormFields } from "./owner-subscribe-plan-selector";
@@ -89,9 +90,12 @@ export function OwnerSubscribeDialog({
 				form.reset();
 				onOpenChange(false);
 			} catch (err) {
-				const message =
-					err instanceof Error ? err.message : "Unable to complete sign up";
-				toast.error("Sign up failed", { description: message });
+				toast.error("Sign up failed", {
+					description: userFacingErrorMessage(
+						err,
+						"Unable to complete sign up",
+					),
+				});
 			} finally {
 				setIsSubmitting(false);
 			}
@@ -112,7 +116,7 @@ export function OwnerSubscribeDialog({
 					<DialogTitle>
 						Join TenantFlow {planName ? `· ${planName}` : ""}
 					</DialogTitle>
-					<DialogDescription>
+					<DialogDescription className="mb-0">
 						Create your account to start your 14-day free trial. No credit card
 						required.
 					</DialogDescription>

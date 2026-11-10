@@ -5,6 +5,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { Badge } from "#components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { formatTypedAmount } from "#lib/utils/currency";
 import { BrandingEditor } from "./branding-editor";
 import { ClausesEditor } from "./clauses-editor";
 import { CustomFieldsEditor } from "./custom-fields-editor";
@@ -172,7 +173,7 @@ export function RentalApplicationTemplate() {
 				},
 				employment: {
 					employer: values.employer,
-					monthlyIncome: values.monthlyIncome,
+					monthlyIncome: formatTypedAmount(String(values.monthlyIncome ?? "")),
 				},
 				references: values.references ?? [],
 				backgroundCheck: {
@@ -198,7 +199,7 @@ export function RentalApplicationTemplate() {
 	});
 
 	return (
-		<div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+		<div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_0.9fr]">
 			<div className="space-y-6">
 				<BrandingEditor branding={branding} onChange={setBranding} />
 				<Card>
@@ -240,7 +241,7 @@ export function RentalApplicationTemplate() {
 					</p>
 					<p className="text-sm">Employer: {form.state.values.employer}</p>
 					<p className="text-sm">
-						Monthly income: ${form.state.values.monthlyIncome}
+						Monthly income: {formatTypedAmount(form.state.values.monthlyIncome)}
 					</p>
 					<p className="text-sm">
 						Background check:{" "}

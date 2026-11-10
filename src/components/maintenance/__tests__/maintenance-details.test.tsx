@@ -159,7 +159,6 @@ describe("MaintenanceDetails Export", () => {
 				scheduled_date: "2024-01-20T14:00:00Z",
 				completed_at: null,
 				estimated_cost: 100,
-				actual_cost: null,
 				expenses: [],
 			};
 

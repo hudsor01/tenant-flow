@@ -1,0 +1,860 @@
+{
+ "label": "w6-before",
+ "baseUrl": "http://localhost:3062",
+ "startedServer": true,
+ "head": "c0fe38a043f86dd3606c4eedbacca4504347845b",
+ "captures": [
+  {
+   "set": "sidebar",
+   "state": "closed",
+   "route": "/dashboard",
+   "theme": "light",
+   "width": 375,
+   "file": "sidebar/closed-light-375.png",
+   "sha256": "6a7d81aba14e365384b225b9182f06a0651d8dcc1db629fb8de7256eadf40993",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/dashboard",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "sheet-open-default",
+   "route": "/reports/cash-flow",
+   "theme": "light",
+   "width": 375,
+   "file": "sidebar/sheet-open-default-light-375.png",
+   "sha256": "deab69f0bfebb240d9fba727ec638494d1b522558b32113a0a37511a39d2ada8",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "sheet-open-reports",
+   "route": "/reports/cash-flow",
+   "theme": "light",
+   "width": 375,
+   "file": "sidebar/sheet-open-reports-light-375.png",
+   "sha256": "8748e4238d8ede278818d845528551393353ca2a7bf4d97a77d0492c478c731e",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "palette-over-sheet",
+   "route": "/reports/cash-flow",
+   "theme": "light",
+   "width": 375,
+   "file": "sidebar/palette-over-sheet-light-375.png",
+   "sha256": "572b1ad66adc5748eba9605a5c89dab98a0832cf56f6c70132ba66bb67ef8e6d",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "tour-step5",
+   "route": "/dashboard",
+   "theme": "light",
+   "width": 375,
+   "file": "sidebar/tour-step5-light-375.png",
+   "sha256": "0e3c12fd4f5aa833d987bc13d16ad8370e3ff84a7954fd84631dd5b0037c580a",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/dashboard",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "closed",
+   "route": "/dashboard",
+   "theme": "light",
+   "width": 900,
+   "file": "sidebar/closed-light-900.png",
+   "sha256": "67fbde7ce9671bb83bb4ab5ac3b79af5503494dcd2f954f4247880a85a506006",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/dashboard",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "sheet-open-default",
+   "route": "/reports/cash-flow",
+   "theme": "light",
+   "width": 900,
+   "file": "sidebar/sheet-open-default-light-900.png",
+   "sha256": "1307868cb63caa7c69a953389f135b5d86e28cbe7524f0694d95ebfc9ebc9b01",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "sheet-open-reports",
+   "route": "/reports/cash-flow",
+   "theme": "light",
+   "width": 900,
+   "file": "sidebar/sheet-open-reports-light-900.png",
+   "sha256": "56ac05b0a401331d90125f79d037b93ee2c382d62578bfc1ff3b8382e39754f2",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "palette-over-sheet",
+   "route": "/reports/cash-flow",
+   "theme": "light",
+   "width": 900,
+   "file": "sidebar/palette-over-sheet-light-900.png",
+   "sha256": "43e65e0890c61410ac0cbc5892c379399ef0a2984064b608aaacc9564d08cf28",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "tour-step5",
+   "route": "/dashboard",
+   "theme": "light",
+   "width": 900,
+   "file": "sidebar/tour-step5-light-900.png",
+   "sha256": "a209c6fe49d02389299266806e87840e21ac83f91bb14fcee811f221cb38ee10",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/dashboard",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "rail-expanded",
+   "route": "/dashboard",
+   "theme": "light",
+   "width": 1024,
+   "file": "sidebar/rail-expanded-light-1024.png",
+   "sha256": "a84ce4f3c7a0fe51425f1b48e27bacffc6f65cbc794f4a64f7a57a899badbee6",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/dashboard",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "current-row",
+   "route": "/properties",
+   "theme": "light",
+   "width": 1024,
+   "file": "sidebar/current-row-light-1024.png",
+   "sha256": "292fe144b0cbaa6c27c6ee4870ff9144569dfc1f5019ca1d69de169d637cada0",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/properties",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "current-row-hover",
+   "route": "/properties",
+   "theme": "light",
+   "width": 1024,
+   "file": "sidebar/current-row-hover-light-1024.png",
+   "sha256": "f2cb4c72886e4b7d6790bd2861ffe407e2df1f1456492e1fa46eb5267daa2940",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/properties",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "row-hover",
+   "route": "/properties",
+   "theme": "light",
+   "width": 1024,
+   "file": "sidebar/row-hover-light-1024.png",
+   "sha256": "20388f2bcc254ff287473e3d9efad9e4716657ed80d44e1929f3ac3a8e1d1bb9",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/properties",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "row-focus",
+   "route": "/properties",
+   "theme": "light",
+   "width": 1024,
+   "file": "sidebar/row-focus-light-1024.png",
+   "sha256": "843217fa34d6ef9d532a7ffa08388e1264d0fda11ff61201386e6198d583b8bd",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/properties",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "reports-default",
+   "route": "/reports/cash-flow",
+   "theme": "light",
+   "width": 1024,
+   "file": "sidebar/reports-default-light-1024.png",
+   "sha256": "70bc67ab2c59a30602249e9c602fea16c4c496f67c08de1bd6a1d2a2f822a5e9",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "reports-open",
+   "route": "/reports/cash-flow",
+   "theme": "light",
+   "width": 1024,
+   "file": "sidebar/reports-open-light-1024.png",
+   "sha256": "8c6e47f75caaf7c36c43eee69e73062d8a5c6c0ba89d1fd776e0fa5c020211ef",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "tour-step5",
+   "route": "/dashboard",
+   "theme": "light",
+   "width": 1024,
+   "file": "sidebar/tour-step5-light-1024.png",
+   "sha256": "94bf83772eb7eb86ffdcf2e328ba594f7caff3e0f3a099255d4833279976d623",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/dashboard",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "rail-expanded",
+   "route": "/dashboard",
+   "theme": "light",
+   "width": 1280,
+   "file": "sidebar/rail-expanded-light-1280.png",
+   "sha256": "e79e5bb9c869a73efb0bbb9d0fe4e0ad3190f376b250d59414da268d7a0dd368",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/dashboard",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "current-row",
+   "route": "/properties",
+   "theme": "light",
+   "width": 1280,
+   "file": "sidebar/current-row-light-1280.png",
+   "sha256": "ec9c1f3e259ea432b91117c798b12139df327cf53edabccbe250c2ed4925b24c",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/properties",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "current-row-hover",
+   "route": "/properties",
+   "theme": "light",
+   "width": 1280,
+   "file": "sidebar/current-row-hover-light-1280.png",
+   "sha256": "572c18bd5696b2ea54d6d904affc22f0e9b9a5c41df7a8c3e9a852ca0f9659b1",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/properties",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "row-hover",
+   "route": "/properties",
+   "theme": "light",
+   "width": 1280,
+   "file": "sidebar/row-hover-light-1280.png",
+   "sha256": "405e21e40c479c8e95c97684ff3991881551f43b0445621c11630eb086538541",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/properties",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "row-focus",
+   "route": "/properties",
+   "theme": "light",
+   "width": 1280,
+   "file": "sidebar/row-focus-light-1280.png",
+   "sha256": "989195f846524bab042a21f6c91341b3f22566a43967cc99bd643e05c78a687a",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/properties",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "reports-default",
+   "route": "/reports/cash-flow",
+   "theme": "light",
+   "width": 1280,
+   "file": "sidebar/reports-default-light-1280.png",
+   "sha256": "68276bd5761ebde482a7bb25d2842c391638f3d74f25790808a6120b2f8800be",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "reports-open",
+   "route": "/reports/cash-flow",
+   "theme": "light",
+   "width": 1280,
+   "file": "sidebar/reports-open-light-1280.png",
+   "sha256": "8292f02deee45be81e08447a0d7ea69abdb2ec3d7b7f79e19dc02110c3906d3b",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "tour-step5",
+   "route": "/dashboard",
+   "theme": "light",
+   "width": 1280,
+   "file": "sidebar/tour-step5-light-1280.png",
+   "sha256": "a7267c6fd20e670d228cce9579fe54039aa84dfee3737d4fc4734490d996f6aa",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/dashboard",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "closed",
+   "route": "/dashboard",
+   "theme": "dark",
+   "width": 375,
+   "file": "sidebar/closed-dark-375.png",
+   "sha256": "a5dacfe2208d0474aae0c1f9c3405129e433acedec66445acfcd30ba3bc44e01",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/dashboard",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "sheet-open-default",
+   "route": "/reports/cash-flow",
+   "theme": "dark",
+   "width": 375,
+   "file": "sidebar/sheet-open-default-dark-375.png",
+   "sha256": "de4e6468c332384b1041a096ef720dbb764a46e7ca64e4345248790abe87c8b5",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "sheet-open-reports",
+   "route": "/reports/cash-flow",
+   "theme": "dark",
+   "width": 375,
+   "file": "sidebar/sheet-open-reports-dark-375.png",
+   "sha256": "193bf4c6045cead9f2d0ab86aa4769b03069adac04b10cb9ab60f72448288420",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "palette-over-sheet",
+   "route": "/reports/cash-flow",
+   "theme": "dark",
+   "width": 375,
+   "file": "sidebar/palette-over-sheet-dark-375.png",
+   "sha256": "cdecd698ff8987a1c276f1b6c504c5af574d05899a65ea25dea3de7208f50060",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "tour-step5",
+   "route": "/dashboard",
+   "theme": "dark",
+   "width": 375,
+   "file": "sidebar/tour-step5-dark-375.png",
+   "sha256": "b0d68c8b119d6a1a007b989a0f9fcbf9b44267e981f475843c4f3e7814d209a1",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/dashboard",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "closed",
+   "route": "/dashboard",
+   "theme": "dark",
+   "width": 900,
+   "file": "sidebar/closed-dark-900.png",
+   "sha256": "00b8cdf5e6bd8d7f544665112d7c7224da85ba62a6719f5cc0243921eb9ecb9a",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/dashboard",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "sheet-open-default",
+   "route": "/reports/cash-flow",
+   "theme": "dark",
+   "width": 900,
+   "file": "sidebar/sheet-open-default-dark-900.png",
+   "sha256": "9687be214c5a29ff3c6e80ba82219bd238cb6bfa739290b773ed49db141d5a04",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "sheet-open-reports",
+   "route": "/reports/cash-flow",
+   "theme": "dark",
+   "width": 900,
+   "file": "sidebar/sheet-open-reports-dark-900.png",
+   "sha256": "50241c9945cdca2c3483d4635c6e09fdae61bb87e13eed4ad1d97dd515a4e9fa",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "palette-over-sheet",
+   "route": "/reports/cash-flow",
+   "theme": "dark",
+   "width": 900,
+   "file": "sidebar/palette-over-sheet-dark-900.png",
+   "sha256": "55140f5bdc0f3bc15b16f8d260ff0ac713f73c8404c4c8d718dbe7fbae2be5cc",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "tour-step5",
+   "route": "/dashboard",
+   "theme": "dark",
+   "width": 900,
+   "file": "sidebar/tour-step5-dark-900.png",
+   "sha256": "a5bfc2e741a933dc0ad5be6cdb9ae9c3473d32de2da2ed2412e9deffcf4759ed",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/dashboard",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "rail-expanded",
+   "route": "/dashboard",
+   "theme": "dark",
+   "width": 1024,
+   "file": "sidebar/rail-expanded-dark-1024.png",
+   "sha256": "15cd8eaf0b5f4c703c0c446398bc5d3cb901503a6da6cbc23813e5f005bccc1a",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/dashboard?page=1&perPage=10",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "current-row",
+   "route": "/properties",
+   "theme": "dark",
+   "width": 1024,
+   "file": "sidebar/current-row-dark-1024.png",
+   "sha256": "1fc5e1dd56e05a4f8a9f4028c68cb3181ffd97a3eaa23d287f29b38ee0fc4632",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/properties",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "current-row-hover",
+   "route": "/properties",
+   "theme": "dark",
+   "width": 1024,
+   "file": "sidebar/current-row-hover-dark-1024.png",
+   "sha256": "ad2da293f23b80236bb661ac2db505f904d774bff1d92e6968744726ef58ea6e",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/properties",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "row-hover",
+   "route": "/properties",
+   "theme": "dark",
+   "width": 1024,
+   "file": "sidebar/row-hover-dark-1024.png",
+   "sha256": "4ac064086be52bcf72c0f82efaa3acf016dbdd2712f172d1e23f14589d348907",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/properties",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "row-focus",
+   "route": "/properties",
+   "theme": "dark",
+   "width": 1024,
+   "file": "sidebar/row-focus-dark-1024.png",
+   "sha256": "903feea0b64831ea112d6c6ed07d821f191952368b40a603b381538cd5cb4b12",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/properties",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "reports-default",
+   "route": "/reports/cash-flow",
+   "theme": "dark",
+   "width": 1024,
+   "file": "sidebar/reports-default-dark-1024.png",
+   "sha256": "c2d3ca6302428e92227110ca4d84e5e488e9443a75f1d579fc73a65bcba1427a",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "reports-open",
+   "route": "/reports/cash-flow",
+   "theme": "dark",
+   "width": 1024,
+   "file": "sidebar/reports-open-dark-1024.png",
+   "sha256": "03591a1adadeec299058e3bc1bdb36ebe7d83ff41bbed41f00c8a10ec573e511",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "tour-step5",
+   "route": "/dashboard",
+   "theme": "dark",
+   "width": 1024,
+   "file": "sidebar/tour-step5-dark-1024.png",
+   "sha256": "432a6815eb95940feed085a636e03ae47a4de1ffcc027778b82997c04bf70eac",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/dashboard?page=1&perPage=10",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "rail-expanded",
+   "route": "/dashboard",
+   "theme": "dark",
+   "width": 1280,
+   "file": "sidebar/rail-expanded-dark-1280.png",
+   "sha256": "6c5317a554158934cd0f8b35fef803417fd0b86e502eeb5b04544f664297b0a2",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/dashboard",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "current-row",
+   "route": "/properties",
+   "theme": "dark",
+   "width": 1280,
+   "file": "sidebar/current-row-dark-1280.png",
+   "sha256": "ad874573bf5cf7f1f30960f23ffca17f05bb8d922d411d01f8a1775b5348aa94",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/properties",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "current-row-hover",
+   "route": "/properties",
+   "theme": "dark",
+   "width": 1280,
+   "file": "sidebar/current-row-hover-dark-1280.png",
+   "sha256": "5b8ad952d238aa3b23d856ac0902728c2c00f7375d4736ba899e1d285cc0f757",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/properties",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "row-hover",
+   "route": "/properties",
+   "theme": "dark",
+   "width": 1280,
+   "file": "sidebar/row-hover-dark-1280.png",
+   "sha256": "5bb769acb51bbdcb64da7d1c917f432b29bc4d761fe8713e5ae42b6ea653dc60",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/properties",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "row-focus",
+   "route": "/properties",
+   "theme": "dark",
+   "width": 1280,
+   "file": "sidebar/row-focus-dark-1280.png",
+   "sha256": "5c27903a78b475730491598d804ac8da3fd16512b9a1d931fde063890efc2509",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/properties",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "reports-default",
+   "route": "/reports/cash-flow",
+   "theme": "dark",
+   "width": 1280,
+   "file": "sidebar/reports-default-dark-1280.png",
+   "sha256": "67729c5657fc36edb8f1aafde8b1f5e350ee0d26be879bdde196286714dc05bf",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "reports-open",
+   "route": "/reports/cash-flow",
+   "theme": "dark",
+   "width": 1280,
+   "file": "sidebar/reports-open-dark-1280.png",
+   "sha256": "3a5bc2b4c825fdf35ad4e1648eedd5cb12edc9c9abc6d86d38d047cc66425bc4",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/reports/cash-flow",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "set": "sidebar",
+   "state": "tour-step5",
+   "route": "/dashboard",
+   "theme": "dark",
+   "width": 1280,
+   "file": "sidebar/tour-step5-dark-1280.png",
+   "sha256": "8122172e61719cc7f471937ad828a2be29584160fad9a46a70455887f2ca5922",
+   "status": 200,
+   "finalUrl": "http://localhost:3062/dashboard",
+   "themeApplied": true,
+   "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  }
+ ],
+ "notApplicable": [
+  {
+   "state": "collapsed",
+   "reason": "new behavior, VD-29"
+  },
+  {
+   "state": "rail-hover",
+   "reason": "new behavior, VD-29"
+  }
+ ],
+ "pointer": "parked at (innerWidth - 2, innerHeight - 2) after each interaction, except current-row-hover, row-hover (hovered) and row-focus (parked before Tab)",
+ "writes": {
+  "tourProgressIntercepted": 80,
+  "tourProgressReads": 32,
+  "tourProgressWrites": 48,
+  "tourProgressPreflights": 0,
+  "tourProgressForwarded": 0,
+  "tableWritesForwarded": 0,
+  "tableWritesForwardedUrls": []
+ }
+}

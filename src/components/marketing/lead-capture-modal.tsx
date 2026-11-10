@@ -2,7 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { Mail } from "lucide-react";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type SubmitEvent, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import {
@@ -112,7 +112,7 @@ export function LeadCaptureModal({
 			),
 	});
 
-	function handleSubmit(e: FormEvent<HTMLFormElement>) {
+	function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
 		e.preventDefault();
 		// Guard against touch double-tap: the submit button's `disabled`
 		// flag from React's render cycle isn't reliable for a second
@@ -132,7 +132,7 @@ export function LeadCaptureModal({
 						<Mail className="size-5 text-primary" />
 						Landlord tips in your inbox
 					</DialogTitle>
-					<DialogDescription>
+					<DialogDescription className="mb-0">
 						Monthly tips on leases, maintenance, and tax season — written for
 						independent landlords.
 					</DialogDescription>

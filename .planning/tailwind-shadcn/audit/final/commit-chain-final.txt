@@ -1,0 +1,53 @@
+PRE_W6 9ab6f9b11c82d55eca9da59b4d706823476ce9e7 docs(66.2-29): record the aikido result and align the task 3 verify
+FIRST30 92b7f4e438bf67591f357e62a22e70dde46eff45
+PRE_W5 84f3c58d3870b980b11599c99712255b85dcc867
+FIRST20 ebf2fe009b6b3b9e43a9f1403dbf40343b4e87c2
+commits 754c91802..HEAD: 248
+## PRE_W6..FIRST30
+92b7f4e43 docs(66.2-30): re-hash the canonical sidebar and typecheck it post-w5
+4d3f6e273 docs(66.2): anchor pre_w6 on the last wave 5 gate commit in plans 30, 37 and 38
+7bfc2cdc1 docs(66.2): track plan 66.2-29 completion
+78915a48c docs(66.2): allow the post-gate aikido fix in the w5 gate frozen-path check
+## PRE_W6..HEAD
+ae50f4999 docs(66.2): track plan 66.2-36 completion
+79859cbaf docs(66.2-36): complete the w6 sidebar e2e plan
+72cd9168b test(66.2-36): harden the sidebar e2e assertions after red-proofs
+6989ce5ac test(66.2-36): prove the mobile nav sheet and tour step 5 in owner-axe
+df801fe95 test(66.2-36): prove the desktop sidebar rail in owner-axe
+715382583 test(66.2-36): wire the sidebar e2e spec into owner-axe
+e6fc751c4 docs(66.2): track plan 66.2-35 completion
+09b37c4fe docs(66.2-35): complete the w6 dock and tour plan
+04d245db3 chore(66.2-35): probe the dock centering in chromium
+6975216db fix(66.2-35): center the quick-actions dock on the sidebar width token
+f486c8505 fix(66.2-35): point tour step 5 at the sidebar trigger when the rail is hidden
+97f719045 feat(66.2-35): add the sidebar tour target helper
+dbd0dfa95 docs(66.2): track plan 66.2-34 completion
+b4d7af98e docs(66.2-34): complete the w6 main nav plan
+22f712d7f test(66.2-34): prove sidebar section state survives the sheet unmount
+cc931a515 feat(66.2-34): move main nav onto the canonical sidebar primitives
+dc16d0bac docs(66.2): narrow the plan 34 dead-id census to the old nav-section prefix
+059027020 feat(66.2-34): lift sidebar section state into a shell hook
+e1bab492b docs(66.2): track plan 66.2-33 completion
+f5d9801a4 docs(66.2-33): complete the w6 shell host plan
+74dc9d457 feat(66.2-33): read the persisted sidebar state in the owner layout
+21ce0be48 feat(66.2-33): host the owner shell on the canonical sidebar
+44815c60c docs(66.2): track plan 66.2-32 completion
+89d3c50f6 fix(66.2-32): attach the sidebar shortcut listener once via useeffectevent
+57a63a3db docs(66.2-32): correct the pre-delete census hit count
+3b62a85d2 docs(66.2-32): complete the w6 vendor sidebar plan
+6cf1503a7 refactor(66.2-32): delete the unused sidebar context and server provider
+b57b82ca7 feat(66.2-32): vendor the sidebar menu parts with base-rule neutralizers
+75af80f41 feat(66.2-32): vendor the canonical sidebar provider and shell parts
+214bddefc docs(66.2): track plan 66.2-31 completion
+9bfe17ea5 docs(66.2-31): complete the w6 foundations plan
+ced8ea0af feat(66.2-31): add use-mobile on the lg breakpoint query
+84cf6ca52 feat(66.2-31): add the sidebar_state cookie constants, parser and writer
+85a6381f6 refactor(66.2-31): alias the sidebar tokens to the brand palette
+48247ce0e docs(66.2): track plan 66.2-30 completion
+0146bc5ae docs(66.2-30): record the wave 6 step 0 evidence
+2c0d86378 docs(66.2-30): capture the sidebar before-screenshots
+c0fe38a04 docs(66.2-30): confirm the hand-rolled drawer defects on the live shell
+92b7f4e43 docs(66.2-30): re-hash the canonical sidebar and typecheck it post-w5
+4d3f6e273 docs(66.2): anchor pre_w6 on the last wave 5 gate commit in plans 30, 37 and 38
+7bfc2cdc1 docs(66.2): track plan 66.2-29 completion
+78915a48c docs(66.2): allow the post-gate aikido fix in the w5 gate frozen-path check

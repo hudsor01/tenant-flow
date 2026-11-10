@@ -1,25 +1,27 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
+import { downloadBlob } from "#lib/reports/download-blob";
+import { jsonArrayOrEmpty } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
-import type {
-	ListReportsResponse,
-	Report as ReportType,
-	RevenueData,
-} from "#types/reports";
+import { ApiErrorCode, createApiErrorFromResponse } from "#lib/utils/api-error";
+import type { RevenueData } from "#types/reports";
+import { FINANCIAL_ANALYTICS_REPORT_TYPE } from "../../../../supabase/functions/_shared/financial-analytics-report";
+import {
+	TAX_DOCUMENTS_REPORT_TYPE,
+	taxYearReportFilename,
+	YEAR_END_REPORT_TYPE,
+} from "../../../../supabase/functions/_shared/tax-year-reports";
+import {
+	TIER_GATE_REFUSAL_REASONS,
+	type TierGateRefusalReason,
+} from "../../../../supabase/functions/_shared/tier-gate-decision";
 import { mutationKeys } from "../mutation-keys";
-import { fetchRevenueWithExpenses } from "./analytics-keys";
 
 export const reportKeys = {
 	all: ["reports"] as const,
-	lists: () => [...reportKeys.all, "list"] as const,
-	list: (offset: number, limit: number) =>
-		[...reportKeys.lists(), offset, limit] as const,
-	runs: (reportId: string) => [...reportKeys.all, "runs", reportId] as const,
 	revenue: (months: number) =>
 		[...reportKeys.all, "revenue", "monthly", months] as const,
-	paymentAnalytics: (start_date?: string, end_date?: string) =>
-		[...reportKeys.all, "analytics", "payments", start_date, end_date] as const,
 	occupancyMetrics: () =>
 		[...reportKeys.all, "analytics", "occupancy"] as const,
 	financial: (start_date?: string, end_date?: string) =>
@@ -31,107 +33,28 @@ export const reportKeys = {
 	maintenance: (start_date?: string, end_date?: string) =>
 		[...reportKeys.all, "maintenance", start_date, end_date] as const,
 	yearEnd: (year: number) => [...reportKeys.all, "year-end", year] as const,
-	report1099: (year: number) => [...reportKeys.all, "1099", year] as const,
 };
 
 export const reportQueries = {
-	all: () => reportKeys.all,
-
-	list: (offset: number, limit: number = 20) =>
-		queryOptions({
-			queryKey: reportKeys.list(offset, limit),
-			queryFn: async (): Promise<ListReportsResponse> => {
-				const supabase = createClient();
-				const user = await getCachedUser();
-				if (!user) {
-					return {
-						success: true,
-						data: [],
-						pagination: { total: 0, limit, offset, hasMore: false },
-					};
-				}
-
-				const { data, error, count } = await supabase
-					.from("reports")
-					.select("*", { count: "exact" })
-					.eq("owner_user_id", user.id)
-					.order("created_at", { ascending: false })
-					.range(offset, offset + limit - 1);
-
-				if (error) handlePostgrestError(error, "reports list");
-
-				const total = count ?? 0;
-				const reports: ReportType[] = (data ?? []).map((r) => ({
-					id: r.id,
-					user_id: r.owner_user_id,
-					reportType: r.report_type,
-					reportName: r.title,
-					format: "pdf",
-					status: r.is_active ? "active" : "inactive",
-					fileUrl: null,
-					filePath: null,
-					fileSize: null,
-					start_date: r.created_at ?? "",
-					end_date: r.updated_at ?? r.created_at ?? "",
-					metadata: {
-						description: r.description,
-						schedule_cron: r.schedule_cron,
-						next_run_at: r.next_run_at,
-					},
-					errorMessage: null,
-					created_at: r.created_at ?? "",
-					updated_at: r.updated_at ?? r.created_at ?? "",
-				}));
-
-				return {
-					success: true,
-					data: reports,
-					pagination: { total, limit, offset, hasMore: offset + limit < total },
-				};
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000,
-		}),
-
-	runs: (reportId: string) =>
-		queryOptions({
-			queryKey: reportKeys.runs(reportId),
-			queryFn: async () => {
-				const supabase = createClient();
-				const { data, error } = await supabase
-					.from("report_runs")
-					.select(
-						"id, report_id, execution_status, file_path, file_size, execution_time_ms, error_message, started_at, completed_at, created_at",
-					)
-					.eq("report_id", reportId)
-					.order("created_at", { ascending: false })
-					.limit(50);
-
-				if (error) handlePostgrestError(error, "report runs");
-				return data ?? [];
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000,
-			enabled: Boolean(reportId),
-		}),
-
 	monthlyRevenue: (months: number = 12) =>
 		queryOptions({
 			queryKey: reportKeys.revenue(months),
 			queryFn: async (): Promise<RevenueData[]> => {
+				const supabase = createClient();
 				const user = await getCachedUser();
 				if (!user) return [];
-				// get_revenue_trends_optimized is revenue-only; expenses/profit come
-				// from the shared join with get_expense_summary.monthly_totals
-				// (TYPE-06). Previously mapped phantom expenses/profit/count keys the
-				// RPC never emits, so the Profit series flatlined at 0.
-				const rows = await fetchRevenueWithExpenses(months);
-				return rows.map(
+				// Each month's scheduled rent, all the executive report prints. Its
+				// expenses and profit (a join with get_expense_summary's
+				// monthly_totals) were read by no report and went in 66.2-39.
+				const { data, error } = await supabase.rpc(
+					"get_revenue_trends_optimized",
+					{ p_user_id: user.id, p_months: months },
+				);
+				if (error) handlePostgrestError(error, "scheduled rent");
+				return jsonArrayOrEmpty<Record<string, unknown>>(data).map(
 					(row): RevenueData => ({
-						month: row.month,
-						revenue: row.revenue,
-						expenses: row.expenses,
-						profit: row.revenue - row.expenses,
+						month: String(row.month ?? ""),
+						revenue: Number(row.revenue ?? 0),
 					}),
 				);
 			},
@@ -141,19 +64,35 @@ export const reportQueries = {
 };
 
 /**
- * Thrown when the reports tier gate returns 402. Caller mutations detect this
- * via `instanceof PaywallError` to surface an upgrade CTA instead of a generic
- * error toast.
+ * Thrown when a tier gate returns 402. Caller mutations detect this via
+ * `instanceof PaywallError` to surface an upgrade CTA instead of a generic
+ * error toast. `reason` is the gate's (`_shared/tier-gate-decision.ts`):
+ * `subscription_inactive` is an owner whose plan includes the feature while
+ * the subscription is not active, whom the toast sends to Billing Settings,
+ * not to upgrade. `null` when the 402 names none (the e-sign quota's, or an
+ * older function's).
  */
 export class PaywallError extends Error {
 	readonly upgradeUrl: string;
 	readonly feature: string;
-	constructor(message: string, upgradeUrl: string, feature: string) {
+	readonly reason: TierGateRefusalReason | null;
+	constructor(
+		message: string,
+		upgradeUrl: string,
+		feature: string,
+		reason: TierGateRefusalReason | null = null,
+	) {
 		super(message);
 		this.name = "PaywallError";
 		this.upgradeUrl = upgradeUrl;
 		this.feature = feature;
+		this.reason = reason;
 	}
+}
+
+/** A 402 body's `reason`, if it is one the tier gate writes. */
+export function paywallReason(raw: unknown): TierGateRefusalReason | null {
+	return TIER_GATE_REFUSAL_REASONS.find((reason) => reason === raw) ?? null;
 }
 
 async function parsePaywallResponse(
@@ -165,6 +104,7 @@ async function parsePaywallResponse(
 			error?: string;
 			upgrade_url?: string;
 			upgrade_required?: boolean;
+			reason?: unknown;
 		};
 		const url =
 			typeof body.upgrade_url === "string"
@@ -174,7 +114,12 @@ async function parsePaywallResponse(
 			typeof body.error === "string"
 				? body.error
 				: "This feature requires a Growth or Max subscription.";
-		return new PaywallError(msg, url, defaultFeature);
+		return new PaywallError(
+			msg,
+			url,
+			defaultFeature,
+			paywallReason(body.reason),
+		);
 	} catch {
 		return new PaywallError(
 			"This feature requires a Growth or Max subscription.",
@@ -184,44 +129,53 @@ async function parsePaywallResponse(
 	}
 }
 
+/** The file formats `export-report` writes. */
+export type ReportExportFormat = "csv" | "xlsx" | "pdf";
+
+/**
+ * Download one export from the `export-report` Edge Function, a GET whose
+ * query string (`type`, `format`) is all the function reads; it builds the
+ * file on the server. A 402 is its tier gate and becomes a PaywallError.
+ *
+ * `getUser()` (via `getCachedUser`) decides whether anyone is signed in; the
+ * session is read only for its Bearer token. The browser cannot read the
+ * response's Content-Disposition (it is not a CORS-safelisted header and the
+ * function does not expose it), so the download is named here
+ * `<type>-<UTC date>.<format>`, the name the function gives a
+ * financial-analytics export.
+ */
 async function callExportEdgeFunction(
 	reportType: string,
-	format: "csv" | "xlsx" | "pdf",
-	year: number,
-): Promise<boolean> {
+	format: ReportExportFormat,
+): Promise<void> {
+	const user = await getCachedUser();
+	if (!user) throw new Error("You need to be signed in to export a report.");
 	const supabase = createClient();
-	const { data: sessionData } = await supabase.auth.getSession();
-	const token = sessionData.session?.access_token;
-	if (!token) throw new Error("Not authenticated");
+	const {
+		data: { session },
+	} = await supabase.auth.getSession();
+	const token = session?.access_token;
+	if (!token) throw new Error("You need to be signed in to export a report.");
 
+	const params = new URLSearchParams({ type: reportType, format });
 	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-	const url = `${baseUrl}/functions/v1/export-report?type=${reportType}&format=${format}&year=${year}`;
-
-	const response = await fetch(url, {
-		headers: { Authorization: `Bearer ${token}` },
-	});
+	const response = await fetch(
+		`${baseUrl}/functions/v1/export-report?${params.toString()}`,
+		{ headers: { Authorization: `Bearer ${token}` } },
+	);
 
 	if (response.status === 402) {
 		throw await parsePaywallResponse(response, "reports");
 	}
 	if (!response.ok) {
-		throw new Error(`Export failed: ${response.statusText}`);
+		throw createApiErrorFromResponse(
+			response,
+			ApiErrorCode.FINANCIAL_EXPORT_FAILED,
+		);
 	}
 
-	const blob = await response.blob();
-	const blobUrl = window.URL.createObjectURL(blob);
-	const link = document.createElement("a");
-	link.href = blobUrl;
-
-	const disposition = response.headers.get("Content-Disposition") ?? "";
-	const filenameMatch = disposition.match(/filename="([^"]+)"/);
-	link.download = filenameMatch?.[1] ?? `${reportType}-${year}.${format}`;
-
-	document.body.appendChild(link);
-	link.click();
-	document.body.removeChild(link);
-	setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
-	return true;
+	const today = new Date().toISOString().slice(0, 10);
+	downloadBlob(await response.blob(), `${reportType}-${today}.${format}`);
 }
 
 async function callGeneratePdfEdgeFunction(
@@ -234,7 +188,7 @@ async function callGeneratePdfEdgeFunction(
 	} = await supabase.auth.getSession();
 	if (!session?.access_token) throw new Error("Not authenticated");
 
-	const filename = `${reportType}-${year}.pdf`;
+	const filename = `${taxYearReportFilename(reportType, year)}.pdf`;
 	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 	const response = await fetch(`${baseUrl}/functions/v1/generate-pdf`, {
 		method: "POST",
@@ -249,35 +203,22 @@ async function callGeneratePdfEdgeFunction(
 		throw await parsePaywallResponse(response, "reports");
 	}
 	if (!response.ok) {
-		const errText = await response.text().catch(() => response.statusText);
-		throw new Error(`PDF generation failed: ${errText}`);
+		throw createApiErrorFromResponse(
+			response,
+			ApiErrorCode.PDF_GENERATION_FAILED,
+		);
 	}
 
-	const blob = await response.blob();
-	const blobUrl = window.URL.createObjectURL(blob);
-	const link = document.createElement("a");
-	link.href = blobUrl;
-	link.download = filename;
-	document.body.appendChild(link);
-	link.click();
-	document.body.removeChild(link);
-	setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+	downloadBlob(await response.blob(), filename);
 }
 
 export const reportMutations = {
-	downloadYearEndCsv: () =>
+	/** The /analytics/financial export: the page's figures, built server-side. */
+	exportFinancialAnalytics: () =>
 		mutationOptions({
-			mutationKey: mutationKeys.reports.downloadYearEndCsv,
-			mutationFn: async (year: number): Promise<void> => {
-				await callExportEdgeFunction("year-end", "csv", year);
-			},
-		}),
-
-	download1099Csv: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.reports.download1099Csv,
-			mutationFn: async (year: number): Promise<void> => {
-				await callExportEdgeFunction("1099", "csv", year);
+			mutationKey: mutationKeys.reports.exportFinancialAnalytics,
+			mutationFn: async (format: ReportExportFormat): Promise<void> => {
+				await callExportEdgeFunction(FINANCIAL_ANALYTICS_REPORT_TYPE, format);
 			},
 		}),
 
@@ -285,7 +226,7 @@ export const reportMutations = {
 		mutationOptions({
 			mutationKey: mutationKeys.reports.downloadYearEndPdf,
 			mutationFn: async (year: number): Promise<void> => {
-				await callGeneratePdfEdgeFunction("year-end", year);
+				await callGeneratePdfEdgeFunction(YEAR_END_REPORT_TYPE, year);
 			},
 		}),
 
@@ -293,7 +234,7 @@ export const reportMutations = {
 		mutationOptions({
 			mutationKey: mutationKeys.reports.downloadTaxDocumentPdf,
 			mutationFn: async (year: number): Promise<void> => {
-				await callGeneratePdfEdgeFunction("financial", year);
+				await callGeneratePdfEdgeFunction(TAX_DOCUMENTS_REPORT_TYPE, year);
 			},
 		}),
 };

@@ -1,0 +1,70 @@
+{
+	"tree": "7f6fcc67c (codeStateSha)",
+	"selfTest": {
+		"command": "node .planning/tailwind-shadcn/audit/f39-checks.mjs --self-test",
+		"exit": 0,
+		"value": "124 passed: every fix-round-4 group has a mutation that fails exactly it (27 mutations and the clean fixture); fix-round-1 gains a mutation for warning-foreground regaining a use and one for a round-4 token delta reverted, and its dead-var mutation is now a seventh"
+	},
+	"m8SeventhOnRealEvidence": {
+		"method": "f39/dead.json and report.json of this freeze with a seventh dead var planted (--color-popover-foreground), then --fix-round-1",
+		"failedGroups": [
+			"M8"
+		],
+		"expected": [
+			"M8"
+		]
+	},
+	"fixRound4OnPreviousEvidence": {
+		"method": "--fix-round-4 on the previous freeze committed f39 directory (measured on b7f25511b)",
+		"checks": 96,
+		"failed": 86,
+		"failedByGroup": {
+			"fr4-guard": 76,
+			"fr4-e2e": 2,
+			"fr4-retired": 1,
+			"fr4-fresh": 1,
+			"fr4-replay": 1,
+			"fr4-deno": 1,
+			"fr4-edge": 1,
+			"fr4-parity": 1,
+			"fr4-csp": 1,
+			"fr4-scope": 1
+		},
+		"passing": [
+			"fr4-e2e:tests/e2e/tests/owner-reflow-320.spec.ts",
+			"fr4-e2e:tests/e2e/tests/public/reflow-320.spec.ts",
+			"fr4-e2e:tests/e2e/tests/owner/app-shell-sidebar.spec.ts",
+			"fr4-helper:tests/e2e/lib/reflow-states.ts",
+			"fr4-helper:tests/e2e/lib/measure.ts",
+			"fr4-helper:tests/e2e/lib/reflow.ts",
+			"fr4-code-state",
+			"fr4-sweep",
+			"fr4-csp-code",
+			"fr4-pr-body"
+		]
+	},
+	"previousCheckerOnThisEvidence": {
+		"method": "the checker as committed at 7f6fcc67c (before this re-freeze) on this freeze evidence",
+		"fixRound1": [
+			"M8",
+			"tokens",
+			"vd-ids",
+			"replay",
+			"screens",
+			"probes"
+		],
+		"fixRound2": 0,
+		"fixRound3": [
+			"fr3-guard:src/components/__tests__/heading-block-paragraph-margin.test.ts",
+			"fr3-guard:tests/e2e/lib/__tests__/reflow-newest-record.test.ts",
+			"fr3-guard:src/providers/__tests__/query-cache-buster.test.ts",
+			"fr3-code-state",
+			"fr3-fresh",
+			"fr3-probes",
+			"fr3-replay",
+			"fr3-deno",
+			"fr3-edge"
+		],
+		"note": "fixRound3 fails on the retired heading-block-paragraph-margin.test.ts (gone since e86105e85), as Part 8 said, and on two titles fix round 4 widened (8f5556028/bf076f8e7, 96b15a1fb)"
+	}
+}

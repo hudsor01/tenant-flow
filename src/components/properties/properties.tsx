@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { ConfirmDialog } from "#components/ui/confirm-dialog";
 import {
 	useDeletePropertyMutation,
 	useUpdatePropertyMutation,
 } from "#hooks/api/use-property-mutations";
+import { toPropertyType } from "#lib/constants/status-types";
+import { formatCount } from "#lib/formatters/count";
 import { intersectSelection } from "#lib/intersect-selection";
 import {
 	type PropertyStatusFilter,
@@ -22,15 +25,7 @@ import { PropertyCard } from "./property-select-card";
 import { PropertyStatsSection } from "./property-stats-section";
 import { PropertyTable } from "./property-table";
 import { PropertyToolbar } from "./property-toolbar";
-import type { DesignPropertyType, PropertiesProps } from "./types";
-
-const PROPERTY_TYPE_TO_API: Record<DesignPropertyType, string> = {
-	single_family: "SINGLE_FAMILY",
-	multi_family: "MULTI_UNIT",
-	apartment: "APARTMENT",
-	condo: "CONDO",
-	townhouse: "TOWNHOUSE",
-};
+import type { PropertiesProps } from "./types";
 
 /**
  * Properties - Main component for managing property portfolio
@@ -81,13 +76,31 @@ export function Properties({
 	const deletePropertyMutation = useDeletePropertyMutation();
 	const updatePropertyMutation = useUpdatePropertyMutation();
 
-	const { handleBulkEditOpen, handleBulkDelete } = useBulkHandlers(
-		selectedRows,
-		properties,
-		openBulkEdit,
-		deletePropertyMutation,
-		clearSelection,
-	);
+	const { handleBulkEditOpen, bulkDeleteTargets, handleBulkDelete } =
+		useBulkHandlers(
+			selectedRows,
+			properties,
+			openBulkEdit,
+			deletePropertyMutation,
+			clearSelection,
+		);
+	// The action bar's Delete only opens the confirmation, with the ids it will
+	// act on (and the one property's name); the delete runs from its Delete.
+	// The ids outlive the close, so the copy holds while the dialog fades out.
+	const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+	const [bulkDelete, setBulkDelete] = useState<{
+		ids: string[];
+		name: string | null;
+	}>({ ids: [], name: null });
+	const openBulkDelete = () => {
+		const ids = bulkDeleteTargets();
+		if (ids.length === 0) return;
+		const only =
+			ids.length === 1 ? properties.find((p) => p.id === ids[0]) : undefined;
+		setBulkDelete({ ids, name: only?.name || null });
+		setBulkDeleteOpen(true);
+	};
+	const bulkDeleteCount = bulkDelete.ids.length;
 
 	// STATE-05: reconcile the selection against the fetched (active) property
 	// list. `properties` excludes inactive rows, so a soft-deleted id drops out
@@ -100,6 +113,9 @@ export function Properties({
 	const handleBulkEditSubmit = async () => {
 		if (selectedRows.size === 0) return;
 		if (!applyBulkStatus && !applyBulkType) return;
+		// The dialog asks for a type when the first property's is outside the
+		// set; applying "no type" would write nothing the form can read.
+		if (applyBulkType && bulkEditType === null) return;
 		// STATE-05: only target ids still present in the active list — a bulk
 		// edit must never resurrect a just-deleted (inactive) property via a
 		// phantom selection surviving the delete→refetch race.
@@ -110,8 +126,8 @@ export function Properties({
 		if (ids.length === 0) return;
 		const updateData: Record<string, string> = {};
 		if (applyBulkStatus) updateData.status = bulkEditStatus;
-		if (applyBulkType)
-			updateData.property_type = PROPERTY_TYPE_TO_API[bulkEditType] as string;
+		if (applyBulkType && bulkEditType !== null)
+			updateData.property_type = bulkEditType;
 		setIsBulkSaving(true);
 		try {
 			await Promise.allSettled(
@@ -141,7 +157,8 @@ export function Properties({
 			if (statusFilter === "available" && p.availableUnits === 0) return false;
 			if (statusFilter === "maintenance" && p.maintenanceUnits === 0)
 				return false;
-			if (typeFilter !== "all" && p.propertyType !== typeFilter) return false;
+			if (typeFilter !== "all" && toPropertyType(p.propertyType) !== typeFilter)
+				return false;
 			return true;
 		});
 	})();
@@ -159,8 +176,12 @@ export function Properties({
 		return <EmptyProperties onAddProperty={onAddProperty} />;
 	}
 
+	// No padding of its own: the page's wrapper pads it (p-6 lg:p-8), as every
+	// owner page is padded once; a second p-6 lg:p-8 here inset the list 48px
+	// at 390 (64px from the edge where every other owner page starts at 40) and
+	// left its stat tiles 89px for a figure (66.2-39 fix round 4, Part 8c).
 	return (
-		<div className="p-6 lg:p-8 min-h-full bg-background">
+		<>
 			<PropertiesHeader onAddProperty={onAddProperty} />
 			<PropertyStatsSection summary={summary} />
 			<section className="bg-card border border-border rounded-sm overflow-hidden">
@@ -177,7 +198,7 @@ export function Properties({
 				/>
 				{viewMode === "grid" && (
 					<div className="p-5 animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-auto max-h-[calc(100vh-340px)]">
-						<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+						<div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 							{filteredProperties.map((property) => (
 								<PropertyCard
 									key={property.id}
@@ -212,7 +233,28 @@ export function Properties({
 				totalCount={filteredProperties.length}
 				onClear={clearSelection}
 				onBulkEdit={handleBulkEditOpen}
-				onBulkDelete={handleBulkDelete}
+				onBulkDelete={openBulkDelete}
+			/>
+			<ConfirmDialog
+				open={bulkDeleteOpen}
+				// Cancel keeps the selection: nothing was deleted.
+				onOpenChange={setBulkDeleteOpen}
+				title={`Delete ${formatCount(bulkDeleteCount, "property", "properties")}?`}
+				description={`This marks ${
+					bulkDelete.name
+						? `"${bulkDelete.name}"`
+						: `the ${formatCount(bulkDeleteCount, "selected property", "selected properties")}`
+				} as inactive, so ${
+					bulkDeleteCount === 1
+						? "it leaves your property list. Its units and leases are kept."
+						: "they leave your property list. Their units and leases are kept."
+				}`}
+				confirmText="Delete"
+				loading={deletePropertyMutation.isPending}
+				onConfirm={() => {
+					setBulkDeleteOpen(false);
+					void handleBulkDelete(bulkDelete.ids);
+				}}
 			/>
 			<PropertyBulkEditDialog
 				open={isBulkEditOpen}
@@ -231,6 +273,6 @@ export function Properties({
 				onApplyTypeChange={setApplyBulkType}
 				onSubmit={handleBulkEditSubmit}
 			/>
-		</div>
+		</>
 	);
 }

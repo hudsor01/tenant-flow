@@ -4,8 +4,9 @@
  * This page is shown when a user clicks the password reset link from their email.
  * Supabase automatically handles the token exchange when the user lands on this page.
  *
- * If the token is expired or invalid, Supabase appends error info to the URL hash.
- * We detect this and show an error state with a recovery option.
+ * If the token is expired or invalid, the auth callback (or Supabase) appends
+ * error info to the URL hash. We detect this and show an error state with a
+ * recovery option.
  */
 
 "use client";
@@ -23,6 +24,30 @@ import { createClient } from "#lib/supabase/client";
 
 type PageState = "loading" | "valid" | "error";
 
+const EXPIRED_OR_INVALID = "This link has expired or is invalid.";
+
+/**
+ * The copy for each reset-link error code the hash can carry: `access_denied`
+ * from the auth callback's failure redirect (`failureRedirectPath`), and
+ * Supabase's own `error_code` for an expired one-time token. The hash's
+ * `error_description` is never shown: anyone can write a link to this page,
+ * so its text would let them put any sentence on tenantflow.app.
+ */
+const RESET_LINK_ERRORS: Readonly<Record<string, string>> = {
+	access_denied: EXPIRED_OR_INVALID,
+	otp_expired: EXPIRED_OR_INVALID,
+};
+
+/** The fixed copy for the hash's error, by `error_code`, then `error`. */
+function resetLinkErrorMessage(params: URLSearchParams): string {
+	for (const code of [params.get("error_code"), params.get("error")]) {
+		if (code !== null && Object.hasOwn(RESET_LINK_ERRORS, code)) {
+			return RESET_LINK_ERRORS[code] ?? EXPIRED_OR_INVALID;
+		}
+	}
+	return "This link could not be used.";
+}
+
 function useResetTokenStatus(): { state: PageState; errorMessage: string } {
 	const [state, setState] = useState<PageState>("loading");
 	const [errorMessage, setErrorMessage] = useState("");
@@ -30,18 +55,11 @@ function useResetTokenStatus(): { state: PageState; errorMessage: string } {
 	useEffect(() => {
 		let ignore = false;
 
-		// Supabase appends error info to the URL hash when a reset link is invalid/expired
+		// A failed reset link lands here with its error in the URL hash,
 		// e.g. #error=access_denied&error_description=...
-		const hash = window.location.hash.substring(1);
-		const params = new URLSearchParams(hash);
-		const error = params.get("error");
-		const errorDescription = params.get("error_description");
-
-		if (error) {
-			const message =
-				errorDescription?.replace(/\+/g, " ") ||
-				"This link has expired or is invalid.";
-			setErrorMessage(message);
+		const params = new URLSearchParams(window.location.hash.substring(1));
+		if (params.get("error") || params.get("error_code")) {
+			setErrorMessage(resetLinkErrorMessage(params));
 			setState("error");
 			return;
 		}
@@ -95,7 +113,7 @@ function ExpiredLinkContent({ errorMessage }: { errorMessage: string }) {
 				</div>
 
 				<div className="bg-muted/30 border border-border rounded-xl p-4 text-sm text-muted-foreground">
-					<p>
+					<p className="mb-0">
 						Password reset links expire after 1 hour for security. You can
 						request a new one below.
 					</p>
@@ -164,10 +182,11 @@ export default function UpdatePasswordPage() {
 
 						<div className="relative text-center space-y-6 section-spacing-compact px-8 z-20">
 							{/* Logo */}
-							<div className="size-16 mx-auto mb-8 relative group">
-								<div className="absolute inset-0 bg-linear-to-r from-primary/50 to-primary/60 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500" />
+							<div className="size-16 mx-auto mb-8 relative">
+								<div className="absolute inset-0 bg-linear-to-r from-primary/50 to-primary/60 rounded-2xl blur-xl" />
 								<div className="relative w-full h-full bg-primary rounded-2xl flex-center border border-glass-light shadow-lg">
 									<svg
+										aria-hidden="true"
 										viewBox="0 0 24 24"
 										fill="none"
 										xmlns="http://www.w3.org/2000/svg"
@@ -189,7 +208,7 @@ export default function UpdatePasswordPage() {
 									<h2 className="text-foreground font-bold text-3xl">
 										Reset Link Issue
 									</h2>
-									<p className="text-muted-foreground text-lg leading-relaxed">
+									<p className="mb-0 text-muted-foreground text-lg leading-relaxed">
 										No worries — request a new password reset link below.
 									</p>
 								</>
@@ -198,7 +217,7 @@ export default function UpdatePasswordPage() {
 									<h2 className="text-foreground font-bold text-3xl">
 										Secure Your Account
 									</h2>
-									<p className="text-muted-foreground text-lg leading-relaxed">
+									<p className="mb-0 text-muted-foreground text-lg leading-relaxed">
 										Create a strong password to keep your property management
 										data safe and secure.
 									</p>
@@ -207,7 +226,7 @@ export default function UpdatePasswordPage() {
 										<p className="text-sm font-medium text-foreground">
 											Password tips:
 										</p>
-										<ul className="text-sm text-muted-foreground space-y-1">
+										<ul className="flex flex-col gap-1 pl-0 mt-0 mb-0 [&>li]:mb-0 text-sm text-muted-foreground">
 											<li>
 												Use at least {VALIDATION_LIMITS.PASSWORD_MIN_LENGTH}{" "}
 												characters
@@ -228,10 +247,11 @@ export default function UpdatePasswordPage() {
 			<div className="flex-1 lg:w-1/2 flex-center p-6 sm:p-8 lg:p-12 bg-background min-h-screen">
 				<div className="w-full max-w-md space-y-8">
 					{/* Logo (Mobile only) */}
-					<div className="lg:hidden flex justify-center mb-8">
+					<div className="lg:hidden flex justify-center">
 						<Link href="/" className="flex items-center space-x-3">
 							<div className="size-10 rounded-xl overflow-hidden bg-primary border border-border flex-center shadow-lg">
 								<svg
+									aria-hidden="true"
 									viewBox="0 0 24 24"
 									fill="none"
 									xmlns="http://www.w3.org/2000/svg"
@@ -266,7 +286,7 @@ export default function UpdatePasswordPage() {
 
 					{/* Footer */}
 					<div className="text-center pt-4">
-						<p className="text-muted-foreground">
+						<p className="mb-0 text-muted-foreground">
 							Remember your password?{" "}
 							<Link
 								href="/login"

@@ -1,0 +1,1213 @@
+{
+  "fetchedAt": "2026-11-01T00:41:59.525Z",
+  "base": "https://ui.shadcn.com/r/styles/new-york-v4",
+  "items": {
+    "accordion": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/accordion.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:09 GMT",
+      "etag": "W/\"a04c61ef73dfff7f54986227441b676d\"",
+      "jsonSha256": "93254d43d27259998b10c7bb5261f85bdc44509d46309a5c10a1e5d126a8d279",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/accordion.tsx",
+          "sha256": "99de242681eb43121969db02bbb102aeeb1865ef52c7635672508a58c5429085",
+          "lines": 65,
+          "dataSlots": [
+            "accordion",
+            "accordion-item",
+            "accordion-trigger",
+            "accordion-content"
+          ]
+        }
+      ]
+    },
+    "alert-dialog": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/alert-dialog.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:09 GMT",
+      "etag": "W/\"2a196e520f87a591f37f504a58dbe950\"",
+      "jsonSha256": "03c0d4de131a9b049e9080724666045c8785074af7e07040a0a0f922a810e7c2",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/alert-dialog.tsx",
+          "sha256": "b3dfb83e54ed8c82071df5289e5149628bf573458fc2da2d62f93f8380041b28",
+          "lines": 196,
+          "dataSlots": [
+            "alert-dialog",
+            "alert-dialog-trigger",
+            "alert-dialog-portal",
+            "alert-dialog-overlay",
+            "alert-dialog-content",
+            "alert-dialog-header",
+            "alert-dialog-footer",
+            "alert-dialog-title",
+            "alert-dialog-description",
+            "alert-dialog-media",
+            "alert-dialog-action",
+            "alert-dialog-cancel"
+          ]
+        }
+      ]
+    },
+    "alert": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/alert.json",
+      "status": 200,
+      "lastModified": "Sun, 01 Nov 2026 00:06:21 GMT",
+      "etag": "W/\"c89a5fcd90c440660e63f3d54fba9b60\"",
+      "jsonSha256": "413c97869ec0e53efa4a37f590833bcf4a7a57255f5a2e909c6bb5bac7b4570d",
+      "dependencies": [
+        "cn"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/alert.tsx",
+          "sha256": "d03dcae5cdb63c381c1144ca9a0c49ba0e46466967d7deb94662034042acb034",
+          "lines": 65,
+          "dataSlots": [
+            "alert",
+            "alert-title",
+            "alert-description"
+          ]
+        }
+      ]
+    },
+    "animated-trend-indicator": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/animated-trend-indicator.json",
+      "status": 404
+    },
+    "avatar": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/avatar.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:09 GMT",
+      "etag": "W/\"f5636cf0c2a2aa64d50320deee96ceed\"",
+      "jsonSha256": "f843fc6e2d2fea1337bdcdc8b70c5189f84562d87f8e852e994f4bbdd7cd229d",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/avatar.tsx",
+          "sha256": "0c5c48b8a1dff4fdc5ff9b6cb79cc9cd138682b7d86868068f571befe9675e88",
+          "lines": 108,
+          "dataSlots": [
+            "avatar",
+            "avatar-image",
+            "avatar-fallback",
+            "avatar-badge",
+            "avatar-group",
+            "avatar-group-count"
+          ]
+        }
+      ]
+    },
+    "badge": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/badge.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:09 GMT",
+      "etag": "W/\"60c645ade367fa6d54729a81eb7ba1be\"",
+      "jsonSha256": "0f988b37cf1c56e7ecc83b1dcf24c9af4e73ce4341da5caf2c9d9b07a551319b",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/badge.tsx",
+          "sha256": "13a9380dfff853ee730c14a52df49f22aecd31f40f2998d7c1e7ec458b6e1650",
+          "lines": 47,
+          "dataSlots": [
+            "badge"
+          ]
+        }
+      ]
+    },
+    "bento-grid": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/bento-grid.json",
+      "status": 404
+    },
+    "blur-fade": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/blur-fade.json",
+      "status": 404
+    },
+    "border-beam": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/border-beam.json",
+      "status": 404
+    },
+    "breadcrumb": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/breadcrumb.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:09 GMT",
+      "etag": "W/\"55c0cb34ddf43930e577b5b1c936c498\"",
+      "jsonSha256": "18043f281e20e08fa017a3bba2b2dec462ebba2b0ebf9685b34225cf7b253bfa",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/breadcrumb.tsx",
+          "sha256": "c75fcd3d9e8470188bc0dd4b27a2b26fff3ad42b9c9c534a953dc090ae2cba33",
+          "lines": 108,
+          "dataSlots": [
+            "breadcrumb",
+            "breadcrumb-list",
+            "breadcrumb-item",
+            "breadcrumb-link",
+            "breadcrumb-page",
+            "breadcrumb-separator",
+            "breadcrumb-ellipsis"
+          ]
+        }
+      ]
+    },
+    "button-group": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/button-group.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:10 GMT",
+      "etag": "W/\"ad80ff085e4488afa62b340687b3d055\"",
+      "jsonSha256": "750f0d0a247e36446efcb257b289657a6f98a492b4b7c5a2b7aabe291d23f1ec",
+      "dependencies": [
+        "cn"
+      ],
+      "registryDependencies": [
+        "button",
+        "separator"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/button-group.tsx",
+          "sha256": "a9ac862707ff8d78255f2696baf48f9a87d9e92e21eb476f8f9e9361313c1761",
+          "lines": 83,
+          "dataSlots": [
+            "button-group",
+            "button-group-separator"
+          ]
+        }
+      ]
+    },
+    "button": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/button.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:46:22 GMT",
+      "etag": "W/\"af665526691323e2f91a9302bcd17707\"",
+      "jsonSha256": "4b8d7d848742727973c1b088af8d15f0b628272a1316f2d2fa344e73ddff9e9c",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/button.tsx",
+          "sha256": "79dd6f75f8136394442202d6b8b922fb269eaad0a5dba579397c9d5b41f893bb",
+          "lines": 63,
+          "dataSlots": [
+            "button"
+          ]
+        }
+      ]
+    },
+    "calendar": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/calendar.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:10 GMT",
+      "etag": "W/\"ae37eecfa3e49b89c1f7502f29e97266\"",
+      "jsonSha256": "746d0f9d907a20959c28b1e9ea38e163a28487c1219d45db5c457733fc3066ac",
+      "dependencies": [
+        "cn",
+        "react-day-picker@latest",
+        "date-fns"
+      ],
+      "registryDependencies": [
+        "button"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/calendar.tsx",
+          "sha256": "78ed2cc49dafc5bb5df7b1d4a325e5fc314237386747362e5f0761a2c539a934",
+          "lines": 220,
+          "dataSlots": [
+            "calendar"
+          ]
+        }
+      ]
+    },
+    "card-layout": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/card-layout.json",
+      "status": 404
+    },
+    "card": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/card.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:52:28 GMT",
+      "etag": "W/\"138d803b706c43d8d0cb03cf6221f1f7\"",
+      "jsonSha256": "c7ebaa49ba2a0613838558f3892c5007523c2dc26d6b36a244145d454a796106",
+      "dependencies": [
+        "cn"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/card.tsx",
+          "sha256": "ef8305b12c3112dab42a4708b41b1ebcc042fa5ab4c20f039da8d45b09ed5059",
+          "lines": 91,
+          "dataSlots": [
+            "card",
+            "card-header",
+            "card-title",
+            "card-description",
+            "card-action",
+            "card-content",
+            "card-footer"
+          ]
+        }
+      ]
+    },
+    "chart": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/chart.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:10 GMT",
+      "etag": "W/\"488707de22dc2d69e554bf725da109a3\"",
+      "jsonSha256": "2ea906f5c8e304dfb81c84e7b2172d13c03a302e183b7195cac24c101dee72e5",
+      "dependencies": [
+        "cn",
+        "recharts@3.8.0",
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "card"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/chart.tsx",
+          "sha256": "35e2fa755465ef8eb8ff8b483d493204d452152e7a8863474b1a69f5d44484db",
+          "lines": 373,
+          "dataSlots": [
+            "chart"
+          ]
+        }
+      ]
+    },
+    "checkbox": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/checkbox.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:10 GMT",
+      "etag": "W/\"274f541181aa4e169d31eec23a164528\"",
+      "jsonSha256": "567b649e4cd68c05bfdc58ca00fa04aee38bca291cd6f16ed7776ec06ba3d6bd",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/checkbox.tsx",
+          "sha256": "ba0ac64064e2d8fa7299d53e9e84b9a4772fef8dd4cf6170c56d3030a1d69941",
+          "lines": 31,
+          "dataSlots": [
+            "checkbox",
+            "checkbox-indicator"
+          ]
+        }
+      ]
+    },
+    "collapsible": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/collapsible.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:10 GMT",
+      "etag": "W/\"0a673c4aa313811fe40a432a5e405598\"",
+      "jsonSha256": "fdc6666e9c728d7e731b0e4d67e11db81020aff47408c259549fc1aefcc8e3e7",
+      "dependencies": [
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/collapsible.tsx",
+          "sha256": "c6598e5584f4258b5d9fefadbc5ad6a66888ad58729f4b634a0bb2d9c513188b",
+          "lines": 33,
+          "dataSlots": [
+            "collapsible",
+            "collapsible-trigger",
+            "collapsible-content"
+          ]
+        }
+      ]
+    },
+    "combobox": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/combobox.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:10 GMT",
+      "etag": "W/\"b99453a999999c49b3a4063a86171fb3\"",
+      "jsonSha256": "ecc152a123416631dd63058fdd92834a690947dd71b8b9746c6889b0aadb934b",
+      "dependencies": [
+        "cn",
+        "@base-ui/react"
+      ],
+      "registryDependencies": [
+        "button",
+        "input-group"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/combobox.tsx",
+          "sha256": "4f88734887ed6928ec7f3a78dfc814a48fb0e0c3056fd5825b72b59a61da0d8a",
+          "lines": 310,
+          "dataSlots": [
+            "combobox-value",
+            "combobox-trigger",
+            "combobox-trigger-icon",
+            "combobox-clear",
+            "input-group-button",
+            "combobox-content",
+            "combobox-list",
+            "combobox-item",
+            "combobox-item-indicator",
+            "combobox-group",
+            "combobox-label",
+            "combobox-collection",
+            "combobox-empty",
+            "combobox-separator",
+            "combobox-chips",
+            "combobox-chip",
+            "combobox-chip-remove",
+            "combobox-chip-input"
+          ]
+        }
+      ]
+    },
+    "command": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/command.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:10 GMT",
+      "etag": "W/\"2c11103fbe42cf04b077950e0c421916\"",
+      "jsonSha256": "c1f02d0805a0c5c55428e3350214ca8150a4ce98a40ec962118ec66709f60038",
+      "dependencies": [
+        "cn",
+        "cmdk"
+      ],
+      "registryDependencies": [
+        "dialog"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/command.tsx",
+          "sha256": "319e9264567dd46f04d705028bc345470663ca5919f31292c4ec43ea5ceb9336",
+          "lines": 184,
+          "dataSlots": [
+            "command",
+            "command-input-wrapper",
+            "command-input",
+            "command-list",
+            "command-empty",
+            "command-group",
+            "command-separator",
+            "command-item",
+            "command-shortcut"
+          ]
+        }
+      ]
+    },
+    "dialog": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/dialog.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:10 GMT",
+      "etag": "W/\"179dd9eceb2a1cb191823423262f25c7\"",
+      "jsonSha256": "0115e3a57aa55a978c5fed0d77f7e98edd694215aae3e569def3fff722ba9f26",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/dialog.tsx",
+          "sha256": "2ade6074e5fad0a4eb171ead44c43d3301a3c83d186d7236fb1fdbea80ee556b",
+          "lines": 158,
+          "dataSlots": [
+            "dialog",
+            "dialog-trigger",
+            "dialog-portal",
+            "dialog-close",
+            "dialog-overlay",
+            "dialog-content",
+            "dialog-header",
+            "dialog-footer",
+            "dialog-title",
+            "dialog-description"
+          ]
+        }
+      ]
+    },
+    "dropdown-menu": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/dropdown-menu.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:10 GMT",
+      "etag": "W/\"1f561be9dcbc94b57a9db3a63e774c43\"",
+      "jsonSha256": "235b1231cf71d94225eccd6c19117e7fa7b09cf256d23a199d63aee53265fd52",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/dropdown-menu.tsx",
+          "sha256": "d954efb735f13734751207ad22cb0cddd7f6ec53c59d16675d103dae08cb61fb",
+          "lines": 256,
+          "dataSlots": [
+            "dropdown-menu",
+            "dropdown-menu-portal",
+            "dropdown-menu-trigger",
+            "dropdown-menu-content",
+            "dropdown-menu-group",
+            "dropdown-menu-item",
+            "dropdown-menu-checkbox-item",
+            "dropdown-menu-radio-group",
+            "dropdown-menu-radio-item",
+            "dropdown-menu-label",
+            "dropdown-menu-separator",
+            "dropdown-menu-shortcut",
+            "dropdown-menu-sub",
+            "dropdown-menu-sub-trigger",
+            "dropdown-menu-sub-content"
+          ]
+        }
+      ]
+    },
+    "dropzone": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/dropzone.json",
+      "status": 404
+    },
+    "empty": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/empty.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:11 GMT",
+      "etag": "W/\"3eafad0e6b7666dbc543a74685a286b8\"",
+      "jsonSha256": "2c377f47c4e661d73a565d37c0678d2445edfdcae5446e5b79f23ccda9b80f1d",
+      "dependencies": [
+        "cn"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/empty.tsx",
+          "sha256": "54f529ccf72c18c4b5abd5586a7cf1f2a4c8d207aac366029d66ed095cb2965d",
+          "lines": 103,
+          "dataSlots": [
+            "empty",
+            "empty-header",
+            "empty-icon",
+            "empty-title",
+            "empty-description",
+            "empty-content"
+          ]
+        }
+      ]
+    },
+    "field": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/field.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:46:39 GMT",
+      "etag": "W/\"3db307e8dd464011c4049adab00c037f\"",
+      "jsonSha256": "5524eca8a5aca35b2f02dac696144053ea8d3d02f722676942e4e92bb08efeb2",
+      "dependencies": [
+        "cn"
+      ],
+      "registryDependencies": [
+        "label",
+        "separator"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/field.tsx",
+          "sha256": "4a4d17fcb933513f637f9f7e2daf5d8348f7de086b29738337dec7e6dd1819a0",
+          "lines": 248,
+          "dataSlots": [
+            "field-set",
+            "field-legend",
+            "field-group",
+            "field",
+            "field-content",
+            "field-label",
+            "field-description",
+            "field-separator",
+            "field-separator-content",
+            "field-error"
+          ]
+        }
+      ]
+    },
+    "context": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/context.json",
+      "status": 404
+    },
+    "file-upload-actions": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/file-upload-actions.json",
+      "status": 404
+    },
+    "file-upload-dropzone": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/file-upload-dropzone.json",
+      "status": 404
+    },
+    "file-upload-validation": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/file-upload-validation.json",
+      "status": 404
+    },
+    "file-upload": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/file-upload.json",
+      "status": 404
+    },
+    "store": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/store.json",
+      "status": 404
+    },
+    "types": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/types.json",
+      "status": 404
+    },
+    "global-sync-indicator": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/global-sync-indicator.json",
+      "status": 404
+    },
+    "glowing-effect": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/glowing-effect.json",
+      "status": 404
+    },
+    "grid-pattern": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/grid-pattern.json",
+      "status": 404
+    },
+    "input-group": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/input-group.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:11 GMT",
+      "etag": "W/\"c7a2c8354f5b437a0adef7b1e9acf9d2\"",
+      "jsonSha256": "6f9d7df429c5916bb4a5ade1a12e912e51fc7e0cf1539edf2b296d1994967c70",
+      "dependencies": [
+        "cn"
+      ],
+      "registryDependencies": [
+        "button",
+        "input",
+        "textarea"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/input-group.tsx",
+          "sha256": "e379899ac50d6cabc9d9eb1668f265176951c62b1fe83a6f23ee97fe8074d526",
+          "lines": 170,
+          "dataSlots": [
+            "input-group",
+            "input-group-addon",
+            "input-group-control"
+          ]
+        }
+      ]
+    },
+    "input-otp": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/input-otp.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:11 GMT",
+      "etag": "W/\"516ac1e27e2543c4b9a270173461a44d\"",
+      "jsonSha256": "4700e3d241168a63ef104531a643c7949b170b47351e6b005137f99d0b6b4a41",
+      "dependencies": [
+        "cn",
+        "input-otp"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/input-otp.tsx",
+          "sha256": "9f81898aeaabbb104cc22ffda551a333eb22608c543c4800412e2faaa802e311",
+          "lines": 76,
+          "dataSlots": [
+            "input-otp",
+            "input-otp-group",
+            "input-otp-slot",
+            "input-otp-separator"
+          ]
+        }
+      ]
+    },
+    "input": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/input.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:49:13 GMT",
+      "etag": "W/\"2fed5c4e870e16bc8ae8249af255a599\"",
+      "jsonSha256": "b1fffa12ba72ce30a291749012b47235eda110648b8106725ced22b5b31c8f1b",
+      "dependencies": [
+        "cn"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/input.tsx",
+          "sha256": "0c9457181f6ddc80969bcf854e92c362903a55b6e889fbef3fd85343ecc4af5b",
+          "lines": 20,
+          "dataSlots": [
+            "input"
+          ]
+        }
+      ]
+    },
+    "item": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/item.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:11 GMT",
+      "etag": "W/\"61ad701eeb3dd35db11cab42f2b72d56\"",
+      "jsonSha256": "b8ad17f300d4de1dcee9b2b07abd3e7a97829cb7fcaaa4f6a9abee97504217e9",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [
+        "separator"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/item.tsx",
+          "sha256": "9ade8136f010284b7ec0142f52606616dd4b23798012e75a9fc6aac1fb2d792e",
+          "lines": 193,
+          "dataSlots": [
+            "item-group",
+            "item-separator",
+            "item",
+            "item-media",
+            "item-content",
+            "item-title",
+            "item-description",
+            "item-actions",
+            "item-header",
+            "item-footer"
+          ]
+        }
+      ]
+    },
+    "label": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/label.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:46:39 GMT",
+      "etag": "\"fcd77a0ea571c196f9f2005b7057b994\"",
+      "jsonSha256": "b03d6bc91da205758df87c5403d74bae4d742f1f4ac5ae0b94ad7a29ab6350ea",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/label.tsx",
+          "sha256": "344bde38b8531615dbf8e14af3895517c24d8ef6ce56ddeda7e2e6fe4b5d0c00",
+          "lines": 23,
+          "dataSlots": [
+            "label"
+          ]
+        }
+      ]
+    },
+    "loading-spinner": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/loading-spinner.json",
+      "status": 404
+    },
+    "number-ticker": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/number-ticker.json",
+      "status": 404
+    },
+    "popover": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/popover.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:11 GMT",
+      "etag": "W/\"3a7f1fcb08363d8fb7b56cc22ae4c469\"",
+      "jsonSha256": "78793171b536e0c335ad51b1313619e533566b514d3503ef60c94dc9d3ccfbef",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/popover.tsx",
+          "sha256": "3f99d3add6c9fa4f03721e81297ee10e1310785ee1d9d9d4c82a114d84ab0757",
+          "lines": 88,
+          "dataSlots": [
+            "popover",
+            "popover-trigger",
+            "popover-content",
+            "popover-anchor",
+            "popover-header",
+            "popover-title",
+            "popover-description"
+          ]
+        }
+      ]
+    },
+    "progress": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/progress.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:12 GMT",
+      "etag": "W/\"c63a1a89dcbb96ef8c42e5bf560a22d3\"",
+      "jsonSha256": "ca0c7ae4d88b8039a9ee64653569cf8be6a058070d9f719d2294c9d49d56bcab",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/progress.tsx",
+          "sha256": "e012e1f7e6e66d11229d1233eccf91954edcd9179b418ff1d114dc651b86fd35",
+          "lines": 30,
+          "dataSlots": [
+            "progress",
+            "progress-indicator"
+          ]
+        }
+      ]
+    },
+    "route-modal": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/route-modal.json",
+      "status": 404
+    },
+    "select": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/select.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:12 GMT",
+      "etag": "W/\"b0616d190ea9808b0bf153720717b32a\"",
+      "jsonSha256": "ca3189ea8101a04f144b6d0f0e7330841639bfa5f4d57e7cca0894d39b30817b",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/select.tsx",
+          "sha256": "962830436bd0b7ee50e556f0747e277d6a86869ed27d167516346b15f26309d8",
+          "lines": 189,
+          "dataSlots": [
+            "select",
+            "select-group",
+            "select-value",
+            "select-trigger",
+            "select-content",
+            "select-label",
+            "select-item",
+            "select-item-indicator",
+            "select-separator",
+            "select-scroll-up-button",
+            "select-scroll-down-button"
+          ]
+        }
+      ]
+    },
+    "separator": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/separator.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:46:39 GMT",
+      "etag": "W/\"174cde36fc0f116f19373430b5837fc7\"",
+      "jsonSha256": "4242a9fe839cae9083acff1280b7cccfda10e97bbc83283aed12d2d12bebdc6a",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/separator.tsx",
+          "sha256": "ad7d5403fe337160e41dbf04147896e448ae3a747b8d06660d627d74d60021bc",
+          "lines": 27,
+          "dataSlots": [
+            "separator"
+          ]
+        }
+      ]
+    },
+    "sheet": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/sheet.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:49:13 GMT",
+      "etag": "W/\"97fff1a315597e614a0415520da658c1\"",
+      "jsonSha256": "bdf118300491675f05a9181af491217ba690929338aefd108437c2b07d25432f",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/sheet.tsx",
+          "sha256": "ea473d38a26a9b0b879e5a13139899ad45e9782e896b3fa205c7763a6c506876",
+          "lines": 142,
+          "dataSlots": [
+            "sheet",
+            "sheet-trigger",
+            "sheet-close",
+            "sheet-portal",
+            "sheet-overlay",
+            "sheet-content",
+            "sheet-header",
+            "sheet-footer",
+            "sheet-title",
+            "sheet-description"
+          ]
+        }
+      ]
+    },
+    "sidebar": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/sidebar.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:49:13 GMT",
+      "etag": "W/\"96fbf1968214cf152c7a1db7323b593c\"",
+      "jsonSha256": "421f1735955361a12466c5c6e7d4c1124cc7f76422b4fdd5dcdf8451b8ae4052",
+      "dependencies": [
+        "cn",
+        "radix-ui",
+        "class-variance-authority",
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button",
+        "separator",
+        "sheet",
+        "tooltip",
+        "input",
+        "use-mobile",
+        "skeleton"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/sidebar.tsx",
+          "sha256": "2ba1a9b9422f4172373f4cd0587b675d2331a41f4fa68f65dab2b23ca98fd9d2",
+          "lines": 726,
+          "dataSlots": [
+            "sidebar-wrapper",
+            "sidebar",
+            "sidebar-gap",
+            "sidebar-container",
+            "sidebar-inner",
+            "sidebar-trigger",
+            "sidebar-rail",
+            "sidebar-inset",
+            "sidebar-input",
+            "sidebar-header",
+            "sidebar-footer",
+            "sidebar-separator",
+            "sidebar-content",
+            "sidebar-group",
+            "sidebar-group-label",
+            "sidebar-group-action",
+            "sidebar-group-content",
+            "sidebar-menu",
+            "sidebar-menu-item",
+            "sidebar-menu-button",
+            "sidebar-menu-action",
+            "sidebar-menu-badge",
+            "sidebar-menu-skeleton",
+            "sidebar-menu-sub",
+            "sidebar-menu-sub-item",
+            "sidebar-menu-sub-button"
+          ]
+        }
+      ]
+    },
+    "skeleton": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/skeleton.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 23:39:07 GMT",
+      "etag": "\"40ce1b7412ac3fff14142f0cfed11d1a\"",
+      "jsonSha256": "1ed4d99f9d632d9697a054eefcd19932abd68cef7808407986f6e14da401edf7",
+      "dependencies": [
+        "cn"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/skeleton.tsx",
+          "sha256": "f51ce0fcd31e5c31437382e80ea0af94b4fc3d64221d27091d36824546780a43",
+          "lines": 13,
+          "dataSlots": [
+            "skeleton"
+          ]
+        }
+      ]
+    },
+    "slider": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/slider.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:12 GMT",
+      "etag": "W/\"7f715f88c7dda6129d3e6922c25a1073\"",
+      "jsonSha256": "99f6044fa83df91dfda17d3cc57cf5297c3759d57fd483665e518e4961208e73",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/slider.tsx",
+          "sha256": "6a531f6182de6efec2c25d30a7626b66cbf11cf52d505e47f907124934f7188e",
+          "lines": 62,
+          "dataSlots": [
+            "slider",
+            "slider-track",
+            "slider-range",
+            "slider-thumb"
+          ]
+        }
+      ]
+    },
+    "sonner": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/sonner.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:12 GMT",
+      "etag": "W/\"046ef043163707a13b8fe5f4b0bf2add\"",
+      "jsonSha256": "439c5d5256091829350d3136309f55f8ba788f1cc0f0dbad016ce6b5b2765488",
+      "dependencies": [
+        "sonner",
+        "next-themes"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/sonner.tsx",
+          "sha256": "13ccc9b0fe4248e622f83a1d3b2f0566b72b5e04162d7d0c8db8945ecc71b55f",
+          "lines": 40,
+          "dataSlots": []
+        }
+      ]
+    },
+    "stat": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/stat.json",
+      "status": 404
+    },
+    "stepper-context": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/stepper-context.json",
+      "status": 404
+    },
+    "stepper-header": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/stepper-header.json",
+      "status": 404
+    },
+    "stepper-item": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/stepper-item.json",
+      "status": 404
+    },
+    "stepper-list": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/stepper-list.json",
+      "status": 404
+    },
+    "stepper-navigation": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/stepper-navigation.json",
+      "status": 404
+    },
+    "stepper-trigger": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/stepper-trigger.json",
+      "status": 404
+    },
+    "stepper-types": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/stepper-types.json",
+      "status": 404
+    },
+    "stepper-utils": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/stepper-utils.json",
+      "status": 404
+    },
+    "stepper": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/stepper.json",
+      "status": 404
+    },
+    "switch": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/switch.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:13 GMT",
+      "etag": "W/\"5d59278b46baab068d8310166f73f335\"",
+      "jsonSha256": "cc526c3a4827be315be746355a988e22dacc99d663ed31924fd30c2507cdc005",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/switch.tsx",
+          "sha256": "743676f33f823ffa8008bbd5eb94cb68e227599447d60e132a202291a395f8e4",
+          "lines": 34,
+          "dataSlots": [
+            "switch",
+            "switch-thumb"
+          ]
+        }
+      ]
+    },
+    "table": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/table.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:13 GMT",
+      "etag": "W/\"aad749d3188768d4130959d305127c25\"",
+      "jsonSha256": "35a45f90ee92883533c4c1029212d38bd263694e90ea54fbfaf66a099f7d3cc4",
+      "dependencies": [
+        "cn"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/table.tsx",
+          "sha256": "bd1a9fc83a5a2149e504038e274bb7e5a0351af59f6896df52ac4d5b439695ac",
+          "lines": 115,
+          "dataSlots": [
+            "table-container",
+            "table",
+            "table-header",
+            "table-body",
+            "table-footer",
+            "table-row",
+            "table-head",
+            "table-cell",
+            "table-caption"
+          ]
+        }
+      ]
+    },
+    "tabs": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/tabs.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:13 GMT",
+      "etag": "W/\"6cb37fc22acbf0b5bc59079fe5c3aacb\"",
+      "jsonSha256": "49320e6dcf56570753bb14ed3f5d66acf07d12e183c0e9024466995b25be5b1d",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/tabs.tsx",
+          "sha256": "e1df6e2f95ece373ca909c1d54b8ba8cf4c47dd425c1784bbb9a01c38dd0936b",
+          "lines": 90,
+          "dataSlots": [
+            "tabs",
+            "tabs-list",
+            "tabs-trigger",
+            "tabs-content"
+          ]
+        }
+      ]
+    },
+    "textarea": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/textarea.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:13 GMT",
+      "etag": "W/\"746c88750bcc29bfbb9f78c815c4805a\"",
+      "jsonSha256": "2367d3964326b19ca2355f872d08153c86932abd4b103b5fd02039a3f2cb8ae5",
+      "dependencies": [
+        "cn"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/textarea.tsx",
+          "sha256": "5cafcfeeee29534f449387a16b585f5923d2faab1a0cdc50a874416b175f59ce",
+          "lines": 17,
+          "dataSlots": [
+            "textarea"
+          ]
+        }
+      ]
+    },
+    "toggle-group": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/toggle-group.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:13 GMT",
+      "etag": "W/\"b2b63fef4adf7c97da6ee07e94415a76\"",
+      "jsonSha256": "7b010cdf719088efdf887e392fbdc9fdd0b76d4f7b3b0e9db319616a90e8cf16",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [
+        "toggle"
+      ],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/toggle-group.tsx",
+          "sha256": "45186473eaa30a966adf16e2b0aa0d16522425fda0658e2c85b8dcb1b62956ef",
+          "lines": 83,
+          "dataSlots": [
+            "toggle-group",
+            "toggle-group-item"
+          ]
+        }
+      ]
+    },
+    "toggle": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/toggle.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:54:13 GMT",
+      "etag": "W/\"9c1def373fa0d754a8872281c2e5aeab\"",
+      "jsonSha256": "8c9f96fb87e2aa88961f4ded82fa9867ef0dadbc3e5ec51d16f1ebfa820037ea",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/toggle.tsx",
+          "sha256": "28ae7d72730890a3ba6c668fd511c63a358ad26534c2c25d5922748d47e1fa99",
+          "lines": 46,
+          "dataSlots": [
+            "toggle"
+          ]
+        }
+      ]
+    },
+    "tooltip": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/tooltip.json",
+      "status": 200,
+      "lastModified": "Sat, 31 Oct 2026 20:49:13 GMT",
+      "etag": "W/\"4fac4340c512227ea1ad8e0c2dde9f45\"",
+      "jsonSha256": "1b7b452b34beab05b22bd653963abd1c88ebd8e9ebcc89dcaebf4ac4938c929e",
+      "dependencies": [
+        "cn",
+        "radix-ui"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/new-york-v4/ui/tooltip.tsx",
+          "sha256": "611e4305879b2773eafe76bf3c5caa69d8e47367fd97887a71634a27828f4433",
+          "lines": 56,
+          "dataSlots": [
+            "tooltip-provider",
+            "tooltip",
+            "tooltip-trigger",
+            "tooltip-content"
+          ]
+        }
+      ]
+    },
+    "tour": {
+      "url": "https://ui.shadcn.com/r/styles/new-york-v4/tour.json",
+      "status": 404
+    }
+  }
+}

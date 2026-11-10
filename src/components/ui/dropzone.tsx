@@ -98,7 +98,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 				)}
 			>
 				<CheckCircle size={16} className="text-primary" />
-				<p className="text-primary-text text-sm">
+				<p className="mb-0 text-primary-text text-sm">
 					Successfully uploaded {files.length} file{files.length > 1 ? "s" : ""}
 				</p>
 			</div>
@@ -131,11 +131,11 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 						)}
 
 						<div className="shrink grow flex flex-col items-start truncate">
-							<p title={file.name} className="text-sm truncate max-w-full">
+							<p title={file.name} className="mb-0 text-sm truncate max-w-full">
 								{file.name}
 							</p>
 							{file.errors.length > 0 ? (
-								<p className="text-xs text-destructive-text">
+								<p className="mb-0 text-xs text-destructive-text">
 									{file.errors
 										.map((e) =>
 											e.message.startsWith("File is larger than")
@@ -145,22 +145,32 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 										.join(", ")}
 								</p>
 							) : loading && !isSuccessfullyUploaded ? (
-								<p className="text-caption">Uploading file...</p>
+								<p className="mb-0 text-caption text-muted-foreground">
+									Uploading file...
+								</p>
 							) : fileError ? (
-								<p className="text-xs text-destructive-text">
+								<p className="mb-0 text-xs text-destructive-text">
 									Failed to upload: {fileError.message}
 								</p>
 							) : isSuccessfullyUploaded ? (
-								<p className="text-xs text-primary-text">
+								<p className="mb-0 text-xs text-primary-text">
 									Successfully uploaded file
 								</p>
 							) : (
-								<p className="text-caption">{formatBytes(file.size, 2)}</p>
+								<p className="mb-0 text-caption text-muted-foreground">
+									{formatBytes(file.size, 2)}
+								</p>
 							)}
 						</div>
 
+						{/* 66.2-39 divergence from the Supabase UI dropzone (fix round 4,
+						    Part 8f): this button and Upload files are type="button". The
+						    property edit page renders the dropzone inside its form, where
+						    an untyped button submits it: removing a file or uploading
+						    saved the form too. */}
 						{!loading && !isSuccessfullyUploaded && (
 							<Button
+								type="button"
 								size="icon"
 								variant="link"
 								aria-label={`Remove ${file.name}`}
@@ -174,7 +184,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 				);
 			})}
 			{exceedMaxFiles && (
-				<p className="text-sm text-left mt-2 text-destructive-text">
+				<p className="text-sm text-left mt-2 mb-0 text-destructive-text">
 					You may upload only up to {maxFiles} files, please remove{" "}
 					{files.length - maxFiles} file
 					{files.length - maxFiles > 1 ? "s" : ""}.
@@ -183,6 +193,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 			{files.length > 0 && !exceedMaxFiles && (
 				<div className="mt-2">
 					<Button
+						type="button"
 						variant="outline"
 						onClick={onUpload}
 						disabled={files.some((file) => file.errors.length !== 0) || loading}
@@ -203,7 +214,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 };
 
 const DropzoneEmptyState = ({ className }: { className?: string }) => {
-	const { maxFiles, maxFileSize, inputRef, isSuccess } = useDropzoneContext();
+	const { maxFiles, maxFileSize, open, isSuccess } = useDropzoneContext();
 
 	if (isSuccess) {
 		return null;
@@ -212,23 +223,33 @@ const DropzoneEmptyState = ({ className }: { className?: string }) => {
 	return (
 		<div className={cn("flex flex-col items-center gap-y-2", className)}>
 			<Upload size={20} className="text-muted-foreground" />
-			<p className="text-sm">
+			<p className="mb-0 text-sm">
 				Upload{maxFiles && maxFiles > 1 ? ` ${maxFiles}` : ""} file
 				{!maxFiles || maxFiles > 1 ? "s" : ""}
 			</p>
 			<div className="flex flex-col items-center gap-y-1">
-				<p className="text-caption">
+				<p className="mb-0 text-caption text-muted-foreground">
 					Drag and drop or{" "}
-					<a
-						onClick={() => inputRef.current?.click()}
-						className="underline cursor-pointer transition hover:text-foreground"
+					{/* A target inside a sentence (the WCAG 2.5.8 inline exception):
+					    the below-48rem 44px touch floor would grow the line box.
+					    It is the dropzone's keyboard control (the root is no tab
+					    stop) and opens the picker once: the click stops here, so
+					    the root's own click handler does not open it a second
+					    time (66.2-39 fix round 4, G44). */}
+					<button
+						type="button"
+						onClick={(event) => {
+							event.stopPropagation();
+							open();
+						}}
+						className="min-h-0 min-w-0 cursor-pointer text-primary-text underline underline-offset-4 transition-colors hover:text-foreground"
 					>
 						select {maxFiles === 1 ? `file` : "files"}
-					</a>{" "}
+					</button>{" "}
 					to upload
 				</p>
 				{maxFileSize !== Number.POSITIVE_INFINITY && (
-					<p className="text-caption">
+					<p className="mb-0 text-caption text-muted-foreground">
 						Maximum file size: {formatBytes(maxFileSize, 2)}
 					</p>
 				)}

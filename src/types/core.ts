@@ -3,8 +3,7 @@
  * Only exports types that are actually used across the codebase.
  */
 
-import type { DashboardActivity } from "./activity";
-import type { Database, Tables, TablesInsert, TablesUpdate } from "./supabase";
+import type { Tables, TablesInsert, TablesUpdate } from "./supabase";
 
 // DB STATUS TYPE EXPORTS - String literal unions matching CHECK constraints
 // These are manually defined to match database CHECK constraints.
@@ -108,7 +107,16 @@ export type Property = Tables<"properties">;
 export type Unit = Tables<"units">;
 export type Tenant = Tables<"tenants">;
 export type Lease = Tables<"leases">;
-export type MaintenanceRequest = Tables<"maintenance_requests">;
+/**
+ * A maintenance request as the app reads it: every column but actual_cost,
+ * which no form, mutation or function writes (spend is the request's expenses,
+ * 66.2-39 part N), so no query selects it and no schema accepts it (part P).
+ * The column stays in the database and in the generated types.
+ */
+export type MaintenanceRequest = Omit<
+	Tables<"maintenance_requests">,
+	"actual_cost"
+>;
 export type ExpenseRecord = Tables<"expenses">;
 
 export type TenantInput = TablesInsert<"tenants">;
@@ -117,30 +125,6 @@ export type TenantUpdate = Partial<TenantInput>;
 // Insert/Update types - only export what's actually used
 export type UserInsert = TablesInsert<"users">;
 export type UserUpdate = TablesUpdate<"users">;
-
-export type LeaseWithExtras = Lease & {
-	version?: number;
-	tenant_id?: string;
-	property_id?: string;
-	status?: string;
-	terms?: string;
-	unit?: {
-		id: string;
-		unit_number: string | null;
-		property_id: string;
-	};
-	tenant?: {
-		id: string;
-		name?: string;
-		email?: string;
-	};
-	property?: {
-		id: string;
-		name: string;
-		address_line1: string;
-	};
-	signed_at?: string | null;
-};
 
 export type MaintenanceRequestWithExtras = MaintenanceRequest & {
 	version?: number;
@@ -151,44 +135,10 @@ export type MaintenanceRequestWithExtras = MaintenanceRequest & {
 	preferredDate?: string;
 };
 
-export type TenantWithExtras = Tenant & {
-	name?: string;
-	email?: string;
-	phone?: string | null;
-	first_name?: string | null;
-	last_name?: string | null;
-	auth_user_id?: string;
-	invitation_status?: string;
-	invitation_sent_at?: string | null;
-	status?: string;
-	move_out_date?: string | null;
-};
-
 // Re-export app-only types from constants
 export type MaintenanceCategory = MaintenanceCategoryFromConstants;
 export type PropertyType = PropertyTypeFromConstants;
 export type ActivityEntityType = ActivityEntityTypeFromConstants;
-
-export type UnitRowWithRelations =
-	Database["public"]["Tables"]["units"]["Row"] & {
-		property?: {
-			name: string;
-			address: string;
-		};
-		tenant?: {
-			name: string;
-			email: string;
-			phone?: string;
-		} | null;
-		lease?: {
-			start_date: string;
-			end_date: string | null;
-			rent_amount: number;
-			status: LeaseStatus;
-		} | null;
-		marketValue?: number;
-		lastUpdated?: string;
-	};
 
 // NOTE: Import Tables, TablesInsert, TablesUpdate, Enums directly from './supabase'
 // Do NOT re-export here to avoid circular dependencies
@@ -223,34 +173,12 @@ export interface FinancialOverviewResponse {
 	year: number;
 }
 
-export interface LeaseStatsResponse {
-	totalLeases: number;
-	activeLeases: number;
-	expiredLeases: number;
-	terminatedLeases: number;
-	totalMonthlyRent: number;
-	averageRent: number;
-	total_security_deposits: number;
-	expiringLeases: number;
-}
-
-export interface TenantWithLeaseInfo {
-	id: string;
-	owner_user_id: string | null;
-	status: string;
-	created_at: string | null;
-	date_of_birth: string | null;
-	emergency_contact_name: string | null;
-	emergency_contact_phone: string | null;
-	emergency_contact_relationship: string | null;
-	identity_verified: boolean | null;
-	ssn_last_four: string | null;
-	updated_at: string | null;
-	name: string | null;
-	email: string | null;
-	phone: string | null;
-	first_name: string | null;
-	last_name: string | null;
+/**
+ * A tenant row (the generated `tenants` Row, so a column the database adds
+ * reaches it without a hand-kept copy; 66.2-39 fix round 4, Part 8k) with its
+ * current lease and where it lives.
+ */
+export interface TenantWithLeaseInfo extends Tenant {
 	currentLease?: {
 		id: string;
 		start_date: string;
@@ -310,15 +238,8 @@ export interface PropertyPerformance {
 	address_line1: string;
 	property_type: string;
 	status: "NO_UNITS" | "vacant" | "FULL" | "PARTIAL";
-	trend: "up" | "down" | "stable";
-	trendPercentage: number;
-	// Optional: only `get_dashboard_data_v2` (via the Phase 2
-	// `perf_open_maintenance` CTE) emits this field. Other RPCs that
-	// construct `PropertyPerformance` (e.g., `get_property_performance_with_trends`)
-	// do not carry maintenance counts; consumers that need the value
-	// MUST apply a `?? 0` fallback at the read seam rather than relying
-	// on construction-site placeholders that fabricate data.
-	open_maintenance?: number;
+	/** The property's open maintenance requests (get_dashboard_data_v2). */
+	open_maintenance: number;
 }
 
 export interface PropertyPerformanceResponse {
@@ -344,28 +265,6 @@ export interface DashboardMetricsResponse {
 	occupancyRate: number;
 	monthlyRevenue: number;
 	maintenanceRequests: number;
-	timestamp: string;
-}
-
-export interface DashboardSummaryResponse {
-	overview: {
-		properties: number;
-		units: number;
-		tenants: number;
-		occupancyRate: number;
-	};
-	revenue: {
-		monthly: number;
-		yearly: number;
-		growth: number;
-	};
-	maintenance: {
-		open: number;
-		inProgress: number;
-		avgResolutionTime: number;
-	};
-	recentActivity: DashboardActivity[];
-	topPerformingProperties: PropertyPerformance[];
 	timestamp: string;
 }
 
@@ -405,14 +304,6 @@ export interface MaintenanceMetrics {
 	completedRequests: number;
 	pendingRequests: number;
 	averageResolutionTime: number;
-}
-
-export interface MaintenanceCostSummary {
-	totalCost: number;
-	avgCost: number;
-	totalRequests: number;
-	emergencyCount: number;
-	highPriorityCount: number;
 }
 
 export interface MaintenancePerformance {

@@ -25,6 +25,12 @@ name: Migration Replay
 # 20260416193000_security_revoke_idor_fixes which has NO prod ledger row at all
 # while its effects are live). Comparing state rather than rows is a separate
 # drift-check job; this one only answers "does the chain apply from empty".
+# One slice of state is the exception:
+# 20261102055400_reconcile_public_functions_with_production.sql raises, failing
+# the replay step, unless at that point in the chain every public function has
+# the pg_get_functiondef, ACL, volatility and SECURITY DEFINER flag production
+# had on 2026-11-02. That covers public functions only, as of that file: no
+# table, policy, trigger or cron job, and nothing a later file changes.
 #
 # It holds NO production secrets and signs in to nothing, so unlike e2e-smoke and
 # rls-security it must NOT join the `tenantflow-prod-test-account` concurrency
@@ -47,6 +53,10 @@ on:
       - scripts/seed-test-users.ts
       - scripts/migration-replay-assertions.ts
       - scripts/assert-migration-replay.ts
+      - scripts/migration-replay-billing-insights.sql
+      - scripts/migration-replay-property-performance.sql
+      - scripts/migration-replay-owner-figures.sql
+      - scripts/migration-replay-blog-banlist.sql
       # The negative controls, and the shared result module: a change that
       # weakens a control has to run the gate it guards. (The result module's
       # own controls are in scripts/assertion-result.test.ts, because a green
@@ -87,7 +97,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       # A GATE THAT PASSES PROVES NOTHING UNTIL SOMETHING HAS WATCHED IT FAIL.
-      # These are the negative controls for the three assertions below: each is
+      # These are the negative controls for the assertions below: each is
       # fed the input it should accept and every wrong input that matters, the
       # `t`/`f` regression described in the header included. They are part of
       # the unit suite, so the `checks` job runs them on every PR as well --
@@ -179,6 +189,86 @@ jobs:
              where u.email like 'e2e-%@tenantflow.app' order by u.email;")
           printf '%s\n' "$rows"
           printf '%s\n' "$rows" | bun scripts/assert-migration-replay.ts test-cast
+
+      - name: Assert get_billing_insights computes its figures from the ledger
+        run: |
+          set -euo pipefail
+          # From 20260528231201 until 20261102055449 the function returned
+          # unpaidTotal, unpaidCount and lateFeeTotal as the literal 0, so every
+          # owner's Payment Summary read 0 while the rent ledger held the real
+          # figures -- and no job could see it, because none ran the function
+          # against a ledger (rls-security only asserts who may call it). The
+          # same fixture asserts the balance sheet's figures, as of a date.
+          # The fixture seeds a ledger for the two seeded owners (so it runs
+          # after the cast step), calls the function as each owner, prints ONE
+          # JSON line and rolls back. The expected figures, and the arithmetic
+          # behind each, live in scripts/migration-replay-assertions.ts.
+          # A herestring rather than a pipe, so under pipefail the step's status
+          # is the assertion's alone and never a writer's SIGPIPE.
+          result=$(docker exec -i supabase_db_tenant-flow psql -U postgres -X -q -t -A \
+            -v ON_ERROR_STOP=1 < scripts/migration-replay-billing-insights.sql)
+          printf '%s\n' "$result"
+          bun scripts/assert-migration-replay.ts billing-insights <<<"$result"
+
+      - name: Assert get_property_performance_analytics reports rent received
+        run: |
+          set -euo pipefail
+          # From 20260528231201 until 20261102163709 the function returned
+          # the literal 0 (0::bigint, and 0::numeric from 20260708131721) as
+          # every property's total_revenue, so its net income was
+          # its expenses negated on the analytics page, the property page, the
+          # property export and the year-end report and its tax exports -- and
+          # it could not be asked for a tax year at all. The fixture seeds
+          # properties, leases, receipts and expenses for the two seeded owners
+          # and 101 properties for the seeded admin (so it runs after the cast
+          # step), calls the function as each of them for a tax year and a
+          # trailing window, prints ONE JSON line and rolls back. The expected
+          # rows, and the arithmetic behind each, live in
+          # scripts/migration-replay-assertions.ts. A herestring, as above.
+          result=$(docker exec -i supabase_db_tenant-flow psql -U postgres -X -q -t -A \
+            -v ON_ERROR_STOP=1 < scripts/migration-replay-property-performance.sql)
+          printf '%s\n' "$result"
+          bun scripts/assert-migration-replay.ts property-performance <<<"$result"
+
+      - name: Assert the dashboard, expense and maintenance figures are computed
+        run: |
+          set -euo pipefail
+          # Until 20261102184501..20261102184504, get_dashboard_stats returned
+          # occupancyChange and revenue growth as 0, get_dashboard_data_v2
+          # compared today's leases with only the leases still active today
+          # and drew its 30-day and 6-month series from those alone,
+          # get_expense_summary returned year_over_year_change as null,
+          # get_maintenance_analytics returned every cost as 0 or [], and
+          # get_financial_overview returned receivables, payables and trends as
+          # literals no caller reads (and no lease's profitability), and until
+          # 20261102200501 get_occupancy_trends_optimized counted a soft-deleted
+          # unit's lease -- and no job ran any of them against data. The
+          # fixture seeds leases, rent receipts, maintenance requests and expenses
+          # for the three seeded users (so it runs after the cast step), calls
+          # each function as its owner, prints ONE JSON line and rolls back.
+          # The expected figures, and the arithmetic behind each, live in
+          # scripts/migration-replay-assertions.ts. A herestring, as above.
+          result=$(docker exec -i supabase_db_tenant-flow psql -U postgres -X -q -t -A \
+            -v ON_ERROR_STOP=1 < scripts/migration-replay-owner-figures.sql)
+          printf '%s\n' "$result"
+          bun scripts/assert-migration-replay.ts owner-figures <<<"$result"
+
+      - name: Assert validate_blog_post bans the persona word and checks every field
+        run: |
+          set -euo pipefail
+          # Until 20261102230101 the blog trigger's banlist read NEW.content only
+          # and carried no persona word, so a post whose excerpt said
+          # "single-property owner" published to /blog, where
+          # persona-consistency.spec.ts bans /property owners?\b/i -- and no
+          # job ran the trigger. The fixture inserts posts as service_role (the
+          # ingest function's role, with no EXECUTE on the trigger function),
+          # prints ONE JSON line and rolls back; it needs no seeded user. The
+          # expected outcome of every case lives in
+          # scripts/migration-replay-assertions.ts. A herestring, as above.
+          result=$(docker exec -i supabase_db_tenant-flow psql -U postgres -X -q -t -A \
+            -v ON_ERROR_STOP=1 < scripts/migration-replay-blog-banlist.sql)
+          printf '%s\n' "$result"
+          bun scripts/assert-migration-replay.ts blog-banlist <<<"$result"
 
       - name: Stop the stack
         if: always()

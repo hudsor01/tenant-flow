@@ -11,9 +11,22 @@ name: Mutation Sweep
 # shape of defect the sweep exists to eliminate, committed by the sweep.
 #
 # WEEKLY, NOT ON EVERY PULL REQUEST. Each row re-runs the `scripts` and
-# `src/lib/__tests__` suites, so the job is roughly the row count times that
-# suite's runtime -- minutes, not seconds. `checks` has to stay fast enough to
-# be a required check; this does not.
+# `src/lib/__tests__` suites, about 17 s on a runner (almost all Vitest
+# start-up), so the sweep costs the row count times that in runner time. The
+# count is `grep -c '^mutate ' scripts/mutation-sweep.sh`; these comments do
+# not write it, because it grows (scripts/mutation-sweep.test.ts fails on one
+# that does). `checks` has to stay fast enough to be a required check; this
+# does not.
+#
+# SHARDED, SO A JOB'S RUNTIME DOES NOT GROW WITH THE ROW COUNT. As one job the
+# sweep hit its 45-minute limit at row 155 of 179. The matrix below splits it
+# into n shards: the script gives row r to shard ((r - 1) mod n) + 1, so each
+# row runs in exactly one shard and the shards differ in size by at most one
+# (scripts/mutation-sweep.test.ts proves the shards partition the rows). Each
+# shard runs its own baseline and restore check and fails on its own VACUOUS,
+# NOT APPLIED or empty result; `fail-fast: false` lets every shard report, and
+# any failed shard fails the run. n is read from the matrix
+# (`strategy.job-total`), so the shard list is the only place it is written.
 #
 # The script refuses to run on a dirty tree (it edits tracked files and restores
 # them from a byte-exact backup through an EXIT trap), which a fresh checkout
@@ -53,8 +66,19 @@ permissions:
 jobs:
   sweep:
     runs-on: ubuntu-latest
-    # Generous: the row count times a suite run, and the row count only grows.
-    timeout-minutes: 45
+    # One shard holds ceil(rows / shards) rows, each at about 17.3 s (the
+    # per-row rate of the unsharded run that timed out), after about 30 s of
+    # set-up and baseline. 15 minutes is at least twice that, so a runner twice
+    # as slow still finishes; scripts/mutation-sweep.test.ts fails the day a
+    # row would break that margin, so the matrix gains a shard first.
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    env:
+      SWEEP_SHARD: ${{ matrix.shard }}
+      SWEEP_SHARDS: ${{ strategy.job-total }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

@@ -1,0 +1,5 @@
+[
+  "main#main-content",
+  "[data-testid=\"quick-actions-dock\"]",
+  "div.fixed.bottom-6"
+]

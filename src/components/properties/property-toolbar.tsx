@@ -2,20 +2,30 @@
 
 import { LayoutGrid, List, Search } from "lucide-react";
 import { Input } from "#components/ui/input";
+import {
+	PROPERTY_TYPE_OPTIONS,
+	toPropertyType,
+} from "#lib/constants/status-types";
 import { cn } from "#lib/utils";
+import type { PropertyTypeFilter } from "#stores/properties-store";
 
 type StatusFilter = "all" | "occupied" | "available" | "maintenance";
 type ViewMode = "grid" | "table";
 
+/** The type select's value as a filter: "all", or the type it names. */
+function toPropertyTypeFilter(value: string): PropertyTypeFilter {
+	return toPropertyType(value) ?? "all";
+}
+
 interface PropertyToolbarProps {
 	searchQuery: string;
 	statusFilter: StatusFilter;
-	typeFilter: string;
+	typeFilter: PropertyTypeFilter;
 	viewMode: ViewMode;
 	filteredCount: number;
 	onSearchChange: (value: string) => void;
 	onStatusFilterChange: (filter: StatusFilter) => void;
-	onTypeFilterChange: (type: string) => void;
+	onTypeFilterChange: (type: PropertyTypeFilter) => void;
 	onViewModeChange: (mode: ViewMode) => void;
 }
 
@@ -48,7 +58,7 @@ export function PropertyToolbar({
 			<select
 				value={statusFilter}
 				onChange={(e) => onStatusFilterChange(e.target.value as StatusFilter)}
-				className="appearance-none px-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
+				className="appearance-none px-3 py-2 text-sm bg-background border border-input rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
 				aria-label="Filter by status"
 			>
 				<option value="all">All Statuses</option>
@@ -59,16 +69,18 @@ export function PropertyToolbar({
 
 			<select
 				value={typeFilter}
-				onChange={(e) => onTypeFilterChange(e.target.value)}
-				className="appearance-none px-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
+				onChange={(e) =>
+					onTypeFilterChange(toPropertyTypeFilter(e.target.value))
+				}
+				className="appearance-none px-3 py-2 text-sm bg-background border border-input rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
 				aria-label="Filter by property type"
 			>
 				<option value="all">All Types</option>
-				<option value="single_family">Single Family</option>
-				<option value="multi_family">Multi Family</option>
-				<option value="apartment">Apartment</option>
-				<option value="condo">Condo</option>
-				<option value="townhouse">Townhouse</option>
+				{PROPERTY_TYPE_OPTIONS.map((option) => (
+					<option key={option.value} value={option.value}>
+						{option.label}
+					</option>
+				))}
 			</select>
 
 			{/* RIGHT: Count + View Toggle */}

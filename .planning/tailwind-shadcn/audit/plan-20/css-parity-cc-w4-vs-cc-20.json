@@ -1,0 +1,32 @@
+{
+ "baseline": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/66.2-20/cc-w4.json",
+ "current": "/private/tmp/claude-501/-Users-richard-Developer-tenant-flow/992b9ba7-e5fa-43c5-b8cf-059bace7ca90/scratchpad/66.2-20/cc-20.json",
+ "strict": true,
+ "total": 1876,
+ "identical": 1873,
+ "changed": 3,
+ "counts": {
+  "spacing-equivalent": 0,
+  "color-inline": 0,
+  "added": 0,
+  "removed": 0,
+  "unclassified": 0,
+  "intended:c6-card-action": 1,
+  "intended:c13-button-group": 2
+ },
+ "lists": {
+  "spacing-equivalent": [],
+  "color-inline": [],
+  "added": [],
+  "removed": [],
+  "unclassified": [],
+  "intended:c6-card-action": [
+   "has-data-[slot=card-action]:grid-cols-[1fr_auto]"
+  ],
+  "intended:c13-button-group": [
+   "has-[>.button-group]:gap-2",
+   "has-[>[data-slot=button-group]]:gap-2"
+  ]
+ },
+ "unclassified": []
+}

@@ -3,6 +3,7 @@ import { createLogger } from "#lib/frontend-logger";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
+import { formatCurrency } from "#lib/utils/currency";
 import type { BillingHistoryItem } from "#types/api-contracts";
 
 const logger = createLogger({ component: "BillingKeys" });
@@ -71,7 +72,7 @@ export const billingQueries = {
 						currency: "USD",
 						status: mapInvoiceStatus(row.status),
 						created_at: row.created_at,
-						formattedAmount: `$${amount.toFixed(2)}`,
+						formattedAmount: formatCurrency(amount),
 						formattedDate: new Date(row.created_at).toLocaleDateString(),
 						isSuccessful: row.status === "paid",
 						invoice_pdf: row.invoice_pdf ?? null,

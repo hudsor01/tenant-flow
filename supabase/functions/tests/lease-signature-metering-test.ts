@@ -10,6 +10,8 @@
 //   - send + meter allowed=true (Growth under cap) -> send proceeds: lease flips
 //     to pending_signature, a token is inserted, exactly one email is sent
 //   - send + meter unlimited=true (Max) -> send proceeds unchanged
+//   - send + meter RPC error -> 500 with the generic body, the lease is NOT
+//     flipped, no email
 //   - resend -> meter_esign_send is NEVER invoked (D-02: resend never meters)
 //
 // Run: deno test --allow-all --no-check \
@@ -18,6 +20,7 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { fakeSupabaseClient } from "./fake-supabase-client.ts";
 
 // The handler registers Deno.serve() as a module side-effect (like every edge fn
 // in this repo). Setting DENO_TEST_NO_SERVE=1 before importing suppresses that
@@ -27,7 +30,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // THE LIMITER IS POSTGRES-BACKED AND FAIL-CLOSED (66.1-03, D-02). It has no
 // admitting error path left, so every send/resend/finalize branch below reaches
 // `public.check_rate_limit` over PostgREST at SUPABASE_URL. Unstubbed, that
-// connection is refused and all four cases get a 429 instead of their 402/200.
+// connection is refused and all five cases get a 429 instead of their 402, 200
+// or 500.
 // The fetch stub therefore intercepts the RPC and answers "allowed" — see
 // checkRateLimitResponse(). Note this exercises the REAL limiter end to end,
 // including its row-shape read; adding a test-only injection seam to
@@ -217,7 +221,7 @@ function makeClient(scenario: Scenario): {
 		return b;
 	};
 
-	const client = {
+	const client = fakeSupabaseClient({
 		auth: {
 			getUser: async (_token: string) => ({
 				data: { user: { id: OWNER_ID } },
@@ -235,7 +239,7 @@ function makeClient(scenario: Scenario): {
 			}
 			return { data: null, error: null };
 		},
-	} as unknown as SupabaseClient;
+	});
 
 	return { client, calls };
 }
@@ -282,7 +286,7 @@ function checkRateLimitResponse(init?: RequestInit): Response {
  * network.
  *
  * `fetchCount` counts EMAIL sends only. The RPC deliberately does not increment
- * it: the four cases below assert on how many emails were sent, and folding the
+ * it: the five cases below assert on how many emails were sent, and folding the
  * limiter's own call into that number would silently change what every one of
  * those assertions means.
  */

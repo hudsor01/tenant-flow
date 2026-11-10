@@ -45,7 +45,7 @@ function UpgradePrompt({
 				className="mt-0.5 h-4 w-4 shrink-0 text-warning"
 				aria-hidden="true"
 			/>
-			<p className="text-sm text-muted-foreground">
+			<p className="mb-0 text-sm text-muted-foreground">
 				{children}{" "}
 				<Link
 					href={href}
@@ -85,7 +85,7 @@ function EsignUsageWidget() {
 	if (isError || !data) {
 		return (
 			<WidgetShell icon={FileSignature} title="Lease e-signs">
-				<p className="text-sm text-muted-foreground">
+				<p className="mb-0 text-sm text-muted-foreground">
 					Usage is temporarily unavailable.
 				</p>
 			</WidgetShell>
@@ -95,7 +95,7 @@ function EsignUsageWidget() {
 	if (data.unlimited) {
 		return (
 			<WidgetShell icon={FileSignature} title="Lease e-signs">
-				<p className="text-sm text-muted-foreground">Unlimited e-signs</p>
+				<p className="mb-0 text-sm text-muted-foreground">Unlimited e-signs</p>
 			</WidgetShell>
 		);
 	}
@@ -129,7 +129,7 @@ function StorageUsageWidget() {
 	if (isError || !data) {
 		return (
 			<WidgetShell icon={HardDrive} title="Storage">
-				<p className="text-sm text-muted-foreground">
+				<p className="mb-0 text-sm text-muted-foreground">
 					Usage is temporarily unavailable.
 				</p>
 			</WidgetShell>
@@ -139,7 +139,7 @@ function StorageUsageWidget() {
 	if (data.unlimited) {
 		return (
 			<WidgetShell icon={HardDrive} title="Storage">
-				<p className="text-sm text-muted-foreground">Unlimited storage</p>
+				<p className="mb-0 text-sm text-muted-foreground">Unlimited storage</p>
 			</WidgetShell>
 		);
 	}
@@ -169,7 +169,7 @@ function StorageUsageWidget() {
 
 export function UsageSection() {
 	return (
-		<BlurFade delay={0.25} inView>
+		<BlurFade delay={0.25}>
 			<section className="rounded-lg border bg-card p-6">
 				<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
 					Usage

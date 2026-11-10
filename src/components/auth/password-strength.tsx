@@ -65,12 +65,12 @@ function PasswordStrength({
 	const strength = (passedRules.length / rules.length) * 100;
 
 	const getStrengthColor = () => {
-		if (strength === 0) return "bg-(--color-fill-primary)";
+		if (strength === 0) return "bg-muted";
 		if (strength <= 20) return "bg-destructive";
 		if (strength <= 40) return "bg-accent";
 		if (strength <= 60) return "bg-accent";
-		if (strength <= 80) return "bg-(--color-accent-main)";
-		return "bg-(--color-accent-main)";
+		if (strength <= 80) return "bg-accent-main";
+		return "bg-accent-main";
 	};
 
 	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -96,7 +96,7 @@ function PasswordStrength({
 						type="password"
 						autoComplete="new-password"
 						className={cn(
-							"flex h-10 w-full rounded-[var(--radius-md)] border border-(--color-separator) bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-(--color-label-tertiary) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+							"flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
 							className,
 						)}
 						ref={ref}
@@ -110,31 +110,31 @@ function PasswordStrength({
 
 				<Popover.Portal>
 					<Popover.Content
-						className="z-50 w-80 rounded-[var(--radius-lg)] bg-popover p-4 shadow-[var(--shadow-md)] border border-(--color-separator)"
+						className="z-50 w-80 rounded-lg bg-popover p-4 shadow-(--shadow-md) border border-border"
 						sideOffset={5}
 						onOpenAutoFocus={(e) => e.preventDefault()}
 					>
 						{/* Strength indicator bars */}
-						<div className="flex gap-[var(--spacing-1)] h-[var(--spacing-2)]">
+						<div className="flex gap-1 h-2">
 							{[...Array(5)].map((_, i) => (
 								<div
 									key={i}
 									data-tokens="applied"
 									className={cn(
-										"flex-1 rounded-full transition-all duration-[var(--duration-standard)]",
+										"flex-1 rounded-full transition-all duration-(--duration-standard)",
 										i < Math.ceil(passedRules.length)
 											? getStrengthColor()
-											: "bg-(--color-fill-primary) opacity-50",
+											: "bg-muted opacity-50",
 									)}
 								/>
 							))}
 						</div>
 
-						<h4 className="mt-[var(--spacing-4)] mb-[var(--spacing-3)] text-sm font-semibold text-foreground">
+						<h4 className="mt-4 mb-3 text-sm font-semibold text-foreground">
 							Your password must contain:
 						</h4>
 
-						<ul className="space-y-[var(--spacing-2)] text-sm">
+						<ul className="flex flex-col gap-2 pl-0 mt-0 mb-0 [&>li]:mb-0 text-sm">
 							{rules.map((rule) => {
 								const passed = rule.test(password);
 								return (
@@ -142,14 +142,14 @@ function PasswordStrength({
 										key={rule.id}
 										data-tokens="applied"
 										className={cn(
-											"flex items-center gap-x-[var(--spacing-2)] transition-colors",
-											passed ? "text-accent" : "text-(--color-label-tertiary)",
+											"flex items-center gap-x-2 transition-colors",
+											passed ? "text-success-text" : "text-muted-foreground",
 										)}
 									>
 										{passed ? (
-											<Check className="shrink-0 size-[var(--spacing-4)]" />
+											<Check className="shrink-0 size-4" />
 										) : (
-											<X className="shrink-0 size-[var(--spacing-4)]" />
+											<X className="shrink-0 size-4" />
 										)}
 										<span>{rule.label}</span>
 									</li>

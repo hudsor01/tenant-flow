@@ -1,6 +1,11 @@
 import type { BreadcrumbItem } from "#components/ui/breadcrumb";
 
-// Map of route segments to readable labels
+// Map of route segments to readable labels. Every static segment of an owner
+// page is here (or in NON_ROUTABLE_SEGMENTS): a segment the map does not name is
+// a record id, labelled from the crumb before it, never with the URL's own
+// text. Anyone can link an owner to `/tenants/<any text>`, which matches
+// `tenants/[id]`, and a crumb that echoed the segment put that text in the
+// shell header. `breadcrumbs.test.ts` holds the map to the (owner) page tree.
 const LABEL_MAP: Record<string, string> = {
 	// Owner dashboard routes
 	dashboard: "Dashboard",
@@ -8,13 +13,8 @@ const LABEL_MAP: Record<string, string> = {
 	tenants: "Tenants",
 	units: "Units",
 	leases: "Leases",
-	// Phase 66 (APPLY-03). A fallback no-op — the capitalize default already
-	// yields "Applications" — added for the same honesty reason `vault` was in
-	// Phase 65: this map is where a reader looks for a segment's label, and an
-	// absent key reads as an oversight rather than a decision. /applications is a
-	// real route (shipping in plan 66-13), so the entry is honest. Note this is
-	// the owner review queue, not the `rental-application` document template
-	// below, which is a different segment entirely.
+	// Phase 66 (APPLY-03): the owner review queue, not the `rental-application`
+	// document template below, which is a different segment entirely.
 	applications: "Applications",
 	maintenance: "Maintenance",
 	analytics: "Analytics",
@@ -23,6 +23,17 @@ const LABEL_MAP: Record<string, string> = {
 	settings: "Settings",
 	new: "Create New",
 	edit: "Edit",
+	inspections: "Inspections",
+	notifications: "Notifications",
+	profile: "Profile",
+	vendors: "Vendors",
+
+	// Billing routes
+	billing: "Billing",
+	plans: "Plans",
+	checkout: "Checkout",
+	success: "Success",
+	cancel: "Cancel",
 
 	// Analytics sub-routes
 	overview: "Overview",
@@ -46,17 +57,12 @@ const LABEL_MAP: Record<string, string> = {
 
 	// Documents sub-routes (Phase 65, DOCS-01)
 	//
-	// `vault` is a fallback no-op — the capitalize-default already yields "Vault"
-	// — but /documents/vault is a REAL route, so the entry is honest. Do not
-	// "clean up" what looks like a redundant line.
-	//
 	// `templates` is deliberately ABSENT. src/app/(owner)/documents/templates/
-	// has no page.tsx, so the capitalize-fallback already renders it as
-	// "Templates" and adding the entry would change nothing on screen while
-	// making the map appear to bless a dead route. This is a deliberate
-	// one-entry deviation from D-07's literal six, pinned by a two-sided guard
-	// in breadcrumbs.test.ts so it is revisited if that route ever ships.
-	// The 404 itself is handled by NON_ROUTABLE_SEGMENTS below, not by the map.
+	// has no page.tsx, so it is a NON_ROUTABLE_SEGMENTS entry below, labelled by
+	// capitalizing that constant ("Templates"); an entry here would make the map
+	// appear to bless a dead route. This is a deliberate one-entry deviation
+	// from D-07's literal six, pinned by a two-sided guard in
+	// breadcrumbs.test.ts so it is revisited if that route ever ships.
 	vault: "Vault",
 	"rental-application": "Rental Application",
 	"property-inspection": "Property Inspection",
@@ -69,6 +75,7 @@ const LABEL_MAP: Record<string, string> = {
 };
 
 // Segments that are real URL path components but have no page.tsx behind them.
+// Each is labelled by capitalizing it: a constant here, not text from the URL.
 //
 // `app-shell-header.tsx` renders every middle crumb as `crumb.href ? <Link> :
 // <span>`, so an empty href is the supported "present but not navigable"
@@ -101,34 +108,30 @@ export function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
 
 		// `Object.hasOwn`, not a bare index read. LABEL_MAP is a plain object
 		// literal, so it carries Object.prototype, and this function is called with
-		// raw URL segments. `/properties/__proto__` matches `properties/[id]`, is
-		// not a UUID, and a bare read would resolve `Object.prototype` — an object
-		// returned from a `: string` slot, which React then refuses to render as a
-		// child ("Objects are not valid as a React child"), taking down the shell
-		// header on a crafted URL. `constructor` and `toString` resolve to
-		// functions the same way. Same defect class as `categoryLabel` in
-		// `recent-documents-panel.tsx`; fixed in both rather than one at a time.
+		// raw URL segments. `/properties/__proto__` matches `properties/[id]`, and
+		// a bare read would resolve `Object.prototype` — an object returned from a
+		// `: string` slot, which React then refuses to render as a child ("Objects
+		// are not valid as a React child"), taking down the shell header on a
+		// crafted URL. `constructor` and `toString` resolve to functions the same
+		// way. Same defect class as `categoryLabel` in `recent-documents-panel.tsx`;
+		// fixed in both rather than one at a time.
 		const mapped = Object.hasOwn(LABEL_MAP, segment)
 			? LABEL_MAP[segment]
 			: undefined;
-		const label = mapped || segment.charAt(0).toUpperCase() + segment.slice(1);
-
-		// Skip UUIDs (typical format: 8-4-4-4-12 characters)
-		const isUUID =
-			/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-				segment,
-			);
-		if (isUUID) {
-			// For UUIDs, use the previous segment's label + "Details" or just "Details"
-			const previousLabel = breadcrumbs[index - 1]?.label || "Details";
+		if (mapped !== undefined) {
+			breadcrumbs.push({ href: currentPath, label: mapped });
+		} else if (NON_ROUTABLE_SEGMENTS.has(segment)) {
 			breadcrumbs.push({
-				href: currentPath,
-				label: `${previousLabel} Details`,
+				href: "",
+				label: segment.charAt(0).toUpperCase() + segment.slice(1),
 			});
 		} else {
+			// A record id (a UUID, or whatever text a link put in a `[id]` segment):
+			// the previous crumb's label + "Details", never the segment itself.
+			const previousLabel = breadcrumbs[index - 1]?.label;
 			breadcrumbs.push({
-				href: NON_ROUTABLE_SEGMENTS.has(segment) ? "" : currentPath,
-				label,
+				href: currentPath,
+				label: previousLabel ? `${previousLabel} Details` : "Details",
 			});
 		}
 	});

@@ -57,7 +57,7 @@ export function HowItWorks({ className }: HowItWorksProps) {
 			<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--color-primary)_3%,transparent),transparent_70%)]" />
 
 			<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-				<BlurFade delay={0.1} inView>
+				<BlurFade delay={0.1}>
 					<div className="text-center mb-16">
 						<p className="typography-small text-primary-text uppercase tracking-wider mb-3">
 							Three Steps to Set Up
@@ -76,14 +76,13 @@ export function HowItWorks({ className }: HowItWorksProps) {
 				{/* Steps */}
 				<div className="relative">
 					{/* Connecting line - desktop only */}
-					<div className="hidden lg:block absolute top-24 left-[16.67%] right-[16.67%] h-0.5 bg-gradient-to-r from-primary via-info to-success opacity-20" />
+					<div className="hidden lg:block absolute top-24 left-[16.67%] right-[16.67%] h-0.5 bg-linear-to-r from-primary via-info to-success opacity-20" />
 
-					<div className="grid md:grid-cols-3 gap-8">
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 						{steps.map((step, index) => (
 							<BlurFade
 								key={step.number}
 								delay={0.2 + index * 0.1}
-								inView
 								className="h-full"
 							>
 								<StepCard step={step} index={index} />
@@ -126,14 +125,14 @@ function StepCard({ step, index }: StepCardProps) {
 	const colors = colorClasses[step.color as keyof typeof colorClasses];
 
 	return (
-		<div className="relative group h-full">
+		<div className="relative h-full">
 			{/* Card */}
-			<div className="card-standard p-8 h-full hover:shadow-lg hover:border-primary/20 transition-all duration-300">
+			<div className="card-standard p-8 h-full">
 				{/* Step number & icon */}
 				<div className="flex items-start justify-between mb-6">
 					<div
 						className={cn(
-							"size-16 rounded-2xl flex-center shadow-lg group-hover:scale-105 transition-transform duration-300",
+							"size-16 rounded-2xl flex-center shadow-lg",
 							colors.bg,
 							colors.text,
 						)}
@@ -141,10 +140,8 @@ function StepCard({ step, index }: StepCardProps) {
 						<step.icon className="size-8" />
 					</div>
 					<span
-						className={cn(
-							"typography-h1 opacity-20 group-hover:opacity-40 transition-opacity",
-							colors.text,
-						)}
+						className={cn("typography-h1 opacity-20", colors.text)}
+						aria-hidden="true"
 					>
 						{step.number}
 					</span>
@@ -157,10 +154,15 @@ function StepCard({ step, index }: StepCardProps) {
 				</p>
 
 				{/* Features */}
-				<ul className="space-y-2">
+				<ul className="flex flex-col gap-2 pl-0 mt-0 mb-0 [&>li]:mb-0">
 					{step.features.map((feature) => (
 						<li key={feature} className="flex items-center gap-2 text-sm">
-							<div className={cn("size-5 rounded-full flex-center", colors.bg)}>
+							<div
+								className={cn(
+									"size-5 shrink-0 rounded-full flex-center",
+									colors.bg,
+								)}
+							>
 								<Check className={cn("size-3", colors.text)} />
 							</div>
 							<span className="text-foreground">{feature}</span>

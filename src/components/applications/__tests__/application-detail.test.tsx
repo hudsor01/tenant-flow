@@ -47,6 +47,7 @@ import {
 	type RentalApplicationRow,
 } from "#hooks/api/query-keys/application-keys";
 import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
+import { expectAvailable } from "#test/utils/availability";
 import { computeListCascade } from "#test/utils/base-rule-cascade";
 import { ApplicationDetail } from "../application-detail";
 
@@ -567,19 +568,19 @@ describe("ApplicationDetail — the record, in the applicant's own order", () =>
 });
 
 /**
- * THE BREADCRUMB IS A LIST, AND IT IS THE ONE THIS PHASE FORGOT.
+ * THE BREADCRUMB IS A LIST.
  *
- * `BreadcrumbList` renders a bare `<ol>` whose only classes are layout
- * (`ui/breadcrumb.tsx:11-21`), so all three unscoped `@layer base` declarations
- * at `globals.css:517-524` landed on it: `padding-left: 1.5rem`,
+ * `BreadcrumbList` (`ui/breadcrumb.tsx`) renders an `<ol>`, so all three
+ * unscoped declarations of the `@layer base` `ul, ol` / `li` rules in
+ * globals.css reach it unless it cancels them: `padding-left: 1.5rem`,
  * `margin-top: 1rem` and — from the same `margin: 1rem 0` shorthand —
- * `margin-bottom: 1rem`, plus `margin-bottom: 0.25rem` on each `<li>`.
+ * `margin-bottom: 1rem`, plus `margin-bottom: 0.25rem` on each `<li>`. The
+ * primitive now carries the neutralizers (66.2-39 fix round 3, part 7b).
  *
  * The page shell is `p-6 lg:p-8 … flex flex-col gap-6` and the breadcrumb is its
- * FIRST flex item, so nothing collapses: the trail sat 16px below where the
- * padding declares, and its text started 24px to the RIGHT of the `<h1>`
- * directly beneath it. This phase neutralizes the same trap correctly on three
- * `<ul>`s; the `<ol>` got nothing.
+ * FIRST flex item, so nothing collapses: with the rules live the trail sat 16px
+ * below where the padding declares, and its text started 24px to the RIGHT of
+ * the `<h1>` directly beneath it.
  *
  * Computed values, not classes, for the reason recorded in
  * `#test/utils/base-rule-cascade`.
@@ -622,8 +623,13 @@ describe("ApplicationDetail — an anonymized row is a stub, not a person", () =
 		expect(
 			screen.getByText("This application has been anonymized."),
 		).toBeInTheDocument();
+		// The sweep clocks coalesce(decided_at, created_at): an application with
+		// no decision is aged from its submission, and the banner says so
+		// (66.2-39 fix round 4, Part 8i).
 		expect(
-			screen.getByText(/TenantFlow removes applicant details two years/),
+			screen.getByText(
+				"TenantFlow removes applicant details two years after a decision, or two years after submission if none was made. The unit, dates, status and recorded reason are kept.",
+			),
 		).toBeInTheDocument();
 		expect(container.textContent ?? "").not.toContain(SENTINEL);
 		// The stub the spec requires: the unit, the dates, the status and the
@@ -691,7 +697,7 @@ describe("ApplicationDetail — declining captures a reason before it commits", 
 		// The control genuinely becomes usable. Without this the assertion above
 		// would pass against a permanently inert button.
 		await waitFor(() => {
-			expect(confirmButton()).toBeEnabled();
+			expectAvailable(confirmButton());
 		});
 	});
 
@@ -706,7 +712,7 @@ describe("ApplicationDetail — declining captures a reason before it commits", 
 			await screen.findByRole("option", { name: "Applicant withdrew" }),
 		);
 		await waitFor(() => {
-			expect(confirmButton()).toBeEnabled();
+			expectAvailable(confirmButton());
 		});
 		await user.click(confirmButton());
 
@@ -786,7 +792,7 @@ describe("ApplicationDetail — delete is confirmed before anything happens", ()
 
 		const dialog = await screen.findByRole("alertdialog");
 		const copy = dialog.textContent ?? "";
-		expect(copy).toContain("This cannot be undone.");
+		expect(copy).toContain("This can't be undone.");
 		expect(copy).not.toContain("tenant record");
 		expect(copy).not.toContain("Dana Reyes");
 	});
@@ -892,7 +898,7 @@ describe("ApplicationDetail — every write invalidates what it changed", () => 
 
 		await user.type(screen.getByLabelText("Private notes"), " Left a message.");
 		await waitFor(() => {
-			expect(screen.getByRole("button", { name: "Save notes" })).toBeEnabled();
+			expectAvailable(screen.getByRole("button", { name: "Save notes" }));
 		});
 		await user.click(screen.getByRole("button", { name: "Save notes" }));
 
@@ -1042,7 +1048,7 @@ describe("ApplicationDetail — the owner's private notes", () => {
 		await user.type(field, " Left a message.");
 
 		await waitFor(() => {
-			expect(save).toBeEnabled();
+			expectAvailable(save);
 		});
 		await user.click(save);
 

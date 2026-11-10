@@ -54,7 +54,12 @@ export function AppShellSearch({
 	onSignOut,
 }: AppShellSearchProps) {
 	return (
-		<CommandDialog open={open} onOpenChange={onOpenChange} className="max-w-xl">
+		<CommandDialog
+			open={open}
+			onOpenChange={onOpenChange}
+			className="max-w-xl"
+			label="Search pages and actions"
+		>
 			<CommandInput placeholder="Search pages and actions..." />
 			<CommandList>
 				<CommandEmpty>No results found.</CommandEmpty>
@@ -69,7 +74,7 @@ export function AppShellSearch({
 								<Building2 className="w-4 h-4 text-muted-foreground" />
 								<span className="flex-1">{item.label}</span>
 								{item.subtitle && (
-									<span className="text-xs text-muted-foreground">
+									<span className="text-xs text-muted-foreground in-data-[selected=true]:text-accent-foreground">
 										{item.subtitle}
 									</span>
 								)}
@@ -88,7 +93,7 @@ export function AppShellSearch({
 								<Users className="w-4 h-4 text-muted-foreground" />
 								<span className="flex-1">{item.label}</span>
 								{item.subtitle && (
-									<span className="text-xs text-muted-foreground">
+									<span className="text-xs text-muted-foreground in-data-[selected=true]:text-accent-foreground">
 										{item.subtitle}
 									</span>
 								)}

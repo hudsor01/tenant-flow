@@ -13,7 +13,9 @@ import { toast } from "sonner";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { calculateAnnualSavings } from "#config/pricing";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { createLogger } from "#lib/frontend-logger";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import { checkoutRateLimiter } from "#lib/security";
 import { createCheckoutSession } from "#lib/stripe/stripe-client";
 import { createClient } from "#lib/supabase/client";
@@ -74,7 +76,9 @@ export function PricingCardFeatured({
 					: plan.stripeMonthlyPriceId;
 
 			if (!stripePriceId) {
-				throw new Error(`No ${billingCycle} price configured for ${plan.name}`);
+				throw new DiagnosticError(
+					`No ${billingCycle} price configured for ${plan.name}`,
+				);
 			}
 
 			toast.loading("Creating checkout session...", { id: "checkout" });
@@ -99,9 +103,7 @@ export function PricingCardFeatured({
 			logger.error("Checkout failed", {
 				metadata: { error: error.message },
 			});
-			toast.error(
-				error.message || "Failed to start checkout. Please try again.",
-			);
+			handleMutationError(error, "Start checkout");
 		},
 		onSettled: () => {
 			toast.dismiss("checkout");
@@ -137,7 +139,7 @@ export function PricingCardFeatured({
 		<>
 			<div
 				className={cn(
-					"relative h-full rounded-2xl p-[2px] bg-gradient-to-br from-primary via-accent to-primary",
+					"relative h-full rounded-2xl p-0.5 bg-linear-to-br from-primary via-accent to-primary",
 					className,
 				)}
 			>
@@ -181,7 +183,7 @@ export function PricingCardFeatured({
 							</span>
 							<span className="text-muted-foreground font-medium">/mo</span>
 						</div>
-						<p className="text-sm text-muted-foreground mt-1">
+						<p className="text-sm text-muted-foreground mt-1 mb-0">
 							{billingCycle === "yearly"
 								? `Billed annually (${formatCurrency(plan.annualTotal, { maximumFractionDigits: 0, minimumFractionDigits: 0 })}/year)`
 								: "Billed monthly"}

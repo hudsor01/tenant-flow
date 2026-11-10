@@ -67,10 +67,25 @@ const FAQS = [
 export function PricingStatsGrid() {
 	return (
 		<section className="section-spacing animate-in fade-in duration-700 delay-150">
-			<div className="mx-auto max-w-7xl px-6 lg:px-8">
-				<div className="grid gap-8 text-left sm:grid-cols-3">
-					{STATS.map((stat) => (
-						<Card key={stat.label} variant="stat">
+			{/* The columns step on the section's own width, never the viewport's:
+			    one until two cards are 11.5rem wide, each holding its label
+			    (DOCUMENT VAULT, 130.41px) and figure (Per-entity, 130.03px at
+			    30px) on one line, then Landlords under the first two, all three
+			    in a row from where three are (66.2-39 fix round 4, Part 8d: three
+			    at 640px wrapped Document Vault and set its figure 20px below the
+			    other two). */}
+			<div className="@container/pricing-stats mx-auto max-w-7xl px-6 lg:px-8">
+				<div className="grid grid-cols-1 gap-8 text-left @min-[25rem]/pricing-stats:grid-cols-2 @min-[38.5rem]/pricing-stats:grid-cols-3">
+					{STATS.map((stat, index) => (
+						<Card
+							key={stat.label}
+							variant="stat"
+							className={
+								index === STATS.length - 1
+									? "@min-[25rem]/pricing-stats:col-span-2 @min-[38.5rem]/pricing-stats:col-span-1"
+									: undefined
+							}
+						>
 							<div className="relative">
 								<div className="mb-4 typography-h2 text-primary">
 									<stat.icon className="h-8 w-8" />
@@ -78,10 +93,10 @@ export function PricingStatsGrid() {
 								<p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">
 									{stat.label}
 								</p>
-								<p className="mb-3 typography-h1 tracking-tight text-foreground">
+								<p className="mb-3 whitespace-nowrap typography-h1 tracking-tight text-foreground">
 									{stat.value}
 								</p>
-								<p className="text-sm leading-relaxed text-muted-foreground">
+								<p className="mb-0 text-sm leading-relaxed text-muted-foreground">
 									{stat.description}
 								</p>
 							</div>
@@ -107,7 +122,7 @@ export function PricingFaqSection() {
 							records, not users — they never log in.
 						</p>
 					</div>
-					<div className="grid gap-4 lg:grid-cols-2">
+					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 						{FAQS.map((faq, index) => (
 							<Accordion
 								key={faq.question}
@@ -134,7 +149,7 @@ export function PricingFaqSection() {
 							<p className="text-base font-medium text-foreground">
 								Still unsure which plan fits best?
 							</p>
-							<p className="text-sm text-muted-foreground sm:text-base">
+							<p className="mb-0 text-sm text-muted-foreground sm:text-base">
 								Our team can walk through your portfolio and recommend the right
 								setup.
 							</p>
@@ -165,7 +180,7 @@ export function PricingCtaSection() {
 	return (
 		<section className="section-spacing animate-in fade-in duration-700 delay-400">
 			<div className="mx-auto max-w-6xl px-6 lg:px-8">
-				<div className="grid gap-10 overflow-hidden rounded-3xl border border-border/60 bg-card/70 p-10 shadow-sm backdrop-blur md:grid-cols-[1.3fr_1fr] md:p-12">
+				<div className="grid grid-cols-1 gap-10 overflow-hidden rounded-3xl border border-border/60 bg-card/70 p-10 shadow-sm backdrop-blur md:grid-cols-[1.3fr_1fr] md:p-12">
 					<div className="space-y-6 text-left">
 						<h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
 							Ready to centralize your portfolio?
@@ -206,7 +221,9 @@ export function PricingCtaSection() {
 								<CheckCircle2 className="mt-1 h-5 w-5 text-success" />
 								<div>
 									<p className="font-medium text-foreground">{item.title}</p>
-									<p className="text-muted-foreground text-sm">{item.desc}</p>
+									<p className="mb-0 text-muted-foreground text-sm">
+										{item.desc}
+									</p>
 								</div>
 							</div>
 						))}

@@ -9,6 +9,7 @@ import {
 	StatLabel,
 	StatValue,
 } from "#components/ui/stat";
+import { LEASE_STATUS_LABELS } from "#lib/constants/status-types";
 
 interface TenantStatsProps {
 	totalTenants: number;
@@ -23,73 +24,93 @@ export function TenantStats({
 	pendingTenants,
 	endedTenants,
 }: TenantStatsProps) {
+	// Each wrapper fills its grid cell and each tile its wrapper, rows held to
+	// the top (66.2-39 part M, VD-111). Every label keeps two lines' height
+	// (min-h-10) until the row itself is 56rem wide, so the figures in a row
+	// share a line whichever labels wrap (part Q). The release keys on the
+	// row's width, not the viewport's: with the rail expanded, "Total Tenants"
+	// and "Pending Signature" (114.91px) still wrap from 1024 to 1152px, where
+	// a release at lg put their figures 20px below their neighbours' (fix
+	// round 4, G38). Four columns fit the longest label from 51.5rem. The
+	// columns step on the row's width too (Part 8c): one until two tiles are
+	// 10rem wide, four from where four are, every tile wider than "1,234".
 	return (
-		<div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-			<BlurFade delay={0.2} inView>
-				<Stat className="relative overflow-hidden">
-					<BorderBeam
-						size={80}
-						duration={10}
-						colorFrom="hsl(var(--primary))"
-						colorTo="hsl(var(--primary)/0.3)"
-					/>
-					<StatLabel>Total Tenants</StatLabel>
-					<StatValue className="flex items-baseline">
-						<NumberTicker value={totalTenants} duration={1000} />
-					</StatValue>
-					<StatIndicator variant="icon" color="primary">
-						<Users />
-					</StatIndicator>
-					<StatDescription>in your portfolio</StatDescription>
-				</Stat>
-			</BlurFade>
-
-			<BlurFade delay={0.3} inView>
-				<Stat className="relative overflow-hidden">
-					<StatLabel>Active</StatLabel>
-					<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
-						<NumberTicker value={activeTenants} duration={1000} />
-					</StatValue>
-					<StatIndicator variant="icon" color="success">
-						<Check />
-					</StatIndicator>
-					<StatDescription>current leases</StatDescription>
-				</Stat>
-			</BlurFade>
-
-			<BlurFade delay={0.4} inView>
-				<Stat className="relative overflow-hidden">
-					{pendingTenants > 0 && (
+		<div className="@container/tenant-stats mb-6">
+			<div className="grid grid-cols-1 @min-[21rem]/tenant-stats:grid-cols-2 @min-[42.5rem]/tenant-stats:grid-cols-4 gap-3">
+				<BlurFade delay={0.2} className="h-full">
+					<Stat className="relative h-full content-start overflow-hidden">
 						<BorderBeam
 							size={80}
-							duration={6}
-							colorFrom="hsl(45 93% 47%)"
-							colorTo="hsl(45 93% 47% / 0.3)"
+							duration={10}
+							colorFrom="var(--color-primary)"
+							colorTo="color-mix(in oklab, var(--color-primary) 30%, transparent)"
 						/>
-					)}
-					<StatLabel>Pending</StatLabel>
-					<StatValue className="flex items-baseline text-amber-600 dark:text-amber-400">
-						<NumberTicker value={pendingTenants} duration={1000} />
-					</StatValue>
-					<StatIndicator variant="icon" color="warning">
-						<Clock />
-					</StatIndicator>
-					<StatDescription>awaiting signature</StatDescription>
-				</Stat>
-			</BlurFade>
+						<StatLabel className="min-h-10 @4xl/tenant-stats:min-h-0">
+							Total Tenants
+						</StatLabel>
+						<StatValue className="flex items-baseline">
+							<NumberTicker value={totalTenants} duration={1000} />
+						</StatValue>
+						<StatIndicator variant="icon" color="primary">
+							<Users />
+						</StatIndicator>
+						<StatDescription>in your portfolio</StatDescription>
+					</Stat>
+				</BlurFade>
 
-			<BlurFade delay={0.5} inView>
-				<Stat>
-					<StatLabel>Ended</StatLabel>
-					<StatValue className="flex items-baseline">
-						<NumberTicker value={endedTenants} duration={1000} />
-					</StatValue>
-					<StatIndicator variant="icon" color="muted">
-						<AlertCircle />
-					</StatIndicator>
-					<StatDescription>past tenants</StatDescription>
-				</Stat>
-			</BlurFade>
+				<BlurFade delay={0.3} className="h-full">
+					<Stat className="relative h-full content-start overflow-hidden">
+						<StatLabel className="min-h-10 @4xl/tenant-stats:min-h-0">
+							{LEASE_STATUS_LABELS.active}
+						</StatLabel>
+						<StatValue className="flex items-baseline text-success-text">
+							<NumberTicker value={activeTenants} duration={1000} />
+						</StatValue>
+						<StatIndicator variant="icon" color="success">
+							<Check />
+						</StatIndicator>
+						<StatDescription>current leases</StatDescription>
+					</Stat>
+				</BlurFade>
+
+				<BlurFade delay={0.4} className="h-full">
+					<Stat className="relative h-full content-start overflow-hidden">
+						{pendingTenants > 0 && (
+							<BorderBeam
+								size={80}
+								duration={6}
+								colorFrom="var(--color-warning)"
+								colorTo="oklch(from var(--color-warning) l c h / 0.3)"
+							/>
+						)}
+						<StatLabel className="min-h-10 @4xl/tenant-stats:min-h-0">
+							{LEASE_STATUS_LABELS.pending_signature}
+						</StatLabel>
+						<StatValue className="flex items-baseline text-warning-text">
+							<NumberTicker value={pendingTenants} duration={1000} />
+						</StatValue>
+						<StatIndicator variant="icon" color="warning">
+							<Clock />
+						</StatIndicator>
+						<StatDescription>awaiting signature</StatDescription>
+					</Stat>
+				</BlurFade>
+
+				<BlurFade delay={0.5} className="h-full">
+					<Stat className="h-full content-start">
+						<StatLabel className="min-h-10 @4xl/tenant-stats:min-h-0">
+							Ended
+						</StatLabel>
+						<StatValue className="flex items-baseline">
+							<NumberTicker value={endedTenants} duration={1000} />
+						</StatValue>
+						<StatIndicator variant="icon" color="muted">
+							<AlertCircle />
+						</StatIndicator>
+						<StatDescription>past tenants</StatDescription>
+					</Stat>
+				</BlurFade>
+			</div>
 		</div>
 	);
 }

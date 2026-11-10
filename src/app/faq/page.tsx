@@ -70,12 +70,17 @@ export default function FAQPage() {
 					<h2 className="typography-h1 text-primary-foreground mb-4">
 						Still have questions?
 					</h2>
-					<p className="text-xl text-primary-foreground/90 mb-8">
+					<p className="text-xl text-primary-foreground mb-8">
 						Talk to our team about your portfolio, the document vault, and which
 						plan tier fits.
 					</p>
 					<div className="flex flex-col sm:flex-row gap-4 justify-center">
-						<Button asChild size="lg" variant="secondary" className="px-8">
+						<Button
+							asChild
+							size="lg"
+							variant="secondary"
+							className="px-8 focus-visible:ring-primary-foreground/80"
+						>
 							<Link href="/contact">
 								Contact Sales
 								<ArrowRight className="size-5 ml-2" />
@@ -85,7 +90,7 @@ export default function FAQPage() {
 							asChild
 							size="lg"
 							variant="outline"
-							className="px-8 text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary-text"
+							className="px-8 bg-transparent text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary-text dark:bg-transparent dark:border-primary-foreground/50 dark:hover:bg-primary-foreground dark:hover:text-primary-text focus-visible:border-primary-foreground focus-visible:ring-primary-foreground/80"
 						>
 							<Link href="/pricing">View Pricing</Link>
 						</Button>

@@ -50,16 +50,18 @@ describe("useCancelSubscriptionMutation", () => {
 	});
 
 	it('POSTs { action: "cancel" } to stripe-cancel-subscription with Bearer token', async () => {
-		const fetchMock = vi.fn().mockResolvedValue({
-			ok: true,
-			json: async () => ({
-				id: "sub_123",
-				status: "active",
-				cancel_at_period_end: true,
-				current_period_end: 1_800_000_000,
-			}),
-		});
-		globalThis.fetch = fetchMock as unknown as typeof fetch;
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+			Response.json(
+				{
+					id: "sub_123",
+					status: "active",
+					cancel_at_period_end: true,
+					current_period_end: 1_800_000_000,
+				},
+				{ status: 200 },
+			),
+		);
+		globalThis.fetch = fetchMock;
 
 		const { result } = renderWithClient(() => useCancelSubscriptionMutation());
 		await result.current.mutateAsync();
@@ -77,15 +79,17 @@ describe("useCancelSubscriptionMutation", () => {
 	});
 
 	it("invalidates subscription-status and owner-dashboard keys on success", async () => {
-		globalThis.fetch = vi.fn().mockResolvedValue({
-			ok: true,
-			json: async () => ({
-				id: "sub_1",
-				status: "active",
-				cancel_at_period_end: true,
-				current_period_end: 1,
-			}),
-		}) as unknown as typeof fetch;
+		globalThis.fetch = vi.fn<typeof fetch>().mockResolvedValue(
+			Response.json(
+				{
+					id: "sub_1",
+					status: "active",
+					cancel_at_period_end: true,
+					current_period_end: 1,
+				},
+				{ status: 200 },
+			),
+		);
 
 		const { result, queryClient } = renderWithClient(() =>
 			useCancelSubscriptionMutation(),
@@ -107,12 +111,14 @@ describe("useCancelSubscriptionMutation", () => {
 	});
 
 	it("throws a generic error when the Edge Function returns 4xx/5xx", async () => {
-		globalThis.fetch = vi.fn().mockResolvedValue({
-			ok: false,
-			status: 500,
-			statusText: "Internal Server Error",
-			json: async () => ({ error: "An error occurred" }),
-		}) as unknown as typeof fetch;
+		globalThis.fetch = vi
+			.fn<typeof fetch>()
+			.mockResolvedValue(
+				Response.json(
+					{ error: "An error occurred" },
+					{ status: 500, statusText: "Internal Server Error" },
+				),
+			);
 
 		const { result } = renderWithClient(() => useCancelSubscriptionMutation());
 		await expect(result.current.mutateAsync()).rejects.toMatchObject({
@@ -134,16 +140,18 @@ describe("useReactivateSubscriptionMutation", () => {
 	});
 
 	it('POSTs { action: "reactivate" }', async () => {
-		const fetchMock = vi.fn().mockResolvedValue({
-			ok: true,
-			json: async () => ({
-				id: "sub_1",
-				status: "active",
-				cancel_at_period_end: false,
-				current_period_end: 1,
-			}),
-		});
-		globalThis.fetch = fetchMock as unknown as typeof fetch;
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+			Response.json(
+				{
+					id: "sub_1",
+					status: "active",
+					cancel_at_period_end: false,
+					current_period_end: 1,
+				},
+				{ status: 200 },
+			),
+		);
+		globalThis.fetch = fetchMock;
 
 		const { result } = renderWithClient(() =>
 			useReactivateSubscriptionMutation(),
@@ -165,15 +173,17 @@ describe("useCancelSubscriptionMutation setQueryData (T-42-06 mitigation)", () =
 
 	it("writes Stripe response into subscription-status cache BEFORE invalidation", async () => {
 		const futureUnix = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
-		globalThis.fetch = vi.fn().mockResolvedValue({
-			ok: true,
-			json: async () => ({
-				id: "sub_abc",
-				status: "active",
-				cancel_at_period_end: true,
-				current_period_end: futureUnix,
-			}),
-		}) as unknown as typeof fetch;
+		globalThis.fetch = vi.fn<typeof fetch>().mockResolvedValue(
+			Response.json(
+				{
+					id: "sub_abc",
+					status: "active",
+					cancel_at_period_end: true,
+					current_period_end: futureUnix,
+				},
+				{ status: 200 },
+			),
+		);
 
 		const { result, queryClient } = renderWithClient(() =>
 			useCancelSubscriptionMutation(),
@@ -210,15 +220,17 @@ describe("useCancelSubscriptionMutation setQueryData (T-42-06 mitigation)", () =
 	it("maps an absent/NaN current_period_end to null instead of throwing a RangeError", async () => {
 		// Simulates a pre-basil edge fn that has not yet been redeployed: the
 		// response omits current_period_end (it moved onto the subscription item).
-		globalThis.fetch = vi.fn().mockResolvedValue({
-			ok: true,
-			json: async () => ({
-				id: "sub_no_period",
-				status: "active",
-				cancel_at_period_end: true,
-				// current_period_end intentionally omitted (undefined)
-			}),
-		}) as unknown as typeof fetch;
+		globalThis.fetch = vi.fn<typeof fetch>().mockResolvedValue(
+			Response.json(
+				{
+					id: "sub_no_period",
+					status: "active",
+					cancel_at_period_end: true,
+					// current_period_end intentionally omitted (undefined)
+				},
+				{ status: 200 },
+			),
+		);
 
 		const { result, queryClient } = renderWithClient(() =>
 			useCancelSubscriptionMutation(),

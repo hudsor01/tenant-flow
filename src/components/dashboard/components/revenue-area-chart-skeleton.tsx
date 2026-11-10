@@ -13,7 +13,7 @@ import { Skeleton } from "#components/ui/skeleton";
 
 export function RevenueAreaChartSkeleton() {
 	return (
-		<Card className="lg:col-span-2">
+		<Card className="@4xl/dashboard:col-span-2">
 			<CardHeader className="flex flex-row items-center justify-between space-y-0">
 				<div className="space-y-2">
 					<Skeleton className="h-5 w-20" />
@@ -28,7 +28,7 @@ export function RevenueAreaChartSkeleton() {
 				</div>
 			</CardHeader>
 			<CardContent>
-				<Skeleton className="h-[300px] w-full rounded-md" />
+				<Skeleton className="h-75 w-full rounded-md" />
 			</CardContent>
 		</Card>
 	);

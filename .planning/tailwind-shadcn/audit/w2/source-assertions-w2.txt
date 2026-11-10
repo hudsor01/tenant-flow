@@ -1,0 +1,22 @@
+PASS D18-a the first @import is "tailwindcss" source("..")
+PASS D18-b @source not "../**/*.test.{ts,tsx}" exists
+PASS D18-c no @source names .planning or README, and none is "..*.{ts,tsx}"
+PASS D19-a src/app/(owner)/dashboard.css is gone and nothing under src/ imports a dashboard.css
+PASS D19-b no live dashboard-* class in globals.css selectors or loading.tsx
+PASS D19-c loading.tsx uses the UI-SPEC Owner Loading Skeleton utilities and no [var( form
+PASS D20-a no non-test src .ts/.tsx has [var(--spacing-N) or rounded-[var(--radius
+PASS D20-b no globals.css value uses var(--spacing-N) and no --spacing-N / --spacing-px declaration
+PASS D20-c live --duration-100..1000 and --duration-standard kept; --duration-75/150/medium gone (N14)
+PASS D21-a no non-inline @theme --color-sidebar*; the zinc @theme inline block is kept for W6
+PASS X3-a no --color-white/black, --color-slate-*, --color-border-secondary or --color-accent-85 declaration
+PASS X3-b no @theme declaration repeats Tailwind's default value (18 names the default theme resolves)
+PASS AppA-a no @keyframes mobile-fade-in and no .dashboard-panel rule
+PASS D14-a TAILWIND_MERGE_EXTENSION has no theme.spacing entries and no slower key
+PASS D22-a no globals.css:<line> citation under src/ or tests/ (N17)
+PASS D22-b responsive-font-size-cascade.ts resolves through resolveThemeValue and parses no --text- with a regex (X6)
+PASS D30-a LoadingSpinner has no text-(--font-*) and uses text-xs/sm/base/lg (C12d)
+PASS W1-carry-secondary light --color-secondary resolves to oklch(0.9546 0.0351 246.58)
+PASS W1-carry-label-fill-separator no --color-(label|fill|separator) declaration
+PASS W1-carry-utilities no @utility text-caption or text-muted
+PASS W1-carry-fonts @theme inline --font-sans uses var(--font-roboto), --font-mono uses var(--font-geist-mono), no --font-display/--font-playfair in src/
+source-assertions-w2: all passed

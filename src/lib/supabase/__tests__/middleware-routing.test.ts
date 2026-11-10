@@ -19,12 +19,15 @@ let mockUserRow: {
 //   - mockUserRowThrow:  thrown error (connection-pool exhaustion etc.)
 let mockUserRowError: Error | null = null;
 let mockUserRowThrow: Error | null = null;
+/** How many times the proxy read the `users` row (its gate read). */
+const userReads = vi.hoisted(() => ({ n: 0 }));
 vi.mock("@supabase/ssr", () => ({
 	createServerClient: () => ({
 		from: () => ({
 			select: () => ({
 				eq: () => ({
 					maybeSingle: async () => {
+						userReads.n += 1;
 						if (mockUserRowThrow) throw mockUserRowThrow;
 						if (mockUserRowError) {
 							return { data: null, error: mockUserRowError };
@@ -43,6 +46,26 @@ vi.mock("@sentry/nextjs", () => ({
 	captureException: (...args: unknown[]) => mockCaptureException(...args),
 	captureMessage: (...args: unknown[]) => mockCaptureMessage(...args),
 }));
+
+// Private prefixes that share a gated prefix's first characters (fixtures:
+// the app has no such routes, so in production these paths are public and
+// reach Next's 404). Private here, they prove that the Settings exemption
+// from the subscription gate and the admin check match on a path-segment
+// boundary. (`/billing/plansx` needs no fixture: `/billing` is private.)
+vi.mock("#lib/routes/private-routes", async () => {
+	const actual = await vi.importActual<
+		typeof import("#lib/routes/private-routes")
+	>("#lib/routes/private-routes");
+	return {
+		...actual,
+		PRIVATE_ROUTE_PREFIXES: [
+			...actual.PRIVATE_ROUTE_PREFIXES,
+			"/settingsx",
+			"/settings-old",
+			"/administration",
+		],
+	};
+});
 
 vi.mock("#env", () => ({
 	env: {
@@ -85,27 +108,16 @@ vi.mock("next/server", () => {
 	};
 });
 
+import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 import { NextResponse } from "next/server";
-import { proxy } from "#proxy";
+import { config, proxy } from "#proxy";
+
+// A real NextRequest: next/server is mocked above for NextResponse only.
+const { NextRequest: RealNextRequest } =
+	await vi.importActual<typeof import("next/server")>("next/server");
 
 function buildRequest(pathname: string): NextRequest {
-	const url = new URL(pathname, "http://localhost:3050");
-	const nextUrl = Object.assign(url, {
-		clone: () => new URL(url.toString()),
-	});
-	const cookieStore = new Map<string, { name: string; value: string }>();
-
-	return {
-		nextUrl,
-		url: url.toString(),
-		cookies: {
-			getAll: () => [...cookieStore.values()],
-			set: (name: string, value: string) => {
-				cookieStore.set(name, { name, value });
-			},
-			get: (name: string) => cookieStore.get(name),
-		},
-	} as unknown as NextRequest;
+	return new RealNextRequest(new URL(pathname, "http://localhost:3050"));
 }
 
 function makeUser(): User {
@@ -144,6 +156,7 @@ describe("proxy routing", () => {
 		mockUserRow = { is_admin: false, subscription_status: "active" };
 		mockUserRowError = null;
 		mockUserRowThrow = null;
+		userReads.n = 0;
 	});
 
 	describe("public routes", () => {
@@ -442,19 +455,19 @@ describe("proxy routing", () => {
 			},
 		);
 
-		it("redirects user without subscription on /settings (non-allowlisted)", async () => {
+		it("lets a user without subscription reach /settings, after the users read (owner, 2026-11-09)", async () => {
+			const supabaseResponse = makeSupabaseResponse();
 			mockUpdateSession.mockResolvedValue({
 				user: makeUser(),
-				supabaseResponse: makeSupabaseResponse(),
+				supabaseResponse,
 			});
 			mockUserRow = { is_admin: false, subscription_status: null };
 
-			await proxy(buildRequest("/settings"));
+			const result = await proxy(buildRequest("/settings"));
 
-			expect(NextResponse.redirect).toHaveBeenCalledOnce();
-			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
-				.mock.calls[0]![0] as URL;
-			expect(redirectUrl.pathname).toBe("/pricing");
+			expect(NextResponse.redirect).not.toHaveBeenCalled();
+			expect(result).toBe(supabaseResponse);
+			expect(userReads.n).toBe(1);
 		});
 
 		it("admin user bypasses subscription gate", async () => {
@@ -559,6 +572,263 @@ describe("proxy routing", () => {
 			// Crucially: captureException should NOT fire — this isn't a
 			// thrown exception path.
 			expect(mockCaptureException).not.toHaveBeenCalled();
+		});
+	});
+
+	// Owner, 2026-11-09: an owner whose plan or trial has lapsed reaches
+	// Settings and its subpaths, to download their data, request deletion and
+	// resubscribe. Every other private route still sends them to /pricing,
+	// and sign-in, the MFA step-up and the users read still apply to Settings.
+	describe("Settings for an owner whose subscription has lapsed", () => {
+		const LAPSED = [
+			"canceled",
+			"unpaid",
+			"expired",
+			"incomplete",
+			"incomplete_expired",
+			"paused",
+			null,
+		];
+		const redirectPath = () =>
+			(
+				(NextResponse.redirect as ReturnType<typeof vi.fn>).mock
+					.calls[0]![0] as URL
+			).pathname;
+
+		it.each(
+			LAPSED.flatMap((status) =>
+				["/settings", "/settings/billing"].map((route) => [status, route]),
+			),
+		)("a %s owner passes on %s", async (subscription_status, route) => {
+			const supabaseResponse = makeSupabaseResponse();
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse,
+			});
+			mockUserRow = {
+				is_admin: false,
+				subscription_status: subscription_status as string | null,
+			};
+
+			const result = await proxy(buildRequest(route as string));
+
+			expect(NextResponse.redirect).not.toHaveBeenCalled();
+			expect(result).toBe(supabaseResponse);
+			expect(userReads.n).toBe(1);
+		});
+
+		it.each(["/dashboard", "/profile", "/settingsx", "/settings-old"])(
+			"a canceled owner is still sent to /pricing from %s",
+			async (route) => {
+				mockUpdateSession.mockResolvedValue({
+					user: makeUser(),
+					supabaseResponse: makeSupabaseResponse(),
+				});
+				mockUserRow = { is_admin: false, subscription_status: "canceled" };
+
+				await proxy(buildRequest(route));
+
+				expect(NextResponse.redirect).toHaveBeenCalledOnce();
+				expect(redirectPath()).toBe("/pricing");
+			},
+		);
+
+		it.each(["/settings", "/dashboard"])(
+			"an active owner passes on %s, as before",
+			async (route) => {
+				const supabaseResponse = makeSupabaseResponse();
+				mockUpdateSession.mockResolvedValue({
+					user: makeUser(),
+					supabaseResponse,
+				});
+				mockUserRow = { is_admin: false, subscription_status: "active" };
+
+				const result = await proxy(buildRequest(route));
+
+				expect(NextResponse.redirect).not.toHaveBeenCalled();
+				expect(result).toBe(supabaseResponse);
+			},
+		);
+
+		it("signing in still applies to /settings", async () => {
+			mockUpdateSession.mockResolvedValue({
+				user: null,
+				supabaseResponse: makeSupabaseResponse(),
+			});
+
+			await proxy(buildRequest("/settings?tab=billing"));
+
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			const url = (NextResponse.redirect as ReturnType<typeof vi.fn>).mock
+				.calls[0]![0] as URL;
+			expect(url.pathname).toBe("/login");
+			expect(url.searchParams.get("redirect")).toBe("/settings?tab=billing");
+			expect(userReads.n).toBe(0);
+		});
+
+		it("the MFA step-up still applies to /settings", async () => {
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				assuranceLevel: { currentLevel: "aal1", nextLevel: "aal2" },
+				supabaseResponse: makeSupabaseResponse(),
+			});
+			mockUserRow = { is_admin: false, subscription_status: "canceled" };
+
+			await proxy(buildRequest("/settings"));
+
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			expect(redirectPath()).toBe("/login");
+			expect(userReads.n).toBe(0);
+		});
+
+		it("a failed users read on /settings still goes to /login (fail-secure)", async () => {
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse: makeSupabaseResponse(),
+			});
+			mockUserRowThrow = new Error("connection pool exhausted");
+
+			await proxy(buildRequest("/settings"));
+
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			expect(redirectPath()).toBe("/login");
+			expect(userReads.n).toBe(1);
+		});
+	});
+
+	// 66.2-39 fix round 4, Part 8l: every route-prefix match in the request
+	// path is on a path-segment boundary. The allowlist matched any
+	// continuation with a plain startsWith, so a private `/billing/plansx`
+	// skipped the users read and the subscription gate.
+	describe("route prefixes match on a path-segment boundary", () => {
+		const redirectPath = () =>
+			(
+				(NextResponse.redirect as ReturnType<typeof vi.fn>).mock
+					.calls[0]![0] as URL
+			).pathname;
+
+		it.each(["/billing/plansx", "/billing/checkoutx", "/billing/plans-old"])(
+			"%s gets the users read and the subscription gate",
+			async (route) => {
+				mockUpdateSession.mockResolvedValue({
+					user: makeUser(),
+					supabaseResponse: makeSupabaseResponse(),
+				});
+				mockUserRow = { is_admin: false, subscription_status: "canceled" };
+
+				await proxy(buildRequest(route));
+
+				expect(userReads.n).toBe(1);
+				expect(NextResponse.redirect).toHaveBeenCalledOnce();
+				expect(redirectPath()).toBe("/pricing");
+			},
+		);
+
+		it.each([
+			"/billing/plans",
+			"/billing/plans/x",
+			"/billing/checkout",
+			"/billing/checkout/success",
+		])("%s keeps passing with no users read", async (route) => {
+			const supabaseResponse = makeSupabaseResponse();
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse,
+			});
+			mockUserRow = { is_admin: false, subscription_status: "canceled" };
+
+			const result = await proxy(buildRequest(route));
+
+			expect(result).toBe(supabaseResponse);
+			expect(NextResponse.redirect).not.toHaveBeenCalled();
+			expect(userReads.n).toBe(0);
+		});
+
+		it("a private /administration is not an admin route (fixture prefix)", async () => {
+			const supabaseResponse = makeSupabaseResponse();
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse,
+			});
+			mockUserRow = { is_admin: false, subscription_status: "active" };
+
+			const result = await proxy(buildRequest("/administration"));
+
+			expect(NextResponse.redirect).not.toHaveBeenCalled();
+			expect(result).toBe(supabaseResponse);
+		});
+
+		it("/blogx is not the blog: its session is refreshed", async () => {
+			mockUpdateSession.mockResolvedValue({
+				user: null,
+				supabaseResponse: makeSupabaseResponse(),
+			});
+
+			await proxy(buildRequest("/blogx"));
+
+			expect(mockUpdateSession).toHaveBeenCalledOnce();
+		});
+
+		it.each(["/loginx", "/authx", "/auth-help", "/dashboardx"])(
+			"the nonce CSP does not apply to %s",
+			async (route) => {
+				const supabaseResponse = makeSupabaseResponse();
+				mockUpdateSession.mockResolvedValue({
+					user: null,
+					supabaseResponse,
+				});
+
+				const result = await proxy(buildRequest(route));
+
+				expect(mockUpdateSession.mock.calls[0]?.[1]).toBeUndefined();
+				expect(result.headers.get("Content-Security-Policy")).toBeNull();
+			},
+		);
+
+		it.each(["/login", "/auth", "/auth/signout"])(
+			"the nonce CSP applies to %s",
+			async (route) => {
+				const supabaseResponse = makeSupabaseResponse();
+				mockUpdateSession.mockResolvedValue({
+					user: null,
+					supabaseResponse,
+				});
+
+				const result = await proxy(buildRequest(route));
+
+				expect(mockUpdateSession.mock.calls[0]?.[1]).toBeInstanceOf(Headers);
+				expect(result.headers.get("Content-Security-Policy")).toMatch(
+					/'strict-dynamic'/,
+				);
+			},
+		);
+
+		// config.matcher is a literal Next reads at build time; Next's own
+		// matcher (the build's getMiddlewareMatchers) decides these.
+		it.each([
+			["/monitoring", false],
+			["/monitoring?o=1&p=2", false],
+			["/monitoring/x", false],
+			["/monitoringx", true],
+			["/_next/static/chunks/main.js", false],
+			["/_next/staticx", true],
+			["/_next/image?url=%2Fa.png&w=64&q=75", false],
+			["/_next/imagex", true],
+			["/favicon.ico", false],
+			["/faviconxico", true],
+			["/api", false],
+			["/api/og/blog/x", false],
+			["/apix", true],
+			["/logo.png", false],
+			["/dashboard", true],
+			["/settings", true],
+		] as const)("the proxy runs on %s: %s", (url, runs) => {
+			expect(
+				unstable_doesMiddlewareMatch({
+					config,
+					url: `http://localhost:3050${url}`,
+				}),
+			).toBe(runs);
 		});
 	});
 

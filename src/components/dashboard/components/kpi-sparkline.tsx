@@ -36,9 +36,9 @@ export function KpiSparkline({ data, trend, ariaLabel }: KpiSparklineProps) {
 		<div
 			role="img"
 			aria-label={ariaLabel}
-			className="[grid-column:1/-1] h-16 w-full"
+			className="col-span-full h-16 w-full"
 		>
-			<ChartContainer config={config} className="!aspect-auto h-full w-full">
+			<ChartContainer config={config} className="aspect-auto! h-full w-full">
 				<AreaChart
 					data={data}
 					margin={{ top: 2, right: 0, bottom: 2, left: 0 }}

@@ -428,7 +428,7 @@ it("should distinguish between authentication and authorization errors", async (
  *
  * Regression: the call site passed a non-reactive `form.state.isDirty` snapshot,
  * so the `beforeunload` guard never armed as the user typed. The fix reads dirty
- * via `useStore(form.store, (s) => s.isDirty)`. These tests prove the listener is
+ * via `useSelector(form.store, (s) => s.isDirty)`. These tests prove the listener is
  * registered after a field change and removed once the form returns to pristine.
  */
 describe("AddTenantForm - unsaved-changes guard (FORMFIX-01)", () => {

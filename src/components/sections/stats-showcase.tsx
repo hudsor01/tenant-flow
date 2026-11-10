@@ -1,5 +1,4 @@
 import { BlurFade } from "#components/ui/blur-fade";
-import { BorderBeam } from "#components/ui/border-beam";
 import { NumberTicker } from "#components/ui/number-ticker";
 import { cn } from "#lib/utils";
 
@@ -50,12 +49,12 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 				className,
 			)}
 		>
-			<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+			<div className="@container/showcase-stats max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 				<div className="text-center mb-16 max-w-3xl mx-auto">
-					<BlurFade delay={0.1} inView>
+					<BlurFade delay={0.1}>
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4 leading-tight">
 							Made for real
-							<span className="text-primary block">owner workflows</span>
+							<span className="text-primary-text block">owner workflows</span>
 						</h2>
 						<p className="text-xl text-muted-foreground leading-relaxed">
 							Every feature ships against a real owner workflow — from upload to
@@ -64,27 +63,17 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 					</BlurFade>
 				</div>
 
-				<div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+				{/* The columns step on the section's own width, never the
+				    viewport's: one until two cards are 10rem wide (two at 320 left
+				    each 70px, and every label wrapped onto three lines), four from
+				    where four are (66.2-39 fix round 4, Part 8d). */}
+				<div className="grid grid-cols-1 @min-[22rem]/showcase-stats:grid-cols-2 @min-[46rem]/showcase-stats:grid-cols-4 gap-8">
 					{stats.map((stat, index) => (
-						<BlurFade key={stat.label} delay={0.2 + index * 0.1} inView>
-							<div className="relative group">
+						<BlurFade key={stat.label} delay={0.2 + index * 0.1}>
+							<div className="relative">
 								<div className="showcase-card">
-									{/* Animated border beam */}
-									<BorderBeam
-										size={120}
-										duration={15 + index * 2}
-										delay={index * 2}
-										colorFrom="var(--color-primary)"
-										colorTo="var(--color-accent)"
-										className="opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-									/>
-
-									{/* Background glow effect */}
-									<div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-linear-to-br from-primary/8 via-transparent to-accent/8 rounded pointer-events-none transition-all duration-500 blur-sm" />
-
 									<div className="relative z-10">
-										{/* Animated number with enhanced styling */}
-										<div className="text-3xl lg:typography-h1 text-primary mb-2 tracking-tight group-hover:scale-105 transition-transform duration-300">
+										<div className="whitespace-nowrap text-3xl lg:typography-h1 text-primary-text mb-2 tracking-tight">
 											{stat.prefix}
 											<NumberTicker
 												value={stat.value}
@@ -94,29 +83,14 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 											{stat.suffix}
 										</div>
 
-										{/* Enhanced label with hover effect */}
-										<div className="typography-large text-foreground mb-1 group-hover:text-primary-text transition-colors duration-300">
+										<div className="typography-large text-foreground mb-1">
 											{stat.label}
 										</div>
 
-										{/* Enhanced description */}
-										<div className="text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300">
+										<div className="text-muted-foreground">
 											{stat.description}
 										</div>
 									</div>
-
-									{/* Enhanced hover gradient with animation */}
-									<div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-linear-to-br from-primary/4 to-accent/4 rounded pointer-events-none transition-all duration-500" />
-
-									{/* Floating accent particles */}
-									<div
-										className="absolute top-3 right-3 size-2 rounded-full bg-accent opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-125 animate-pulse"
-										aria-hidden="true"
-									/>
-									<div
-										className="absolute bottom-3 left-3 w-1.5 h-1.5 rounded-full bg-primary/60 opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-150"
-										aria-hidden="true"
-									/>
 								</div>
 							</div>
 						</BlurFade>

@@ -148,9 +148,7 @@ test.describe("Owner Authentication", () => {
 		];
 
 		for (const item of navigationItems) {
-			const linkLocator = page
-				.getByRole("link", { name: new RegExp(item, "i") })
-				.first();
+			const linkLocator = page.getByRole("link", { name: item }).first();
 			await expect(linkLocator).toBeVisible({ timeout: 5000 });
 		}
 	});

@@ -15,11 +15,14 @@ import { Button } from "#components/ui/button";
 import { Skeleton } from "#components/ui/skeleton";
 import { getAllPricingPlans, type PricingConfig } from "#config/pricing";
 import { useSubscriptionStatus } from "#hooks/api/use-billing";
+import { DiagnosticError } from "#lib/diagnostic-error";
+import { handleMutationError } from "#lib/mutation-error-handler";
 import {
 	createCheckoutSession,
 	createCustomerPortalSession,
 } from "#lib/stripe/stripe-client";
 import { cn } from "#lib/utils";
+import { formatCurrency } from "#lib/utils/currency";
 
 const TIER_BY_PLAN_ID: Record<PricingConfig["planId"], number> = {
 	trial: 0,
@@ -145,13 +148,11 @@ export default function BillingPlansPage() {
 				if (url) {
 					window.location.href = url;
 				} else {
-					throw new Error("No checkout URL returned");
+					throw new DiagnosticError("No checkout URL returned");
 				}
 			}
 		} catch (error) {
-			const message =
-				error instanceof Error ? error.message : "An error occurred";
-			toast.error(message);
+			handleMutationError(error, "Start checkout");
 			setDialogOpen(false);
 		} finally {
 			setIsLoading(false);
@@ -167,11 +168,7 @@ export default function BillingPlansPage() {
 			const { url } = await createCustomerPortalSession(returnUrl);
 			window.location.href = url;
 		} catch (error) {
-			const message =
-				error instanceof Error
-					? error.message
-					: "Failed to open billing portal";
-			toast.error(message);
+			handleMutationError(error, "Open billing portal");
 		} finally {
 			setIsLoading(false);
 		}
@@ -195,12 +192,15 @@ export default function BillingPlansPage() {
 	return (
 		<div className="container max-w-7xl py-8">
 			<div className="mb-8">
+				{/* Billing settings, not the dashboard: an owner whose plan has
+				    lapsed reaches this page and Settings, and the proxy sends the
+				    dashboard to /pricing (66.2-39 fix round 4, Part 8l). */}
 				<Link
-					href="/dashboard"
+					href="/settings?tab=billing"
 					className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-11"
 				>
 					<ArrowLeft className="size-4" />
-					Back to Dashboard
+					Back to Billing Settings
 				</Link>
 
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -208,12 +208,18 @@ export default function BillingPlansPage() {
 						<h1 className="text-2xl font-bold text-foreground">
 							Subscription Plans
 						</h1>
-						<p className="text-muted-foreground mt-1">
-							{hasSubscription && currentPlan
-								? `You are currently on the ${currentPlan.name} plan`
-								: hasSubscription
-									? "You have an active subscription"
-									: "Choose a plan that fits your needs"}
+						{/* A known plan is named with its status beside it: past_due,
+						    unpaid, paused and incomplete read "You are currently on the
+						    Growth plan" as an active one did (main session, 66.2-39 fix
+						    round 4, Part 8m). */}
+						<p className="mb-0 text-muted-foreground mt-1">
+							{hasSubscription
+								? status === "active" || status === "trialing"
+									? currentPlan
+										? `You are currently on the ${currentPlan.name} plan`
+										: "You have an active subscription"
+									: `Your ${currentPlan ? `${currentPlan.name} ` : ""}subscription is ${status?.replace(/_/g, " ")}`
+								: "Choose a plan that fits your needs"}
 						</p>
 					</div>
 
@@ -242,10 +248,10 @@ export default function BillingPlansPage() {
 							<p className="font-medium text-foreground">
 								Current Plan: {currentPlan.name}
 							</p>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								{currentPlan.price === 0
 									? "Free"
-									: `$${currentPlan.price}/month`}
+									: `${formatCurrency(currentPlan.price, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/month`}
 							</p>
 						</div>
 					</div>
@@ -272,7 +278,7 @@ export default function BillingPlansPage() {
 			</div>
 
 			<div className="mt-12 text-center">
-				<p className="text-sm text-muted-foreground">
+				<p className="mb-0 text-sm text-muted-foreground">
 					Need help choosing a plan?{" "}
 					<Link
 						href="/contact"
@@ -281,7 +287,7 @@ export default function BillingPlansPage() {
 						Contact our sales team
 					</Link>
 				</p>
-				<p className="text-xs text-muted-foreground mt-2">
+				<p className="text-xs text-muted-foreground mt-2 mb-0">
 					New accounts include a 14-day free trial. Cancel anytime.
 				</p>
 			</div>

@@ -18,7 +18,7 @@ import { cn } from "#lib/utils";
 import { headingId } from "./heading-id";
 
 /**
- * Subset of `BlogDetail` actually rendered by this page. Defining the prop
+ * Subset of the `blogs` row actually rendered by this page. Defining the prop
  * shape locally lets the server pass the post directly without forcing the
  * caller to materialize every column on `blogs`.
  */
@@ -112,7 +112,7 @@ export default function BlogPostPage({
 						</span>
 					</div>
 
-					<h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-5 leading-[1.1]">
+					<h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-5 leading-display">
 						{post.title}
 					</h1>
 
@@ -158,7 +158,7 @@ export default function BlogPostPage({
 							"object-cover transition-all duration-700 ease-out",
 							heroBlurUp
 								? "blur-sm opacity-0 scale-105"
-								: "blur-0 opacity-100 scale-100",
+								: "blur-none opacity-100 scale-100",
 						)}
 						onLoad={() => setImageLoaded(true)}
 					/>
@@ -174,7 +174,7 @@ export default function BlogPostPage({
 							<p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 								On this page
 							</p>
-							<ol className="space-y-2">
+							<ol className="flex flex-col gap-2 pl-0 mt-0 mb-0 [&>li]:mb-0">
 								{toc.map((item) => (
 									<li key={item.id}>
 										<a
@@ -201,7 +201,7 @@ export default function BlogPostPage({
 						</p>
 						<Link
 							href={`/compare/${competitorSlug}`}
-							className="inline-flex items-center text-primary-text font-semibold hover:text-primary/80 transition-colors"
+							className="inline-flex items-center text-primary-text font-semibold hover:underline transition-colors"
 						>
 							See Full Comparison
 							<ArrowRight className="ml-1.5 size-4" aria-hidden="true" />
@@ -216,7 +216,7 @@ export default function BlogPostPage({
 						</p>
 						<Link
 							href={`/resources/${resourceSlug}`}
-							className="inline-flex items-center text-primary-text font-semibold hover:text-primary/80 transition-colors"
+							className="inline-flex items-center text-primary-text font-semibold hover:underline transition-colors"
 						>
 							View Resource
 							<ArrowRight className="ml-1.5 size-4" aria-hidden="true" />
@@ -253,7 +253,7 @@ export default function BlogPostPage({
 				{relatedPosts && relatedPosts.length > 0 && (
 					<section className="mt-16">
 						<h2 className="text-2xl font-bold mb-6">Related Articles</h2>
-						<div className="grid md:grid-cols-3 gap-6">
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 							{relatedPosts.map((rp) => (
 								<BlogCard key={rp.id} post={rp} />
 							))}

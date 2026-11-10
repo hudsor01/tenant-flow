@@ -1,7 +1,7 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import { omitUndefined } from "#lib/db-insert";
-import { createLogger, logger } from "#lib/frontend-logger";
+import { createLogger } from "#lib/frontend-logger";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { escapeOrValue } from "#lib/sanitize-search";
@@ -15,6 +15,10 @@ import type { PaginatedResponse } from "#types/api-contracts";
 import type { Property, PropertyStatus, PropertyType, Unit } from "#types/core";
 import type { Tables } from "#types/supabase";
 import { mutationKeys } from "../mutation-keys";
+import {
+	mapPropertyPerformance,
+	type PropertyPerformanceResult,
+} from "./property-performance-mappers";
 
 export interface PropertyFilters {
 	status?: PropertyStatus;
@@ -122,12 +126,14 @@ export const propertyQueries = {
 				...propertyQueries.detail(property_id).queryKey,
 				"performance",
 			],
-			queryFn: async () => {
+			queryFn: async (): Promise<PropertyPerformanceResult | null> => {
 				const supabase = createClient();
 				const user = await getCachedUser();
 				if (!user) return null;
-				// Valid p_timeframe values: '7d' | '30d' | '90d' | '180d' | '365d'.
-				// Anything else silently falls through to the 30d default.
+				// The trailing 365 days ending today. get_property_performance_
+				// analytics (20261102163709) takes a trailing window ('7d', '30d',
+				// '90d', '180d' or '365d') or a range ('YYYY-MM-DD..YYYY-MM-DD');
+				// anything else is 30 days.
 				const { data, error } = await supabase.rpc(
 					"get_property_performance_analytics",
 					{
@@ -137,16 +143,10 @@ export const propertyQueries = {
 					},
 				);
 				if (error) handlePostgrestError(error, "property performance");
-				const rows = (data ?? []) as Array<{
-					property_id: string;
-					property_name: string;
-					timeframe: string;
-					total_revenue: number;
-					total_expenses: number;
-					net_income: number;
-					occupancy_rate: number;
-				}>;
-				return rows[0] ?? null;
+				const result = mapPropertyPerformance(data);
+				const rows =
+					result.status === "ready" ? result.properties : result.occupancy;
+				return rows.length > 0 ? result : null;
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!property_id,
@@ -282,7 +282,7 @@ export const propertyQueries = {
 					.order("display_order", { ascending: true })
 					.limit(50);
 
-				if (error) throw new Error(error.message);
+				if (error) handlePostgrestError(error, "property images");
 
 				return (data as Tables<"property_images">[]).map((image) => {
 					const isFullUrl = /^https?:\/\//.test(image.image_url);
@@ -400,37 +400,6 @@ export const propertyMutations = {
 			},
 		}),
 
-	markSold: () =>
-		mutationOptions<
-			{ success: boolean; message: string },
-			unknown,
-			{ id: string; dateSold: Date; salePrice: number }
-		>({
-			mutationKey: mutationKeys.properties.markSold,
-			mutationFn: async ({
-				id,
-				dateSold,
-				salePrice,
-			}): Promise<{ success: boolean; message: string }> => {
-				const supabase = createClient();
-				const { data: updated, error } = await supabase
-					.from("properties")
-					.update({
-						status: "sold",
-						date_sold: dateSold.toISOString(),
-						sale_price: salePrice,
-					})
-					.eq("id", id)
-					.select()
-					.single();
-
-				if (error) handlePostgrestError(error, "properties");
-
-				logger.info("Property marked as sold", { property_id: id, updated });
-				return { success: true, message: "Property marked as sold" };
-			},
-		}),
-
 	deleteImage: () =>
 		mutationOptions<
 			{ success: boolean },
@@ -447,7 +416,7 @@ export const propertyMutations = {
 					.delete()
 					.eq("id", imageId);
 
-				if (dbError) throw new Error(dbError.message);
+				if (dbError) handlePostgrestError(dbError, "delete property image");
 
 				if (imagePath) {
 					try {

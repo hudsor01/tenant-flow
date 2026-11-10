@@ -3,7 +3,7 @@
  *
  * Exports:
  * - {@link formatTrendPercent} — emits `+12%` / `−3%` (U+2212 minus) / `0%`.
- *   Used by `<StatTrend>` to render the per-tile percent chip (03-UI-SPEC § 4.3).
+ *   `describeTrend` calls it for a tile's percent chip (03-UI-SPEC § 4.3).
  * - {@link sparklineConfigForTrend} — maps trend direction → ChartConfig with
  *   `spark.theme.{light,dark}` set to the correct status token. Consumed by
  *   `KpiSparkline` (03-UI-SPEC § 6.2) so the sparkline stroke + fill resolve
@@ -13,6 +13,9 @@
  */
 
 import type { ChartConfig } from "#components/ui/chart";
+import { formatCount } from "#lib/formatters/count";
+import { formatSignedOneDecimal } from "#lib/formatters/signed";
+import { windowDays } from "#lib/stated-window";
 import type { MetricTrend, TimeSeriesDataPoint } from "#types/analytics";
 import type { DashboardStats } from "#types/stats";
 
@@ -29,18 +32,13 @@ type TrendDirection = MetricTrend["trend"];
  * render as `0%` with no sign (03-UI-SPEC § 4.3 honesty rule).
  *
  * NaN / Infinity guard (cycle-1 WR-02 hardening): `MetricTrend.percentChange`
- * is typed `number`, but the RPC can ship `NaN` on a stale row and
- * `Math.round(NaN)` returns `NaN` — without the guard the chip would
- * render `"NaN%"` or `"+Infinity%"`. The `Number.isFinite` short-circuit
- * is load-bearing; do NOT remove it as "defensive overkill" — it
- * defends a real failure mode.
+ * is `number | null`, `mapMetricTrend` maps a non-finite value to null, and
+ * `describeTrend` returns its no-prior chip for null or NaN before it calls
+ * this, so the chip never shows the guard's "0%". The guard protects a direct
+ * caller only: `Math.round(NaN)` is `NaN`, which would print `"NaN%"`.
  */
 export function formatTrendPercent(percentChange: number): string {
-	// WR-02 cycle-1 fix: NaN / Infinity guard. The type says `number` but
-	// `MetricTrend.percentChange` can carry NaN if the RPC ships a stale row,
-	// and `Math.round(NaN)` returns NaN — without this guard the rendered
-	// chip reads "NaN%" or "+Infinity%". Same hardening as the `safeOccupancy`
-	// guard in kpi-bento-row.tsx.
+	// For a direct caller: describeTrend never passes a non-finite value.
 	if (!Number.isFinite(percentChange)) return "0%";
 	const rounded = Math.round(percentChange);
 	// String.fromCharCode(0x2212) is the U+2212 typographic minus — distinct
@@ -51,12 +49,82 @@ export function formatTrendPercent(percentChange: number): string {
 	return `${sign}${Math.abs(rounded)}%`;
 }
 
+/** How a tile states its change: percent, or (occupancy) percentage points. */
+export type TrendUnit = "percent" | "points";
+
+/**
+ * What a tile's chip says about its trend, read once for the chip and its
+ * narrated label:
+ * - `unavailable`: the server states no window (a body before 20261102184501,
+ *   whose figure is no change), so the chip says so and shows no figure;
+ * - `no-prior`: there was no earlier figure (percentChange null), so there is
+ *   no percent to show: "No rent scheduled 30 days ago";
+ * - `change`: the figure ("+12%", or "−25.0 pts" in points as the analytics
+ *   overview's occupancy tile prints it) and the window it computes
+ *   ("vs. 30 days ago", from the trend's own window).
+ */
+export type TrendChip =
+	| { readonly kind: "unavailable"; readonly text: string }
+	| { readonly kind: "no-prior"; readonly text: string }
+	| {
+			readonly kind: "change";
+			readonly figure: string;
+			readonly spokenFigure: string;
+			readonly windowLabel: string;
+	  };
+
+/** "vs. 30 days ago": the trend's earlier day, counted back from its later. */
+export function trendWindowLabel(days: number): string {
+	return `vs. ${formatCount(days, "day")} ago`;
+}
+
+export function describeTrend(
+	trend: MetricTrend,
+	unit: TrendUnit,
+	noPriorText: string,
+): TrendChip {
+	if (trend.window === null) {
+		return { kind: "unavailable", text: "Change unavailable" };
+	}
+	const days = windowDays(trend.window);
+	if (unit === "points") {
+		const points = Math.abs(Math.round(trend.change * 10) / 10);
+		return {
+			kind: "change",
+			figure: `${formatSignedOneDecimal(trend.change)} pts`,
+			spokenFigure: formatCount(points, "point"),
+			windowLabel: trendWindowLabel(days),
+		};
+	}
+	// A non-finite percent (NaN from a stale row) is no figure either, never
+	// a fabricated 0% (WR-02).
+	if (trend.percentChange === null || !Number.isFinite(trend.percentChange)) {
+		return {
+			kind: "no-prior",
+			text: `${noPriorText} ${formatCount(days, "day")} ago`,
+		};
+	}
+	const pct = Math.abs(Math.round(trend.percentChange));
+	return {
+		kind: "change",
+		figure: formatTrendPercent(trend.percentChange),
+		spokenFigure: `${pct} percent`,
+		windowLabel: trendWindowLabel(days),
+	};
+}
+
 /**
  * Returns a shadcn {@link ChartConfig} keyed by `spark` whose theme map
  * routes the sparkline stroke + fill through a status token:
- * - `up` → `--color-success`
- * - `down` → `--color-warning`
+ * - `up` → `--color-success-text`
+ * - `down` → `--color-warning-text`
  * - `stable` → `--color-muted-foreground`
+ *
+ * The stroke is a graphical object (WCAG 1.4.11, 3:1 on the card): the AA
+ * companions read 5.89:1 / 5.48:1 light and 11.07:1 / 11.74:1 dark (token
+ * math; success-text read 5.23:1 light in Chrome before fix round 4 darkened
+ * it), where the vivid `--color-success` / `--color-warning` fills read
+ * 2.62:1 / 2.18:1 on the light card (66.2-39 VD-53).
  *
  * `ChartContainer` (src/components/ui/chart.tsx) consumes the returned config
  * and injects a scoped `--color-spark` CSS variable, so the sparkline JSX
@@ -64,15 +132,17 @@ export function formatTrendPercent(percentChange: number): string {
  * place (03-UI-SPEC § 6.2).
  *
  * Both `theme.light` and `theme.dark` point at the same token because the
- * status tokens already resolve to dark-mode-correct `oklch()` values via
- * the `:where(.dark, .dark *)` override in `globals.css`.
+ * status tokens already resolve to dark-mode-correct `oklch()` values:
+ * `--color-success-text`, `--color-warning-text` and `--color-muted-foreground`
+ * alias `--success-text`, `--warning-text` and `--muted-foreground`, which
+ * `.dark` redefines in `globals.css`.
  */
 export function sparklineConfigForTrend(trend: TrendDirection): ChartConfig {
 	const token =
 		trend === "up"
-			? "--color-success"
+			? "--color-success-text"
 			: trend === "down"
-				? "--color-warning"
+				? "--color-warning-text"
 				: "--color-muted-foreground";
 	return {
 		spark: {
@@ -99,11 +169,14 @@ export function sparklineConfigForTrend(trend: TrendDirection): ChartConfig {
  *   when no secondary signal applies.
  * - `spokenDescription` — aria-label fragment for the description (e.g.
  *   `"87 of 100 units occupied"`); falls back to `description` when undefined.
- * - `value` / `decimalPlaces` / `prefix` / `suffix` — `<NumberTicker>` driver.
+ * - `value` / `decimalPlaces` / `currency` / `suffix` — `<NumberTicker>` driver;
+ *   `currency` formats the value as dollars (sign before the symbol).
  * - `trend` — `MetricTrend | null`; render `<StatTrend>` only when non-null
- *   (CONTEXT.md D-04 honesty rule).
- * - `trendLabel` — secondary text right of the percent (e.g.
- *   `"vs. last month"`).
+ *   (CONTEXT.md D-04 honesty rule). What it says is `describeTrend`'s.
+ * - `trendUnit` — `"points"` for occupancy (a change in percentage points,
+ *   as the analytics overview's tile states it), else `"percent"`.
+ * - `noPriorText` — what the chip says with no earlier figure, before the
+ *   window ("No rent scheduled" + " 30 days ago").
  * - `sparkline` — when non-null, mount `<KpiSparkline>` with these props
  *   (03-UI-SPEC § 6.1 contract).
  * - `waveDelay` — `BlurFade` `delay` coefficient (0..6) per 03-UI-SPEC § 7.
@@ -116,10 +189,11 @@ export interface KpiTileConfig {
 	spokenDescription?: string;
 	value: number;
 	decimalPlaces: number;
-	prefix?: string;
+	currency?: boolean;
 	suffix?: string;
 	trend: MetricTrend | null;
-	trendLabel?: string;
+	trendUnit: TrendUnit;
+	noPriorText: string;
 	sparkline: {
 		data: TimeSeriesDataPoint[];
 		trend: TrendDirection;
@@ -166,35 +240,31 @@ interface BuildTileAriaLabelInput {
 	spokenValue: string;
 	spokenDescription?: string;
 	trend: MetricTrend | null;
-	trendLabel?: string;
+	trendUnit?: TrendUnit;
+	noPriorText?: string;
 }
 
 /**
  * Builds the consolidated `aria-label` sentence each `<Stat>` carries, per
- * 03-UI-SPEC § 8.2. Output examples:
+ * 03-UI-SPEC § 8.2, from the same `describeTrend` the visible chip reads.
+ * Output examples:
  *
- * - `"Revenue: $14,250 this month. Up 12 percent vs. last month."`
- * - `"Occupancy: 87 percent. 87 of 100 units occupied. Down 3 percent vs. last month."`
- * - `"Active leases: 42. 3 expiring soon."`
+ * - `"Revenue: $14,250. This month. Up 12 percent vs. 30 days ago."`
+ * - `"Occupancy: 87 percent. 87 of 100 units occupied. Down 3 points vs. 30 days ago."`
+ * - `"Revenue: $700. This month. No rent scheduled 30 days ago."`
+ * - `"Open maintenance: 8. Requires attention. Change unavailable."`
  * - `"Properties: 12."`
- * - `"Open maintenance: 8. Requires attention. Unchanged vs. last month."`
  *
  * Construction rules:
  * - Starts with `${label}: ${spokenValue}.`
  * - If `spokenDescription` is set, pushes `${spokenDescription}.`
  * - If `trend` is `null`, the trend segment is omitted entirely (D-04 + D-09
  *   honesty rule — no fabricated `0%`).
- * - If `trend.trend === "stable"`, emits `"Unchanged vs. <window>."` (strips
- *   any leading `"vs. "` from the trendLabel to avoid duplication). When
- *   `trendLabel` is undefined or empty, emits `"Unchanged."` (cycle-2
- *   WR-2C-02 fix — prevents an orphan `"Unchanged vs. ."` sentence).
- * - Otherwise emits `"<Up|Down> <abs(round(pct))> percent <trendLabel>."`,
- *   trimming a trailing space when `trendLabel` is undefined.
- *
- * NaN / Infinity guard (cycle-1 WR-02 hardening): the `pct` value uses a
- * `Number.isFinite` short-circuit so `trend.percentChange === NaN` (which
- * can occur on a stale RPC row) does NOT narrate `"Up NaN percent..."`.
- * Load-bearing; do NOT remove.
+ * - With no window (unavailable) or no earlier figure (no-prior), the chip's
+ *   own text, so the narration never invents a figure.
+ * - A `stable` change reads `"Unchanged vs. 30 days ago."`.
+ * - Otherwise `"<Up|Down> <figure> vs. <n> days ago."`, the figure in
+ *   percent or points as the chip shows it (a NaN percent is no figure).
  */
 export function buildTileAriaLabel(input: BuildTileAriaLabelInput): string {
 	const parts: string[] = [`${input.label}: ${input.spokenValue}.`];
@@ -202,42 +272,19 @@ export function buildTileAriaLabel(input: BuildTileAriaLabelInput): string {
 		parts.push(`${input.spokenDescription}.`);
 	}
 	if (input.trend !== null) {
-		const directionWord =
-			input.trend.trend === "up"
-				? "Up"
-				: input.trend.trend === "down"
-					? "Down"
-					: "Unchanged";
-		// WR-02 cycle-1 fix: NaN / Infinity guard — same hardening as
-		// `formatTrendPercent`. Without this the narrated sentence becomes
-		// "Up NaN percent vs. last month."
-		const pct = Number.isFinite(input.trend.percentChange)
-			? Math.abs(Math.round(input.trend.percentChange))
-			: 0;
-		let trendSegment: string;
-		if (input.trend.trend === "stable") {
-			// WR-2C-02 / WR-3C-01 cycle-3 fix: trim BEFORE the `vs.` strip so
-			// leading whitespace doesn't defeat the `^vs.` anchor. Without the
-			// .trim(), `trendLabel: "  vs. last week"` survived the regex (the
-			// `^` matched the space, not "vs.") and emitted the doubled
-			// "Unchanged vs.   vs. last week". Empty-string output collapses
-			// to "Unchanged." (no orphan "vs. .").
-			const windowText = (input.trendLabel ?? "")
-				.trim()
-				.replace(/^vs\.\s*/, "");
-			trendSegment = windowText ? `Unchanged vs. ${windowText}` : "Unchanged";
+		const chip = describeTrend(
+			input.trend,
+			input.trendUnit ?? "percent",
+			input.noPriorText ?? "No prior figure",
+		);
+		if (chip.kind !== "change") {
+			parts.push(`${chip.text}.`);
+		} else if (input.trend.trend === "stable") {
+			parts.push(`Unchanged ${chip.windowLabel}.`);
 		} else {
-			// WR-4C-01 cycle-4 fix: trim the trendLabel BEFORE interpolation so
-			// leading whitespace doesn't survive into the narrated sentence as
-			// the stable branch already does. Without this, `trendLabel: "  vs.
-			// last week"` produced "Up 12 percent   vs. last week" (3 spaces).
-			const normalizedLabel = (input.trendLabel ?? "").trim();
-			const base = normalizedLabel
-				? `${directionWord} ${pct} percent ${normalizedLabel}`
-				: `${directionWord} ${pct} percent`;
-			trendSegment = base;
+			const directionWord = input.trend.trend === "up" ? "Up" : "Down";
+			parts.push(`${directionWord} ${chip.spokenFigure} ${chip.windowLabel}.`);
 		}
-		parts.push(`${trendSegment}.`);
 	}
 	return parts.join(" ");
 }

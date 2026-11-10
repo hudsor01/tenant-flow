@@ -1,0 +1,7092 @@
+{
+  "label": "head",
+  "baseUrl": "http://localhost:3063",
+  "tourAnswered": 2,
+  "tourForwarded": 0,
+  "results": [
+    {
+      "cell": {
+        "w": 375,
+        "h": 667,
+        "collapsed": false
+      },
+      "viewport": {
+        "w": 375,
+        "h": 667
+      },
+      "sidebarState": null,
+      "sidebarContainer": null,
+      "main": {
+        "x": 0,
+        "y": 56,
+        "w": 375,
+        "h": 6863.19,
+        "right": 375,
+        "bottom": 6919.19
+      },
+      "mainPadded": {
+        "x": 0,
+        "y": 56,
+        "w": 375,
+        "h": 6673.8,
+        "right": 375,
+        "bottom": 6729.8
+      },
+      "kpiGrid": {
+        "box": {
+          "x": 40,
+          "y": 124.8,
+          "w": 295,
+          "h": 752,
+          "right": 335,
+          "bottom": 876.8
+        },
+        "cols": "295px",
+        "colCount": 1,
+        "gap": "16px",
+        "containerType": "inline-size"
+      },
+      "tiles": [
+        {
+          "label": "Revenue",
+          "valueText": "$7,500",
+          "li": {
+            "x": 40,
+            "y": 124.8,
+            "w": 295,
+            "h": 174,
+            "right": 335,
+            "bottom": 298.8
+          },
+          "stat": {
+            "x": 40,
+            "y": 124.8,
+            "w": 295,
+            "h": 174,
+            "right": 335,
+            "bottom": 298.8
+          },
+          "statPadding": "16px/16px",
+          "statCols": "137.766px 107.234px",
+          "labelBox": {
+            "x": 57,
+            "y": 141.8,
+            "w": 137.77,
+            "h": 32,
+            "right": 194.77,
+            "bottom": 173.8
+          },
+          "labelMinContent": 53.67,
+          "value": {
+            "x": 210.77,
+            "y": 141.8,
+            "w": 107.23,
+            "h": 32,
+            "right": 318,
+            "bottom": 173.8
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 107.23,
+          "kids": [
+            {
+              "text": "$",
+              "x": 210.77,
+              "y": 138.8,
+              "w": 17.89,
+              "h": 38,
+              "right": 228.66,
+              "bottom": 176.8
+            },
+            {
+              "text": "7,500",
+              "x": 228.66,
+              "y": 141.8,
+              "w": 89.34,
+              "h": 32,
+              "right": 318,
+              "bottom": 173.8
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Occupancy",
+          "valueText": "33%",
+          "li": {
+            "x": 40,
+            "y": 314.8,
+            "w": 295,
+            "h": 174,
+            "right": 335,
+            "bottom": 488.8
+          },
+          "stat": {
+            "x": 40,
+            "y": 314.8,
+            "w": 295,
+            "h": 174,
+            "right": 335,
+            "bottom": 488.8
+          },
+          "statPadding": "16px/16px",
+          "statCols": "181.875px 63.125px",
+          "labelBox": {
+            "x": 57,
+            "y": 331.8,
+            "w": 181.88,
+            "h": 32,
+            "right": 238.88,
+            "bottom": 363.8
+          },
+          "labelMinContent": 69.44,
+          "value": {
+            "x": 254.88,
+            "y": 331.8,
+            "w": 63.13,
+            "h": 32,
+            "right": 318,
+            "bottom": 363.8
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 63.13,
+          "kids": [
+            {
+              "text": "33",
+              "x": 254.88,
+              "y": 331.8,
+              "w": 39.94,
+              "h": 32,
+              "right": 294.81,
+              "bottom": 363.8
+            },
+            {
+              "text": "%",
+              "x": 294.81,
+              "y": 328.8,
+              "w": 23.19,
+              "h": 38,
+              "right": 318,
+              "bottom": 366.8
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Active leases",
+          "valueText": "5",
+          "li": {
+            "x": 40,
+            "y": 504.8,
+            "w": 295,
+            "h": 66,
+            "right": 335,
+            "bottom": 570.8
+          },
+          "stat": {
+            "x": 40,
+            "y": 504.8,
+            "w": 295,
+            "h": 66,
+            "right": 335,
+            "bottom": 570.8
+          },
+          "statPadding": "16px/16px",
+          "statCols": "225.031px 19.9688px",
+          "labelBox": {
+            "x": 57,
+            "y": 521.8,
+            "w": 225.03,
+            "h": 32,
+            "right": 282.03,
+            "bottom": 553.8
+          },
+          "labelMinContent": 40.53,
+          "value": {
+            "x": 298.03,
+            "y": 521.8,
+            "w": 19.97,
+            "h": 32,
+            "right": 318,
+            "bottom": 553.8
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "5",
+              "x": 298.03,
+              "y": 521.8,
+              "w": 19.97,
+              "h": 32,
+              "right": 318,
+              "bottom": 553.8
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Open maintenance",
+          "valueText": "0",
+          "li": {
+            "x": 40,
+            "y": 586.8,
+            "w": 295,
+            "h": 106,
+            "right": 335,
+            "bottom": 692.8
+          },
+          "stat": {
+            "x": 40,
+            "y": 586.8,
+            "w": 295,
+            "h": 106,
+            "right": 335,
+            "bottom": 692.8
+          },
+          "statPadding": "16px/16px",
+          "statCols": "225.031px 19.9688px",
+          "labelBox": {
+            "x": 57,
+            "y": 603.8,
+            "w": 225.03,
+            "h": 32,
+            "right": 282.03,
+            "bottom": 635.8
+          },
+          "labelMinContent": 81.22,
+          "value": {
+            "x": 298.03,
+            "y": 603.8,
+            "w": 19.97,
+            "h": 32,
+            "right": 318,
+            "bottom": 635.8
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "0",
+              "x": 298.03,
+              "y": 603.8,
+              "w": 19.97,
+              "h": 32,
+              "right": 318,
+              "bottom": 635.8
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Properties",
+          "valueText": "24",
+          "li": {
+            "x": 40,
+            "y": 708.8,
+            "w": 295,
+            "h": 66,
+            "right": 335,
+            "bottom": 774.8
+          },
+          "stat": {
+            "x": 40,
+            "y": 708.8,
+            "w": 295,
+            "h": 66,
+            "right": 335,
+            "bottom": 774.8
+          },
+          "statPadding": "16px/16px",
+          "statCols": "205.062px 39.9375px",
+          "labelBox": {
+            "x": 57,
+            "y": 725.8,
+            "w": 205.06,
+            "h": 32,
+            "right": 262.06,
+            "bottom": 757.8
+          },
+          "labelMinContent": 65.27,
+          "value": {
+            "x": 278.06,
+            "y": 725.8,
+            "w": 39.94,
+            "h": 32,
+            "right": 318,
+            "bottom": 757.8
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "24",
+              "x": 278.06,
+              "y": 725.8,
+              "w": 39.94,
+              "h": 32,
+              "right": 318,
+              "bottom": 757.8
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Units",
+          "valueText": "18",
+          "li": {
+            "x": 40,
+            "y": 790.8,
+            "w": 295,
+            "h": 86,
+            "right": 335,
+            "bottom": 876.8
+          },
+          "stat": {
+            "x": 40,
+            "y": 790.8,
+            "w": 295,
+            "h": 86,
+            "right": 335,
+            "bottom": 876.8
+          },
+          "statPadding": "16px/16px",
+          "statCols": "205.062px 39.9375px",
+          "labelBox": {
+            "x": 57,
+            "y": 807.8,
+            "w": 205.06,
+            "h": 32,
+            "right": 262.06,
+            "bottom": 839.8
+          },
+          "labelMinContent": 32.41,
+          "value": {
+            "x": 278.06,
+            "y": 807.8,
+            "w": 39.94,
+            "h": 32,
+            "right": 318,
+            "bottom": 839.8
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "18",
+              "x": 278.06,
+              "y": 807.8,
+              "w": 39.94,
+              "h": 32,
+              "right": 318,
+              "bottom": 839.8
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        }
+      ],
+      "trends": {
+        "box": {
+          "x": 40,
+          "y": 1026.8,
+          "w": 295,
+          "h": 1218,
+          "right": 335,
+          "bottom": 2244.8
+        },
+        "cols": "295px",
+        "gap": "24px",
+        "trackBoxes": [
+          {
+            "left": 40,
+            "right": 335
+          }
+        ],
+        "children": [
+          {
+            "title": "Revenue",
+            "x": 40,
+            "y": 1026.8,
+            "w": 295,
+            "h": 418,
+            "right": 335,
+            "bottom": 1444.8
+          },
+          {
+            "title": "Occupancy",
+            "x": 40,
+            "y": 1468.8,
+            "w": 295,
+            "h": 352,
+            "right": 335,
+            "bottom": 1820.8
+          },
+          {
+            "title": "Quick Actions",
+            "x": 40,
+            "y": 1844.8,
+            "w": 295,
+            "h": 400,
+            "right": 335,
+            "bottom": 2244.8
+          }
+        ]
+      },
+      "quickActions": {
+        "card": {
+          "x": 40,
+          "y": 1844.8,
+          "w": 295,
+          "h": 400,
+          "right": 335,
+          "bottom": 2244.8
+        },
+        "scrollW": 293,
+        "clientW": 293,
+        "content": {
+          "x": 41,
+          "y": 1935.8,
+          "w": 293,
+          "h": 284,
+          "right": 334,
+          "bottom": 2219.8
+        },
+        "buttons": [
+          {
+            "text": "Add PropertyRegister a new property",
+            "x": 65,
+            "y": 1935.8,
+            "w": 245,
+            "h": 62,
+            "right": 310,
+            "bottom": 1997.8,
+            "scrollW": 243,
+            "clientW": 243
+          },
+          {
+            "text": "Create LeaseDraft a new lease agreement",
+            "x": 65,
+            "y": 2009.8,
+            "w": 245,
+            "h": 62,
+            "right": 310,
+            "bottom": 2071.8,
+            "scrollW": 243,
+            "clientW": 243
+          },
+          {
+            "text": "Add TenantCreate a tenant record",
+            "x": 65,
+            "y": 2083.8,
+            "w": 245,
+            "h": 62,
+            "right": 310,
+            "bottom": 2145.8,
+            "scrollW": 243,
+            "clientW": 243
+          },
+          {
+            "text": "New RequestCreate maintenance request",
+            "x": 65,
+            "y": 2157.8,
+            "w": 245,
+            "h": 62,
+            "right": 310,
+            "bottom": 2219.8,
+            "scrollW": 243,
+            "clientW": 243
+          }
+        ]
+      },
+      "donut": {
+        "card": {
+          "x": 40,
+          "y": 1468.8,
+          "w": 295,
+          "h": 352,
+          "right": 335,
+          "bottom": 1820.8
+        },
+        "img": {
+          "x": 65,
+          "y": 1559.8,
+          "w": 245,
+          "h": 180,
+          "right": 310,
+          "bottom": 1739.8
+        },
+        "svg": {
+          "x": 65,
+          "y": 1559.8,
+          "w": 245,
+          "h": 180,
+          "right": 310,
+          "bottom": 1739.8
+        }
+      },
+      "dock": {
+        "wrapper": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "panel": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "left": "50%"
+      },
+      "overlap": {
+        "dockVsDonutCard": null,
+        "dockVsDonutImg": null,
+        "dockVsDonutSvg": null,
+        "dockVsRevenueCard": null,
+        "dockVsQuickActions": null
+      },
+      "docH": 6919
+    },
+    {
+      "cell": {
+        "w": 900,
+        "h": 800,
+        "collapsed": false
+      },
+      "viewport": {
+        "w": 900,
+        "h": 800
+      },
+      "sidebarState": null,
+      "sidebarContainer": null,
+      "main": {
+        "x": 0,
+        "y": 56,
+        "w": 900,
+        "h": 4940.78,
+        "right": 900,
+        "bottom": 4996.78
+      },
+      "mainPadded": {
+        "x": 0,
+        "y": 56,
+        "w": 900,
+        "h": 4847.39,
+        "right": 900,
+        "bottom": 4903.39
+      },
+      "kpiGrid": {
+        "box": {
+          "x": 40,
+          "y": 128.39,
+          "w": 820,
+          "h": 308,
+          "right": 860,
+          "bottom": 436.39
+        },
+        "cols": "193px 193px 193px 193px",
+        "colCount": 4,
+        "gap": "16px",
+        "containerType": "inline-size"
+      },
+      "tiles": [
+        {
+          "label": "Revenue",
+          "valueText": "$7,500",
+          "li": {
+            "x": 40,
+            "y": 128.39,
+            "w": 193,
+            "h": 206,
+            "right": 233,
+            "bottom": 334.39
+          },
+          "stat": {
+            "x": 40,
+            "y": 128.39,
+            "w": 193,
+            "h": 206,
+            "right": 233,
+            "bottom": 334.39
+          },
+          "statPadding": "16px/16px",
+          "statCols": "53.6719px 89.3438px",
+          "labelBox": {
+            "x": 57,
+            "y": 145.39,
+            "w": 53.67,
+            "h": 64,
+            "right": 110.67,
+            "bottom": 209.39
+          },
+          "labelMinContent": 53.67,
+          "value": {
+            "x": 126.67,
+            "y": 145.39,
+            "w": 89.34,
+            "h": 64,
+            "right": 216.02,
+            "bottom": 209.39
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 107.23,
+          "kids": [
+            {
+              "text": "$",
+              "x": 126.67,
+              "y": 142.39,
+              "w": 17.89,
+              "h": 38,
+              "right": 144.56,
+              "bottom": 180.39
+            },
+            {
+              "text": "7,500",
+              "x": 126.67,
+              "y": 177.39,
+              "w": 89.34,
+              "h": 32,
+              "right": 216.02,
+              "bottom": 209.39
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Occupancy",
+          "valueText": "33%",
+          "li": {
+            "x": 249,
+            "y": 128.39,
+            "w": 193,
+            "h": 206,
+            "right": 442,
+            "bottom": 334.39
+          },
+          "stat": {
+            "x": 249,
+            "y": 128.39,
+            "w": 193,
+            "h": 206,
+            "right": 442,
+            "bottom": 334.39
+          },
+          "statPadding": "16px/16px",
+          "statCols": "79.875px 63.125px",
+          "labelBox": {
+            "x": 266,
+            "y": 145.39,
+            "w": 79.88,
+            "h": 40,
+            "right": 345.88,
+            "bottom": 185.39
+          },
+          "labelMinContent": 69.44,
+          "value": {
+            "x": 361.88,
+            "y": 145.39,
+            "w": 63.13,
+            "h": 40,
+            "right": 425,
+            "bottom": 185.39
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 63.13,
+          "kids": [
+            {
+              "text": "33",
+              "x": 361.88,
+              "y": 145.39,
+              "w": 39.94,
+              "h": 32,
+              "right": 401.81,
+              "bottom": 177.39
+            },
+            {
+              "text": "%",
+              "x": 401.81,
+              "y": 142.39,
+              "w": 23.19,
+              "h": 38,
+              "right": 425,
+              "bottom": 180.39
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Active leases",
+          "valueText": "5",
+          "li": {
+            "x": 458,
+            "y": 128.39,
+            "w": 193,
+            "h": 206,
+            "right": 651,
+            "bottom": 334.39
+          },
+          "stat": {
+            "x": 458,
+            "y": 128.39,
+            "w": 193,
+            "h": 206,
+            "right": 651,
+            "bottom": 334.39
+          },
+          "statPadding": "16px/16px",
+          "statCols": "123.031px 19.9688px",
+          "labelBox": {
+            "x": 475,
+            "y": 145.39,
+            "w": 123.03,
+            "h": 172,
+            "right": 598.03,
+            "bottom": 317.39
+          },
+          "labelMinContent": 40.53,
+          "value": {
+            "x": 614.03,
+            "y": 145.39,
+            "w": 19.97,
+            "h": 172,
+            "right": 634,
+            "bottom": 317.39
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "5",
+              "x": 614.03,
+              "y": 145.39,
+              "w": 19.97,
+              "h": 32,
+              "right": 634,
+              "bottom": 177.39
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Open maintenance",
+          "valueText": "0",
+          "li": {
+            "x": 667,
+            "y": 128.39,
+            "w": 193,
+            "h": 206,
+            "right": 860,
+            "bottom": 334.39
+          },
+          "stat": {
+            "x": 667,
+            "y": 128.39,
+            "w": 193,
+            "h": 206,
+            "right": 860,
+            "bottom": 334.39
+          },
+          "statPadding": "16px/16px",
+          "statCols": "123.031px 19.9688px",
+          "labelBox": {
+            "x": 684,
+            "y": 145.39,
+            "w": 123.03,
+            "h": 65.33,
+            "right": 807.03,
+            "bottom": 210.72
+          },
+          "labelMinContent": 81.22,
+          "value": {
+            "x": 823.03,
+            "y": 145.39,
+            "w": 19.97,
+            "h": 65.33,
+            "right": 843,
+            "bottom": 210.72
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "0",
+              "x": 823.03,
+              "y": 145.39,
+              "w": 19.97,
+              "h": 32,
+              "right": 843,
+              "bottom": 177.39
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Properties",
+          "valueText": "24",
+          "li": {
+            "x": 40,
+            "y": 350.39,
+            "w": 193,
+            "h": 86,
+            "right": 233,
+            "bottom": 436.39
+          },
+          "stat": {
+            "x": 40,
+            "y": 350.39,
+            "w": 193,
+            "h": 86,
+            "right": 233,
+            "bottom": 436.39
+          },
+          "statPadding": "16px/16px",
+          "statCols": "103.062px 39.9375px",
+          "labelBox": {
+            "x": 57,
+            "y": 367.39,
+            "w": 103.06,
+            "h": 52,
+            "right": 160.06,
+            "bottom": 419.39
+          },
+          "labelMinContent": 65.27,
+          "value": {
+            "x": 176.06,
+            "y": 367.39,
+            "w": 39.94,
+            "h": 52,
+            "right": 216,
+            "bottom": 419.39
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "24",
+              "x": 176.06,
+              "y": 367.39,
+              "w": 39.94,
+              "h": 32,
+              "right": 216,
+              "bottom": 399.39
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Units",
+          "valueText": "18",
+          "li": {
+            "x": 249,
+            "y": 350.39,
+            "w": 193,
+            "h": 86,
+            "right": 442,
+            "bottom": 436.39
+          },
+          "stat": {
+            "x": 249,
+            "y": 350.39,
+            "w": 193,
+            "h": 86,
+            "right": 442,
+            "bottom": 436.39
+          },
+          "statPadding": "16px/16px",
+          "statCols": "103.062px 39.9375px",
+          "labelBox": {
+            "x": 266,
+            "y": 367.39,
+            "w": 103.06,
+            "h": 32,
+            "right": 369.06,
+            "bottom": 399.39
+          },
+          "labelMinContent": 32.41,
+          "value": {
+            "x": 385.06,
+            "y": 367.39,
+            "w": 39.94,
+            "h": 32,
+            "right": 425,
+            "bottom": 399.39
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "18",
+              "x": 385.06,
+              "y": 367.39,
+              "w": 39.94,
+              "h": 32,
+              "right": 425,
+              "bottom": 399.39
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        }
+      ],
+      "trends": {
+        "box": {
+          "x": 40,
+          "y": 586.39,
+          "w": 820,
+          "h": 1218,
+          "right": 860,
+          "bottom": 1804.39
+        },
+        "cols": "820px",
+        "gap": "24px",
+        "trackBoxes": [
+          {
+            "left": 40,
+            "right": 860
+          }
+        ],
+        "children": [
+          {
+            "title": "Revenue",
+            "x": 40,
+            "y": 586.39,
+            "w": 820,
+            "h": 418,
+            "right": 860,
+            "bottom": 1004.39
+          },
+          {
+            "title": "Occupancy",
+            "x": 40,
+            "y": 1028.39,
+            "w": 820,
+            "h": 352,
+            "right": 860,
+            "bottom": 1380.39
+          },
+          {
+            "title": "Quick Actions",
+            "x": 40,
+            "y": 1404.39,
+            "w": 820,
+            "h": 400,
+            "right": 860,
+            "bottom": 1804.39
+          }
+        ]
+      },
+      "quickActions": {
+        "card": {
+          "x": 40,
+          "y": 1404.39,
+          "w": 820,
+          "h": 400,
+          "right": 860,
+          "bottom": 1804.39
+        },
+        "scrollW": 818,
+        "clientW": 818,
+        "content": {
+          "x": 41,
+          "y": 1495.39,
+          "w": 818,
+          "h": 284,
+          "right": 859,
+          "bottom": 1779.39
+        },
+        "buttons": [
+          {
+            "text": "Add PropertyRegister a new property",
+            "x": 65,
+            "y": 1495.39,
+            "w": 770,
+            "h": 62,
+            "right": 835,
+            "bottom": 1557.39,
+            "scrollW": 768,
+            "clientW": 768
+          },
+          {
+            "text": "Create LeaseDraft a new lease agreement",
+            "x": 65,
+            "y": 1569.39,
+            "w": 770,
+            "h": 62,
+            "right": 835,
+            "bottom": 1631.39,
+            "scrollW": 768,
+            "clientW": 768
+          },
+          {
+            "text": "Add TenantCreate a tenant record",
+            "x": 65,
+            "y": 1643.39,
+            "w": 770,
+            "h": 62,
+            "right": 835,
+            "bottom": 1705.39,
+            "scrollW": 768,
+            "clientW": 768
+          },
+          {
+            "text": "New RequestCreate maintenance request",
+            "x": 65,
+            "y": 1717.39,
+            "w": 770,
+            "h": 62,
+            "right": 835,
+            "bottom": 1779.39,
+            "scrollW": 768,
+            "clientW": 768
+          }
+        ]
+      },
+      "donut": {
+        "card": {
+          "x": 40,
+          "y": 1028.39,
+          "w": 820,
+          "h": 352,
+          "right": 860,
+          "bottom": 1380.39
+        },
+        "img": {
+          "x": 65,
+          "y": 1119.39,
+          "w": 770,
+          "h": 180,
+          "right": 835,
+          "bottom": 1299.39
+        },
+        "svg": {
+          "x": 65,
+          "y": 1119.39,
+          "w": 770,
+          "h": 180,
+          "right": 835,
+          "bottom": 1299.39
+        }
+      },
+      "dock": {
+        "wrapper": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "panel": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "left": "50%"
+      },
+      "overlap": {
+        "dockVsDonutCard": null,
+        "dockVsDonutImg": null,
+        "dockVsDonutSvg": null,
+        "dockVsRevenueCard": null,
+        "dockVsQuickActions": null
+      },
+      "docH": 4997
+    },
+    {
+      "cell": {
+        "w": 1024,
+        "h": 800,
+        "collapsed": false
+      },
+      "viewport": {
+        "w": 1024,
+        "h": 800
+      },
+      "sidebarState": "expanded",
+      "sidebarContainer": {
+        "x": 0,
+        "y": 0,
+        "w": 224,
+        "h": 800,
+        "right": 224,
+        "bottom": 800
+      },
+      "main": {
+        "x": 224,
+        "y": 56,
+        "w": 800,
+        "h": 3120.39,
+        "right": 1024,
+        "bottom": 3176.39
+      },
+      "mainPadded": {
+        "x": 224,
+        "y": 56,
+        "w": 800,
+        "h": 2939,
+        "right": 1024,
+        "bottom": 2995
+      },
+      "kpiGrid": {
+        "box": {
+          "x": 272,
+          "y": 140,
+          "w": 704,
+          "h": 296,
+          "right": 976,
+          "bottom": 436
+        },
+        "cols": "224px 224px 224px",
+        "colCount": 3,
+        "gap": "16px",
+        "containerType": "inline-size"
+      },
+      "tiles": [
+        {
+          "label": "Revenue",
+          "valueText": "$7,500",
+          "li": {
+            "x": 272,
+            "y": 140,
+            "w": 224,
+            "h": 174,
+            "right": 496,
+            "bottom": 314
+          },
+          "stat": {
+            "x": 272,
+            "y": 140,
+            "w": 224,
+            "h": 174,
+            "right": 496,
+            "bottom": 314
+          },
+          "statPadding": "16px/16px",
+          "statCols": "66.7656px 107.234px",
+          "labelBox": {
+            "x": 289,
+            "y": 157,
+            "w": 66.77,
+            "h": 32,
+            "right": 355.77,
+            "bottom": 189
+          },
+          "labelMinContent": 53.67,
+          "value": {
+            "x": 371.77,
+            "y": 157,
+            "w": 107.23,
+            "h": 32,
+            "right": 479,
+            "bottom": 189
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 107.23,
+          "kids": [
+            {
+              "text": "$",
+              "x": 371.77,
+              "y": 154,
+              "w": 17.89,
+              "h": 38,
+              "right": 389.66,
+              "bottom": 192
+            },
+            {
+              "text": "7,500",
+              "x": 389.66,
+              "y": 157,
+              "w": 89.34,
+              "h": 32,
+              "right": 479,
+              "bottom": 189
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Occupancy",
+          "valueText": "33%",
+          "li": {
+            "x": 512,
+            "y": 140,
+            "w": 224,
+            "h": 174,
+            "right": 736,
+            "bottom": 314
+          },
+          "stat": {
+            "x": 512,
+            "y": 140,
+            "w": 224,
+            "h": 174,
+            "right": 736,
+            "bottom": 314
+          },
+          "statPadding": "16px/16px",
+          "statCols": "110.875px 63.125px",
+          "labelBox": {
+            "x": 529,
+            "y": 157,
+            "w": 110.88,
+            "h": 32,
+            "right": 639.88,
+            "bottom": 189
+          },
+          "labelMinContent": 69.44,
+          "value": {
+            "x": 655.88,
+            "y": 157,
+            "w": 63.13,
+            "h": 32,
+            "right": 719,
+            "bottom": 189
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 63.13,
+          "kids": [
+            {
+              "text": "33",
+              "x": 655.88,
+              "y": 157,
+              "w": 39.94,
+              "h": 32,
+              "right": 695.81,
+              "bottom": 189
+            },
+            {
+              "text": "%",
+              "x": 695.81,
+              "y": 154,
+              "w": 23.19,
+              "h": 38,
+              "right": 719,
+              "bottom": 192
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Active leases",
+          "valueText": "5",
+          "li": {
+            "x": 752,
+            "y": 140,
+            "w": 224,
+            "h": 174,
+            "right": 976,
+            "bottom": 314
+          },
+          "stat": {
+            "x": 752,
+            "y": 140,
+            "w": 224,
+            "h": 174,
+            "right": 976,
+            "bottom": 314
+          },
+          "statPadding": "16px/16px",
+          "statCols": "154.031px 19.9688px",
+          "labelBox": {
+            "x": 769,
+            "y": 157,
+            "w": 154.03,
+            "h": 140,
+            "right": 923.03,
+            "bottom": 297
+          },
+          "labelMinContent": 40.53,
+          "value": {
+            "x": 939.03,
+            "y": 157,
+            "w": 19.97,
+            "h": 140,
+            "right": 959,
+            "bottom": 297
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "5",
+              "x": 939.03,
+              "y": 157,
+              "w": 19.97,
+              "h": 32,
+              "right": 959,
+              "bottom": 189
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Open maintenance",
+          "valueText": "0",
+          "li": {
+            "x": 272,
+            "y": 330,
+            "w": 224,
+            "h": 106,
+            "right": 496,
+            "bottom": 436
+          },
+          "stat": {
+            "x": 272,
+            "y": 330,
+            "w": 224,
+            "h": 106,
+            "right": 496,
+            "bottom": 436
+          },
+          "statPadding": "16px/16px",
+          "statCols": "154.031px 19.9688px",
+          "labelBox": {
+            "x": 289,
+            "y": 347,
+            "w": 154.03,
+            "h": 32,
+            "right": 443.03,
+            "bottom": 379
+          },
+          "labelMinContent": 81.22,
+          "value": {
+            "x": 459.03,
+            "y": 347,
+            "w": 19.97,
+            "h": 32,
+            "right": 479,
+            "bottom": 379
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "0",
+              "x": 459.03,
+              "y": 347,
+              "w": 19.97,
+              "h": 32,
+              "right": 479,
+              "bottom": 379
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Properties",
+          "valueText": "24",
+          "li": {
+            "x": 512,
+            "y": 330,
+            "w": 224,
+            "h": 106,
+            "right": 736,
+            "bottom": 436
+          },
+          "stat": {
+            "x": 512,
+            "y": 330,
+            "w": 224,
+            "h": 106,
+            "right": 736,
+            "bottom": 436
+          },
+          "statPadding": "16px/16px",
+          "statCols": "134.062px 39.9375px",
+          "labelBox": {
+            "x": 529,
+            "y": 347,
+            "w": 134.06,
+            "h": 72,
+            "right": 663.06,
+            "bottom": 419
+          },
+          "labelMinContent": 65.27,
+          "value": {
+            "x": 679.06,
+            "y": 347,
+            "w": 39.94,
+            "h": 72,
+            "right": 719,
+            "bottom": 419
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "24",
+              "x": 679.06,
+              "y": 347,
+              "w": 39.94,
+              "h": 32,
+              "right": 719,
+              "bottom": 379
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Units",
+          "valueText": "18",
+          "li": {
+            "x": 752,
+            "y": 330,
+            "w": 224,
+            "h": 106,
+            "right": 976,
+            "bottom": 436
+          },
+          "stat": {
+            "x": 752,
+            "y": 330,
+            "w": 224,
+            "h": 106,
+            "right": 976,
+            "bottom": 436
+          },
+          "statPadding": "16px/16px",
+          "statCols": "134.062px 39.9375px",
+          "labelBox": {
+            "x": 769,
+            "y": 347,
+            "w": 134.06,
+            "h": 42,
+            "right": 903.06,
+            "bottom": 389
+          },
+          "labelMinContent": 32.41,
+          "value": {
+            "x": 919.06,
+            "y": 347,
+            "w": 39.94,
+            "h": 42,
+            "right": 959,
+            "bottom": 389
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "18",
+              "x": 919.06,
+              "y": 347,
+              "w": 39.94,
+              "h": 32,
+              "right": 959,
+              "bottom": 379
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        }
+      ],
+      "trends": {
+        "box": {
+          "x": 272,
+          "y": 586,
+          "w": 704,
+          "h": 608,
+          "right": 976,
+          "bottom": 1194
+        },
+        "cols": "158px 158px 158px 158px",
+        "gap": "24px",
+        "trackBoxes": [
+          {
+            "left": 272,
+            "right": 430
+          },
+          {
+            "left": 454,
+            "right": 612
+          },
+          {
+            "left": 636,
+            "right": 794
+          },
+          {
+            "left": 818,
+            "right": 976
+          }
+        ],
+        "children": [
+          {
+            "title": "Revenue",
+            "x": 272,
+            "y": 586,
+            "w": 340,
+            "h": 608,
+            "right": 612,
+            "bottom": 1194
+          },
+          {
+            "title": "Occupancy",
+            "x": 636,
+            "y": 586,
+            "w": 158,
+            "h": 608,
+            "right": 794,
+            "bottom": 1194
+          },
+          {
+            "title": "Quick Actions",
+            "x": 818,
+            "y": 586,
+            "w": 158,
+            "h": 608,
+            "right": 976,
+            "bottom": 1194
+          }
+        ]
+      },
+      "quickActions": {
+        "card": {
+          "x": 818,
+          "y": 586,
+          "w": 158,
+          "h": 608,
+          "right": 976,
+          "bottom": 1194
+        },
+        "scrollW": 167,
+        "clientW": 156,
+        "content": {
+          "x": 819,
+          "y": 677,
+          "w": 156,
+          "h": 492,
+          "right": 975,
+          "bottom": 1169
+        },
+        "buttons": [
+          {
+            "text": "Add PropertyRegister a new property",
+            "x": 843,
+            "y": 677,
+            "w": 143.31,
+            "h": 114,
+            "right": 986.31,
+            "bottom": 791,
+            "scrollW": 141,
+            "clientW": 141
+          },
+          {
+            "text": "Create LeaseDraft a new lease agreement",
+            "x": 843,
+            "y": 803,
+            "w": 143.31,
+            "h": 114,
+            "right": 986.31,
+            "bottom": 917,
+            "scrollW": 141,
+            "clientW": 141
+          },
+          {
+            "text": "Add TenantCreate a tenant record",
+            "x": 843,
+            "y": 929,
+            "w": 143.31,
+            "h": 114,
+            "right": 986.31,
+            "bottom": 1043,
+            "scrollW": 141,
+            "clientW": 141
+          },
+          {
+            "text": "New RequestCreate maintenance request",
+            "x": 843,
+            "y": 1055,
+            "w": 143.31,
+            "h": 114,
+            "right": 986.31,
+            "bottom": 1169,
+            "scrollW": 141,
+            "clientW": 141
+          }
+        ]
+      },
+      "donut": {
+        "card": {
+          "x": 636,
+          "y": 586,
+          "w": 158,
+          "h": 608,
+          "right": 794,
+          "bottom": 1194
+        },
+        "img": {
+          "x": 661,
+          "y": 677,
+          "w": 108,
+          "h": 180,
+          "right": 769,
+          "bottom": 857
+        },
+        "svg": {
+          "x": 661,
+          "y": 677,
+          "w": 108,
+          "h": 180,
+          "right": 769,
+          "bottom": 857
+        }
+      },
+      "dock": {
+        "wrapper": {
+          "x": 515,
+          "y": 710,
+          "w": 218,
+          "h": 66,
+          "right": 733,
+          "bottom": 776
+        },
+        "panel": {
+          "x": 515,
+          "y": 710,
+          "w": 218,
+          "h": 66,
+          "right": 733,
+          "bottom": 776
+        },
+        "left": "624px"
+      },
+      "overlap": {
+        "dockVsDonutCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsDonutImg": {
+          "w": 72,
+          "h": 66
+        },
+        "dockVsDonutSvg": {
+          "w": 72,
+          "h": 66
+        },
+        "dockVsRevenueCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsQuickActions": null
+      },
+      "docH": 3176
+    },
+    {
+      "cell": {
+        "w": 1024,
+        "h": 800,
+        "collapsed": true
+      },
+      "viewport": {
+        "w": 1024,
+        "h": 800
+      },
+      "sidebarState": "collapsed",
+      "sidebarContainer": {
+        "x": -224,
+        "y": 0,
+        "w": 224,
+        "h": 800,
+        "right": 0,
+        "bottom": 800
+      },
+      "main": {
+        "x": 0,
+        "y": 56,
+        "w": 1024,
+        "h": 3036.39,
+        "right": 1024,
+        "bottom": 3092.39
+      },
+      "mainPadded": {
+        "x": 0,
+        "y": 56,
+        "w": 1024,
+        "h": 2855,
+        "right": 1024,
+        "bottom": 2911
+      },
+      "kpiGrid": {
+        "box": {
+          "x": 48,
+          "y": 140,
+          "w": 928,
+          "h": 340,
+          "right": 976,
+          "bottom": 480
+        },
+        "cols": "220px 220px 220px 220px",
+        "colCount": 4,
+        "gap": "16px",
+        "containerType": "inline-size"
+      },
+      "tiles": [
+        {
+          "label": "Revenue",
+          "valueText": "$7,500",
+          "li": {
+            "x": 48,
+            "y": 140,
+            "w": 220,
+            "h": 222,
+            "right": 268,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 48,
+            "y": 140,
+            "w": 220,
+            "h": 222,
+            "right": 268,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "53.6719px 100.328px",
+          "labelBox": {
+            "x": 73,
+            "y": 165,
+            "w": 53.67,
+            "h": 64,
+            "right": 126.67,
+            "bottom": 229
+          },
+          "labelMinContent": 53.67,
+          "value": {
+            "x": 142.67,
+            "y": 165,
+            "w": 100.33,
+            "h": 64,
+            "right": 243,
+            "bottom": 229
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 107.23,
+          "kids": [
+            {
+              "text": "$",
+              "x": 142.67,
+              "y": 162,
+              "w": 17.89,
+              "h": 38,
+              "right": 160.56,
+              "bottom": 200
+            },
+            {
+              "text": "7,500",
+              "x": 142.67,
+              "y": 197,
+              "w": 89.34,
+              "h": 32,
+              "right": 232.02,
+              "bottom": 229
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Occupancy",
+          "valueText": "33%",
+          "li": {
+            "x": 284,
+            "y": 140,
+            "w": 220,
+            "h": 222,
+            "right": 504,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 284,
+            "y": 140,
+            "w": 220,
+            "h": 222,
+            "right": 504,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "90.875px 63.125px",
+          "labelBox": {
+            "x": 309,
+            "y": 165,
+            "w": 90.88,
+            "h": 40,
+            "right": 399.88,
+            "bottom": 205
+          },
+          "labelMinContent": 69.44,
+          "value": {
+            "x": 415.88,
+            "y": 165,
+            "w": 63.13,
+            "h": 40,
+            "right": 479,
+            "bottom": 205
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 63.13,
+          "kids": [
+            {
+              "text": "33",
+              "x": 415.88,
+              "y": 165,
+              "w": 39.94,
+              "h": 32,
+              "right": 455.81,
+              "bottom": 197
+            },
+            {
+              "text": "%",
+              "x": 455.81,
+              "y": 162,
+              "w": 23.19,
+              "h": 38,
+              "right": 479,
+              "bottom": 200
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Active leases",
+          "valueText": "5",
+          "li": {
+            "x": 520,
+            "y": 140,
+            "w": 220,
+            "h": 222,
+            "right": 740,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 520,
+            "y": 140,
+            "w": 220,
+            "h": 222,
+            "right": 740,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "134.031px 19.9688px",
+          "labelBox": {
+            "x": 545,
+            "y": 165,
+            "w": 134.03,
+            "h": 172,
+            "right": 679.03,
+            "bottom": 337
+          },
+          "labelMinContent": 40.53,
+          "value": {
+            "x": 695.03,
+            "y": 165,
+            "w": 19.97,
+            "h": 172,
+            "right": 715,
+            "bottom": 337
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "5",
+              "x": 695.03,
+              "y": 165,
+              "w": 19.97,
+              "h": 32,
+              "right": 715,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Open maintenance",
+          "valueText": "0",
+          "li": {
+            "x": 756,
+            "y": 140,
+            "w": 220,
+            "h": 222,
+            "right": 976,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 756,
+            "y": 140,
+            "w": 220,
+            "h": 222,
+            "right": 976,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "134.031px 19.9688px",
+          "labelBox": {
+            "x": 781,
+            "y": 165,
+            "w": 134.03,
+            "h": 65.33,
+            "right": 915.03,
+            "bottom": 230.33
+          },
+          "labelMinContent": 81.22,
+          "value": {
+            "x": 931.03,
+            "y": 165,
+            "w": 19.97,
+            "h": 65.33,
+            "right": 951,
+            "bottom": 230.33
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "0",
+              "x": 931.03,
+              "y": 165,
+              "w": 19.97,
+              "h": 32,
+              "right": 951,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Properties",
+          "valueText": "24",
+          "li": {
+            "x": 48,
+            "y": 378,
+            "w": 220,
+            "h": 102,
+            "right": 268,
+            "bottom": 480
+          },
+          "stat": {
+            "x": 48,
+            "y": 378,
+            "w": 220,
+            "h": 102,
+            "right": 268,
+            "bottom": 480
+          },
+          "statPadding": "24px/24px",
+          "statCols": "114.062px 39.9375px",
+          "labelBox": {
+            "x": 73,
+            "y": 403,
+            "w": 114.06,
+            "h": 52,
+            "right": 187.06,
+            "bottom": 455
+          },
+          "labelMinContent": 65.27,
+          "value": {
+            "x": 203.06,
+            "y": 403,
+            "w": 39.94,
+            "h": 52,
+            "right": 243,
+            "bottom": 455
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "24",
+              "x": 203.06,
+              "y": 403,
+              "w": 39.94,
+              "h": 32,
+              "right": 243,
+              "bottom": 435
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Units",
+          "valueText": "18",
+          "li": {
+            "x": 284,
+            "y": 378,
+            "w": 220,
+            "h": 102,
+            "right": 504,
+            "bottom": 480
+          },
+          "stat": {
+            "x": 284,
+            "y": 378,
+            "w": 220,
+            "h": 102,
+            "right": 504,
+            "bottom": 480
+          },
+          "statPadding": "24px/24px",
+          "statCols": "114.062px 39.9375px",
+          "labelBox": {
+            "x": 309,
+            "y": 403,
+            "w": 114.06,
+            "h": 32,
+            "right": 423.06,
+            "bottom": 435
+          },
+          "labelMinContent": 32.41,
+          "value": {
+            "x": 439.06,
+            "y": 403,
+            "w": 39.94,
+            "h": 32,
+            "right": 479,
+            "bottom": 435
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "18",
+              "x": 439.06,
+              "y": 403,
+              "w": 39.94,
+              "h": 32,
+              "right": 479,
+              "bottom": 435
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        }
+      ],
+      "trends": {
+        "box": {
+          "x": 48,
+          "y": 630,
+          "w": 928,
+          "h": 480,
+          "right": 976,
+          "bottom": 1110
+        },
+        "cols": "214px 214px 214px 214px",
+        "gap": "24px",
+        "trackBoxes": [
+          {
+            "left": 48,
+            "right": 262
+          },
+          {
+            "left": 286,
+            "right": 500
+          },
+          {
+            "left": 524,
+            "right": 738
+          },
+          {
+            "left": 762,
+            "right": 976
+          }
+        ],
+        "children": [
+          {
+            "title": "Revenue",
+            "x": 48,
+            "y": 630,
+            "w": 452,
+            "h": 480,
+            "right": 500,
+            "bottom": 1110
+          },
+          {
+            "title": "Occupancy",
+            "x": 524,
+            "y": 630,
+            "w": 214,
+            "h": 480,
+            "right": 738,
+            "bottom": 1110
+          },
+          {
+            "title": "Quick Actions",
+            "x": 762,
+            "y": 630,
+            "w": 214,
+            "h": 480,
+            "right": 976,
+            "bottom": 1110
+          }
+        ]
+      },
+      "quickActions": {
+        "card": {
+          "x": 762,
+          "y": 630,
+          "w": 214,
+          "h": 480,
+          "right": 976,
+          "bottom": 1110
+        },
+        "scrollW": 212,
+        "clientW": 212,
+        "content": {
+          "x": 763,
+          "y": 721,
+          "w": 212,
+          "h": 364,
+          "right": 975,
+          "bottom": 1085
+        },
+        "buttons": [
+          {
+            "text": "Add PropertyRegister a new property",
+            "x": 787,
+            "y": 721,
+            "w": 164,
+            "h": 78,
+            "right": 951,
+            "bottom": 799,
+            "scrollW": 162,
+            "clientW": 162
+          },
+          {
+            "text": "Create LeaseDraft a new lease agreement",
+            "x": 787,
+            "y": 811,
+            "w": 164,
+            "h": 78,
+            "right": 951,
+            "bottom": 889,
+            "scrollW": 162,
+            "clientW": 162
+          },
+          {
+            "text": "Add TenantCreate a tenant record",
+            "x": 787,
+            "y": 901,
+            "w": 164,
+            "h": 78,
+            "right": 951,
+            "bottom": 979,
+            "scrollW": 162,
+            "clientW": 162
+          },
+          {
+            "text": "New RequestCreate maintenance request",
+            "x": 787,
+            "y": 991,
+            "w": 164,
+            "h": 94,
+            "right": 951,
+            "bottom": 1085,
+            "scrollW": 162,
+            "clientW": 162
+          }
+        ]
+      },
+      "donut": {
+        "card": {
+          "x": 524,
+          "y": 630,
+          "w": 214,
+          "h": 480,
+          "right": 738,
+          "bottom": 1110
+        },
+        "img": {
+          "x": 549,
+          "y": 721,
+          "w": 164,
+          "h": 180,
+          "right": 713,
+          "bottom": 901
+        },
+        "svg": {
+          "x": 549,
+          "y": 721,
+          "w": 164,
+          "h": 180,
+          "right": 713,
+          "bottom": 901
+        }
+      },
+      "dock": {
+        "wrapper": {
+          "x": 403,
+          "y": 710,
+          "w": 218,
+          "h": 66,
+          "right": 621,
+          "bottom": 776
+        },
+        "panel": {
+          "x": 403,
+          "y": 710,
+          "w": 218,
+          "h": 66,
+          "right": 621,
+          "bottom": 776
+        },
+        "left": "512px"
+      },
+      "overlap": {
+        "dockVsDonutCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsDonutImg": {
+          "w": 72,
+          "h": 55
+        },
+        "dockVsDonutSvg": {
+          "w": 72,
+          "h": 55
+        },
+        "dockVsRevenueCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsQuickActions": null
+      },
+      "docH": 3092
+    },
+    {
+      "cell": {
+        "w": 1280,
+        "h": 800,
+        "collapsed": false
+      },
+      "viewport": {
+        "w": 1280,
+        "h": 800
+      },
+      "sidebarState": "expanded",
+      "sidebarContainer": {
+        "x": 0,
+        "y": 0,
+        "w": 224,
+        "h": 800,
+        "right": 224,
+        "bottom": 800
+      },
+      "main": {
+        "x": 224,
+        "y": 56,
+        "w": 1056,
+        "h": 3004.39,
+        "right": 1280,
+        "bottom": 3060.39
+      },
+      "mainPadded": {
+        "x": 224,
+        "y": 56,
+        "w": 1056,
+        "h": 2823,
+        "right": 1280,
+        "bottom": 2879
+      },
+      "kpiGrid": {
+        "box": {
+          "x": 272,
+          "y": 140,
+          "w": 960,
+          "h": 308,
+          "right": 1232,
+          "bottom": 448
+        },
+        "cols": "228px 228px 228px 228px",
+        "colCount": 4,
+        "gap": "16px",
+        "containerType": "inline-size"
+      },
+      "tiles": [
+        {
+          "label": "Revenue",
+          "valueText": "$7,500",
+          "li": {
+            "x": 272,
+            "y": 140,
+            "w": 228,
+            "h": 190,
+            "right": 500,
+            "bottom": 330
+          },
+          "stat": {
+            "x": 272,
+            "y": 140,
+            "w": 228,
+            "h": 190,
+            "right": 500,
+            "bottom": 330
+          },
+          "statPadding": "24px/24px",
+          "statCols": "54.7656px 107.234px",
+          "labelBox": {
+            "x": 297,
+            "y": 165,
+            "w": 54.77,
+            "h": 32,
+            "right": 351.77,
+            "bottom": 197
+          },
+          "labelMinContent": 53.67,
+          "value": {
+            "x": 367.77,
+            "y": 165,
+            "w": 107.23,
+            "h": 32,
+            "right": 475,
+            "bottom": 197
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 107.23,
+          "kids": [
+            {
+              "text": "$",
+              "x": 367.77,
+              "y": 162,
+              "w": 17.89,
+              "h": 38,
+              "right": 385.66,
+              "bottom": 200
+            },
+            {
+              "text": "7,500",
+              "x": 385.66,
+              "y": 165,
+              "w": 89.34,
+              "h": 32,
+              "right": 475,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Occupancy",
+          "valueText": "33%",
+          "li": {
+            "x": 516,
+            "y": 140,
+            "w": 228,
+            "h": 190,
+            "right": 744,
+            "bottom": 330
+          },
+          "stat": {
+            "x": 516,
+            "y": 140,
+            "w": 228,
+            "h": 190,
+            "right": 744,
+            "bottom": 330
+          },
+          "statPadding": "24px/24px",
+          "statCols": "98.875px 63.125px",
+          "labelBox": {
+            "x": 541,
+            "y": 165,
+            "w": 98.88,
+            "h": 32,
+            "right": 639.88,
+            "bottom": 197
+          },
+          "labelMinContent": 69.44,
+          "value": {
+            "x": 655.88,
+            "y": 165,
+            "w": 63.13,
+            "h": 32,
+            "right": 719,
+            "bottom": 197
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 63.13,
+          "kids": [
+            {
+              "text": "33",
+              "x": 655.88,
+              "y": 165,
+              "w": 39.94,
+              "h": 32,
+              "right": 695.81,
+              "bottom": 197
+            },
+            {
+              "text": "%",
+              "x": 695.81,
+              "y": 162,
+              "w": 23.19,
+              "h": 38,
+              "right": 719,
+              "bottom": 200
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Active leases",
+          "valueText": "5",
+          "li": {
+            "x": 760,
+            "y": 140,
+            "w": 228,
+            "h": 190,
+            "right": 988,
+            "bottom": 330
+          },
+          "stat": {
+            "x": 760,
+            "y": 140,
+            "w": 228,
+            "h": 190,
+            "right": 988,
+            "bottom": 330
+          },
+          "statPadding": "24px/24px",
+          "statCols": "142.031px 19.9688px",
+          "labelBox": {
+            "x": 785,
+            "y": 165,
+            "w": 142.03,
+            "h": 140,
+            "right": 927.03,
+            "bottom": 305
+          },
+          "labelMinContent": 40.53,
+          "value": {
+            "x": 943.03,
+            "y": 165,
+            "w": 19.97,
+            "h": 140,
+            "right": 963,
+            "bottom": 305
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "5",
+              "x": 943.03,
+              "y": 165,
+              "w": 19.97,
+              "h": 32,
+              "right": 963,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Open maintenance",
+          "valueText": "0",
+          "li": {
+            "x": 1004,
+            "y": 140,
+            "w": 228,
+            "h": 190,
+            "right": 1232,
+            "bottom": 330
+          },
+          "stat": {
+            "x": 1004,
+            "y": 140,
+            "w": 228,
+            "h": 190,
+            "right": 1232,
+            "bottom": 330
+          },
+          "statPadding": "24px/24px",
+          "statCols": "142.031px 19.9688px",
+          "labelBox": {
+            "x": 1029,
+            "y": 165,
+            "w": 142.03,
+            "h": 54.66,
+            "right": 1171.03,
+            "bottom": 219.66
+          },
+          "labelMinContent": 81.22,
+          "value": {
+            "x": 1187.03,
+            "y": 165,
+            "w": 19.97,
+            "h": 54.66,
+            "right": 1207,
+            "bottom": 219.66
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "0",
+              "x": 1187.03,
+              "y": 165,
+              "w": 19.97,
+              "h": 32,
+              "right": 1207,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Properties",
+          "valueText": "24",
+          "li": {
+            "x": 272,
+            "y": 346,
+            "w": 228,
+            "h": 102,
+            "right": 500,
+            "bottom": 448
+          },
+          "stat": {
+            "x": 272,
+            "y": 346,
+            "w": 228,
+            "h": 102,
+            "right": 500,
+            "bottom": 448
+          },
+          "statPadding": "24px/24px",
+          "statCols": "122.062px 39.9375px",
+          "labelBox": {
+            "x": 297,
+            "y": 371,
+            "w": 122.06,
+            "h": 52,
+            "right": 419.06,
+            "bottom": 423
+          },
+          "labelMinContent": 65.27,
+          "value": {
+            "x": 435.06,
+            "y": 371,
+            "w": 39.94,
+            "h": 52,
+            "right": 475,
+            "bottom": 423
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "24",
+              "x": 435.06,
+              "y": 371,
+              "w": 39.94,
+              "h": 32,
+              "right": 475,
+              "bottom": 403
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Units",
+          "valueText": "18",
+          "li": {
+            "x": 516,
+            "y": 346,
+            "w": 228,
+            "h": 102,
+            "right": 744,
+            "bottom": 448
+          },
+          "stat": {
+            "x": 516,
+            "y": 346,
+            "w": 228,
+            "h": 102,
+            "right": 744,
+            "bottom": 448
+          },
+          "statPadding": "24px/24px",
+          "statCols": "122.062px 39.9375px",
+          "labelBox": {
+            "x": 541,
+            "y": 371,
+            "w": 122.06,
+            "h": 32,
+            "right": 663.06,
+            "bottom": 403
+          },
+          "labelMinContent": 32.41,
+          "value": {
+            "x": 679.06,
+            "y": 371,
+            "w": 39.94,
+            "h": 32,
+            "right": 719,
+            "bottom": 403
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "18",
+              "x": 679.06,
+              "y": 371,
+              "w": 39.94,
+              "h": 32,
+              "right": 719,
+              "bottom": 403
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        }
+      ],
+      "trends": {
+        "box": {
+          "x": 272,
+          "y": 598,
+          "w": 960,
+          "h": 480,
+          "right": 1232,
+          "bottom": 1078
+        },
+        "cols": "222px 222px 222px 222px",
+        "gap": "24px",
+        "trackBoxes": [
+          {
+            "left": 272,
+            "right": 494
+          },
+          {
+            "left": 518,
+            "right": 740
+          },
+          {
+            "left": 764,
+            "right": 986
+          },
+          {
+            "left": 1010,
+            "right": 1232
+          }
+        ],
+        "children": [
+          {
+            "title": "Revenue",
+            "x": 272,
+            "y": 598,
+            "w": 468,
+            "h": 480,
+            "right": 740,
+            "bottom": 1078
+          },
+          {
+            "title": "Occupancy",
+            "x": 764,
+            "y": 598,
+            "w": 222,
+            "h": 480,
+            "right": 986,
+            "bottom": 1078
+          },
+          {
+            "title": "Quick Actions",
+            "x": 1010,
+            "y": 598,
+            "w": 222,
+            "h": 480,
+            "right": 1232,
+            "bottom": 1078
+          }
+        ]
+      },
+      "quickActions": {
+        "card": {
+          "x": 1010,
+          "y": 598,
+          "w": 222,
+          "h": 480,
+          "right": 1232,
+          "bottom": 1078
+        },
+        "scrollW": 220,
+        "clientW": 220,
+        "content": {
+          "x": 1011,
+          "y": 689,
+          "w": 220,
+          "h": 364,
+          "right": 1231,
+          "bottom": 1053
+        },
+        "buttons": [
+          {
+            "text": "Add PropertyRegister a new property",
+            "x": 1035,
+            "y": 689,
+            "w": 172,
+            "h": 78,
+            "right": 1207,
+            "bottom": 767,
+            "scrollW": 170,
+            "clientW": 170
+          },
+          {
+            "text": "Create LeaseDraft a new lease agreement",
+            "x": 1035,
+            "y": 779,
+            "w": 172,
+            "h": 78,
+            "right": 1207,
+            "bottom": 857,
+            "scrollW": 170,
+            "clientW": 170
+          },
+          {
+            "text": "Add TenantCreate a tenant record",
+            "x": 1035,
+            "y": 869,
+            "w": 172,
+            "h": 78,
+            "right": 1207,
+            "bottom": 947,
+            "scrollW": 170,
+            "clientW": 170
+          },
+          {
+            "text": "New RequestCreate maintenance request",
+            "x": 1035,
+            "y": 959,
+            "w": 172,
+            "h": 94,
+            "right": 1207,
+            "bottom": 1053,
+            "scrollW": 170,
+            "clientW": 170
+          }
+        ]
+      },
+      "donut": {
+        "card": {
+          "x": 764,
+          "y": 598,
+          "w": 222,
+          "h": 480,
+          "right": 986,
+          "bottom": 1078
+        },
+        "img": {
+          "x": 789,
+          "y": 689,
+          "w": 172,
+          "h": 180,
+          "right": 961,
+          "bottom": 869
+        },
+        "svg": {
+          "x": 789,
+          "y": 689,
+          "w": 172,
+          "h": 180,
+          "right": 961,
+          "bottom": 869
+        }
+      },
+      "dock": {
+        "wrapper": {
+          "x": 643,
+          "y": 710,
+          "w": 218,
+          "h": 66,
+          "right": 861,
+          "bottom": 776
+        },
+        "panel": {
+          "x": 643,
+          "y": 710,
+          "w": 218,
+          "h": 66,
+          "right": 861,
+          "bottom": 776
+        },
+        "left": "752px"
+      },
+      "overlap": {
+        "dockVsDonutCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsDonutImg": {
+          "w": 72,
+          "h": 66
+        },
+        "dockVsDonutSvg": {
+          "w": 72,
+          "h": 66
+        },
+        "dockVsRevenueCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsQuickActions": null
+      },
+      "docH": 3060
+    },
+    {
+      "cell": {
+        "w": 1280,
+        "h": 800,
+        "collapsed": true
+      },
+      "viewport": {
+        "w": 1280,
+        "h": 800
+      },
+      "sidebarState": "collapsed",
+      "sidebarContainer": {
+        "x": -224,
+        "y": 0,
+        "w": 224,
+        "h": 800,
+        "right": 0,
+        "bottom": 800
+      },
+      "main": {
+        "x": 0,
+        "y": 56,
+        "w": 1280,
+        "h": 2856.39,
+        "right": 1280,
+        "bottom": 2912.39
+      },
+      "mainPadded": {
+        "x": 0,
+        "y": 56,
+        "w": 1280,
+        "h": 2675,
+        "right": 1280,
+        "bottom": 2731
+      },
+      "kpiGrid": {
+        "box": {
+          "x": 48,
+          "y": 140,
+          "w": 1184,
+          "h": 222,
+          "right": 1232,
+          "bottom": 362
+        },
+        "cols": "184px 184px 184px 184px 184px 184px",
+        "colCount": 6,
+        "gap": "16px",
+        "containerType": "inline-size"
+      },
+      "tiles": [
+        {
+          "label": "Revenue",
+          "valueText": "$7,500",
+          "li": {
+            "x": 48,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 232,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 48,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 232,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "53.6719px 89.3438px",
+          "labelBox": {
+            "x": 73,
+            "y": 165,
+            "w": 53.67,
+            "h": 64,
+            "right": 126.67,
+            "bottom": 229
+          },
+          "labelMinContent": 53.67,
+          "value": {
+            "x": 142.67,
+            "y": 165,
+            "w": 89.34,
+            "h": 64,
+            "right": 232.02,
+            "bottom": 229
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 107.23,
+          "kids": [
+            {
+              "text": "$",
+              "x": 142.67,
+              "y": 162,
+              "w": 17.89,
+              "h": 38,
+              "right": 160.56,
+              "bottom": 200
+            },
+            {
+              "text": "7,500",
+              "x": 142.67,
+              "y": 197,
+              "w": 89.34,
+              "h": 32,
+              "right": 232.02,
+              "bottom": 229
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 1
+        },
+        {
+          "label": "Occupancy",
+          "valueText": "33%",
+          "li": {
+            "x": 248,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 432,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 248,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 432,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "69.4375px 48.5625px",
+          "labelBox": {
+            "x": 273,
+            "y": 165,
+            "w": 69.44,
+            "h": 64,
+            "right": 342.44,
+            "bottom": 229
+          },
+          "labelMinContent": 69.44,
+          "value": {
+            "x": 358.44,
+            "y": 165,
+            "w": 48.56,
+            "h": 64,
+            "right": 407,
+            "bottom": 229
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 63.13,
+          "kids": [
+            {
+              "text": "33",
+              "x": 358.44,
+              "y": 165,
+              "w": 39.94,
+              "h": 32,
+              "right": 398.38,
+              "bottom": 197
+            },
+            {
+              "text": "%",
+              "x": 358.44,
+              "y": 194,
+              "w": 23.19,
+              "h": 38,
+              "right": 381.63,
+              "bottom": 232
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Active leases",
+          "valueText": "5",
+          "li": {
+            "x": 448,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 632,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 448,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 632,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "98.0312px 19.9688px",
+          "labelBox": {
+            "x": 473,
+            "y": 165,
+            "w": 98.03,
+            "h": 172,
+            "right": 571.03,
+            "bottom": 337
+          },
+          "labelMinContent": 40.53,
+          "value": {
+            "x": 587.03,
+            "y": 165,
+            "w": 19.97,
+            "h": 172,
+            "right": 607,
+            "bottom": 337
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "5",
+              "x": 587.03,
+              "y": 165,
+              "w": 19.97,
+              "h": 32,
+              "right": 607,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Open maintenance",
+          "valueText": "0",
+          "li": {
+            "x": 648,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 832,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 648,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 832,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "98.0312px 19.9688px",
+          "labelBox": {
+            "x": 673,
+            "y": 165,
+            "w": 98.03,
+            "h": 70.66,
+            "right": 771.03,
+            "bottom": 235.66
+          },
+          "labelMinContent": 81.22,
+          "value": {
+            "x": 787.03,
+            "y": 165,
+            "w": 19.97,
+            "h": 70.66,
+            "right": 807,
+            "bottom": 235.66
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "0",
+              "x": 787.03,
+              "y": 165,
+              "w": 19.97,
+              "h": 32,
+              "right": 807,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Properties",
+          "valueText": "24",
+          "li": {
+            "x": 848,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 1032,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 848,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 1032,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "78.0625px 39.9375px",
+          "labelBox": {
+            "x": 873,
+            "y": 165,
+            "w": 78.06,
+            "h": 172,
+            "right": 951.06,
+            "bottom": 337
+          },
+          "labelMinContent": 65.27,
+          "value": {
+            "x": 967.06,
+            "y": 165,
+            "w": 39.94,
+            "h": 172,
+            "right": 1007,
+            "bottom": 337
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "24",
+              "x": 967.06,
+              "y": 165,
+              "w": 39.94,
+              "h": 32,
+              "right": 1007,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Units",
+          "valueText": "18",
+          "li": {
+            "x": 1048,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 1232,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 1048,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 1232,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "78.0625px 39.9375px",
+          "labelBox": {
+            "x": 1073,
+            "y": 165,
+            "w": 78.06,
+            "h": 92,
+            "right": 1151.06,
+            "bottom": 257
+          },
+          "labelMinContent": 32.41,
+          "value": {
+            "x": 1167.06,
+            "y": 165,
+            "w": 39.94,
+            "h": 92,
+            "right": 1207,
+            "bottom": 257
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "18",
+              "x": 1167.06,
+              "y": 165,
+              "w": 39.94,
+              "h": 32,
+              "right": 1207,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        }
+      ],
+      "trends": {
+        "box": {
+          "x": 48,
+          "y": 512,
+          "w": 1184,
+          "h": 418,
+          "right": 1232,
+          "bottom": 930
+        },
+        "cols": "278px 278px 278px 278px",
+        "gap": "24px",
+        "trackBoxes": [
+          {
+            "left": 48,
+            "right": 326
+          },
+          {
+            "left": 350,
+            "right": 628
+          },
+          {
+            "left": 652,
+            "right": 930
+          },
+          {
+            "left": 954,
+            "right": 1232
+          }
+        ],
+        "children": [
+          {
+            "title": "Revenue",
+            "x": 48,
+            "y": 512,
+            "w": 580,
+            "h": 418,
+            "right": 628,
+            "bottom": 930
+          },
+          {
+            "title": "Occupancy",
+            "x": 652,
+            "y": 512,
+            "w": 278,
+            "h": 418,
+            "right": 930,
+            "bottom": 930
+          },
+          {
+            "title": "Quick Actions",
+            "x": 954,
+            "y": 512,
+            "w": 278,
+            "h": 418,
+            "right": 1232,
+            "bottom": 930
+          }
+        ]
+      },
+      "quickActions": {
+        "card": {
+          "x": 954,
+          "y": 512,
+          "w": 278,
+          "h": 418,
+          "right": 1232,
+          "bottom": 930
+        },
+        "scrollW": 276,
+        "clientW": 276,
+        "content": {
+          "x": 955,
+          "y": 603,
+          "w": 276,
+          "h": 284,
+          "right": 1231,
+          "bottom": 887
+        },
+        "buttons": [
+          {
+            "text": "Add PropertyRegister a new property",
+            "x": 979,
+            "y": 603,
+            "w": 228,
+            "h": 62,
+            "right": 1207,
+            "bottom": 665,
+            "scrollW": 226,
+            "clientW": 226
+          },
+          {
+            "text": "Create LeaseDraft a new lease agreement",
+            "x": 979,
+            "y": 677,
+            "w": 228,
+            "h": 62,
+            "right": 1207,
+            "bottom": 739,
+            "scrollW": 226,
+            "clientW": 226
+          },
+          {
+            "text": "Add TenantCreate a tenant record",
+            "x": 979,
+            "y": 751,
+            "w": 228,
+            "h": 62,
+            "right": 1207,
+            "bottom": 813,
+            "scrollW": 226,
+            "clientW": 226
+          },
+          {
+            "text": "New RequestCreate maintenance request",
+            "x": 979,
+            "y": 825,
+            "w": 228,
+            "h": 62,
+            "right": 1207,
+            "bottom": 887,
+            "scrollW": 226,
+            "clientW": 226
+          }
+        ]
+      },
+      "donut": {
+        "card": {
+          "x": 652,
+          "y": 512,
+          "w": 278,
+          "h": 418,
+          "right": 930,
+          "bottom": 930
+        },
+        "img": {
+          "x": 677,
+          "y": 603,
+          "w": 228,
+          "h": 180,
+          "right": 905,
+          "bottom": 783
+        },
+        "svg": {
+          "x": 677,
+          "y": 603,
+          "w": 228,
+          "h": 180,
+          "right": 905,
+          "bottom": 783
+        }
+      },
+      "dock": {
+        "wrapper": {
+          "x": 531,
+          "y": 710,
+          "w": 218,
+          "h": 66,
+          "right": 749,
+          "bottom": 776
+        },
+        "panel": {
+          "x": 531,
+          "y": 710,
+          "w": 218,
+          "h": 66,
+          "right": 749,
+          "bottom": 776
+        },
+        "left": "640px"
+      },
+      "overlap": {
+        "dockVsDonutCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsDonutImg": {
+          "w": 72,
+          "h": 66
+        },
+        "dockVsDonutSvg": {
+          "w": 72,
+          "h": 66
+        },
+        "dockVsRevenueCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsQuickActions": null
+      },
+      "docH": 2912
+    },
+    {
+      "cell": {
+        "w": 1440,
+        "h": 900,
+        "collapsed": false
+      },
+      "viewport": {
+        "w": 1440,
+        "h": 900
+      },
+      "sidebarState": "expanded",
+      "sidebarContainer": {
+        "x": 0,
+        "y": 0,
+        "w": 224,
+        "h": 900,
+        "right": 224,
+        "bottom": 900
+      },
+      "main": {
+        "x": 224,
+        "y": 56,
+        "w": 1216,
+        "h": 3088.39,
+        "right": 1440,
+        "bottom": 3144.39
+      },
+      "mainPadded": {
+        "x": 224,
+        "y": 56,
+        "w": 1216,
+        "h": 2907,
+        "right": 1440,
+        "bottom": 2963
+      },
+      "kpiGrid": {
+        "box": {
+          "x": 272,
+          "y": 140,
+          "w": 1120,
+          "h": 340,
+          "right": 1392,
+          "bottom": 480
+        },
+        "cols": "211.188px 211.203px 211.203px 211.203px 211.188px",
+        "colCount": 5,
+        "gap": "16px",
+        "containerType": "inline-size"
+      },
+      "tiles": [
+        {
+          "label": "Revenue",
+          "valueText": "$7,500",
+          "li": {
+            "x": 272,
+            "y": 140,
+            "w": 211.19,
+            "h": 222,
+            "right": 483.19,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 272,
+            "y": 140,
+            "w": 211.19,
+            "h": 222,
+            "right": 483.19,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "53.6719px 91.5156px",
+          "labelBox": {
+            "x": 297,
+            "y": 165,
+            "w": 53.67,
+            "h": 64,
+            "right": 350.67,
+            "bottom": 229
+          },
+          "labelMinContent": 53.67,
+          "value": {
+            "x": 366.67,
+            "y": 165,
+            "w": 91.52,
+            "h": 64,
+            "right": 458.19,
+            "bottom": 229
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 107.23,
+          "kids": [
+            {
+              "text": "$",
+              "x": 366.67,
+              "y": 162,
+              "w": 17.89,
+              "h": 38,
+              "right": 384.56,
+              "bottom": 200
+            },
+            {
+              "text": "7,500",
+              "x": 366.67,
+              "y": 197,
+              "w": 89.34,
+              "h": 32,
+              "right": 456.02,
+              "bottom": 229
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Occupancy",
+          "valueText": "33%",
+          "li": {
+            "x": 499.19,
+            "y": 140,
+            "w": 211.2,
+            "h": 222,
+            "right": 710.39,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 499.19,
+            "y": 140,
+            "w": 211.2,
+            "h": 222,
+            "right": 710.39,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "82.0781px 63.125px",
+          "labelBox": {
+            "x": 524.19,
+            "y": 165,
+            "w": 82.08,
+            "h": 40,
+            "right": 606.27,
+            "bottom": 205
+          },
+          "labelMinContent": 69.44,
+          "value": {
+            "x": 622.27,
+            "y": 165,
+            "w": 63.13,
+            "h": 40,
+            "right": 685.39,
+            "bottom": 205
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 63.13,
+          "kids": [
+            {
+              "text": "33",
+              "x": 622.27,
+              "y": 165,
+              "w": 39.94,
+              "h": 32,
+              "right": 662.2,
+              "bottom": 197
+            },
+            {
+              "text": "%",
+              "x": 662.2,
+              "y": 162,
+              "w": 23.19,
+              "h": 38,
+              "right": 685.39,
+              "bottom": 200
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Active leases",
+          "valueText": "5",
+          "li": {
+            "x": 726.39,
+            "y": 140,
+            "w": 211.2,
+            "h": 222,
+            "right": 937.59,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 726.39,
+            "y": 140,
+            "w": 211.2,
+            "h": 222,
+            "right": 937.59,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "125.234px 19.9688px",
+          "labelBox": {
+            "x": 751.39,
+            "y": 165,
+            "w": 125.23,
+            "h": 172,
+            "right": 876.63,
+            "bottom": 337
+          },
+          "labelMinContent": 40.53,
+          "value": {
+            "x": 892.63,
+            "y": 165,
+            "w": 19.97,
+            "h": 172,
+            "right": 912.59,
+            "bottom": 337
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "5",
+              "x": 892.63,
+              "y": 165,
+              "w": 19.97,
+              "h": 32,
+              "right": 912.59,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Open maintenance",
+          "valueText": "0",
+          "li": {
+            "x": 953.59,
+            "y": 140,
+            "w": 211.2,
+            "h": 222,
+            "right": 1164.8,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 953.59,
+            "y": 140,
+            "w": 211.2,
+            "h": 222,
+            "right": 1164.8,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "125.234px 19.9688px",
+          "labelBox": {
+            "x": 978.59,
+            "y": 165,
+            "w": 125.23,
+            "h": 65.33,
+            "right": 1103.83,
+            "bottom": 230.33
+          },
+          "labelMinContent": 81.22,
+          "value": {
+            "x": 1119.83,
+            "y": 165,
+            "w": 19.97,
+            "h": 65.33,
+            "right": 1139.8,
+            "bottom": 230.33
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "0",
+              "x": 1119.83,
+              "y": 165,
+              "w": 19.97,
+              "h": 32,
+              "right": 1139.8,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Properties",
+          "valueText": "24",
+          "li": {
+            "x": 1180.8,
+            "y": 140,
+            "w": 211.19,
+            "h": 222,
+            "right": 1391.98,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 1180.8,
+            "y": 140,
+            "w": 211.19,
+            "h": 222,
+            "right": 1391.98,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "105.25px 39.9375px",
+          "labelBox": {
+            "x": 1205.8,
+            "y": 165,
+            "w": 105.25,
+            "h": 172,
+            "right": 1311.05,
+            "bottom": 337
+          },
+          "labelMinContent": 65.27,
+          "value": {
+            "x": 1327.05,
+            "y": 165,
+            "w": 39.94,
+            "h": 172,
+            "right": 1366.98,
+            "bottom": 337
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "24",
+              "x": 1327.05,
+              "y": 165,
+              "w": 39.94,
+              "h": 32,
+              "right": 1366.98,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Units",
+          "valueText": "18",
+          "li": {
+            "x": 272,
+            "y": 378,
+            "w": 211.19,
+            "h": 102,
+            "right": 483.19,
+            "bottom": 480
+          },
+          "stat": {
+            "x": 272,
+            "y": 378,
+            "w": 211.19,
+            "h": 102,
+            "right": 483.19,
+            "bottom": 480
+          },
+          "statPadding": "24px/24px",
+          "statCols": "105.25px 39.9375px",
+          "labelBox": {
+            "x": 297,
+            "y": 403,
+            "w": 105.25,
+            "h": 32,
+            "right": 402.25,
+            "bottom": 435
+          },
+          "labelMinContent": 32.41,
+          "value": {
+            "x": 418.25,
+            "y": 403,
+            "w": 39.94,
+            "h": 32,
+            "right": 458.19,
+            "bottom": 435
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "18",
+              "x": 418.25,
+              "y": 403,
+              "w": 39.94,
+              "h": 32,
+              "right": 458.19,
+              "bottom": 435
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        }
+      ],
+      "trends": {
+        "box": {
+          "x": 272,
+          "y": 630,
+          "w": 1120,
+          "h": 432,
+          "right": 1392,
+          "bottom": 1062
+        },
+        "cols": "262px 262px 262px 262px",
+        "gap": "24px",
+        "trackBoxes": [
+          {
+            "left": 272,
+            "right": 534
+          },
+          {
+            "left": 558,
+            "right": 820
+          },
+          {
+            "left": 844,
+            "right": 1106
+          },
+          {
+            "left": 1130,
+            "right": 1392
+          }
+        ],
+        "children": [
+          {
+            "title": "Revenue",
+            "x": 272,
+            "y": 630,
+            "w": 548,
+            "h": 432,
+            "right": 820,
+            "bottom": 1062
+          },
+          {
+            "title": "Occupancy",
+            "x": 844,
+            "y": 630,
+            "w": 262,
+            "h": 432,
+            "right": 1106,
+            "bottom": 1062
+          },
+          {
+            "title": "Quick Actions",
+            "x": 1130,
+            "y": 630,
+            "w": 262,
+            "h": 432,
+            "right": 1392,
+            "bottom": 1062
+          }
+        ]
+      },
+      "quickActions": {
+        "card": {
+          "x": 1130,
+          "y": 630,
+          "w": 262,
+          "h": 432,
+          "right": 1392,
+          "bottom": 1062
+        },
+        "scrollW": 260,
+        "clientW": 260,
+        "content": {
+          "x": 1131,
+          "y": 721,
+          "w": 260,
+          "h": 316,
+          "right": 1391,
+          "bottom": 1037
+        },
+        "buttons": [
+          {
+            "text": "Add PropertyRegister a new property",
+            "x": 1155,
+            "y": 721,
+            "w": 212,
+            "h": 62,
+            "right": 1367,
+            "bottom": 783,
+            "scrollW": 210,
+            "clientW": 210
+          },
+          {
+            "text": "Create LeaseDraft a new lease agreement",
+            "x": 1155,
+            "y": 795,
+            "w": 212,
+            "h": 78,
+            "right": 1367,
+            "bottom": 873,
+            "scrollW": 210,
+            "clientW": 210
+          },
+          {
+            "text": "Add TenantCreate a tenant record",
+            "x": 1155,
+            "y": 885,
+            "w": 212,
+            "h": 62,
+            "right": 1367,
+            "bottom": 947,
+            "scrollW": 210,
+            "clientW": 210
+          },
+          {
+            "text": "New RequestCreate maintenance request",
+            "x": 1155,
+            "y": 959,
+            "w": 212,
+            "h": 78,
+            "right": 1367,
+            "bottom": 1037,
+            "scrollW": 210,
+            "clientW": 210
+          }
+        ]
+      },
+      "donut": {
+        "card": {
+          "x": 844,
+          "y": 630,
+          "w": 262,
+          "h": 432,
+          "right": 1106,
+          "bottom": 1062
+        },
+        "img": {
+          "x": 869,
+          "y": 721,
+          "w": 212,
+          "h": 180,
+          "right": 1081,
+          "bottom": 901
+        },
+        "svg": {
+          "x": 869,
+          "y": 721,
+          "w": 212,
+          "h": 180,
+          "right": 1081,
+          "bottom": 901
+        }
+      },
+      "dock": {
+        "wrapper": {
+          "x": 723,
+          "y": 810,
+          "w": 218,
+          "h": 66,
+          "right": 941,
+          "bottom": 876
+        },
+        "panel": {
+          "x": 723,
+          "y": 810,
+          "w": 218,
+          "h": 66,
+          "right": 941,
+          "bottom": 876
+        },
+        "left": "832px"
+      },
+      "overlap": {
+        "dockVsDonutCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsDonutImg": {
+          "w": 72,
+          "h": 66
+        },
+        "dockVsDonutSvg": {
+          "w": 72,
+          "h": 66
+        },
+        "dockVsRevenueCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsQuickActions": null
+      },
+      "docH": 3144
+    },
+    {
+      "cell": {
+        "w": 1440,
+        "h": 900,
+        "collapsed": true
+      },
+      "viewport": {
+        "w": 1440,
+        "h": 900
+      },
+      "sidebarState": "collapsed",
+      "sidebarContainer": {
+        "x": -224,
+        "y": 0,
+        "w": 224,
+        "h": 900,
+        "right": 0,
+        "bottom": 900
+      },
+      "main": {
+        "x": 0,
+        "y": 56,
+        "w": 1440,
+        "h": 2956.39,
+        "right": 1440,
+        "bottom": 3012.39
+      },
+      "mainPadded": {
+        "x": 0,
+        "y": 56,
+        "w": 1440,
+        "h": 2775,
+        "right": 1440,
+        "bottom": 2831
+      },
+      "kpiGrid": {
+        "box": {
+          "x": 48,
+          "y": 140,
+          "w": 1344,
+          "h": 222,
+          "right": 1392,
+          "bottom": 362
+        },
+        "cols": "210.656px 210.672px 210.672px 210.656px 210.672px 210.672px",
+        "colCount": 6,
+        "gap": "16px",
+        "containerType": "inline-size"
+      },
+      "tiles": [
+        {
+          "label": "Revenue",
+          "valueText": "$7,500",
+          "li": {
+            "x": 48,
+            "y": 140,
+            "w": 210.66,
+            "h": 222,
+            "right": 258.66,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 48,
+            "y": 140,
+            "w": 210.66,
+            "h": 222,
+            "right": 258.66,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "53.6719px 90.9844px",
+          "labelBox": {
+            "x": 73,
+            "y": 165,
+            "w": 53.67,
+            "h": 64,
+            "right": 126.67,
+            "bottom": 229
+          },
+          "labelMinContent": 53.67,
+          "value": {
+            "x": 142.67,
+            "y": 165,
+            "w": 90.98,
+            "h": 64,
+            "right": 233.66,
+            "bottom": 229
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 107.23,
+          "kids": [
+            {
+              "text": "$",
+              "x": 142.67,
+              "y": 162,
+              "w": 17.89,
+              "h": 38,
+              "right": 160.56,
+              "bottom": 200
+            },
+            {
+              "text": "7,500",
+              "x": 142.67,
+              "y": 197,
+              "w": 89.34,
+              "h": 32,
+              "right": 232.02,
+              "bottom": 229
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Occupancy",
+          "valueText": "33%",
+          "li": {
+            "x": 274.66,
+            "y": 140,
+            "w": 210.67,
+            "h": 222,
+            "right": 485.33,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 274.66,
+            "y": 140,
+            "w": 210.67,
+            "h": 222,
+            "right": 485.33,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "81.5469px 63.125px",
+          "labelBox": {
+            "x": 299.66,
+            "y": 165,
+            "w": 81.55,
+            "h": 40,
+            "right": 381.2,
+            "bottom": 205
+          },
+          "labelMinContent": 69.44,
+          "value": {
+            "x": 397.2,
+            "y": 165,
+            "w": 63.13,
+            "h": 40,
+            "right": 460.33,
+            "bottom": 205
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 63.13,
+          "kids": [
+            {
+              "text": "33",
+              "x": 397.2,
+              "y": 165,
+              "w": 39.94,
+              "h": 32,
+              "right": 437.14,
+              "bottom": 197
+            },
+            {
+              "text": "%",
+              "x": 437.14,
+              "y": 162,
+              "w": 23.19,
+              "h": 38,
+              "right": 460.33,
+              "bottom": 200
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Active leases",
+          "valueText": "5",
+          "li": {
+            "x": 501.33,
+            "y": 140,
+            "w": 210.67,
+            "h": 222,
+            "right": 712,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 501.33,
+            "y": 140,
+            "w": 210.67,
+            "h": 222,
+            "right": 712,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "124.703px 19.9688px",
+          "labelBox": {
+            "x": 526.33,
+            "y": 165,
+            "w": 124.7,
+            "h": 172,
+            "right": 651.03,
+            "bottom": 337
+          },
+          "labelMinContent": 40.53,
+          "value": {
+            "x": 667.03,
+            "y": 165,
+            "w": 19.97,
+            "h": 172,
+            "right": 687,
+            "bottom": 337
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "5",
+              "x": 667.03,
+              "y": 165,
+              "w": 19.97,
+              "h": 32,
+              "right": 687,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Open maintenance",
+          "valueText": "0",
+          "li": {
+            "x": 728,
+            "y": 140,
+            "w": 210.66,
+            "h": 222,
+            "right": 938.66,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 728,
+            "y": 140,
+            "w": 210.66,
+            "h": 222,
+            "right": 938.66,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "124.688px 19.9688px",
+          "labelBox": {
+            "x": 753,
+            "y": 165,
+            "w": 124.69,
+            "h": 65.33,
+            "right": 877.69,
+            "bottom": 230.33
+          },
+          "labelMinContent": 81.22,
+          "value": {
+            "x": 893.69,
+            "y": 165,
+            "w": 19.97,
+            "h": 65.33,
+            "right": 913.66,
+            "bottom": 230.33
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "0",
+              "x": 893.69,
+              "y": 165,
+              "w": 19.97,
+              "h": 32,
+              "right": 913.66,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Properties",
+          "valueText": "24",
+          "li": {
+            "x": 954.66,
+            "y": 140,
+            "w": 210.67,
+            "h": 222,
+            "right": 1165.33,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 954.66,
+            "y": 140,
+            "w": 210.67,
+            "h": 222,
+            "right": 1165.33,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "104.734px 39.9375px",
+          "labelBox": {
+            "x": 979.66,
+            "y": 165,
+            "w": 104.73,
+            "h": 172,
+            "right": 1084.39,
+            "bottom": 337
+          },
+          "labelMinContent": 65.27,
+          "value": {
+            "x": 1100.39,
+            "y": 165,
+            "w": 39.94,
+            "h": 172,
+            "right": 1140.33,
+            "bottom": 337
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "24",
+              "x": 1100.39,
+              "y": 165,
+              "w": 39.94,
+              "h": 32,
+              "right": 1140.33,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Units",
+          "valueText": "18",
+          "li": {
+            "x": 1181.33,
+            "y": 140,
+            "w": 210.67,
+            "h": 222,
+            "right": 1392,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 1181.33,
+            "y": 140,
+            "w": 210.67,
+            "h": 222,
+            "right": 1392,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "104.734px 39.9375px",
+          "labelBox": {
+            "x": 1206.33,
+            "y": 165,
+            "w": 104.73,
+            "h": 92,
+            "right": 1311.06,
+            "bottom": 257
+          },
+          "labelMinContent": 32.41,
+          "value": {
+            "x": 1327.06,
+            "y": 165,
+            "w": 39.94,
+            "h": 92,
+            "right": 1367,
+            "bottom": 257
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "18",
+              "x": 1327.06,
+              "y": 165,
+              "w": 39.94,
+              "h": 32,
+              "right": 1367,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        }
+      ],
+      "trends": {
+        "box": {
+          "x": 48,
+          "y": 512,
+          "w": 1344,
+          "h": 418,
+          "right": 1392,
+          "bottom": 930
+        },
+        "cols": "318px 318px 318px 318px",
+        "gap": "24px",
+        "trackBoxes": [
+          {
+            "left": 48,
+            "right": 366
+          },
+          {
+            "left": 390,
+            "right": 708
+          },
+          {
+            "left": 732,
+            "right": 1050
+          },
+          {
+            "left": 1074,
+            "right": 1392
+          }
+        ],
+        "children": [
+          {
+            "title": "Revenue",
+            "x": 48,
+            "y": 512,
+            "w": 660,
+            "h": 418,
+            "right": 708,
+            "bottom": 930
+          },
+          {
+            "title": "Occupancy",
+            "x": 732,
+            "y": 512,
+            "w": 318,
+            "h": 418,
+            "right": 1050,
+            "bottom": 930
+          },
+          {
+            "title": "Quick Actions",
+            "x": 1074,
+            "y": 512,
+            "w": 318,
+            "h": 418,
+            "right": 1392,
+            "bottom": 930
+          }
+        ]
+      },
+      "quickActions": {
+        "card": {
+          "x": 1074,
+          "y": 512,
+          "w": 318,
+          "h": 418,
+          "right": 1392,
+          "bottom": 930
+        },
+        "scrollW": 316,
+        "clientW": 316,
+        "content": {
+          "x": 1075,
+          "y": 603,
+          "w": 316,
+          "h": 284,
+          "right": 1391,
+          "bottom": 887
+        },
+        "buttons": [
+          {
+            "text": "Add PropertyRegister a new property",
+            "x": 1099,
+            "y": 603,
+            "w": 268,
+            "h": 62,
+            "right": 1367,
+            "bottom": 665,
+            "scrollW": 266,
+            "clientW": 266
+          },
+          {
+            "text": "Create LeaseDraft a new lease agreement",
+            "x": 1099,
+            "y": 677,
+            "w": 268,
+            "h": 62,
+            "right": 1367,
+            "bottom": 739,
+            "scrollW": 266,
+            "clientW": 266
+          },
+          {
+            "text": "Add TenantCreate a tenant record",
+            "x": 1099,
+            "y": 751,
+            "w": 268,
+            "h": 62,
+            "right": 1367,
+            "bottom": 813,
+            "scrollW": 266,
+            "clientW": 266
+          },
+          {
+            "text": "New RequestCreate maintenance request",
+            "x": 1099,
+            "y": 825,
+            "w": 268,
+            "h": 62,
+            "right": 1367,
+            "bottom": 887,
+            "scrollW": 266,
+            "clientW": 266
+          }
+        ]
+      },
+      "donut": {
+        "card": {
+          "x": 732,
+          "y": 512,
+          "w": 318,
+          "h": 418,
+          "right": 1050,
+          "bottom": 930
+        },
+        "img": {
+          "x": 757,
+          "y": 603,
+          "w": 268,
+          "h": 180,
+          "right": 1025,
+          "bottom": 783
+        },
+        "svg": {
+          "x": 757,
+          "y": 603,
+          "w": 268,
+          "h": 180,
+          "right": 1025,
+          "bottom": 783
+        }
+      },
+      "dock": {
+        "wrapper": {
+          "x": 611,
+          "y": 810,
+          "w": 218,
+          "h": 66,
+          "right": 829,
+          "bottom": 876
+        },
+        "panel": {
+          "x": 611,
+          "y": 810,
+          "w": 218,
+          "h": 66,
+          "right": 829,
+          "bottom": 876
+        },
+        "left": "720px"
+      },
+      "overlap": {
+        "dockVsDonutCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsDonutImg": null,
+        "dockVsDonutSvg": null,
+        "dockVsRevenueCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsQuickActions": null
+      },
+      "docH": 3012
+    },
+    {
+      "cell": {
+        "w": 1024,
+        "h": 768,
+        "collapsed": false
+      },
+      "viewport": {
+        "w": 1024,
+        "h": 768
+      },
+      "sidebarState": "expanded",
+      "sidebarContainer": {
+        "x": 0,
+        "y": 0,
+        "w": 224,
+        "h": 768,
+        "right": 224,
+        "bottom": 768
+      },
+      "main": {
+        "x": 224,
+        "y": 56,
+        "w": 800,
+        "h": 3088.39,
+        "right": 1024,
+        "bottom": 3144.39
+      },
+      "mainPadded": {
+        "x": 224,
+        "y": 56,
+        "w": 800,
+        "h": 2907,
+        "right": 1024,
+        "bottom": 2963
+      },
+      "kpiGrid": {
+        "box": {
+          "x": 272,
+          "y": 140,
+          "w": 704,
+          "h": 296,
+          "right": 976,
+          "bottom": 436
+        },
+        "cols": "224px 224px 224px",
+        "colCount": 3,
+        "gap": "16px",
+        "containerType": "inline-size"
+      },
+      "tiles": [
+        {
+          "label": "Revenue",
+          "valueText": "$7,500",
+          "li": {
+            "x": 272,
+            "y": 140,
+            "w": 224,
+            "h": 174,
+            "right": 496,
+            "bottom": 314
+          },
+          "stat": {
+            "x": 272,
+            "y": 140,
+            "w": 224,
+            "h": 174,
+            "right": 496,
+            "bottom": 314
+          },
+          "statPadding": "16px/16px",
+          "statCols": "66.7656px 107.234px",
+          "labelBox": {
+            "x": 289,
+            "y": 157,
+            "w": 66.77,
+            "h": 32,
+            "right": 355.77,
+            "bottom": 189
+          },
+          "labelMinContent": 53.67,
+          "value": {
+            "x": 371.77,
+            "y": 157,
+            "w": 107.23,
+            "h": 32,
+            "right": 479,
+            "bottom": 189
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 107.23,
+          "kids": [
+            {
+              "text": "$",
+              "x": 371.77,
+              "y": 154,
+              "w": 17.89,
+              "h": 38,
+              "right": 389.66,
+              "bottom": 192
+            },
+            {
+              "text": "7,500",
+              "x": 389.66,
+              "y": 157,
+              "w": 89.34,
+              "h": 32,
+              "right": 479,
+              "bottom": 189
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Occupancy",
+          "valueText": "33%",
+          "li": {
+            "x": 512,
+            "y": 140,
+            "w": 224,
+            "h": 174,
+            "right": 736,
+            "bottom": 314
+          },
+          "stat": {
+            "x": 512,
+            "y": 140,
+            "w": 224,
+            "h": 174,
+            "right": 736,
+            "bottom": 314
+          },
+          "statPadding": "16px/16px",
+          "statCols": "110.875px 63.125px",
+          "labelBox": {
+            "x": 529,
+            "y": 157,
+            "w": 110.88,
+            "h": 32,
+            "right": 639.88,
+            "bottom": 189
+          },
+          "labelMinContent": 69.44,
+          "value": {
+            "x": 655.88,
+            "y": 157,
+            "w": 63.13,
+            "h": 32,
+            "right": 719,
+            "bottom": 189
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 63.13,
+          "kids": [
+            {
+              "text": "33",
+              "x": 655.88,
+              "y": 157,
+              "w": 39.94,
+              "h": 32,
+              "right": 695.81,
+              "bottom": 189
+            },
+            {
+              "text": "%",
+              "x": 695.81,
+              "y": 154,
+              "w": 23.19,
+              "h": 38,
+              "right": 719,
+              "bottom": 192
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Active leases",
+          "valueText": "5",
+          "li": {
+            "x": 752,
+            "y": 140,
+            "w": 224,
+            "h": 174,
+            "right": 976,
+            "bottom": 314
+          },
+          "stat": {
+            "x": 752,
+            "y": 140,
+            "w": 224,
+            "h": 174,
+            "right": 976,
+            "bottom": 314
+          },
+          "statPadding": "16px/16px",
+          "statCols": "154.031px 19.9688px",
+          "labelBox": {
+            "x": 769,
+            "y": 157,
+            "w": 154.03,
+            "h": 140,
+            "right": 923.03,
+            "bottom": 297
+          },
+          "labelMinContent": 40.53,
+          "value": {
+            "x": 939.03,
+            "y": 157,
+            "w": 19.97,
+            "h": 140,
+            "right": 959,
+            "bottom": 297
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "5",
+              "x": 939.03,
+              "y": 157,
+              "w": 19.97,
+              "h": 32,
+              "right": 959,
+              "bottom": 189
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Open maintenance",
+          "valueText": "0",
+          "li": {
+            "x": 272,
+            "y": 330,
+            "w": 224,
+            "h": 106,
+            "right": 496,
+            "bottom": 436
+          },
+          "stat": {
+            "x": 272,
+            "y": 330,
+            "w": 224,
+            "h": 106,
+            "right": 496,
+            "bottom": 436
+          },
+          "statPadding": "16px/16px",
+          "statCols": "154.031px 19.9688px",
+          "labelBox": {
+            "x": 289,
+            "y": 347,
+            "w": 154.03,
+            "h": 32,
+            "right": 443.03,
+            "bottom": 379
+          },
+          "labelMinContent": 81.22,
+          "value": {
+            "x": 459.03,
+            "y": 347,
+            "w": 19.97,
+            "h": 32,
+            "right": 479,
+            "bottom": 379
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "0",
+              "x": 459.03,
+              "y": 347,
+              "w": 19.97,
+              "h": 32,
+              "right": 479,
+              "bottom": 379
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Properties",
+          "valueText": "24",
+          "li": {
+            "x": 512,
+            "y": 330,
+            "w": 224,
+            "h": 106,
+            "right": 736,
+            "bottom": 436
+          },
+          "stat": {
+            "x": 512,
+            "y": 330,
+            "w": 224,
+            "h": 106,
+            "right": 736,
+            "bottom": 436
+          },
+          "statPadding": "16px/16px",
+          "statCols": "134.062px 39.9375px",
+          "labelBox": {
+            "x": 529,
+            "y": 347,
+            "w": 134.06,
+            "h": 72,
+            "right": 663.06,
+            "bottom": 419
+          },
+          "labelMinContent": 65.27,
+          "value": {
+            "x": 679.06,
+            "y": 347,
+            "w": 39.94,
+            "h": 72,
+            "right": 719,
+            "bottom": 419
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "24",
+              "x": 679.06,
+              "y": 347,
+              "w": 39.94,
+              "h": 32,
+              "right": 719,
+              "bottom": 379
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Units",
+          "valueText": "18",
+          "li": {
+            "x": 752,
+            "y": 330,
+            "w": 224,
+            "h": 106,
+            "right": 976,
+            "bottom": 436
+          },
+          "stat": {
+            "x": 752,
+            "y": 330,
+            "w": 224,
+            "h": 106,
+            "right": 976,
+            "bottom": 436
+          },
+          "statPadding": "16px/16px",
+          "statCols": "134.062px 39.9375px",
+          "labelBox": {
+            "x": 769,
+            "y": 347,
+            "w": 134.06,
+            "h": 42,
+            "right": 903.06,
+            "bottom": 389
+          },
+          "labelMinContent": 32.41,
+          "value": {
+            "x": 919.06,
+            "y": 347,
+            "w": 39.94,
+            "h": 42,
+            "right": 959,
+            "bottom": 389
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "18",
+              "x": 919.06,
+              "y": 347,
+              "w": 39.94,
+              "h": 32,
+              "right": 959,
+              "bottom": 379
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        }
+      ],
+      "trends": {
+        "box": {
+          "x": 272,
+          "y": 586,
+          "w": 704,
+          "h": 608,
+          "right": 976,
+          "bottom": 1194
+        },
+        "cols": "158px 158px 158px 158px",
+        "gap": "24px",
+        "trackBoxes": [
+          {
+            "left": 272,
+            "right": 430
+          },
+          {
+            "left": 454,
+            "right": 612
+          },
+          {
+            "left": 636,
+            "right": 794
+          },
+          {
+            "left": 818,
+            "right": 976
+          }
+        ],
+        "children": [
+          {
+            "title": "Revenue",
+            "x": 272,
+            "y": 586,
+            "w": 340,
+            "h": 608,
+            "right": 612,
+            "bottom": 1194
+          },
+          {
+            "title": "Occupancy",
+            "x": 636,
+            "y": 586,
+            "w": 158,
+            "h": 608,
+            "right": 794,
+            "bottom": 1194
+          },
+          {
+            "title": "Quick Actions",
+            "x": 818,
+            "y": 586,
+            "w": 158,
+            "h": 608,
+            "right": 976,
+            "bottom": 1194
+          }
+        ]
+      },
+      "quickActions": {
+        "card": {
+          "x": 818,
+          "y": 586,
+          "w": 158,
+          "h": 608,
+          "right": 976,
+          "bottom": 1194
+        },
+        "scrollW": 167,
+        "clientW": 156,
+        "content": {
+          "x": 819,
+          "y": 677,
+          "w": 156,
+          "h": 492,
+          "right": 975,
+          "bottom": 1169
+        },
+        "buttons": [
+          {
+            "text": "Add PropertyRegister a new property",
+            "x": 843,
+            "y": 677,
+            "w": 143.31,
+            "h": 114,
+            "right": 986.31,
+            "bottom": 791,
+            "scrollW": 141,
+            "clientW": 141
+          },
+          {
+            "text": "Create LeaseDraft a new lease agreement",
+            "x": 843,
+            "y": 803,
+            "w": 143.31,
+            "h": 114,
+            "right": 986.31,
+            "bottom": 917,
+            "scrollW": 141,
+            "clientW": 141
+          },
+          {
+            "text": "Add TenantCreate a tenant record",
+            "x": 843,
+            "y": 929,
+            "w": 143.31,
+            "h": 114,
+            "right": 986.31,
+            "bottom": 1043,
+            "scrollW": 141,
+            "clientW": 141
+          },
+          {
+            "text": "New RequestCreate maintenance request",
+            "x": 843,
+            "y": 1055,
+            "w": 143.31,
+            "h": 114,
+            "right": 986.31,
+            "bottom": 1169,
+            "scrollW": 141,
+            "clientW": 141
+          }
+        ]
+      },
+      "donut": {
+        "card": {
+          "x": 636,
+          "y": 586,
+          "w": 158,
+          "h": 608,
+          "right": 794,
+          "bottom": 1194
+        },
+        "img": {
+          "x": 661,
+          "y": 677,
+          "w": 108,
+          "h": 180,
+          "right": 769,
+          "bottom": 857
+        },
+        "svg": {
+          "x": 661,
+          "y": 677,
+          "w": 108,
+          "h": 180,
+          "right": 769,
+          "bottom": 857
+        }
+      },
+      "dock": {
+        "wrapper": {
+          "x": 515,
+          "y": 678,
+          "w": 218,
+          "h": 66,
+          "right": 733,
+          "bottom": 744
+        },
+        "panel": {
+          "x": 515,
+          "y": 678,
+          "w": 218,
+          "h": 66,
+          "right": 733,
+          "bottom": 744
+        },
+        "left": "624px"
+      },
+      "overlap": {
+        "dockVsDonutCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsDonutImg": {
+          "w": 72,
+          "h": 66
+        },
+        "dockVsDonutSvg": {
+          "w": 72,
+          "h": 66
+        },
+        "dockVsRevenueCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsQuickActions": null
+      },
+      "docH": 3144
+    },
+    {
+      "cell": {
+        "w": 1024,
+        "h": 768,
+        "collapsed": true
+      },
+      "viewport": {
+        "w": 1024,
+        "h": 768
+      },
+      "sidebarState": "collapsed",
+      "sidebarContainer": {
+        "x": -224,
+        "y": 0,
+        "w": 224,
+        "h": 768,
+        "right": 0,
+        "bottom": 768
+      },
+      "main": {
+        "x": 0,
+        "y": 56,
+        "w": 1024,
+        "h": 3004.39,
+        "right": 1024,
+        "bottom": 3060.39
+      },
+      "mainPadded": {
+        "x": 0,
+        "y": 56,
+        "w": 1024,
+        "h": 2823,
+        "right": 1024,
+        "bottom": 2879
+      },
+      "kpiGrid": {
+        "box": {
+          "x": 48,
+          "y": 140,
+          "w": 928,
+          "h": 340,
+          "right": 976,
+          "bottom": 480
+        },
+        "cols": "220px 220px 220px 220px",
+        "colCount": 4,
+        "gap": "16px",
+        "containerType": "inline-size"
+      },
+      "tiles": [
+        {
+          "label": "Revenue",
+          "valueText": "$7,500",
+          "li": {
+            "x": 48,
+            "y": 140,
+            "w": 220,
+            "h": 222,
+            "right": 268,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 48,
+            "y": 140,
+            "w": 220,
+            "h": 222,
+            "right": 268,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "53.6719px 100.328px",
+          "labelBox": {
+            "x": 73,
+            "y": 165,
+            "w": 53.67,
+            "h": 64,
+            "right": 126.67,
+            "bottom": 229
+          },
+          "labelMinContent": 53.67,
+          "value": {
+            "x": 142.67,
+            "y": 165,
+            "w": 100.33,
+            "h": 64,
+            "right": 243,
+            "bottom": 229
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 107.23,
+          "kids": [
+            {
+              "text": "$",
+              "x": 142.67,
+              "y": 162,
+              "w": 17.89,
+              "h": 38,
+              "right": 160.56,
+              "bottom": 200
+            },
+            {
+              "text": "7,500",
+              "x": 142.67,
+              "y": 197,
+              "w": 89.34,
+              "h": 32,
+              "right": 232.02,
+              "bottom": 229
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Occupancy",
+          "valueText": "33%",
+          "li": {
+            "x": 284,
+            "y": 140,
+            "w": 220,
+            "h": 222,
+            "right": 504,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 284,
+            "y": 140,
+            "w": 220,
+            "h": 222,
+            "right": 504,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "90.875px 63.125px",
+          "labelBox": {
+            "x": 309,
+            "y": 165,
+            "w": 90.88,
+            "h": 40,
+            "right": 399.88,
+            "bottom": 205
+          },
+          "labelMinContent": 69.44,
+          "value": {
+            "x": 415.88,
+            "y": 165,
+            "w": 63.13,
+            "h": 40,
+            "right": 479,
+            "bottom": 205
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 63.13,
+          "kids": [
+            {
+              "text": "33",
+              "x": 415.88,
+              "y": 165,
+              "w": 39.94,
+              "h": 32,
+              "right": 455.81,
+              "bottom": 197
+            },
+            {
+              "text": "%",
+              "x": 455.81,
+              "y": 162,
+              "w": 23.19,
+              "h": 38,
+              "right": 479,
+              "bottom": 200
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Active leases",
+          "valueText": "5",
+          "li": {
+            "x": 520,
+            "y": 140,
+            "w": 220,
+            "h": 222,
+            "right": 740,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 520,
+            "y": 140,
+            "w": 220,
+            "h": 222,
+            "right": 740,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "134.031px 19.9688px",
+          "labelBox": {
+            "x": 545,
+            "y": 165,
+            "w": 134.03,
+            "h": 172,
+            "right": 679.03,
+            "bottom": 337
+          },
+          "labelMinContent": 40.53,
+          "value": {
+            "x": 695.03,
+            "y": 165,
+            "w": 19.97,
+            "h": 172,
+            "right": 715,
+            "bottom": 337
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "5",
+              "x": 695.03,
+              "y": 165,
+              "w": 19.97,
+              "h": 32,
+              "right": 715,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Open maintenance",
+          "valueText": "0",
+          "li": {
+            "x": 756,
+            "y": 140,
+            "w": 220,
+            "h": 222,
+            "right": 976,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 756,
+            "y": 140,
+            "w": 220,
+            "h": 222,
+            "right": 976,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "134.031px 19.9688px",
+          "labelBox": {
+            "x": 781,
+            "y": 165,
+            "w": 134.03,
+            "h": 65.33,
+            "right": 915.03,
+            "bottom": 230.33
+          },
+          "labelMinContent": 81.22,
+          "value": {
+            "x": 931.03,
+            "y": 165,
+            "w": 19.97,
+            "h": 65.33,
+            "right": 951,
+            "bottom": 230.33
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "0",
+              "x": 931.03,
+              "y": 165,
+              "w": 19.97,
+              "h": 32,
+              "right": 951,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Properties",
+          "valueText": "24",
+          "li": {
+            "x": 48,
+            "y": 378,
+            "w": 220,
+            "h": 102,
+            "right": 268,
+            "bottom": 480
+          },
+          "stat": {
+            "x": 48,
+            "y": 378,
+            "w": 220,
+            "h": 102,
+            "right": 268,
+            "bottom": 480
+          },
+          "statPadding": "24px/24px",
+          "statCols": "114.062px 39.9375px",
+          "labelBox": {
+            "x": 73,
+            "y": 403,
+            "w": 114.06,
+            "h": 52,
+            "right": 187.06,
+            "bottom": 455
+          },
+          "labelMinContent": 65.27,
+          "value": {
+            "x": 203.06,
+            "y": 403,
+            "w": 39.94,
+            "h": 52,
+            "right": 243,
+            "bottom": 455
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "24",
+              "x": 203.06,
+              "y": 403,
+              "w": 39.94,
+              "h": 32,
+              "right": 243,
+              "bottom": 435
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Units",
+          "valueText": "18",
+          "li": {
+            "x": 284,
+            "y": 378,
+            "w": 220,
+            "h": 102,
+            "right": 504,
+            "bottom": 480
+          },
+          "stat": {
+            "x": 284,
+            "y": 378,
+            "w": 220,
+            "h": 102,
+            "right": 504,
+            "bottom": 480
+          },
+          "statPadding": "24px/24px",
+          "statCols": "114.062px 39.9375px",
+          "labelBox": {
+            "x": 309,
+            "y": 403,
+            "w": 114.06,
+            "h": 32,
+            "right": 423.06,
+            "bottom": 435
+          },
+          "labelMinContent": 32.41,
+          "value": {
+            "x": 439.06,
+            "y": 403,
+            "w": 39.94,
+            "h": 32,
+            "right": 479,
+            "bottom": 435
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "18",
+              "x": 439.06,
+              "y": 403,
+              "w": 39.94,
+              "h": 32,
+              "right": 479,
+              "bottom": 435
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        }
+      ],
+      "trends": {
+        "box": {
+          "x": 48,
+          "y": 630,
+          "w": 928,
+          "h": 480,
+          "right": 976,
+          "bottom": 1110
+        },
+        "cols": "214px 214px 214px 214px",
+        "gap": "24px",
+        "trackBoxes": [
+          {
+            "left": 48,
+            "right": 262
+          },
+          {
+            "left": 286,
+            "right": 500
+          },
+          {
+            "left": 524,
+            "right": 738
+          },
+          {
+            "left": 762,
+            "right": 976
+          }
+        ],
+        "children": [
+          {
+            "title": "Revenue",
+            "x": 48,
+            "y": 630,
+            "w": 452,
+            "h": 480,
+            "right": 500,
+            "bottom": 1110
+          },
+          {
+            "title": "Occupancy",
+            "x": 524,
+            "y": 630,
+            "w": 214,
+            "h": 480,
+            "right": 738,
+            "bottom": 1110
+          },
+          {
+            "title": "Quick Actions",
+            "x": 762,
+            "y": 630,
+            "w": 214,
+            "h": 480,
+            "right": 976,
+            "bottom": 1110
+          }
+        ]
+      },
+      "quickActions": {
+        "card": {
+          "x": 762,
+          "y": 630,
+          "w": 214,
+          "h": 480,
+          "right": 976,
+          "bottom": 1110
+        },
+        "scrollW": 212,
+        "clientW": 212,
+        "content": {
+          "x": 763,
+          "y": 721,
+          "w": 212,
+          "h": 364,
+          "right": 975,
+          "bottom": 1085
+        },
+        "buttons": [
+          {
+            "text": "Add PropertyRegister a new property",
+            "x": 787,
+            "y": 721,
+            "w": 164,
+            "h": 78,
+            "right": 951,
+            "bottom": 799,
+            "scrollW": 162,
+            "clientW": 162
+          },
+          {
+            "text": "Create LeaseDraft a new lease agreement",
+            "x": 787,
+            "y": 811,
+            "w": 164,
+            "h": 78,
+            "right": 951,
+            "bottom": 889,
+            "scrollW": 162,
+            "clientW": 162
+          },
+          {
+            "text": "Add TenantCreate a tenant record",
+            "x": 787,
+            "y": 901,
+            "w": 164,
+            "h": 78,
+            "right": 951,
+            "bottom": 979,
+            "scrollW": 162,
+            "clientW": 162
+          },
+          {
+            "text": "New RequestCreate maintenance request",
+            "x": 787,
+            "y": 991,
+            "w": 164,
+            "h": 94,
+            "right": 951,
+            "bottom": 1085,
+            "scrollW": 162,
+            "clientW": 162
+          }
+        ]
+      },
+      "donut": {
+        "card": {
+          "x": 524,
+          "y": 630,
+          "w": 214,
+          "h": 480,
+          "right": 738,
+          "bottom": 1110
+        },
+        "img": {
+          "x": 549,
+          "y": 721,
+          "w": 164,
+          "h": 180,
+          "right": 713,
+          "bottom": 901
+        },
+        "svg": {
+          "x": 549,
+          "y": 721,
+          "w": 164,
+          "h": 180,
+          "right": 713,
+          "bottom": 901
+        }
+      },
+      "dock": {
+        "wrapper": {
+          "x": 403,
+          "y": 678,
+          "w": 218,
+          "h": 66,
+          "right": 621,
+          "bottom": 744
+        },
+        "panel": {
+          "x": 403,
+          "y": 678,
+          "w": 218,
+          "h": 66,
+          "right": 621,
+          "bottom": 744
+        },
+        "left": "512px"
+      },
+      "overlap": {
+        "dockVsDonutCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsDonutImg": {
+          "w": 72,
+          "h": 23
+        },
+        "dockVsDonutSvg": {
+          "w": 72,
+          "h": 23
+        },
+        "dockVsRevenueCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsQuickActions": null
+      },
+      "docH": 3060
+    },
+    {
+      "cell": {
+        "w": 1280,
+        "h": 720,
+        "collapsed": false
+      },
+      "viewport": {
+        "w": 1280,
+        "h": 720
+      },
+      "sidebarState": "expanded",
+      "sidebarContainer": {
+        "x": 0,
+        "y": 0,
+        "w": 224,
+        "h": 720,
+        "right": 224,
+        "bottom": 720
+      },
+      "main": {
+        "x": 224,
+        "y": 56,
+        "w": 1056,
+        "h": 2924.39,
+        "right": 1280,
+        "bottom": 2980.39
+      },
+      "mainPadded": {
+        "x": 224,
+        "y": 56,
+        "w": 1056,
+        "h": 2743,
+        "right": 1280,
+        "bottom": 2799
+      },
+      "kpiGrid": {
+        "box": {
+          "x": 272,
+          "y": 140,
+          "w": 960,
+          "h": 308,
+          "right": 1232,
+          "bottom": 448
+        },
+        "cols": "228px 228px 228px 228px",
+        "colCount": 4,
+        "gap": "16px",
+        "containerType": "inline-size"
+      },
+      "tiles": [
+        {
+          "label": "Revenue",
+          "valueText": "$7,500",
+          "li": {
+            "x": 272,
+            "y": 140,
+            "w": 228,
+            "h": 190,
+            "right": 500,
+            "bottom": 330
+          },
+          "stat": {
+            "x": 272,
+            "y": 140,
+            "w": 228,
+            "h": 190,
+            "right": 500,
+            "bottom": 330
+          },
+          "statPadding": "24px/24px",
+          "statCols": "54.7656px 107.234px",
+          "labelBox": {
+            "x": 297,
+            "y": 165,
+            "w": 54.77,
+            "h": 32,
+            "right": 351.77,
+            "bottom": 197
+          },
+          "labelMinContent": 53.67,
+          "value": {
+            "x": 367.77,
+            "y": 165,
+            "w": 107.23,
+            "h": 32,
+            "right": 475,
+            "bottom": 197
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 107.23,
+          "kids": [
+            {
+              "text": "$",
+              "x": 367.77,
+              "y": 162,
+              "w": 17.89,
+              "h": 38,
+              "right": 385.66,
+              "bottom": 200
+            },
+            {
+              "text": "7,500",
+              "x": 385.66,
+              "y": 165,
+              "w": 89.34,
+              "h": 32,
+              "right": 475,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Occupancy",
+          "valueText": "33%",
+          "li": {
+            "x": 516,
+            "y": 140,
+            "w": 228,
+            "h": 190,
+            "right": 744,
+            "bottom": 330
+          },
+          "stat": {
+            "x": 516,
+            "y": 140,
+            "w": 228,
+            "h": 190,
+            "right": 744,
+            "bottom": 330
+          },
+          "statPadding": "24px/24px",
+          "statCols": "98.875px 63.125px",
+          "labelBox": {
+            "x": 541,
+            "y": 165,
+            "w": 98.88,
+            "h": 32,
+            "right": 639.88,
+            "bottom": 197
+          },
+          "labelMinContent": 69.44,
+          "value": {
+            "x": 655.88,
+            "y": 165,
+            "w": 63.13,
+            "h": 32,
+            "right": 719,
+            "bottom": 197
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 63.13,
+          "kids": [
+            {
+              "text": "33",
+              "x": 655.88,
+              "y": 165,
+              "w": 39.94,
+              "h": 32,
+              "right": 695.81,
+              "bottom": 197
+            },
+            {
+              "text": "%",
+              "x": 695.81,
+              "y": 162,
+              "w": 23.19,
+              "h": 38,
+              "right": 719,
+              "bottom": 200
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Active leases",
+          "valueText": "5",
+          "li": {
+            "x": 760,
+            "y": 140,
+            "w": 228,
+            "h": 190,
+            "right": 988,
+            "bottom": 330
+          },
+          "stat": {
+            "x": 760,
+            "y": 140,
+            "w": 228,
+            "h": 190,
+            "right": 988,
+            "bottom": 330
+          },
+          "statPadding": "24px/24px",
+          "statCols": "142.031px 19.9688px",
+          "labelBox": {
+            "x": 785,
+            "y": 165,
+            "w": 142.03,
+            "h": 140,
+            "right": 927.03,
+            "bottom": 305
+          },
+          "labelMinContent": 40.53,
+          "value": {
+            "x": 943.03,
+            "y": 165,
+            "w": 19.97,
+            "h": 140,
+            "right": 963,
+            "bottom": 305
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "5",
+              "x": 943.03,
+              "y": 165,
+              "w": 19.97,
+              "h": 32,
+              "right": 963,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Open maintenance",
+          "valueText": "0",
+          "li": {
+            "x": 1004,
+            "y": 140,
+            "w": 228,
+            "h": 190,
+            "right": 1232,
+            "bottom": 330
+          },
+          "stat": {
+            "x": 1004,
+            "y": 140,
+            "w": 228,
+            "h": 190,
+            "right": 1232,
+            "bottom": 330
+          },
+          "statPadding": "24px/24px",
+          "statCols": "142.031px 19.9688px",
+          "labelBox": {
+            "x": 1029,
+            "y": 165,
+            "w": 142.03,
+            "h": 54.66,
+            "right": 1171.03,
+            "bottom": 219.66
+          },
+          "labelMinContent": 81.22,
+          "value": {
+            "x": 1187.03,
+            "y": 165,
+            "w": 19.97,
+            "h": 54.66,
+            "right": 1207,
+            "bottom": 219.66
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "0",
+              "x": 1187.03,
+              "y": 165,
+              "w": 19.97,
+              "h": 32,
+              "right": 1207,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Properties",
+          "valueText": "24",
+          "li": {
+            "x": 272,
+            "y": 346,
+            "w": 228,
+            "h": 102,
+            "right": 500,
+            "bottom": 448
+          },
+          "stat": {
+            "x": 272,
+            "y": 346,
+            "w": 228,
+            "h": 102,
+            "right": 500,
+            "bottom": 448
+          },
+          "statPadding": "24px/24px",
+          "statCols": "122.062px 39.9375px",
+          "labelBox": {
+            "x": 297,
+            "y": 371,
+            "w": 122.06,
+            "h": 52,
+            "right": 419.06,
+            "bottom": 423
+          },
+          "labelMinContent": 65.27,
+          "value": {
+            "x": 435.06,
+            "y": 371,
+            "w": 39.94,
+            "h": 52,
+            "right": 475,
+            "bottom": 423
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "24",
+              "x": 435.06,
+              "y": 371,
+              "w": 39.94,
+              "h": 32,
+              "right": 475,
+              "bottom": 403
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Units",
+          "valueText": "18",
+          "li": {
+            "x": 516,
+            "y": 346,
+            "w": 228,
+            "h": 102,
+            "right": 744,
+            "bottom": 448
+          },
+          "stat": {
+            "x": 516,
+            "y": 346,
+            "w": 228,
+            "h": 102,
+            "right": 744,
+            "bottom": 448
+          },
+          "statPadding": "24px/24px",
+          "statCols": "122.062px 39.9375px",
+          "labelBox": {
+            "x": 541,
+            "y": 371,
+            "w": 122.06,
+            "h": 32,
+            "right": 663.06,
+            "bottom": 403
+          },
+          "labelMinContent": 32.41,
+          "value": {
+            "x": 679.06,
+            "y": 371,
+            "w": 39.94,
+            "h": 32,
+            "right": 719,
+            "bottom": 403
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "18",
+              "x": 679.06,
+              "y": 371,
+              "w": 39.94,
+              "h": 32,
+              "right": 719,
+              "bottom": 403
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        }
+      ],
+      "trends": {
+        "box": {
+          "x": 272,
+          "y": 598,
+          "w": 960,
+          "h": 480,
+          "right": 1232,
+          "bottom": 1078
+        },
+        "cols": "222px 222px 222px 222px",
+        "gap": "24px",
+        "trackBoxes": [
+          {
+            "left": 272,
+            "right": 494
+          },
+          {
+            "left": 518,
+            "right": 740
+          },
+          {
+            "left": 764,
+            "right": 986
+          },
+          {
+            "left": 1010,
+            "right": 1232
+          }
+        ],
+        "children": [
+          {
+            "title": "Revenue",
+            "x": 272,
+            "y": 598,
+            "w": 468,
+            "h": 480,
+            "right": 740,
+            "bottom": 1078
+          },
+          {
+            "title": "Occupancy",
+            "x": 764,
+            "y": 598,
+            "w": 222,
+            "h": 480,
+            "right": 986,
+            "bottom": 1078
+          },
+          {
+            "title": "Quick Actions",
+            "x": 1010,
+            "y": 598,
+            "w": 222,
+            "h": 480,
+            "right": 1232,
+            "bottom": 1078
+          }
+        ]
+      },
+      "quickActions": {
+        "card": {
+          "x": 1010,
+          "y": 598,
+          "w": 222,
+          "h": 480,
+          "right": 1232,
+          "bottom": 1078
+        },
+        "scrollW": 220,
+        "clientW": 220,
+        "content": {
+          "x": 1011,
+          "y": 689,
+          "w": 220,
+          "h": 364,
+          "right": 1231,
+          "bottom": 1053
+        },
+        "buttons": [
+          {
+            "text": "Add PropertyRegister a new property",
+            "x": 1035,
+            "y": 689,
+            "w": 172,
+            "h": 78,
+            "right": 1207,
+            "bottom": 767,
+            "scrollW": 170,
+            "clientW": 170
+          },
+          {
+            "text": "Create LeaseDraft a new lease agreement",
+            "x": 1035,
+            "y": 779,
+            "w": 172,
+            "h": 78,
+            "right": 1207,
+            "bottom": 857,
+            "scrollW": 170,
+            "clientW": 170
+          },
+          {
+            "text": "Add TenantCreate a tenant record",
+            "x": 1035,
+            "y": 869,
+            "w": 172,
+            "h": 78,
+            "right": 1207,
+            "bottom": 947,
+            "scrollW": 170,
+            "clientW": 170
+          },
+          {
+            "text": "New RequestCreate maintenance request",
+            "x": 1035,
+            "y": 959,
+            "w": 172,
+            "h": 94,
+            "right": 1207,
+            "bottom": 1053,
+            "scrollW": 170,
+            "clientW": 170
+          }
+        ]
+      },
+      "donut": {
+        "card": {
+          "x": 764,
+          "y": 598,
+          "w": 222,
+          "h": 480,
+          "right": 986,
+          "bottom": 1078
+        },
+        "img": {
+          "x": 789,
+          "y": 689,
+          "w": 172,
+          "h": 180,
+          "right": 961,
+          "bottom": 869
+        },
+        "svg": {
+          "x": 789,
+          "y": 689,
+          "w": 172,
+          "h": 180,
+          "right": 961,
+          "bottom": 869
+        }
+      },
+      "dock": {
+        "wrapper": {
+          "x": 643,
+          "y": 630,
+          "w": 218,
+          "h": 66,
+          "right": 861,
+          "bottom": 696
+        },
+        "panel": {
+          "x": 643,
+          "y": 630,
+          "w": 218,
+          "h": 66,
+          "right": 861,
+          "bottom": 696
+        },
+        "left": "752px"
+      },
+      "overlap": {
+        "dockVsDonutCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsDonutImg": {
+          "w": 72,
+          "h": 7
+        },
+        "dockVsDonutSvg": {
+          "w": 72,
+          "h": 7
+        },
+        "dockVsRevenueCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsQuickActions": null
+      },
+      "docH": 2980
+    },
+    {
+      "cell": {
+        "w": 1280,
+        "h": 720,
+        "collapsed": true
+      },
+      "viewport": {
+        "w": 1280,
+        "h": 720
+      },
+      "sidebarState": "collapsed",
+      "sidebarContainer": {
+        "x": -224,
+        "y": 0,
+        "w": 224,
+        "h": 720,
+        "right": 0,
+        "bottom": 720
+      },
+      "main": {
+        "x": 0,
+        "y": 56,
+        "w": 1280,
+        "h": 2776.39,
+        "right": 1280,
+        "bottom": 2832.39
+      },
+      "mainPadded": {
+        "x": 0,
+        "y": 56,
+        "w": 1280,
+        "h": 2595,
+        "right": 1280,
+        "bottom": 2651
+      },
+      "kpiGrid": {
+        "box": {
+          "x": 48,
+          "y": 140,
+          "w": 1184,
+          "h": 222,
+          "right": 1232,
+          "bottom": 362
+        },
+        "cols": "184px 184px 184px 184px 184px 184px",
+        "colCount": 6,
+        "gap": "16px",
+        "containerType": "inline-size"
+      },
+      "tiles": [
+        {
+          "label": "Revenue",
+          "valueText": "$7,500",
+          "li": {
+            "x": 48,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 232,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 48,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 232,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "53.6719px 89.3438px",
+          "labelBox": {
+            "x": 73,
+            "y": 165,
+            "w": 53.67,
+            "h": 64,
+            "right": 126.67,
+            "bottom": 229
+          },
+          "labelMinContent": 53.67,
+          "value": {
+            "x": 142.67,
+            "y": 165,
+            "w": 89.34,
+            "h": 64,
+            "right": 232.02,
+            "bottom": 229
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 107.23,
+          "kids": [
+            {
+              "text": "$",
+              "x": 142.67,
+              "y": 162,
+              "w": 17.89,
+              "h": 38,
+              "right": 160.56,
+              "bottom": 200
+            },
+            {
+              "text": "7,500",
+              "x": 142.67,
+              "y": 197,
+              "w": 89.34,
+              "h": 32,
+              "right": 232.02,
+              "bottom": 229
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 1
+        },
+        {
+          "label": "Occupancy",
+          "valueText": "33%",
+          "li": {
+            "x": 248,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 432,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 248,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 432,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "69.4375px 48.5625px",
+          "labelBox": {
+            "x": 273,
+            "y": 165,
+            "w": 69.44,
+            "h": 64,
+            "right": 342.44,
+            "bottom": 229
+          },
+          "labelMinContent": 69.44,
+          "value": {
+            "x": 358.44,
+            "y": 165,
+            "w": 48.56,
+            "h": 64,
+            "right": 407,
+            "bottom": 229
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 63.13,
+          "kids": [
+            {
+              "text": "33",
+              "x": 358.44,
+              "y": 165,
+              "w": 39.94,
+              "h": 32,
+              "right": 398.38,
+              "bottom": 197
+            },
+            {
+              "text": "%",
+              "x": 358.44,
+              "y": 194,
+              "w": 23.19,
+              "h": 38,
+              "right": 381.63,
+              "bottom": 232
+            }
+          ],
+          "lineCount": 2,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Active leases",
+          "valueText": "5",
+          "li": {
+            "x": 448,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 632,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 448,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 632,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "98.0312px 19.9688px",
+          "labelBox": {
+            "x": 473,
+            "y": 165,
+            "w": 98.03,
+            "h": 172,
+            "right": 571.03,
+            "bottom": 337
+          },
+          "labelMinContent": 40.53,
+          "value": {
+            "x": 587.03,
+            "y": 165,
+            "w": 19.97,
+            "h": 172,
+            "right": 607,
+            "bottom": 337
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "5",
+              "x": 587.03,
+              "y": 165,
+              "w": 19.97,
+              "h": 32,
+              "right": 607,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Open maintenance",
+          "valueText": "0",
+          "li": {
+            "x": 648,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 832,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 648,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 832,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "98.0312px 19.9688px",
+          "labelBox": {
+            "x": 673,
+            "y": 165,
+            "w": 98.03,
+            "h": 70.66,
+            "right": 771.03,
+            "bottom": 235.66
+          },
+          "labelMinContent": 81.22,
+          "value": {
+            "x": 787.03,
+            "y": 165,
+            "w": 19.97,
+            "h": 70.66,
+            "right": 807,
+            "bottom": 235.66
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 19.97,
+          "kids": [
+            {
+              "text": "0",
+              "x": 787.03,
+              "y": 165,
+              "w": 19.97,
+              "h": 32,
+              "right": 807,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Properties",
+          "valueText": "24",
+          "li": {
+            "x": 848,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 1032,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 848,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 1032,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "78.0625px 39.9375px",
+          "labelBox": {
+            "x": 873,
+            "y": 165,
+            "w": 78.06,
+            "h": 172,
+            "right": 951.06,
+            "bottom": 337
+          },
+          "labelMinContent": 65.27,
+          "value": {
+            "x": 967.06,
+            "y": 165,
+            "w": 39.94,
+            "h": 172,
+            "right": 1007,
+            "bottom": 337
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "24",
+              "x": 967.06,
+              "y": 165,
+              "w": 39.94,
+              "h": 32,
+              "right": 1007,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        },
+        {
+          "label": "Units",
+          "valueText": "18",
+          "li": {
+            "x": 1048,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 1232,
+            "bottom": 362
+          },
+          "stat": {
+            "x": 1048,
+            "y": 140,
+            "w": 184,
+            "h": 222,
+            "right": 1232,
+            "bottom": 362
+          },
+          "statPadding": "24px/24px",
+          "statCols": "78.0625px 39.9375px",
+          "labelBox": {
+            "x": 1073,
+            "y": 165,
+            "w": 78.06,
+            "h": 92,
+            "right": 1151.06,
+            "bottom": 257
+          },
+          "labelMinContent": 32.41,
+          "value": {
+            "x": 1167.06,
+            "y": 165,
+            "w": 39.94,
+            "h": 92,
+            "right": 1207,
+            "bottom": 257
+          },
+          "valueLineHeight": "32px",
+          "valueFontSize": "32px",
+          "valueWhiteSpace": "normal",
+          "valueMaxContent": 39.94,
+          "kids": [
+            {
+              "text": "18",
+              "x": 1167.06,
+              "y": 165,
+              "w": 39.94,
+              "h": 32,
+              "right": 1207,
+              "bottom": 197
+            }
+          ],
+          "lineCount": 1,
+          "statOverflowX": 0
+        }
+      ],
+      "trends": {
+        "box": {
+          "x": 48,
+          "y": 512,
+          "w": 1184,
+          "h": 418,
+          "right": 1232,
+          "bottom": 930
+        },
+        "cols": "278px 278px 278px 278px",
+        "gap": "24px",
+        "trackBoxes": [
+          {
+            "left": 48,
+            "right": 326
+          },
+          {
+            "left": 350,
+            "right": 628
+          },
+          {
+            "left": 652,
+            "right": 930
+          },
+          {
+            "left": 954,
+            "right": 1232
+          }
+        ],
+        "children": [
+          {
+            "title": "Revenue",
+            "x": 48,
+            "y": 512,
+            "w": 580,
+            "h": 418,
+            "right": 628,
+            "bottom": 930
+          },
+          {
+            "title": "Occupancy",
+            "x": 652,
+            "y": 512,
+            "w": 278,
+            "h": 418,
+            "right": 930,
+            "bottom": 930
+          },
+          {
+            "title": "Quick Actions",
+            "x": 954,
+            "y": 512,
+            "w": 278,
+            "h": 418,
+            "right": 1232,
+            "bottom": 930
+          }
+        ]
+      },
+      "quickActions": {
+        "card": {
+          "x": 954,
+          "y": 512,
+          "w": 278,
+          "h": 418,
+          "right": 1232,
+          "bottom": 930
+        },
+        "scrollW": 276,
+        "clientW": 276,
+        "content": {
+          "x": 955,
+          "y": 603,
+          "w": 276,
+          "h": 284,
+          "right": 1231,
+          "bottom": 887
+        },
+        "buttons": [
+          {
+            "text": "Add PropertyRegister a new property",
+            "x": 979,
+            "y": 603,
+            "w": 228,
+            "h": 62,
+            "right": 1207,
+            "bottom": 665,
+            "scrollW": 226,
+            "clientW": 226
+          },
+          {
+            "text": "Create LeaseDraft a new lease agreement",
+            "x": 979,
+            "y": 677,
+            "w": 228,
+            "h": 62,
+            "right": 1207,
+            "bottom": 739,
+            "scrollW": 226,
+            "clientW": 226
+          },
+          {
+            "text": "Add TenantCreate a tenant record",
+            "x": 979,
+            "y": 751,
+            "w": 228,
+            "h": 62,
+            "right": 1207,
+            "bottom": 813,
+            "scrollW": 226,
+            "clientW": 226
+          },
+          {
+            "text": "New RequestCreate maintenance request",
+            "x": 979,
+            "y": 825,
+            "w": 228,
+            "h": 62,
+            "right": 1207,
+            "bottom": 887,
+            "scrollW": 226,
+            "clientW": 226
+          }
+        ]
+      },
+      "donut": {
+        "card": {
+          "x": 652,
+          "y": 512,
+          "w": 278,
+          "h": 418,
+          "right": 930,
+          "bottom": 930
+        },
+        "img": {
+          "x": 677,
+          "y": 603,
+          "w": 228,
+          "h": 180,
+          "right": 905,
+          "bottom": 783
+        },
+        "svg": {
+          "x": 677,
+          "y": 603,
+          "w": 228,
+          "h": 180,
+          "right": 905,
+          "bottom": 783
+        }
+      },
+      "dock": {
+        "wrapper": {
+          "x": 531,
+          "y": 630,
+          "w": 218,
+          "h": 66,
+          "right": 749,
+          "bottom": 696
+        },
+        "panel": {
+          "x": 531,
+          "y": 630,
+          "w": 218,
+          "h": 66,
+          "right": 749,
+          "bottom": 696
+        },
+        "left": "640px"
+      },
+      "overlap": {
+        "dockVsDonutCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsDonutImg": {
+          "w": 72,
+          "h": 66
+        },
+        "dockVsDonutSvg": {
+          "w": 72,
+          "h": 66
+        },
+        "dockVsRevenueCard": {
+          "w": 97,
+          "h": 66
+        },
+        "dockVsQuickActions": null
+      },
+      "docH": 2832
+    }
+  ]
+}

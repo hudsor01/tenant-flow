@@ -9,6 +9,7 @@
  * - Direct object creation with spread operators
  */
 
+import type { MaintenanceListRow } from "#hooks/api/query-keys/maintenance-mappers";
 import type { Lease, Property, Tenant, User } from "#types/core";
 
 /**
@@ -41,6 +42,8 @@ export const DEFAULT_TENANT: Tenant = {
 	emergency_contact_relationship: null,
 	identity_verified: null,
 	ssn_last_four: null,
+	move_out_date: null,
+	move_out_reason: null,
 	created_at: "2024-01-01T00:00:00Z",
 	updated_at: "2024-01-01T00:00:00Z",
 };
@@ -171,6 +174,35 @@ export const DEFAULT_LEASE: Lease = {
 };
 
 /**
+ * The same lease as PostgREST returns it for the detail's select: its primary
+ * tenant, and its unit with the unit's property.
+ */
+export const LEASE_DETAIL_POSTGREST_ROW = {
+	...DEFAULT_LEASE,
+	tenants: {
+		id: "tenant-1",
+		name: "Test Tenant",
+		first_name: "Test",
+		last_name: "Tenant",
+		email: "tenant@example.com",
+	},
+	units: {
+		id: "unit-1",
+		unit_number: "Apt 101",
+		bedrooms: 2,
+		bathrooms: 1,
+		square_feet: 850,
+		property_id: "property-1",
+		properties: {
+			name: "Test Property",
+			address_line1: "123 Main St",
+			city: "San Francisco",
+			state: "CA",
+		},
+	},
+};
+
+/**
  * Default Unit - Use with spread operator for overrides
  *
  * @example
@@ -193,30 +225,25 @@ export const DEFAULT_UNIT = {
 	updated_at: "2024-01-01T00:00:00Z",
 };
 
-/**
- * Default Maintenance Request - Use with spread operator for overrides
- *
- * @example
- * const urgentRequest = {
- *   ...DEFAULT_MAINTENANCE_REQUEST,
- *   priority: 'URGENT',
- *   status: 'IN_PROGRESS'
- * }
- */
-export const DEFAULT_MAINTENANCE_REQUEST = {
+/** The same unit as PostgREST returns it for the unit list's select: with its property. */
+export const UNIT_LIST_POSTGREST_ROW = {
+	...DEFAULT_UNIT,
+	properties: { name: "Test Property", status: "active" },
+};
+
+/** A maintenance_requests row's own columns, as the list and detail select them. */
+const MAINTENANCE_REQUEST_COLUMNS = {
 	id: "maintenance-1",
 	title: "Plumbing Issue",
 	description: "Kitchen faucet has been dripping for the past week",
 	status: "open" as const,
 	priority: "medium" as const,
-	category: "plumbing" as const,
 	unit_id: "unit-1",
 	tenant_id: "tenant-1",
 	owner_user_id: "user-1",
 	requested_by: "user-1",
 	assigned_to: null,
 	estimated_cost: 150,
-	actual_cost: null,
 	scheduled_date: null,
 	completed_at: null,
 	inspector_id: null,
@@ -225,11 +252,49 @@ export const DEFAULT_MAINTENANCE_REQUEST = {
 	vendor_id: null,
 	created_at: "2024-01-01T00:00:00Z",
 	updated_at: "2024-01-01T00:00:00Z",
-	property: {
-		name: "Test Property",
-	},
-	unit: {
-		name: "Apt 101",
-	},
-	assignedTo: null,
 };
+
+/**
+ * A maintenance list row as `maintenanceQueries.list` returns it (what the
+ * board, the table and the card render) - use with spread for overrides.
+ *
+ * @example
+ * const urgentRequest = { ...DEFAULT_MAINTENANCE_REQUEST, priority: "urgent" }
+ */
+export const DEFAULT_MAINTENANCE_REQUEST: MaintenanceListRow = {
+	...MAINTENANCE_REQUEST_COLUMNS,
+	propertyName: "Test Property",
+	unitNumber: "Apt 101",
+	tenantName: "John Doe",
+};
+
+/**
+ * The same request as PostgREST returns it for the list's select: its own
+ * columns and the unit, property and tenant embeds `mapMaintenanceListRow`
+ * maps to `DEFAULT_MAINTENANCE_REQUEST`.
+ */
+export const MAINTENANCE_LIST_POSTGREST_ROW = {
+	...MAINTENANCE_REQUEST_COLUMNS,
+	units: {
+		unit_number: "Apt 101",
+		property_id: "property-1",
+		properties: { name: "Test Property", status: "active" },
+	},
+	tenant: { name: null, first_name: "John", last_name: "Doe" },
+};
+
+/**
+ * The same request as the detail's select returns it, which an update's
+ * `.select()` also returns: the list's embeds, the tenant with email and phone.
+ */
+export const MAINTENANCE_DETAIL_POSTGREST_ROW = {
+	...MAINTENANCE_LIST_POSTGREST_ROW,
+	tenant: {
+		...MAINTENANCE_LIST_POSTGREST_ROW.tenant,
+		email: "john.doe@example.com",
+		phone: "555-0100",
+	},
+};
+
+/** The request's own columns, as a create's `.select()` returns them. */
+export const MAINTENANCE_REQUEST_POSTGREST_ROW = MAINTENANCE_REQUEST_COLUMNS;

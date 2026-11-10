@@ -14,11 +14,9 @@ import { createClient } from "@supabase/supabase-js";
 import { loadDotenv } from "./_shared/load-dotenv";
 import { renderBlogCoverPng } from "./render-blog-cover";
 
-loadDotenv(process.cwd());
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SERVICE_KEY =
-	process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Importing this module reads no env file and no environment variable: the
+// CLI guard at the foot loads the env files, and main() reads the variables
+// (scripts/import-reads-no-env.test.ts).
 
 interface CoverRow {
 	slug: string;
@@ -38,6 +36,9 @@ function mapCoverRow(raw: Record<string, unknown>): CoverRow {
 }
 
 async function main(): Promise<void> {
+	const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+	const SERVICE_KEY =
+		process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 	if (!SUPABASE_URL || !SERVICE_KEY) {
 		console.error(
 			"Missing NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SECRET_KEY (.env.local)",
@@ -92,6 +93,7 @@ async function main(): Promise<void> {
 }
 
 if (process.argv[1]?.endsWith("/backfill-blog-covers.ts")) {
+	loadDotenv(process.cwd());
 	main().catch((e: unknown) => {
 		console.error(e instanceof Error ? e.message : String(e));
 		process.exit(1);

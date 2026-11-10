@@ -51,7 +51,7 @@ export function PdfPreviewPanel({
 			</CardHeader>
 			<CardContent>
 				{dataUrl ? (
-					<div className="h-[480px] w-full overflow-hidden rounded-lg border">
+					<div className="h-120 w-full overflow-hidden rounded-lg border">
 						<iframe
 							src={dataUrl}
 							title="Lease PDF Preview"
@@ -59,7 +59,7 @@ export function PdfPreviewPanel({
 						/>
 					</div>
 				) : (
-					<p className="text-muted-foreground">
+					<p className="mb-0 text-muted-foreground">
 						Generate a preview to view the PDF in-line. You can download it
 						directly from the preview frame.
 					</p>

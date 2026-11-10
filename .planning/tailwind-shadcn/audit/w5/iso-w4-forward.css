@@ -1,0 +1,31 @@
+/* 66.2-29 VD-isolation stylesheet, applied to BOTH sides of the iso pair (w4-iso and w5-iso) through
+   screens.mjs --style. Each rule neutralizes one paint-only wave-5 surface to a common state, so any
+   remaining pixel difference is a change no wave-5 VD row explains. */
+
+/* VD-22: GridPattern backdrop svg */
+svg.pointer-events-none:has(> defs > pattern) { visibility: hidden !important; }
+
+/* VD-16 / VD-17: Recharts cartesian grid and hover dots */
+.recharts-cartesian-grid, .recharts-active-dot, .recharts-dot { visibility: hidden !important; }
+
+/* VD-21: BorderBeam fragment */
+[class*="border-beam"]::after { content: none !important; }
+
+/* VD-23: the W4 BlurFade wrapper's will-change-transform */
+* { will-change: auto !important; }
+
+/* VD-19: Button-styled elements (typography-small is kept by D-29 on both sides) */
+:is(button, a, [role="button"])[class*="typography-small"] { box-shadow: none !important; border-color: transparent !important; outline: none !important; }
+html.dark :is(button, a, [role="button"])[class*="typography-small"] { background-color: transparent !important; }
+
+/* VD-30: the update-password Lock badge tint */
+:has(> svg.lucide-lock) { background-color: transparent !important; }
+
+/* VD-19 / VD-20 shrink, forced to the same value on both sides */
+:is(button, a, [role="button"])[class*="typography-small"] { flex-shrink: 1 !important; }
+:is(button, a, [role="button"])[class*="typography-small"] svg { flex-shrink: 0 !important; }
+
+/* W4 side only: reproduces the v4 icon auto-size ([&_svg:not([class*='size-'])]:size-4) on the old DOM.
+   Exclusions: the census convert sites (h-3.5, h-5, h-6; size-N at W5) and the census attr-sized svgs
+   (a width attribute without the lucide class; size-4.5 at W5). */
+:is(button, a, [role="button"])[class*="typography-small"] svg:not([class*="size-"]):not(:not(.lucide)[width]):not([class*="h-3.5"]):not([class*="h-5"]):not([class*="h-6"]) { width: 16px !important; height: 16px !important; }

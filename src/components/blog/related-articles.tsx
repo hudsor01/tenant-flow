@@ -44,7 +44,7 @@ export async function RelatedArticles({
 		<section className={cn("section-spacing print:hidden", className)}>
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
 				<h2 className="typography-h2 text-foreground mb-8">{title}</h2>
-				<div className="grid md:grid-cols-3 gap-6">
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 					{posts.map((post) => (
 						<BlogCard key={post.id} post={post} />
 					))}

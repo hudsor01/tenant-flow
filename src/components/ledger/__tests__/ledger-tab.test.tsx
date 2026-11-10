@@ -342,11 +342,9 @@ describe("LedgerTab", () => {
 
 			const confirm = await screen.findByRole("alertdialog");
 			expect(
-				within(confirm).getByText("Reverse this entry?"),
+				within(confirm).getByText('Reverse "Rent July 2026"?'),
 			).toBeInTheDocument();
-			expect(confirm.textContent).toContain(
-				'cancels "Rent July 2026" ($1,000.00)',
-			);
+			expect(confirm.textContent).toContain("cancels it ($1,000.00)");
 			expect(confirm.textContent).toContain(
 				"The payments recorded against this charge are reversed at the same time",
 			);

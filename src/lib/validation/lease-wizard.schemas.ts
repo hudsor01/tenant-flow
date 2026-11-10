@@ -151,7 +151,7 @@ export const termsStepSchema = z
 			return end > start;
 		},
 		{
-			message: "End date must be after start date",
+			error: "End date must be after start date",
 			path: ["end_date"],
 		},
 	);
@@ -223,7 +223,7 @@ export const leaseDetailsStepSchema = z
 			return true;
 		},
 		{
-			message:
+			error:
 				"Lead paint disclosure acknowledgment is required for properties built before 1978",
 			path: ["lead_paint_disclosure_acknowledged"],
 		},
@@ -284,7 +284,7 @@ const leaseWizardSchema = leaseWizardBaseSchema
 			return end > start;
 		},
 		{
-			message: "End date must be after start date",
+			error: "End date must be after start date",
 			path: ["end_date"],
 		},
 	)
@@ -296,7 +296,7 @@ const leaseWizardSchema = leaseWizardBaseSchema
 			return true;
 		},
 		{
-			message:
+			error:
 				"Lead paint disclosure acknowledgment is required for properties built before 1978",
 			path: ["lead_paint_disclosure_acknowledged"],
 		},

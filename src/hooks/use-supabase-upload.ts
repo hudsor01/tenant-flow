@@ -9,6 +9,7 @@ import { usageQueries } from "#hooks/api/query-keys/usage-keys";
 import {
 	handleMutationError,
 	showStorageQuotaUpgradeToast,
+	userFacingErrorMessage,
 } from "#lib/mutation-error-handler";
 import {
 	isStoragePlanLimitError,
@@ -81,6 +82,11 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 
 	const dropzoneProps = useDropzone({
 		onDrop,
+		// The root is no tab stop: the Dropzone's "select files" button is its
+		// keyboard control (VD-41). With react-dropzone's default the focusable
+		// root and the button were two tab stops for one action (66.2-39 fix
+		// round 4, G44). A click anywhere on the root still opens the picker.
+		noKeyboard: true,
 		accept: allowedMimeTypes.reduce(
 			(acc, type) => ({ ...acc, [type]: [] }),
 			{},
@@ -107,7 +113,10 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 		// must still upload; the DB trigger is authoritative). Ignore usage-read
 		// failures so the pre-check can never block an upload.
 		try {
-			const usage = await queryClient.ensureQueryData(usageQueries.storage());
+			const usage = await queryClient.query({
+				...usageQueries.storage(),
+				staleTime: "static",
+			});
 			const totalBytes = filesToUpload.reduce((sum, f) => sum + f.size, 0);
 			if (wouldExceedStorageQuota(usage, totalBytes)) {
 				showStorageQuotaUpgradeToast();
@@ -135,7 +144,10 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 					if (isStoragePlanLimitError(error)) {
 						handleMutationError(error, "Upload file");
 					}
-					return { name: file.name, message: error.message };
+					return {
+						name: file.name,
+						message: userFacingErrorMessage(error, "Upload failed"),
+					};
 				} else {
 					return { name: file.name, message: undefined };
 				}

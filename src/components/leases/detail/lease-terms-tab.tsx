@@ -1,3 +1,4 @@
+import { utilityLabel } from "#components/leases/wizard/utility-options";
 import { Badge } from "#components/ui/badge";
 import {
 	Card,
@@ -6,6 +7,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#components/ui/card";
+import { formatCount } from "#lib/formatters/count";
 import { formatCurrency } from "#lib/utils/currency";
 import type { Lease } from "#types/core";
 
@@ -26,18 +28,18 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 					<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">
 						Financial Terms
 					</h3>
-					<div className="grid gap-3 sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 						<div className="p-3 rounded-lg border">
 							<p className="text-sm text-muted-foreground">Late Fee</p>
-							<p className="font-medium">
+							<p className="mb-0 font-medium">
 								{lease.late_fee_amount
-									? `${formatCurrency(lease.late_fee_amount)} after ${lease.late_fee_days || 0} days`
+									? `${formatCurrency(lease.late_fee_amount)} after ${formatCount(lease.late_fee_days || 0, "day")}`
 									: "None"}
 							</p>
 						</div>
 						<div className="p-3 rounded-lg border">
 							<p className="text-sm text-muted-foreground">Currency</p>
-							<p className="font-medium">{lease.rent_currency || "USD"}</p>
+							<p className="mb-0 font-medium">{lease.rent_currency || "USD"}</p>
 						</div>
 					</div>
 				</section>
@@ -48,21 +50,26 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 						<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">
 							Property Rules
 						</h3>
-						<div className="grid gap-3 sm:grid-cols-2">
+						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 							{lease.max_occupants !== null && (
 								<div className="p-3 rounded-lg border">
 									<p className="text-sm text-muted-foreground">Max Occupants</p>
-									<p className="font-medium">{lease.max_occupants}</p>
+									<p className="mb-0 font-medium">{lease.max_occupants}</p>
 								</div>
 							)}
 							<div className="p-3 rounded-lg border">
 								<p className="text-sm text-muted-foreground">Pets</p>
-								<p className="font-medium">
+								<p className="mb-0 font-medium">
 									{lease.pets_allowed ? "Allowed" : "Not Allowed"}
 									{lease.pets_allowed && lease.pet_deposit && (
 										<span className="text-muted-foreground">
 											{" "}
-											(${lease.pet_deposit} deposit)
+											(
+											{formatCurrency(lease.pet_deposit, {
+												minimumFractionDigits: 0,
+												maximumFractionDigits: 0,
+											})}{" "}
+											deposit)
 										</span>
 									)}
 								</p>
@@ -87,12 +94,8 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 										</p>
 										<div className="flex flex-wrap gap-1">
 											{lease.utilities_included.map((util) => (
-												<Badge
-													key={util}
-													variant="secondary"
-													className="capitalize"
-												>
-													{util}
+												<Badge key={util} variant="secondary">
+													{utilityLabel(util)}
 												</Badge>
 											))}
 										</div>
@@ -106,12 +109,8 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 										</p>
 										<div className="flex flex-wrap gap-1">
 											{lease.tenant_responsible_utilities.map((util) => (
-												<Badge
-													key={util}
-													variant="outline"
-													className="capitalize"
-												>
-													{util}
+												<Badge key={util} variant="outline">
+													{utilityLabel(util)}
 												</Badge>
 											))}
 										</div>
@@ -127,11 +126,11 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 						<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">
 							Disclosures
 						</h3>
-						<div className="p-3 rounded-lg border bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800">
-							<p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+						<div className="p-3 rounded-lg border bg-warning/5 border-warning/30">
+							<p className="mb-0 text-sm font-medium text-warning-text">
 								Lead Paint Disclosure
 							</p>
-							<p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+							<p className="text-sm text-warning-text mt-1 mb-0">
 								Property built before 1978.
 								{lease.lead_paint_disclosure_acknowledged
 									? " Disclosure acknowledged by tenant."

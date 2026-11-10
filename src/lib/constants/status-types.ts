@@ -6,8 +6,11 @@
  * PostgreSQL and exported from core.ts via supabase.ts.
  *
  * This file only contains app-level constants for business logic that don't
- * correspond to database enum columns.
+ * correspond to database enum columns, and the labels the owner sees for them
+ * and for those columns.
  */
+
+import type { LeaseStatus, PropertyStatus } from "#types/core";
 
 /**
  * USER ROLES - App-level user type classification
@@ -35,6 +38,189 @@ const PROPERTY_TYPES = {
 } as const;
 
 export type PropertyType = (typeof PROPERTY_TYPES)[keyof typeof PROPERTY_TYPES];
+
+/** The name the owner sees for each property type, in the form's order. */
+export const PROPERTY_TYPE_LABELS: Readonly<Record<PropertyType, string>> = {
+	SINGLE_FAMILY: "Single Family",
+	MULTI_UNIT: "Multi Family",
+	APARTMENT: "Apartment",
+	COMMERCIAL: "Commercial",
+	CONDO: "Condo",
+	TOWNHOUSE: "Townhouse",
+	OTHER: "Other",
+};
+
+function isPropertyType(value: string): value is PropertyType {
+	return Object.hasOwn(PROPERTY_TYPE_LABELS, value);
+}
+
+/**
+ * A stored property_type as the form's type, or null for a value outside the
+ * set. properties.property_type is free text with no CHECK: the form writes the
+ * upper-case values above, but rows written by other paths hold lower-case ones
+ * ("single_family") and the older "multi_family" for MULTI_UNIT. So the match
+ * ignores case and takes that alias. Null is never a guess: a reader shows the
+ * value as written (propertyTypeLabel) and a filter matches no type with it.
+ */
+export function toPropertyType(value: string): PropertyType | null {
+	const key = value.toUpperCase();
+	const type = key === "MULTI_FAMILY" ? "MULTI_UNIT" : key;
+	return isPropertyType(type) ? type : null;
+}
+
+/** A stored property_type as its label; a value outside the set as written. */
+export function propertyTypeLabel(value: string): string {
+	const type = toPropertyType(value);
+	return type === null ? value : PROPERTY_TYPE_LABELS[type];
+}
+
+/** Every property type as a select option, in the form's order. */
+export const PROPERTY_TYPE_OPTIONS: readonly {
+	readonly value: PropertyType;
+	readonly label: string;
+}[] = Object.values(PROPERTY_TYPES).map((value) => ({
+	value,
+	label: PROPERTY_TYPE_LABELS[value],
+}));
+
+/**
+ * The name the owner sees for each lease status, on every screen and export
+ * (the leases and tenants pages, their CSVs, the lease form and detail). One
+ * label per value: the tenant pages printed "Pending" where the leases pages
+ * printed "Pending Signature" for the same lease.
+ */
+export const LEASE_STATUS_LABELS: Readonly<Record<LeaseStatus, string>> = {
+	draft: "Draft",
+	pending_signature: "Pending Signature",
+	active: "Active",
+	ended: "Ended",
+	terminated: "Terminated",
+	expired: "Expired",
+};
+
+/**
+ * The leases page's pseudo-status: an active lease within 30 days of its end
+ * date (transformLease, table/lease-utils.ts), never a stored lease_status.
+ */
+export const EXPIRING_LEASE_LABEL = "Expiring Soon";
+
+function isLeaseStatus(value: string): value is LeaseStatus {
+	return Object.hasOwn(LEASE_STATUS_LABELS, value);
+}
+
+/** A lease status as its label; a value outside the set as written. */
+export function leaseStatusLabel(value: string): string {
+	return isLeaseStatus(value) ? LEASE_STATUS_LABELS[value] : value;
+}
+
+/**
+ * The name the owner sees for each property status (properties.status). The
+ * property page printed it as stored ("active"); the bulk edit dialog offers
+ * the same three under these names.
+ */
+export const PROPERTY_STATUS_LABELS: Readonly<Record<PropertyStatus, string>> =
+	{
+		active: "Active",
+		inactive: "Inactive",
+		sold: "Sold",
+	};
+
+function isPropertyStatus(value: string): value is PropertyStatus {
+	return Object.hasOwn(PROPERTY_STATUS_LABELS, value);
+}
+
+/** A property status as its label; a value outside the set as written. */
+export function propertyStatusLabel(value: string): string {
+	return isPropertyStatus(value) ? PROPERTY_STATUS_LABELS[value] : value;
+}
+
+/**
+ * The reasons "Mark as moved out" offers, by the slug it saves at the start of
+ * `tenants.move_out_reason`, and the name the owner sees for each: in the
+ * dialog's list and on the tenant's page.
+ */
+export const MOVE_OUT_REASON_LABELS = {
+	lease_expired: "Lease Expired",
+	early_termination: "Early Termination",
+	eviction: "Eviction",
+	purchase: "Purchased Property",
+	relocation: "Relocation",
+	other: "Other",
+} as const;
+
+type MoveOutReason = keyof typeof MOVE_OUT_REASON_LABELS;
+
+function isMoveOutReason(value: string): value is MoveOutReason {
+	return Object.hasOwn(MOVE_OUT_REASON_LABELS, value);
+}
+
+/** `tenants_move_out_reason_length_check` (20261109141151). */
+const MOVE_OUT_REASON_MAX_LENGTH = 2000;
+
+const MOVE_OUT_NOTES_SEPARATOR = ": ";
+
+/**
+ * The longest note the dialog takes: the longest slug, the separator and the
+ * note stay within the column's limit whichever reason is chosen.
+ */
+export const MOVE_OUT_NOTES_MAX_LENGTH =
+	MOVE_OUT_REASON_MAX_LENGTH -
+	MOVE_OUT_NOTES_SEPARATOR.length -
+	Math.max(...Object.keys(MOVE_OUT_REASON_LABELS).map((slug) => slug.length));
+
+/** The reason the dialog saves: the slug, or the slug and the trimmed notes. */
+export function moveOutReasonText(slug: string, notes: string): string {
+	const trimmed = notes.trim();
+	return trimmed ? `${slug}${MOVE_OUT_NOTES_SEPARATOR}${trimmed}` : slug;
+}
+
+/**
+ * A saved reason as the tenant's page shows it: a known slug as its label,
+ * with the notes after it; anything else whole, as written.
+ */
+export function readMoveOutReason(saved: string): {
+	label: string;
+	notes: string | null;
+} {
+	const at = saved.indexOf(MOVE_OUT_NOTES_SEPARATOR);
+	const slug = at === -1 ? saved : saved.slice(0, at);
+	if (!isMoveOutReason(slug)) return { label: saved, notes: null };
+	const notes =
+		at === -1 ? "" : saved.slice(at + MOVE_OUT_NOTES_SEPARATOR.length);
+	return { label: MOVE_OUT_REASON_LABELS[slug], notes: notes || null };
+}
+
+/**
+ * A property's occupancy on the dashboard's portfolio, from its own occupied
+ * and total units. The column read "Lease Status" and invented one from the
+ * occupancy rate: 100% "Active", 80% or more "Expiring", less "Vacant", so a
+ * property with every lease running for years read "Expiring" at 4 of 5
+ * units. No lease date is in the row, so it states occupancy only.
+ */
+export type PortfolioOccupancy =
+	| "occupied"
+	| "partly-vacant"
+	| "vacant"
+	| "no-units";
+
+export const PORTFOLIO_OCCUPANCY_LABELS: Readonly<
+	Record<PortfolioOccupancy, string>
+> = {
+	occupied: "Occupied",
+	"partly-vacant": "Partly vacant",
+	vacant: "Vacant",
+	"no-units": "No units",
+};
+
+/** Every unit occupied, some, none, or no unit at all. */
+export function portfolioOccupancy(
+	occupied: number,
+	total: number,
+): PortfolioOccupancy {
+	if (total <= 0) return "no-units";
+	if (occupied <= 0) return "vacant";
+	return occupied >= total ? "occupied" : "partly-vacant";
+}
 
 /**
  * SINGLE-UNIT PROPERTY TYPES - Property types that have exactly one unit

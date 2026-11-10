@@ -130,39 +130,50 @@ export default async function ComparePage({ params }: PageProps) {
 				</div>
 			</section>
 
-			{/* Quick Stats */}
+			{/* Quick Stats. The columns step on the section's own width, never
+			    the viewport's, and each tile holds its figure on one line: a
+			    figure is 20px until its tile holds 4.5/5 (2,131 reviews) at 24px
+			    (229.75px in 14.5rem), and two columns start where two tiles do.
+			    Four never fit in max-w-4xl: four columns left each tile 140px,
+			    where the review counts broke onto three lines and Landlord-only
+			    onto two (and past its tile below 384px) (66.2-39 fix round 4,
+			    Part 8d). */}
 			<section className="pb-16">
-				<div className="max-w-4xl mx-auto px-6 lg:px-8">
-					<div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-						<div className="text-center p-6 rounded-xl border border-border bg-background">
+				<div className="@container/compare-stats max-w-4xl mx-auto px-6 lg:px-8">
+					<div className="grid grid-cols-1 @min-[36.75rem]/compare-stats:grid-cols-2 gap-6">
+						<div className="@container/compare-stat text-center p-6 rounded-xl border border-border bg-background">
 							<Star className="size-6 text-primary mx-auto mb-2" />
-							<p className="text-2xl font-bold text-foreground">
+							<p className="whitespace-nowrap text-xl @min-[14.5rem]/compare-stat:text-2xl font-bold text-foreground">
 								{data.capterra}
 							</p>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								{data.name} Capterra
 							</p>
 						</div>
-						<div className="text-center p-6 rounded-xl border border-border bg-background">
+						<div className="@container/compare-stat text-center p-6 rounded-xl border border-border bg-background">
 							<Star className="size-6 text-primary mx-auto mb-2" />
-							<p className="text-2xl font-bold text-foreground">{data.g2}</p>
-							<p className="text-sm text-muted-foreground">{data.name} G2</p>
+							<p className="whitespace-nowrap text-xl @min-[14.5rem]/compare-stat:text-2xl font-bold text-foreground">
+								{data.g2}
+							</p>
+							<p className="mb-0 text-sm text-muted-foreground">
+								{data.name} G2
+							</p>
 						</div>
-						<div className="text-center p-6 rounded-xl border border-border bg-background">
+						<div className="@container/compare-stat text-center p-6 rounded-xl border border-border bg-background">
 							<Calendar className="size-6 text-primary mx-auto mb-2" />
-							<p className="text-2xl font-bold text-foreground">
+							<p className="whitespace-nowrap text-xl @min-[14.5rem]/compare-stat:text-2xl font-bold text-foreground">
 								{data.founded}
 							</p>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								{data.name} Founded
 							</p>
 						</div>
-						<div className="text-center p-6 rounded-xl border border-border bg-background">
+						<div className="@container/compare-stat text-center p-6 rounded-xl border border-border bg-background">
 							<Users className="size-6 text-primary mx-auto mb-2" />
-							<p className="text-2xl font-bold text-foreground">
+							<p className="whitespace-nowrap text-xl @min-[14.5rem]/compare-stat:text-2xl font-bold text-foreground">
 								Landlord-only
 							</p>
-							<p className="text-sm text-muted-foreground">
+							<p className="mb-0 text-sm text-muted-foreground">
 								TenantFlow positioning
 							</p>
 						</div>
@@ -184,7 +195,7 @@ export default async function ComparePage({ params }: PageProps) {
 							Evaluating more than one option? See how TenantFlow stacks up
 							against the alternatives landlords most often consider.
 						</p>
-						<ul className="grid gap-3 sm:grid-cols-2">
+						<ul className="grid grid-cols-1 gap-3 pl-0 mt-0 mb-0 [&>li]:mb-0 sm:grid-cols-2">
 							{otherCompetitors.map(({ slug: otherSlug, name }) => (
 								<li key={otherSlug}>
 									<Link

@@ -4,6 +4,7 @@ import {
 	useQuery,
 	useQueryClient,
 } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import {
 	handleMutationError,
 	handleMutationSuccess,
@@ -16,6 +17,8 @@ import {
 	sessionQueries,
 	type UserSession,
 } from "./query-keys/session-keys";
+import { useAuthCacheUtils } from "./use-auth";
+import { SignOutIncompleteError } from "./use-auth-mutations";
 
 export interface RevokeSessionInput {
 	/** auth.sessions.id UUID returned by get_user_sessions RPC. */
@@ -30,9 +33,17 @@ export interface RevokeSessionInput {
 }
 
 const sessionMutationFactories = {
+	/**
+	 * `networkMode: "always"`, as "Sign out" has (Part 8k): under the app's
+	 * default `"online"` an offline press paused the mutation, the dialog
+	 * stayed loading, and the session ended on reconnect; now it runs at once
+	 * and fails, this device's row with the incomplete outcome (66.2-39 fix
+	 * round 4, Part 8l).
+	 */
 	revoke: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.sessions.revoke,
+			networkMode: "always",
 			mutationFn: async (input: RevokeSessionInput) => {
 				const supabase = createClient();
 
@@ -58,12 +69,20 @@ const sessionMutationFactories = {
 					(currentSessionId !== null && currentSessionId === input.id);
 
 				if (isOwnCurrentSession) {
-					// Current session: signOut() handles both the server-side delete
-					// (gotrue removes the auth.sessions row) and the client-side
-					// cleanup (clears localStorage tokens + cookies + caches).
-					const { error } = await supabase.auth.signOut();
-					if (error) throw error;
-					return { success: true, message: "Session terminated" };
+					// Current session: signOut({ scope: "local" }) deletes this
+					// session server-side (gotrue removes its auth.sessions row) and
+					// clears the client (localStorage tokens + cookies + caches). The
+					// default scope is "global", which ended EVERY session of the user,
+					// while the row and its confirmation sign out this device only
+					// (66.2-39 fix round 4, Part 8h).
+					const { error } = await supabase.auth.signOut({ scope: "local" });
+					// On failure auth-js 2.118.0 has already removed this browser's
+					// session (it does on any error other than 401/403/404 unless the
+					// scope is `others`), so the row's error and its retry offered
+					// what could not work: the incomplete outcome of "Sign out"
+					// instead (Part 8l).
+					if (error) throw new SignOutIncompleteError(error);
+					return { signedOutThisBrowser: true };
 				}
 
 				// Non-current sessions: SECURITY DEFINER RPC validates auth.uid() ==
@@ -95,10 +114,11 @@ const sessionMutationFactories = {
 					? decodeSessionIdFromAccessToken(postSession.access_token)
 					: null;
 				if (postCurrent !== null && postCurrent === input.id) {
-					await supabase.auth.signOut();
+					await supabase.auth.signOut({ scope: "local" });
+					return { signedOutThisBrowser: true };
 				}
 
-				return { success: true, message: "Session terminated" };
+				return { signedOutThisBrowser: false };
 			},
 		}),
 };
@@ -109,6 +129,8 @@ export function useUserSessions() {
 
 export function useRevokeSessionMutation() {
 	const queryClient = useQueryClient();
+	const { clearAuthData } = useAuthCacheUtils();
+	const router = useRouter();
 
 	return useMutation({
 		...sessionMutationFactories.revoke(),
@@ -126,13 +148,34 @@ export function useRevokeSessionMutation() {
 			return { previous };
 		},
 		onError: (error, _variables, context) => {
+			// "Sign out this device" failed after this browser was signed out:
+			// no row to restore and no retry. Clear what a sign-out clears, say
+			// what happened and go to sign in, as "Sign out" does (Part 8l).
+			if (error instanceof SignOutIncompleteError) {
+				clearAuthData();
+				handleMutationError(error, "Revoke session");
+				router.replace("/login");
+				return;
+			}
+
+			// Another session's revoke failed: nothing changed in this browser,
+			// so the row comes back and its button tries again.
 			if (context?.previous) {
 				queryClient.setQueryData(sessionKeys.all, context.previous);
 			}
 
 			handleMutationError(error, "Revoke session");
 		},
-		onSuccess: () => {
+		onSuccess: ({ signedOutThisBrowser }) => {
+			// This browser's session is gone: clear what a sign-out clears and
+			// land on /login at once, as every other sign-out does (main
+			// session, Part 8m), not on Settings with no session. Another
+			// session's revoke stays here, since this browser keeps its own.
+			if (signedOutThisBrowser) {
+				clearAuthData();
+				router.replace("/login");
+				return;
+			}
 			handleMutationSuccess(
 				"Revoke session",
 				"The session has been terminated successfully",

@@ -79,7 +79,10 @@ export function SignLeaseButton({
 				variant="outline"
 				size={size}
 				disabled
-				className={cn("gap-2 text-success-text border-success/20", className)}
+				className={cn(
+					"gap-2 text-success-text border-success/20 dark:border-success/20",
+					className,
+				)}
 			>
 				<CheckCircle2 className="h-4 w-4" />
 				Signed
@@ -103,19 +106,26 @@ export function SignLeaseButton({
 			</AlertDialogTrigger>
 			<AlertDialogContent>
 				<AlertDialogHeader>
-					<AlertDialogTitle>Sign Lease Agreement</AlertDialogTitle>
-					<AlertDialogDescription className="space-y-3">
-						<p>
-							You are about to electronically sign this lease agreement as the{" "}
-							<strong>owner</strong>.
-						</p>
-						<p>
-							By signing, you acknowledge that you have read and agree to all
-							terms and conditions outlined in the lease agreement.
-						</p>
-						<p className="text-warning-text font-medium">
-							This action is legally binding and cannot be undone.
-						</p>
+					<AlertDialogTitle>Sign this lease as the owner?</AlertDialogTitle>
+					{/* A div, not the description's own <p>: it holds three paragraphs.
+					    Until the tenant signs, cancelling the request (lease-signature
+					    "cancel") clears the owner's signature, so it is not final. */}
+					<AlertDialogDescription asChild className="mb-0 space-y-3">
+						<div>
+							<p>
+								You are about to electronically sign this lease agreement as the{" "}
+								<strong>owner</strong>.
+							</p>
+							<p>
+								By signing, you acknowledge that you have read and agree to all
+								terms and conditions outlined in the lease agreement.
+							</p>
+							<p className="mb-0 text-warning-text font-medium">
+								Your signature is legally binding. If the tenant has already
+								signed, the lease becomes active; until they sign, cancelling
+								the signature request clears it.
+							</p>
+						</div>
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 
@@ -144,7 +154,6 @@ export function SignLeaseButton({
 							handleSign();
 						}}
 						disabled={!agreed || mutation.isPending}
-						className="gap-2"
 					>
 						{mutation.isPending ? (
 							"Signing..."

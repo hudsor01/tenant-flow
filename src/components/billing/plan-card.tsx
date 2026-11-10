@@ -5,6 +5,7 @@ import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "#components/ui/card";
 import { cn } from "#lib/utils";
+import { formatCurrency } from "#lib/utils/currency";
 
 export interface PlanFeature {
 	name: string;
@@ -58,8 +59,12 @@ export function PlanCard({
 	return (
 		<Card
 			variant={isMostPopular ? "pricingPopular" : "pricing"}
+			// Each card's header, body and footer are rows of the plans grid
+			// (subgrid), so a row of cards shares them: every price sits at one
+			// y whatever its description's lines (66.2-39 fix round 4, Part 8c:
+			// a description one line longer put its card's price 20px lower).
 			className={cn(
-				"relative flex flex-col",
+				"relative row-span-3 grid grid-rows-subgrid",
 				isCurrentPlan && "border-primary/50 bg-primary/5",
 			)}
 		>
@@ -80,7 +85,7 @@ export function PlanCard({
 
 			<CardHeader className="pt-8 pb-4">
 				<h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
-				<p className="text-sm text-muted-foreground">{plan.description}</p>
+				<p className="mb-0 text-sm text-muted-foreground">{plan.description}</p>
 			</CardHeader>
 
 			<CardContent className="flex-1">
@@ -93,7 +98,10 @@ export function PlanCard({
 					) : (
 						<div className="flex items-baseline gap-1">
 							<span className="text-4xl font-bold text-foreground">
-								${plan.price}
+								{formatCurrency(plan.price, {
+									minimumFractionDigits: 0,
+									maximumFractionDigits: 0,
+								})}
 							</span>
 							<span className="text-muted-foreground">/mo</span>
 						</div>
@@ -106,7 +114,7 @@ export function PlanCard({
 						{plan.includesPrevious}
 					</p>
 				)}
-				<ul className="space-y-3">
+				<ul className="flex flex-col gap-3 pl-0 mt-0 mb-0 [&>li]:mb-0">
 					{plan.features.map((feature) => (
 						<li
 							key={feature.name}
@@ -114,7 +122,7 @@ export function PlanCard({
 								"flex items-start gap-2 text-sm",
 								feature.included
 									? "text-foreground"
-									: "text-muted-foreground/60 line-through",
+									: "text-muted-foreground line-through",
 							)}
 						>
 							<Check

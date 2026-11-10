@@ -40,9 +40,12 @@ export function TwoFactorSetupDialog({
 	// notify, but the bound `mutate` / `reset` methods (and `isPending`
 	// primitive) are stable. Destructure them so effect deps don't re-fire
 	// every render — that loop trips React error #185.
-	const { mutate: enrollMutate, reset: resetEnrollMfa } = enrollMfa;
+	const {
+		mutate: enrollMutate,
+		reset: resetEnrollMfa,
+		status: enrollStatus,
+	} = enrollMfa;
 	const { reset: resetVerifyMfa } = verifyMfa;
-	const enrollPending = enrollMfa.isPending;
 
 	const [step, setStep] = useState<SetupStep>("qr");
 	const [verifyCode, setVerifyCode] = useState("");
@@ -52,9 +55,12 @@ export function TwoFactorSetupDialog({
 		secret: string;
 	} | null>(null);
 
-	// Start enrollment when dialog opens
+	// Start enrollment once per opening: only from idle, which closing restores.
+	// Keyed on "not pending", a failed enrollment started the next one as soon
+	// as it settled, so the dialog re-posted the factor in a loop and flickered
+	// between the spinner and the error.
 	useEffect(() => {
-		if (open && !enrollmentData && !enrollPending) {
+		if (open && !enrollmentData && enrollStatus === "idle") {
 			enrollMutate(undefined, {
 				onSuccess: (data) => {
 					setEnrollmentData({
@@ -65,7 +71,7 @@ export function TwoFactorSetupDialog({
 				},
 			});
 		}
-	}, [open, enrollmentData, enrollPending, enrollMutate]);
+	}, [open, enrollmentData, enrollStatus, enrollMutate]);
 
 	// Reset state when dialog closes
 	useEffect(() => {
@@ -114,7 +120,7 @@ export function TwoFactorSetupDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[480px]" intent="edit">
+			<DialogContent className="sm:max-w-120" intent="edit">
 				{step === "qr" && (
 					<QrStep
 						enrollmentData={enrollmentData}
@@ -176,15 +182,18 @@ export function DisableTwoFactorDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[400px]" intent="delete">
+			<DialogContent className="sm:max-w-100" intent="delete">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2 text-destructive-text">
 						<ShieldOff className="size-5" />
-						Disable Two-Factor Authentication
+						Disable two-factor authentication?
 					</DialogTitle>
-					<DialogDescription>
-						Are you sure you want to disable 2FA? This will make your account
-						less secure.
+					{/* mfa.unenroll deletes the factor: turning 2FA on again means a new
+					    QR scan. */}
+					<DialogDescription className="mb-0">
+						Signing in will ask only for your password, and the codes from your
+						authenticator app stop working. To turn it on again, you set it up
+						again.
 					</DialogDescription>
 				</DialogHeader>
 				<DialogFooter>

@@ -1,44 +1,15 @@
 "use client";
 
 import { useSuspenseQuery } from "@tanstack/react-query";
-import type { ColumnDef } from "@tanstack/react-table";
-import { BarChart3, Calendar, DollarSign } from "lucide-react";
-import dynamic from "next/dynamic";
-import { DataTable } from "#components/data-table/data-table";
-import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
-import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
+import { DollarSign } from "lucide-react";
+import { LeaseProfitabilityTable } from "#components/analytics/lease-profitability-table";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Skeleton } from "#components/ui/skeleton";
 import { analyticsQueries } from "#hooks/api/use-analytics";
-import { useClientDataTable } from "#hooks/use-client-data-table";
-import { formatCurrency, formatNumber } from "#lib/utils/currency";
-import type { LeaseFinancialInsight } from "#types/analytics";
-
-const LeaseLifecycleChart = dynamic(
-	() => import("./lease-charts").then((mod) => mod.LeaseLifecycleChart),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
-);
-
-const LeaseStatusChart = dynamic(
-	() => import("./lease-charts").then((mod) => mod.LeaseStatusChart),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
-);
 
 export function LeaseInsightsSkeleton() {
 	return (
 		<div className="space-y-6">
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<div className="bg-card border border-border rounded-lg p-6">
-					<Skeleton className="h-5 w-32 mb-2" />
-					<Skeleton className="h-4 w-48 mb-6" />
-					<Skeleton className="h-64 w-full" />
-				</div>
-				<div className="bg-card border border-border rounded-lg p-6">
-					<Skeleton className="h-5 w-32 mb-2" />
-					<Skeleton className="h-4 w-40 mb-6" />
-					<Skeleton className="h-64 w-full" />
-				</div>
-			</div>
 			<div className="bg-card border border-border rounded-lg p-6">
 				<Skeleton className="h-5 w-40 mb-2" />
 				<Skeleton className="h-4 w-56 mb-6" />
@@ -48,179 +19,34 @@ export function LeaseInsightsSkeleton() {
 	);
 }
 
-function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
-	const columns: ColumnDef<LeaseFinancialInsight>[] = [
-		{
-			id: "lease_id",
-			accessorKey: "lease_id",
-			header: "Lease",
-			meta: {
-				label: "Lease ID",
-				variant: "text",
-				placeholder: "Search lease...",
-			},
-			enableColumnFilter: true,
-			cell: ({ row }) => (
-				<span className="font-medium">{row.original.lease_id}</span>
-			),
-		},
-		{
-			id: "tenantName",
-			accessorKey: "tenantName",
-			header: "Tenant",
-			meta: {
-				label: "Tenant",
-				variant: "text",
-				placeholder: "Search tenant...",
-			},
-			enableColumnFilter: true,
-		},
-		{
-			id: "propertyName",
-			accessorKey: "propertyName",
-			header: "Property",
-			meta: {
-				label: "Property",
-				variant: "text",
-				placeholder: "Search property...",
-			},
-			enableColumnFilter: true,
-		},
-		{
-			id: "rent_amount",
-			accessorKey: "rent_amount",
-			header: "Monthly rent",
-			meta: {
-				label: "Monthly Rent",
-				variant: "number",
-			},
-			enableColumnFilter: true,
-			cell: ({ row }) => (
-				<div className="text-right">
-					{formatCurrency(row.original.rent_amount)}
-				</div>
-			),
-		},
-		{
-			id: "outstandingBalance",
-			accessorKey: "outstandingBalance",
-			header: "Outstanding",
-			meta: {
-				label: "Outstanding Balance",
-				variant: "number",
-			},
-			enableColumnFilter: true,
-			cell: ({ row }) => (
-				<div className="text-right">
-					{formatCurrency(row.original.outstandingBalance)}
-				</div>
-			),
-		},
-		{
-			id: "profitabilityScore",
-			accessorKey: "profitabilityScore",
-			header: "Score",
-			meta: {
-				label: "Profitability Score",
-				variant: "number",
-			},
-			enableColumnFilter: true,
-			cell: ({ row }) => (
-				<div className="text-right">
-					{row.original.profitabilityScore !== null &&
-					row.original.profitabilityScore !== undefined
-						? formatNumber(row.original.profitabilityScore, {
-								maximumFractionDigits: 1,
-							})
-						: "-"}
-				</div>
-			),
-		},
-	];
-
-	const { table } = useClientDataTable({
-		data: leases,
-		columns,
-		initialState: {
-			pagination: {
-				pageIndex: 0,
-				pageSize: 8,
-			},
-		},
-	});
-
-	if (!leases.length) {
-		return (
-			<div className="text-center text-muted-foreground py-8">
-				No lease profitability data available
-			</div>
-		);
-	}
-
-	return (
-		<DataTable table={table}>
-			<DataTableToolbar table={table} />
-		</DataTable>
-	);
-}
-
+/**
+ * The leases page's insights: each lease's rent received less its expenses.
+ * The "Lease lifecycle" (renewals, expirations and notices over time) and
+ * "Status breakdown" charts went: no source records a lease's renewals or
+ * notices over time, and lifecycle and statusBreakdown were always written as
+ * [], so both charts could only ever be empty.
+ */
 export function LeaseInsightsSection() {
-	const { data } = useSuspenseQuery(analyticsQueries.leasePageData());
-
-	const { profitability = [], lifecycle = [], statusBreakdown = [] } = data;
+	const { data: profitability } = useSuspenseQuery(
+		analyticsQueries.leaseProfitability(),
+	);
 
 	return (
 		<div className="space-y-6">
-			{/* Charts Row */}
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<BlurFade delay={0.1} inView>
-					<div className="bg-card border border-border rounded-lg p-6">
-						<div className="flex items-center justify-between mb-6">
-							<div>
-								<h3 className="font-medium text-foreground">Lease lifecycle</h3>
-								<p className="text-sm text-muted-foreground">
-									Renewals, expirations, and notices over time
-								</p>
-							</div>
-							<Calendar className="w-5 h-5 text-muted-foreground" />
-						</div>
-						<LeaseLifecycleChart points={lifecycle} />
-					</div>
-				</BlurFade>
-
-				<BlurFade delay={0.2} inView>
-					<div className="bg-card border border-border rounded-lg p-6">
-						<div className="flex items-center justify-between mb-6">
-							<div>
-								<h3 className="font-medium text-foreground">
-									Status breakdown
-								</h3>
-								<p className="text-sm text-muted-foreground">
-									Distribution of lease states
-								</p>
-							</div>
-							<BarChart3 className="w-5 h-5 text-muted-foreground" />
-						</div>
-						<LeaseStatusChart breakdown={statusBreakdown} />
-					</div>
-				</BlurFade>
-			</div>
-
-			{/* Profitability Table */}
-			<BlurFade delay={0.3} inView>
+			<BlurFade delay={0.1}>
 				<div className="bg-card border border-border rounded-lg p-6">
 					<div className="flex items-center justify-between mb-6">
 						<div>
 							<h3 className="font-medium text-foreground">
 								Lease profitability
 							</h3>
-							<p className="text-sm text-muted-foreground">
-								Revenue contribution and outstanding balances
+							<p className="mb-0 text-sm text-muted-foreground">
+								Each lease&apos;s rent received less its expenses
 							</p>
 						</div>
 						<DollarSign className="w-5 h-5 text-muted-foreground" />
 					</div>
-					<ProfitabilityTable leases={profitability} />
+					<LeaseProfitabilityTable profitability={profitability} pageSize={8} />
 				</div>
 			</BlurFade>
 		</div>

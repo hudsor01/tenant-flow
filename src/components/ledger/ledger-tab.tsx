@@ -109,10 +109,13 @@ function buildLedgerRows(
 }
 
 /** Reverse-confirmation copy, disclosing the paired receipt reversal. */
+/** An entry as its confirmation names it. */
+function entryLabel(entry: LedgerEntryRow): string {
+	return entry.description ?? LEDGER_TYPE_LABELS[entry.type] ?? "this entry";
+}
+
 function reverseConfirmBody(entry: LedgerEntryRow): string {
-	const label =
-		entry.description ?? LEDGER_TYPE_LABELS[entry.type] ?? "this entry";
-	const body = `This posts an offsetting entry that cancels "${label}" (${formatCurrency(entry.amount)}). The original stays on the ledger for your records. Nothing is deleted.`;
+	const body = `This posts an offsetting entry that cancels it (${formatCurrency(entry.amount)}). The original stays on the ledger for your records. Nothing is deleted.`;
 
 	// Pitfall 4: reversing a charge also reverses every receipt allocated to it,
 	// so the owner is told before they confirm.
@@ -247,7 +250,11 @@ export function LedgerTab({ leaseId, isTracked }: LedgerTabProps) {
 				onOpenChange={(open) => {
 					if (!open) setPendingReversal(null);
 				}}
-				title="Reverse this entry?"
+				title={
+					pendingReversal
+						? `Reverse "${entryLabel(pendingReversal)}"?`
+						: "Reverse this entry?"
+				}
 				description={pendingReversal ? reverseConfirmBody(pendingReversal) : ""}
 				confirmText="Reverse entry"
 				confirmVariant="destructive"
