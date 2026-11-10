@@ -65,7 +65,7 @@ import { join, resolve, sep } from "node:path";
 import { compile } from "@tailwindcss/node";
 import type { AtRule, Node as PostcssNode, Rule } from "postcss";
 import { twMerge } from "tailwind-merge";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { MOBILE_MEDIA_QUERY } from "#hooks/use-mobile";
 import { cn, TAILWIND_MERGE_EXTENSION } from "#lib/utils";
 import {
@@ -1849,6 +1849,13 @@ describe("G8 every first-party class is canonical (D-25, PLAN.md §4.4 class)", 
 		}
 		return firstPartyScanPromise;
 	}
+
+	// The scan builds the project's Tailwind engine and reads every first-party
+	// source file, once, for the tests below. On a slow CI runner that alone ran
+	// past 30s inside the first test's limit, so it runs here with its own.
+	beforeAll(async () => {
+		await firstPartyScan();
+	}, 120_000);
 
 	it("scans first-party source only, and enough of it that a clean result means something", async () => {
 		const { engine, candidates, files } = await firstPartyScan();
