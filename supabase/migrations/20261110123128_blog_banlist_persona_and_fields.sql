@@ -40,7 +40,7 @@
 --   - scripts/generate-blog-draft.ts (BANLIST, PERSONA_BANLIST, BANLIST_FIELDS)
 --
 -- PRIVILEGES. Production's ACL is {postgres=X/postgres}. CREATE OR REPLACE keeps
--- the existing ACL, which 20261102055400 has already made production's on a
+-- the existing ACL, which 20261110123049 has already made production's on a
 -- replay (the chain through 20261005215446 left PUBLIC and service_role with
 -- EXECUTE); the REVOKE below leaves it so whatever ran before. A trigger
 -- function needs no EXECUTE to fire: scripts/migration-replay-blog-banlist.sql

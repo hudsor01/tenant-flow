@@ -36,13 +36,13 @@
  *     (DEDUCTIBILITY_NOTE).
  * Income is rent received, from the rent ledger: collectedTotal as of December
  * 31 of the year less as of December 31 of the year before (cash basis), and
- * each property's receipts in the calendar year (20261102163709). For a year
+ * each property's receipts in the calendar year (20261110123116). For a year
  * the function lists every property with a receipt or an expense in it, one
  * the owner has deleted since included, so the summary and the table tie to
  * the cent; the row does not say which is deleted, so the year-end report
  * also reads the owner's deleted property ids (`properties.status`) and names
  * each such row through `propertyReportName`, the page's label. When the
- * server cannot report them yet (get_billing_insights before 20261102055449,
+ * server cannot report them yet (get_billing_insights before 20261110123114,
  * or a property row whose `timeframe` is not the year), the page says so and
  * the report throws, so no file ever presents $0 as a tax year's income.
  * The test runs each page query and this module against the same RPC answers
@@ -88,7 +88,7 @@ export function propertyReportName(name: string, status: string): string {
  * The name of the expenses with no vendor recorded. get_expense_summary's
  * categories and get_maintenance_analytics' vendor_performance put an expense
  * whose vendor is NULL, empty or only spaces under a NULL vendor
- * (20261102184502, 20261102184503), a key no vendor's name can take; the body
+ * (20261110123120, 20261110123122), a key no vendor's name can take; the body
  * before folded them into "Other", merging them with a vendor the owner named
  * "Other". Every surface that lists vendors names them through
  * `expenseVendorLabel`: the expenses, financial analytics, maintenance
@@ -154,7 +154,7 @@ async function loadDeletedPropertyIds(
  * Every row of get_property_performance_analytics, page by page, as the
  * year-end page reads it (fetchEveryPropertyPerformanceRow): ordered by name
  * and id, until a page comes back short. The By Property table must hold the
- * whole year: the function lists every property (20261102163709), but one
+ * whole year: the function lists every property (20261110123116), but one
  * request returns at most max-rows of them. A payload that is not an array
  * ends the read as it is, so the table's own check refuses it.
  */
@@ -401,7 +401,7 @@ function percentOneDecimal(value: number): number {
 /**
  * Rent received in the year, as both pages compute it: collectedTotal as of
  * December 31 less as of December 31 of the year before, to the cent. Throws
- * when either is missing (the body before 20261102055449): the pages show
+ * when either is missing (the body before 20261110123114): the pages show
  * their unavailable state there, and the file must not hold a $0 instead.
  */
 function rentReceivedInYear(sources: TaxYearSources): number {
@@ -451,7 +451,7 @@ function yearEndRow(
 function yearEndRows(sources: TaxYearSources, year: number): Row[] {
 	const received = rentReceivedInYear(sources);
 	const operating = expenseTotal(sources.expenseSummary);
-	// Each row must state the calendar year (20261102163709); the body before
+	// Each row must state the calendar year (20261110123116); the body before
 	// it echoes p_timeframe and returns 0 as every property's revenue.
 	const taxYearWindow = `${year}-01-01/${year}-12-31`;
 	const deleted = new Set(

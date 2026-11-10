@@ -207,7 +207,7 @@ export const analyticsQueries = {
 				const units = countedUnits.data ?? [];
 				const byProperty = unitCountsByProperty(units);
 				// Rent received is null, never 0, when the server's body predates
-				// 20261102163709 (property-performance-mappers.ts).
+				// 20261110123116 (property-performance-mappers.ts).
 				const result = mapPropertyPerformance(performanceRows.data);
 				const occupancy =
 					result.status === "ready" ? result.properties : result.occupancy;
@@ -283,7 +283,7 @@ export const analyticsQueries = {
 					owner_id_param: user.id,
 				});
 				if (error) handlePostgrestError(error, "analytics");
-				// Dollars from the rent ledger, and counts (20261102055449). A null
+				// Dollars from the rent ledger, and counts (20261110123114). A null
 				// payload is "no data yet"; any other non-object throws, so the page
 				// shows its error state rather than a summary of zeros.
 				const raw = jsonObjectOrEmpty<Record<string, unknown>>(data, {});

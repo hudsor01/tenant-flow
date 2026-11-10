@@ -131,7 +131,7 @@ export const propertyQueries = {
 				const user = await getCachedUser();
 				if (!user) return null;
 				// The trailing 365 days ending today. get_property_performance_
-				// analytics (20261102163709) takes a trailing window ('7d', '30d',
+				// analytics (20261110123116) takes a trailing window ('7d', '30d',
 				// '90d', '180d' or '365d') or a range ('YYYY-MM-DD..YYYY-MM-DD');
 				// anything else is 30 days.
 				const { data, error } = await supabase.rpc(

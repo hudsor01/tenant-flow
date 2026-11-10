@@ -15,7 +15,7 @@ import {
 /**
  * In place of a statement's or the tax documents' figures when the server
  * returns none of the rent ledger totals they are built on
- * (get_billing_insights before 20261102055449). The page's selectors and its
+ * (get_billing_insights before 20261110123114). The page's selectors and its
  * export control (a statement's Export, the tax documents' Download PDF) stay,
  * so the owner can still pick another period or year; every one is
  * unavailable in that state, and the control says why.

@@ -26,7 +26,7 @@ name: Migration Replay
 # while its effects are live). Comparing state rather than rows is a separate
 # drift-check job; this one only answers "does the chain apply from empty".
 # One slice of state is the exception:
-# 20261102055400_reconcile_public_functions_with_production.sql raises, failing
+# 20261110123049_reconcile_public_functions_with_production.sql raises, failing
 # the replay step, unless at that point in the chain every public function has
 # the pg_get_functiondef, ACL, volatility and SECURITY DEFINER flag production
 # had on 2026-11-02. That covers public functions only, as of that file: no
@@ -193,7 +193,7 @@ jobs:
       - name: Assert get_billing_insights computes its figures from the ledger
         run: |
           set -euo pipefail
-          # From 20260528231201 until 20261102055449 the function returned
+          # From 20260528231201 until 20261110123114 the function returned
           # unpaidTotal, unpaidCount and lateFeeTotal as the literal 0, so every
           # owner's Payment Summary read 0 while the rent ledger held the real
           # figures -- and no job could see it, because none ran the function
@@ -213,7 +213,7 @@ jobs:
       - name: Assert get_property_performance_analytics reports rent received
         run: |
           set -euo pipefail
-          # From 20260528231201 until 20261102163709 the function returned
+          # From 20260528231201 until 20261110123116 the function returned
           # the literal 0 (0::bigint, and 0::numeric from 20260708131721) as
           # every property's total_revenue, so its net income was
           # its expenses negated on the analytics page, the property page, the
@@ -233,7 +233,7 @@ jobs:
       - name: Assert the dashboard, expense and maintenance figures are computed
         run: |
           set -euo pipefail
-          # Until 20261102184501..20261102184504, get_dashboard_stats returned
+          # Until 20261110123118..20261110123124, get_dashboard_stats returned
           # occupancyChange and revenue growth as 0, get_dashboard_data_v2
           # compared today's leases with only the leases still active today
           # and drew its 30-day and 6-month series from those alone,
@@ -241,7 +241,7 @@ jobs:
           # get_maintenance_analytics returned every cost as 0 or [], and
           # get_financial_overview returned receivables, payables and trends as
           # literals no caller reads (and no lease's profitability), and until
-          # 20261102200501 get_occupancy_trends_optimized counted a soft-deleted
+          # 20261110123126 get_occupancy_trends_optimized counted a soft-deleted
           # unit's lease -- and no job ran any of them against data. The
           # fixture seeds leases, rent receipts, maintenance requests and expenses
           # for the three seeded users (so it runs after the cast step), calls
@@ -256,7 +256,7 @@ jobs:
       - name: Assert validate_blog_post bans the persona word and checks every field
         run: |
           set -euo pipefail
-          # Until 20261102230101 the blog trigger's banlist read NEW.content only
+          # Until 20261110123128 the blog trigger's banlist read NEW.content only
           # and carried no persona word, so a post whose excerpt said
           # "single-property owner" published to /blog, where
           # persona-consistency.spec.ts bans /property owners?\b/i -- and no

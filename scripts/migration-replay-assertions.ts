@@ -496,7 +496,7 @@ function collectTypeSplitBreaks(
  * ledger figures from the rent ledger.
  *
  * From 20260528231201_repair_analytics_rpcs.sql until
- * 20261102055449_billing_insights_from_rent_ledger.sql it returned
+ * 20261110123114_billing_insights_from_rent_ledger.sql it returned
  * `unpaidTotal`, `unpaidCount` and `lateFeeTotal` as the literal 0, so every
  * owner's Payment Summary cards and export rows read 0 while the ledger held the
  * real figures, and nothing in CI could see it: no job ran the function against
@@ -727,7 +727,7 @@ const EXPECTED_PROPERTY_PERFORMANCE_EXECUTE: Readonly<
 	Record<"anon" | "authenticated" | "service_role", boolean>
 > = { anon: false, authenticated: true, service_role: true };
 
-/** The two ledger helpers both functions read (20261102055449). */
+/** The two ledger helpers both functions read (20261110123114). */
 const LEDGER_HELPERS = [
 	"public.rent_ledger_leases(uuid)",
 	"public.rent_ledger_receipts(uuid)",
@@ -815,7 +815,7 @@ const BACKWARDS_RANGE_SQLSTATE = "22023";
  * received from the rent ledger, over the window asked for, and say which.
  *
  * From 20260528231201_repair_analytics_rpcs.sql until
- * 20261102163709_property_performance_rent_received.sql it returned the
+ * 20261110123116_property_performance_rent_received.sql it returned the
  * literal 0 as `total_revenue` (`0::bigint`, and `0::numeric` from
  * 20260708131721), so every property's revenue read $0 and its
  * net income was its expenses negated, on the analytics page, the property
@@ -871,7 +871,7 @@ export function assertPropertyPerformanceRentReceived(
 	) {
 		return {
 			ok: false,
-			message: `get_property_performance_analytics returned 0 as every property's revenue and echoed the window it was asked for (${TAX_2025_REQUEST}) for an owner whose seeded ledger received 3833.50 in 2025: that is the hard-coded body before 20261102163709, not a ledger computation. The migration that computes rent received did not apply, or a later one replaced it with a copy of an older body.`,
+			message: `get_property_performance_analytics returned 0 as every property's revenue and echoed the window it was asked for (${TAX_2025_REQUEST}) for an owner whose seeded ledger received 3833.50 in 2025: that is the hard-coded body before 20261110123116, not a ledger computation. The migration that computes rent received did not apply, or a later one replaced it with a copy of an older body.`,
 		};
 	}
 
@@ -1154,7 +1154,7 @@ interface OwnerFiguresExpectation {
  *   on every month in which no counted lease starts or ends. The body before
  *   counted L14 on N5 in every past month: 5 of 4 in the latest.
  * The dashboard's series, owner A (get_dashboard_data_v2's time_series,
- *   20261102184501): each of the last 30 days, T-29 .. T, is the rule on that
+ *   20261110123118): each of the last 30 days, T-29 .. T, is the rule on that
  *   day (ownerAOccupancy over the one day, and ownerARent), the last of them
  *   the trends' current figures, 75.00 and 2470; each of the six calendar
  *   months to M0's is the scheduled rent on its last day, T for M0's (2470).
@@ -1165,7 +1165,7 @@ interface OwnerFiguresExpectation {
  *   points, and growth NULL (nothing was scheduled then), never 0. The
  *   occupancy, revenue and tenant trends have no earlier figure (no lease or
  *   tenant 30 days ago): percentChange NULL, never 0.
- * Open maintenance (get_dashboard_data_v2, 20261102184501): one count, the
+ * Open maintenance (get_dashboard_data_v2, 20261110123118): one count, the
  *   requests not completed or cancelled, in `stats.maintenance.open`, the
  *   open_maintenance trend's current figure and each property's
  *   open_maintenance. Owner A: R3, R5 (in progress) and R8, 3 (status 'open'
@@ -1220,7 +1220,7 @@ interface OwnerFiguresExpectation {
  *   included: 30 + 77 + 5 + 9 = 121.00 (116.00 on a month's last day, which
  *   has no T+1 row). net_income is the difference. Only those three keys
  *   remain in `overview`, beside `lease_profitability`.
- * Lease profitability (get_financial_overview, 20261102184504), largest net
+ * Lease profitability (get_financial_overview, 20261110123124), largest net
  *   first. Owner A, M0-2mo .. M0-1mo+5d: L8 on South House (soft-deleted
  *   property: listed, and says so) 5000.00 received; L1 2000.00 received
  *   (M0-2mo+2d, M0-1mo+2d) less 360.50 of N1's expenses (R1 200 + 50.50,
@@ -1639,7 +1639,7 @@ function hasKey(object: unknown, key: string): boolean {
 }
 
 /**
- * The bodies before 20261102184501..20261102184504 and 20261102200501 (and
+ * The bodies before 20261110123118..20261110123124 and 20261110123126 (and
  * the bodies this PR had before part N extended them), named by what only they
  * return. One line per such marker, so a body left behind is named, never read
  * as an arithmetic slip; a function can be named twice, as production's
@@ -1656,7 +1656,7 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 		!hasKey(stats, "occupancyChangeWindow")
 	) {
 		found.push(
-			"get_dashboard_stats returned occupancyChange and growth as the literal 0 with no window for an owner whose occupancy fell from 100.00% to 75.00%: that is the body before 20261102184501.",
+			"get_dashboard_stats returned occupancyChange and growth as the literal 0 with no window for an owner whose occupancy fell from 100.00% to 75.00%: that is the body before 20261110123118.",
 		);
 	}
 	if (
@@ -1664,7 +1664,7 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 		!hasKey(atPath(printed, "dashboard_v2_a.units"), "occupancyChangeWindow")
 	) {
 		found.push(
-			"get_dashboard_data_v2 returned no occupancyChangeWindow: that is the body before 20261102184501, which compares today's leases with only the leases still active today.",
+			"get_dashboard_data_v2 returned no occupancyChangeWindow: that is the body before 20261110123118, which compares today's leases with only the leases still active today.",
 		);
 	}
 	const trendOccupancy = atPath(printed, "dashboard_v2_a.trend_occupancy");
@@ -1675,7 +1675,7 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 		!hasKey(trendOccupancy, "window")
 	) {
 		found.push(
-			"get_dashboard_data_v2's trends state no window: that is a body before 20261102184501 as this PR leaves it, whose percentChange is 0 with no earlier figure and whose active_tenants compares only the leases still active today.",
+			"get_dashboard_data_v2's trends state no window: that is a body before 20261110123118 as this PR leaves it, whose percentChange is 0 with no earlier figure and whose active_tenants compares only the leases still active today.",
 		);
 	}
 	const series = atPath(printed, "occupancy_series_a");
@@ -1691,7 +1691,7 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 		})
 	) {
 		found.push(
-			"get_occupancy_trends_optimized counted more occupied units than units in a month: a lease on a soft-deleted unit counted outside the denominator. That is the body before 20261102200501.",
+			"get_occupancy_trends_optimized counted more occupied units than units in a month: a lease on a soft-deleted unit counted outside the denominator. That is the body before 20261110123126.",
 		);
 	}
 	const ytd = atPath(printed, "expenses_c_year_to_date");
@@ -1701,7 +1701,7 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 		!hasKey(ytd, "year_over_year_prior_period")
 	) {
 		found.push(
-			"get_expense_summary returned year_over_year_change as the literal null with no prior period, for an owner who spent 240.00 a year earlier: that is the body before 20261102184502.",
+			"get_expense_summary returned year_over_year_change as the literal null with no prior period, for an owner who spent 240.00 a year earlier: that is the body before 20261110123120.",
 		);
 	}
 	const maintenance = atPath(printed, "maintenance_a");
@@ -1710,7 +1710,7 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 		!hasKey(maintenance, "costed_requests")
 	) {
 		found.push(
-			"get_maintenance_analytics returned total_cost as the literal 0 with no costed_requests, for an owner with 790.50 of maintenance expenses: that is the body before 20261102184503.",
+			"get_maintenance_analytics returned total_cost as the literal 0 with no costed_requests, for an owner with 790.50 of maintenance expenses: that is the body before 20261110123122.",
 		);
 	}
 	const ytdCategories = atPath(printed, "expenses_c_year_to_date.categories");
@@ -1727,7 +1727,7 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 		})
 	) {
 		found.push(
-			'get_expense_summary put more than the 20.00 of the vendor the owner named "Other" under "Other": it folded expenses with no vendor into a vendor\'s name. That is the body before 20261102184502 as part Q extends it.',
+			'get_expense_summary put more than the 20.00 of the vendor the owner named "Other" under "Other": it folded expenses with no vendor into a vendor\'s name. That is the body before 20261110123120 as part Q extends it.',
 		);
 	}
 	if (
@@ -1735,7 +1735,7 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 		atPath(printed, "dashboard_v2_a.trend_maintenance.current") === 3
 	) {
 		found.push(
-			"get_dashboard_data_v2 counted only status 'open' in stats.maintenance.open beside a trend of every request not completed or cancelled: that is the body before 20261102184501 as part Q extends it.",
+			"get_dashboard_data_v2 counted only status 'open' in stats.maintenance.open beside a trend of every request not completed or cancelled: that is the body before 20261110123118 as part Q extends it.",
 		);
 	}
 	if (
@@ -1743,7 +1743,7 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 		atPath(printed, "dashboard_v2_a.trend_maintenance.current") === 3
 	) {
 		found.push(
-			"get_dashboard_stats counted only status 'open' in maintenance.open where get_dashboard_data_v2 counts every request not completed or cancelled: that is the body before 20261102184501 as part R extends it.",
+			"get_dashboard_stats counted only status 'open' in maintenance.open where get_dashboard_data_v2 counts every request not completed or cancelled: that is the body before 20261110123118 as part R extends it.",
 		);
 	}
 	const overview = atPath(printed, "overview_a_window");
@@ -1756,14 +1756,14 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
 		!hasKey(overview, "lease_profitability")
 	) {
 		found.push(
-			"get_financial_overview returned no lease_profitability: that is a body before 20261102184504 as this PR leaves it, which reports no lease's rent received or expenses.",
+			"get_financial_overview returned no lease_profitability: that is a body before 20261110123124 as this PR leaves it, which reports no lease's rent received or expenses.",
 		);
 	}
 	if (
 		hasKey(atPath(printed, "overview_a_window.overview"), "accounts_receivable")
 	) {
 		found.push(
-			"get_financial_overview still returns accounts_receivable (and the other literals no caller reads): that is the body before 20261102184504.",
+			"get_financial_overview still returns accounts_receivable (and the other literals no caller reads): that is the body before 20261110123124.",
 		);
 	}
 	return found;
@@ -1773,14 +1773,14 @@ function oldBodyDiagnoses(printed: Record<string, unknown>): string[] {
  * The owner-figure functions must compute the figures they returned as literals, from
  * one definition, and say over which days.
  *
- * Before 20261102184501..20261102184504, get_dashboard_stats returned
+ * Before 20261110123118..20261110123124, get_dashboard_stats returned
  * occupancyChange and growth as 0 and get_dashboard_data_v2 computed them,
  * and drew its 30-day and 6-month series, from only the leases still active
  * today; get_expense_summary returned year_over_year_change as null;
  * get_maintenance_analytics returned every cost as 0 or [];
  * get_financial_overview returned accounts receivable and payable as 0 and
  * trends as null, and reported no lease's profitability;
- * get_occupancy_trends_optimized, until 20261102200501, counted a lease on a
+ * get_occupancy_trends_optimized, until 20261110123126, counted a lease on a
  * soft-deleted unit outside its denominator. No job ran any of them against
  * data. This checks every computed figure, the windows and markers the app
  * keys its "unavailable" states on, that the two dashboard functions agree
@@ -2086,7 +2086,7 @@ export const EXPECTED_BLOG_BANLIST: Readonly<
 	// Drafts are not gated.
 	"persona-draft": ACCEPTED,
 	// An UPDATE of a row already in-review or published is not gated, as
-	// before 20261102230101: no existing post is rechecked.
+	// before 20261110123128: no existing post is rechecked.
 	"update-published-to-published": ACCEPTED,
 	"update-draft-to-published": personaHit("excerpt"),
 };
@@ -2094,7 +2094,7 @@ export const EXPECTED_BLOG_BANLIST: Readonly<
 /**
  * The function's privileges as production has them: EXECUTE for its owner
  * only. The chain through 20261005215446 left PUBLIC and service_role with
- * EXECUTE; 20261102055400 revokes both, as 20261102230101's own REVOKE does.
+ * EXECUTE; 20261110123049 revokes both, as 20261110123128's own REVOKE does.
  * The fixture's inserts run as service_role, so a rejection above also proves
  * the trigger fires without it.
  */
@@ -2115,7 +2115,7 @@ const EXPECTED_BLOG_BANLIST_TRIGGER: Readonly<Record<string, string | number>> =
  * `validate_blog_post` must reject a banned phrase or persona word in a post's
  * title, excerpt or content.
  *
- * Until 20261102230101_blog_banlist_persona_and_fields.sql gate 8 read
+ * Until 20261110123128_blog_banlist_persona_and_fields.sql gate 8 read
  * NEW.content only and carried no persona word, so a post whose excerpt said
  * "single-property owner" published to /blog, where
  * persona-consistency.spec.ts bans it, and nothing in CI ran the trigger. This
@@ -2153,7 +2153,7 @@ export function assertBlogBanlistGate(raw: string): AssertionResult {
 		return {
 			ok: false,
 			message:
-				"validate_blog_post rejected a banlist phrase in a post's content but published the same kind of phrase in its title and its excerpt: that is the gate that read NEW.content only. 20261102230101_blog_banlist_persona_and_fields.sql did not apply, or a later migration replaced it with an older body.",
+				"validate_blog_post rejected a banlist phrase in a post's content but published the same kind of phrase in its title and its excerpt: that is the gate that read NEW.content only. 20261110123128_blog_banlist_persona_and_fields.sql did not apply, or a later migration replaced it with an older body.",
 		};
 	}
 

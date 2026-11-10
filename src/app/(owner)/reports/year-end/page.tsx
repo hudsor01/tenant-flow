@@ -45,8 +45,8 @@ export default function YearEndReportsPage() {
 	const { data: yearEndResult, isLoading: isLoadingYearEnd } =
 		useYearEndSummary(selectedYear);
 	// null-free: when the server cannot report the year's rent received yet
-	// (get_billing_insights before 20261102055449, or
-	// get_property_performance_analytics before 20261102163709), the section
+	// (get_billing_insights before 20261110123114, or
+	// get_property_performance_analytics before 20261110123116), the section
 	// says so and both downloads stay off.
 	const yearEndResponse =
 		yearEndResult?.status === "ready" ? yearEndResult.summary : undefined;

@@ -16,7 +16,7 @@ const NO_LEASES: LeaseProfitabilityRow[] = [];
 
 /**
  * Each lease's rent received less its expenses over the period
- * (get_financial_overview's `lease_profitability`, 20261102184504), largest
+ * (get_financial_overview's `lease_profitability`, 20261110123124), largest
  * net first: the financial analytics page's and the leases page's table.
  * Before that migration the server reports none, and the table says it is
  * unavailable rather than showing an empty one.

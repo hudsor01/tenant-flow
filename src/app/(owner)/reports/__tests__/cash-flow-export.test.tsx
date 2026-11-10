@@ -244,7 +244,7 @@ describe("cash flow Export", () => {
 	});
 
 	it("says the ledger totals are unavailable, with no $0, and disables Export", () => {
-		// get_billing_insights' body before 20261102055449: no ledger keys.
+		// get_billing_insights' body before 20261110123114: no ledger keys.
 		useCashFlowMock.mockReturnValue(
 			queryState({
 				data: { status: "ledger-unavailable" },

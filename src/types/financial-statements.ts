@@ -108,7 +108,7 @@ export interface TaxDocumentsData {
 /**
  * financialTaxQueries.taxDocuments' result. `ledger-unavailable` when the
  * server returns no rent-ledger totals (get_billing_insights before
- * 20261102055449), so no $0 is presented as a tax year's gross income.
+ * 20261110123114), so no $0 is presented as a tax year's gross income.
  */
 export type TaxDocumentsResult =
 	| { readonly status: "ready"; readonly documents: TaxDocumentsData }
@@ -176,7 +176,7 @@ export interface BalanceSheetData {
 /**
  * financialQueries.balanceSheet's result. `ledger-unavailable` when the server
  * returns none of the rent-ledger figures the sheet is built on
- * (get_billing_insights before 20261102055449): the page says so instead of
+ * (get_billing_insights before 20261110123114): the page says so instead of
  * presenting $0 as the owner's cash and receivables.
  */
 export type BalanceSheetResult =
@@ -213,7 +213,7 @@ export interface CashFlowData {
 /**
  * financialQueries.cashFlow's result. `ledger-unavailable` when the server
  * returns none of the rent-ledger figures the report is built on
- * (get_billing_insights before 20261102055449).
+ * (get_billing_insights before 20261110123114).
  */
 export type CashFlowResult =
 	| { readonly status: "ready"; readonly report: CashFlowData }
@@ -256,7 +256,7 @@ export interface IncomeStatementData {
 /**
  * financialQueries.incomeStatement's result. `ledger-unavailable` when the
  * server returns none of the rent-ledger figures the statement is built on
- * (get_billing_insights before 20261102055449): the page says so instead of
+ * (get_billing_insights before 20261110123114): the page says so instead of
  * presenting $0 as the period's revenue.
  */
 export type IncomeStatementResult =

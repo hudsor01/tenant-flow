@@ -1,6 +1,6 @@
 /**
  * The maintenance request's header shows its spend to date from its expenses,
- * as get_maintenance_analytics counts total_cost (20261102184503), and never
+ * as get_maintenance_analytics counts total_cost (20261110123122), and never
  * `actual_cost`, which nothing writes (66.2-39 fix round 1, part N).
  */
 import { render, screen } from "@testing-library/react";

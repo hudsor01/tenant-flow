@@ -28,7 +28,7 @@ const MINUS = String.fromCharCode(0x2212);
 
 /**
  * The year to date against the same dates a year earlier (get_expense_summary,
- * 20261102184502). Spending more is the destructive direction. With no prior
+ * 20261110123120). Spending more is the destructive direction. With no prior
  * period from the server (the body before) the change is unavailable; with
  * nothing spent then there is no prior figure to compare with.
  */

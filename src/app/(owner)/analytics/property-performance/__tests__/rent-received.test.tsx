@@ -2,7 +2,7 @@
  * /analytics/property-performance and the property page show each property's
  * rent received, from the rent ledger, over the window the server states.
  *
- * Production's body before 20261102163709 returns 0 as every property's
+ * Production's body before 20261110123116 returns 0 as every property's
  * revenue, and these surfaces showed it as "Monthly revenue" (the tile and the
  * Top properties column) and "Revenue" (the property page). They now label the
  * figure "Rent received", say which days it covers, and say it is unavailable,
@@ -130,7 +130,7 @@ describe("the Top properties table", () => {
 describe("the property page's performance card", () => {
 	// Only rent received and expenses are filtered by the window;
 	// get_property_performance_analytics reads occupancy from each unit's
-	// current status (20261102163709), so the window is not put on it (cycle
+	// current status (20261110123116), so the window is not put on it (cycle
 	// 2, F59).
 	it("shows rent received, expenses and net income over the stated window", async () => {
 		mockRpc.mockResolvedValue({
@@ -173,7 +173,7 @@ describe("the property page's performance card", () => {
 		).toBeInTheDocument();
 	});
 
-	it("says rent received is unavailable from the body before 20261102163709", async () => {
+	it("says rent received is unavailable from the body before 20261110123116", async () => {
 		mockRpc.mockResolvedValue({
 			data: [
 				{

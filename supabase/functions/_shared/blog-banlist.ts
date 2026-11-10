@@ -5,7 +5,7 @@
  *   - scripts/generate-blog-draft.ts (BANLIST, PERSONA_BANLIST, BANLIST_FIELDS)
  *   - the validate_blog_post trigger (v_banlist, v_persona_banlist,
  *     v_banlist_fields), whose live body is
- *     supabase/migrations/20261102230101_blog_banlist_persona_and_fields.sql
+ *     supabase/migrations/20261110123128_blog_banlist_persona_and_fields.sql
  * src/lib/seo/__tests__/banlist-parity.test.ts fails when the phrases, the
  * persona words, the fields or the persona pattern of the three drift, or when
  * the pattern stops meaning persona-consistency.spec.ts's /property owners?\b/i.

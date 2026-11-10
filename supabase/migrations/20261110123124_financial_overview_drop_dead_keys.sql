@@ -4,11 +4,11 @@
 -- received less its expenses over the period
 -- =============================================================================
 -- APPLY AFTER PR #1057 MERGES, NEVER BEFORE, and after
--- 20261102055449_billing_insights_from_rent_ledger.sql, which creates
+-- 20261110123114_billing_insights_from_rent_ledger.sql, which creates
 -- rent_ledger_leases and rent_ledger_receipts, the leases and receipts the
 -- lease profitability below reads (PL/pgSQL resolves them when the body runs,
 -- so applied before it the function raises on its first call), and after
--- 20261102184503_maintenance_analytics_costs_and_trends.sql (the order only
+-- 20261110123122_maintenance_analytics_costs_and_trends.sql (the order only
 -- keeps the ledger sequential). After the merge the
 -- main session applies this file with MCP `apply_migration`, reads
 -- `list_migrations`, and renames the file to the version production assigned,
@@ -28,7 +28,7 @@
 -- get_billing_insights' unpaidTotal, which the balance sheet reads. So they
 -- go, rather than being filled in for no reader. And with no p_end_date the
 -- expense side had no end, so an expense dated in the future counted in the
--- year to date, as get_expense_summary's did before 20261102184502. Nor did
+-- year to date, as get_expense_summary's did before 20261110123120. Nor did
 -- anything report a lease's profitability: the financial analytics page's and
 -- the leases page's Lease Profitability tables were always empty (their
 -- mapper returned []), with columns (an outstanding balance, a

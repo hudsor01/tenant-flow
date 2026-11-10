@@ -44,7 +44,7 @@ export default function TaxDocumentsPage() {
 	const [taxYear, setTaxYear] = useState(new Date().getFullYear());
 	const { data: result, isLoading, error, refetch } = useTaxDocuments(taxYear);
 	// When get_billing_insights returns none of the ledger figures the tax
-	// year's income comes from (its body before 20261102055449), the query
+	// year's income comes from (its body before 20261110123114), the query
 	// says so rather than handing the page a $0 gross income.
 	const ledgerUnavailable = result?.status === "ledger-unavailable";
 	const data = result?.status === "ready" ? result.documents : undefined;

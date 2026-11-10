@@ -38,7 +38,7 @@ interface MaintenanceHeaderCardProps {
 	/**
 	 * The request's spend to date: its expenses (not soft-deleted) dated
 	 * through today, as get_maintenance_analytics counts total_cost
-	 * (20261102184503). `actual_cost` is shown nowhere: nothing writes it.
+	 * (20261110123122). `actual_cost` is shown nowhere: nothing writes it.
 	 */
 	spentToDate: number;
 	onRefresh: () => void;

@@ -7,7 +7,7 @@
  * `0::numeric` revenue as "Revenue" and expenses-negated as "NOI". It now asks
  * for the period, writes "Rent Received" and "Net Income", and writes
  * "Unavailable" with a note, never $0, when the server's body predates
- * 20261102163709.
+ * 20261110123116.
  */
 import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -135,7 +135,7 @@ describe("the property portfolio report", () => {
 		}
 	});
 
-	it("writes Unavailable, and says why, from the body before 20261102163709", async () => {
+	it("writes Unavailable, and says why, from the body before 20261110123116", async () => {
 		answer({
 			get_property_performance_analytics: [
 				{
@@ -337,7 +337,7 @@ describe("the tax preparation report", () => {
 	it.each([
 		["no ledger totals", undefined, "2025-01-01/2025-12-31"],
 		[
-			"the property body before 20261102163709",
+			"the property body before 20261110123116",
 			3750.5,
 			"2025-01-01..2025-12-31",
 		],

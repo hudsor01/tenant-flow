@@ -3,7 +3,7 @@
 -- received, from the rent ledger, over a window the caller can name exactly
 -- =============================================================================
 -- APPLY AFTER PR #1057 MERGES, NEVER BEFORE, and after
--- 20261102055449_billing_insights_from_rent_ledger.sql, which creates
+-- 20261110123114_billing_insights_from_rent_ledger.sql, which creates
 -- rent_ledger_receipts, the receipts this body reads. Applied before it, this
 -- body raises "function public.rent_ledger_receipts(uuid) does not exist" on
 -- its first call (PL/pgSQL resolves the name when it runs, not when it is
@@ -58,7 +58,7 @@
 --     counts in the window it was posted in: the money was received then, and
 --     handed back later. A receipt reaches a property through its lease's
 --     unit (rent_receipts.lease_id -> leases.unit_id -> units.property_id).
---     Which receipts count is rent_ledger_receipts (20261102055449), the
+--     Which receipts count is rent_ledger_receipts (20261110123114), the
 --     definition get_billing_insights reads too: the receipts that carry the
 --     owner's id on the owner's leases that are not soft-deleted
 --     (lease_status = 'inactive'), as get_lease_ledger_summary

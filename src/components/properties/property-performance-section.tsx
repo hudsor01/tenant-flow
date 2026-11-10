@@ -66,7 +66,7 @@ export function PropertyPerformanceSection({
 		);
 	}
 
-	// The server's body before 20261102163709 reports no rent received, and its
+	// The server's body before 20261110123116 reports no rent received, and its
 	// expenses cover another window: the money tiles say so instead of $0.
 	const property =
 		data.status === "ready" ? (data.properties[0] ?? null) : null;

@@ -37,7 +37,7 @@
  *   - Scheduled Net: one row per month of that chart, oldest first.
  *   - Lease Profitability: the table's period ("Period", its first and last
  *     day), then one row per lease (get_financial_overview's
- *     `lease_profitability`, 20261102184504), largest net first: its label
+ *     `lease_profitability`, 20261110123124), largest net first: its label
  *     (`leaseProfitabilityLabel`, the page's), then its rent received,
  *     expenses and net under the Rent Received, Expenses and Net columns, never
  *     a scheduled one. With no `lease_profitability` (the body before) the
@@ -340,7 +340,7 @@ function valueRow(
 
 /**
  * The lease profitability rows, as `mapLeaseProfitability` reads them. When
- * the overview carries none (the body before 20261102184504) one row says so,
+ * the overview carries none (the body before 20261110123124) one row says so,
  * as the page does: the file never shows the table empty.
  */
 function leaseProfitabilityRows(

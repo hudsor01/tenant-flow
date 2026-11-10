@@ -145,7 +145,7 @@ describe("exit codes", () => {
 		);
 		expect(status).toBe(1);
 		expect(out).toContain("::error::");
-		expect(out).toContain("hard-coded body before 20261102163709");
+		expect(out).toContain("hard-coded body before 20261110123116");
 	});
 
 	it("exits 1 when the property-performance fixture printed nothing", () => {
@@ -165,7 +165,7 @@ describe("exit codes", () => {
 		);
 		expect(status).toBe(1);
 		expect(out).toContain("::error::");
-		expect(out).toContain("the body before 20261102184503");
+		expect(out).toContain("the body before 20261110123122");
 	});
 
 	it("exits 1 when the owner-figures fixture printed nothing", () => {

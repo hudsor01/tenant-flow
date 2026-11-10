@@ -29,7 +29,7 @@ export interface MonthlyRevenuePoint {
 }
 
 /**
- * One of get_dashboard_data_v2's `trends` (20261102184501): today's figure
+ * One of get_dashboard_data_v2's `trends` (20261110123118): today's figure
  * against the earlier day's. `percentChange` is the change over the earlier
  * figure, null when that was 0 (no prior figure, never 0%); `window` the two
  * days compared, null from a body that states none (its figures are no
@@ -221,7 +221,7 @@ export interface MonthlyFinancialMetric {
 
 /**
  * One lease's profitability over a period (get_financial_overview's
- * `lease_profitability`, 20261102184504): the rent received on it (the rent
+ * `lease_profitability`, 20261110123124): the rent received on it (the rent
  * ledger) less the expenses on its unit's maintenance requests dated in the
  * period on a day it ran. Dollars.
  */
@@ -238,7 +238,7 @@ export interface LeaseProfitabilityRow {
 /**
  * The lease profitability table's data: `ready` beside the period it covers,
  * `unavailable` from a body that reports none (the bodies before
- * 20261102184504 return no `lease_profitability`), never an empty table.
+ * 20261110123124 return no `lease_profitability`), never an empty table.
  */
 export type LeaseProfitability =
 	| {
@@ -262,7 +262,7 @@ export interface MaintenanceTrendPoint {
 }
 
 /**
- * get_maintenance_analytics' spend (20261102184503), to date, in dollars: the
+ * get_maintenance_analytics' spend (20261110123122), to date, in dollars: the
  * expenses on the owner's maintenance requests, never actual_cost.
  */
 export interface MaintenanceCostSummary {
@@ -292,9 +292,9 @@ export interface OccupancyTrendPoint {
  * page requests (the income statement's, a property report's), or one an RPC
  * states ('YYYY-MM-DD/YYYY-MM-DD', read by `#lib/stated-window`): the window
  * get_property_performance_analytics states in its `timeframe` column
- * (20261102163709), the two days the dashboard trends compare
- * (20261102184501), the prior period an expense year over year compares with
- * (20261102184502).
+ * (20261110123116), the two days the dashboard trends compare
+ * (20261110123118), the prior period an expense year over year compares with
+ * (20261110123120).
  */
 export interface DateWindow {
 	start_date: string;
@@ -303,7 +303,7 @@ export interface DateWindow {
 
 /**
  * The analytics overview's two trends, from get_dashboard_data_v2
- * (20261102184501). `unavailable`: the server's body states no window, so its
+ * (20261110123118). `unavailable`: the server's body states no window, so its
  * figure (a literal 0, or a comparison against only the leases still active
  * today) is no figure. `percent` is null when nothing was scheduled on the
  * window's first day: there is no prior figure.
@@ -318,7 +318,7 @@ export interface PortfolioTrends {
 }
 
 /**
- * get_expense_summary's year over year (20261102184502): the change against
+ * get_expense_summary's year over year (20261110123120): the change against
  * `priorPeriod`, the same dates a year earlier, or null when nothing was spent
  * then. `unavailable`: the server states no prior period (its null is no
  * figure).
@@ -334,7 +334,7 @@ export interface PropertyPerformanceEntry {
 	/**
 	 * Rent received over the page's window, from the rent ledger, in dollars;
 	 * null when the server cannot report it yet (the body before
-	 * 20261102163709, whose 0 is no figure).
+	 * 20261110123116, whose 0 is no figure).
 	 */
 	rentReceived: number | null;
 	totalUnits: number;

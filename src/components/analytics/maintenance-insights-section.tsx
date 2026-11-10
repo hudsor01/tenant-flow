@@ -131,7 +131,7 @@ function CategoryBreakdownTable({
 
 /**
  * The cost card's line: the spend to date, and the average per request with
- * costs, naming its denominator (get_maintenance_analytics, 20261102184503).
+ * costs, naming its denominator (get_maintenance_analytics, 20261110123122).
  */
 export function costSummaryLine(costs: MaintenanceCostSummary | null): string {
 	if (costs === null) return "Spend on your requests, to date";

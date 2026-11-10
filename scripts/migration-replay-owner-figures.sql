@@ -1,9 +1,9 @@
 -- Fixture for the migration-replay gate's owner-figures assertion: the
 -- figures get_dashboard_stats, get_dashboard_data_v2, get_expense_summary,
 -- get_maintenance_analytics and get_financial_overview returned as literals
--- before 20261102184501..20261102184504, and the occupancy series
+-- before 20261110123118..20261110123124, and the occupancy series
 -- get_occupancy_trends_optimized counts by the helper's rule
--- (20261102200501).
+-- (20261110123126).
 --
 -- Run by .github/workflows/migration-replay.yml after the test cast is seeded,
 -- against the replayed EMPTY database only:

@@ -119,7 +119,7 @@ export const reportAnalyticsQueries = {
 					return { summary: { totalProperties: 0 }, byProperty: [] };
 				}
 				// The report's own period when it has one (the export always passes
-				// both dates), else the trailing 30 days. Before 20261102163709 the
+				// both dates), else the trailing 30 days. Before 20261110123116 the
 				// call named no window and got the last 30 days whatever the period.
 				const requested =
 					start_date && end_date ? { start_date, end_date } : undefined;
