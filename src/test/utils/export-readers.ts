@@ -137,11 +137,15 @@ interface ParsedFile {
 }
 
 function parseFile(path: string, source: string): ParsedFile {
-	const lang = /\.(tsx|jsx)$/.test(path)
-		? "tsx"
-		: /\.[cm]?js$/.test(path)
-			? "js"
-			: "ts";
+	// A declaration file parses as one: its top-level `export const x: T;` is
+	// ambient, and as plain TypeScript it is a const with no initializer.
+	const lang = /\.d\.[cm]?ts$/.test(path)
+		? "dts"
+		: /\.(tsx|jsx)$/.test(path)
+			? "tsx"
+			: /\.[cm]?js$/.test(path)
+				? "js"
+				: "ts";
 	const result = parseSync(path, source, { lang });
 	if (result.errors.length > 0) {
 		throw new Error(`${path}: ${result.errors[0]?.message}`);
