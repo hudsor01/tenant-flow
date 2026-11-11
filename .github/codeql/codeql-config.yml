@@ -1,0 +1,15 @@
+# CodeQL configuration, read by .github/workflows/codeql.yml (config-file).
+#
+# paths-ignore: third-party code vendored byte for byte, not ours to change.
+# - supabase/functions/_shared/vendor: SheetJS Community Edition (xlsx.mjs and
+#   its types), the build package.json pins from the SheetJS CDN, vendored
+#   because Supabase's hosted bundler refuses imports from cdn.sheetjs.com.
+#   CodeQL's alerts in it (incomplete sanitization, double escaping) sit in
+#   SheetJS's read and parse paths and in a regex it builds from its own
+#   constants. The Edge Functions call only its write API on their own report
+#   data. supabase/functions/__tests__/vendored-sheetjs.test.ts fails if the
+#   files drift from the pinned build or if Edge code calls any other SheetJS
+#   API, so a read of uploaded files cannot arrive unreviewed under this
+#   exclusion.
+paths-ignore:
+  - supabase/functions/_shared/vendor
