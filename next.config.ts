@@ -48,6 +48,15 @@ const nextConfig: NextConfig = {
 	output: "standalone",
 	reactCompiler: true,
 
+	// The build type-checks the app, not its tests. Vercel builds without
+	// `tests/` (.vercelignore), and a unit test under src imports an E2E helper
+	// from there, so checking tests in the build failed every production deploy
+	// after #1057. `bun run typecheck` still checks every test, in lefthook and
+	// in CI.
+	typescript: {
+		tsconfigPath: "tsconfig.build.json",
+	},
+
 	// NO `deploymentId` HERE ON PURPOSE -- it would be dead config.
 	//
 	// Vercel Skew Protection needs the deployment id stamped on framework
