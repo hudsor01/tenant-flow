@@ -109,7 +109,7 @@ export function MaintenanceTrendChart({ points }: MaintenanceTrendChartProps) {
 		);
 	}
 	// Both series leave out cancelled requests, and a completed request with
-	// no completion date (20261102184503), so all zeros means none completed
+	// no completion date (20261110123122), so all zeros means none completed
 	// or open, not none at all: the status table can still list a cancelled one.
 	if (points.every((point) => point.completed === 0 && point.pending === 0)) {
 		return (

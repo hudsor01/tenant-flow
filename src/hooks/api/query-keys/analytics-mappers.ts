@@ -95,7 +95,7 @@ export function mapOccupancyAnalytics(
 
 // --- Financial analytics (TYPE-02) -----------------------------------------
 // `get_financial_overview` returns `{ overview: { total_revenue, total_expenses,
-// net_income }, lease_profitability }` (dollars, 20261102184504) — NOT the
+// net_income }, lease_profitability }` (dollars, 20261110123124) — NOT the
 // page-data shape the old `jsonObject<FinancialAnalyticsPageData>` blind-cast
 // asserted, so every declared field was `undefined` at runtime and the page
 // rendered zeroed KPIs. This never-throw mapper derives `metrics` from
@@ -110,7 +110,7 @@ export function mapOccupancyAnalytics(
 // deleted with their cards (66.2-39).
 
 /**
- * get_financial_overview's `lease_profitability` (20261102184504): each lease
+ * get_financial_overview's `lease_profitability` (20261110123124): each lease
  * with rent received or an expense in the period, beside the period. The key
  * is the marker: the bodies before return none, and then the table is
  * unavailable, never empty. A property the owner has deleted since is named
@@ -238,16 +238,16 @@ export function mapFinancialOverview(
 	};
 }
 
-// --- Dashboard trends (20261102184501) --------------------------------------
+// --- Dashboard trends (20261110123118) --------------------------------------
 // get_dashboard_data_v2 returns `units.occupancyChange` and `revenue.growth`;
-// the bodies before 20261102184501 return them with no window (get_dashboard_
+// the bodies before 20261110123118 return them with no window (get_dashboard_
 // stats as the literal 0, get_dashboard_data_v2 against only the leases still
 // active today). A figure without its stated window is no figure.
 
 /**
  * One of get_dashboard_data_v2's `trends`, or null when it is not one (no
  * numbers to show). `window` is the two days it compares, null from a body
- * that states none: the bodies before 20261102184501 compare today's leases
+ * that states none: the bodies before 20261110123118 compare today's leases
  * with only the leases still active today, and read 0% with no earlier
  * figure, so a caller shows no change without a window. `percentChange` is
  * null when the earlier figure was 0. Never throws.
@@ -301,14 +301,14 @@ export function mapPortfolioTrends(stats: unknown): PortfolioTrends {
 	};
 }
 
-// --- Maintenance analytics (TYPE-03, 20261102184503) ------------------------
+// --- Maintenance analytics (TYPE-03, 20261110123122) ------------------------
 // `get_maintenance_analytics` emits snake_case/legacy keys (`open_requests`,
 // `avg_resolution_hours`, `by_status:[{status,count}]`, ...) — NONE of the
 // page-data keys the old `jsonObject<MaintenanceInsightsPageData>` blind-cast
 // asserted. This never-throw mapper derives `categoryBreakdown`
 // (from `by_status`, the closest real dimension — the schema has no
 // maintenance-category taxonomy), and the spend and request trends that
-// 20261102184503 computes. The body before it returns them as `0` and `[]`
+// 20261110123122 computes. The body before it returns them as `0` and `[]`
 // with no `costed_requests`: then they are null (unavailable), never $0 or an
 // empty chart.
 
@@ -319,7 +319,7 @@ function finiteOrNull(value: unknown): number | null {
 
 /**
  * get_maintenance_analytics' spend, or null when the body returns no
- * `costed_requests` (the body before 20261102184503, whose 0 is no figure).
+ * `costed_requests` (the body before 20261110123122, whose 0 is no figure).
  * Shared by the insights tab and the maintenance report, so the export holds
  * the figures the screen shows.
  */
@@ -351,7 +351,7 @@ export function mapMaintenanceCosts(
 /**
  * The request trends (requests completed in each month, open at its end),
  * oldest first, or null with no `costed_requests` (the body before
- * 20261102184503 returns `[]`, which is no series).
+ * 20261110123122 returns `[]`, which is no series).
  */
 function mapMaintenanceTrends(raw: unknown): MaintenanceTrendPoint[] | null {
 	const root = asObject(raw);
@@ -371,7 +371,7 @@ function mapMaintenanceTrends(raw: unknown): MaintenanceTrendPoint[] | null {
 /**
  * Shape `get_maintenance_analytics` into `MaintenanceInsightsPageData`.
  * `categoryBreakdown` from the requests by status; `costs`, its vendor
- * `costBreakdown` and `trends` from 20261102184503's keys, null (empty for
+ * `costBreakdown` and `trends` from 20261110123122's keys, null (empty for
  * the breakdown) when the body returns none. Never throws — non-object input
  * yields no categories, costs or trends. (Its metrics, cost trends, response
  * times and preventive maintenance, read by no screen and written as 0 or [],

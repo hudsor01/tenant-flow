@@ -73,7 +73,7 @@ function answers(): RpcAnswers {
 					total_expenses: 18350.75,
 					net_income: 42849.25,
 				},
-				// 20261102184504: each lease's rent received less its expenses.
+				// 20261110123124: each lease's rent received less its expenses.
 				lease_profitability: {
 					window: "2026-01-01/2026-11-01",
 					leases: [
@@ -114,7 +114,7 @@ function answers(): RpcAnswers {
 			error: null,
 		},
 		// The rent ledger as of December 31, 2024 and 2023 (get_billing_insights
-		// with end_date_param, 20261102055449): 61,200 received in 2024.
+		// with end_date_param, 20261110123114): 61,200 received in 2024.
 		"get_billing_insights@2024-12-31": {
 			data: { collectedTotal: 73400, unpaidTotal: 0, chargedTotal: 73400 },
 			error: null,

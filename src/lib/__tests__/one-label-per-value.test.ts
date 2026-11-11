@@ -182,8 +182,8 @@ describe("one label per lease status and property type", () => {
 
 /**
  * An expense with no vendor recorded (get_expense_summary's NULL category and
- * get_maintenance_analytics' NULL vendor_name, 20261102184502 and
- * 20261102184503) has one name, NO_VENDOR_LABEL, written once (in
+ * get_maintenance_analytics' NULL vendor_name, 20261110123120 and
+ * 20261110123122) has one name, NO_VENDOR_LABEL, written once (in
  * supabase/functions/_shared/tax-year-reports.ts, which the client mappers and
  * the Edge exports read), and is never shown as "Other", a vendor's name.
  */

@@ -38,7 +38,7 @@ export default function IncomeStatementPage() {
 		refetch,
 	} = useIncomeStatement(dateRange);
 	// When get_billing_insights returns none of the ledger figures the
-	// statement is built on (its body before 20261102055449), the query says so
+	// statement is built on (its body before 20261110123114), the query says so
 	// rather than handing the page zeros to present as the period's revenue.
 	const ledgerUnavailable = response?.status === "ledger-unavailable";
 	const data = response?.status === "ready" ? response.statement : undefined;

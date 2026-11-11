@@ -66,7 +66,7 @@ export default function BalanceSheetPage() {
 	const { data, isLoading, isPlaceholderData, error, refetch } =
 		useBalanceSheet(asOfDate);
 	// When get_billing_insights returns none of the ledger figures the sheet is
-	// built on (its body before 20261102055449), the query says so rather than
+	// built on (its body before 20261110123114), the query says so rather than
 	// handing the page zeros to present as the owner's cash.
 	const ledgerUnavailable = data?.status === "ledger-unavailable";
 	const balanceData = data?.status === "ready" ? data.sheet : undefined;

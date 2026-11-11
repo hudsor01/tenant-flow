@@ -146,7 +146,7 @@ export function maintenancePriorityLabel(priority: string): string {
 
 /**
  * A request's spend to date, as get_maintenance_analytics counts total_cost
- * (20261102184503): its expenses (the query already leaves out soft-deleted
+ * (20261110123122): its expenses (the query already leaves out soft-deleted
  * ones) dated through `today` (YYYY-MM-DD); one dated ahead is not spent yet.
  * Dollars. `actual_cost` is not in it: nothing writes that column.
  */

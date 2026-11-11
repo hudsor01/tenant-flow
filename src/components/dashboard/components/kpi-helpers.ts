@@ -55,7 +55,7 @@ export type TrendUnit = "percent" | "points";
 /**
  * What a tile's chip says about its trend, read once for the chip and its
  * narrated label:
- * - `unavailable`: the server states no window (a body before 20261102184501,
+ * - `unavailable`: the server states no window (a body before 20261110123118,
  *   whose figure is no change), so the chip says so and shows no figure;
  * - `no-prior`: there was no earlier figure (percentChange null), so there is
  *   no percent to show: "No rent scheduled 30 days ago";

@@ -42,7 +42,7 @@ export interface PropertyReport {
 	/**
 	 * Per property over the report's period. The three dollar figures are null
 	 * when the server cannot report rent received yet (the body before
-	 * 20261102163709): never 0 for a figure that was not computed.
+	 * 20261110123116): never 0 for a figure that was not computed.
 	 * `occupancyRate` is today's, not the period's.
 	 */
 	byProperty: Array<{
@@ -73,7 +73,7 @@ export interface TenantReport {
 
 /**
  * The maintenance report's figures. `costs` is the spend to date that
- * get_maintenance_analytics computes from the expenses (20261102184503), read
+ * get_maintenance_analytics computes from the expenses (20261110123122), read
  * by the same mapper as the insights tab; null when the server cannot report
  * it yet (the body before returns its costs as the literal 0 and []).
  */
@@ -126,8 +126,8 @@ export interface YearEndSummary {
 /**
  * reportAnalyticsQueries.yearEnd's result. `ledger-unavailable` when the
  * server cannot report rent received for the year yet (get_billing_insights
- * before 20261102055449, or get_property_performance_analytics before
- * 20261102163709): the page says so instead of presenting $0 as a tax year's
+ * before 20261110123114, or get_property_performance_analytics before
+ * 20261110123116): the page says so instead of presenting $0 as a tax year's
  * income.
  */
 export type YearEndResult =

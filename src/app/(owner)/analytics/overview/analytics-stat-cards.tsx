@@ -33,7 +33,7 @@ import type {
 
 /**
  * The overview's four headline figures. Occupancy and revenue carry the change
- * get_dashboard_data_v2 computes over the window it states (20261102184501):
+ * get_dashboard_data_v2 computes over the window it states (20261110123118):
  * occupancy in percentage points, scheduled rent in percent. Before that
  * migration the server states no window and its figure is no change (a
  * literal 0, or a comparison against only the leases still active today), so

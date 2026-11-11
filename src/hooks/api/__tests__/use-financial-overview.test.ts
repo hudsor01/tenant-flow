@@ -85,7 +85,7 @@ describe("useExpenseSummary", () => {
 
 		expect(result.current.data?.categories?.length).toBe(4);
 		expect(result.current.data?.total_amount).toBe(125000);
-		// No prior period: the body before 20261102184502, whose change is no
+		// No prior period: the body before 20261110123120, whose change is no
 		// figure (production's is the literal null). The snake_case key is not
 		// passed through either.
 		expect(result.current.data?.yearOverYear).toEqual({

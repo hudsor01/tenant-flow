@@ -4,7 +4,7 @@
 -- terminated lease in the months it ran
 -- =============================================================================
 -- APPLY AFTER PR #1057 MERGES, NEVER BEFORE, together with
--- 20261102184501_dashboard_trends_from_leases.sql, whose
+-- 20261110123118_dashboard_trends_from_leases.sql, whose
 -- dashboard_lease_position applies this rule to one day (the analytics
 -- overview's occupancy change and the dashboard's occupancy chip compare two
 -- of its days; the occupancy chart plots this series). With only one of the
@@ -44,7 +44,7 @@
 -- draft or pending_signature lease never ran, so the list leaves them out. The
 -- current month's stored occupancy reads the same unit list (a unit is
 -- 'occupied' or 'inactive', never both). dashboard_lease_position
--- (20261102184501) is the same rule on a day.
+-- (20261110123118) is the same rule on a day.
 --
 -- TESTED WITHOUT PRODUCTION. The migration-replay gate applies the whole chain
 -- to an empty database, seeds a portfolio with a soft-deleted unit's lease and

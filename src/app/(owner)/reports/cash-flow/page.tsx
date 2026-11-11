@@ -47,7 +47,7 @@ export default function CashFlowPage() {
 	const { data, isLoading, isPlaceholderData, error, refetch } =
 		useCashFlow(dateRange);
 	// When get_billing_insights returns none of the ledger figures the report
-	// is built on (its body before 20261102055449), the query says so rather
+	// is built on (its body before 20261110123114), the query says so rather
 	// than handing the page zeros to present as rent received and balances.
 	const ledgerUnavailable = data?.status === "ledger-unavailable";
 	const cashFlowData = data?.status === "ready" ? data.report : undefined;

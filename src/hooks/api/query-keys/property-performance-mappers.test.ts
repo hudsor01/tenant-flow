@@ -2,7 +2,7 @@
  * get_property_performance_analytics at the boundary, and the two page
  * queries that read it through `mapPropertyPerformance`.
  *
- * Production's body before 20261102163709 returns `0::numeric AS
+ * Production's body before 20261110123116 returns `0::numeric AS
  * total_revenue` and echoes p_timeframe; the pages showed that 0 as every
  * property's "Monthly revenue" and "Revenue". These pin that rent received is
  * read from the new body only, over the window asked for, and is null (shown
@@ -315,7 +315,7 @@ describe("the property performance page's query", () => {
 		]);
 	});
 
-	it("reports no rent received, never $0, from the body before 20261102163709", async () => {
+	it("reports no rent received, never $0, from the body before 20261110123116", async () => {
 		mockRpc.mockResolvedValue({
 			data: [row({ timeframe: "30d", total_revenue: 0, net_income: -200.25 })],
 			error: null,

@@ -5,7 +5,7 @@
  * p_limit NULL meant 100 rows, and PostgREST returns at most max-rows (1000)
  * of a set a request, so an owner's year-end table, property export and
  * analytics page dropped the rest of their properties and their rent
- * received. 20261102163709 lists every property; these callers page through
+ * received. 20261110123116 lists every property; these callers page through
  * them, ordered by name and id, until a page comes back short.
  */
 import { QueryClient } from "@tanstack/react-query";

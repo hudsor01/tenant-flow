@@ -176,7 +176,7 @@ describe("mapFinancialOverview (TYPE-02)", () => {
 	});
 });
 
-/** get_maintenance_analytics as 20261102184503 returns it, cut to two months. */
+/** get_maintenance_analytics as 20261110123122 returns it, cut to two months. */
 const COMPUTED_MAINTENANCE = {
 	open_requests: 2,
 	avg_resolution_hours: 30,
@@ -198,7 +198,7 @@ const COMPUTED_MAINTENANCE = {
 	],
 };
 
-describe("mapLeaseProfitability (20261102184504)", () => {
+describe("mapLeaseProfitability (20261110123124)", () => {
 	const raw = {
 		overview: { total_revenue: 1, total_expenses: 0, net_income: 1 },
 		lease_profitability: {
@@ -254,7 +254,7 @@ describe("mapLeaseProfitability (20261102184504)", () => {
 	});
 
 	it.each([
-		["the body before 20261102184504 (no key)", { overview: raw.overview }],
+		["the body before 20261110123124 (no key)", { overview: raw.overview }],
 		[
 			"a period that is not stated",
 			{ lease_profitability: { ...raw.lease_profitability, window: "ytd" } },
@@ -265,7 +265,7 @@ describe("mapLeaseProfitability (20261102184504)", () => {
 	});
 });
 
-describe("mapMetricTrend (20261102184501)", () => {
+describe("mapMetricTrend (20261110123118)", () => {
 	const WINDOW = "2026-10-03/2026-11-02";
 	const raw = {
 		current: 4,
@@ -309,7 +309,7 @@ describe("mapMetricTrend (20261102184501)", () => {
 	});
 });
 
-describe("mapPortfolioTrends (20261102184501)", () => {
+describe("mapPortfolioTrends (20261110123118)", () => {
 	const WINDOW = "2026-10-03/2026-11-02";
 	const days = { start_date: "2026-10-03", end_date: "2026-11-02" };
 
@@ -382,7 +382,7 @@ describe("mapMaintenanceAnalytics (TYPE-03)", () => {
 			category: "open",
 			count: 4,
 		});
-		// No costed_requests: the body before 20261102184503, whose costs are
+		// No costed_requests: the body before 20261110123122, whose costs are
 		// literals. No cost, no trend series, never $0 or an empty chart.
 		expect(mapped.costs).toBeNull();
 		expect(mapped.trends).toBeNull();
@@ -410,7 +410,7 @@ describe("mapMaintenanceAnalytics (TYPE-03)", () => {
 		expect(mapped.trends).toBeNull();
 	});
 
-	it("reads the spend and the trends 20261102184503 computes", () => {
+	it("reads the spend and the trends 20261110123122 computes", () => {
 		const mapped = mapMaintenanceAnalytics(COMPUTED_MAINTENANCE);
 		expect(mapped.costs).toEqual({
 			totalCost: 790.5,

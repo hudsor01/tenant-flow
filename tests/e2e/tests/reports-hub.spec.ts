@@ -49,7 +49,7 @@ import { ROUTES } from "./constants/routes";
  * through `answerStatementRpcs` and `answerBalanceSheetRpcs`) with fixed
  * figures, so the tiles on screen and the downloaded file must both equal
  * known values; the "unavailable" tests answer with `get_billing_insights`'
- * body from before 20261102055449. They write nothing to the database.
+ * body from before 20261110123114. They write nothing to the database.
  */
 
 /**
@@ -135,7 +135,7 @@ test.describe("Reports hub routes (Phase 56 — RPTHUB-04)", () => {
  * answered in the browser with fixed figures (`STATEMENT_LEDGER`,
  * `LEDGER_FIGURES`), so the stat tiles and the file must both show known
  * values ("Total Inflows" 1735.50, a 4515.00 closing balance); the
- * unavailable-state tests answer with the body from before 20261102055449
+ * unavailable-state tests answer with the body from before 20261110123114
  * (`BEFORE_LEDGER_KEYS`). Nothing is written to the database.
  *
  * Settling: the button is `aria-disabled` until the selected period's data is
@@ -272,7 +272,7 @@ test.describe("Cash flow export (66.2-39 VD-54)", () => {
 		page,
 	}) => {
 		// The report reads the rent ledger as of its period's end and the day
-		// before it (get_billing_insights, 20261102055449). Answer those calls
+		// before it (get_billing_insights, 20261110123114). Answer those calls
 		// and the period's expenses with fixed figures, so the comparison holds
 		// whether or not production has the migration applied yet.
 		await answerStatementRpcs(page);
@@ -343,7 +343,7 @@ test.describe("Statement exports (66.2-39 VD-58)", () => {
 		page,
 	}) => {
 		// What the ledger charged in the period: as of its end less as of the
-		// day before it (get_billing_insights, 20261102055449), answered here.
+		// day before it (get_billing_insights, 20261110123114), answered here.
 		await answerStatementRpcs(page);
 		await gotoReport(page, ROUTES.REPORTS_INCOME_STATEMENT, "Income Statement");
 		const exportButton = await settledExportButton(page);
@@ -429,7 +429,7 @@ test.describe("Statement exports (66.2-39 VD-58)", () => {
 		page,
 	}) => {
 		// The sheet reads the rent ledger as of its date (get_billing_insights,
-		// 20261102055449). Answer that RPC and the two expense totals with fixed
+		// 20261110123114). Answer that RPC and the two expense totals with fixed
 		// ledger figures, so the comparison holds whether or not production has
 		// the migration applied yet, and the page shows the ledger state.
 		await answerBalanceSheetRpcs(page, LEDGER_FIGURES);
@@ -482,7 +482,7 @@ test.describe("Statement exports (66.2-39 VD-58)", () => {
 	test("balance sheet: says the ledger totals are unavailable when the server returns none", async ({
 		page,
 	}) => {
-		// get_billing_insights' body before 20261102055449: no ledger keys.
+		// get_billing_insights' body before 20261110123114: no ledger keys.
 		await answerBalanceSheetRpcs(page, {
 			totalRevenue: 30000,
 			mrr: 2500,
@@ -508,7 +508,7 @@ test.describe("Statement exports (66.2-39 VD-58)", () => {
 	});
 });
 
-/** get_billing_insights' body before 20261102055449: no ledger keys. */
+/** get_billing_insights' body before 20261110123114: no ledger keys. */
 const BEFORE_LEDGER_KEYS = {
 	totalRevenue: 30000,
 	mrr: 2500,

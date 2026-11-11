@@ -48,7 +48,7 @@ const ANSWERS: Record<string, { data: unknown; error: unknown }> = {
 	get_financial_overview: {
 		data: {
 			overview: { total_revenue: 1200, total_expenses: 200 },
-			// 20261102184504: each lease's rent received less its expenses.
+			// 20261110123124: each lease's rent received less its expenses.
 			lease_profitability: {
 				window: "2026-01-01/2026-11-01",
 				leases: [
@@ -268,7 +268,7 @@ const TAX_YEAR_ANSWERS: Record<string, { data: unknown; error: unknown }> = {
 		error: null,
 	},
 	// The rent ledger as of December 31, 2024 and 2023 (get_billing_insights
-	// with end_date_param, 20261102055449): 61,200 received in 2024.
+	// with end_date_param, 20261110123114): 61,200 received in 2024.
 	"get_billing_insights@2024-12-31": {
 		data: { collectedTotal: 73400, unpaidTotal: 0, chargedTotal: 73400 },
 		error: null,

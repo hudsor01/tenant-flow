@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  * The maintenance insights' cost and trend cards read the spend and the
- * request trends get_maintenance_analytics computes (20261102184503).
+ * request trends get_maintenance_analytics computes (20261110123122).
  *
  * Both cards were hard-coded empty (the mapper returned [] for each, because
  * the RPC returned its costs and trends as literals). They now show the

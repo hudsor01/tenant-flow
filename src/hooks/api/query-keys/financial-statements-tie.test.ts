@@ -14,7 +14,7 @@
  *     Cash the day before its period and on its last day, and its net cash
  *     flow their difference.
  *
- * A fake ledger answers each call as production's 20261102055449 body would,
+ * A fake ledger answers each call as production's 20261110123114 body would,
  * from one list of dated rows: every row dated on or before end_date_param
  * counts at its signed amount (a reversal is a row like any other). One
  * lease, so the per-lease floors are the whole ledger's.

@@ -3,7 +3,7 @@
 -- with no end date today
 -- =============================================================================
 -- APPLY AFTER PR #1057 MERGES, NEVER BEFORE, and after
--- 20261102184501_dashboard_trends_from_leases.sql (independent functions; the
+-- 20261110123118_dashboard_trends_from_leases.sql (independent functions; the
 -- order only keeps the ledger sequential). After the merge the main session
 -- applies this file with MCP `apply_migration`, reads `list_migrations`, and
 -- renames the file to the version production assigned, in a follow-up PR.
@@ -18,7 +18,7 @@
 -- "never computed". And with no p_end_date the period had no end at all, so
 -- the expenses page's "Total Expenses, year to date" counted an expense dated
 -- in the future (as the property performance expenses did before
--- 20261102163709); a period with no end also has no "same dates a year
+-- 20261110123116); a period with no end also has no "same dates a year
 -- earlier" to compare with.
 --
 -- STARTED FROM THE LIVE PRODUCTION BODY (md5 of pg_get_functiondef equal to

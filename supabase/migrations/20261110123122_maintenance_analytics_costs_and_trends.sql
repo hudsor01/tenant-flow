@@ -3,7 +3,7 @@
 -- trends it returns as literals
 -- =============================================================================
 -- APPLY AFTER PR #1057 MERGES, NEVER BEFORE, and after
--- 20261102184502_expense_summary_year_over_year.sql (independent functions;
+-- 20261110123120_expense_summary_year_over_year.sql (independent functions;
 -- the order only keeps the ledger sequential). After the merge the main
 -- session applies this file with MCP `apply_migration`, reads
 -- `list_migrations`, and renames the file to the version production assigned,
@@ -29,7 +29,7 @@
 -- maintenance requests' expenses, not soft-deleted, in dollars, dated on or
 -- before today (spend to date: an expense dated in the future has not been
 -- spent yet, as the expenses page's "year to date" no longer counts it either,
--- 20261102184502).
+-- 20261110123120).
 --
 -- STARTED FROM THE LIVE PRODUCTION BODY (md5 of pg_get_functiondef equal to
 -- production's, read 2026-11-02, on a replay of the chain without this PR's

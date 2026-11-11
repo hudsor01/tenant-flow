@@ -471,7 +471,7 @@ describe("tax-year reports hold their pages' figures", () => {
 	});
 
 	it("shows unavailable, and writes no file, without the ledger's totals", async () => {
-		// get_billing_insights' body before 20261102055449.
+		// get_billing_insights' body before 20261110123114.
 		const answers = richAnswers();
 		const before = { data: { unpaidTotal: 0, mrr: 5100 }, error: null };
 		answers["get_billing_insights@2024-12-31"] = before;
@@ -486,7 +486,7 @@ describe("tax-year reports hold their pages' figures", () => {
 		}
 	});
 
-	it("shows unavailable, and writes no file, from the property body before 20261102163709", async () => {
+	it("shows unavailable, and writes no file, from the property body before 20261110123116", async () => {
 		const answers = richAnswers();
 		answers.get_property_performance_analytics = {
 			data: [
@@ -513,7 +513,7 @@ describe("tax-year reports hold their pages' figures", () => {
 
 	it('names the expenses with no vendor once, never as the vendor "Other"', async () => {
 		// get_expense_summary puts an expense with no vendor under a NULL
-		// category (20261102184502); "Other" is a vendor the owner named so.
+		// category (20261110123120); "Other" is a vendor the owner named so.
 		const answers = richAnswers();
 		answers.get_expense_summary = {
 			data: {
@@ -611,7 +611,7 @@ describe("tax-year reports hold their pages' figures", () => {
 describe("a property the owner deleted after the year", () => {
 	/**
 	 * Gamma Flats received 333.00 in the year and was deleted since: the
-	 * function lists it for the year (20261102163709), so the summary's rent
+	 * function lists it for the year (20261110123116), so the summary's rent
 	 * received (61,533.25) and expenses equal the table's to the cent.
 	 */
 	function withDeleted(): RpcAnswers {

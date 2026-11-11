@@ -4,9 +4,9 @@
 -- days
 -- =============================================================================
 -- APPLY AFTER PR #1057 MERGES, NEVER BEFORE, and after
--- 20261102163709_property_performance_rent_received.sql (independent functions;
+-- 20261110123116_property_performance_rent_received.sql (independent functions;
 -- the order only keeps the ledger sequential). Apply
--- 20261102200501_occupancy_trends_exclude_soft_deleted.sql with it: the two
+-- 20261110123126_occupancy_trends_exclude_soft_deleted.sql with it: the two
 -- carry one rule (ONE DEFINITION below), and with only one of them applied the
 -- tile and the occupancy chart count a soft-deleted unit's lease and a
 -- terminated lease differently. After the merge the main session applies this
@@ -67,7 +67,7 @@
 -- ONE DEFINITION. dashboard_lease_position(owner, day) returns the owner's
 -- occupancy rate, scheduled monthly rent and tenants on a day, from leases,
 -- the rule get_occupancy_trends_optimized (the occupancy trend series, as
--- 20261102200501 leaves it) applies to a month, applied to one day:
+-- 20261110123126 leaves it) applies to a month, applied to one day:
 --   - the counted units: the owner's units that are not soft-deleted
 --     (status 'inactive'), on properties that are not soft-deleted;
 --   - a lease counts on a day when it is on a counted unit, its status is
@@ -173,7 +173,7 @@ as $function$
 $function$;
 
 comment on function public.dashboard_lease_position(uuid, date) is
-  'Private helper of get_dashboard_stats and get_dashboard_data_v2: on p_on, over the counted units (the owner''s units not inactive on properties not inactive), the occupancy rate (counted units with a lease in status active/ended/expired/terminated running on p_on, over the counted units, percent, 2 decimals), the scheduled monthly rent (sum of those leases'' rent_amount) and the tenants (distinct primary tenants of those leases). The rule get_occupancy_trends_optimized applies to a month (20261102200501). No client role may execute it.';
+  'Private helper of get_dashboard_stats and get_dashboard_data_v2: on p_on, over the counted units (the owner''s units not inactive on properties not inactive), the occupancy rate (counted units with a lease in status active/ended/expired/terminated running on p_on, over the counted units, percent, 2 decimals), the scheduled monthly rent (sum of those leases'' rent_amount) and the tenants (distinct primary tenants of those leases). The rule get_occupancy_trends_optimized applies to a month (20261110123126). No client role may execute it.';
 
 revoke all on function public.dashboard_lease_position(uuid, date) from public, anon, authenticated, service_role;
 

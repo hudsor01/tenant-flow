@@ -197,7 +197,7 @@ describe("assertSeededCast", () => {
 
 /**
  * The line `scripts/migration-replay-billing-insights.sql` printed against the
- * replayed stack with 20261102055449 applied (2026-11-02, with the balance
+ * replayed stack with 20261110123114 applied (2026-11-02, with the balance
  * sheet's figures and as-of date, and chargedTotal by type for the income
  * statement), verbatim: jsonb's own key order and its `0.00`-style scale,
  * which JSON.parse reads as numbers.
@@ -208,14 +208,14 @@ const REPLAYED_BILLING_LINE =
 /**
  * The same fixture against PRODUCTION's body as of 2026-11-02 (the literal
  * zeros), applied to the same stack: the defect this assertion exists for.
- * `execute.anon` is true because the chain then (before 20261102055400) left
+ * `execute.anon` is true because the chain then (before 20261110123049) left
  * anon EXECUTE on that body, which production does not have.
  */
 const HARD_CODED_BODY_LINE =
 	'{"execute": {"anon": true, "service_role": true, "authenticated": true}, "owner_a": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 0, "unpaidTotal": 0, "lateFeeTotal": 0, "totalRevenue": 30000}, "owner_b": {"mrr": 700, "churnRate": 0.00, "tenantCount": 1, "unpaidCount": 0, "unpaidTotal": 0, "lateFeeTotal": 0, "totalRevenue": 8400}, "owner_a_february": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 0, "unpaidTotal": 0, "lateFeeTotal": 0, "totalRevenue": 30000}, "owner_a_as_of_march": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 0, "unpaidTotal": 0, "lateFeeTotal": 0, "totalRevenue": 30000}, "owner_a_as_of_january": {"mrr": 2500, "churnRate": 0.00, "tenantCount": 2, "unpaidCount": 0, "unpaidTotal": 0, "lateFeeTotal": 0, "totalRevenue": 30000}, "guard_refuses_another_owner": true}';
 
 /**
- * The same fixture against part K's body (20261102055449 before its by-type
+ * The same fixture against part K's body (20261110123114 before its by-type
  * keys), on the same stack: every balance-sheet figure right, no
  * rentChargedTotal, lateFeeChargedTotal, manualChargedTotal or creditTotal.
  */
@@ -664,7 +664,7 @@ describe("assertBillingInsightsFromLedger", () => {
 
 /**
  * The line `scripts/migration-replay-property-performance.sql` printed against
- * the replayed stack with 20261102163709 applied, on 2026-11-02, verbatim. The
+ * the replayed stack with 20261110123116 applied, on 2026-11-02, verbatim. The
  * trailing window in it is 2026-10-03/2026-11-02: the assertion computes it
  * from `today`, so the line stays valid on any later day.
  */
@@ -719,7 +719,7 @@ describe("assertPropertyPerformanceRentReceived", () => {
 			PRODUCTION_PERFORMANCE_LINE,
 		);
 		expect(result.ok).toBe(false);
-		expect(result.message).toContain("hard-coded body before 20261102163709");
+		expect(result.message).toContain("hard-coded body before 20261110123116");
 		expect(result.message).not.toContain("expected 2750.5");
 	});
 
@@ -1254,7 +1254,7 @@ describe("assertPropertyPerformanceRentReceived", () => {
 
 /**
  * The line `scripts/migration-replay-owner-figures.sql` printed against the
- * replayed stack with 20261102184501..20261102184504 and 20261102200501
+ * replayed stack with 20261110123118..20261110123124 and 20261110123126
  * applied, verbatim, with the stack's clock at 2026-11-02 (recorded
  * 2026-11-05, once a terminated lease counted on the days it ran). Every
  * window and month in it follows from `today`, which the assertion computes
@@ -1266,13 +1266,13 @@ const REPLAYED_FIGURES_LINE =
 /**
  * The same fixture against PRODUCTION's six bodies as of 2026-11-02 (each
  * pg_get_functiondef md5-equal to production's listing), on the chain replayed
- * up to 20261102055400 with only the helper added (which only the new bodies
+ * up to 20261110123049 with only the helper added (which only the new bodies
  * call), the clock at 2026-11-02 as above: the literal zeros and nulls, the v2
  * trend against leases still active today and with no window, its series from
  * the leases active today alone, the occupancy series counting a soft-deleted
  * unit's lease, the year to date with the future expense, the dead overview
  * keys and no lease profitability.
- * `execute` shows anon=true where the chain then (before 20261102055400)
+ * `execute` shows anon=true where the chain then (before 20261110123049)
  * granted it and production does not.
  */
 const PRODUCTION_FIGURES_LINE =
@@ -1369,9 +1369,9 @@ describe("assertOwnerFiguresComputed", () => {
 				"folded expenses with no vendor into a vendor's name",
 			],
 		],
-		[["maintenance_a"], ["before 20261102184503"]],
-		[["overview_a_window"], ["before 20261102184504"]],
-		[["occupancy_series_a"], ["before 20261102200501"]],
+		[["maintenance_a"], ["before 20261110123122"]],
+		[["overview_a_window"], ["before 20261110123124"]],
+		[["occupancy_series_a"], ["before 20261110123126"]],
 	])("names %j alone when only that body is production's", (labels, texts) => {
 		const result = assertOwnerFiguresComputed(withProductionCall(...labels));
 		expect(result.ok).toBe(false);
@@ -1746,7 +1746,7 @@ describe("assertOwnerFiguresComputed", () => {
 		);
 		expect(result.ok).toBe(false);
 		expect(result.message).toContain(
-			"get_financial_overview returned no lease_profitability: that is a body before 20261102184504",
+			"get_financial_overview returned no lease_profitability: that is a body before 20261110123124",
 		);
 	});
 
@@ -1844,7 +1844,7 @@ describe("assertOwnerFiguresComputed", () => {
 		if (latest) latest["occupied_units"] = 5;
 		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
 		expect(result.ok).toBe(false);
-		expect(result.message).toContain("before 20261102200501");
+		expect(result.message).toContain("before 20261110123126");
 	});
 
 	it("does not call it the series' body before when a month is short", () => {
@@ -1857,7 +1857,7 @@ describe("assertOwnerFiguresComputed", () => {
 		}
 		const result = assertOwnerFiguresComputed(JSON.stringify(parsed));
 		expect(result.ok).toBe(false);
-		expect(result.message).not.toContain("before 20261102200501");
+		expect(result.message).not.toContain("before 20261110123126");
 		expect(result.message).toContain(
 			"occupancy_series_a[5].occupancy_rate: expected 75, got 100",
 		);
@@ -2233,7 +2233,7 @@ describe("expectedOwnerFigures", () => {
 
 /**
  * What scripts/migration-replay-blog-banlist.sql printed on the replayed stack
- * with 20261102230101 applied, and with production's body of
+ * with 20261110123128 applied, and with production's body of
  * validate_blog_post (md5 33667bfe24d7566b1e7effaa292c8bcd) put back in its
  * place under production's ACL.
  */

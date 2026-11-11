@@ -79,7 +79,7 @@ function fetchPaymentSummary(): Promise<OwnerPaymentSummaryResponse> {
 type RpcAnswers = Record<string, { data: unknown; error: unknown }>;
 
 /**
- * get_financial_overview's lease profitability (20261102184504): a lease on a
+ * get_financial_overview's lease profitability (20261110123124): a lease on a
  * property the owner deleted since, then two more, largest net first.
  */
 const LEASE_PROFITABILITY = {
@@ -186,7 +186,7 @@ function richAnswers(): RpcAnswers {
 				totalRevenue: 61200,
 				mrr: 5100,
 				churnRate: 12.5,
-				// The ledger's figures since 20261102055449: numeric(10,2) dollars
+				// The ledger's figures since 20261110123114: numeric(10,2) dollars
 				// and a count, none of them zero, so a dropped figure shows.
 				unpaidTotal: 1185.5,
 				unpaidCount: 4,
@@ -414,7 +414,7 @@ describe("every figure the page renders is a row of the file", () => {
 
 	it('names the expenses with no vendor once, never as the vendor "Other"', async () => {
 		// get_expense_summary puts an expense with no vendor under a NULL
-		// category (20261102184502); "Other" is a vendor the owner named so.
+		// category (20261110123120); "Other" is a vendor the owner named so.
 		const answers = richAnswers();
 		answers.get_expense_summary = {
 			data: {
@@ -679,7 +679,7 @@ describe("the lease profitability table is in the file as on the page", () => {
 		});
 	});
 
-	it("says the table is unavailable from the body before 20261102184504", async () => {
+	it("says the table is unavailable from the body before 20261110123124", async () => {
 		const answers = richAnswers();
 		answers.get_financial_overview = {
 			data: {

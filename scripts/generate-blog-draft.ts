@@ -87,7 +87,7 @@ type Category = (typeof VALID_CATEGORIES)[number];
 
 // The banlist (gate 8), in step with supabase/functions/_shared/blog-banlist.ts
 // (the n8n-blog-ingest gate) and the validate_blog_post trigger (live body:
-// supabase/migrations/20261102230101_blog_banlist_persona_and_fields.sql);
+// supabase/migrations/20261110123128_blog_banlist_persona_and_fields.sql);
 // src/lib/seo/__tests__/banlist-parity.test.ts fails when they drift.
 // Phrases: a substring, case ignored.
 const BANLIST = [

@@ -304,7 +304,7 @@ const UNAVAILABLE = "Unavailable";
  * builders): Total Revenue (charged, net of credits), Total Expenses and Net
  * Income from the income statement, Net Cash Flow (rent received) from the
  * cash flow. "Unavailable" for each the ledger cannot report yet
- * (get_billing_insights before 20261102055449), never $0. Before part N the
+ * (get_billing_insights before 20261110123114), never $0. Before part N the
  * executive and financial-performance exports printed the active leases'
  * scheduled rent times twelve as "Total Income", and scheduled rent less a
  * twelfth of the expenses as "Cash Flow".
@@ -430,7 +430,7 @@ function maintenanceSummaryRows(maintenance: MaintenanceReport): ReportRow[] {
 
 /**
  * The spend to date the insights tab shows (get_maintenance_analytics,
- * 20261102184503, through the same mapper), to the cent as the tab prints it:
+ * 20261110123122, through the same mapper), to the cent as the tab prints it:
  * the expenses on the owner's requests, all time to date. When the server
  * cannot report it yet, each row says so instead of printing $0.00.
  */

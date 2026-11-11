@@ -5,11 +5,11 @@
  *
  *  - get_dashboard_stats returned `units.occupancyChange` and `revenue.growth`
  *    as the literal 0, and get_dashboard_data_v2 compared today's leases with
- *    only the leases still active today. 20261102184501 computes both over a
+ *    only the leases still active today. 20261110123118 computes both over a
  *    window it states; the overview's occupancy and revenue tiles show the
  *    change beside that window, and say it is unavailable without one.
  *  - get_expense_summary returned `year_over_year_change` as the literal null.
- *    20261102184502 computes it against a prior period it states; the YoY
+ *    20261110123120 computes it against a prior period it states; the YoY
  *    tile shows the change, or that there is no prior figure, or that it is
  *    unavailable, never "--" beside a green down-trend.
  *  - The financial analytics page's Billing Timeline and Invoice Summary cards

@@ -3,7 +3,7 @@
  * Query factories for the financial statements and the expense summary.
  *
  * The three statements are on one basis, the rent ledger, so they tie:
- * - get_billing_insights as of a date (end_date_param alone, 20261102055449)
+ * - get_billing_insights as of a date (end_date_param alone, 20261110123114)
  *   for every ledger figure: the balance sheet's as of its date, the income
  *   statement's and the cash flow's as of a period's end less as of the day
  *   before it (the rows dated in the period)
@@ -45,7 +45,7 @@ export interface ExpenseSummaryData {
 }
 
 /**
- * get_expense_summary's year over year (20261102184502): ready only beside
+ * get_expense_summary's year over year (20261110123120): ready only beside
  * the prior period it states. The body before returns the change as the
  * literal null with no period, which is no figure.
  */
@@ -66,7 +66,7 @@ const CACHE = { staleTime: 2 * 60 * 1000, gcTime: 10 * 60 * 1000 } as const;
 
 /**
  * The rent ledger as of a date, as get_billing_insights reports it when given
- * only `end_date_param` (20261102055449). Dollars.
+ * only `end_date_param` (20261110123114). Dollars.
  */
 interface LedgerPosition {
 	/** collectedTotal: every receipt, net of reversals. */
@@ -83,7 +83,7 @@ interface LedgerPosition {
 
 /**
  * Narrow a get_billing_insights payload to the balance sheet's figures. null
- * when any is missing: production's body before 20261102055449 returns none of
+ * when any is missing: production's body before 20261110123114 returns none of
  * collectedTotal, creditBalanceTotal, chargedTotal or openingTotal (and a
  * literal 0 for unpaidTotal), and those must not reach the sheet as $0.
  */
@@ -117,7 +117,7 @@ function mapLedgerPosition(data: unknown): LedgerPosition | null {
 /**
  * What the rent ledger had charged as of a date, by type, for the income
  * statement: the four by-type keys get_billing_insights returns with
- * end_date_param alone (20261102055449), and openingTotal. With it they sum to
+ * end_date_param alone (20261110123114), and openingTotal. With it they sum to
  * chargedTotal, the balance sheet's figure. Dollars.
  */
 interface LedgerCharges {
@@ -133,7 +133,7 @@ interface LedgerCharges {
 
 /**
  * Narrow a get_billing_insights payload to the income statement's figures;
- * null when any is missing (the body before 20261102055449), so none of them
+ * null when any is missing (the body before 20261110123114), so none of them
  * reaches the statement as $0.
  */
 function mapLedgerCharges(data: unknown): LedgerCharges | null {
@@ -431,7 +431,7 @@ function buildLedgerCashFlow(input: {
  * receipt counts in the year it was received and a reversal in the year it
  * was posted (cash basis, the year-end report's and the tax documents'). null
  * when the server returns no ledger totals (get_billing_insights before
- * 20261102055449), so no $0 reaches a tax figure. Dollars.
+ * 20261110123114), so no $0 reaches a tax figure. Dollars.
  */
 export async function fetchRentReceivedInYear(
 	userId: string,

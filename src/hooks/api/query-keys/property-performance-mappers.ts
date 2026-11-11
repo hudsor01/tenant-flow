@@ -1,5 +1,5 @@
 /**
- * get_property_performance_analytics at the RPC boundary (20261102163709).
+ * get_property_performance_analytics at the RPC boundary (20261110123116).
  *
  * The body before that migration returns `0::numeric AS total_revenue` and
  * echoes p_timeframe as `timeframe`; the new body returns each property's rent
@@ -32,7 +32,7 @@ const PAGE_SIZE = 1000;
 
 /**
  * Every row get_property_performance_analytics returns for `args`, page by
- * page: the function lists every property (p_limit NULL, 20261102163709), but
+ * page: the function lists every property (p_limit NULL, 20261110123116), but
  * PostgREST returns at most max-rows of it a request, so a caller that shows a
  * total or a whole list (the year-end table, the property export, the
  * analytics page) reads until a page comes back short, ordered by name and id
@@ -91,7 +91,7 @@ export async function fetchDeletedPropertyIds(
 /**
  * A unit the property performance page counts and lists: not soft-deleted
  * (status 'inactive'), on a property that is not, the counted-units rule the
- * occupancy figures use (20261102184501, 20261102200501).
+ * occupancy figures use (20261110123118, 20261110123126).
  */
 export interface CountedUnit {
 	readonly property_id: string;

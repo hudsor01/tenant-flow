@@ -277,7 +277,7 @@ describe("reportAnalyticsQueries.maintenance", () => {
 		vi.resetAllMocks();
 	});
 
-	it("reads the costs 20261102184503 computes into the report", async () => {
+	it("reads the costs 20261110123122 computes into the report", async () => {
 		mockRpc.mockResolvedValueOnce({
 			data: {
 				total_requests: 25,
@@ -322,7 +322,7 @@ describe("reportAnalyticsQueries.maintenance", () => {
 	});
 
 	it("reports no costs from the body that returns them as literals", async () => {
-		// get_maintenance_analytics before 20261102184503: the cost keys are the
+		// get_maintenance_analytics before 20261110123122: the cost keys are the
 		// literal 0 and empty arrays, and there is no costed_requests.
 		mockRpc.mockResolvedValueOnce({
 			data: {
@@ -356,7 +356,7 @@ describe("reportAnalyticsQueries.maintenance", () => {
 
 /**
  * Answer the year-end page's RPCs by name and arguments: the rent ledger as of
- * December 31 of 2024 and 2023 (get_billing_insights, 20261102055449), the
+ * December 31 of 2024 and 2023 (get_billing_insights, 20261110123114), the
  * year's expenses, and each property over the calendar year.
  */
 function answerYearEnd(answers: {
@@ -444,12 +444,12 @@ describe("useYearEndSummary", () => {
 
 	it.each([
 		[
-			"no ledger totals (get_billing_insights before 20261102055449)",
+			"no ledger totals (get_billing_insights before 20261110123114)",
 			undefined,
 			"2024-01-01/2024-12-31",
 		],
 		[
-			"the property body before 20261102163709, which echoes the request",
+			"the property body before 20261110123116, which echoes the request",
 			612000,
 			"2024-01-01..2024-12-31",
 		],
@@ -544,7 +544,7 @@ describe("reportAnalyticsQueries.properties", () => {
 
 	it.each([
 		[
-			"the body before 20261102163709, which echoes the request",
+			"the body before 20261110123116, which echoes the request",
 			"2024-01-01..2024-12-31",
 		],
 		["a body that computed another window", "2024-12-02/2024-12-31"],

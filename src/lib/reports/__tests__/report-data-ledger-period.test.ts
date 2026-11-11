@@ -63,7 +63,7 @@ function answer(ledger: "ready" | "old") {
 		if (name === "get_billing_insights") {
 			const asOf = String(args.end_date_param);
 			return Promise.resolve({
-				// The body before 20261102055449 returns none of these keys.
+				// The body before 20261110123114 returns none of these keys.
 				data:
 					ledger === "old"
 						? { totalRevenue: 30000, mrr: 2500, unpaidTotal: 0 }

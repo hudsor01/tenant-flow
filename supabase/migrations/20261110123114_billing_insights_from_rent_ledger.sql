@@ -122,7 +122,7 @@
 -- ONE DEFINITION OF THE ROWS THAT COUNT. Which leases a ledger figure reads,
 -- and which receipts on them, is defined once, here, by two private helpers
 -- that get_billing_insights and get_property_performance_analytics
--- (20261102163709) both read, so the year-end summary's rent received and
+-- (20261110123116) both read, so the year-end summary's rent received and
 -- its By Property table can never count different receipts:
 --   rent_ledger_leases(owner): the owner's leases that are not soft-deleted,
 --     with the property each one's unit is on (whatever that property's or

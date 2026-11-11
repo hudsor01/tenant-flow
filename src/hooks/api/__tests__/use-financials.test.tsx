@@ -100,7 +100,7 @@ describe("expenseKeys", () => {
 });
 
 /**
- * get_billing_insights as of a date (20261102055449): the by-type charges and
+ * get_billing_insights as of a date (20261110123114): the by-type charges and
  * the receipts. The scheduled-rent keys ride along and must reach no line.
  */
 function ledgerAsOf(figures: Record<string, number>) {
@@ -378,7 +378,7 @@ describe("useCashFlow", () => {
 });
 
 describe("useBalanceSheet", () => {
-	/** get_billing_insights' ledger figures for one as-of date (20261102055449). */
+	/** get_billing_insights' ledger figures for one as-of date (20261110123114). */
 	function ledger(figures: {
 		collectedTotal: number;
 		unpaidTotal: number;
@@ -554,7 +554,7 @@ describe("useBalanceSheet", () => {
 	});
 
 	it("reports the ledger unavailable when the server returns no ledger totals", async () => {
-		// Production's body before 20261102055449: no ledger keys, literal zeros.
+		// Production's body before 20261110123114: no ledger keys, literal zeros.
 		const preLedgerBody = {
 			totalRevenue: 30000,
 			mrr: 2500,

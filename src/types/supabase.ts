@@ -3094,6 +3094,14 @@ export type Database = {
 				}[];
 			};
 			custom_access_token_hook: { Args: { event: Json }; Returns: Json };
+			dashboard_lease_position: {
+				Args: { p_on: string; p_owner_id: string };
+				Returns: {
+					occupancy_rate: number;
+					scheduled_rent: number;
+					tenant_count: number;
+				}[];
+			};
 			decode_error_level: { Args: { elevel: number }; Returns: string };
 			expire_leases: { Args: never; Returns: undefined };
 			expire_trials: { Args: never; Returns: number };
@@ -3489,6 +3497,23 @@ export type Database = {
 					both_signed: boolean;
 					error_message: string;
 					success: boolean;
+				}[];
+			};
+			rent_ledger_leases: {
+				Args: { p_owner_id: string };
+				Returns: {
+					lease_id: string;
+					property_id: string;
+				}[];
+			};
+			rent_ledger_receipts: {
+				Args: { p_owner_id: string };
+				Returns: {
+					amount: number;
+					charge_id: string;
+					lease_id: string;
+					property_id: string;
+					received_date: string;
 				}[];
 			};
 			reorder_document_categories: {

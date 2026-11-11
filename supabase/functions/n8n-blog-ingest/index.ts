@@ -4,7 +4,7 @@
 // Verifies an HMAC-SHA256 signature shipped in the `x-n8n-signature` header against
 // the EXACT request body bytes, then runs 9 validation gates as defense-in-depth
 // (the DB BEFORE-INSERT trigger `validate_blog_post`, whose live body is in
-// migration 20261102230101_blog_banlist_persona_and_fields.sql, is the source of
+// migration 20261110123128_blog_banlist_persona_and_fields.sql, is the source of
 // truth — these preflight gates only exist to fail fast with structured error
 // responses and to keep load off the DB on obviously-broken payloads).
 //
@@ -60,7 +60,7 @@ interface GateFailure {
 
 // ---------------------------------------------------------------------------
 // Constants — kept in lockstep with:
-//   - migration 20261102230101_blog_banlist_persona_and_fields.sql (the DB
+//   - migration 20261110123128_blog_banlist_persona_and_fields.sql (the DB
 //     trigger's live body; first written in 20260510214935)
 //   - 06-CONTEXT.md § "9 Validation Gates (LOCKED)"
 //   - 06-CONTEXT.md § "Slug Naming Pattern (LOCKED)"
