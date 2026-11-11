@@ -4,7 +4,6 @@
 		"@sentry/deno": "npm:@sentry/deno@9",
 		"stripe": "npm:stripe@20",
 		"@zip.js/zip.js": "https://esm.sh/@zip.js/zip.js@2.7.45",
-		"pdf-lib": "https://esm.sh/pdf-lib@1.17.1",
-		"xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs"
+		"pdf-lib": "https://esm.sh/pdf-lib@1.17.1"
 	}
 }

@@ -31,8 +31,8 @@
 import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { fakeSupabaseClient } from "./fake-supabase-client.ts";
-// @deno-types="https://cdn.sheetjs.com/xlsx-0.20.3/package/types/index.d.ts"
-import * as XLSX from "xlsx";
+// @deno-types="../_shared/vendor/xlsx-0.20.3.d.ts"
+import * as XLSX from "../_shared/vendor/xlsx-0.20.3.mjs";
 import {
 	buildFinancialAnalyticsTable,
 	FINANCIAL_ANALYTICS_HEADER,

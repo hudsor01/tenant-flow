@@ -1,9 +1,10 @@
 /**
  * A report table as a real Office Open XML workbook (.xlsx), built with SheetJS
- * Community Edition 0.20.3 from the SheetJS CDN, the same build the app pins in
- * `package.json`. The `xlsx` specifier resolves through
- * `supabase/functions/deno.json`; the `@deno-types` URL below must name the
- * same version.
+ * Community Edition 0.20.3, the build the app pins in `package.json` from the
+ * SheetJS CDN. It is vendored in `./vendor/` (`xlsx.mjs` and
+ * `types/index.d.ts` of that tarball, byte for byte) because Supabase's hosted
+ * bundler refuses imports from cdn.sheetjs.com, and SheetJS publishes this
+ * version on no registry it fetches from. Bump both files with `package.json`.
  *
  * CELLS ARE TYPED, NEVER FORMULAS. Every cell is written as a cell object with
  * an explicit type: a finite number is a number cell (`t: "n"`), any other
@@ -22,8 +23,8 @@
  * `tests/export-report-test.ts` parses the bytes back with the same build.
  */
 
-// @deno-types="https://cdn.sheetjs.com/xlsx-0.20.3/package/types/index.d.ts"
-import * as XLSX from "xlsx";
+// @deno-types="./vendor/xlsx-0.20.3.d.ts"
+import * as XLSX from "./vendor/xlsx-0.20.3.mjs";
 import type {
 	FinancialAnalyticsTable,
 	ReportCellFormat,

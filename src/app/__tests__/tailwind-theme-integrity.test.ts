@@ -65,7 +65,7 @@ import { join, resolve, sep } from "node:path";
 import { compile } from "@tailwindcss/node";
 import type { AtRule, Node as PostcssNode, Rule } from "postcss";
 import { twMerge } from "tailwind-merge";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { MOBILE_MEDIA_QUERY } from "#hooks/use-mobile";
 import { cn, TAILWIND_MERGE_EXTENSION } from "#lib/utils";
 import {
@@ -1830,28 +1830,39 @@ describe("G7 — every theme-namespace var() reference resolves in the compiled 
 });
 
 describe("G8 every first-party class is canonical (D-25, PLAN.md §4.4 class)", () => {
-	let firstPartyScanPromise:
-		| Promise<{
-				engine: TailwindEngine;
-				candidates: string[];
+	let scan:
+		| {
 				files: string[];
-		  }>
+				checked: number;
+				violations: string[];
+				fractions: ReturnType<typeof checkFractionEquivalents>;
+		  }
 		| undefined;
 
+	// Builds the project's Tailwind engine, reads every first-party source file
+	// and runs both checks on each candidate, once, for the tests below. In CI
+	// (coverage on, workers sharing two vCPUs) the first canonicalization alone
+	// ran past a test's 30s, so the whole pass runs here with its own limit and
+	// the tests assert on its result.
+	beforeAll(async () => {
+		const engine = await projectEngine();
+		const { candidates, files } = scanSources(
+			firstPartyScanSources(engine.sources, REPO_ROOT),
+		);
+		scan = {
+			files,
+			...checkCanonicalCandidates(engine.designSystem, candidates),
+			fractions: checkFractionEquivalents(engine.designSystem, candidates),
+		};
+	}, 180_000);
+
 	function firstPartyScan() {
-		if (firstPartyScanPromise === undefined) {
-			firstPartyScanPromise = projectEngine().then((engine) => {
-				const { candidates, files } = scanSources(
-					firstPartyScanSources(engine.sources, REPO_ROOT),
-				);
-				return { engine, candidates, files };
-			});
-		}
-		return firstPartyScanPromise;
+		if (scan === undefined) throw new Error("G8's beforeAll scan did not run");
+		return scan;
 	}
 
-	it("scans first-party source only, and enough of it that a clean result means something", async () => {
-		const { engine, candidates, files } = await firstPartyScan();
+	it("scans first-party source only, and enough of it that a clean result means something", () => {
+		const { files, checked } = firstPartyScan();
 		const relative = files.map((f) =>
 			f.slice(REPO_ROOT.length + 1).replaceAll(sep, "/"),
 		);
@@ -1860,19 +1871,11 @@ describe("G8 every first-party class is canonical (D-25, PLAN.md §4.4 class)", 
 			[],
 		);
 		expect(relative.filter((f) => /\.test\.tsx?$/.test(f))).toEqual([]);
-		const { checked } = checkCanonicalCandidates(
-			engine.designSystem,
-			candidates,
-		);
 		expect(checked).toBeGreaterThan(1000);
-	}, 30_000);
+	});
 
-	it("finds no non-canonical class in first-party code", async () => {
-		const { engine, candidates } = await firstPartyScan();
-		const { violations } = checkCanonicalCandidates(
-			engine.designSystem,
-			candidates,
-		);
+	it("finds no non-canonical class in first-party code", () => {
+		const { violations } = firstPartyScan();
 		expect(
 			violations,
 			`Non-canonical Tailwind class(es) in first-party code (src/ outside src/components/ui/). Write the canonical form, or run \`node .planning/tailwind-shadcn/audit/canonicalize.mjs --write\` (after W3 only, N10):\n${violations.join("\n")}`,
@@ -1935,9 +1938,8 @@ describe("G8 every first-party class is canonical (D-25, PLAN.md §4.4 class)", 
 
 	// 66.2-39: the canonicalizer keeps `translate-y-[-50%]` and `h-[40%]`, so
 	// G8 also asks whether a fraction utility spells the same percentage.
-	it("finds no arbitrary percentage a fraction utility spells", async () => {
-		const { engine, candidates } = await firstPartyScan();
-		const result = checkFractionEquivalents(engine.designSystem, candidates);
+	it("finds no arbitrary percentage a fraction utility spells", () => {
+		const result = firstPartyScan().fractions;
 		expect(result.checked).toBeGreaterThan(5);
 		expect(
 			result.violations,
