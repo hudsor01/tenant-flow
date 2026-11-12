@@ -9,7 +9,8 @@
 //   2. { html }               — pre-built HTML from caller (no DB fetch)
 // (A third mode, { leaseId }, printed a lease summary that no caller requests;
 // such a body is now a Mode 1 request without a reportType, a 400.)
-// Calls the self-hosted StirlingPDF k3s instance and streams the resulting PDF blob.
+// Calls the self-hosted Stirling-PDF instance (STIRLING_PDF_URL, its
+// X-API-KEY in STIRLING_PDF_API_KEY) and streams the resulting PDF blob.
 // JWT-authenticated — requires a valid Bearer token.
 // Fail-fast: no retry on StirlingPDF errors (matches stripe-webhooks pattern).
 
@@ -81,6 +82,7 @@ export async function handleRequest(
 				"SUPABASE_URL",
 				"SUPABASE_SERVICE_ROLE_KEY",
 				"STIRLING_PDF_URL",
+				"STIRLING_PDF_API_KEY",
 			],
 		});
 
@@ -216,14 +218,22 @@ export async function handleRequest(
 			}
 		}
 
+		// Stirling-PDF 3.x (its OpenAPI spec, /v1/api-docs): POST
+		// /api/v1/convert/html/pdf takes the page as an .html file in
+		// `fileInput`, and every API call carries the instance's X-API-KEY.
 		const formData = new FormData();
-		formData.append("htmlContent", html);
+		formData.append(
+			"fileInput",
+			new Blob([html], { type: "text/html" }),
+			"report.html",
+		);
 
-		const stirlingPdfUrl = env["STIRLING_PDF_URL"];
+		const stirlingPdfUrl = (env["STIRLING_PDF_URL"] ?? "").replace(/\/+$/, "");
 		const pdfResponse = await fetch(
-			`${stirlingPdfUrl}/api/v1/misc/html-to-pdf`,
+			`${stirlingPdfUrl}/api/v1/convert/html/pdf`,
 			{
 				method: "POST",
+				headers: { "X-API-KEY": env["STIRLING_PDF_API_KEY"] ?? "" },
 				body: formData,
 				signal: AbortSignal.timeout(30_000),
 			},
