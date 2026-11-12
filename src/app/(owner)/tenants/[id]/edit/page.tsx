@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { CardLayout } from "#components/ui/card-layout";
+import { TenantEditFormSkeleton } from "../../components/tenant-edit-form-skeleton";
 
 // Dynamic import with code splitting
 const TenantEditForm = lazy(() =>
@@ -10,27 +10,6 @@ const TenantEditForm = lazy(() =>
 
 interface TenantEditPageProps {
 	params: Promise<{ id: string }>;
-}
-
-// Loading fallback component
-function TenantEditFormSkeleton() {
-	return (
-		<CardLayout
-			title="Edit Tenant Information"
-			description="Update tenant contact details and emergency contact information"
-			isLoading={true}
-		>
-			<div className="space-y-6">
-				<div className="grid grid-cols-2 gap-4">
-					<div className="h-10 rounded-md bg-muted animate-pulse" />
-					<div className="h-10 rounded-md bg-muted animate-pulse" />
-				</div>
-				<div className="h-10 rounded-md bg-muted animate-pulse" />
-				<div className="h-10 rounded-md bg-muted animate-pulse" />
-				<div className="h-24 rounded-md bg-muted animate-pulse" />
-			</div>
-		</CardLayout>
-	);
 }
 
 export default async function TenantEditPage({ params }: TenantEditPageProps) {

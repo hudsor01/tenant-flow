@@ -7,6 +7,7 @@ import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton"
 import { BlurFade } from "#components/ui/blur-fade";
 import { Skeleton } from "#components/ui/skeleton";
 import { analyticsQueries } from "#hooks/api/use-analytics";
+import { useIsClient } from "#hooks/use-is-client";
 
 const OccupancyTrendChart = dynamic(
 	() => import("./property-charts").then((mod) => mod.OccupancyTrendChart),
@@ -26,6 +27,14 @@ export function PropertyInsightsSkeleton() {
 }
 
 export function PropertyInsightsSection() {
+	// Owner data loads in the browser only: rendered on the server, the
+	// suspense query below would run there without a session (useIsClient).
+	const isClient = useIsClient();
+	if (!isClient) return <PropertyInsightsSkeleton />;
+	return <PropertyInsightsSectionContent />;
+}
+
+function PropertyInsightsSectionContent() {
 	const { data } = useSuspenseQuery(analyticsQueries.occupancyPageData());
 
 	const { trends = [] } = data;

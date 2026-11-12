@@ -22,9 +22,11 @@ import { DocumentsSection } from "#components/documents/documents-section";
 import { Button } from "#components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
 import { ConfirmDialog } from "#components/ui/confirm-dialog";
+import { Skeleton } from "#components/ui/skeleton";
 import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
 import { useDeleteMaintenanceRequest } from "#hooks/api/use-maintenance";
 import { callGeneratePdfFromHtml } from "#hooks/api/use-report-mutations";
+import { useIsClient } from "#hooks/use-is-client";
 import { formatLocalYmd } from "#lib/formatters/date";
 import { createLogger } from "#lib/frontend-logger";
 import { userFacingErrorMessage } from "#lib/mutation-error-handler";
@@ -72,7 +74,15 @@ function ContactRow({
 	);
 }
 
-export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
+export function MaintenanceDetails(props: MaintenanceDetailsProps) {
+	// Owner data loads in the browser only: rendered on the server, the
+	// suspense query below would run there without a session (useIsClient).
+	const isClient = useIsClient();
+	if (!isClient) return <Skeleton className="h-96 w-full" />;
+	return <MaintenanceDetailsContent {...props} />;
+}
+
+function MaintenanceDetailsContent({ id }: MaintenanceDetailsProps) {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const deleteMutation = useDeleteMaintenanceRequest();

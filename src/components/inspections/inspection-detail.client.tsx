@@ -8,6 +8,7 @@ import { DocumentsSection } from "#components/documents/documents-section";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { Label } from "#components/ui/label";
+import { Skeleton } from "#components/ui/skeleton";
 import { Textarea } from "#components/ui/textarea";
 import { inspectionQueries } from "#hooks/api/query-keys/inspection-keys";
 import {
@@ -15,6 +16,7 @@ import {
 	useSubmitForTenantReview,
 	useUpdateInspection,
 } from "#hooks/api/use-inspection-mutations";
+import { useIsClient } from "#hooks/use-is-client";
 import { assertNever } from "#lib/assert-never";
 import { formatDate } from "#lib/formatters/date";
 import type { InspectionStatus } from "#types/sections/inspections";
@@ -41,7 +43,15 @@ function statusVariant(status: InspectionStatus): StatusVariant {
 	}
 }
 
-export function InspectionDetailClient({ id }: { id: string }) {
+export function InspectionDetailClient(props: { id: string }) {
+	// Owner data loads in the browser only: rendered on the server, the
+	// suspense query below would run there without a session (useIsClient).
+	const isClient = useIsClient();
+	if (!isClient) return <Skeleton className="h-96 w-full" />;
+	return <InspectionDetailClientContent {...props} />;
+}
+
+function InspectionDetailClientContent({ id }: { id: string }) {
 	const { data: inspection } = useSuspenseQuery(
 		inspectionQueries.detailQuery(id),
 	);
@@ -200,11 +210,11 @@ export function InspectionDetailClient({ id }: { id: string }) {
 				{inspection.tenant_notes && (
 					<div className="space-y-2 p-3 bg-muted/30 rounded-md">
 						<Label>Tenant notes</Label>
-						<p className="text-sm text-muted-foreground whitespace-pre-wrap">
+						<p className="last:mb-0 text-sm text-muted-foreground whitespace-pre-wrap">
 							{inspection.tenant_notes}
 						</p>
 						{inspection.tenant_reviewed_at && (
-							<p className="text-xs text-muted-foreground">
+							<p className="mb-0 text-xs text-muted-foreground">
 								Reviewed{" "}
 								{formatDate(inspection.tenant_reviewed_at, { relative: true })}
 							</p>
@@ -238,7 +248,7 @@ export function InspectionDetailClient({ id }: { id: string }) {
 				)}
 				{rooms.length === 0 && !showAddRoom && (
 					<div className="rounded-lg border border-dashed p-8 text-center">
-						<p className="text-sm text-muted-foreground">
+						<p className="mb-0 text-sm text-muted-foreground">
 							No rooms added yet. Add rooms to document the condition of each
 							area.
 						</p>

@@ -11,9 +11,11 @@ import { Field, FieldError, FieldLabel } from "#components/ui/field";
 import { InputGroup, InputGroupInput } from "#components/ui/input-group";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { useUpdateTenantMutation } from "#hooks/api/use-tenant-mutations";
+import { useIsClient } from "#hooks/use-is-client";
 import { useAppForm } from "#lib/forms/form-hook";
 import { createLogger } from "#lib/frontend-logger";
 import { tenantEmergencyContactEditSchema } from "#lib/validation/tenants";
+import { TenantEditFormSkeleton } from "./tenant-edit-form-skeleton";
 
 const logger = createLogger({ component: "TenantEditForm" });
 
@@ -21,7 +23,15 @@ export interface TenantEditFormProps {
 	id: string;
 }
 
-export function TenantEditForm({ id }: TenantEditFormProps) {
+export function TenantEditForm(props: TenantEditFormProps) {
+	// Owner data loads in the browser only: rendered on the server, the
+	// suspense query below would run there without a session (useIsClient).
+	const isClient = useIsClient();
+	if (!isClient) return <TenantEditFormSkeleton />;
+	return <TenantEditFormContent {...props} />;
+}
+
+function TenantEditFormContent({ id }: TenantEditFormProps) {
 	const { data: tenant } = useSuspenseQuery(tenantQueries.detail(id));
 	const router = useRouter();
 	const updateMutation = useUpdateTenantMutation();

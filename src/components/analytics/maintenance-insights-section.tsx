@@ -12,6 +12,7 @@ import { BlurFade } from "#components/ui/blur-fade";
 import { Skeleton } from "#components/ui/skeleton";
 import { analyticsQueries } from "#hooks/api/use-analytics";
 import { useClientDataTable } from "#hooks/use-client-data-table";
+import { useIsClient } from "#hooks/use-is-client";
 import { formatCurrency } from "#lib/utils/currency";
 import type {
 	MaintenanceCategoryBreakdown,
@@ -146,6 +147,14 @@ export function costSummaryLine(costs: MaintenanceCostSummary | null): string {
 }
 
 export function MaintenanceInsightsSection() {
+	// Owner data loads in the browser only: rendered on the server, the
+	// suspense query below would run there without a session (useIsClient).
+	const isClient = useIsClient();
+	if (!isClient) return <MaintenanceInsightsSkeleton />;
+	return <MaintenanceInsightsSectionContent />;
+}
+
+function MaintenanceInsightsSectionContent() {
 	const { data } = useSuspenseQuery(analyticsQueries.maintenancePageData());
 
 	const { trends, costs, costBreakdown, categoryBreakdown } = data;
