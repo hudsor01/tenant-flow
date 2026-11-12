@@ -10,8 +10,10 @@ import { DocumentsSection } from "#components/documents/documents-section";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
+import { Skeleton } from "#components/ui/skeleton";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { useMarkTenantAsMovedOutMutation } from "#hooks/api/use-tenant-mutations";
+import { useIsClient } from "#hooks/use-is-client";
 import {
 	leaseStatusLabel,
 	moveOutReasonText,
@@ -30,7 +32,15 @@ interface TenantDetailsProps {
 	id: string;
 }
 
-export function TenantDetails({ id }: TenantDetailsProps) {
+export function TenantDetails(props: TenantDetailsProps) {
+	// Owner data loads in the browser only: rendered on the server, the
+	// suspense query below would run there without a session (useIsClient).
+	const isClient = useIsClient();
+	if (!isClient) return <Skeleton className="h-96 w-full" />;
+	return <TenantDetailsContent {...props} />;
+}
+
+function TenantDetailsContent({ id }: TenantDetailsProps) {
 	const { data: tenant } = useSuspenseQuery(tenantQueries.withLease(id));
 	const router = useRouter();
 	const markAsMovedOut = useMarkTenantAsMovedOutMutation();

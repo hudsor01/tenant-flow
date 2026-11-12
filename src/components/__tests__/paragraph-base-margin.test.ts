@@ -150,10 +150,6 @@ const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
 		1,
 		"12c1bd46cf7c736c9a3043fc5437e5c265a054dd",
 	],
-	"src/components/inspections/inspection-detail.client.tsx": [
-		3,
-		"07caaa274018aa481a5ed5ecff5be839fc709532",
-	],
 	"src/components/ledger/add-line-dialog.tsx": [
 		1,
 		"4ea9d26da0a7c3d8d6d9110053c7fed0731efdd9",

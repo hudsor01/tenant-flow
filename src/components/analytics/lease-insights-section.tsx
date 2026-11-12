@@ -6,6 +6,7 @@ import { LeaseProfitabilityTable } from "#components/analytics/lease-profitabili
 import { BlurFade } from "#components/ui/blur-fade";
 import { Skeleton } from "#components/ui/skeleton";
 import { analyticsQueries } from "#hooks/api/use-analytics";
+import { useIsClient } from "#hooks/use-is-client";
 
 export function LeaseInsightsSkeleton() {
 	return (
@@ -27,6 +28,14 @@ export function LeaseInsightsSkeleton() {
  * [], so both charts could only ever be empty.
  */
 export function LeaseInsightsSection() {
+	// Owner data loads in the browser only: rendered on the server, the
+	// suspense query below would run there without a session (useIsClient).
+	const isClient = useIsClient();
+	if (!isClient) return <LeaseInsightsSkeleton />;
+	return <LeaseInsightsSectionContent />;
+}
+
+function LeaseInsightsSectionContent() {
 	const { data: profitability } = useSuspenseQuery(
 		analyticsQueries.leaseProfitability(),
 	);

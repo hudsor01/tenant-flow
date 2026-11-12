@@ -365,6 +365,13 @@
 	th,
 	td {
 		padding: 0.75rem 1rem;
+	}
+
+	/* A cell's bottom border draws the row line only where the table collapses
+	   its borders into one. A grid table (the virtualized lease, tenant,
+	   property and portfolio lists) does not: each cell drew its own line at
+	   its own height, with gaps, under the row separator the table draws. */
+	:where(table:not(.grid)) :is(th, td) {
 		border-bottom: 1px solid var(--color-border);
 	}
 
