@@ -37,7 +37,8 @@ import {
 Deno.env.set("DENO_TEST_NO_SERVE", "1");
 Deno.env.set("SUPABASE_URL", "http://supabase.test");
 Deno.env.set("SUPABASE_SERVICE_ROLE_KEY", "service-role-key");
-Deno.env.set("STIRLING_PDF_URL", "http://stirling.test");
+Deno.env.set("STIRLING_PDF_URL", "http://stirling.test/");
+Deno.env.set("STIRLING_PDF_API_KEY", "stirling-test-key");
 Deno.env.set("NEXT_PUBLIC_APP_URL", "https://app.tenantflow.app");
 
 const { handleRequest } = await import("../generate-pdf/index.ts");
@@ -170,10 +171,20 @@ async function withStirling(
 ): Promise<void> {
 	const prev = globalThis.fetch;
 	const htmlPosts: string[] = [];
-	globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+	globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+		// Stirling-PDF 3.x's HTML conversion: the route, the API key header and
+		// the page as an .html file in `fileInput` (its OpenAPI spec).
+		assertEquals(String(input), "http://stirling.test/api/v1/convert/html/pdf");
+		assertEquals(
+			new Headers(init?.headers).get("X-API-KEY"),
+			"stirling-test-key",
+		);
 		const form = init?.body;
 		if (form instanceof FormData) {
-			htmlPosts.push(String(form.get("htmlContent")));
+			const file = form.get("fileInput");
+			if (!(file instanceof File)) throw new Error("fileInput is not a file");
+			assertEquals(file.name, "report.html");
+			htmlPosts.push(await file.text());
 		}
 		return new Response(new Uint8Array([37, 80, 68, 70]), { status: 200 });
 	}) as typeof fetch;
