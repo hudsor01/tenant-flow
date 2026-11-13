@@ -168,8 +168,11 @@ const SYNTHETIC_REQUEST_TITLE =
 /**
  * A maintenance request as the detail read returns it (MAINTENANCE_DETAIL_SELECT
  * in maintenance-keys.ts), on owner A's newest unit and for owner A's newest
- * tenant (`tenant_id` is NOT NULL), with long text and figures. The guard
- * answers its detail, expenses and photos reads in the browser.
+ * tenant (`tenant_id` is NOT NULL), with long text and figures, and assigned
+ * the synthetic vendor (its `vendor` embed), so the vendor card, the table's
+ * Vendor column and the board card's vendor line are measured with the
+ * longest name. The guard answers its detail, expenses and photos reads in
+ * the browser.
  */
 function syntheticRequest(
 	unit: { id: string; property_id: string },
@@ -185,7 +188,7 @@ function syntheticRequest(
 			"The tenant reports water leaking through the kitchen ceiling below the upstairs bathroom after every shower; the drywall is stained and soft near the light fixture.",
 		priority: "urgent",
 		status: "needs_reassignment",
-		vendor_id: null,
+		vendor_id: SYNTHETIC_VENDOR.id,
 		requested_by: null,
 		assigned_to: null,
 		estimated_cost: 1_234_567,
@@ -210,6 +213,12 @@ function syntheticRequest(
 			last_name: "Vandenberghe-Montgomery",
 			email: "maximiliana.vandenberghe-montgomery@outlook.com",
 			phone: "+1 (555) 555-0123",
+		},
+		vendor: {
+			name: SYNTHETIC_VENDOR.name,
+			trade: SYNTHETIC_VENDOR.trade,
+			phone: SYNTHETIC_VENDOR.phone,
+			email: SYNTHETIC_VENDOR.email,
 		},
 	};
 }
