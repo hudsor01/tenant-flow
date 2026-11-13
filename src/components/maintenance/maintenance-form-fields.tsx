@@ -16,20 +16,25 @@ import { MAINTENANCE_PRIORITY_OPTIONS } from "#lib/constants/status-types";
 import { optionalWholeDollarStringSchema } from "#lib/validation/common";
 import { maintenanceRequestCreateSchema } from "#lib/validation/maintenance";
 import type { MaintenancePriority, Property, Unit } from "#types/core";
+import { VendorSelect } from "./vendor-select";
 
 interface MaintenanceFormFieldsProps {
 	form: ReturnType<typeof useMaintenanceForm>;
 	propertiesData: Property[] | undefined;
 	unitsByProperty: Map<string, Unit[]>;
+	/** The edited request's vendor name, for a vendor no longer active. */
+	currentVendorName?: string | null | undefined;
 }
 
 export function MaintenanceFormFields({
 	form,
 	propertiesData,
 	unitsByProperty,
+	currentVendorName,
 }: MaintenanceFormFieldsProps) {
 	const unitLabelId = "maintenance-unit-label";
 	const tenantLabelId = "maintenance-tenant-label";
+	const vendorLabelId = "maintenance-form-vendor-label";
 	// Tenant picker (Session 11 P2 #12, cycle-1 + cycle-2 review):
 	// useAllTenants() pages over all rows so the dropdown is truly
 	// unbounded (PostgREST max_rows = 1000 cap handled inside the
@@ -236,6 +241,25 @@ export function MaintenanceFormFields({
 								))}
 							</SelectContent>
 						</Select>
+						<FieldError errors={field.state.meta.errors} />
+					</Field>
+				)}
+			</form.Field>
+
+			{/* Vendor — one of the owner's active vendors, or none */}
+			<form.Field name="vendor_id">
+				{(field) => (
+					<Field className="min-w-0">
+						<FieldLabel id={vendorLabelId} htmlFor="vendor_id">
+							Vendor (optional)
+						</FieldLabel>
+						<VendorSelect
+							id="vendor_id"
+							aria-labelledby={vendorLabelId}
+							value={field.state.value || null}
+							currentVendorName={currentVendorName}
+							onChange={(vendorId) => field.handleChange(vendorId ?? "")}
+						/>
 						<FieldError errors={field.state.meta.errors} />
 					</Field>
 				)}

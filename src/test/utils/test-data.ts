@@ -266,12 +266,13 @@ export const DEFAULT_MAINTENANCE_REQUEST: MaintenanceListRow = {
 	propertyName: "Test Property",
 	unitNumber: "Apt 101",
 	tenantName: "John Doe",
+	vendorName: null,
 };
 
 /**
  * The same request as PostgREST returns it for the list's select: its own
- * columns and the unit, property and tenant embeds `mapMaintenanceListRow`
- * maps to `DEFAULT_MAINTENANCE_REQUEST`.
+ * columns and the unit, property, tenant and vendor embeds
+ * `mapMaintenanceListRow` maps to `DEFAULT_MAINTENANCE_REQUEST` (no vendor).
  */
 export const MAINTENANCE_LIST_POSTGREST_ROW = {
 	...MAINTENANCE_REQUEST_COLUMNS,
@@ -281,6 +282,7 @@ export const MAINTENANCE_LIST_POSTGREST_ROW = {
 		properties: { name: "Test Property", status: "active" },
 	},
 	tenant: { name: null, first_name: "John", last_name: "Doe" },
+	vendor: null,
 };
 
 /**

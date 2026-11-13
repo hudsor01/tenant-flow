@@ -256,4 +256,35 @@ describe("MaintenanceCard", () => {
 			expect(screen.queryByText("John Doe")).not.toBeInTheDocument();
 		});
 	});
+
+	describe("Vendor Display", () => {
+		test("names the assigned vendor, labelled for a screen reader", () => {
+			render(
+				<MaintenanceCard
+					request={{ ...defaultRequest, vendorName: "Ace Plumbing" }}
+				/>,
+			);
+			expect(screen.getByText("Ace Plumbing")).toBeInTheDocument();
+			expect(screen.getByText("Vendor:")).toHaveClass("sr-only");
+		});
+
+		test("shows the vendor without a tenant", () => {
+			render(
+				<MaintenanceCard
+					request={{
+						...defaultRequest,
+						tenantName: null,
+						vendorName: "Ace Plumbing",
+					}}
+				/>,
+			);
+			expect(screen.getByText("Ace Plumbing")).toBeInTheDocument();
+			expect(screen.queryByText("John Doe")).not.toBeInTheDocument();
+		});
+
+		test("names no vendor when none is assigned", () => {
+			render(<MaintenanceCard request={defaultRequest} />);
+			expect(screen.queryByText("Vendor:")).not.toBeInTheDocument();
+		});
+	});
 });

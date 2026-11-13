@@ -158,3 +158,15 @@ export function spendToDate(
 		.filter((e) => e.expense_date !== null && e.expense_date <= today)
 		.reduce((sum, e) => sum + (e.amount ?? 0), 0);
 }
+
+/** A tel: link for a phone number as typed: its digits and a leading +. */
+export function telHref(phone: string | null): string | undefined {
+	if (!phone) return undefined;
+	const dialable = phone.replace(/[^\d+]/g, "");
+	return dialable === "" ? undefined : `tel:${dialable}`;
+}
+
+/** A mailto: link for an email address. */
+export function mailtoHref(email: string | null): string | undefined {
+	return email ? `mailto:${email}` : undefined;
+}

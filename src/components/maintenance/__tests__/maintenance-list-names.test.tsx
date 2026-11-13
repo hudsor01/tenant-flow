@@ -50,6 +50,8 @@ function postgrestRow(overrides: {
 	unit_id: string;
 	units: unknown;
 	tenant: unknown;
+	vendor_id?: string | null;
+	vendor?: unknown;
 }) {
 	return {
 		owner_user_id: "owner-1",
@@ -58,6 +60,7 @@ function postgrestRow(overrides: {
 		priority: "medium",
 		status: "open",
 		vendor_id: null,
+		vendor: null,
 		requested_by: null,
 		assigned_to: null,
 		estimated_cost: null,
@@ -83,6 +86,8 @@ const ROWS = [
 			properties: { name: "Maple Court", status: "active" },
 		},
 		tenant: { name: "Dana Rivera", first_name: null, last_name: null },
+		vendor_id: "0a0a0a0a-0000-4000-8000-00000000beef",
+		vendor: { name: "Ace Plumbing" },
 	}),
 	postgrestRow({
 		id: "req-2",
@@ -120,6 +125,7 @@ describe("the maintenance page names each request's property and unit", () => {
 		).toBeInTheDocument();
 		expect(screen.getByText("Dana Rivera")).toBeInTheDocument();
 		expect(screen.getByText("Sam Lee")).toBeInTheDocument();
+		expect(screen.getByText("Ace Plumbing")).toBeInTheDocument();
 	});
 
 	it("prints them in the table's Location column", async () => {
@@ -134,6 +140,29 @@ describe("the maintenance page names each request's property and unit", () => {
 		expect(
 			within(table).getByText("Gamma Flats (deleted) · Unit 2B"),
 		).toBeInTheDocument();
+	});
+
+	it("prints each request's vendor in the table's Vendor column", async () => {
+		view.current = "table";
+		render(<MaintenanceViewClient />);
+		const table = await screen.findByRole("table");
+		expect(
+			within(table).getByRole("columnheader", { name: "Vendor" }),
+		).toBeInTheDocument();
+		expect(within(table).getByText("Ace Plumbing")).toBeInTheDocument();
+		expect(within(table).getByText("No vendor")).toBeInTheDocument();
+	});
+
+	it("finds a request by its vendor's name", async () => {
+		view.current = "kanban";
+		render(<MaintenanceViewClient />);
+		await screen.findByText("Kitchen faucet drips");
+		await userEvent.type(
+			screen.getByRole("textbox", { name: "Search maintenance requests" }),
+			"ace",
+		);
+		expect(screen.getByText("Kitchen faucet drips")).toBeInTheDocument();
+		expect(screen.queryByText("Heater makes noise")).not.toBeInTheDocument();
 	});
 
 	it("finds a request by its property's name", async () => {

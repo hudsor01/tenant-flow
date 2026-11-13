@@ -54,7 +54,7 @@ const REVIEWED: Readonly<Record<string, string>> = {
 	resourceType: "lead magnet copy, a constant",
 	"headerToLabel(header)": "an import template's field names, a fixed set",
 	"metric.label": "property performance metric names, a constant list",
-	"TRADE_LABELS[vendor.trade] ?? vendor.trade":
+	"vendorTradeLabel(vendor.trade)":
 		"vendor trade label map; vendors.trade is CHECK-constrained to its keys",
 	'priority?.toLowerCase() ?? "low"':
 		"maintenance priority, CHECK-constrained; the transform reads its label",

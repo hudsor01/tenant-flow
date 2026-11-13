@@ -35,6 +35,7 @@ import {
 	mapMaintenanceListRow,
 	mapMaintenanceRow,
 } from "./maintenance-mappers";
+import { mapVendorRow } from "./vendor-mappers";
 
 /**
  * Maintenance query filters
@@ -56,20 +57,24 @@ const MAINTENANCE_SELECT_COLUMNS =
 /**
  * What the list shows each request by, embedded through the request's own
  * foreign keys: its unit's number, the unit's property (name and status, so a
- * property the owner deleted, which does not cascade, is named "(deleted)")
- * and its tenant's name. No capped or filtered unit, property or tenant list
- * can name every request.
+ * property the owner deleted, which does not cascade, is named "(deleted)"),
+ * its tenant's name and its vendor's name. No capped or filtered unit,
+ * property, tenant or vendor list can name every request.
  */
 const UNIT_EMBED_COLUMNS = "unit_number, property_id, properties(name, status)";
 
 const LIST_TENANT_COLUMNS = "name, first_name, last_name";
 
+/** The assigned vendor as the list names it (its board card and table row). */
+const LIST_VENDOR_COLUMNS = "name";
+
 /**
  * The detail page's select, which an update also returns (its result replaces
- * the cached detail): the list's embeds, and the tenant's email and phone for
- * the page's contact card.
+ * the cached detail): the list's embeds, the tenant's email and phone for the
+ * page's contact card, and the vendor's trade, phone and email for its vendor
+ * card.
  */
-const MAINTENANCE_DETAIL_SELECT = `${MAINTENANCE_SELECT_COLUMNS}, units(${UNIT_EMBED_COLUMNS}), tenant:tenant_id(${LIST_TENANT_COLUMNS}, email, phone)`;
+const MAINTENANCE_DETAIL_SELECT = `${MAINTENANCE_SELECT_COLUMNS}, units(${UNIT_EMBED_COLUMNS}), tenant:tenant_id(${LIST_TENANT_COLUMNS}, email, phone), vendor:vendor_id(${LIST_VENDOR_COLUMNS}, trade, phone, email)`;
 
 /**
  * Maintenance query factory
@@ -96,7 +101,7 @@ export const maintenanceQueries = {
 				// shape, field-validated at the mapMaintenanceListRow boundary.
 				const selectColumns: string = `${MAINTENANCE_SELECT_COLUMNS}, ${
 					filters?.property_id ? "units!inner" : "units"
-				}(${UNIT_EMBED_COLUMNS}), tenant:tenant_id(${LIST_TENANT_COLUMNS})`;
+				}(${UNIT_EMBED_COLUMNS}), tenant:tenant_id(${LIST_TENANT_COLUMNS}), vendor:vendor_id(${LIST_VENDOR_COLUMNS})`;
 
 				let q = supabase
 					.from("maintenance_requests")
@@ -436,7 +441,7 @@ export const vendorMutations = {
 
 				if (error) handlePostgrestError(error, "vendors");
 
-				return created as Vendor;
+				return mapVendorRow(created);
 			},
 		}),
 
@@ -460,7 +465,7 @@ export const vendorMutations = {
 
 				if (error) handlePostgrestError(error, "vendors");
 
-				return updated as Vendor;
+				return mapVendorRow(updated);
 			},
 		}),
 

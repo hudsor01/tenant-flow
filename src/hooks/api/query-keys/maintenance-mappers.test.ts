@@ -173,6 +173,7 @@ describe("mapMaintenanceListRow", () => {
 			properties: { name: "Maple Court", status: "active" },
 		},
 		tenant: { name: "Dana Rivera", first_name: "Dana", last_name: "Rivera" },
+		vendor: null,
 	};
 
 	it("names the request's property, unit and tenant from the embeds", () => {
@@ -180,9 +181,21 @@ describe("mapMaintenanceListRow", () => {
 		expect(mapped.propertyName).toBe("Maple Court");
 		expect(mapped.unitNumber).toBe("4B");
 		expect(mapped.tenantName).toBe("Dana Rivera");
+		expect(mapped.vendorName).toBeNull();
 		expect(mapped.unit_id).toBe(validRow.unit_id);
 		expect(mapped).not.toHaveProperty("units");
 		expect(mapped).not.toHaveProperty("tenant");
+		expect(mapped).not.toHaveProperty("vendor");
+	});
+
+	it("names the assigned vendor from its embed", () => {
+		const mapped = mapMaintenanceListRow({
+			...listRow,
+			vendor_id: "00000000-0000-0000-0000-0000000000bb",
+			vendor: { name: "Ace Plumbing" },
+		});
+		expect(mapped.vendorName).toBe("Ace Plumbing");
+		expect(mapped.vendor_id).toBe("00000000-0000-0000-0000-0000000000bb");
 	});
 
 	it("names a property the owner deleted as a report does", () => {
@@ -236,6 +249,8 @@ describe("mapMaintenanceListRow", () => {
 		expect(() => mapMaintenanceListRow(withoutUnits)).toThrow(/units/);
 		const { tenant: _omitTenant, ...withoutTenant } = listRow;
 		expect(() => mapMaintenanceListRow(withoutTenant)).toThrow(/tenant/);
+		const { vendor: _omitVendor, ...withoutVendor } = listRow;
+		expect(() => mapMaintenanceListRow(withoutVendor)).toThrow(/vendor/);
 		expect(() =>
 			mapMaintenanceListRow({
 				...listRow,
@@ -253,6 +268,9 @@ describe("mapMaintenanceListRow", () => {
 				...listRow,
 				units: { ...listRow.units, properties: { status: "active" } },
 			}),
+		).toThrow(/name/);
+		expect(() =>
+			mapMaintenanceListRow({ ...listRow, vendor: { name: null } }),
 		).toThrow(/name/);
 	});
 });
@@ -272,6 +290,7 @@ describe("mapMaintenanceDetailRow", () => {
 			email: "sam@example.com",
 			phone: null,
 		},
+		vendor: null,
 	};
 
 	it("names the unit, property and tenant, and how to reach the tenant", () => {
@@ -285,6 +304,32 @@ describe("mapMaintenanceDetailRow", () => {
 		expect(mapped).not.toHaveProperty("tenant");
 	});
 
+	it("names the vendor and how to reach them", () => {
+		const mapped = mapMaintenanceDetailRow({
+			...detailRow,
+			vendor_id: "00000000-0000-0000-0000-0000000000bb",
+			vendor: {
+				name: "Ace Plumbing",
+				trade: "plumbing",
+				phone: "(555) 010-2000",
+				email: null,
+			},
+		});
+		expect(mapped.vendorName).toBe("Ace Plumbing");
+		expect(mapped.vendorTrade).toBe("plumbing");
+		expect(mapped.vendorPhone).toBe("(555) 010-2000");
+		expect(mapped.vendorEmail).toBeNull();
+		expect(mapped).not.toHaveProperty("vendor");
+	});
+
+	it("has no vendor details without a vendor", () => {
+		const mapped = mapMaintenanceDetailRow(detailRow);
+		expect(mapped.vendorName).toBeNull();
+		expect(mapped.vendorTrade).toBeNull();
+		expect(mapped.vendorPhone).toBeNull();
+		expect(mapped.vendorEmail).toBeNull();
+	});
+
 	it("reaches no one for a tenant row it cannot see", () => {
 		const mapped = mapMaintenanceDetailRow({ ...detailRow, tenant: null });
 		expect(mapped.tenantName).toBeNull();
@@ -296,5 +341,7 @@ describe("mapMaintenanceDetailRow", () => {
 		expect(() => mapMaintenanceDetailRow(validRow)).toThrow(/units|tenant/);
 		const { tenant: _omitTenant, ...withoutTenant } = detailRow;
 		expect(() => mapMaintenanceDetailRow(withoutTenant)).toThrow(/tenant/);
+		const { vendor: _omitVendor, ...withoutVendor } = detailRow;
+		expect(() => mapMaintenanceDetailRow(withoutVendor)).toThrow(/vendor/);
 	});
 });

@@ -50,6 +50,7 @@ describe("each table's View menu names its columns", () => {
 		expect(await menuItems(maintenanceColumns)).toEqual([
 			"Request",
 			"Location",
+			"Vendor",
 			"Status",
 			"Priority",
 		]);

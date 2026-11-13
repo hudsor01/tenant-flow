@@ -43,6 +43,7 @@ vi.mock("../photos-card", () => ({ PhotosCard: () => null }));
 vi.mock("../expenses-card", () => ({ ExpensesCard: () => null }));
 vi.mock("../schedule-dialog", () => ({ ScheduleDialog: () => null }));
 vi.mock("../status-select", () => ({ StatusSelect: () => null }));
+vi.mock("../vendor-card", () => ({ VendorCard: () => null }));
 vi.mock("#components/documents/documents-section", () => ({
 	DocumentsSection: () => null,
 }));
@@ -81,6 +82,7 @@ const DETAIL_ROW = {
 		email: "sam@example.com",
 		phone: null,
 	},
+	vendor: null,
 };
 
 async function renderPage() {

@@ -11,6 +11,7 @@
  */
 
 import type { LeaseStatus, PropertyStatus } from "#types/core";
+import type { VendorTrade } from "#types/domain";
 
 /**
  * USER ROLES - App-level user type classification
@@ -522,6 +523,30 @@ export const MAINTENANCE_PRIORITY_OPTIONS = [
 	{ value: "high", label: "High" },
 	{ value: "urgent", label: "Urgent" },
 ] as const;
+
+/**
+ * Vendor trades and their labels, in the order the pickers list them: the nine
+ * values of the DB CHECK vendors_trade_check (VendorTrade, #types/domain).
+ */
+export const VENDOR_TRADE_OPTIONS = [
+	{ value: "plumbing", label: "Plumbing" },
+	{ value: "electrical", label: "Electrical" },
+	{ value: "hvac", label: "HVAC" },
+	{ value: "carpentry", label: "Carpentry" },
+	{ value: "painting", label: "Painting" },
+	{ value: "landscaping", label: "Landscaping" },
+	{ value: "appliance", label: "Appliance Repair" },
+	{ value: "general", label: "General Contractor" },
+	{ value: "other", label: "Other" },
+] as const satisfies ReadonlyArray<{ value: VendorTrade; label: string }>;
+
+/** A vendor trade's label; the value itself for one outside the list. */
+export function vendorTradeLabel(trade: string): string {
+	return (
+		VENDOR_TRADE_OPTIONS.find((option) => option.value === trade)?.label ??
+		trade
+	);
+}
 
 /**
  * SECURITY EVENT TYPES ENUMERATION

@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, MapPin, User } from "lucide-react";
+import { Clock, HardHat, MapPin, User } from "lucide-react";
 import Link from "next/link";
 import type { MouseEvent } from "react";
 import { BorderBeam } from "#components/ui/border-beam";
@@ -74,7 +74,7 @@ export function MaintenanceCard({
 	const aging = getAgingDisplay(request.created_at);
 	const isUrgent = request.priority?.toLowerCase() === "urgent";
 	const propertyName = request.propertyName ?? "Unknown Property";
-	const { unitNumber, tenantName } = request;
+	const { unitNumber, tenantName, vendorName } = request;
 
 	const handleClick = (e: MouseEvent) => {
 		if (onView) {
@@ -125,15 +125,33 @@ export function MaintenanceCard({
 				</div>
 			</div>
 
-			{/* Tenant */}
-			{tenantName && (
-				<div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
-					<div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
-						<User className="w-2.5 h-2.5 text-primary" />
-					</div>
-					<span className="text-xs text-muted-foreground truncate">
-						{tenantName}
-					</span>
+			{/* Tenant and vendor */}
+			{(tenantName || vendorName) && (
+				<div className="mt-3 pt-3 border-t border-border space-y-2">
+					{tenantName && (
+						<div className="flex items-center gap-2">
+							<div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+								<User className="w-2.5 h-2.5 text-primary" />
+							</div>
+							<span className="text-xs text-muted-foreground truncate">
+								{tenantName}
+							</span>
+						</div>
+					)}
+					{vendorName && (
+						<div className="flex items-center gap-2">
+							<div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+								<HardHat
+									className="w-2.5 h-2.5 text-primary"
+									aria-hidden="true"
+								/>
+							</div>
+							<span className="sr-only">Vendor:</span>
+							<span className="text-xs text-muted-foreground truncate">
+								{vendorName}
+							</span>
+						</div>
+					)}
 				</div>
 			)}
 		</div>

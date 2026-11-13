@@ -130,9 +130,9 @@ export function mapMaintenanceRow(raw: unknown): MaintenanceRequest {
 /**
  * A maintenance request as the list (the board, the table and its search)
  * shows it: the row and the names of what it is for, from the request's own
- * embeds (`units(unit_number, property_id, properties(name, status))` and
- * `tenant:tenant_id(name, first_name, last_name)`). A request is never shown
- * by its unit's id.
+ * embeds (`units(unit_number, property_id, properties(name, status))`,
+ * `tenant:tenant_id(name, first_name, last_name)` and
+ * `vendor:vendor_id(name)`). A request is never shown by its unit's id.
  */
 export interface MaintenanceListRow extends MaintenanceRequest {
 	/**
@@ -144,15 +144,22 @@ export interface MaintenanceListRow extends MaintenanceRequest {
 	unitNumber: string | null;
 	/** The tenant's name, else first and last; null with neither or no row. */
 	tenantName: string | null;
+	/** The assigned vendor's name; null with no vendor. */
+	vendorName: string | null;
 }
 
 /**
- * A maintenance request as its detail page shows it: what the list shows and
- * how to reach the tenant who has it (the tenant embed's `email` and `phone`).
+ * A maintenance request as its detail page shows it: what the list shows, how
+ * to reach the tenant who has it (the tenant embed's `email` and `phone`) and
+ * the assigned vendor's trade and contact details (the vendor embed's `trade`,
+ * `phone` and `email`; all null with no vendor).
  */
 export interface MaintenanceDetailRow extends MaintenanceListRow {
 	tenantEmail: string | null;
 	tenantPhone: string | null;
+	vendorTrade: string | null;
+	vendorPhone: string | null;
+	vendorEmail: string | null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -208,14 +215,15 @@ function tenantDisplayName(tenant: Record<string, unknown>): string | null {
 
 /**
  * Map a row of the maintenance list: the request's columns through
- * `mapMaintenanceRow`, then its unit's number, its property's name and its
- * tenant's name from the embeds.
+ * `mapMaintenanceRow`, then its unit's number, its property's name, its
+ * tenant's name and its vendor's name from the embeds.
  */
 export function mapMaintenanceListRow(raw: unknown): MaintenanceListRow {
 	const row = isRecord(raw) ? raw : {};
 	const unit = toOneEmbed(row, "units");
 	const property = unit === null ? null : toOneEmbed(unit, "properties");
 	const tenant = toOneEmbed(row, "tenant");
+	const vendor = toOneEmbed(row, "vendor");
 	return {
 		...mapMaintenanceRow(row),
 		propertyName:
@@ -228,21 +236,29 @@ export function mapMaintenanceListRow(raw: unknown): MaintenanceListRow {
 		unitNumber:
 			unit === null ? null : nullableString(unit.unit_number, "unit_number"),
 		tenantName: tenant === null ? null : tenantDisplayName(tenant),
+		vendorName: vendor === null ? null : requireString(vendor, "name"),
 	};
 }
 
 /**
- * Map a request on its detail page: the list's row and the tenant's email and
- * phone from the tenant embed.
+ * Map a request on its detail page: the list's row, the tenant's email and
+ * phone from the tenant embed, and the vendor's trade, phone and email from
+ * the vendor embed.
  */
 export function mapMaintenanceDetailRow(raw: unknown): MaintenanceDetailRow {
 	const row = isRecord(raw) ? raw : {};
 	const tenant = toOneEmbed(row, "tenant");
+	const vendor = toOneEmbed(row, "vendor");
 	return {
 		...mapMaintenanceListRow(row),
 		tenantEmail:
 			tenant === null ? null : nullableString(tenant.email, "tenant.email"),
 		tenantPhone:
 			tenant === null ? null : nullableString(tenant.phone, "tenant.phone"),
+		vendorTrade: vendor === null ? null : requireString(vendor, "trade"),
+		vendorPhone:
+			vendor === null ? null : nullableString(vendor.phone, "vendor.phone"),
+		vendorEmail:
+			vendor === null ? null : nullableString(vendor.email, "vendor.email"),
 	};
 }
