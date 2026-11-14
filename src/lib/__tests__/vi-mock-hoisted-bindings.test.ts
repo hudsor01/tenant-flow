@@ -180,7 +180,6 @@ src/components/billing/__tests__/subscription-status-banner.test.tsx mockUseSubs
 src/components/contact/__tests__/contact-form.test.tsx invokeMock
 src/components/documents/__tests__/documents-section.test.tsx capturedDeleteOnSuccess mockDeleteMutate mockToastError mockToastSuccess mockToastWarning mockUploadMutate mockUseDocumentCategories mockUseQuery uploadPending
 src/components/documents/__tests__/documents-vault.test.tsx categoriesParamValue entityParamValue fromParamValue mockGetSession mockSetCategoriesParam mockSetEntityParam mockSetFromParam mockSetPageParam mockSetQueryParam mockSetToParam mockToastError mockUseDocumentCategories mockUseQuery pageParamValue queryParamValue toParamValue
-src/components/leases/__tests__/download-signed-lease-button.test.tsx finalizeMutate mockUseSignedDocumentUrl toastError
 src/components/leases/__tests__/lease-details.test.tsx mockLease
 src/components/leases/__tests__/lease-form.test.tsx mockCreateLeaseMutation mockRouterBack mockRouterPush mockUpdateLeaseMutation
 src/components/leases/__tests__/lease-signature-status.test.tsx mockUseLeaseSignatureStatus

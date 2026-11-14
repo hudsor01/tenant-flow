@@ -1,11 +1,17 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Download, Loader2 } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { isSignedLeaseDocument } from "#components/documents/documents-section-helpers";
 import { Button } from "#components/ui/button";
+import { documentQueries } from "#hooks/api/query-keys/document-keys";
 import { useSignedDocumentUrl } from "#hooks/api/use-lease";
-import { useFinalizeSignedLeaseMutation } from "#hooks/api/use-lease-signature-mutations";
+import {
+	invalidateSignedLeaseVaultCopy,
+	useFinalizeSignedLeaseMutation,
+} from "#hooks/api/use-lease-signature-mutations";
 import { cn } from "#lib/utils";
 
 interface DownloadSignedLeaseButtonProps {
@@ -27,9 +33,32 @@ export function DownloadSignedLeaseButton({
 	variant = "outline",
 	size = "default",
 }: DownloadSignedLeaseButtonProps) {
-	const { data, isLoading, error, refetch } = useSignedDocumentUrl(leaseId);
+	const queryClient = useQueryClient();
+	const { data, dataUpdatedAt, isLoading, error, refetch } =
+		useSignedDocumentUrl(leaseId);
 	const { mutate: finalize } = useFinalizeSignedLeaseMutation();
 	const autoFinalizedRef = useRef(false);
+	const vaultRefreshedForRef = useRef<string | null>(null);
+
+	// The signed PDF exists, so the vault holds its filed copy: the trigger files
+	// it in the statement that writes the pointer. When the tenant signed last, no
+	// mutation in this tab refreshed the lease's Documents list, so a list cached
+	// before this snapshot that lacks the copy is refetched, at most once per
+	// lease per mount. A copy still missing after that (filing skipped, or older
+	// than the newest documents the list shows) stays missing.
+	useEffect(() => {
+		if (!data?.document_url || vaultRefreshedForRef.current === leaseId) return;
+		const listKey = documentQueries.list({
+			entityType: "lease",
+			entityId: leaseId,
+		}).queryKey;
+		const listState = queryClient.getQueryState(listKey);
+		const list = listState?.data;
+		if (!list || listState.dataUpdatedAt >= dataUpdatedAt) return;
+		if (list.rows.some(isSignedLeaseDocument)) return;
+		vaultRefreshedForRef.current = leaseId;
+		invalidateSignedLeaseVaultCopy(queryClient, leaseId);
+	}, [data?.document_url, dataUpdatedAt, leaseId, queryClient]);
 
 	// Both parties signed but the PDF pointer is still unwritten — the out-of-band
 	// finalize may have failed. Auto-fire the idempotent owner-side finalize ONCE

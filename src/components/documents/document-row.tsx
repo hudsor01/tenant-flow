@@ -30,10 +30,14 @@ interface DocumentRowProps {
 	doc: DocumentRowData;
 	isOpen: boolean;
 	onOpenChange: (open: boolean) => void;
-	/** Absent on read-only surfaces (e.g. the global vault). When omitted
-	 *  the Remove button is hidden — vault deletion happens on the entity
-	 *  detail page so list-cache invalidation stays scoped. */
+	/** Absent on read-only surfaces (e.g. the global vault) and for a row the
+	 *  section keeps but won't let the owner remove (the e-signed lease). When
+	 *  omitted the Remove button is hidden — vault deletion happens on the
+	 *  entity detail page so list-cache invalidation stays scoped. */
 	onDelete?: (doc: DocumentRowData) => void;
+	/** Shown in the preview footer in place of Remove, saying why this row
+	 *  cannot be removed. */
+	lockedNote?: string;
 	isDeleting?: boolean;
 }
 
@@ -42,6 +46,7 @@ export function DocumentRow({
 	isOpen,
 	onOpenChange,
 	onDelete,
+	lockedNote,
 	isDeleting = false,
 }: DocumentRowProps) {
 	const mime = resolveMime(doc);
@@ -128,21 +133,28 @@ export function DocumentRow({
 							Preview unavailable.
 						</p>
 					)}
-					<div className="flex items-center justify-between p-2">
-						<span className="text-sm text-muted-foreground truncate">
-							{displayName}
-						</span>
-						{onDelete && (
-							<Button
-								size="sm"
-								variant="outline"
-								onClick={() => onDelete(doc)}
-								disabled={isDeleting}
-								className="text-destructive-text hover:text-destructive-text hover:bg-destructive/10 dark:hover:bg-destructive/20 dark:hover:text-destructive-text"
-							>
-								<Trash2 className="size-4 mr-2" />
-								{isDeleting ? "Removing..." : "Remove"}
-							</Button>
+					<div className="p-2">
+						<div className="flex items-center justify-between gap-3">
+							<span className="min-w-0 truncate text-sm text-muted-foreground">
+								{displayName}
+							</span>
+							{onDelete && (
+								<Button
+									size="sm"
+									variant="outline"
+									onClick={() => onDelete(doc)}
+									disabled={isDeleting}
+									className="text-destructive-text hover:text-destructive-text hover:bg-destructive/10 dark:hover:bg-destructive/20 dark:hover:text-destructive-text"
+								>
+									<Trash2 className="size-4 mr-2" />
+									{isDeleting ? "Removing..." : "Remove"}
+								</Button>
+							)}
+						</div>
+						{lockedNote && !onDelete && (
+							<p className="mb-0 mt-1 text-sm text-muted-foreground">
+								{lockedNote}
+							</p>
 						)}
 					</div>
 				</DialogContent>
