@@ -49,7 +49,9 @@ import {
 import { DocumentRow } from "./document-row";
 import {
 	ACCEPTED_MIME_TYPES,
+	isSignedLeaseDocument,
 	reportUploadSummary,
+	SIGNED_LEASE_LOCKED_NOTE,
 	validateFiles,
 } from "./documents-section-helpers";
 
@@ -393,7 +395,9 @@ export function DocumentsSection({
 									doc={doc}
 									isOpen={openId === doc.id}
 									onOpenChange={(open) => setOpenId(open ? doc.id : null)}
-									onDelete={setPendingDelete}
+									{...(isSignedLeaseDocument(doc)
+										? { lockedNote: SIGNED_LEASE_LOCKED_NOTE }
+										: { onDelete: setPendingDelete })}
 									isDeleting={deletingIds.has(doc.id)}
 								/>
 							))}

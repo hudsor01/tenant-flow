@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+	type QueryClient,
+	useMutation,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import { logger } from "#lib/frontend-logger";
 import {
@@ -7,6 +11,8 @@ import {
 	userFacingErrorMessage,
 } from "#lib/mutation-error-handler";
 
+import { documentQueries } from "./query-keys/document-keys";
+import { documentSearchQueries } from "./query-keys/document-search-keys";
 import { leaseQueries } from "./query-keys/lease-keys";
 import { leaseMutations } from "./query-keys/lease-mutation-options";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
@@ -82,6 +88,25 @@ export function useSendLeaseForSignatureMutation() {
 	});
 }
 
+/**
+ * Signing completes when finalize writes leases.signed_document_path, and the
+ * trg_file_signed_lease_in_vault trigger files the executed PDF in the vault in
+ * that same statement. Refresh the lease's Documents card and the vault search
+ * (both cached for 45 minutes and persisted) so the filed copy shows at once,
+ * and the dashboard, whose recent activity gains the "Signed lease filed" row.
+ */
+export function invalidateSignedLeaseVaultCopy(
+	queryClient: QueryClient,
+	leaseId: string,
+): void {
+	queryClient.invalidateQueries({
+		queryKey: documentQueries.list({ entityType: "lease", entityId: leaseId })
+			.queryKey,
+	});
+	queryClient.invalidateQueries({ queryKey: documentSearchQueries.all() });
+	queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all });
+}
+
 export function useSignLeaseAsOwnerMutation() {
 	const queryClient = useQueryClient();
 
@@ -98,7 +123,10 @@ export function useSignLeaseAsOwnerMutation() {
 			// Owner-signing can complete signing and ACTIVATE the lease, which
 			// occupies the unit — refresh the units views (incl. by-property).
 			queryClient.invalidateQueries({ queryKey: unitQueries.all() });
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all });
+			// Also refreshes the dashboard. The response does not say whether this
+			// was the second signature; when it was, finalize has already filed the
+			// signed copy.
+			invalidateSignedLeaseVaultCopy(queryClient, leaseId);
 			logger.info("Lease signed by owner", { leaseId });
 		},
 		onError: (err) => {
@@ -123,6 +151,7 @@ export function useFinalizeSignedLeaseMutation() {
 			queryClient.invalidateQueries({
 				queryKey: leaseQueries.detail(leaseId).queryKey,
 			});
+			invalidateSignedLeaseVaultCopy(queryClient, leaseId);
 		},
 		onError: (err) => {
 			handleMutationError(err, "Finalize signed lease");

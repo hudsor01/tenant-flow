@@ -24,8 +24,23 @@ vi.mock("@tanstack/react-query", async (importOriginal) => {
 	const actual = await importOriginal<typeof import("@tanstack/react-query")>();
 	const listResult = {
 		data: {
-			rows: [{ id: "d1", title: "Lease.pdf", file_path: "leases/d1.pdf" }],
-			totalCount: 1,
+			rows: [
+				{
+					id: "d1",
+					title: "Lease.pdf",
+					entity_type: "lease",
+					entity_id: "lease-1",
+					file_path: "lease/lease-1/123-lease.pdf",
+				},
+				{
+					id: "d2",
+					title: "Signed lease",
+					entity_type: "lease",
+					entity_id: "lease-1",
+					file_path: "lease/lease-1/signed-lease.pdf",
+				},
+			],
+			totalCount: 2,
 		},
 		isLoading: false,
 		isError: false,
@@ -50,22 +65,31 @@ vi.mock("sonner", () => ({
 	toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-// Mock DocumentRow so the delete affordance forwards the doc to `onDelete`.
+// Mock DocumentRow so the delete affordance forwards the doc to `onDelete`,
+// and a row rendered without `onDelete` shows no delete affordance at all.
 vi.mock("./document-row", () => ({
 	DocumentRow: ({
 		doc,
 		onDelete,
+		lockedNote,
 	}: {
 		doc: DocumentRowData;
 		onDelete?: (doc: DocumentRowData) => void;
-	}) => (
-		<button type="button" onClick={() => onDelete?.(doc)}>
-			delete-{doc.id}
-		</button>
-	),
+		lockedNote?: string;
+	}) =>
+		onDelete ? (
+			<button type="button" onClick={() => onDelete(doc)}>
+				delete-{doc.id}
+			</button>
+		) : (
+			<span>
+				read-only-{doc.id}: {lockedNote}
+			</span>
+		),
 }));
 
 import { DocumentsSection } from "./documents-section";
+import { SIGNED_LEASE_LOCKED_NOTE } from "./documents-section-helpers";
 
 describe("DocumentsSection delete confirmation", () => {
 	beforeEach(() => {
@@ -91,5 +115,15 @@ describe("DocumentsSection delete confirmation", () => {
 		await userEvent.click(screen.getByRole("button", { name: "Remove" }));
 
 		expect(mockMutate).toHaveBeenCalledTimes(1);
+	});
+
+	it("offers no Remove action for the lease's signed copy", () => {
+		render(<DocumentsSection entityType="lease" entityId="lease-1" />);
+
+		expect(
+			screen.getByText(`read-only-d2: ${SIGNED_LEASE_LOCKED_NOTE}`),
+		).toBeInTheDocument();
+		expect(screen.queryByText("delete-d2")).not.toBeInTheDocument();
+		expect(screen.getByText("delete-d1")).toBeInTheDocument();
 	});
 });
