@@ -20,6 +20,8 @@ export interface MaintenanceFormData {
 	tenant_id: string;
 	estimated_cost?: string;
 	scheduled_date?: string;
+	/** The assigned vendor's id; "" for no vendor. */
+	vendor_id?: string;
 }
 
 /** Mutation variable type for creating maintenance requests */
@@ -63,6 +65,7 @@ export function useMaintenanceForm({
 			tenant_id: "",
 			estimated_cost: "",
 			scheduled_date: "",
+			vendor_id: "",
 			...defaultValues,
 		},
 		onSubmit: async ({ value }) => {
@@ -97,6 +100,10 @@ export function useMaintenanceForm({
 					}
 					if (value.scheduled_date) {
 						payload.scheduled_date = value.scheduled_date;
+					}
+					// The vendor trigger moves an open request with a vendor to assigned.
+					if (value.vendor_id) {
+						payload.vendor_id = value.vendor_id;
 					}
 
 					const result = await createMutation.mutateAsync(payload);
@@ -143,6 +150,9 @@ export function useMaintenanceForm({
 					} else {
 						payload.scheduled_date = null;
 					}
+					// Cleared sends null, so the request loses its vendor (and an
+					// assigned one moves to needs_reassignment, the vendor trigger).
+					payload.vendor_id = value.vendor_id || null;
 
 					const mutationPayload: {
 						id: string;

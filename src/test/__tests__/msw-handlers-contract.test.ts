@@ -52,6 +52,7 @@ function ownColumns() {
 		propertyName: _propertyName,
 		unitNumber: _unitNumber,
 		tenantName: _tenantName,
+		vendorName: _vendorName,
 		...columns
 	} = DEFAULT_MAINTENANCE_REQUEST;
 	return columns;
@@ -70,7 +71,7 @@ describe("the maintenance MSW handlers against the maintenance mappers", () => {
 		expect(page.total).toBe(1);
 	});
 
-	it("serve the detail one row, with the tenant's email and phone", async () => {
+	it("serve the detail one row, with the tenant's email and phone and no vendor", async () => {
 		const detail = await client.query(
 			maintenanceQueries.detail("maintenance-1"),
 		);
@@ -78,6 +79,9 @@ describe("the maintenance MSW handlers against the maintenance mappers", () => {
 			...DEFAULT_MAINTENANCE_REQUEST,
 			tenantEmail: "john.doe@example.com",
 			tenantPhone: "555-0100",
+			vendorTrade: null,
+			vendorPhone: null,
+			vendorEmail: null,
 		});
 	});
 
@@ -106,6 +110,9 @@ describe("the maintenance MSW handlers against the maintenance mappers", () => {
 			...DEFAULT_MAINTENANCE_REQUEST,
 			tenantEmail: "john.doe@example.com",
 			tenantPhone: "555-0100",
+			vendorTrade: null,
+			vendorPhone: null,
+			vendorEmail: null,
 		});
 	});
 

@@ -15,7 +15,6 @@ import {
 	User,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { ReactNode } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DocumentsSection } from "#components/documents/documents-section";
@@ -32,46 +31,24 @@ import { createLogger } from "#lib/frontend-logger";
 import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { downloadBlob } from "#lib/reports/download-blob";
 import { formatCurrency } from "#lib/utils/currency";
+import { ContactRow } from "./contact-row";
 import { ExpensesCard } from "./expenses-card";
 import { MaintenanceHeaderCard } from "./maintenance-header-card";
-import { generateTimeline, spendToDate } from "./maintenance-utils";
+import {
+	generateTimeline,
+	mailtoHref,
+	spendToDate,
+	telHref,
+} from "./maintenance-utils";
 import { PhotosCard } from "./photos-card";
 import { TimelineCard } from "./timeline-card";
+import { VendorCard } from "./vendor-card";
 import { buildWorkOrderHtml } from "./work-order-template";
 
 const logger = createLogger({ component: "MaintenanceDetails" });
 
 interface MaintenanceDetailsProps {
 	id: string;
-}
-
-/**
- * One line of the contact card: how to reach the tenant who has the request
- * (its own tenant embed). The card showed `requested_by` and `assigned_to`,
- * user ids nothing writes: an empty card, or an id as text on an older row.
- */
-function ContactRow({
-	icon,
-	label,
-	value,
-}: {
-	icon: ReactNode;
-	label: string;
-	value: string | null;
-}) {
-	return (
-		<div className="flex items-start gap-3">
-			<div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-				{icon}
-			</div>
-			<div className="min-w-0">
-				<p className="mb-0 text-sm text-muted-foreground">{label}</p>
-				<p className="mb-0 font-medium text-sm wrap-break-word">
-					{value ?? "Not provided"}
-				</p>
-			</div>
-		</div>
-	);
 }
 
 export function MaintenanceDetails(props: MaintenanceDetailsProps) {
@@ -162,6 +139,14 @@ function MaintenanceDetailsContent({ id }: MaintenanceDetailsProps) {
 				request,
 				propertyName: request.propertyName,
 				unitNumber: request.unitNumber,
+				vendor:
+					request.vendorName === null
+						? null
+						: {
+								name: request.vendorName,
+								phone: request.vendorPhone,
+								email: request.vendorEmail,
+							},
 				expenses: expenses.map((e) => ({
 					vendor_name: e.vendor_name ?? "Vendor",
 					amount: formatCurrency(e.amount ?? 0),
@@ -220,14 +205,18 @@ function MaintenanceDetailsContent({ id }: MaintenanceDetailsProps) {
 							icon={<Mail className="size-4 text-primary" />}
 							label="Email"
 							value={request.tenantEmail}
+							href={mailtoHref(request.tenantEmail)}
 						/>
 						<ContactRow
 							icon={<Phone className="size-4 text-primary" />}
 							label="Phone"
 							value={request.tenantPhone}
+							href={telHref(request.tenantPhone)}
 						/>
 					</CardContent>
 				</Card>
+
+				<VendorCard request={request} />
 
 				<TimelineCard timeline={timeline} />
 

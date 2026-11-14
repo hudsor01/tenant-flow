@@ -194,6 +194,21 @@ export const columns: ColumnDef<MaintenanceListRow>[] = [
 		},
 	},
 	{
+		accessorKey: "vendorName",
+		header: "Vendor",
+		meta: { label: "Vendor" },
+		cell: ({ row }) => {
+			const { vendorName } = row.original;
+			return vendorName ? (
+				<span className="block truncate text-sm text-foreground">
+					{vendorName}
+				</span>
+			) : (
+				<span className="text-sm text-muted-foreground">No vendor</span>
+			);
+		},
+	},
+	{
 		accessorKey: "status",
 		header: "Status",
 		meta: { label: "Status" },

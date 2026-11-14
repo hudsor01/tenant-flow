@@ -7,10 +7,18 @@ interface WorkOrderExpense {
 	expense_date: string;
 }
 
+/** The request's assigned vendor and how to reach them; null with none. */
+interface WorkOrderVendor {
+	name: string;
+	phone: string | null;
+	email: string | null;
+}
+
 interface WorkOrderInput {
 	request: MaintenanceRequest;
 	propertyName: string | null;
 	unitNumber: string | null;
+	vendor: WorkOrderVendor | null;
 	expenses: WorkOrderExpense[];
 	totalExpenses: string;
 }
@@ -33,7 +41,8 @@ function escapeHtml(text: string | null | undefined): string {
  * design tokens, consistent with rent-increase-notice-dialog.tsx.
  */
 export function buildWorkOrderHtml(input: WorkOrderInput): string {
-	const { request, propertyName, unitNumber, expenses, totalExpenses } = input;
+	const { request, propertyName, unitNumber, vendor, expenses, totalExpenses } =
+		input;
 	const hasExpenses = expenses.length > 0;
 
 	const expenseRows = expenses
@@ -108,8 +117,14 @@ export function buildWorkOrderHtml(input: WorkOrderInput): string {
       <div class="field-value">${escapeHtml(formatDate(request.completed_at, { style: "long", fallback: "—" }))}</div>
     </div>
     <div>
-      <div class="field-label">Assigned to</div>
-      <div class="field-value">${escapeHtml(request.assigned_to ?? "—")}</div>
+      <div class="field-label">Vendor</div>
+      <div class="field-value">${escapeHtml(vendor?.name ?? "—")}</div>
+    </div>
+    <div>
+      <div class="field-label">Vendor contact</div>
+      <div class="field-value">${escapeHtml(
+				[vendor?.phone, vendor?.email].filter(Boolean).join(" · ") || "—",
+			)}</div>
     </div>
   </div>
 

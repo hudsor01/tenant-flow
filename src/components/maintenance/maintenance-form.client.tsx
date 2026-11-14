@@ -30,7 +30,8 @@ import { MaintenanceFormFields } from "./maintenance-form-fields";
 
 interface MaintenanceFormProps {
 	mode: "create" | "edit";
-	request?: MaintenanceRequestWithExtras;
+	/** The request being edited; its vendorName names an inactive vendor. */
+	request?: MaintenanceRequestWithExtras & { vendorName?: string | null };
 }
 
 export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
@@ -55,6 +56,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 			tenant_id: extendedRequest?.tenant_id ?? "",
 			estimated_cost: extendedRequest?.estimated_cost?.toString() ?? "",
 			scheduled_date: extendedRequest?.scheduled_date ?? "",
+			vendor_id: extendedRequest?.vendor_id ?? "",
 		},
 		createMutation: createRequest,
 		updateMutation: updateRequest,
@@ -85,7 +87,9 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 						<div className="inline-flex-center mb-4">
 							<Wrench className="size-8 animate-spin text-muted-foreground" />
 						</div>
-						<p className="text-muted-foreground">Loading maintenance form...</p>
+						<p className="mb-0 text-muted-foreground">
+							Loading maintenance form...
+						</p>
 					</div>
 				</div>
 			) : (
@@ -121,6 +125,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 								form={form}
 								propertiesData={propertiesData}
 								unitsByProperty={unitsByProperty}
+								currentVendorName={request?.vendorName ?? null}
 							/>
 						</CardContent>
 

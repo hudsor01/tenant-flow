@@ -106,10 +106,12 @@ export function MaintenanceViewClient() {
 			const title = r.title?.toLowerCase() ?? "";
 			const description = r.description?.toLowerCase() ?? "";
 			const propertyName = r.propertyName?.toLowerCase() ?? "";
+			const vendorName = r.vendorName?.toLowerCase() ?? "";
 			return (
 				title.includes(query) ||
 				description.includes(query) ||
-				propertyName.includes(query)
+				propertyName.includes(query) ||
+				vendorName.includes(query)
 			);
 		});
 	})();

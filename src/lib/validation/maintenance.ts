@@ -70,6 +70,10 @@ export const maintenanceRequestInputSchema = z.object({
 
 	assigned_to: uuidSchema.optional(),
 
+	// One of the owner's vendors (the DB trigger maintenance_request_vendor_rules
+	// rejects any other, and moves an open request to assigned).
+	vendor_id: uuidSchema.optional(),
+
 	estimated_cost: positiveNumberSchema
 		.max(
 			VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
@@ -102,14 +106,15 @@ export const maintenanceRequestSchema = maintenanceRequestInputSchema.extend({
 });
 
 // Maintenance request update schema (partial input)
-// PROP-05: estimated_cost/scheduled_date are nullable on the UPDATE schema only
-// (create/input unchanged) so clearing them in the edit form sends explicit null
-// and nulls the column, instead of omitting and keeping the old value.
+// PROP-05: estimated_cost/scheduled_date/vendor_id are nullable on the UPDATE
+// schema only (create/input unchanged) so clearing them sends explicit null and
+// nulls the column, instead of omitting and keeping the old value.
 export const maintenanceRequestUpdateSchema = maintenanceRequestInputSchema
 	.partial()
 	.extend({
 		id: uuidSchema.optional(),
 		status: maintenanceStatusSchema.optional(),
+		vendor_id: uuidSchema.nullable().optional(),
 		estimated_cost: positiveNumberSchema
 			.max(
 				VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,

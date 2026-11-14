@@ -85,3 +85,30 @@ export function useMaintenanceRequestUpdateMutation() {
 		}),
 	});
 }
+
+/**
+ * Assign or clear a request's vendor: the update mutation with its own toast.
+ * The vendor trigger may change the status with it (an open request becomes
+ * assigned, an assigned one with its vendor cleared needs reassignment), so it
+ * refreshes the lists and stats like any update.
+ */
+export function useMaintenanceVendorMutation() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		...maintenanceMutations.update(),
+		...createMutationCallbacks<MaintenanceDetailRow>(queryClient, {
+			invalidate: [
+				maintenanceQueries.lists(),
+				maintenanceQueries.stats().queryKey,
+				ownerDashboardKeys.all,
+			],
+			updateDetail: (request) => ({
+				queryKey: maintenanceQueries.detail(request.id).queryKey,
+				data: request,
+			}),
+			successMessage: "Vendor assignment saved",
+			errorContext: "Assign vendor",
+		}),
+	});
+}

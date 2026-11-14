@@ -3,7 +3,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
 import type { Vendor, VendorFilters } from "#types/domain";
-import { vendorMutations } from "./query-keys/maintenance-keys";
+import {
+	maintenanceQueries,
+	vendorMutations,
+} from "./query-keys/maintenance-keys";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 import { vendorQueries } from "./query-keys/vendor-keys";
 
@@ -28,7 +31,12 @@ export function useUpdateVendorMutation() {
 	return useMutation({
 		...vendorMutations.update(),
 		...createMutationCallbacks<Vendor>(queryClient, {
-			invalidate: [vendorQueries.lists(), ownerDashboardKeys.all],
+			// Requests show their vendor's name, trade, phone and email.
+			invalidate: [
+				vendorQueries.lists(),
+				maintenanceQueries.all(),
+				ownerDashboardKeys.all,
+			],
 			updateDetail: (vendor) => ({
 				queryKey: vendorQueries.detail(vendor.id).queryKey,
 				data: vendor,
@@ -44,7 +52,13 @@ export function useDeleteVendorMutation() {
 	return useMutation({
 		...vendorMutations.delete(),
 		...createMutationCallbacks(queryClient, {
-			invalidate: [vendorQueries.lists(), ownerDashboardKeys.all],
+			// The delete clears the vendor from its requests (ON DELETE SET NULL),
+			// and the vendor trigger moves an assigned one to needs_reassignment.
+			invalidate: [
+				vendorQueries.lists(),
+				maintenanceQueries.all(),
+				ownerDashboardKeys.all,
+			],
 			successMessage: "Vendor removed",
 			errorContext: "Remove vendor",
 		}),

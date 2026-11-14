@@ -78,6 +78,7 @@ const DETAIL_ROW = {
 		email: "sam@example.com",
 		phone: null,
 	},
+	vendor: null,
 };
 
 describe("the maintenance detail page names the request's unit and property", () => {
@@ -131,6 +132,9 @@ describe("the maintenance detail page names the request's unit and property", ()
 		);
 		expect(detailSelect).toContain(
 			"tenant:tenant_id(name, first_name, last_name, email, phone)",
+		);
+		expect(detailSelect).toContain(
+			"vendor:vendor_id(name, trade, phone, email)",
 		);
 		expect(detail).toMatchObject({
 			propertyName: "Gamma Flats (deleted)",

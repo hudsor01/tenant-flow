@@ -35,20 +35,12 @@ import {
 import { Skeleton } from "#components/ui/skeleton";
 import { useDeleteVendorMutation, useVendors } from "#hooks/api/use-vendor";
 import { useDebouncedCallback } from "#hooks/use-debounced-callback";
+import {
+	VENDOR_TRADE_OPTIONS,
+	vendorTradeLabel,
+} from "#lib/constants/status-types";
 import { formatCurrency } from "#lib/utils/currency";
 import type { Vendor, VendorFilters } from "#types/domain";
-
-const TRADE_LABELS: Record<string, string> = {
-	plumbing: "Plumbing",
-	electrical: "Electrical",
-	hvac: "HVAC",
-	carpentry: "Carpentry",
-	painting: "Painting",
-	landscaping: "Landscaping",
-	appliance: "Appliance Repair",
-	general: "General Contractor",
-	other: "Other",
-};
 
 function VendorCard({ vendor }: { vendor: Vendor }) {
 	const deleteMutation = useDeleteVendorMutation();
@@ -63,7 +55,7 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 					<div className="flex-1 min-w-0">
 						<h3 className="font-semibold truncate">{vendor.name}</h3>
 						<Badge variant="secondary" className="mt-1 text-xs capitalize">
-							{TRADE_LABELS[vendor.trade] ?? vendor.trade}
+							{vendorTradeLabel(vendor.trade)}
 						</Badge>
 					</div>
 					<div className="flex items-center gap-1 shrink-0">
@@ -85,11 +77,13 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 										Delete vendor "{vendor.name}"?
 									</AlertDialogTitle>
 									{/* A hard delete; maintenance_requests.vendor_id is ON DELETE
-									    SET NULL, so the requests stay and lose the vendor. */}
+									    SET NULL, so the requests stay and lose the vendor, and the
+									    vendor trigger moves an Assigned one to Needs Reassignment. */}
 									<AlertDialogDescription className="mb-0">
 										This permanently deletes the vendor from your vendor list.
-										Maintenance requests assigned to them are kept and become
-										unassigned. This can't be undone.
+										Maintenance requests assigned to them are kept without a
+										vendor, and any marked Assigned move to Needs Reassignment.
+										This can't be undone.
 									</AlertDialogDescription>
 								</AlertDialogHeader>
 								<AlertDialogFooter>
@@ -206,13 +200,13 @@ export function VendorsPageClient() {
 				<Select value={tradeFilter} onValueChange={setTradeFilter}>
 					<SelectTrigger
 						className="w-full sm:w-48 h-11"
-						aria-label={`${tradeFilter === "all" ? "All trades" : (TRADE_LABELS[tradeFilter] ?? tradeFilter)} (trade)`}
+						aria-label={`${tradeFilter === "all" ? "All trades" : vendorTradeLabel(tradeFilter)} (trade)`}
 					>
 						<SelectValue placeholder="All trades" />
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="all">All trades</SelectItem>
-						{Object.entries(TRADE_LABELS).map(([value, label]) => (
+						{VENDOR_TRADE_OPTIONS.map(({ value, label }) => (
 							<SelectItem key={value} value={value}>
 								{label}
 							</SelectItem>

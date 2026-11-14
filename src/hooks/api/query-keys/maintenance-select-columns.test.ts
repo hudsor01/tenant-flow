@@ -36,7 +36,7 @@ describe("the maintenance queries' columns", () => {
 		expect(columns).not.toContain("actual_cost");
 	});
 
-	it("embeds the unit, its property and the tenant, and maps their names", async () => {
+	it("embeds the unit, its property, the tenant and the vendor, and maps their names", async () => {
 		const chain = createQueryChain({
 			data: [MAINTENANCE_LIST_POSTGREST_ROW],
 			error: null,
@@ -49,11 +49,13 @@ describe("the maintenance queries' columns", () => {
 			"units(unit_number, property_id, properties(name, status))",
 		);
 		expect(columns).toContain("tenant:tenant_id(name, first_name, last_name)");
+		expect(columns).toContain("vendor:vendor_id(name)");
 		expect(columns).not.toContain("units!inner");
 		expect(page.data[0]).toMatchObject({
 			propertyName: "Test Property",
 			unitNumber: "Apt 101",
 			tenantName: "John Doe",
+			vendorName: null,
 		});
 		expect(chain.range).toHaveBeenCalledWith(0, 49);
 	});

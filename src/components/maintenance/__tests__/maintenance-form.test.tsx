@@ -37,6 +37,8 @@ const {
 	UNIT_2,
 	TENANT_1,
 	MOCK_UNITS,
+	VENDOR_ACE,
+	VENDOR_BOLT,
 } = vi.hoisted(() => {
 	const UNIT_1 = "11111111-1111-4111-8111-111111111111";
 	const UNIT_2 = "22222222-2222-4222-8222-222222222222";
@@ -47,6 +49,8 @@ const {
 		UNIT_1,
 		UNIT_2,
 		TENANT_1: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+		VENDOR_ACE: "0a0a0a0a-0000-4000-8000-00000000beef",
+		VENDOR_BOLT: "0b0b0b0b-0000-4000-8000-00000000beef",
 		MOCK_UNITS: [
 			{
 				id: UNIT_1,
@@ -82,6 +86,19 @@ vi.mock("#hooks/api/use-maintenance", () => ({
 	}),
 	maintenanceKeys: {
 		detail: (id: string) => ["maintenance", id],
+	},
+}));
+
+// The vendor picker's active vendors.
+vi.mock("#hooks/api/query-keys/vendor-keys", () => ({
+	vendorQueries: {
+		allActive: () => ({
+			queryKey: ["vendors", "list", "all-active"],
+			queryFn: async () => [
+				{ id: VENDOR_ACE, name: "Ace Plumbing", trade: "plumbing" },
+				{ id: VENDOR_BOLT, name: "Bolt Electric", trade: "electrical" },
+			],
+		}),
 	},
 }));
 
@@ -732,6 +749,76 @@ describe("MaintenanceForm", () => {
 			};
 			expect(typeof submitted.data.title).toBe("string");
 			expect(submitted.data.title).not.toBe("");
+		});
+	});
+	// Vendor assignment: the form picks one of the owner's active vendors.
+	describe("Vendor", () => {
+		test("lists No vendor and each active vendor by name and trade", async () => {
+			const user = userEvent.setup();
+			await act(async () => {
+				renderWithQueryClient(<MaintenanceForm mode="create" />);
+			});
+			const vendor = await screen.findByRole("combobox", { name: /vendor/i });
+			await waitFor(() => expect(vendor).toBeEnabled());
+			expect(vendor).toHaveTextContent("No vendor");
+			await user.click(vendor);
+			expect(
+				(await screen.findAllByRole("option")).map((o) => o.textContent),
+			).toEqual([
+				"No vendor",
+				"Ace Plumbing · Plumbing",
+				"Bolt Electric · Electrical",
+			]);
+		});
+
+		test("shows the request's vendor, and saves the one picked", async () => {
+			const user = userEvent.setup();
+			await act(async () => {
+				renderWithQueryClient(
+					<MaintenanceForm
+						mode="edit"
+						request={{ ...mockMaintenanceRequest, vendor_id: VENDOR_ACE }}
+					/>,
+				);
+			});
+			const vendor = await screen.findByRole("combobox", { name: /vendor/i });
+			await waitFor(() =>
+				expect(vendor).toHaveTextContent("Ace Plumbing · Plumbing"),
+			);
+			await user.click(vendor);
+			await user.click(
+				await screen.findByRole("option", {
+					name: "Bolt Electric · Electrical",
+				}),
+			);
+			await user.click(screen.getByRole("button", { name: /save changes/i }));
+			await waitFor(() =>
+				expect(mockUpdateMutateAsync).toHaveBeenCalledTimes(1),
+			);
+			expect(mockUpdateMutateAsync).toHaveBeenCalledWith(
+				expect.objectContaining({
+					data: expect.objectContaining({ vendor_id: VENDOR_BOLT }),
+				}),
+			);
+		});
+
+		test("names a vendor no longer active as inactive", async () => {
+			await act(async () => {
+				renderWithQueryClient(
+					<MaintenanceForm
+						mode="edit"
+						request={{
+							...mockMaintenanceRequest,
+							vendor_id: "0c0c0c0c-0000-4000-8000-00000000beef",
+							vendorName: "Old Roofing",
+						}}
+					/>,
+				);
+			});
+			const vendor = await screen.findByRole("combobox", { name: /vendor/i });
+			await waitFor(() =>
+				expect(vendor).toHaveTextContent("Old Roofing (inactive)"),
+			);
 		});
 	});
 });

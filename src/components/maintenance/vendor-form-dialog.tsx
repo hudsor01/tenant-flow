@@ -28,24 +28,13 @@ import {
 	useUpdateVendorMutation,
 } from "#hooks/api/use-vendor";
 import { useCurrentUser } from "#hooks/use-current-user";
+import { VENDOR_TRADE_OPTIONS } from "#lib/constants/status-types";
 import { cn } from "#lib/utils";
 import type {
 	Vendor,
 	VendorCreateInput,
 	VendorUpdateInput,
 } from "#types/domain";
-
-const TRADES = [
-	{ value: "plumbing", label: "Plumbing" },
-	{ value: "electrical", label: "Electrical" },
-	{ value: "hvac", label: "HVAC" },
-	{ value: "carpentry", label: "Carpentry" },
-	{ value: "painting", label: "Painting" },
-	{ value: "landscaping", label: "Landscaping" },
-	{ value: "appliance", label: "Appliance Repair" },
-	{ value: "general", label: "General Contractor" },
-	{ value: "other", label: "Other" },
-] as const;
 
 interface VendorFormDialogProps {
 	vendor?: Vendor;
@@ -195,7 +184,7 @@ export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
 									<SelectValue placeholder="Select trade" />
 								</SelectTrigger>
 								<SelectContent>
-									{TRADES.map((t) => (
+									{VENDOR_TRADE_OPTIONS.map((t) => (
 										<SelectItem key={t.value} value={t.value}>
 											{t.label}
 										</SelectItem>

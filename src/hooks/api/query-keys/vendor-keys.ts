@@ -3,6 +3,7 @@ import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { normalizeSearchInput } from "#lib/sanitize-search";
 import { createClient } from "#lib/supabase/client";
 import type { Vendor, VendorFilters } from "#types/domain";
+import { mapVendorRow } from "./vendor-mappers";
 
 interface VendorListResponse {
 	data: Vendor[];
@@ -48,11 +49,46 @@ export const vendorQueries = {
 				if (error) handlePostgrestError(error, "vendors");
 
 				return {
-					data: (data as Vendor[]) ?? [],
+					data: (data ?? []).map(mapVendorRow),
 					total: count ?? 0,
 					limit,
 					offset,
 				};
+			},
+			staleTime: 5 * 60 * 1000,
+		}),
+	/**
+	 * Every active vendor, by name: what a maintenance request's vendor picker
+	 * offers. Pages past PostgREST's max_rows (1000) so no vendor is dropped.
+	 * Under lists(), so the vendor mutations' invalidation refreshes it.
+	 */
+	allActive: () =>
+		queryOptions({
+			queryKey: [...vendorQueries.lists(), "all-active"],
+			queryFn: async (): Promise<Vendor[]> => {
+				const supabase = createClient();
+				const PAGE_SIZE = 1000;
+				const collected: Vendor[] = [];
+				let from = 0;
+
+				while (true) {
+					const { data, error } = await supabase
+						.from("vendors")
+						.select(VENDOR_SELECT_COLUMNS)
+						.eq("status", "active")
+						.order("name", { ascending: true })
+						.order("id", { ascending: true })
+						.range(from, from + PAGE_SIZE - 1);
+
+					if (error) handlePostgrestError(error, "vendors");
+
+					const rows = (data ?? []).map(mapVendorRow);
+					collected.push(...rows);
+					if (rows.length < PAGE_SIZE) break;
+					from += PAGE_SIZE;
+				}
+
+				return collected;
 			},
 			staleTime: 5 * 60 * 1000,
 		}),
@@ -70,7 +106,7 @@ export const vendorQueries = {
 
 				if (error) handlePostgrestError(error, "vendors");
 
-				return data as Vendor;
+				return mapVendorRow(data);
 			},
 			staleTime: 5 * 60 * 1000,
 			enabled: !!id,

@@ -9,11 +9,22 @@
  * on a request's edit page. An option now falls back to the tenant's name,
  * then the email.
  */
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { useMaintenanceForm } from "#hooks/use-maintenance-form";
+import { render } from "#test/utils/test-render";
 import { MaintenanceFormFields } from "../maintenance-form-fields";
+
+// The form's vendor picker reads the owner's vendors; none here.
+vi.mock("#hooks/api/query-keys/vendor-keys", () => ({
+	vendorQueries: {
+		allActive: () => ({
+			queryKey: ["vendors", "list", "all-active"],
+			queryFn: async () => [],
+		}),
+	},
+}));
 
 vi.mock("#hooks/api/use-tenant", () => ({
 	useAllTenants: () => ({
