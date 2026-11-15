@@ -200,7 +200,7 @@ describe("the tax preparation report", () => {
 		);
 	}
 
-	it("writes the tax year's rent received, and each property's (Schedule E support)", async () => {
+	it("writes the tax year's rent received, and each property's", async () => {
 		answerTaxYear(3750.5, "2025-01-01/2025-12-31");
 		const report = await buildReportData(
 			"tax-preparation",
@@ -216,10 +216,7 @@ describe("the tax preparation report", () => {
 			{ label: "Operating Expenses", value: "$200.25" },
 			{ label: "Net Income", value: "$2,550.25" },
 		]);
-		const byProperty = section(
-			report.sections,
-			"Income by Property (Schedule E support)",
-		);
+		const byProperty = section(report.sections, "Income by Property");
 		expect(byProperty.table?.headers).toEqual([
 			"Property",
 			"Rent Received",
@@ -323,8 +320,7 @@ describe("the tax preparation report", () => {
 				{ label: "Net Income", value: "$2,871.25" },
 			]);
 			expect(
-				section(report.sections, "Income by Property (Schedule E support)")
-					.table?.rows,
+				section(report.sections, "Income by Property").table?.rows,
 			).toEqual([
 				["Alpha Court", "$2,750.50", "$200.25", "$2,550.25"],
 				["Gamma Flats (deleted)", "$333.00", "$12.00", "$321.00"],

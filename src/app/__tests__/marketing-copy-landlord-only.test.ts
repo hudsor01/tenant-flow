@@ -74,6 +74,28 @@ const BANNED_FEATURE_CLAIMS = [
 	"api access",
 ] as const;
 
+// 2026-11 overclaim sweep: each phrase described something the product does
+// not do (no NOI figure, a lease builder with fixed built-in clauses and no
+// send action, a trial whose features depend on the plan confirmed at
+// checkout, move-in and move-out inspections only, no tax-form line mapping,
+// expenses entered by hand, clause text that cannot promise enforceability).
+// Kept apart from BANNED_FEATURE_CLAIMS because that list's exemptions cover
+// the lease builder's own clause file, where one of these claims ("legally
+// enforceable") lived. No file is exempt from this list.
+const BANNED_OVERCLAIMS = [
+	"noi calculation",
+	"your own clauses",
+	"every feature of the plan",
+	"test everything",
+	"periodic inspection",
+	"schedule e support",
+	"production-ready lease",
+	"compliance library",
+	"track expenses automatically",
+	"state-aware templates",
+	"legally enforceable",
+] as const;
+
 // Fabricated-identity / fabricated-team copy. Pass 7 of the perfect-PR
 // loop deleted the about/page.tsx "Meet the Team" section that listed
 // invented executives ("Alex Chen / CEO", "Sarah Johnson / CTO",
@@ -382,6 +404,20 @@ function scanFileForBannedFeatureClaims(absPath: string, relPath: string) {
 	});
 }
 
+function scanFileForOverclaims(absPath: string, relPath: string) {
+	const content = readFileSync(absPath, "utf8").toLowerCase();
+	describe(`${relPath} (overclaims)`, () => {
+		for (const phrase of BANNED_OVERCLAIMS) {
+			it(`must not mention "${phrase}"`, () => {
+				expect(
+					content,
+					`${relPath} contains banned overclaim "${phrase}": the product does not do this`,
+				).not.toContain(phrase.toLowerCase());
+			});
+		}
+	});
+}
+
 function scanFileForStalePlanRefs(absPath: string, relPath: string) {
 	if (isExemptFromBanlist(relPath, "stale_plan")) return;
 	const content = readFileSync(absPath, "utf8").toLowerCase();
@@ -681,5 +717,20 @@ describe("Lib: fabricated identities (loop pass 8)", () => {
 	const libRoot = join(cwd, "src", "lib");
 	for (const absPath of walkSourceFiles(libRoot)) {
 		scanFileForFabricatedIdentities(absPath, relative(cwd, absPath));
+	}
+});
+
+describe("Overclaims: marketing files, components, app routes and lib (2026-11 sweep)", () => {
+	const cwd = process.cwd();
+	const scanned = new Set<string>();
+	const scan = (absPath: string) => {
+		const relPath = relative(cwd, absPath);
+		if (scanned.has(relPath)) return;
+		scanned.add(relPath);
+		scanFileForOverclaims(absPath, relPath);
+	};
+	for (const relPath of MARKETING_FILES) scan(join(cwd, relPath));
+	for (const dir of ["components", "app", "lib"]) {
+		for (const absPath of walkSourceFiles(join(cwd, "src", dir))) scan(absPath);
 	}
 });

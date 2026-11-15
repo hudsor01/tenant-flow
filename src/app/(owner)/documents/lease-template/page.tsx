@@ -19,8 +19,8 @@ export default function LeaseTemplatePage() {
 							Lease Agreement Builder
 						</h1>
 						<p className="mb-0 text-muted-foreground">
-							Customize clauses, apply state-specific rules, and preview a
-							production-ready lease agreement without leaving TenantFlow.
+							Choose from built-in clauses, add state notes where available, and
+							preview a lease agreement you can download as a PDF.
 						</p>
 					</div>
 				</div>
@@ -30,8 +30,7 @@ export default function LeaseTemplatePage() {
 				<CardHeader>
 					<CardTitle>Workflow</CardTitle>
 					<CardDescription>
-						A shared JSON schema powers both the interactive preview and the PDF
-						export, keeping your lease content perfectly consistent.
+						Four steps from clause selection to a downloadable PDF.
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -44,24 +43,22 @@ export default function LeaseTemplatePage() {
 							</p>
 						</li>
 						<li>
-							<strong className="text-foreground">2. Apply state rules</strong>
+							<strong className="text-foreground">2. Check state notes</strong>
 							<p className="mb-0">
-								Switch states to surface compliance notes and recommended
-								disclosures tailored to your jurisdiction.
+								Switch states to see built-in notes and recommended clauses for
+								California, New York, Illinois, and Texas.
 							</p>
 						</li>
 						<li>
 							<strong className="text-foreground">3. Preview instantly</strong>
 							<p className="mb-0">
-								The HTML preview uses the same renderer that the backend calls
-								when producing the final PDF.
+								The PDF is built from the same HTML as this preview.
 							</p>
 						</li>
 						<li>
 							<strong className="text-foreground">4. Export PDF</strong>
 							<p className="mb-0">
-								Generate a printable PDF inline—no separate workflow required,
-								no risk of template drift.
+								Click Render PDF, then download it from the preview frame.
 							</p>
 						</li>
 					</ul>

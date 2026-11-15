@@ -96,10 +96,6 @@ const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
 		1,
 		"c3700d733c5d78fa8161aeba356527ba1407eb6a",
 	],
-	"src/app/(owner)/documents/templates/tenant-notice/page.tsx": [
-		1,
-		"793655667c43e24795c02bd2de31878c1ecae3c2",
-	],
 	"src/app/(owner)/reports/generate/page.tsx": [
 		1,
 		"ac019397e2e04e01ef57bfa7a33398144c17da60",

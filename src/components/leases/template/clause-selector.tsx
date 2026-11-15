@@ -15,7 +15,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "#components/ui/tooltip";
-import { leaseTemplateSchema } from "#lib/templates/lease-template";
+import { leaseTemplateSchema, stateNames } from "#lib/templates/lease-template";
 import { cn } from "#lib/utils";
 import type { USState } from "#types/lease-generator.types";
 
@@ -37,8 +37,8 @@ export function ClauseSelector({
 			<CardHeader>
 				<CardTitle className="text-base">Clause Library</CardTitle>
 				<CardDescription>
-					Choose the clauses to include. Recommended clauses for {state} are
-					highlighted.
+					Choose the clauses to include. Where TenantFlow has notes for{" "}
+					{stateNames[state] ?? state}, recommended clauses are highlighted.
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-5">

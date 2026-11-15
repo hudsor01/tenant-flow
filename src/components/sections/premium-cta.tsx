@@ -38,8 +38,9 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 							Run your rentals from one place — with the document vault as your
 							single source of truth.
 							<span className="block mt-3 text-foreground font-medium">
-								Your 14-day free trial includes the full document vault, lease
-								e-sign on Growth and Max, and every report you need at tax time.
+								Your 14-day free trial runs on the plan you pick at the no-card
+								checkout, with the full document vault, every financial
+								statement, and lease e-sign on Growth and Max.
 							</span>
 						</p>
 					</BlurFade>

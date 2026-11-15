@@ -30,7 +30,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: "What does TenantFlow help me do that a spreadsheet doesn't?",
 				answer:
-					"A spreadsheet can't store and search your lease PDFs, run lease e-signature workflows, generate tax-ready financial reports, or maintain row-level data isolation across multiple landlords. TenantFlow ships all of that in one place. Specific time savings vary by portfolio.",
+					"A spreadsheet can't store and search your lease PDFs, send leases for e-signature (Growth and Max), export financial statements and year-end reports, or maintain row-level data isolation across multiple landlords. TenantFlow ships all of that in one place. Specific time savings vary by portfolio.",
 			},
 		],
 	},
@@ -45,12 +45,12 @@ export const faqData: FAQCategory[] = [
 			{
 				question: "What does TenantFlow actually help me do?",
 				answer:
-					"Track properties and units, keep tenant and lease records, log maintenance requests and vendor costs, e-sign leases (Growth and Max plans), and store every lease, receipt, and inspection report in a per-entity document vault with global search and bulk-download. Everything a landlord needs to replace the spreadsheet.",
+					"Track properties and units, keep tenant and lease records, log maintenance requests and vendor costs, e-sign leases (Growth and Max plans), and store every lease, receipt, and inspection report in a per-entity document vault with global search and bulk-download. The core tools a landlord needs to replace the spreadsheet.",
 			},
 			{
 				question: "What specific results can I expect?",
 				answer:
-					"Landlords report spending less time on admin: centralized records replace spreadsheets and email threads, maintenance requests are tracked with vendor and cost history, and lease e-signing cuts days off renewals. Results vary by portfolio.",
+					"Centralized records replace spreadsheets and email threads, maintenance requests keep their vendor and cost history, and on Growth and Max, leases go out for e-signature instead of print-and-scan. Results vary by portfolio.",
 			},
 			{
 				question: "Is TenantFlow suitable for my portfolio size?",
@@ -75,7 +75,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: "Do you integrate with my existing systems?",
 				answer:
-					"Growth and Max can export financial reports as CSV for accounting imports. Lease e-signatures are included on Growth (25/month) and Max (unlimited); Starter does not include e-sign.",
+					"Every plan exports the income statement, cash flow, balance sheet and year-end report as CSV for accounting imports; Growth and Max add the year-end and tax-document PDFs. Lease e-signatures are included on Growth (25/month) and Max (unlimited); Starter does not include e-sign.",
 			},
 		],
 	},
@@ -98,9 +98,9 @@ export const faqData: FAQCategory[] = [
 		category: "Pricing & ROI",
 		questions: [
 			{
-				question: "What kind of results do owners report?",
+				question: "What changes once I switch?",
 				answer:
-					"Owners typically tell us they replace a tangle of spreadsheets, email threads, and Dropbox folders with a single source of truth. Concrete wins: faster lease renewals, faster CPA hand-offs via the document vault's tax-season zip exports, and fewer 'where did I put that receipt?' moments at tax time. Specific revenue impact varies by portfolio.",
+					"You replace a tangle of spreadsheets, email threads, and file folders with one record per property, lease, and tenant. Lease PDFs, receipts, and inspection reports sit in the document vault, and its date-filtered zip download gives your CPA one folder at tax time.",
 			},
 			{
 				question: "Are there any hidden fees?",

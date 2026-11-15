@@ -713,8 +713,8 @@ export default function SecurityDepositReferenceCardPage() {
 				{/* Footer CTA */}
 				<div className="mt-12 text-center print:hidden">
 					<p className="text-muted-foreground mb-4">
-						Track security deposits and generate move-in/move-out reports with
-						TenantFlow
+						Record each lease's security deposit and document move-in and
+						move-out inspections with TenantFlow
 					</p>
 					<Button asChild>
 						<Link href="/pricing">Start free — no card</Link>

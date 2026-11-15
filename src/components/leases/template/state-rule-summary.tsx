@@ -23,11 +23,11 @@ export function StateRuleSummary({ state }: StateRuleSummaryProps) {
 					{rules.stateName} Highlights
 				</CardTitle>
 				<CardDescription>
-					Automatic notes drawn from TenantFlow's compliance library.
+					Built-in notes for this state. Confirm them against current state law.
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-2 text-xs">
-				<ul className="list-disc space-y-2 pl-4">
+				<ul className="mt-0 mb-0 flex list-disc flex-col gap-2 pl-4 [&>li]:mb-0">
 					{rules.notices.map((notice) => (
 						<li key={notice}>{notice}</li>
 					))}

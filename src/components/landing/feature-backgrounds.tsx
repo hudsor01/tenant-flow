@@ -127,7 +127,7 @@ export function TenantListBackground() {
 					{
 						name: "Jessica Miller",
 						unit: "Unit 3B",
-						lease: "Renewing",
+						lease: "Expiring",
 						rent: "$2,100",
 					},
 					{
@@ -167,7 +167,7 @@ export function TenantListBackground() {
 							<span
 								className={cn(
 									"text-xs",
-									tenant.lease === "Renewing"
+									tenant.lease === "Expiring"
 										? "text-warning-text"
 										: "text-success-text",
 								)}
@@ -294,17 +294,17 @@ export function LeaseDocuments() {
 						date: "Dec 1, 2024",
 					},
 					{
-						name: "Renewal Notice - Unit 3B",
+						name: "Lease Agreement - Unit 3B",
 						statusLabel: "Pending",
 						date: "Dec 15, 2024",
 					},
 					{
-						name: "Move-in Inspection",
+						name: "Lease Agreement - Unit 4D",
 						statusLabel: "Signed",
 						date: "Nov 28, 2024",
 					},
 					{
-						name: "Pet Addendum - Unit 1C",
+						name: "Lease Agreement - Unit 1C",
 						statusLabel: "Signed",
 						date: "Nov 20, 2024",
 					},

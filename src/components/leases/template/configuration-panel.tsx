@@ -170,7 +170,7 @@ export function ConfigurationPanel({
 							checked={includeStateDisclosures}
 							onCheckedChange={onToggleStateDisclosures}
 						/>
-						Include state disclosures
+						Include state notes and disclosure acknowledgment
 					</label>
 					<label
 						htmlFor="include-federal-disclosures"
