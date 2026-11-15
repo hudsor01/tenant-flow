@@ -24,12 +24,12 @@ export function BentoFeaturesSection() {
 				<BlurFade delay={0.3}>
 					<div className="text-center mb-16 space-y-6">
 						<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
-							Everything you need to{" "}
+							The tools you need to{" "}
 							<span className="hero-highlight">manage properties</span>
 						</h2>
 						<p className="text-muted-foreground text-lg leading-relaxed max-w-3xl mx-auto">
-							From lease management to maintenance tracking, TenantFlow gives
-							you complete control over your property portfolio
+							From lease management to maintenance tracking, TenantFlow keeps
+							your property portfolio in one place
 						</p>
 					</div>
 
@@ -75,7 +75,7 @@ export function BentoFeaturesSection() {
 							className="md:col-span-1"
 							background={<LeaseDocuments />}
 							Icon={FileText}
-							description="Digital lease signing on Growth and Max plans, with state-aware templates"
+							description="Digital lease signing on Growth and Max plans, plus a lease template builder with PDF download"
 							href="/pricing"
 							cta="Start free"
 						/>
@@ -84,7 +84,7 @@ export function BentoFeaturesSection() {
 							className="md:col-span-2"
 							background={<AnalyticsPreview />}
 							Icon={PieChart}
-							description="Revenue tracking, NOI calculations, and exportable financial reports for your entire portfolio"
+							description="Rent ledger, income and cash flow statements, and CSV-exportable financial reports for your entire portfolio"
 							href="/pricing"
 							cta="Start free"
 						/>

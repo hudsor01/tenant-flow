@@ -67,7 +67,7 @@ export function TenantNoticeTemplate() {
 	const [clauses, setClauses] = useState<ClauseItem[]>([
 		{
 			id: "notice-1",
-			text: "Tenant has three business days to cure per state law.",
+			text: "Tenant must cure the issue described above by the cure date shown.",
 		},
 	]);
 

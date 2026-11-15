@@ -16,7 +16,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = createPageMetadata({
 	title: "Compare to Other Property Management Software",
 	description:
-		"Side-by-side comparisons of TenantFlow against Buildium, AppFolio, RentRedi, and other landlord-focused property management platforms.",
+		"Side-by-side comparisons of TenantFlow against Buildium, AppFolio, and RentRedi on pricing, features, and the landlord-only model.",
 	path: "/compare",
 });
 

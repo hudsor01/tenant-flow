@@ -83,7 +83,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		features: [
 			"1 property",
 			"Up to 5 units",
-			"Basic maintenance tracking",
+			"Maintenance tracking",
 			"Tenant records",
 			"1GB document storage",
 			"Email support",
@@ -101,7 +101,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		planId: "starter",
 		name: "Starter",
 		description: "Ideal for landlords with 1–5 rentals",
-		audienceTagline: "Built for 1–5 unit portfolios",
+		audienceTagline: "Built for portfolios of 1–5 rentals",
 		price: {
 			monthly: 19,
 			annual: 190,
@@ -121,7 +121,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			"Unlimited tenant records",
 			"Document vault with global search",
 			"Maintenance tracking",
-			"Lease templates (e-sign on Growth and Max)",
+			"Lease template builder with PDF download",
 			"10GB document storage",
 			"Email support",
 		],
@@ -132,8 +132,9 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		id: "GROWTH",
 		planId: "growth",
 		name: "Growth",
-		description: "For growing portfolios that need advanced features",
-		audienceTagline: "Built for 6–20 unit portfolios",
+		description:
+			"For growing portfolios that need lease e-sign and more capacity",
+		audienceTagline: "Built for portfolios of 6–20 rentals",
 		price: {
 			monthly: 49,
 			annual: 490,
@@ -152,7 +153,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			"20 properties and 100 units",
 			"25 lease e-signs per month",
 			"Renewal reminders",
-			"Advanced financial reporting",
+			"Year-end and tax-document PDF exports",
 			"50GB document storage",
 			"Phone and priority email support",
 		],
@@ -165,7 +166,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		name: "Max",
 		description:
 			"For landlords with 21+ rentals — unlimited properties, units, and e-signs",
-		audienceTagline: "Built for 21+ unit portfolios",
+		audienceTagline: "Built for portfolios of 21+ rentals",
 		price: {
 			monthly: 149,
 			annual: 1490,

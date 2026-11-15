@@ -209,7 +209,8 @@ export default function TaxDeductionTrackerPage() {
 				{/* Footer CTA */}
 				<div className="mt-12 text-center print:hidden">
 					<p className="text-muted-foreground mb-4">
-						Track expenses automatically with TenantFlow financial reporting
+						Log repair expenses and export your financial reports with
+						TenantFlow
 					</p>
 					<Button asChild>
 						<Link href="/pricing">Start free — no card</Link>

@@ -36,13 +36,13 @@ The product is operated by Hudson Digital Solutions. It runs on Next.js 16 + Sup
 
 ## Core capabilities
 
-- **Property and unit management.** Track buildings, individual units, occupancy state, rent amounts, and turnover.
+- **Property and unit management.** Track buildings, individual units, occupancy state, and rent amounts, with move-out dates and reasons on tenant records.
 - **Lease lifecycle.** Drafts, e-signed leases, renewals, terminations, lease document vault.
 - **Tenant records.** Contact info, lease history, emergency contact, and document attachments. Tenants are records, not users — they do not log in.
 - **Maintenance request tracking.** Submission, vendor assignment, status, photos, completion timestamps.
 - **Document vault.** Global search across leases, tenant docs, inspections, maintenance records, with custom categories per owner.
-- **Financial reporting.** Rent ledger of charges and receipts, expenses by vendor, and exports of the year-end report, tax documents, balance sheet, income statement and cash flow.
-- **Inspections.** Move-in / move-out / periodic inspection records with photo evidence.
+- **Financial reporting.** Rent ledger of charges and receipts, expenses by vendor, CSV exports of the income statement, cash flow, balance sheet and year-end report on every plan, and PDF year-end and tax-document exports on Growth and Max.
+- **Inspections.** Move-in and move-out inspection records, room by room, with photo evidence.
 
 ## Pricing (USD, billed monthly or annually)
 
@@ -53,13 +53,13 @@ The product is operated by Hudson Digital Solutions. It runs on Next.js 16 + Sup
 | Growth | $49 | $490 | 20 | 100 | 25/mo | premium |
 | Max | $149 | $1,490 | unlimited | unlimited | unlimited | premium |
 
-All plans include the document vault, maintenance tracking, tenant records, and the financial ledger. Plan caps are enforced at the database layer via BEFORE INSERT triggers — Starter and Growth users hitting their property or unit cap see an upgrade prompt with attribution back to the gate that triggered it.
+The Trial row is an account that has not yet confirmed a plan; confirming one at the no-card checkout step runs the 14-day trial at that plan's limits. All plans include the document vault, maintenance tracking, tenant records, and the financial ledger. Plan caps are enforced at the database layer via BEFORE INSERT triggers — Starter and Growth users hitting their property or unit cap see an upgrade prompt with attribution back to the gate that triggered it.
 
 ## Comparisons
 
 ### TenantFlow vs Buildium
 
-Buildium is targeted at multi-family property managers managing dozens to hundreds of units, often as third-party managers for owners. TenantFlow is positioned at the long tail: independent landlords with 1–20 units who don't need owner-management features or tenant payment processing.
+Buildium is targeted at multi-family property managers managing dozens to hundreds of units, often as third-party managers for owners. TenantFlow is positioned at the long tail: independent landlords who manage their own rentals and don't need owner-management features or tenant payment processing. Plans run from Starter (up to 5 properties and 25 units) to Max (unlimited).
 
 ### TenantFlow vs AppFolio
 

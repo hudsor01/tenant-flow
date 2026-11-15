@@ -9,8 +9,9 @@ export default function TenantNoticeTemplatePage() {
 					<FileText className="hidden size-10 text-primary sm:block" />
 					<div>
 						<h1 className="typography-h2 tracking-tight">Tenant Notice</h1>
-						<p className="text-muted-foreground">
-							Create compliant late rent, lease violation, or move-out notices.
+						<p className="mb-0 text-muted-foreground">
+							Create late rent, lease violation, or move-out notices to print
+							and deliver.
 						</p>
 					</div>
 				</div>

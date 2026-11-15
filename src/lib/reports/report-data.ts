@@ -889,13 +889,13 @@ function taxPreparationSections(yearEnd: YearEndSummary): ReportSection[] {
 	return [
 		{ heading: "Annual Summary", rows: taxSummaryRows(yearEnd) },
 		{
-			heading: "Income by Property (Schedule E support)",
+			heading: "Income by Property",
 			table: {
 				headers: ["Property", "Rent Received", "Expenses", "Net Income"],
 				rows: byPropertyRows,
 				emptyText: `No property received rent or had expenses in ${yearEnd.year}.`,
 			},
-			note: "Consult a CPA before filing — line-item mappings are advisory.",
+			note: "TenantFlow doesn't map these figures to tax-form lines. Review them with your tax preparer before filing.",
 		},
 		{
 			heading: EXPENSES_BY_VENDOR_SECTION,

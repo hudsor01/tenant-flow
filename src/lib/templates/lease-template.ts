@@ -214,7 +214,7 @@ export const leaseTemplateSchema: LeaseTemplateSchema = {
 					title: "Rent Payment Schedule",
 					description: "Defines rent amount, due date, and payment method.",
 					tooltip:
-						"Provides the legally enforceable rent obligations including grace periods and accepted payment methods.",
+						"Rent is due by 5:00 PM on the due day, by electronic transfer or another method the Owner approves.",
 					defaultSelected: true,
 					body: `<p>Tenant agrees to pay monthly rent of <strong>{{rent_amountFormatted}}</strong>, due on the <strong>{{rentDueDayOrdinal}}</strong> day of each month by 5:00 PM. Rent shall be paid via electronic transfer or other method approved by the Owner.</p>`,
 				},
@@ -224,7 +224,7 @@ export const leaseTemplateSchema: LeaseTemplateSchema = {
 					description:
 						"Explains when late fees apply and grace period duration.",
 					tooltip:
-						"Late fees must comply with state law; this clause sets enforceable rules to encourage timely payments.",
+						"Late fees must comply with state law; this clause sets the grace period and late fee amount.",
 					defaultSelected: true,
 					body: `<p>If rent is not received within {{gracePeriodDays}} days after the due date, a late fee of <strong>{{late_fee_amountFormatted}}</strong> may be assessed. Continued non-payment may result in additional remedies permitted by law.</p>`,
 				},
@@ -334,7 +334,7 @@ export const leaseTemplateSchema: LeaseTemplateSchema = {
 					id: "lead-paint-disclosure",
 					title: "Lead-Based Paint Disclosure",
 					description:
-						"Includes federally required information for properties built before 1978.",
+						"Adds a lead-paint warning and the tenant’s acknowledgment of the EPA lead pamphlet for pre-1978 housing. Complete the federal lead disclosure form separately.",
 					tooltip:
 						"Federal law mandates disclosure for pre-1978 housing; include when applicable.",
 					defaultSelected: false,
@@ -345,12 +345,12 @@ export const leaseTemplateSchema: LeaseTemplateSchema = {
 					id: "state-specific-disclosures",
 					title: "State-Specific Disclosures",
 					description:
-						"Includes notices required under the selected state’s law.",
+						"Adds an acknowledgment of state disclosures. Attach your state’s required disclosures yourself.",
 					tooltip:
 						"Many states require specific language covering mold, bedbugs, flooding, and other hazards.",
 					defaultSelected: true,
 					requiresOption: "includeStateDisclosures",
-					body: `<p><strong>State Disclosures:</strong> The Tenant acknowledges the additional disclosures and acknowledgements required by {{stateName}} law, set forth in the attached addendum.</p>`,
+					body: `<p><strong>State Disclosures:</strong> The Tenant acknowledges the additional disclosures and acknowledgements required by {{stateName}} law, which the Owner provides separately.</p>`,
 				},
 			],
 		},
@@ -360,7 +360,7 @@ export const leaseTemplateSchema: LeaseTemplateSchema = {
 			state: "CA",
 			stateName: stateNames.CA,
 			notices: [
-				"California Civil Code §1950.5 limits residential security deposits to two months’ rent for unfurnished units.",
+				"California Civil Code §1950.5, as amended by AB 12, limits security deposits collected on or after July 1, 2024 to one month’s rent, or two months’ rent for certain small landlords.",
 				"California requires a written disclosure if the property is within one mile of a former military base that handled munitions.",
 				"Tenants in California must receive notice before pesticide application inside the unit.",
 			],
@@ -370,7 +370,7 @@ export const leaseTemplateSchema: LeaseTemplateSchema = {
 			state: "NY",
 			stateName: stateNames.NY,
 			notices: [
-				"New York General Obligations Law limits late fees to $50 or 5% of monthly rent, whichever is less.",
+				"New York Real Property Law §238-a limits late fees to $50 or 5% of monthly rent, whichever is less.",
 				"Security deposits must be returned within 14 days of lease termination with an itemized receipt.",
 				"Rent-stabilized units require additional rider disclosures under DHCR regulations.",
 			],
@@ -380,8 +380,8 @@ export const leaseTemplateSchema: LeaseTemplateSchema = {
 			state: "IL",
 			stateName: stateNames.IL,
 			notices: [
-				"Chicago Residential Property Owner and Tenant Ordinance imposes additional duties if the property is located within Chicago city limits.",
-				"Security deposits must be held in a federally insured account in Illinois municipalities over 5,000 residents.",
+				"Chicago’s Residential Landlord and Tenant Ordinance imposes additional duties on most rentals within Chicago city limits; owner-occupied buildings with six or fewer units are exempt.",
+				"In Chicago, that ordinance requires security deposits to be held in a federally insured, interest-bearing account at an Illinois financial institution.",
 				"Mold disclosure and pamphlet delivery are recommended for older multifamily properties.",
 			],
 			recommendedClauses: ["state-specific-disclosures"],
@@ -390,10 +390,10 @@ export const leaseTemplateSchema: LeaseTemplateSchema = {
 			state: "TX",
 			stateName: stateNames.TX,
 			notices: [
-				"Texas Property Code §92.109 requires property owners to provide written notice of security deposit deductions within 30 days of move-out.",
-				"Property owners must provide smoke detector and carbon monoxide detector disclosures at lease signing (Texas Property Code §92.151, §92.157).",
-				"Texas Property Code §92.052 requires property owners to provide contact information for the property owner or manager.",
-				"Window and door lock requirements must be disclosed if not compliant with Texas Property Code §92.151-§92.154.",
+				"Texas Property Code §92.103 and §92.104 require refunding the security deposit, with a written list of any deductions, within 30 days after the tenant surrenders the premises and gives a written forwarding address.",
+				"Texas Property Code Subchapter F (§92.251 onward) sets smoke alarm installation and testing duties.",
+				"Texas Property Code §92.201 requires giving a tenant, within 7 days of a request (or in the lease beforehand), the name and address of the record title holder and of any off-site management company.",
+				"Texas Property Code Subchapter D (§92.151 onward) sets required security devices, such as door viewers, keyless bolting devices and window latches.",
 			],
 			recommendedClauses: [
 				"state-specific-disclosures",
@@ -404,7 +404,7 @@ export const leaseTemplateSchema: LeaseTemplateSchema = {
 	} as Record<USState, LeaseTemplateStateRule>,
 	federalNotices: [
 		"The Fair Housing Act prohibits discrimination on the basis of race, color, religion, sex, familial status, national origin, or disability.",
-		"Tenants are entitled to reasonable accommodations for disabilities under the Americans with Disabilities Act (ADA) and Section 504 of the Rehabilitation Act.",
+		"Tenants with disabilities may request reasonable accommodations and modifications under the federal Fair Housing Act.",
 	],
 	glossary: {
 		"Security Deposit":
@@ -508,8 +508,8 @@ function renderStateNotices(
 		.join("");
 	return `<section class="lease-section">
 	<header class="lease-section-header">
-		<h2>State Notices</h2>
-		<p>Required disclosures and recommendations for ${rules.stateName}</p>
+		<h2>State Notes</h2>
+		<p>Notes on ${rules.stateName} rental law</p>
 	</header>
 	<ul class="legal-list">${noticeItems}</ul>
 </section>`;

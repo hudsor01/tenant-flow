@@ -234,10 +234,10 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			},
 		],
 		whySwitch: [
-			"No unit minimums — manage 1 unit or 100 without restrictions",
+			"No unit minimums: start with 1 unit and grow to 100 on the Growth plan",
 			"Save $2,988/year at 30 units ($49/mo vs $298/mo minimum)",
 			"Transparent pricing — no custom quotes or sales calls needed",
-			"14-day free trial to test everything before committing",
+			"14-day free trial, no credit card required, to try TenantFlow before committing",
 			"Per-entity document vault and lease e-sign (Growth+) without paying for commercial/HOA tools",
 		],
 		competitorStrengths: [
@@ -253,13 +253,13 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		slug: "rentredi",
 		blogSlug:
 			"rentredi-alternatives-under-30-month-for-budget-conscious-landlords",
-		tagline: "TenantFlow vs RentRedi: More Features, Fair Price",
+		tagline: "TenantFlow vs RentRedi: A Document Vault at a Fair Price",
 		description:
-			"RentRedi is cheap but basic. TenantFlow adds advanced reporting, visual workflows, and lease management for just $10 more per month.",
+			"RentRedi is a low-cost, mobile-first option. TenantFlow focuses on a visual maintenance board and a per-entity document vault, starting at $19/month.",
 		metaDescription:
-			"Compare TenantFlow vs RentRedi for landlords. RentRedi starts at $9/mo with basics. TenantFlow at $19/mo adds analytics, workflows, and more.",
+			"Compare TenantFlow vs RentRedi. RentRedi starts at $12/mo billed annually. TenantFlow starts at $19/mo with a maintenance board and a per-entity document vault.",
 		heroSubtitle:
-			"RentRedi starts at $9/month with unlimited units and basic features. TenantFlow starts at $19/month with advanced analytics, visual workflows, and a more complete feature set.",
+			"RentRedi starts at $12/month (billed annually) with unlimited units and a mobile app. TenantFlow starts at $19/month with portfolio analytics, a visual maintenance board, and a per-entity document vault.",
 		capterra: "4.5/5 (104 reviews)",
 		g2: "--",
 		founded: "2016",
@@ -268,17 +268,17 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		competitorPricing: [
 			{
 				name: "Monthly",
-				price: "$19.95/mo",
+				price: "$29.95/mo",
 				note: "All features, unlimited units",
 			},
 			{
-				name: "Biannual",
-				price: "$15/mo",
+				name: "6-month",
+				price: "$20/mo",
 				note: "All features, unlimited units",
 			},
 			{
 				name: "Annual",
-				price: "$9/mo",
+				price: "$12/mo",
 				note: "All features, unlimited units",
 			},
 		],
@@ -288,21 +288,21 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				tenantflow: "yes",
 				tenantflowNote: "Per-entity, global search",
 				competitor: "partial",
-				competitorNote: "Limited storage",
+				competitorNote: "Leases and receipts",
 			},
 			{
 				name: "Maintenance Records",
 				tenantflow: "yes",
 				tenantflowNote: "Kanban workflow board",
 				competitor: "yes",
-				competitorNote: "Basic tracking",
+				competitorNote: "Photo and video requests",
 			},
 			{
 				name: "Lease Management",
 				tenantflow: "yes",
 				tenantflowNote: "Lease e-sign (Growth+)",
-				competitor: "partial",
-				competitorNote: "Templates + e-signing",
+				competitor: "yes",
+				competitorNote: "Unlimited e-signatures, all plans",
 			},
 			{
 				name: "Tenant Records",
@@ -322,11 +322,6 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				tenantflow: "na",
 				tenantflowNote: "By design — landlord-only platform",
 				competitor: "yes",
-			},
-			{
-				name: "Property Performance Reports",
-				tenantflow: "yes",
-				competitor: "no",
 			},
 			{
 				name: "Team Collaboration",
@@ -352,17 +347,16 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		],
 		whySwitch: [
 			"Per-entity document vault with global search across leases, receipts, and inspections",
-			"Visual kanban maintenance workflow vs basic request tracking",
-			"Lease management with lease e-sign (Growth+)",
+			"Visual kanban maintenance board",
 			"Modern web interface built on Next.js + React 19",
 			"Document storage up to 50GB on Growth plan",
 		],
 		competitorStrengths: [
-			"Lowest price in the market at $9/month (annual)",
+			"Flat $12/month (annual) for unlimited units",
 			"Unlimited units on all plans regardless of price",
 			"Native mobile app for iOS and Android",
 			"Unlimited team members included",
-			"Simple, no-frills approach that covers the basics well",
+			"Unlimited e-signatures and accounting reports on every plan",
 		],
 	},
 };

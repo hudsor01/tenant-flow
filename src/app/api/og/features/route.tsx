@@ -77,7 +77,7 @@ export function GET() {
 						display: "flex",
 					}}
 				>
-					Everything landlords need to administer rental properties.
+					The core tools landlords need to administer rental properties.
 				</div>
 			</div>
 			<div

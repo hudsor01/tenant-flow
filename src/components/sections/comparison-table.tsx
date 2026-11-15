@@ -21,13 +21,6 @@ interface ComparisonFeature {
 
 const comparisonData: ComparisonFeature[] = [
 	{
-		name: "Setup Time",
-		tenantFlow: "Same day",
-		spreadsheets: "1-2 weeks",
-		enterprise: "2-4 weeks",
-		description: "CSV import covers properties, units, tenants, and leases",
-	},
-	{
 		name: "Monthly Cost (50 units)",
 		tenantFlow: "$49/mo",
 		spreadsheets: "Free*",
@@ -81,13 +74,6 @@ const comparisonData: ComparisonFeature[] = [
 		spreadsheets: false,
 		enterprise: true,
 		description: "Desktop and mobile browsers; no app store install",
-	},
-	{
-		name: "Same-Day Setup",
-		tenantFlow: true,
-		spreadsheets: true,
-		enterprise: false,
-		description: "CSV import covers properties, units, tenants, leases",
 	},
 ];
 

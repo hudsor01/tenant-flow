@@ -52,7 +52,7 @@ function createDefaultMetadata(): Metadata {
 			title:
 				"TenantFlow | Property Management Software for Independent Landlords",
 			description:
-				"All-in-one property management software. Track leases, maintenance, and tenants. Plans from $19/mo.",
+				"Landlord-only property management software. Track leases, maintenance, and tenants. Plans from $19/mo.",
 			url: SITE_URL,
 			siteName: "TenantFlow",
 			type: "website",
@@ -62,7 +62,7 @@ function createDefaultMetadata(): Metadata {
 					url: `${SITE_URL}/images/property-management-og.jpg`,
 					width: 1200,
 					height: 630,
-					alt: "TenantFlow Property Management Dashboard",
+					alt: "Glass office towers seen from street level",
 					type: "image/jpeg",
 				},
 				{
@@ -79,7 +79,7 @@ function createDefaultMetadata(): Metadata {
 			title:
 				"TenantFlow | Property Management Software for Independent Landlords",
 			description:
-				"All-in-one property management software. Track leases, maintenance, and tenants. Plans from $19/mo.",
+				"Landlord-only property management software. Track leases, maintenance, and tenants. Plans from $19/mo.",
 			site: "@tenantflow",
 			creator: "@tenantflow",
 			images: [`${SITE_URL}/images/property-management-og.jpg`],
@@ -200,7 +200,6 @@ export function getSoftwareApplicationJsonLd() {
 			offerCount: "3",
 			availability: "https://schema.org/InStock",
 		},
-		screenshot: `${SITE_URL}/images/property-management-og.jpg`,
 		featureList: [
 			"Property Management",
 			"Tenant Records",

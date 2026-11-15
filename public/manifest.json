@@ -30,15 +30,6 @@
 		"property management",
 		"rental management"
 	],
-	"screenshots": [
-		{
-			"src": "/images/property-management-og.jpg",
-			"sizes": "1200x630",
-			"type": "image/jpeg",
-			"form_factor": "wide",
-			"label": "TenantFlow Dashboard - Desktop View"
-		}
-	],
 	"prefer_related_applications": false,
 	"display_override": [
 		"window-controls-overlay",

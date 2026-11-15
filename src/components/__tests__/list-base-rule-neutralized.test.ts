@@ -56,10 +56,6 @@ const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
 		1,
 		"bcf99386eebfadd3fe25b5904671354ca7688ea4",
 	],
-	"src/components/leases/template/state-rule-summary.tsx": [
-		1,
-		"33d99e304a5182d78142103e845633f032b9f771",
-	],
 	"src/components/notifications/notification-popover-list.tsx": [
 		1,
 		"a93cbe45ea6dd284897823e6c7bfcf7632d002a1",

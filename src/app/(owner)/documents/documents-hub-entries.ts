@@ -101,7 +101,7 @@ export const DOCUMENTS_HUB_ENTRIES: readonly DocumentsHubEntry[] = [
 		href: "/documents/lease-template",
 		icon: FileCheck,
 		description:
-			"Draft a lease from your own clauses, branding, and custom fields, then send it for signature.",
+			"Pick a state, choose from built-in clauses, fill in the lease terms, and download a PDF.",
 	},
 	{
 		id: "rental-application",
