@@ -16,6 +16,7 @@ import { BLOG_TO_COMPETITOR, BLOG_TO_RESOURCE } from "#lib/content-links";
 import { categoryLabel } from "#lib/seo/blog-categories";
 import { cn } from "#lib/utils";
 import { headingId } from "./heading-id";
+import { stripTitleHeading } from "./strip-title-heading";
 
 /**
  * Subset of the `blogs` row actually rendered by this page. Defining the prop
@@ -37,12 +38,19 @@ export type BlogPostProps = {
 	articleBody: ReactNode;
 };
 
-/** Extract `## ` section headings for the "On this page" nav — ids built with
- *  the SAME headingId() the renderer uses, so anchors can never drift. */
-function extractToc(content: string): { id: string; text: string }[] {
-	const matches = content.match(/^## .+$/gm) ?? [];
+/** Extract the section headings for the "On this page" nav: `## ` lines, and
+ *  the `# ` lines older posts use for peer sections (MarkdownContent renders
+ *  both as anchored h2s), read from the body without its opening title line.
+ *  Ids come from the SAME headingId() the renderer uses, so anchors can never
+ *  drift. */
+function extractToc(
+	content: string,
+	title: string,
+): { id: string; text: string }[] {
+	const matches =
+		stripTitleHeading(content, title).match(/^#{1,2} .+$/gm) ?? [];
 	return matches.map((line) => {
-		const text = line.replace(/^## /, "").trim();
+		const text = line.replace(/^#{1,2} /, "").trim();
 		return { id: headingId(text), text };
 	});
 }
@@ -82,7 +90,7 @@ export default function BlogPostPage({
 	const categorySlug = postCategory.toLowerCase().replace(/\s+/g, "-");
 	const categoryDisplayLabel = postCategory ? categoryLabel(categorySlug) : "";
 
-	const toc = extractToc(post.content);
+	const toc = extractToc(post.content, post.title);
 
 	const competitorSlug = BLOG_TO_COMPETITOR[slug];
 	const resourceSlug = BLOG_TO_RESOURCE[slug];

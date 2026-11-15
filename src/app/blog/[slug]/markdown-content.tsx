@@ -37,6 +37,14 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
 			remarkPlugins={[remarkGfm]}
 			rehypePlugins={[rehypeRaw, rehypeSanitize]}
 			components={{
+				// The page's only <h1> is the post title (blog-post-page). Some older
+				// posts write their peer section headings as `# `; those render one
+				// level down, like an `## ` heading, so the page keeps one h1.
+				h1: ({ children }) => (
+					<h2 id={headingId(nodeText(children))} className="scroll-mt-28">
+						{children}
+					</h2>
+				),
 				// Anchored section headings: id for ToC deep-links, scroll-mt so the
 				// fixed navbar never covers the target section.
 				h2: ({ children }) => (

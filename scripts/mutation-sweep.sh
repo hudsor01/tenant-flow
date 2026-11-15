@@ -445,9 +445,48 @@ mutate "$REPLAY" ': { ...privileges, config: JSON.stringify(privileges["config"]
                  'the blog trigger function'"'"'s search_path is not compared'
 mutate "$REPLAY" '		EXPECTED_BLOG_BANLIST_TRIGGER,' '		{},' \
                  'the blog trigger itself is not compared'
-mutate "$REPLAY" '	"update-published-to-published": ACCEPTED,' \
-                 '	"update-published-to-published": personaHit("title"),' \
-                 'the blog expectation regates an UPDATE of a published post'
+mutate "$REPLAY" '	"update-published-to-published": personaHit("title"),' \
+                 '	"update-published-to-published": ACCEPTED,' \
+                 'the blog expectation stops gating an edit of a published post'
+mutate "$REPLAY" '	"update-in-review-to-in-review": phraseHit("autopay", "excerpt"),' \
+                 '	"update-in-review-to-in-review": ACCEPTED,' \
+                 'the blog expectation stops gating an edit of an in-review post'
+mutate "$REPLAY" '	"update-published-clean-edit": ACCEPTED,' \
+                 '	"update-published-clean-edit": personaHit("title"),' \
+                 'the blog expectation rejects a clean edit of a published post'
+mutate "$REPLAY" '	"update-published-ungated-field": ACCEPTED,' \
+                 '	"update-published-ungated-field": personaHit("title"),' \
+                 'the blog expectation gates an edit that changes no gated field'
+mutate "$REPLAY" '	"update-published-legacy-edit": personaHit("title"),' \
+                 '	"update-published-legacy-edit": ACCEPTED,' \
+                 'the blog expectation lets an older post'"'"'s violation through a gated edit'
+mutate "$REPLAY" '	"update-published-legacy-slug": personaHit("title"),' \
+                 '	"update-published-legacy-slug": ACCEPTED,' \
+                 'the blog expectation stops gating a slug edit of a published post'
+mutate "$REPLAY" '	"update-published-legacy-meta": personaHit("title"),' \
+                 '	"update-published-legacy-meta": ACCEPTED,' \
+                 'the blog expectation stops gating a meta description edit of a published post'
+mutate "$REPLAY" '	"update-published-legacy-category": personaHit("title"),' \
+                 '	"update-published-legacy-category": ACCEPTED,' \
+                 'the blog expectation stops gating a category edit of a published post'
+mutate "$REPLAY" '	"update-published-to-draft": ACCEPTED,' \
+                 '	"update-published-to-draft": personaHit("title"),' \
+                 'the blog expectation blocks unpublishing an older post'
+mutate "$REPLAY" '	"update-null-status-to-published": personaHit("title"),' \
+                 '	"update-null-status-to-published": ACCEPTED,' \
+                 'the blog expectation lets a status-less row publish ungated'
+mutate "$REPLAY" 'editCase?.["state"] === "00000" &&' 'false &&' \
+                 'the ungated-edit blog body is not named'
+mutate "$REPLAY" 'editCase?.["state"] === "00000" &&' 'true &&' \
+                 'the ungated-edit diagnosis ignores the published edit'
+mutate "$REPLAY" 'inReviewEditCase?.["state"] === "00000" &&' '' \
+                 'the ungated-edit diagnosis ignores the in-review edit'
+mutate "$REPLAY" 'legacyEditCase?.["state"] === "00000" &&' '' \
+                 'the ungated-edit diagnosis ignores the older post'"'"'s edit'
+mutate "$REPLAY" 'draftCase?.["state"] === "23514"
+	) {' 'true
+	) {' \
+                 'the ungated-edit diagnosis ignores the draft'"'"'s move to published'
 mutate "$REPLAY" '		message: `banlist hit: property owner (persona word found in ${field})`,' \
                  '		message: `banlist hit: property owner (persona word found in content)`,' \
                  'the blog expectation names no field for a persona hit'

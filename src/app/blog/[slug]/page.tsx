@@ -14,6 +14,7 @@ import { createFaqJsonLd, parseFaqSection } from "#lib/seo/faq-schema";
 import type { Database } from "#types/supabase";
 import BlogPostPage from "./blog-post-page";
 import MarkdownContent from "./markdown-content";
+import { stripTitleHeading } from "./strip-title-heading";
 
 /**
  * Split markdown content at a `## ` heading near ~40% of the total length.
@@ -506,8 +507,9 @@ export default async function Page({ params }: Props) {
 
 	// SEO-02: render markdown server-side so react-markdown / remark / rehype
 	// stay out of the client bundle. The rendered ReactNode serializes across
-	// the client boundary as `articleBody`.
-	const markdownContent = post.content.trim();
+	// the client boundary as `articleBody`. An opening `# <title>` line is dropped:
+	// the page already renders the title as its <h1>.
+	const markdownContent = stripTitleHeading(post.content, post.title).trim();
 	const [firstHalf, secondHalf] = splitContentForCta(markdownContent);
 	const leadMagnet = LEAD_MAGNETS[slug];
 

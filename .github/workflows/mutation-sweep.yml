@@ -75,7 +75,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9]
     env:
       SWEEP_SHARD: ${{ matrix.shard }}
       SWEEP_SHARDS: ${{ strategy.job-total }}

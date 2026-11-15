@@ -643,6 +643,29 @@ describe("On this page (table of contents)", () => {
 		).toHaveAttribute("href", "#common-mistakes-fixes");
 	});
 
+	it("lists body `# ` sections with the `## ` ones, but not the opening title line", () => {
+		const post = {
+			...mockPost,
+			content: `# ${mockPost.title}\n\nIntro.\n\n## Alpha Section\n\nBody.\n\n# Beta Section\n\nBody.\n\n## Gamma Section\n\nBody.`,
+		};
+		render(
+			<BlogArticlePage
+				post={post}
+				slug="test-post"
+				articleBody={mockArticleBody}
+			/>,
+		);
+		const nav = screen.getByRole("navigation", { name: "Table of contents" });
+		const names = Array.from(nav.querySelectorAll("a")).map(
+			(a) => a.textContent,
+		);
+		expect(names).toEqual(["Alpha Section", "Beta Section", "Gamma Section"]);
+		expect(screen.getByRole("link", { name: "Beta Section" })).toHaveAttribute(
+			"href",
+			"#beta-section",
+		);
+	});
+
 	it("omits the ToC for short articles (under 3 H2s)", () => {
 		render(
 			<BlogArticlePage
@@ -654,5 +677,45 @@ describe("On this page (table of contents)", () => {
 		expect(
 			screen.queryByRole("navigation", { name: "Table of contents" }),
 		).not.toBeInTheDocument();
+	});
+});
+
+describe("Page (server entry) article body", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockUseRelatedPosts.mockReturnValue({ data: [], isLoading: false });
+	});
+
+	it("drops a body's opening '# <title>' line before rendering the markdown", async () => {
+		const row: BlogRow = {
+			title: "What to Look for During Inspections",
+			slug: "what-to-look-for-during-inspections",
+			published_at: "2026-05-01T00:00:00Z",
+			updated_at: null,
+			featured_image: null,
+			content:
+				"# What to Look for During Inspections\n\nIntro paragraph.\n\n## First\n\nbody",
+			reading_time: 4,
+			category: "maintenance",
+			meta_description: "A practical inspection checklist for landlords.",
+			excerpt: "A practical inspection checklist for landlords.",
+			tags: null,
+			canonical_url: null,
+		};
+		mockSupabaseCreateClient.mockReturnValue(makeSupabaseClient(row));
+
+		const { default: Page } = await import("./page");
+		render(
+			await Page({
+				params: Promise.resolve({
+					slug: "what-to-look-for-during-inspections",
+				}),
+			}),
+		);
+
+		const bodies = screen.getAllByTestId("markdown-content");
+		const rendered = bodies.map((b) => b.textContent ?? "").join("\n");
+		expect(rendered).toContain("Intro paragraph.");
+		expect(rendered).not.toContain("# What to Look for During Inspections");
 	});
 });
