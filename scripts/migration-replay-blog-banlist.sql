@@ -28,10 +28,25 @@
 --   - a clean post at in-review and at published: accepted;
 --   - a draft with a persona word: accepted (drafts are not gated);
 --   - an UPDATE of a published post that adds a persona word to its title:
---     accepted, because an UPDATE of a row already in-review or published is
---     not gated;
+--     rejected, because since 20261115173654 an UPDATE of an in-review or
+--     published row is gated whenever it changes a field a gate reads;
+--   - an UPDATE of an in-review post that adds a banlist phrase to its excerpt:
+--     rejected;
+--   - an UPDATE of a published post that edits its content and stays clean:
+--     accepted;
+--   - a published post that predates a gate (written with the trigger off, its
+--     title carrying the persona word): an UPDATE of its cover image only is
+--     accepted (no gated field changed), an edit of its content, its slug, its
+--     meta description or its category is rejected for the title (every gate
+--     runs on a gated edit), and an UPDATE to draft is
+--     accepted (unpublishing is never gated);
+--   - a row with no status (NULL) and the persona word in its title, moved to
+--     published: rejected;
 --   - an UPDATE of a draft with a persona word in its excerpt to published:
 --     rejected.
+--
+-- The 'trigger' row is read before the fixture switches the trigger off and on,
+-- so it reports the state the migrations left.
 
 \set ON_ERROR_STOP on
 \set QUIET on
@@ -41,6 +56,44 @@ begin;
 create temp table replay_blog (label text primary key, payload jsonb not null)
   on commit drop;
 grant insert, select on replay_blog to service_role;
+
+-- The trigger as the migrations left it, read BEFORE this fixture switches it
+-- off and on below, so a migration that left it disabled still shows here.
+insert into replay_blog
+select 'trigger', jsonb_build_object(
+  'function', t.tgfoid::regprocedure::text,
+  'type', t.tgtype,
+  'enabled', t.tgenabled::text)
+from pg_trigger t
+where t.tgrelid = 'public.blogs'::regclass and t.tgname = 'validate_blog_post_trigger';
+
+-- Two posts that predate a gate, written with the trigger off as production's
+-- older posts were before the gate existed: one published with the persona
+-- word in its title, one with the same title and no status at all
+-- (blogs.status is nullable). postgres owns public.blogs, so it can switch the
+-- trigger off for these inserts; the rollback at the end undoes both.
+alter table public.blogs disable trigger validate_blog_post_trigger;
+insert into public.blogs (title, slug, content, excerpt, meta_description, category, status)
+select
+  'What landlords check in a lease for a property owner',
+  'replay-null-status',
+  string_agg('## Section ' || n || E'\n' || repeat('A landlord reviews the lease terms here. ', 60), E'\n'),
+  'A plain guide for landlords on what to check in a lease before it is signed, one step at a time.',
+  'What landlords should check in a lease before signing it, in plain steps.',
+  'lease-law',
+  null
+from generate_series(1, 5) as n;
+insert into public.blogs (title, slug, content, excerpt, meta_description, category, status)
+select
+  'What landlords check in a lease for a property owner',
+  'replay-legacy-published',
+  string_agg('## Section ' || n || E'\n' || repeat('A landlord reviews the lease terms here. ', 60), E'\n'),
+  'A plain guide for landlords on what to check in a lease before it is signed, one step at a time.',
+  'What landlords should check in a lease before signing it, in plain steps.',
+  'lease-law',
+  'published'
+from generate_series(1, 5) as n;
+alter table public.blogs enable trigger validate_blog_post_trigger;
 
 set local role service_role;
 
@@ -110,7 +163,7 @@ begin
     end;
   end loop;
 
-  -- An UPDATE of a published post: not gated.
+  -- An UPDATE of a published post that changes a gated field: gated.
   insert into public.blogs (title, slug, content, excerpt, meta_description, category, status)
   values (v_title, 'replay-update-published', v_body, v_excerpt, v_meta, 'lease-law', 'published')
   returning id into v_post_id;
@@ -119,6 +172,96 @@ begin
     insert into replay_blog values ('update-published-to-published', jsonb_build_object('state', '00000', 'message', null));
   exception when others then
     insert into replay_blog values ('update-published-to-published',
+      jsonb_build_object('state', SQLSTATE, 'message', SQLERRM));
+  end;
+
+  -- An UPDATE of an in-review post that changes a gated field: gated.
+  insert into public.blogs (title, slug, content, excerpt, meta_description, category, status)
+  values (v_title, 'replay-update-in-review', v_body, v_excerpt, v_meta, 'lease-law', 'in-review')
+  returning id into v_post_id;
+  begin
+    update public.blogs set excerpt = v_excerpt || ' For any autopay.' where id = v_post_id;
+    insert into replay_blog values ('update-in-review-to-in-review', jsonb_build_object('state', '00000', 'message', null));
+  exception when others then
+    insert into replay_blog values ('update-in-review-to-in-review',
+      jsonb_build_object('state', SQLSTATE, 'message', SQLERRM));
+  end;
+
+  -- A clean edit of a published post's content: gated, and it passes.
+  insert into public.blogs (title, slug, content, excerpt, meta_description, category, status)
+  values (v_title, 'replay-update-clean', v_body, v_excerpt, v_meta, 'lease-law', 'published')
+  returning id into v_post_id;
+  begin
+    update public.blogs set content = v_body || E'\nA landlord adds one more note.' where id = v_post_id;
+    insert into replay_blog values ('update-published-clean-edit', jsonb_build_object('state', '00000', 'message', null));
+  exception when others then
+    insert into replay_blog values ('update-published-clean-edit',
+      jsonb_build_object('state', SQLSTATE, 'message', SQLERRM));
+  end;
+
+  -- The post that predates a gate. A new cover changes no gated field: not gated.
+  select id into v_post_id from public.blogs where slug = 'replay-legacy-published';
+  begin
+    update public.blogs set featured_image = 'https://images.unsplash.com/replay-cover' where id = v_post_id;
+    insert into replay_blog values ('update-published-ungated-field', jsonb_build_object('state', '00000', 'message', null));
+  exception when others then
+    insert into replay_blog values ('update-published-ungated-field',
+      jsonb_build_object('state', SQLSTATE, 'message', SQLERRM));
+  end;
+
+  -- A content edit is gated, so the title's older violation now blocks it.
+  begin
+    update public.blogs set content = v_body || E'\nA landlord adds one more note.' where id = v_post_id;
+    insert into replay_blog values ('update-published-legacy-edit', jsonb_build_object('state', '00000', 'message', null));
+  exception when others then
+    insert into replay_blog values ('update-published-legacy-edit',
+      jsonb_build_object('state', SQLSTATE, 'message', SQLERRM));
+  end;
+
+  -- A new slug is a gated edit too, so the title's violation blocks it.
+  begin
+    update public.blogs set slug = 'replay-legacy-renamed' where id = v_post_id;
+    insert into replay_blog values ('update-published-legacy-slug', jsonb_build_object('state', '00000', 'message', null));
+  exception when others then
+    insert into replay_blog values ('update-published-legacy-slug',
+      jsonb_build_object('state', SQLSTATE, 'message', SQLERRM));
+  end;
+
+  -- A new meta description is a gated edit too, so the title's violation blocks it.
+  begin
+    update public.blogs set meta_description = 'What landlords should check in a lease before signing it, in clear plain steps.' where id = v_post_id;
+    insert into replay_blog values ('update-published-legacy-meta', jsonb_build_object('state', '00000', 'message', null));
+  exception when others then
+    insert into replay_blog values ('update-published-legacy-meta',
+      jsonb_build_object('state', SQLSTATE, 'message', SQLERRM));
+  end;
+
+  -- A new category is a gated edit too, so the title's violation blocks it.
+  begin
+    update public.blogs set category = 'maintenance' where id = v_post_id;
+    insert into replay_blog values ('update-published-legacy-category', jsonb_build_object('state', '00000', 'message', null));
+  exception when others then
+    insert into replay_blog values ('update-published-legacy-category',
+      jsonb_build_object('state', SQLSTATE, 'message', SQLERRM));
+  end;
+
+  -- Unpublishing it: never gated.
+  begin
+    update public.blogs set status = 'draft' where id = v_post_id;
+    insert into replay_blog values ('update-published-to-draft', jsonb_build_object('state', '00000', 'message', null));
+  exception when others then
+    insert into replay_blog values ('update-published-to-draft',
+      jsonb_build_object('state', SQLSTATE, 'message', SQLERRM));
+  end;
+
+  -- A row with no status moved to published: gated (a NULL status is another
+  -- status), so its title's persona word blocks it.
+  select id into v_post_id from public.blogs where slug = 'replay-null-status';
+  begin
+    update public.blogs set status = 'published' where id = v_post_id;
+    insert into replay_blog values ('update-null-status-to-published', jsonb_build_object('state', '00000', 'message', null));
+  exception when others then
+    insert into replay_blog values ('update-null-status-to-published',
       jsonb_build_object('state', SQLSTATE, 'message', SQLERRM));
   end;
 
@@ -148,13 +291,6 @@ select 'privileges', jsonb_build_object(
 from pg_proc p
 where p.oid = 'public.validate_blog_post()'::regprocedure;
 
-insert into replay_blog
-select 'trigger', jsonb_build_object(
-  'function', t.tgfoid::regprocedure::text,
-  'type', t.tgtype,
-  'enabled', t.tgenabled::text)
-from pg_trigger t
-where t.tgrelid = 'public.blogs'::regclass and t.tgname = 'validate_blog_post_trigger';
 
 select jsonb_object_agg(label, payload)::text from replay_blog;
 

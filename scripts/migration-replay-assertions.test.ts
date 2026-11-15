@@ -2233,9 +2233,10 @@ describe("expectedOwnerFigures", () => {
 
 /**
  * What scripts/migration-replay-blog-banlist.sql printed on the replayed stack
- * with 20261110123128 applied, and with production's body of
- * validate_blog_post (md5 33667bfe24d7566b1e7effaa292c8bcd) put back in its
- * place under production's ACL.
+ * with 20261110123128 and 20261115173654 applied, and with production's body of
+ * validate_blog_post from before 20261110123128 (md5
+ * 33667bfe24d7566b1e7effaa292c8bcd) put back in its place under production's
+ * ACL. That older body gated no UPDATE of an in-review or published row.
  */
 const REPLAYED_BLOG_BANLIST = {
 	"clean-in-review": {
@@ -2321,7 +2322,43 @@ const REPLAYED_BLOG_BANLIST = {
 		state: "23514",
 		message: "banlist hit: property owner (persona word found in excerpt)",
 	},
+	"update-in-review-to-in-review": {
+		state: "23514",
+		message: "banlist hit: autopay (Phase 4 banlist phrase found in excerpt)",
+	},
+	"update-null-status-to-published": {
+		state: "23514",
+		message: "banlist hit: property owner (persona word found in title)",
+	},
+	"update-published-clean-edit": {
+		state: "00000",
+		message: null,
+	},
+	"update-published-legacy-slug": {
+		state: "23514",
+		message: "banlist hit: property owner (persona word found in title)",
+	},
+	"update-published-legacy-meta": {
+		state: "23514",
+		message: "banlist hit: property owner (persona word found in title)",
+	},
+	"update-published-legacy-category": {
+		state: "23514",
+		message: "banlist hit: property owner (persona word found in title)",
+	},
+	"update-published-legacy-edit": {
+		state: "23514",
+		message: "banlist hit: property owner (persona word found in title)",
+	},
+	"update-published-to-draft": {
+		state: "00000",
+		message: null,
+	},
 	"update-published-to-published": {
+		state: "23514",
+		message: "banlist hit: property owner (persona word found in title)",
+	},
+	"update-published-ungated-field": {
 		state: "00000",
 		message: null,
 	},
@@ -2412,7 +2449,43 @@ const PRODUCTION_BODY_BLOG_BANLIST = {
 		state: "00000",
 		message: null,
 	},
+	"update-in-review-to-in-review": {
+		state: "00000",
+		message: null,
+	},
+	"update-null-status-to-published": {
+		state: "00000",
+		message: null,
+	},
+	"update-published-clean-edit": {
+		state: "00000",
+		message: null,
+	},
+	"update-published-legacy-slug": {
+		state: "00000",
+		message: null,
+	},
+	"update-published-legacy-meta": {
+		state: "00000",
+		message: null,
+	},
+	"update-published-legacy-category": {
+		state: "00000",
+		message: null,
+	},
+	"update-published-legacy-edit": {
+		state: "00000",
+		message: null,
+	},
+	"update-published-to-draft": {
+		state: "00000",
+		message: null,
+	},
 	"update-published-to-published": {
+		state: "00000",
+		message: null,
+	},
+	"update-published-ungated-field": {
 		state: "00000",
 		message: null,
 	},
@@ -2495,6 +2568,48 @@ describe("assertBlogBanlistGate", () => {
 		);
 		expect(result.ok).toBe(false);
 		expect(result.message).not.toContain("read NEW.content only");
+	});
+
+	/** The edits the body from before 20261115173654 accepted. */
+	const UNGATED_EDITS = {
+		"update-published-to-published": { state: "00000", message: null },
+		"update-in-review-to-in-review": { state: "00000", message: null },
+		"update-published-legacy-edit": { state: "00000", message: null },
+	};
+
+	it("names the body that gated no edit of an in-review or published post", () => {
+		const result = assertBlogBanlistGate(blogLine(UNGATED_EDITS));
+		expect(result.ok).toBe(false);
+		expect(result.message).toContain(
+			"gated no UPDATE of a row already in-review or published",
+		);
+	});
+
+	it.each([
+		"update-published-to-published",
+		"update-in-review-to-in-review",
+		"update-published-legacy-edit",
+	] as const)(
+		"does not call it the ungated-edit body when %s is rejected",
+		(label) => {
+			const result = assertBlogBanlistGate(
+				blogLine({ ...UNGATED_EDITS, [label]: REPLAYED_BLOG_BANLIST[label] }),
+			);
+			expect(result.ok).toBe(false);
+			expect(result.message).not.toContain("gated no UPDATE");
+			expect(result.message).toContain("does not decide the fixture's posts");
+		},
+	);
+
+	it("does not call it the ungated-edit body when the draft's move to published also passes", () => {
+		const result = assertBlogBanlistGate(
+			blogLine({
+				...UNGATED_EDITS,
+				"update-draft-to-published": { state: "00000", message: null },
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.message).not.toContain("gated no UPDATE");
 	});
 
 	it.each(Object.keys(EXPECTED_BLOG_BANLIST))(

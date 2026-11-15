@@ -2085,9 +2085,22 @@ export const EXPECTED_BLOG_BANLIST: Readonly<
 	"clean-published": ACCEPTED,
 	// Drafts are not gated.
 	"persona-draft": ACCEPTED,
-	// An UPDATE of a row already in-review or published is not gated, as
-	// before 20261110123128: no existing post is rechecked.
-	"update-published-to-published": ACCEPTED,
+	// Since 20261115173654 an UPDATE of an in-review or published row is gated
+	// whenever it changes a field a gate reads (title, slug, content, excerpt,
+	// meta_description, category), and then every gate runs: a post that
+	// predates a gate cannot be edited past it. An UPDATE that changes none of
+	// them, and an UPDATE out of in-review/published, is not gated.
+	"update-published-to-published": personaHit("title"),
+	"update-in-review-to-in-review": phraseHit("autopay", "excerpt"),
+	"update-published-clean-edit": ACCEPTED,
+	"update-published-ungated-field": ACCEPTED,
+	"update-published-legacy-edit": personaHit("title"),
+	"update-published-legacy-slug": personaHit("title"),
+	"update-published-legacy-meta": personaHit("title"),
+	"update-published-legacy-category": personaHit("title"),
+	"update-published-to-draft": ACCEPTED,
+	// A NULL status is another status: moving such a row to published is gated.
+	"update-null-status-to-published": personaHit("title"),
 	"update-draft-to-published": personaHit("excerpt"),
 };
 
@@ -2157,6 +2170,31 @@ export function assertBlogBanlistGate(raw: string): AssertionResult {
 		};
 	}
 
+	// The body from before 20261115173654 gated a draft's move to published but
+	// no UPDATE of a row already in-review or published: an edit added the
+	// persona word to a published title, a banlist phrase to an in-review
+	// excerpt, and carried an older post's violation through, all accepted.
+	const editCase = asJsonObject(blogParsed["update-published-to-published"]);
+	const inReviewEditCase = asJsonObject(
+		blogParsed["update-in-review-to-in-review"],
+	);
+	const legacyEditCase = asJsonObject(
+		blogParsed["update-published-legacy-edit"],
+	);
+	const draftCase = asJsonObject(blogParsed["update-draft-to-published"]);
+	if (
+		editCase?.["state"] === "00000" &&
+		inReviewEditCase?.["state"] === "00000" &&
+		legacyEditCase?.["state"] === "00000" &&
+		draftCase?.["state"] === "23514"
+	) {
+		return {
+			ok: false,
+			message:
+				"validate_blog_post gated a draft's move to published but accepted every edit of an in-review or published post that broke a gate: that is the body that gated no UPDATE of a row already in-review or published. 20261115173654_validate_blog_post_gate_published_edits.sql did not apply, or a later migration replaced it with an older body.",
+		};
+	}
+
 	const mismatches: string[] = [];
 	for (const [label, expected] of Object.entries(EXPECTED_BLOG_BANLIST)) {
 		const actual = asJsonObject(blogParsed[label]);
@@ -2192,6 +2230,6 @@ export function assertBlogBanlistGate(raw: string): AssertionResult {
 	return {
 		ok: true,
 		message:
-			"validate_blog_post rejects a banlist phrase and the persona word in the title, the excerpt and the content at in-review and at published (as service_role, which holds no EXECUTE), with the spec's semantics (no word start, case ignored, an optional plural, a word end), accepts \"property ownership\", a word character after the word, a clean post and a draft, does not regate an UPDATE of a published post, gates a draft's UPDATE to published, and its privileges are production's",
+			"validate_blog_post rejects a banlist phrase and the persona word in the title, the excerpt and the content at in-review and at published (as service_role, which holds no EXECUTE), with the spec's semantics (no word start, case ignored, an optional plural, a word end), accepts \"property ownership\", a word character after the word, a clean post and a draft, gates an edit of a gated field on an in-review or published post (an older post's own violation included) but not an edit of an ungated field or an unpublish, gates a draft's (and a status-less row's) UPDATE to published, and its privileges are production's",
 	};
 }
