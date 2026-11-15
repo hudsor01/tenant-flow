@@ -1,10 +1,32 @@
 /**
  * Pure helpers extracted from `documents-section.tsx` to keep the
  * component under the 300-line cap. No React, no hooks — only the
- * file-validation rules and the upload-result toast formatter.
+ * file-validation rules, the upload-result toast formatter, and the
+ * signed-lease check that decides whether a row offers Remove.
  */
 
 import { toast } from "sonner";
+import type { DocumentRow as DocumentRowData } from "#hooks/api/query-keys/document-keys";
+
+/** Shown in the signed lease's preview in place of the Remove button. */
+export const SIGNED_LEASE_LOCKED_NOTE =
+	"E-signed copy, filed automatically. It stays with this lease and can't be removed.";
+
+/**
+ * True for the executed PDF of an e-signed lease, which the
+ * `trg_file_signed_lease_in_vault` trigger files in the vault at
+ * `lease/<lease id>/signed-lease.pdf`. That row shares its storage object
+ * with `leases.signed_document_path`, and `protect_signed_lease_document`
+ * rejects deleting it, so the section offers no Remove action for it.
+ */
+export function isSignedLeaseDocument(
+	doc: Pick<DocumentRowData, "entity_type" | "entity_id" | "file_path">,
+): boolean {
+	return (
+		doc.entity_type === "lease" &&
+		doc.file_path === `lease/${doc.entity_id}/signed-lease.pdf`
+	);
+}
 
 // `image/jpg` is a quirk some Safari iOS versions report for Photos exports.
 // The bucket allowlist accepts it; the frontend accept list must match so

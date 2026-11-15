@@ -280,9 +280,33 @@ describe.skipIf(skipReason)(
 						.remove([`lease/${id}/signed-lease.pdf`]);
 				}
 			}
+			let vaultIds: string[] = [];
 			if (leaseIds.length > 0) {
+				// Finalize files the signed PDF in the vault (trg_file_signed_lease_in_vault).
+				// service_role bypasses protect_signed_lease_document, so it can remove it.
+				const { data: vaultRows } = await service
+					.from("documents")
+					.delete()
+					.eq("entity_type", "lease")
+					.in("entity_id", leaseIds)
+					.select("id");
+				vaultIds = (vaultRows ?? []).map((r) => r.id as string);
 				await service.from("notifications").delete().in("entity_id", leaseIds);
 				await service.from("leases").delete().in("id", leaseIds);
+			}
+			// The document, lease and property activity triggers key their rows by
+			// entity_id with no foreign key, so deleting the fixtures removes none.
+			const activityEntityIds = [
+				...vaultIds,
+				...leaseIds,
+				...(propertyId ? [propertyId] : []),
+			];
+			if (activityEntityIds.length > 0) {
+				await service
+					.from("activity")
+					.delete()
+					.eq("user_id", ownerAId)
+					.in("entity_id", activityEntityIds);
 			}
 			if (unitIds.length > 0)
 				await service.from("units").delete().in("id", unitIds);
@@ -530,6 +554,79 @@ describe.skipIf(skipReason)(
 			expect(dl).toBeTruthy();
 		});
 
+		it("finalize files the signed PDF in owner A's vault, which owner A cannot delete and owner B cannot see", async (ctx) => {
+			if (!signFnDeployed || !finalizeLeaseId) ctx.skip();
+			const signedPath = `lease/${finalizeLeaseId}/signed-lease.pdf`;
+
+			const { data: vaultRows } = await service
+				.from("documents")
+				.select(
+					"id, entity_type, entity_id, document_type, mime_type, storage_url, owner_user_id, title, created_at",
+				)
+				.eq("file_path", signedPath);
+			expect(vaultRows).toHaveLength(1);
+			const vaultRow = vaultRows![0]!;
+			expect(vaultRow).toMatchObject({
+				entity_type: "lease",
+				entity_id: finalizeLeaseId,
+				document_type: "lease",
+				mime_type: "application/pdf",
+				storage_url: signedPath,
+				owner_user_id: ownerAId,
+			});
+			expect(vaultRow.title).toMatch(/^Signed lease/);
+
+			// Dated to the signing (the later of the two signatures), not to filing.
+			const { data: signedLease } = await service
+				.from("leases")
+				.select("owner_signed_at, tenant_signed_at")
+				.eq("id", finalizeLeaseId!)
+				.single();
+			const signedAtMs = Math.max(
+				new Date(signedLease!.owner_signed_at!).getTime(),
+				new Date(signedLease!.tenant_signed_at!).getTime(),
+			);
+			expect(new Date(vaultRow.created_at!).getTime()).toBe(signedAtMs);
+
+			// The upload activity the insert logs is retitled: nobody uploaded this.
+			const { data: activityRows } = await service
+				.from("activity")
+				.select("title")
+				.eq("entity_type", "document")
+				.eq("entity_id", vaultRow.id);
+			expect(activityRows).toEqual([{ title: "Signed lease filed" }]);
+
+			const { data: ownRows } = await clientA
+				.from("documents")
+				.select("id")
+				.eq("file_path", signedPath);
+			expect(ownRows).toHaveLength(1);
+
+			const { error: deleteError } = await clientA
+				.from("documents")
+				.delete()
+				.eq("id", vaultRow.id);
+			expect(deleteError?.code).toBe("42501");
+
+			const { error: moveError } = await clientA
+				.from("documents")
+				.update({ file_path: `lease/${finalizeLeaseId}/moved.pdf` })
+				.eq("id", vaultRow.id);
+			expect(moveError?.code).toBe("42501");
+
+			const { data: stillFiled } = await service
+				.from("documents")
+				.select("id, file_path")
+				.eq("id", vaultRow.id);
+			expect(stillFiled).toEqual([{ id: vaultRow.id, file_path: signedPath }]);
+
+			const { data: otherOwnerRows } = await clientB
+				.from("documents")
+				.select("id")
+				.eq("file_path", signedPath);
+			expect(otherOwnerRows).toEqual([]);
+		});
+
 		it("owner sign-owner through the deployed function activates + finalizes", async (ctx) => {
 			if (!signFnDeployed || !ownerFinalizeLeaseId || !ownerAToken) ctx.skip();
 			const res = await fetch(`${SUPABASE_URL}/functions/v1/lease-signature`, {
@@ -556,6 +653,18 @@ describe.skipIf(skipReason)(
 			expect(leaseRow?.signed_document_path).toBe(
 				`lease/${ownerFinalizeLeaseId}/signed-lease.pdf`,
 			);
+
+			const { data: vaultRows } = await service
+				.from("documents")
+				.select("entity_type, entity_id, owner_user_id")
+				.eq("file_path", `lease/${ownerFinalizeLeaseId}/signed-lease.pdf`);
+			expect(vaultRows).toEqual([
+				{
+					entity_type: "lease",
+					entity_id: ownerFinalizeLeaseId,
+					owner_user_id: ownerAId,
+				},
+			]);
 		});
 
 		// ── first-signer paths (no premature activation) ─────────────────────────

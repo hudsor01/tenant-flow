@@ -4,24 +4,40 @@
  * @vitest-environment jsdom
  */
 
-import { fireEvent, screen } from "@testing-library/react";
+import { QueryClient } from "@tanstack/react-query";
+import { fireEvent, render as rtlRender, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render } from "#test/utils/test-render";
+import {
+	type DocumentRow,
+	documentQueries,
+} from "#hooks/api/query-keys/document-keys";
+import { createTestWrapper, render } from "#test/utils/test-render";
 import { DownloadSignedLeaseButton } from "../download-signed-lease-button";
 
-const mockUseSignedDocumentUrl = vi.fn();
+const {
+	mockUseSignedDocumentUrl,
+	finalizeMutate,
+	invalidateVaultCopy,
+	toastError,
+} = vi.hoisted(() => ({
+	mockUseSignedDocumentUrl: vi.fn(),
+	finalizeMutate: vi.fn(),
+	invalidateVaultCopy: vi.fn(),
+	toastError: vi.fn(),
+}));
 const refetch = vi.fn();
+
 vi.mock("#hooks/api/use-lease", () => ({
 	useSignedDocumentUrl: (...args: unknown[]) =>
 		mockUseSignedDocumentUrl(...args),
 }));
 
-const finalizeMutate = vi.fn();
 vi.mock("#hooks/api/use-lease-signature-mutations", () => ({
 	useFinalizeSignedLeaseMutation: () => ({ mutate: finalizeMutate }),
+	invalidateSignedLeaseVaultCopy: (...args: unknown[]) =>
+		invalidateVaultCopy(...args),
 }));
 
-const toastError = vi.fn();
 vi.mock("sonner", () => ({
 	toast: { error: (...args: unknown[]) => toastError(...args) },
 }));
@@ -97,6 +113,97 @@ describe("DownloadSignedLeaseButton", () => {
 		fireEvent.click(btn);
 		expect(finalizeMutate).toHaveBeenCalledWith("l1");
 		expect(refetch).toHaveBeenCalled();
+	});
+
+	describe("refreshing the lease's Documents list once the signed PDF exists", () => {
+		const signedSnapshotAt = 2_000_000;
+		const signedState = {
+			data: { document_url: "https://storage.example/doc.pdf" },
+			dataUpdatedAt: signedSnapshotAt,
+			isLoading: false,
+			error: null,
+			refetch,
+		};
+		function leaseDocument(id: string, filePath: string): DocumentRow {
+			return {
+				id,
+				entity_type: "lease",
+				entity_id: "l1",
+				document_type: "lease",
+				mime_type: "application/pdf",
+				file_path: filePath,
+				storage_url: filePath,
+				file_size: 1024,
+				title: id,
+				tags: null,
+				description: null,
+				owner_user_id: "owner-1",
+				created_at: "2026-11-14T00:00:00Z",
+				signed_url: null,
+			};
+		}
+		const uploaded = leaseDocument("d1", "lease/l1/123-addendum.pdf");
+		const signedCopy = leaseDocument("d2", "lease/l1/signed-lease.pdf");
+
+		// RTL's render, not the shared helper: the helper nests its own
+		// QueryClientProvider inside any wrapper, which would hide this cache.
+		function renderWithCachedList(rows: DocumentRow[], listUpdatedAt: number) {
+			const queryClient = new QueryClient();
+			queryClient.setQueryData(
+				documentQueries.list({ entityType: "lease", entityId: "l1" }).queryKey,
+				{ rows, totalCount: rows.length },
+				{ updatedAt: listUpdatedAt },
+			);
+			const { Wrapper } = createTestWrapper(queryClient);
+			const { rerender } = rtlRender(
+				<DownloadSignedLeaseButton leaseId="l1" />,
+				{ wrapper: Wrapper },
+			);
+			return { queryClient, rerender };
+		}
+
+		it("refetches a list cached before the signed PDF that lacks its filed copy", () => {
+			mockUseSignedDocumentUrl.mockReturnValue(signedState);
+			const { queryClient } = renderWithCachedList(
+				[uploaded],
+				signedSnapshotAt - 1,
+			);
+
+			expect(invalidateVaultCopy).toHaveBeenCalledTimes(1);
+			expect(invalidateVaultCopy).toHaveBeenCalledWith(queryClient, "l1");
+		});
+
+		it("refetches only once while later snapshots still find the copy missing", () => {
+			mockUseSignedDocumentUrl.mockReturnValue(signedState);
+			const { rerender } = renderWithCachedList(
+				[uploaded],
+				signedSnapshotAt - 1,
+			);
+			expect(invalidateVaultCopy).toHaveBeenCalledTimes(1);
+
+			// A later signed-document refetch while the cached list is unchanged.
+			mockUseSignedDocumentUrl.mockReturnValue({
+				...signedState,
+				dataUpdatedAt: signedSnapshotAt + 10_000,
+			});
+			rerender(<DownloadSignedLeaseButton leaseId="l1" />);
+
+			expect(invalidateVaultCopy).toHaveBeenCalledTimes(1);
+		});
+
+		it("leaves a cached list that already shows the filed copy", () => {
+			mockUseSignedDocumentUrl.mockReturnValue(signedState);
+			renderWithCachedList([signedCopy, uploaded], signedSnapshotAt - 1);
+
+			expect(invalidateVaultCopy).not.toHaveBeenCalled();
+		});
+
+		it("leaves a list fetched after the signed PDF, so it cannot loop", () => {
+			mockUseSignedDocumentUrl.mockReturnValue(signedState);
+			renderWithCachedList([uploaded], signedSnapshotAt + 1);
+
+			expect(invalidateVaultCopy).not.toHaveBeenCalled();
+		});
 	});
 
 	it("renders nothing when no document is available yet", () => {

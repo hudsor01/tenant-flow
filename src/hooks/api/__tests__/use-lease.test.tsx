@@ -52,6 +52,7 @@ import {
 } from "../use-lease-mutations";
 import {
 	useCancelSignatureRequestMutation,
+	useFinalizeSignedLeaseMutation,
 	useResendSignatureRequestMutation,
 	useSendLeaseForSignatureMutation,
 	useSignLeaseAsOwnerMutation,
@@ -755,6 +756,55 @@ describe("Mutation Hooks", () => {
 			expect(spy).toHaveBeenCalledWith(
 				expect.objectContaining({ queryKey: ownerDashboardKeys.all }),
 			);
+		});
+
+		it("refreshes the lease's Documents list and the vault search, where finalize files the signed copy", async () => {
+			const { Wrapper, invalidateSpy } = createSpyWrapper();
+			const { result } = renderHook(() => useSignLeaseAsOwnerMutation(), {
+				wrapper: Wrapper,
+			});
+
+			await result.current.mutateAsync("lease-123");
+
+			expect(invalidateSpy).toHaveBeenCalledWith({
+				queryKey: ["documents", "list", "lease", "lease-123"],
+			});
+			expect(invalidateSpy).toHaveBeenCalledWith({
+				queryKey: ["documents", "search"],
+			});
+		});
+	});
+
+	describe("useFinalizeSignedLeaseMutation", () => {
+		it("refreshes the signed document, the lease, its Documents list, the vault search and the dashboard", async () => {
+			const { Wrapper, invalidateSpy } = createSpyWrapper();
+			const { result } = renderHook(() => useFinalizeSignedLeaseMutation(), {
+				wrapper: Wrapper,
+			});
+
+			await result.current.mutateAsync("lease-123");
+
+			expect(fetchMock).toHaveBeenCalledWith(
+				expect.stringContaining("/functions/v1/lease-signature"),
+				expect.objectContaining({
+					body: expect.stringContaining('"action":"finalize"'),
+				}),
+			);
+			expect(invalidateSpy).toHaveBeenCalledWith({
+				queryKey: leaseQueries.signedDocument("lease-123").queryKey,
+			});
+			expect(invalidateSpy).toHaveBeenCalledWith({
+				queryKey: leaseQueries.detail("lease-123").queryKey,
+			});
+			expect(invalidateSpy).toHaveBeenCalledWith({
+				queryKey: ownerDashboardKeys.all,
+			});
+			expect(invalidateSpy).toHaveBeenCalledWith({
+				queryKey: ["documents", "list", "lease", "lease-123"],
+			});
+			expect(invalidateSpy).toHaveBeenCalledWith({
+				queryKey: ["documents", "search"],
+			});
 		});
 	});
 

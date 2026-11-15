@@ -433,7 +433,7 @@ src/test/mocks/msw/utils.ts postgrestEmpty postgrestError
 src/test/mocks/supabase-query-mock.ts createSupabaseClientMock
 src/test/unit-setup.ts createMockResponse
 src/test/utils/test-data.ts DEFAULT_USER
-src/test/utils/test-render.tsx createTestQueryClient createTestWrapper
+src/test/utils/test-render.tsx createTestQueryClient
 src/types/activity.ts Activity ActivityMetadata ActivityStatus
 src/types/analytics.ts AggregationOptions AnalyticsBreakdown AnalyticsBreakdownRow AnalyticsDataPoint AnalyticsEvent AnalyticsFilterOptions AnalyticsPageResponse AnalyticsPaginatedResponse AnalyticsSummary ChartDataPoint ComparisonMetric MetricSummary TimeSeriesResponse
 src/types/auth.ts AuthUser LoginCredentials SignupFormData SupabaseAuthUser
