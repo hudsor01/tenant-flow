@@ -1,9 +1,13 @@
 /**
  * RAG corpus indexer (BLOG-03, v5.0 Phase 10).
  *
- * Reads curated TenantFlow fact sources, chunks them, embeds each chunk via the
- * local LM Studio embedding model (qwen3-embedding-0.6b, 1024-dim), and upserts
- * into public.blog_rag_chunks (re-runnable: a clean re-index per source).
+ * Reads TenantFlow's product facts (LLMS_FULL_HEAD/LLMS_FULL_TAIL in
+ * src/lib/seo/llms-full-facts.ts, the same text /llms-full.txt serves, minus its
+ * per-post blog digest), chunks them at "## " sections, embeds each chunk via
+ * the local LM Studio embedding model (qwen3-embedding-0.6b, 1024-dim), and
+ * replaces the "llms-full.txt" rows of public.blog_rag_chunks (re-runnable).
+ * It used to read public/llms-full.txt, which was deleted on 2026-06-12 when
+ * that page became a route, so the corpus stayed frozen at the 2026-06-08 text.
  *
  * Prereqs (Phase 9): native n8n/LM Studio running at LM_BASE_URL (default
  * http://localhost:1234/v1); SUPABASE_SECRET_KEY (or legacy
@@ -13,9 +17,8 @@
  */
 
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import { LLMS_FULL_HEAD, LLMS_FULL_TAIL } from "../src/lib/seo/llms-full-facts";
 import { loadDotenv } from "./_shared/load-dotenv";
 
 // Importing this module reads no env file and no environment variable and
@@ -79,6 +82,21 @@ function chunkMarkdownBySection(text: string, source: string): Chunk[] {
 	return chunks;
 }
 
+/** The source tag the corpus rows carry; a re-index replaces exactly these rows. */
+export const CORPUS_SOURCE = "llms-full.txt";
+
+/**
+ * The chunks the blog factory grounds on: /llms-full.txt's product sections,
+ * without the per-post blog digest the route adds (an older post's wording must
+ * never return as a fact).
+ */
+export function buildCorpusChunks(): Chunk[] {
+	return chunkMarkdownBySection(
+		`${LLMS_FULL_HEAD}\n\n${LLMS_FULL_TAIL}`,
+		CORPUS_SOURCE,
+	);
+}
+
 async function embed(input: string): Promise<number[]> {
 	const { base, embedModel } = lmConfig();
 	const res = await fetch(`${base}/embeddings`, {
@@ -103,58 +121,53 @@ async function embed(input: string): Promise<number[]> {
 
 async function main(envFiles: readonly string[]) {
 	const { url, serviceKey } = supabaseConfig(envFiles);
-	const ROOT = process.cwd(); // run from the repo root: `bun scripts/rag-index-blog-corpus.ts`
-	const sources = [{ file: "public/llms-full.txt", source: "llms-full.txt" }];
 
 	const supabase = createClient(url, serviceKey, {
 		auth: { persistSession: false },
 	});
 
-	let total = 0;
-	for (const { file, source } of sources) {
-		const text = readFileSync(join(ROOT, file), "utf8");
-		const chunks = chunkMarkdownBySection(text, source);
-		console.log(`${source}: ${chunks.length} chunks`);
+	const chunks = buildCorpusChunks();
+	console.log(`${CORPUS_SOURCE}: ${chunks.length} chunks`);
 
-		// Embed ALL chunks FIRST, then delete+insert in a tight window — so a
-		// mid-run embed failure can't leave the corpus empty (the delete only
-		// commits once every embedding has succeeded).
-		const rows = [];
-		for (const c of chunks) {
-			if (c.content.length > 8000) {
-				console.warn(
-					`\n  [warn] chunk "${c.heading}" is ${c.content.length} chars — large sections risk a truncated (silently degraded) embedding; consider splitting the source.`,
-				);
-			}
-			const embedding = await embed(c.content);
-			rows.push({
-				content: c.content,
-				source: c.source,
-				metadata: {
-					heading: c.heading,
-					hash: createHash("sha256").update(c.content).digest("hex"),
-				},
-				// pgvector accepts the bracketed text representation
-				embedding: `[${embedding.join(",")}]`,
-			});
-			process.stdout.write(".");
-		}
-		process.stdout.write("\n");
-
-		// Clean re-index for this source (idempotent): delete then insert.
-		const del = await supabase
-			.from("blog_rag_chunks")
-			.delete()
-			.eq("source", source);
-		if (del.error) throw new Error(`delete ${source}: ${del.error.message}`);
-		const ins = await supabase.from("blog_rag_chunks").insert(rows);
-		if (ins.error) {
-			throw new Error(
-				`insert ${source}: ${ins.error.message} — corpus for "${source}" may now be empty; re-run this script (it is idempotent).`,
+	// Embed ALL chunks FIRST, then delete+insert in a tight window — so a
+	// mid-run embed failure can't leave the corpus empty (the delete only
+	// commits once every embedding has succeeded).
+	const rows = [];
+	for (const c of chunks) {
+		if (c.content.length > 8000) {
+			console.warn(
+				`\n  [warn] chunk "${c.heading}" is ${c.content.length} chars — large sections risk a truncated (silently degraded) embedding; consider splitting the source.`,
 			);
 		}
-		total += rows.length;
+		const embedding = await embed(c.content);
+		rows.push({
+			content: c.content,
+			source: c.source,
+			metadata: {
+				heading: c.heading,
+				hash: createHash("sha256").update(c.content).digest("hex"),
+			},
+			// pgvector accepts the bracketed text representation
+			embedding: `[${embedding.join(",")}]`,
+		});
+		process.stdout.write(".");
 	}
+	process.stdout.write("\n");
+
+	// Clean re-index for this source (idempotent): delete then insert.
+	const del = await supabase
+		.from("blog_rag_chunks")
+		.delete()
+		.eq("source", CORPUS_SOURCE);
+	if (del.error)
+		throw new Error(`delete ${CORPUS_SOURCE}: ${del.error.message}`);
+	const ins = await supabase.from("blog_rag_chunks").insert(rows);
+	if (ins.error) {
+		throw new Error(
+			`insert ${CORPUS_SOURCE}: ${ins.error.message} — corpus for "${CORPUS_SOURCE}" may now be empty; re-run this script (it is idempotent).`,
+		);
+	}
+	const total = rows.length;
 
 	const { count } = await supabase
 		.from("blog_rag_chunks")

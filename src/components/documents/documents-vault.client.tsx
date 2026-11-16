@@ -385,7 +385,7 @@ export function DocumentsVaultClient() {
 							<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
 							<Input
 								type="search"
-								placeholder="Search by title, description, or tag..."
+								placeholder="Search by title or description..."
 								className="pl-9"
 								value={searchInput}
 								onChange={(e) => setSearchInput(e.target.value)}

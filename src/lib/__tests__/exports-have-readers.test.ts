@@ -43,8 +43,22 @@ const BANLIST =
 	"the blog gate's banlist, which the parity test compares with the trigger's and the generator's";
 const TAX_EXPORT =
 	"the tax-year export's header or formats, pinned by the test";
+const CORPUS =
+	"the blog factory's grounding corpus, which the test checks for stale claims and the blog digest";
 
 const TEST_SEAMS: readonly Seam[] = [
+	{
+		file: "scripts/rag-index-blog-corpus.ts",
+		name: "buildCorpusChunks",
+		reader: "scripts/rag-index-blog-corpus.test.ts",
+		why: CORPUS,
+	},
+	{
+		file: "scripts/rag-index-blog-corpus.ts",
+		name: "CORPUS_SOURCE",
+		reader: "scripts/rag-index-blog-corpus.test.ts",
+		why: CORPUS,
+	},
 	{
 		file: "scripts/migration-replay-assertions.ts",
 		name: "EXPECTED_BILLING_INSIGHTS",
@@ -341,7 +355,7 @@ const TEST_SEAMS: readonly Seam[] = [
 const RATCHET = `
 scripts/fb-append-post.ts CalendarEntry DAILY_SLOTS dayAfter lintFbCopy mapCalendarEntry nextFreeSlot renderCalendarDoc slotSortKey
 scripts/fb-fetch-blog.ts FbBlogFacts mapFbBlogRow
-scripts/generate-blog-draft.ts ADVISORY_GATES Critique Draft GateContext applySlugOverride blogSlugExists capDocusealMentions capH2Count clampToLength critique deriveTags ensureInternalLinks extractComparisonBrands extractExternalUrls findDuplicateComparison gateOnCritique headCheckCitations isAllowlistedCitation isCritiquePass normalizeComparisonPair parseCritique parsePositionals parseSlugOverride pickLoadedModel runGates sanitizeBanlist stripNonAllowlistedExternalLinks validateInternalLinks
+scripts/generate-blog-draft.ts ADVISORY_GATES Critique Draft GateContext applySlugOverride blogSlugExists capH2Count clampToLength critique deriveTags ensureInternalLinks extractComparisonBrands extractExternalUrls findDuplicateComparison gateOnCritique headCheckCitations isAllowlistedCitation isCritiquePass normalizeComparisonPair parseCritique parsePositionals parseSlugOverride pickLoadedModel runGates sanitizeBanlist stripNonAllowlistedExternalLinks validateInternalLinks
 scripts/migration-replay-assertions.ts EXPECTED_SEEDED_CAST
 scripts/platform-config-assertions.ts DOCUMENTED_ADMIN_ENFORCEMENT REQUIRED_CHECK_CONTEXTS SUPABASE_AUTHORITY_REVOKED_AT
 scripts/reclaim-finalize.ts FinalizeInput FinalizeResult REDIRECTS_PATH REDIRECTS_TEST_PATH addLivePublishedSlug finalizeReclaim hasRedirectSource isLivePublishedSlug removeRedirectEntry
