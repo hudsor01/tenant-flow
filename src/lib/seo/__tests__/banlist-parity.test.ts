@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { sanitizeBanlist } from "../../../../scripts/generate-blog-draft";
 import {
 	BLOG_BANLIST,
 	BLOG_BANLIST_FIELDS,
@@ -219,28 +220,57 @@ describe("gate threshold parity (distinctive bounds in every layer)", () => {
 });
 
 /**
- * The generator's `sanitizeBanlist` must neutralize EVERY `BANLIST` phrase and
- * persona word, else a phrase added to the banlist can't self-heal and the
- * generator burns its retries. Parse the BANLIST_REPLACEMENTS regexes and
- * assert each phrase matches one.
+ * Every BANLIST phrase and persona word needs a sentence the generator's
+ * sanitizeBanlist clears, so a phrase added to the banlist comes with a rule
+ * instead of burning the generator's repair turns. The sanitizer leaves
+ * ambiguous forms ("Record rents are rising", "partially paid rent") for gate 8
+ * on purpose, so the proof is one handled example per phrase, not a
+ * context-free regex match.
  */
-function extractReplacementRegexes(file: string): RegExp[] {
-	const text = read(file);
-	const start = text.indexOf("BANLIST_REPLACEMENTS");
-	const block = text.slice(start, text.indexOf("];", start));
-	return [...block.matchAll(/\[\/(.+?)\/gi,/g)].map(
-		(m) => new RegExp(m[1] as string, "i"),
-	);
-}
+const CLEARED_EXAMPLES: Record<string, string> = {
+	"rent collection": "Rent collection is the hardest part of the job.",
+	"online rent": "Apartments.com is an online rental marketplace.",
+	autopay: "Autopay reduces late payments.",
+	"auto-pay": "Set up auto-pay for utilities.",
+	"tenant portal": "Innago has a tenant portal.",
+	"automated rent": "Competitors send automated rent reminders.",
+	"collect rent": "Many landlords collect rent by check.",
+	"rent processing": "Avail charges fees for rent processing.",
+	"pay rent online": "Most tenants pay rent online.",
+	"online payments": "Tenants cannot make online payments.",
+	"online rent payment": "RentTrack offers online rent payment.",
+	"rent collection software": "Compare rent collection software first.",
+	"tenants can pay": "Tenants can pay by check.",
+	"pay rent through": "Tenants pay rent through Zelle.",
+	"automated workflow": "An automated workflow saves time.",
+	"rent tracking": "Use market rent tracking tools.",
+	"mobile app access": "Give tenants mobile app access to their lease.",
+	"record rent": "Landlords can record rent charges in the ledger.",
+	"paid rent": "The tenant paid rent late.",
+	"pay rent": "Tenants pay rent on the first.",
+	"property owner": "Property owners juggle many tasks.",
+};
 
 describe("sanitizer covers the banlist", () => {
-	const replacements = extractReplacementRegexes(SCRIPT);
-	it("every BANLIST phrase and persona word is matched by a BANLIST_REPLACEMENTS regex", () => {
-		for (const phrase of [...script, ...scriptPersona]) {
-			expect(
-				replacements.some((re) => re.test(phrase)),
-				`no sanitizer replacement matches "${phrase}"`,
-			).toBe(true);
-		}
+	it("has an example for exactly the generator's phrases and persona words", () => {
+		expect(Object.keys(CLEARED_EXAMPLES).sort()).toEqual(
+			[...script, ...scriptPersona].sort(),
+		);
 	});
+
+	it.each(Object.entries(CLEARED_EXAMPLES))(
+		"sanitizeBanlist clears %s from its example",
+		(phrase, sentence) => {
+			expect(sentence.toLowerCase()).toContain(phrase);
+			const out = sanitizeBanlist(sentence);
+			for (const banned of script) {
+				expect(out.toLowerCase(), `"${banned}" in "${out}"`).not.toContain(
+					banned,
+				);
+			}
+			for (const word of scriptPersona) {
+				expect(out).not.toMatch(personaWordPattern(word));
+			}
+		},
+	);
 });

@@ -604,7 +604,23 @@ export function runGates(
 		out.push({
 			gate: "banlist",
 			message: `${banHit.phrase} (${banHit.field})`,
-			fix: `Remove the literal phrase "${banHit.phrase}" from the ${banHit.field} and rephrase it (e.g. "pay rent on time" -> "stay current on their lease" / "meet their rent obligations"; "tenant portal" -> drop it entirely). TenantFlow does not facilitate rent payments or offer a tenant portal.`,
+			fix: PERSONA_BANLIST.some((w) => w === banHit.phrase)
+				? `Replace "property owner(s)" in the ${banHit.field} (it can sit inside a longer word: "non-property owners", "a two-property owner") with wording that keeps the meaning: "owner(s)", "landlord(s)" for owners who rent property out, "an owner of two properties", "people who own no property". Describe a quoted legal term instead of quoting it.`
+				: `Remove the literal phrase "${banHit.phrase}" from the ${banHit.field} and rephrase it; it can sit inside a longer word ("overpaid rent" holds "paid rent", "online renters" holds "online rent"). In general advice keep the meaning ("pay rent on time" -> "pay the rent on time"; "rent collection" -> "rent payment collection"; "tenant portal" -> "tenant-facing portal"). In a paragraph about TenantFlow, keep only what is true: TenantFlow does not take, process or automate rent payments or give tenants logins, so delete a claim that it does, and word a denial without the phrase ("TenantFlow does not process rent payments").`,
+		});
+	// The meta description renders in search results and meta tags, but gate
+	// 8 (the ingest function and the DB trigger) checks only title, excerpt
+	// and content, and sanitizeBanlist leaves a phrase near a TenantFlow claim
+	// for the repair turn. So the generator gates it too.
+	const metaLower = p.meta_description.toLowerCase();
+	const metaHit =
+		BANLIST.find((b) => metaLower.includes(b)) ??
+		PERSONA_BANLIST.find((w) => personaWordPattern(w).test(p.meta_description));
+	if (!banHit && metaHit !== undefined)
+		out.push({
+			gate: "banlist",
+			message: `${metaHit} (meta_description)`,
+			fix: `Rewrite the meta_description without the phrase "${metaHit}". TenantFlow does not take, process or automate rent payments or give tenants logins; describe what it does (leases, e-signing on Growth and Max, the document vault, maintenance tracking, the rent ledger).`,
 		});
 	// TenantFlow's lease e-signing is its own (DocuSeal was removed), so a
 	// mention in any public field misstates the product. Stricter than the
@@ -737,62 +753,306 @@ export function runGates(
 	return out;
 }
 
-// Neutralize banlist phrases the model slips in (the EF gate bans the literal
-// strings; these substitutions keep the meaning while clearing the gate). Ordered
-// longest-first so multi-word phrases resolve before their substrings.
-//
-// CRITICAL: the EF gate matches SUBSTRINGS (`lc.includes(phrase)`), so compound
-// words that CONTAIN a banned phrase trip it even though a \b-anchored rule
-// can't see them — "unpaid rent" and "prepaid rent" both contain "paid rent"
-// (n8n execs 282/283 burned 6 attempts each on exactly this in collections
-// content). Specific compound rewrites run FIRST, then a literal no-boundary
-// catch-all guarantees the substring cannot survive.
-const BANLIST_REPLACEMENTS: [RegExp, string][] = [
-	// Persona purity (persona-consistency e2e bans these on every public page):
-	// the audience is "landlords" — never "property owners" / "real estate investors".
-	// The gate needs no word start (PERSONA_BANLIST), so neither do these: a word
-	// glued to "property" keeps it ("single-property owner" -> "single-property
-	// landlord", "multiproperty owners" -> "multiproperty landlords").
-	[/([\w-])property owners\b/gi, "$1property landlords"],
-	[/([\w-])property owner\b/gi, "$1property landlord"],
-	[/property owners\b/gi, "landlords"],
-	[/property owner\b/gi, "landlord"],
-	[/\breal estate investors\b/gi, "landlords"],
-	[/\breal estate investor\b/gi, "landlord"],
-	[/\bunpaid rent\b/gi, "overdue rent"],
-	[/\bprepaid rent\b/gi, "rent paid in advance"],
-	[/\bpaid rent on time\b/gi, "paid on time"],
-	[/\bpay rent on time\b/gi, "stay current on the lease"],
-	[/\bpaid rent\b/gi, "paid on time"],
-	// literal catch-all (no word boundaries) — mirrors the EF's substring match
-	[/paid rent/gi, "paid on time"],
-	[/\bpay rent online\b/gi, "stay current on rent"],
-	[/\bpay rent through\b/gi, "stay current on rent with"],
-	[/\bpay rent\b/gi, "stay current on rent"],
-	[/\bonline rent payment\b/gi, "rent"],
-	[/\bonline rent\b/gi, "rent"],
-	[/\brent collection software\b/gi, "property management software"],
-	[/\brent collection\b/gi, "rent management"],
-	[/\bcollect rent\b/gi, "receive rent"],
-	[/\brent processing\b/gi, "rent management"],
-	[/\brent tracking\b/gi, "rent records"],
-	[/\brecord rent\b/gi, "record payments"],
-	[/\btenants can pay\b/gi, "tenants can stay current"],
-	// "tenant records" (the old swap) read as "TenantFlow lacks tenant records" in
-	// a sentence like "it does not include a tenant portal"; a login is what the
-	// phrase meant, and TenantFlow gives tenants none.
-	[/\btenant portals\b/gi, "tenant logins"],
-	[/\btenant portal\b/gi, "tenant login"],
-	[/\bauto-?pay\b/gi, "consistent payments"],
-	[/\bautomated rent\b/gi, "consistent rent"],
-	[/\bautomated workflow\b/gi, "streamlined process"],
-	[/\bonline payments\b/gi, "payments"],
-	[/\bmobile app access\b/gi, "easy access"],
+// Neutralize banlist phrases the model slips in, without changing what the text
+// says. One principle, learned from rewrites that went wrong on the n8n
+// writer's real drafts and on adversarial sentences: a rule fires only on
+// positive evidence that its edit is right, and anything uncertain is left as
+// written for gate 8 (findBanlistHit), whose repair turn has the model rewrite
+// the sentence with its meaning in view. Concretely:
+//   1. Minimal edits that keep grammar and meaning: "pay rent" -> "pay the
+//      rent", "rent collection" -> "rent payment collection", "tenant portal" ->
+//      "tenant-facing portal". The n8n writer's fixed swaps produced "rent
+//      payments workflows", "tenants can make payments rent by check" and "the
+//      platform's focus on the tenant login".
+//   2. A form that reads two ways fires only where the words on both sides
+//      settle it: "record rent" is the verb after "to"/"can"/"who" and before
+//      "charges"/"payments", the adjective after "saw"/"amid"/"the" and before
+//      "levels"/"growth"; "paid rent" is the verb right after its subject.
+//      The rest ("landlords record rent increases", "Maria prepaid rent",
+//      "switch to autopay") goes to gate 8.
+//   3. Never launder a claim: no banlist phrase is rewritten in a section (an
+//      H1/H2 and everything under it, or the whole text when it has none) that
+//      names TenantFlow or "our app/platform/software", so a claim like
+//      "TenantFlow offers automated rent collection", a feature table with a
+//      TenantFlow column, or "With it, tenants can pay rent online" always
+//      reaches gate 8. Negations are not trusted.
+//   4. Persona: "property owner" becomes "landlord" in a paragraph about
+//      renting, or "owner" where the sentence already says landlord, homeowner
+//      or HOA or the paragraph is not about renting. A coordination that
+//      shares "property" ("residential and property owners") goes to gate 8,
+//      and "owner(s) of X property" needs a clear noun-phrase start and end.
+//   5. Nothing inside double quotes changes, and a Title Case phrase outside
+//      a title is a name, a button or a label ("Rent Collection Act", "click
+//      Pay Rent", "the Lakeview Property Owners Association"), so it stays too.
+//   6. The title, excerpt and meta description are blurbs about the post, so
+//      only persona rules run on them ({ banlist: false }); a banned phrase
+//      there goes to gate 8 or the meta gate.
+// The n8n writer (workflow BET3f8bvAQFs9NT9, node "Process & Score Blog") should
+// carry the same table.
+type BanReplacement =
+	| string
+	| ((
+			groups: string[],
+			context: {
+				paragraph: string;
+				sentence: string;
+				before: string;
+				after: string;
+			},
+	  ) => string | undefined);
+type BanRule = { re: RegExp; rep: BanReplacement; banlist?: boolean };
+
+// A sentence that already says landlord, homeowner or HOA takes "owner", not
+// "landlord" ("landlords and property owners" would read "landlords and
+// landlords"; "landlord-focused" is an adjective and does not count).
+const OWNER_CONTEXT =
+	/\b(?:landlords?|homeowners?|HOAs?|POAs?|COAs?)\b(?!-)|\bowner-occup|\bcondo(?:minium)? (?:association|board)/i;
+// A paragraph about renting is the evidence that its "property owner" is a
+// landlord; elsewhere the exact word is "owner" ("assessments go to every
+// property owner"). "landlord" itself is not evidence: a neighbouring sentence
+// may contrast the two ("Landlords need reserves. So do property owners who
+// live in their homes.").
+const RENTAL_CONTEXT =
+	/\b(?:rent|rents|rental|rentals|renting|rented|lease|leases|leasing|leased|tenants?|vacanc(?:y|ies)|units?|brrrr)\b|\bproperty manag|tenant[\s-]?flow/i;
+// A contrast right before a match ("not every property owner rents out
+// space", "unlike most property owners") is about owners in general.
+const CONTRAST_BEFORE =
+	/\b(?:not (?:every|all|only|just)|unlike(?: most| many| other)?|neither|nor)\s(?:the\s)?$/i;
+// Where a noun phrase starts: a sentence, line, list, quote, heading or cell
+// start, a determiner or preposition, or a person noun and "and"/"or"/a comma
+// ("landlords and property owners"). Not after an adjective or noun modifier.
+const NOUN_PHRASE_START =
+	/(?:^|\n|[.!?:]\s+|(?:^|\n)\s*(?:[-*+>]|\d+[.)])\s+|#{1,6}\s+|\|\s*|\b(?:the|a|an|many|most|some|all|any|every|each|no|few|these|those|our|your|their|for|of|to|with|by|from|as|like|between|among|about|other|both|whether|if|when)\s|\b(?:landlords?|tenants?|renters?|managers?|investors?|homeowners?|agents?|buyers?|sellers?|owners?)(?:,?\s(?:and|or|&)|,)\s)$/i;
+// "<word> and/or/& " before a match, unless the word is a person noun.
+const COORDINATED =
+	/\b(?!(?:landlords?|tenants?|renters?|managers?|investors?|homeowners?|agents?|buyers?|sellers?|owners?)\b)[\w-]+,?\s(?:and|or|&)\s$/i;
+const QUANTITY_BEFORE =
+	/\b(?:multi|multiple|one|two|three|four|five|six|seven|eight|nine|ten|\d+)\s$/i;
+// Where an "owner(s) of ..." noun phrase may end, so moving the head noun to
+// the front cannot strand a possessive, a following noun or a coordination.
+const NOUN_PHRASE_END =
+	/^(?:\s*(?:[.,;:!?)\]]|$)|\s+(?:who|that|which|is|are|was|were|can|could|must|should|may|might|will|would|often|usually|typically|in|on|at|for|with)\b)/i;
+// After an "autopay" that starts a sentence, line or heading: evidence that it
+// is the noun (a verb, punctuation, or a noun it modifies follows).
+const AUTOPAY_NOUN_AFTER =
+	/(?=\s*(?:[.,;:!?)\]|]|$)|\s+(?:is|are|was|were|can|could|will|would|should|may|might|must|reduces?|helps?|saves?|cuts?|makes?|lets?|means?|works?|does|doesn['’]t|isn['’]t|has|have|also|and|or|vs\.?|versus|discounts?|enrollment|setup|options?|features?|programs?|plans?|settings?|dates?)\b)/
+		.source;
+// Not followed by the noun a phrase would modify ("pay rent buttons").
+const NOT_A_MODIFIER =
+	/(?! (?:buttons?|links?|options?|features?|screens?|pages?|tabs?|portals?|apps?|forms?|widgets?)\b)/
+		.source;
+// The verb slots before "rent" ("you can rent tracking cameras").
+const RENT_AS_VERB =
+	/(?<!\b(?:can|could|will|would|to|you|we|they|who|often|usually|also|may|might|must|should|I) )/
+		.source;
+// A section names the product when it says TenantFlow (or "Tenant Flow"), "our
+// (Growth) plan/app/software", or pitches it ("free trial", "built for small
+// landlords").
+const PRODUCT_NAMED =
+	/tenant[\s-]?flow|\b(?:our|we)\s+(?:[\w-]+\s+){0,3}?(?:app|platform|software|product|plans?|tools?|service|system|dashboard|features?)\b|\bwe built\b|\b(?:try it|start) free\b|\bfree trial\b|\bsign up\b|\bbuilt for (?:\w+ ){0,2}landlords\b/i;
+// Marks a replacement that starts with a vowel, so the "a" before it becomes
+// "an" (sanitizeBanlist strips every mark after each pass).
+const VOWEL_MARK = "\u0000";
+
+const BANLIST_REPLACEMENTS: BanRule[] = [
+	// Persona purity: the gate and persona-consistency.spec.ts reject "property
+	// owner(s)" (no word start: "single-property owner" counts); the spec also
+	// rejects "real estate investor(s)" on / and /pricing.
+	{
+		// Predicative only ("Is the property owner-occupied?").
+		re: /(?<![\w-])property owner-occupied\b(?=\s*(?:[.,;:!?)\]]|$)|\s+(?:or|and|but)\b)/gi,
+		rep: "property occupied by its owner",
+	},
+	{ re: /(?<![\w-])property owner-occupant(s?)\b/gi, rep: "owner-occupant$1" },
+	{
+		re: /(?<![\w-])property owners?['’]?s?['’]? association(s?)\b/gi,
+		rep: "owners' association$1",
+	},
+	{
+		re: /(?<=\b(?:every|each|no|not a) )single property owner(s?)\b/gi,
+		rep: "single owner$1",
+	},
+	{
+		// groups: single (glued or hyphenated), single (spaced: plural, or
+		// singular after "for the"/"as a": "the single property owner on the
+		// deed" may mean the sole owner), multi, rental, a property type, "s".
+		re: /(?<![\w-])(?<!\bsingle )(?:(single-?)(?=property)|(single )(?=property owners\b)|(?<=\b(?:for|to|of) the |\b(?:for|as|is|like|of|to) an? )(single )(?=property owner\b)|(multi-?|multiple-)|(rental )|(vacation |investment |commercial |residential |multifamily |multi-family |single-family |condo ))?property owner(s?)\b(?!-occup)(?!['’]?s?['’]? association)/gi,
+		rep: (
+			[singleGlued, singlePlural, singleAfterArticle, multi, rental, type, s],
+			{ paragraph, sentence, before, after },
+		) => {
+			// A plain noun swap keeps any adjective before it ("independent
+			// landlords"), but not a coordination that shares "property" ("home
+			// and property owners") or a quantity ("multi property owners").
+			if (COORDINATED.test(before) || QUANTITY_BEFORE.test(before))
+				return undefined;
+			// Moving the head noun to the front needs a clear noun-phrase start
+			// and end ("short-term vacation property owners" would strand
+			// "short-term").
+			const movable =
+				NOUN_PHRASE_START.test(before) && NOUN_PHRASE_END.test(after);
+			// A table row or list item reads against its whole block ("| Landlord
+			// | Repairs |" above "| Property owner | Taxes |").
+			const inBlock = /(?:^|\n)\s*(?:\||[-*+]\s|\d+[.)]\s)[^\n]*$/.test(before);
+			// Two persona phrases in one sentence would both become "landlord".
+			const ownerContext =
+				OWNER_CONTEXT.test(inBlock ? paragraph : sentence) ||
+				CONTRAST_BEFORE.test(before) ||
+				(sentence.match(/property owners?\b/gi) ?? []).length > 1;
+			const landlord = !ownerContext && RENTAL_CONTEXT.test(paragraph);
+			if (type)
+				return movable
+					? `owner${s} of ${type.trim().toLowerCase()} property`
+					: undefined;
+			if (rental) {
+				if (
+					!OWNER_CONTEXT.test(inBlock ? paragraph : sentence) &&
+					!CONTRAST_BEFORE.test(before)
+				)
+					return `landlord${s}`;
+				return movable ? `owner${s} of rental property` : undefined;
+			}
+			if (singleGlued || singlePlural || singleAfterArticle) {
+				if (landlord) return `single-property landlord${s}`;
+				return movable ? `owner${s} of a single property` : undefined;
+			}
+			if (multi) {
+				if (landlord) return `${multi}property landlord${s}`;
+				return movable ? `owner${s} of multiple properties` : undefined;
+			}
+			return landlord ? `landlord${s}` : `owner${s}`;
+		},
+	},
+	{ re: /\breal estate investor(s?)\b/gi, rep: "property investor$1" },
+	// The banlist.
+	{
+		re: new RegExp(String.raw`${RENT_AS_VERB}\brent collection tracking`, "gi"),
+		rep: "rent payment tracking",
+		banlist: true,
+	},
+	{
+		re: new RegExp(
+			String.raw`${RENT_AS_VERB}\brent collection software\b`,
+			"gi",
+		),
+		rep: "rent payment software",
+		banlist: true,
+	},
+	{
+		re: new RegExp(String.raw`${RENT_AS_VERB}\brent collection`, "gi"),
+		rep: "rent payment collection",
+		banlist: true,
+	},
+	{
+		re: /\bonline rent payment/gi,
+		rep: "electronic rent payment",
+		banlist: true,
+	},
+	{ re: /\bonline payments/gi, rep: "electronic payments", banlist: true },
+	{
+		// Bare "online rent" can be a verb ("units marketed online rent
+		// faster") or market data ("online rent estimates"); these are listings.
+		re: /\bonline rental (listings?|marketplaces?|sites?|platforms?|ads?|applications?)\b/gi,
+		rep: "internet rental $1",
+		banlist: true,
+	},
+	{
+		// Not as a modifier after a determiner ("a collect rent button").
+		re: new RegExp(
+			String.raw`(?<!\b(?:a|an|the|your|our|their|its|this|that) )\bcollect rent${NOT_A_MODIFIER}`,
+			"gi",
+		),
+		rep: "collect the rent",
+		banlist: true,
+	},
+	{
+		re: new RegExp(String.raw`${RENT_AS_VERB}\brent processing`, "gi"),
+		rep: "rent payment processing",
+		banlist: true,
+	},
+	{
+		// The hyphen keeps both senses: payments received and market rent levels.
+		re: new RegExp(String.raw`${RENT_AS_VERB}\brent tracking`, "gi"),
+		rep: "rent-tracking",
+		banlist: true,
+	},
+	// "tenant records" (an older swap) made "it does not include a tenant
+	// portal" say TenantFlow lacks tenant records; "tenant login" made a
+	// competitor's portal a credential.
+	{ re: /\btenant portal/gi, rep: "tenant-facing portal", banlist: true },
+	{ re: /\bautomated workflow/gi, rep: "automatic workflow", banlist: true },
+	{ re: /\bautomated rent/gi, rep: "automatic rent", banlist: true },
+	{ re: /\bauto-?pay(?=-)/gi, rep: "automatic-payment", banlist: true },
+	{ re: /\bauto-?payments\b/gi, rep: "automatic payments", banlist: true },
+	{ re: /\bauto-?payment\b/gi, rep: "automatic payment", banlist: true },
+	{
+		// The noun: after a determiner or preposition, or at a sentence, line,
+		// heading or cell start when a verb, punctuation or a modified noun
+		// follows. "Autopay your utilities", "tenants who don't autopay",
+		// autopays, autopaid and autopaying go to gate 8.
+		re: new RegExp(
+			String.raw`(?<=\b(?:no|an?|the|of|for|with|via|use|uses|using|up|enable|enables|enabled|offer|offers|offering|in|about|on|like|your|their|our|its|through|vs\.?|versus|is|are|was|were|how|what|whether|if|when)\s)auto-?pay\b(?![-\w])(?!\s+(?:your|the|their|his|her|its|our|my|a|an|this|that|these|those|every|each|all|it|them|rent)\b)|(?<=^|\n|[.!?:]\s+|#{1,6}\s+|\|\s*|(?:^|\n)\s*(?:[-*+>]|\d+[.)])\s+)auto-?pay\b(?![-\w])${AUTOPAY_NOUN_AFTER}`,
+			"gi",
+		),
+		rep: "automatic payment",
+		banlist: true,
+	},
+	{ re: /tenants can pay\b/gi, rep: "tenants are able to pay", banlist: true },
+	{ re: /\bmobile app accessib/gi, rep: "mobile-app accessib", banlist: true },
+	{
+		// Not when "access" is the verb ("the mobile app access their lease").
+		re: /\bmobile app access\b(?!\s+(?:their|your|his|her|its|our|the|a|an|all|every|each|any|tenants?|leases?)\b)/gi,
+		rep: "mobile-app access",
+		banlist: true,
+	},
+	{
+		// "record" the adjective: a word that takes it before, a market word after.
+		re: /(?<=\b(?:saw|see|sees|seeing|hit|hits|hitting|reached|reach|reaches|reaching|amid|despite|at|a|an|the|new|all-time) )record rent(?=(?:al|er)? (?:levels?|growth|highs?|increases?|prices?|gains?|spikes?|inflation|territory|demand)\b)/gi,
+		rep: "record-setting rent",
+		banlist: true,
+	},
+	{
+		// "record" the verb: a word that takes a verb before, a ledger object after.
+		re: /(?<=\b(?:to|can|could|should|must|will|would|may|might|you|we|they|I|who) )record rent(?= (?:charges?|payments?|receipts?|received|due|owed|amounts?|entries|history)\b)/gi,
+		rep: "record the rent",
+		banlist: true,
+	},
+	{ re: /\bunpaid rent(?!er)/gi, rep: "outstanding rent", banlist: true },
+	{
+		// The verb, right after its subject ("the tenant prepaid rent").
+		re: /(?<=\b(?:tenant|tenants|renter|renters|resident|residents|they|he|she|who|I|you|we) )(over|under|re|pre)paid rent(?!al|er)/gi,
+		rep: "$1paid the rent",
+		banlist: true,
+	},
+	{
+		// The noun, after a determiner, preposition or ledger verb, or at a
+		// sentence, line or cell start. "advance rent" is the IRS term for rent
+		// received before the period it covers.
+		re: /(?<=(?:^|\n|[.!?:]\s+|#{1,6}\s+|\|\s*|(?:^|\n)\s*(?:[-*+>]|\d+[.)])\s+|\b(?:the|a|an|any|no|of|as|in|for|and|or|your|their|our|its|on|is|was|record|track|report|refund)\s))pre-?paid rent(?!er)/gi,
+		rep: "advance rent",
+		banlist: true,
+	},
+	{
+		re: /(?<=\b(?:tenant|tenants|renter|renters|resident|residents|they|he|she|who|I|you|we) )paid rent(?!al|er)/gi,
+		rep: "paid the rent",
+		banlist: true,
+	},
+	{
+		// Not as a modifier ("a pay rent button", "take-home pay"), and not in
+		// the legal "pay rent or quit" notice.
+		re: new RegExp(
+			String.raw`(?<!\b(?:a|an|the|your|our|their|its|this|that|my|his|her|take-home|gross|net|monthly|weekly|annual|base) )(?<!-)\b(re|pre|over|under|co)?pay rent(?! or quit\b)${NOT_A_MODIFIER}`,
+			"gi",
+		),
+		rep: "$1pay the rent",
+		banlist: true,
+	},
 ];
 const SMALL_WORDS = new Set([
 	"a",
 	"an",
 	"and",
+	"by",
 	"for",
 	"in",
 	"of",
@@ -803,42 +1063,220 @@ const SMALL_WORDS = new Set([
 	"with",
 ]);
 
-/**
- * Give a replacement the match's case: Title Case for a Title Case phrase
- * ("Rent Collection Software" -> "Property Management Software"), a leading
- * capital for a phrase that starts a sentence ("Tenant portals add fees." ->
- * "Tenant logins add fees."), the replacement as written otherwise.
- */
-function matchCase(match: string, rep: string): string {
-	const words = match.split(/\s+/);
-	if (words.length > 1 && words.every((w) => /^[A-Z]/.test(w)))
-		return rep
-			.split(" ")
-			.map((w, i) =>
-				i > 0 && SMALL_WORDS.has(w)
-					? w
-					: w.charAt(0).toUpperCase() + w.slice(1),
-			)
-			.join(" ");
-	return /^[A-Z]/.test(match)
-		? rep.charAt(0).toUpperCase() + rep.slice(1)
-		: rep;
+const isCapitalized = (w: string): boolean => /^[^A-Za-z]*[A-Z]/.test(w);
+const capitalizeFirst = (rep: string): string =>
+	rep.replace(/[A-Za-z]/, (c) => c.toUpperCase());
+const titleCase = (rep: string): string =>
+	rep
+		.split(" ")
+		.map((w, i) =>
+			i > 0 && SMALL_WORDS.has(w)
+				? w
+				: w
+						.split("-")
+						.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+						.join("-"),
+		)
+		.join(" ");
+// Most words of four or more letters capitalized.
+const isTitleText = (text: string): boolean => {
+	const words = text.match(/[A-Za-z][A-Za-z'’-]{3,}/g) ?? [];
+	return (
+		words.length >= 2 &&
+		words.filter(isCapitalized).length / words.length >= 0.75
+	);
+};
+
+// The line (or table cell) around a match, and whether it is a title: a
+// title-cased heading, cell or one-line field without a final period.
+function lineContext(
+	before: string,
+	match: string,
+	after: string,
+	whole: string,
+): { lineBefore: string; title: boolean } {
+	const lineBefore = before.slice(before.lastIndexOf("\n") + 1);
+	const lineEnd = after.indexOf("\n");
+	const lineAfter = lineEnd < 0 ? after : after.slice(0, lineEnd);
+	if (/^\s*\|/.test(lineBefore)) {
+		const cellEnd = lineAfter.indexOf("|");
+		const cell =
+			lineBefore.slice(lineBefore.lastIndexOf("|") + 1) +
+			match +
+			(cellEnd < 0 ? lineAfter : lineAfter.slice(0, cellEnd));
+		return { lineBefore, title: isTitleText(cell) };
+	}
+	const titleLine =
+		/^#{1,6}\s/.test(lineBefore) ||
+		(!whole.includes("\n") && !/\.["”')]*\s*$/.test(whole));
+	return {
+		lineBefore,
+		title: titleLine && isTitleText(lineBefore + match + lineAfter),
+	};
 }
 
-export function sanitizeBanlist(s: string): string {
+/**
+ * Give a replacement the match's case. ALL CAPS stays ALL CAPS ("PAY RENT" ->
+ * "PAY THE RENT"). A phrase follows its own words: Title Case ("Rent
+ * Collection Software" -> "Rent Payment Software") or a leading capital
+ * ("Rent collection is" -> "Rent payment collection is"). A single word cannot
+ * show which, so it takes Title Case in a title ("## Is Autopay Worth It" ->
+ * "## Is Automatic Payment Worth It") or mid-sentence, and a leading capital
+ * where it starts a sentence ("Autopay reduces" -> "Automatic payment reduces").
+ */
+function matchCase(
+	match: string,
+	rep: string,
+	lineBefore: string,
+	title: boolean,
+): string {
+	const letters = match.replace(/[^A-Za-z]/g, "");
+	if (letters.length > 1 && letters === letters.toUpperCase())
+		return rep.toUpperCase();
+	if (!isCapitalized(match)) return rep;
+	const words = match
+		.split(/\s+/)
+		.filter((w) => !SMALL_WORDS.has(w.toLowerCase()));
+	if (words.length > 1)
+		return words.every(isCapitalized) ? titleCase(rep) : capitalizeFirst(rep);
+	return title || /[A-Za-z0-9,;][ \t]*$/.test(lineBefore)
+		? titleCase(rep)
+		: capitalizeFirst(rep);
+}
+
+// The sentence around a match. "U.S.", "a.m.", "vs." and "e.g." do not end a
+// sentence; a wrong split only changes which persona word is chosen.
+const SENTENCE_END =
+	/(?<!\b(?:[A-Za-z]|vs|e\.g|i\.e|etc|approx|incl|Mr|Mrs|Ms|Dr|St|Jr|Inc|Co))[.!?]["”')]*(?=\s)|\n/g;
+function sentenceAround(whole: string, offset: number, length: number): string {
+	let start = 0;
+	for (const m of whole.slice(0, offset).matchAll(SENTENCE_END))
+		start = m.index + m[0].length;
+	const end = whole.slice(offset + length).search(SENTENCE_END);
+	return whole.slice(start, end < 0 ? whole.length : offset + length + end);
+}
+
+// The paragraph around a match (between blank lines).
+function paragraphAround(whole: string, offset: number): string {
+	const start = whole.slice(0, offset).lastIndexOf("\n\n");
+	const next = whole.indexOf("\n\n", offset);
+	return whole.slice(start < 0 ? 0 : start, next < 0 ? whole.length : next);
+}
+
+// The section around a match: from the H1/H2 before it to the next H1/H2, or
+// the whole text when it has none.
+function sectionAround(whole: string, offset: number): string {
+	const heads = [...whole.slice(0, offset).matchAll(/(?:^|\n)#{1,2}[ \t]/g)];
+	const start = heads.at(-1)?.index ?? 0;
+	const next = whole.slice(offset).search(/\n#{1,2}[ \t]/);
+	return whole.slice(start, next < 0 ? whole.length : offset + next);
+}
+
+// Inside an open double quote on the match's line (an inch mark, a quote right
+// after a digit, does not count).
+const insideQuotes = (lineBefore: string): boolean =>
+	(lineBefore.replace(/(?<=\d)"/g, "").match(/"/g) ?? []).length % 2 === 1 ||
+	lineBefore.lastIndexOf("“") > lineBefore.lastIndexOf("”");
+
+// Fill $1..$9. A group moved away from the start loses its leading capital;
+// matchCase restores Title Case and ALL CAPS.
+const expandGroups = (rep: string, groups: string[]): string =>
+	rep.replace(/\$(\d)/g, (_ref, n: string, at: number) => {
+		const g = groups[Number(n) - 1] ?? "";
+		return at > 0 ? g.charAt(0).toLowerCase() + g.slice(1) : g;
+	});
+
+// "a" before a marked (vowel-initial) replacement becomes "an": a lowercase
+// "a" always, a capital "A" only at a sentence, line, list, cell or heading
+// start or in a title ("Class A owners" keeps its label). Then drop the marks.
+function fixArticles(text: string): string {
+	return text
+		.replace(
+			new RegExp(String.raw`\b([Aa])( +)${VOWEL_MARK}(\S*)`, "g"),
+			(m, a: string, space: string, next: string, at: number) => {
+				const before = text.slice(0, at);
+				const lineBefore = before.slice(before.lastIndexOf("\n") + 1);
+				const atStart =
+					/(?:^|[.!?]["”')]*\s+|[:—–]\s+|^\s*(?:[-*+>]|\d+[.)])\s+|#{1,6}\s+|\|\s*|[*_"“(]\s?)$/.test(
+						lineBefore,
+					);
+				const lineEnd = text.indexOf("\n", at);
+				const line = text.slice(
+					at - lineBefore.length,
+					lineEnd < 0 ? text.length : lineEnd,
+				);
+				if (a === "A" && !atStart && !isTitleText(line)) return m;
+				const nextLetters = next.replace(/[^A-Za-z]/g, "");
+				const article =
+					a === "a"
+						? "an"
+						: nextLetters.length > 1 &&
+								nextLetters === nextLetters.toUpperCase()
+							? "AN"
+							: "An";
+				return `${article}${space}${VOWEL_MARK}${next}`;
+			},
+		)
+		.replaceAll(VOWEL_MARK, "");
+}
+
+export function sanitizeBanlist(
+	s: string,
+	{ banlist: rewriteBanlist = true }: { banlist?: boolean } = {},
+): string {
 	let out = s;
-	// Loop to a fixed point: a replacement can leave adjacent fragments that
-	// re-form a banned phrase (e.g. "online online rent" -> "online rent").
+	// Loop to a fixed point: a rewrite can expose a match for an earlier rule.
+	// Rules run in order, most specific first, so order matters.
 	for (let pass = 0; pass < 5; pass++) {
-		const before = out;
-		for (const [re, rep] of BANLIST_REPLACEMENTS) {
-			// A replacement with a group reference ("$1property landlords") keeps
-			// the matched text's own case; every other one follows the match's.
-			out = rep.includes("$")
-				? out.replace(re, rep)
-				: out.replace(re, (match) => matchCase(match, rep));
+		const previous = out;
+		for (const { re, rep, banlist } of BANLIST_REPLACEMENTS) {
+			if (banlist && !rewriteBanlist) continue;
+			out = out.replace(re, (match: string, ...args: unknown[]) => {
+				// args: the capture groups, then the match offset, then the string.
+				const at = args.findIndex((a) => typeof a === "number");
+				const groups = args
+					.slice(0, at)
+					.map((g) => (typeof g === "string" ? g : ""));
+				const offset = Number(args[at]);
+				const whole = String(args[at + 1]);
+				const before = whole.slice(0, offset);
+				const after = whole.slice(offset + match.length);
+				const { lineBefore, title } = lineContext(before, match, after, whole);
+				if (
+					insideQuotes(lineBefore) ||
+					(/['‘]$/.test(lineBefore) && /^s?['’]/.test(after))
+				)
+					return match;
+				// A Title Case phrase outside a title is a name, a button or a
+				// label ("Rent Collection Act", "click Pay Rent").
+				const words = match
+					.split(/\s+/)
+					.filter((w) => !SMALL_WORDS.has(w.toLowerCase()));
+				if (
+					words.length > 1 &&
+					words.every(isCapitalized) &&
+					match !== match.toUpperCase() &&
+					!title
+				)
+					return match;
+				if (banlist && PRODUCT_NAMED.test(sectionAround(whole, offset)))
+					return match;
+				const expanded =
+					typeof rep === "string"
+						? expandGroups(rep, groups)
+						: rep(groups, {
+								paragraph: paragraphAround(whole, offset),
+								sentence: sentenceAround(whole, offset, match.length),
+								before,
+								after,
+							});
+				if (expanded === undefined) return match;
+				const cased = matchCase(match, expanded, lineBefore, title);
+				return /^[aeiou]/i.test(cased) ? VOWEL_MARK + cased : cased;
+			});
 		}
-		if (out === before) break;
+		out = fixArticles(out);
+		if (out === previous) break;
 	}
 	return out;
 }
@@ -1211,11 +1649,15 @@ async function generateValidDraft(
 		// deterministically neutralize any banlist phrases the model slips in
 		d.content = sanitizeBanlist(d.content);
 		// excerpt/title/meta render on public surfaces (blog index cards, meta
-		// tags) that the persona e2e scans — sanitize them too. Length gates
-		// re-run below, so a shrunk excerpt re-enters the repair loop.
-		d.title = sanitizeBanlist(d.title);
-		d.excerpt = sanitizeBanlist(d.excerpt);
-		d.meta_description = sanitizeBanlist(d.meta_description);
+		// tags) that the persona e2e scans, so they get the persona rules. They
+		// are blurbs about the post, so a banned phrase in one goes to gate 8
+		// (title, excerpt) or the meta gate rather than being rewritten. Length
+		// gates re-run below, so a shrunk excerpt re-enters the repair loop.
+		d.title = sanitizeBanlist(d.title, { banlist: false });
+		d.excerpt = sanitizeBanlist(d.excerpt, { banlist: false });
+		d.meta_description = sanitizeBanlist(d.meta_description, {
+			banlist: false,
+		});
 		// Deterministically trim an OVER-long meta/excerpt to a clean boundary
 		// rather than throwing away a good article and regenerating all ~2000
 		// words just to reshape a ~150-char blurb (pure waste — the Buildium
@@ -1484,7 +1926,7 @@ E-E-A-T CONVENTIONS:
 - Be authoritative without hype; cite no statistic or external claim unless it is general domain knowledge or present in the provided facts.
 - Every TenantFlow-specific capability, price, or positioning claim MUST be grounded in the provided facts block. If a fact is not in that block, do not assert it about TenantFlow.
 HARD RULES (a single violation rejects the article):
-- TenantFlow does NOT facilitate rent payments and is NOT a tenant portal. NEVER use these literal phrases: ${BANLIST.join(", ")}. If you need the idea, rephrase: "pay rent on time" -> "stay current on their lease" / "meet their rent obligations".
+- TenantFlow does NOT facilitate rent payments and is NOT a tenant portal. NEVER use these literal phrases: ${BANLIST.join(", ")}. If general advice needs the idea, rephrase it with the same meaning: "pay rent on time" -> "pay the rent on time"; "rent collection" -> "rent payment collection".
 - Never mention DocuSeal or any other e-signature vendor: TenantFlow's lease e-signing is its own, on the Growth and Max plans only.
 - Output ONLY one valid JSON object.`;
 	const comparisonBrands = extractComparisonBrands(slugOverride ?? "");
