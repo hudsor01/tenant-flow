@@ -4,6 +4,7 @@ import type { RefObject } from "react";
 import { toast } from "sonner";
 import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 import { createLogger } from "#lib/frontend-logger";
+import { safeFileExtension, storageObjectPath } from "#lib/storage-path";
 import type { FileWithStatus } from "./sections/property-images-create-section";
 
 const logger = createLogger({ component: "PropertyFormUpload" });
@@ -41,9 +42,10 @@ export async function uploadPropertyImages({
 			);
 
 			try {
-				const fileExt = file.name.split(".").pop();
-				const fileName = `${crypto.randomUUID()}.${fileExt}`;
-				const filePath = `${propertyId}/${fileName}`;
+				const filePath = storageObjectPath(
+					propertyId,
+					`${crypto.randomUUID()}.${safeFileExtension(file.name, "jpg")}`,
+				);
 
 				const { error: uploadError } = await supabase.storage
 					.from("property-images")

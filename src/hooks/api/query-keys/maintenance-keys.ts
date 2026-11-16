@@ -14,6 +14,11 @@ import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import { omitUndefined } from "#lib/db-insert";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
+import {
+	isSafeStorageObjectPath,
+	requireSafeStorageObjectPath,
+	storageObjectPath,
+} from "#lib/storage-path";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type {
@@ -238,15 +243,20 @@ export const maintenanceQueries = {
 				if (rows.length === 0) {
 					return rows.map((r) => ({ ...r, signed_url: null as string | null }));
 				}
-				const paths = rows.map((r) => r.storage_path);
-				const { data: signed } = await supabase.storage
-					.from("maintenance-photos")
-					.createSignedUrls(paths, 3600);
-
+				// A path that fails the storage path check is left unsigned (null
+				// URL) rather than failing the whole gallery.
+				const paths = rows
+					.map((r) => r.storage_path)
+					.filter(isSafeStorageObjectPath);
 				const urlByPath = new Map<string, string>();
-				for (const entry of signed ?? []) {
-					if (entry.path && entry.signedUrl) {
-						urlByPath.set(entry.path, entry.signedUrl);
+				if (paths.length > 0) {
+					const { data: signed } = await supabase.storage
+						.from("maintenance-photos")
+						.createSignedUrls(paths, 3600);
+					for (const entry of signed ?? []) {
+						if (entry.path && entry.signedUrl) {
+							urlByPath.set(entry.path, entry.signedUrl);
+						}
 					}
 				}
 				return rows.map((r) => ({
@@ -368,7 +378,10 @@ export const maintenanceMutations = {
 				// Generate a unique storage path under requestId folder.
 				const timestamp = Date.now();
 				const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-				const storagePath = `${requestId}/${timestamp}-${safeName}`;
+				const storagePath = storageObjectPath(
+					requestId,
+					`${timestamp}-${safeName}`,
+				);
 
 				const { error: uploadError } = await supabase.storage
 					.from("maintenance-photos")
@@ -410,12 +423,16 @@ export const maintenanceMutations = {
 				if (dbError)
 					handlePostgrestError(dbError, "maintenance_request_photos");
 
-				// Storage remove is best-effort — if RLS blocks, we still dropped
+				// Storage remove is best-effort — if RLS blocks, or storagePath (from
+				// the cached row) fails the storage path check, we still dropped
 				// the DB row so the UI reflects the intended state.
-				await supabase.storage
-					.from("maintenance-photos")
-					.remove([storagePath])
-					.catch(() => {});
+				try {
+					await supabase.storage
+						.from("maintenance-photos")
+						.remove([requireSafeStorageObjectPath(storagePath)]);
+				} catch {
+					// Non-blocking storage cleanup
+				}
 			},
 		}),
 };

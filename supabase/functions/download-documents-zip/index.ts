@@ -2,9 +2,11 @@
 //
 // Bulk-download every document matching the caller's filter set as a
 // streaming zip. Re-runs the same `search_documents` RPC server-side
-// using the caller's JWT (no client-supplied trust) and pipes each
-// blob into a zip via a TransformStream — only ONE document's bytes
-// live in memory at a time, regardless of how many matches.
+// using the caller's JWT (no client-supplied trust), signs every
+// object's URL under that same JWT before the stream starts, then
+// fetches each signed URL and pipes it into a zip via a
+// TransformStream — only ONE document's bytes live in memory at a
+// time, regardless of how many matches.
 //
 // Hard cap: 500 matching documents per request. Phase 64 cycle-1 may
 // lower this if memory profiling shows the streaming path can't keep
@@ -16,6 +18,11 @@ import { validateBearerAuth } from "../_shared/auth.ts";
 import { getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts";
 import { validateEnv } from "../_shared/env.ts";
 import { errorResponse, logEvent } from "../_shared/errors.ts";
+import {
+	fetchSignedObject,
+	signedUrlsByPath,
+} from "../_shared/signed-url-fetch.ts";
+import { isInStorageFolder } from "../_shared/storage-path.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 
 const BUCKET = "tenant-documents";
@@ -25,6 +32,10 @@ const MAX_DOCS_PER_REQUEST = 500;
 // `search_documents` RPC enforces `p_limit <= 200` (see migration
 // 20260426043911). Page through it to assemble up to MAX_DOCS_PER_REQUEST.
 const RPC_PAGE_SIZE = 200;
+// Lifetime of the URLs signed before the stream starts. They must outlast
+// the stream, which can run to the Edge Function wall-clock limit (400s),
+// and they never leave this function.
+const SIGNED_URL_TTL_SECONDS = 600;
 
 interface FilterPayload {
 	query?: string | null;
@@ -51,10 +62,12 @@ interface SearchRow {
 	total_count: number;
 }
 
-// Match the frontend `sanitizeFilename` shape so paths inside the zip
-// can't escape entity-type folders. Also strips leading dots (no
-// dotfiles), control chars / NUL bytes (some POSIX archive utilities
-// truncate on \0), and caps length to stay under filesystem limits.
+// Names an entry inside the zip, not a Storage path. Replaces every
+// character the frontend `sanitizeStorageFileName` (src/lib/storage-path.ts)
+// replaces, so entries can't escape entity-type folders, and also control
+// chars / NUL bytes (some POSIX archive utilities truncate on \0); strips
+// leading dots (no dotfiles) and caps length to stay under filesystem
+// limits.
 function sanitizeFilename(name: string): string {
 	return (
 		name
@@ -76,6 +89,17 @@ function inferExtension(mime: string | null, filePath: string): string {
 	const dot = filePath.lastIndexOf(".");
 	if (dot > 0 && dot < filePath.length - 1) return filePath.slice(dot + 1);
 	return "bin";
+}
+
+/**
+ * True when `doc.file_path` is a safe path inside the row's own
+ * `<entity_type>/<entity_id>/` folder. Not the access check: owners can write
+ * all three columns, so a row can name any folder. Storage RLS on the caller's
+ * JWT is what refuses another owner's object; this only keeps a malformed
+ * pointer (dot segment, URL delimiter, control character) out of the request.
+ */
+function isInEntityFolder(doc: SearchRow): boolean {
+	return isInStorageFolder(doc.file_path, doc.entity_type, doc.entity_id);
 }
 
 Deno.serve(async (req: Request) => {
@@ -120,8 +144,10 @@ Deno.serve(async (req: Request) => {
 		const { token } = auth;
 
 		// Re-derive the user-scoped client so the search_documents RPC
-		// runs under the caller's JWT (RLS gates the result set to their
-		// own documents — never trust the client-supplied owner_id). The
+		// and the URL signing run under the caller's JWT (RLS gates the
+		// result set to their own documents and storage RLS gates each
+		// signed object — never trust the client-supplied owner_id or a
+		// row's owner-writable file_path). The
 		// `apikey` MUST be the anon key, not service-role: pairing the
 		// service-role apikey with a user JWT in `Authorization` works
 		// today only because PostgREST honors the user JWT for the role,
@@ -210,11 +236,35 @@ Deno.serve(async (req: Request) => {
 			);
 		}
 
+		// Storage RLS is applied here, once, while the caller's token is
+		// still valid: each object is signed under that token. The pump
+		// below fetches the signed URLs, which do not depend on the token,
+		// so a token that expires while a long archive streams drops
+		// nothing. A row outside its own entity folder is never signed, and
+		// storage RLS refuses to sign another owner's object.
+		const pathsToSign = [
+			...new Set(
+				matchingRows.filter(isInEntityFolder).map((doc) => doc.file_path),
+			),
+		];
+		let signedUrls = new Map<string, string>();
+		if (pathsToSign.length > 0) {
+			const { data: signed, error: signError } = await userClient.storage
+				.from(BUCKET)
+				.createSignedUrls(pathsToSign, SIGNED_URL_TTL_SECONDS);
+			if (signError) {
+				return errorResponse(req, 500, signError, {
+					action: "sign_document_urls",
+				});
+			}
+			signedUrls = signedUrlsByPath(signed, new URL(env.SUPABASE_URL).origin);
+		}
+
 		// True streaming: TransformStream pairs a writable side (the
 		// ZipWriter pumps zip bytes into it) with a readable side (the
-		// Response body). Each document's blob is downloaded just-in-
-		// time and added to the archive; only one document's bytes
-		// live in memory at any moment.
+		// Response body). Each document's blob is fetched just-in-time
+		// and added to the archive; only one document's bytes live in
+		// memory at any moment.
 		const transformStream = new TransformStream<Uint8Array>();
 		const zipWriter = new ZipWriter(transformStream.writable);
 
@@ -225,18 +275,35 @@ Deno.serve(async (req: Request) => {
 				const usedNames = new Set<string>();
 				const skipped: Array<{ id: string; title: string | null }> = [];
 				for (const doc of matchingRows) {
-					const { data: blob, error: dlError } = await adminClient.storage
-						.from(BUCKET)
-						.download(doc.file_path);
-					if (dlError || !blob) {
-						// Skip this doc but keep going — a single missing blob
-						// shouldn't void the whole archive. Sentry breadcrumb
-						// surfaces the skip in any future failure trace without
-						// firing a standalone event.
+					// Only a URL signed above under the caller's JWT is ever
+					// fetched, never a service-role download: file_path is
+					// owner-writable, so only storage RLS (which checks
+					// ownership of the <entity_type>/<entity_id>/ folder) stops
+					// a row that names another owner's object. A refused or
+					// out-of-folder path is skipped like a missing blob. The
+					// row's own folder check is repeated because two rows can
+					// share a file_path while only one is in its folder.
+					const inFolder = isInEntityFolder(doc);
+					const signedUrl = inFolder
+						? signedUrls.get(doc.file_path)
+						: undefined;
+					const { blob, error: dlError } = signedUrl
+						? await fetchSignedObject(signedUrl)
+						: {
+								blob: null,
+								error: inFolder
+									? "signing_refused"
+									: "file_path_outside_entity_folder",
+							};
+					if (blob === null) {
+						// Skip this doc but keep going — a single missing or
+						// refused blob shouldn't void the whole archive. Sentry
+						// breadcrumb surfaces the skip in any future failure
+						// trace without firing a standalone event.
 						logEvent("document_blob_missing", {
 							docId: doc.id,
 							filePath: doc.file_path,
-							error: dlError?.message ?? "no_blob_returned",
+							error: dlError,
 						});
 						skipped.push({ id: doc.id, title: doc.title });
 						continue;

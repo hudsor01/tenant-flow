@@ -15,8 +15,8 @@ import { Button } from "#components/ui/button";
 import { Skeleton } from "#components/ui/skeleton";
 import { getAllPricingPlans, type PricingConfig } from "#config/pricing";
 import { useSubscriptionStatus } from "#hooks/api/use-billing";
-import { DiagnosticError } from "#lib/diagnostic-error";
 import { handleMutationError } from "#lib/mutation-error-handler";
+import { stripeRedirectUrl } from "#lib/safe-url";
 import {
 	createCheckoutSession,
 	createCustomerPortalSession,
@@ -126,7 +126,7 @@ export default function BillingPlansPage() {
 			if (hasSubscription) {
 				const returnUrl = `${window.location.origin}/billing/plans`;
 				const { url } = await createCustomerPortalSession(returnUrl);
-				window.location.href = url;
+				window.location.assign(stripeRedirectUrl(url));
 			} else {
 				if (!plan.priceId) {
 					toast.error("This plan is not available for purchase");
@@ -145,11 +145,9 @@ export default function BillingPlansPage() {
 
 				toast.dismiss("checkout");
 
-				if (url) {
-					window.location.href = url;
-				} else {
-					throw new DiagnosticError("No checkout URL returned");
-				}
+				// stripe-checkout answers a live subscriber with a Portal URL, so
+				// the guard accepts either Stripe host; a missing URL throws too.
+				window.location.assign(stripeRedirectUrl(url));
 			}
 		} catch (error) {
 			handleMutationError(error, "Start checkout");
@@ -166,7 +164,7 @@ export default function BillingPlansPage() {
 		try {
 			const returnUrl = `${window.location.origin}/billing/plans`;
 			const { url } = await createCustomerPortalSession(returnUrl);
-			window.location.href = url;
+			window.location.assign(stripeRedirectUrl(url));
 		} catch (error) {
 			handleMutationError(error, "Open billing portal");
 		} finally {

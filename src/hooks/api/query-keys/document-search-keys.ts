@@ -14,6 +14,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { omitUndefined } from "#lib/db-insert";
 import { DiagnosticError } from "#lib/diagnostic-error";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
+import { isSafeStorageObjectPath } from "#lib/storage-path";
 import { createClient } from "#lib/supabase/client";
 import type { DocumentCategory } from "#lib/validation/documents";
 import {
@@ -169,15 +170,20 @@ export const documentSearchQueries = {
 				const totalCount = totalCountNumeric;
 
 				const mappedRows = rawRows.map(mapDocumentRow);
-				const paths = mappedRows.map((r) => r.file_path);
-				const { data: signed } = await supabase.storage
-					.from(STORAGE_BUCKET)
-					.createSignedUrls(paths, SIGNED_URL_TTL_SECONDS);
-
+				// A path that fails the storage path check is left unsigned (null
+				// URL) rather than failing the whole page.
+				const paths = mappedRows
+					.map((r) => r.file_path)
+					.filter(isSafeStorageObjectPath);
 				const urlByPath = new Map<string, string>();
-				for (const entry of signed ?? []) {
-					if (entry.path && entry.signedUrl) {
-						urlByPath.set(entry.path, entry.signedUrl);
+				if (paths.length > 0) {
+					const { data: signed } = await supabase.storage
+						.from(STORAGE_BUCKET)
+						.createSignedUrls(paths, SIGNED_URL_TTL_SECONDS);
+					for (const entry of signed ?? []) {
+						if (entry.path && entry.signedUrl) {
+							urlByPath.set(entry.path, entry.signedUrl);
+						}
 					}
 				}
 

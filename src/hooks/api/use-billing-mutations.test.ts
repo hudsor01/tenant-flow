@@ -20,7 +20,9 @@ vi.mock("#lib/supabase/get-cached-user", () => ({
 		.mockResolvedValue({ id: "user-1", email: "owner@example.com" }),
 }));
 
+import { DiagnosticError } from "#lib/diagnostic-error";
 import {
+	useBillingPortalMutation,
 	useCancelSubscriptionMutation,
 	useReactivateSubscriptionMutation,
 } from "./use-billing-mutations";
@@ -246,5 +248,64 @@ describe("useCancelSubscriptionMutation setQueryData (T-42-06 mitigation)", () =
 
 		expect(cached?.currentPeriodEnd).toBeNull();
 		expect(cached?.cancelAtPeriodEnd).toBe(true);
+	});
+});
+
+describe("useBillingPortalMutation", () => {
+	const originalFetch = globalThis.fetch;
+	const originalLocation = window.location;
+	const assign = vi.fn();
+
+	beforeEach(() => {
+		vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "http://test-supabase");
+		assign.mockReset();
+		// jsdom has no navigation; record assign() calls instead.
+		Object.defineProperty(window, "location", {
+			configurable: true,
+			writable: true,
+			value: { href: "", assign },
+		});
+	});
+
+	afterEach(() => {
+		globalThis.fetch = originalFetch;
+		vi.unstubAllEnvs();
+		Object.defineProperty(window, "location", {
+			configurable: true,
+			writable: true,
+			value: originalLocation,
+		});
+	});
+
+	it("sends the owner to the Stripe Customer Portal URL", async () => {
+		const portal = "https://billing.stripe.com/p/session/test_portal_1";
+		globalThis.fetch = vi
+			.fn<typeof fetch>()
+			.mockResolvedValue(Response.json({ url: portal }, { status: 200 }));
+
+		const { result } = renderWithClient(() => useBillingPortalMutation());
+		await expect(result.current.mutateAsync()).resolves.toEqual({
+			url: portal,
+		});
+
+		expect(assign).toHaveBeenCalledWith(portal);
+	});
+
+	it.each([
+		["a non-Stripe host", "https://evil.com/portal"],
+		["a look-alike host", "https://billing.stripe.com.evil.com/p/session/x"],
+		["a script URL", "javascript:alert(document.cookie)"],
+		["a missing URL", undefined],
+	])("does not navigate to %s", async (_label, url) => {
+		globalThis.fetch = vi
+			.fn<typeof fetch>()
+			.mockResolvedValue(Response.json({ url }, { status: 200 }));
+
+		const { result } = renderWithClient(() => useBillingPortalMutation());
+		await expect(result.current.mutateAsync()).rejects.toBeInstanceOf(
+			DiagnosticError,
+		);
+
+		expect(assign).not.toHaveBeenCalled();
 	});
 });

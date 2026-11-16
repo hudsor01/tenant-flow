@@ -13,6 +13,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { handleMutationError } from "#lib/mutation-error-handler";
+import { stripeRedirectUrl } from "#lib/safe-url";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import { createApiErrorFromResponse } from "#lib/utils/api-error";
@@ -202,9 +203,10 @@ export function useBillingPortalMutation() {
 					: createApiErrorFromResponse(response);
 			}
 
-			const result = (await response.json()) as { url: string };
-			window.location.href = result.url;
-			return result;
+			const body = (await response.json()) as { url?: unknown };
+			const url = stripeRedirectUrl(body.url);
+			window.location.assign(url);
+			return { url };
 		},
 		onError: (error) => handleMutationError(error, "Open billing portal"),
 	});

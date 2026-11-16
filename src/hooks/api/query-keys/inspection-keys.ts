@@ -12,6 +12,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import { DiagnosticError } from "#lib/diagnostic-error";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
+import { isSafeStorageObjectPath } from "#lib/storage-path";
 import { createClient } from "#lib/supabase/client";
 import type { PaginatedResponse } from "#types/api-contracts";
 import {
@@ -129,9 +130,13 @@ export const inspectionQueries = {
 				// resolve to a 403. Batch-sign every photo path across all rooms in
 				// one round-trip (1h TTL) and resolve each photo's publicUrl from the
 				// map. Skip the sign call entirely when the inspection has no photos.
-				const paths = rawRooms.flatMap((room) =>
-					(room.inspection_photos ?? []).map((photo) => photo.storage_path),
-				);
+				// A path that fails the storage path check is left unsigned rather
+				// than failing the whole inspection.
+				const paths = rawRooms
+					.flatMap((room) =>
+						(room.inspection_photos ?? []).map((photo) => photo.storage_path),
+					)
+					.filter(isSafeStorageObjectPath);
 				const urlByPath = new Map<string, string>();
 				if (paths.length > 0) {
 					const { data: signed } = await supabase.storage

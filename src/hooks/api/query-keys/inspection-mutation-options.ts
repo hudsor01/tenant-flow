@@ -2,6 +2,10 @@ import { mutationOptions } from "@tanstack/react-query";
 import { omitUndefined } from "#lib/db-insert";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
+import {
+	isSafeStorageObjectPath,
+	requireSafeStorageObjectPath,
+} from "#lib/storage-path";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type {
@@ -141,8 +145,11 @@ export const inspectionMutations = {
 
 				if (error) handlePostgrestError(error, "inspection_rooms");
 
-				if (photos && photos.length > 0) {
-					const storagePaths = photos.map((p) => p.storage_path);
+				// A path that fails the storage path check is skipped, not removed.
+				const storagePaths = (photos ?? [])
+					.map((p) => p.storage_path)
+					.filter(isSafeStorageObjectPath);
+				if (storagePaths.length > 0) {
 					try {
 						await supabase.storage
 							.from("inspection-photos")
@@ -157,6 +164,9 @@ export const inspectionMutations = {
 	recordPhoto: () =>
 		mutationOptions({
 			mutationFn: async (dto: RecordPhotoInput) => {
+				// The path is stored on the row and later signed and removed, so
+				// one that fails the storage path check is refused before the insert.
+				requireSafeStorageObjectPath(dto.storage_path);
 				const supabase = createClient();
 				const { data: photo, error } = await supabase
 					.from("inspection_photos")

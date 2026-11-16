@@ -6,7 +6,7 @@
 
 import { QueryClient } from "@tanstack/react-query";
 import { fireEvent, render as rtlRender, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	type DocumentRow,
 	documentQueries,
@@ -42,9 +42,18 @@ vi.mock("sonner", () => ({
 	toast: { error: (...args: unknown[]) => toastError(...args) },
 }));
 
+const PROJECT_URL = "https://abcdefgh.supabase.co";
+// The shape supabase-js's createSignedUrl returns for the private bucket.
+const SIGNED_URL = `${PROJECT_URL}/storage/v1/object/sign/tenant-documents/lease/l1/signed-lease.pdf?token=abc123`;
+
 describe("DownloadSignedLeaseButton", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", PROJECT_URL);
+	});
+
+	afterEach(() => {
+		vi.unstubAllEnvs();
 	});
 
 	it("renders a Retry button and refetches on a storage failure", () => {
@@ -66,7 +75,7 @@ describe("DownloadSignedLeaseButton", () => {
 	it("opens the signed PDF when a URL is available", () => {
 		const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
 		mockUseSignedDocumentUrl.mockReturnValue({
-			data: { document_url: "https://storage.example/doc.pdf" },
+			data: { document_url: SIGNED_URL },
 			isLoading: false,
 			error: null,
 			refetch,
@@ -75,10 +84,33 @@ describe("DownloadSignedLeaseButton", () => {
 
 		fireEvent.click(screen.getByTestId("download-signed-lease-button"));
 		expect(openSpy).toHaveBeenCalledWith(
-			"https://storage.example/doc.pdf",
+			SIGNED_URL,
 			"_blank",
 			"noopener,noreferrer",
 		);
+		expect(toastError).not.toHaveBeenCalled();
+		openSpy.mockRestore();
+	});
+
+	it.each([
+		"https://storage.example/doc.pdf",
+		"https://otherproject.supabase.co/storage/v1/object/sign/tenant-documents/a.pdf?token=t",
+		`${PROJECT_URL}/rest/v1/leases`,
+		"javascript:alert(document.cookie)",
+	])("does not open %s, and toasts instead", (url) => {
+		const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+		mockUseSignedDocumentUrl.mockReturnValue({
+			data: { document_url: url },
+			isLoading: false,
+			error: null,
+			refetch,
+		});
+		render(<DownloadSignedLeaseButton leaseId="l1" />);
+
+		fireEvent.click(screen.getByTestId("download-signed-lease-button"));
+		expect(openSpy).not.toHaveBeenCalled();
+		expect(toastError).toHaveBeenCalledTimes(1);
+		expect(toastError).toHaveBeenCalledWith("Signed document not available");
 		openSpy.mockRestore();
 	});
 
@@ -118,7 +150,7 @@ describe("DownloadSignedLeaseButton", () => {
 	describe("refreshing the lease's Documents list once the signed PDF exists", () => {
 		const signedSnapshotAt = 2_000_000;
 		const signedState = {
-			data: { document_url: "https://storage.example/doc.pdf" },
+			data: { document_url: SIGNED_URL },
 			dataUpdatedAt: signedSnapshotAt,
 			isLoading: false,
 			error: null,

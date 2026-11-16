@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { useRecordInspectionPhoto } from "#hooks/api/use-inspection-photo-mutations";
 import { userFacingErrorMessage } from "#lib/mutation-error-handler";
+import { safeFileExtension, storageObjectPath } from "#lib/storage-path";
 import { createClient } from "#lib/supabase/client";
 
 interface InspectionPhotoUploadProps {
@@ -113,9 +114,6 @@ export function InspectionPhotoUpload({
 		uploadingIdsRef.current.add(id);
 
 		const supabase = createClient();
-		const fileExt = file.name.split(".").pop() ?? "jpg";
-		const fileName = `${crypto.randomUUID()}.${fileExt}`;
-		const storagePath = `${inspectionId}/${roomId}/${fileName}`;
 
 		setFiles((prev) =>
 			prev.map((f) =>
@@ -124,6 +122,13 @@ export function InspectionPhotoUpload({
 		);
 
 		try {
+			// Inside the try: a path that fails the check marks this file failed
+			// instead of throwing out of uploadOne.
+			const storagePath = storageObjectPath(
+				inspectionId,
+				roomId,
+				`${crypto.randomUUID()}.${safeFileExtension(file.name, "jpg")}`,
+			);
 			const { error: uploadError } = await supabase.storage
 				.from("inspection-photos")
 				.upload(storagePath, file, { cacheControl: "3600", upsert: false });

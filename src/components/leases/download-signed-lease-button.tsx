@@ -12,6 +12,8 @@ import {
 	invalidateSignedLeaseVaultCopy,
 	useFinalizeSignedLeaseMutation,
 } from "#hooks/api/use-lease-signature-mutations";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { supabaseStorageUrl } from "#lib/safe-url";
 import { cn } from "#lib/utils";
 
 interface DownloadSignedLeaseButtonProps {
@@ -76,8 +78,20 @@ export function DownloadSignedLeaseButton({
 			return;
 		}
 
-		// Open the document URL in a new tab for download
-		window.open(data.document_url, "_blank", "noopener,noreferrer");
+		// Validated before the new tab opens; a URL outside this project's
+		// Storage is reported and never opened.
+		let documentUrl: string;
+		try {
+			documentUrl = supabaseStorageUrl(data.document_url);
+		} catch (error) {
+			handleMutationError(
+				error,
+				"Download signed lease",
+				"Signed document not available",
+			);
+			return;
+		}
+		window.open(documentUrl, "_blank", "noopener,noreferrer");
 	};
 
 	if (error) {

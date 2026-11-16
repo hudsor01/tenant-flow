@@ -56,7 +56,7 @@ function makeFile(name: string): TestFile {
 	});
 }
 
-function renderUploadHook() {
+function renderUploadHook(path?: string) {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: { retry: false, gcTime: 0 },
@@ -67,7 +67,12 @@ function renderUploadHook() {
 	const wrapper = ({ children }: { children: ReactNode }) =>
 		createElement(QueryClientProvider, { client: queryClient }, children);
 	const { result } = renderHook(
-		() => useSupabaseUpload({ bucketName: "property-images", maxFiles: 10 }),
+		() =>
+			useSupabaseUpload({
+				bucketName: "property-images",
+				maxFiles: 10,
+				...(path === undefined ? {} : { path }),
+			}),
 		{ wrapper },
 	);
 	return { result, invalidateSpy };
@@ -159,6 +164,51 @@ describe("retry list — single upload per file", () => {
 		expect(mockUpload).toHaveBeenCalledTimes(1);
 		expect((mockUpload.mock.calls[0]?.[1] as File)?.name).toBe("good.jpg");
 	});
+});
+
+describe("upload path — every folder segment is checked", () => {
+	it("uploads under each segment of the folder, with a UUID name", async () => {
+		const { result } = renderUploadHook("prop-123/gallery");
+		await act(async () => {
+			result.current.setFiles([makeFile("Front Door.JPG")]);
+		});
+		await act(async () => {
+			await result.current.onUpload();
+		});
+
+		expect(mockUpload).toHaveBeenCalledTimes(1);
+		expect(mockUpload.mock.calls[0]?.[0]).toMatch(
+			/^prop-123\/gallery\/[0-9a-f-]{36}\.jpg$/,
+		);
+		expect(result.current.errors).toEqual([]);
+	});
+
+	// The URL parser reads "%2e%2e" as "..", so this folder would climb out of
+	// prop-123 into prop-456 once supabase-js puts the path into the URL.
+	it.each([
+		"prop-123/%2e%2e/prop-456",
+		"prop-123/../prop-456",
+		"prop-123//gallery",
+		"prop-123/..?x",
+	])(
+		"never uploads under the folder %j and marks the file failed",
+		async (folder) => {
+			const { result } = renderUploadHook(folder);
+			await act(async () => {
+				result.current.setFiles([makeFile("a.jpg")]);
+			});
+			await act(async () => {
+				await result.current.onUpload();
+			});
+
+			expect(mockUpload).not.toHaveBeenCalled();
+			// The check's own diagnostic text stays out of the UI.
+			expect(result.current.errors).toEqual([
+				{ name: "a.jpg", message: "Upload failed" },
+			]);
+			expect(result.current.successes).toEqual([]);
+		},
+	);
 });
 
 describe("isSuccess — membership over the current batch", () => {

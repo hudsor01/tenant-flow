@@ -16,6 +16,7 @@ import {
 	handleMutationSuccess,
 	showStorageQuotaUpgradeToast,
 } from "#lib/mutation-error-handler";
+import { safeFileExtension, storageObjectPath } from "#lib/storage-path";
 import { wouldExceedStorageQuota } from "#lib/storage-plan-limit";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
@@ -34,8 +35,10 @@ const avatarMutationFactories = {
 				const user = await getCachedUser();
 				if (!user) throw new Error("Not authenticated");
 
-				const ext = file.name.split(".").pop() ?? "jpg";
-				const path = `${user.id}/avatar.${ext}`;
+				const path = storageObjectPath(
+					user.id,
+					`avatar.${safeFileExtension(file.name, "jpg")}`,
+				);
 
 				const { error: uploadError } = await supabase.storage
 					.from("avatars")

@@ -9,6 +9,7 @@ const hooks = vi.hoisted(() => ({
 	toastError: vi.fn(),
 	toastLoading: vi.fn(),
 	toastDismiss: vi.fn(),
+	assign: vi.fn(),
 }));
 
 vi.mock("#hooks/api/use-billing", () => ({
@@ -31,6 +32,9 @@ vi.mock("sonner", () => ({
 
 import BillingPlansPage from "./page";
 
+const PORTAL_URL = "https://billing.stripe.com/p/session/test_portal_123";
+const CHECKOUT_URL = "https://checkout.stripe.com/c/pay/cs_test_checkout_123";
+
 function mockStatus(data: Record<string, unknown> | null, isLoading = false) {
 	hooks.useSubscriptionStatus.mockReturnValue({
 		data,
@@ -43,15 +47,15 @@ function mockStatus(data: Record<string, unknown> | null, isLoading = false) {
 beforeEach(() => {
 	vi.clearAllMocks();
 	hooks.createCustomerPortalSession.mockResolvedValue({
-		url: "https://billing.stripe.test/portal",
+		url: PORTAL_URL,
 	});
 	hooks.createCheckoutSession.mockResolvedValue({
-		url: "https://checkout.stripe.test/session",
+		url: CHECKOUT_URL,
 	});
-	// jsdom has no navigation; make window.location.href assignable + inert.
+	// jsdom has no navigation; record assign() calls instead of navigating.
 	Object.defineProperty(window, "location", {
 		configurable: true,
-		value: { href: "", origin: "http://localhost" },
+		value: { href: "", origin: "http://localhost", assign: hooks.assign },
 	});
 });
 
@@ -73,6 +77,7 @@ describe("BillingPlansPage — BILL-01 portal-vs-checkout routing", () => {
 
 		expect(hooks.createCustomerPortalSession).toHaveBeenCalledTimes(1);
 		expect(hooks.createCheckoutSession).not.toHaveBeenCalled();
+		expect(hooks.assign).toHaveBeenCalledWith(PORTAL_URL);
 	});
 
 	it("shows the Manage Subscription button for a live subscriber whose plan is unresolved (legacy/comp price id)", () => {
@@ -263,6 +268,7 @@ describe("BillingPlansPage — plan-card confirm routing (BILL-01 anti-double-bi
 
 		expect(hooks.createCustomerPortalSession).toHaveBeenCalledTimes(1);
 		expect(hooks.createCheckoutSession).not.toHaveBeenCalled();
+		expect(hooks.assign).toHaveBeenCalledWith(PORTAL_URL);
 	});
 
 	it("routes a DB-managed trial's plan-card selection to createCheckoutSession, not the portal", async () => {
@@ -286,5 +292,83 @@ describe("BillingPlansPage — plan-card confirm routing (BILL-01 anti-double-bi
 
 		expect(hooks.createCheckoutSession).toHaveBeenCalledTimes(1);
 		expect(hooks.createCustomerPortalSession).not.toHaveBeenCalled();
+		expect(hooks.assign).toHaveBeenCalledWith(CHECKOUT_URL);
+	});
+});
+
+describe("BillingPlansPage — redirects only to Stripe", () => {
+	const liveSubscriber = {
+		subscriptionStatus: "active",
+		stripeCustomerId: "cus_test",
+		stripePriceId: "price_legacy_comp",
+		currentPeriodEnd: "2026-06-15T12:00:00Z",
+		cancelAtPeriodEnd: false,
+	};
+	const dbTrial = {
+		subscriptionStatus: "trialing",
+		stripeCustomerId: null,
+		stripePriceId: null,
+		currentPeriodEnd: null,
+		cancelAtPeriodEnd: false,
+	};
+
+	it.each([
+		"https://evil.com/portal",
+		"https://billing.stripe.com.evil.com/p/session/x",
+		"javascript:alert(document.cookie)",
+	])(
+		"does not navigate to a portal URL of %s, and toasts instead",
+		async (url) => {
+			hooks.createCustomerPortalSession.mockResolvedValue({ url });
+			mockStatus(liveSubscriber);
+			render(<BillingPlansPage />);
+
+			await userEvent.click(
+				screen.getByRole("button", { name: /manage subscription/i }),
+			);
+
+			expect(hooks.createCustomerPortalSession).toHaveBeenCalledTimes(1);
+			expect(hooks.assign).not.toHaveBeenCalled();
+			expect(hooks.toastError).toHaveBeenCalledTimes(1);
+			// The DiagnosticError's text names code, so the toast shows generic copy.
+			expect(hooks.toastError).not.toHaveBeenCalledWith(
+				expect.stringContaining("stripeRedirectUrl"),
+			);
+		},
+	);
+
+	it("does not navigate to a non-Stripe checkout URL, and toasts instead", async () => {
+		hooks.createCheckoutSession.mockResolvedValue({
+			url: "https://checkout.example.com/session",
+		});
+		mockStatus(dbTrial);
+		render(<BillingPlansPage />);
+
+		await userEvent.click(
+			screen.getAllByRole("button", { name: /get started/i })[0] as HTMLElement,
+		);
+		await userEvent.click(
+			await screen.findByRole("button", { name: /start subscription/i }),
+		);
+
+		expect(hooks.createCheckoutSession).toHaveBeenCalledTimes(1);
+		expect(hooks.assign).not.toHaveBeenCalled();
+		expect(hooks.toastError).toHaveBeenCalledTimes(1);
+	});
+
+	it("does not navigate when checkout returns no URL, and toasts instead", async () => {
+		hooks.createCheckoutSession.mockResolvedValue({ url: "" });
+		mockStatus(dbTrial);
+		render(<BillingPlansPage />);
+
+		await userEvent.click(
+			screen.getAllByRole("button", { name: /get started/i })[0] as HTMLElement,
+		);
+		await userEvent.click(
+			await screen.findByRole("button", { name: /start subscription/i }),
+		);
+
+		expect(hooks.assign).not.toHaveBeenCalled();
+		expect(hooks.toastError).toHaveBeenCalledTimes(1);
 	});
 });

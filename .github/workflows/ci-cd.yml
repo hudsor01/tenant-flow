@@ -56,6 +56,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
+          # No step in this job runs an authenticated git command, so the
+          # checkout token stays out of .git/config.
+          persist-credentials: false
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
@@ -260,6 +263,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
+          # No step in this job runs an authenticated git command, so the
+          # checkout token stays out of .git/config.
+          persist-credentials: false
 
       # VERIFY, DO NOT MERELY CHECK -- same shared action as rls-security, so
       # the two production-data jobs can no longer drift apart (this copy had

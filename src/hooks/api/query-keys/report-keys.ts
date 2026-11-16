@@ -2,6 +2,7 @@ import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { downloadBlob } from "#lib/reports/download-blob";
 import { jsonArrayOrEmpty } from "#lib/rpc-shape";
+import { sameSitePath } from "#lib/safe-url";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import { ApiErrorCode, createApiErrorFromResponse } from "#lib/utils/api-error";
@@ -71,6 +72,10 @@ export const reportQueries = {
  * the subscription is not active, whom the toast sends to Billing Settings,
  * not to upgrade. `null` when the 402 names none (the e-sign quota's, or an
  * older function's).
+ *
+ * `upgradeUrl` comes from the 402 body and the toast navigates to it, so it is
+ * kept only as a path on this site (the gate sends "/billing/plans?source=…"
+ * or "/settings?tab=billing"); anything else becomes the plans page.
  */
 export class PaywallError extends Error {
 	readonly upgradeUrl: string;
@@ -84,7 +89,7 @@ export class PaywallError extends Error {
 	) {
 		super(message);
 		this.name = "PaywallError";
-		this.upgradeUrl = upgradeUrl;
+		this.upgradeUrl = sameSitePath(upgradeUrl, "/billing/plans");
 		this.feature = feature;
 		this.reason = reason;
 	}

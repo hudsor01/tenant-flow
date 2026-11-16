@@ -31,6 +31,12 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
+          # claude-code-action does not use checkout's credential: it deletes
+          # it and points git at its own app token before Claude runs
+          # (replaceCheckoutCredentials in src/github/operations/git-config.ts
+          # at the pinned SHA). Its git calls before that are fetches and an
+          # ls-remote of this public repo, which need no token.
+          persist-credentials: false
 
       - name: Run Claude Code
         id: claude

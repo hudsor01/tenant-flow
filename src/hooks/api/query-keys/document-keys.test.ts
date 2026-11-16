@@ -14,9 +14,22 @@
  *       rather than silently producing the literal string "undefined".
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { createQueryChain } from "#test/mocks/supabase-query-mock";
 import { escapeRegExp } from "#test/utils/regexp-source";
-import { mapDocumentRow } from "./document-keys";
+import { documentQueries, mapDocumentRow } from "./document-keys";
+
+const { supabaseFromMock, createSignedUrlsMock } = vi.hoisted(() => ({
+	supabaseFromMock: vi.fn(),
+	createSignedUrlsMock: vi.fn(),
+}));
+
+vi.mock("#lib/supabase/client", () => ({
+	createClient: () => ({
+		from: supabaseFromMock,
+		storage: { from: () => ({ createSignedUrls: createSignedUrlsMock }) },
+	}),
+}));
 
 const fullRow = {
 	id: "00000000-0000-0000-0000-000000000001",
@@ -102,5 +115,35 @@ describe("mapDocumentRow", () => {
 		expect(mapped.tags).toBeNull();
 		expect(mapped.description).toBeNull();
 		expect(mapped.owner_user_id).toBeNull();
+	});
+});
+
+describe("documentQueries.list signed URLs", () => {
+	it("leaves a row whose file_path fails the storage path check unsigned", async () => {
+		const unsafe = {
+			...fullRow,
+			id: "unsafe",
+			file_path: "property/p/../q/2.pdf",
+		};
+		supabaseFromMock.mockReturnValue(
+			createQueryChain({ data: [fullRow, unsafe], count: 2 }),
+		);
+		createSignedUrlsMock.mockResolvedValue({
+			data: [{ path: fullRow.file_path, signedUrl: "https://signed/1.pdf" }],
+			error: null,
+		});
+
+		const result = await documentQueries
+			.list({ entityType: "property", entityId: fullRow.entity_id })
+			.queryFn?.({} as never);
+
+		expect(createSignedUrlsMock).toHaveBeenCalledWith(
+			[fullRow.file_path],
+			3600,
+		);
+		expect(result?.rows.map((r) => r.signed_url)).toEqual([
+			"https://signed/1.pdf",
+			null,
+		]);
 	});
 });

@@ -30,6 +30,7 @@ import {
 	transformLease,
 	type UnitWithOptionalProperty,
 } from "#components/leases/table/lease-utils";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
 import type { Lease, Property } from "#types/core";
 import { tierGateRefusal } from "../../../../supabase/functions/_shared/tier-gate-decision";
@@ -432,6 +433,33 @@ describe("Query Hooks", () => {
 			await waitFor(() => {
 				expect(result.current.isError).toBe(true);
 			});
+		});
+
+		it("errors without minting a URL when the stored path fails the storage path check", async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === "leases") {
+					return createQueryChain({
+						data: {
+							signed_document_path: "lease/lease-123/%2e%2e/%2e%2e/other.pdf",
+						},
+					});
+				}
+				return createQueryChain({ data: null });
+			});
+			const createSignedUrlMock = vi.fn();
+			supabaseStorageFromMock.mockReturnValue({
+				createSignedUrl: createSignedUrlMock,
+			});
+
+			const { result } = renderHook(() => useSignedDocumentUrl("lease-123"), {
+				wrapper: createWrapper(),
+			});
+
+			await waitFor(() => {
+				expect(result.current.isError).toBe(true);
+			});
+			expect(result.current.error).toBeInstanceOf(DiagnosticError);
+			expect(createSignedUrlMock).not.toHaveBeenCalled();
 		});
 
 		it("flags finalizing when both parties signed but no document path yet", async () => {
