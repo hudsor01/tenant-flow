@@ -22,7 +22,14 @@ import { getJsonHeaders, handleCorsOptions } from "../_shared/cors.ts";
 import { validateEnv } from "../_shared/env.ts";
 import { captureWebhookError, errorResponse, logEvent } from "../_shared/errors.ts";
 import { escapeHtml } from "../_shared/escape-html.ts";
-import { wrapEmailLayout } from "../_shared/email-layout.ts";
+import {
+	emailButton,
+	emailHeading,
+	emailNote,
+	emailStrong,
+	emailText,
+	wrapEmailLayout,
+} from "../_shared/email-layout.ts";
 import { sendEmail } from "../_shared/resend.ts";
 import { createAdminClient } from "../_shared/supabase-client.ts";
 import { GROWTH_AND_MAX_PLANS } from "../_shared/tier-gate.ts";
@@ -91,24 +98,20 @@ function buildReminderEmail(params: {
 	daysLabel: string;
 	ctaUrl: string;
 }): string {
-	const body = `
-<h1 style="margin:0 0 16px;font-size:20px;color:#18181b;">Your lease is coming up for renewal</h1>
-<p style="margin:0 0 16px;font-size:15px;color:#3f3f46;line-height:1.6;">
-  Hi ${escapeHtml(params.ownerName)}, the lease for
-  <strong>${escapeHtml(params.propertyLabel)}</strong> ends in
-  <strong>${escapeHtml(params.daysLabel)}</strong>. Now is a good time to review
-  the terms and decide whether to renew, adjust, or let it expire.
-</p>
-<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 20px;">
-  <tr><td style="border-radius:6px;background:#2563eb;">
-    <a href="${escapeHtml(params.ctaUrl)}" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">Review lease and renewal options</a>
-  </td></tr>
-</table>
-<p style="margin:0 0 8px;font-size:13px;color:#71717a;line-height:1.6;">
-  You are receiving this because lease reminders are enabled for your account.
-  Manage reminder emails anytime from your notification settings.
-</p>`;
-	return wrapEmailLayout(body);
+	const body = [
+		emailHeading("Your lease is coming up for renewal"),
+		emailText(
+			`Hi ${escapeHtml(params.ownerName)}, the lease for ${emailStrong(params.propertyLabel)} ends in ${emailStrong(params.daysLabel)}. Now is a good time to review the terms and decide whether to renew, adjust, or let it expire.`,
+		),
+		emailButton(params.ctaUrl, "Review lease and renewal options"),
+		emailNote(
+			"You are receiving this because lease reminders are enabled for your account. Manage reminder emails anytime from your notification settings.",
+		),
+	].join("\n");
+	return wrapEmailLayout(body, {
+		preheader: `The lease for ${params.propertyLabel} ends in ${params.daysLabel}.`,
+		title: "Your lease is coming up for renewal",
+	});
 }
 
 /** Ordered email suppression gate (REMIND-03). Cheap -> expensive. Any false

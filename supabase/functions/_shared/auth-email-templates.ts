@@ -1,102 +1,148 @@
-// Branded HTML email templates for Supabase auth emails.
-// Used by the auth-email-send Edge Function (Supabase Auth Hook).
-// All templates use inline CSS for email client compatibility.
+// The auth emails, one function per Supabase email type, built from the shared
+// blocks in email-layout.ts. The auth-email-send hook fills them with real
+// values. Every value is escaped by the helpers.
 
-import { BRAND_COLOR, BRAND_NAME, wrapEmailLayout } from "./email-layout.ts";
-import { escapeHtml } from "./escape-html.ts";
+import {
+	BRAND_NAME,
+	emailButton,
+	emailDivider,
+	emailHeading,
+	emailLinkFallback,
+	emailNote,
+	emailStrong,
+	emailText,
+	supportLink,
+	wrapEmailLayout,
+} from "./email-layout.ts";
 
-/** CTA button + fallback plain-text URL. */
-function ctaBlock(url: string, label: string): string {
-	return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
-<tr><td align="center">
-<a href="${escapeHtml(url)}" target="_blank" style="display:inline-block;padding:12px 32px;background-color:${BRAND_COLOR};color:#ffffff;font-size:16px;font-weight:600;text-decoration:none;border-radius:6px;">${escapeHtml(label)}</a>
-</td></tr>
-</table>
-<p style="font-size:13px;color:#71717a;word-break:break-all;">If the button doesn't work, copy and paste this URL into your browser:<br><a href="${escapeHtml(url)}" style="color:${BRAND_COLOR};">${escapeHtml(url)}</a></p>`;
+interface AuthEmail {
+	subject: string;
+	html: string;
+}
+
+function authEmail(params: {
+	subject: string;
+	preheader: string;
+	body: string;
+}): AuthEmail {
+	return {
+		subject: params.subject,
+		html: wrapEmailLayout(params.body, {
+			preheader: params.preheader,
+			title: params.subject,
+		}),
+	};
 }
 
 export function signupConfirmationEmail(params: {
 	confirmUrl: string;
 	email: string;
-}): { subject: string; html: string } {
-	const safeEmail = escapeHtml(params.email);
-	return {
-		subject: `Confirm your ${BRAND_NAME} account`,
-		html: wrapEmailLayout(`
-<h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Welcome to ${BRAND_NAME}</h1>
-<p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">Thanks for signing up with <strong>${safeEmail}</strong>.</p>
-<p style="margin:0 0 24px;font-size:15px;color:#3f3f46;">Please confirm your email address to get started.</p>
-${ctaBlock(params.confirmUrl, "Confirm Email")}
-<p style="font-size:13px;color:#a1a1aa;margin-top:24px;">If you did not create an account, you can safely ignore this email.</p>`),
-	};
+}): AuthEmail {
+	return authEmail({
+		subject: `Confirm your email for ${BRAND_NAME}`,
+		preheader: `Confirm your email address to finish creating your ${BRAND_NAME} account.`,
+		body: [
+			emailHeading("Confirm your email"),
+			emailText(
+				`Thanks for signing up. Confirm ${emailStrong(params.email)} to finish creating your ${BRAND_NAME} account.`,
+			),
+			emailButton(params.confirmUrl, "Confirm email"),
+			emailLinkFallback(params.confirmUrl),
+			emailDivider(),
+			emailNote(
+				`If you didn't create a ${BRAND_NAME} account, you can ignore this email.`,
+			),
+		].join("\n"),
+	});
 }
 
 export function passwordResetEmail(params: {
 	resetUrl: string;
 	email: string;
-}): { subject: string; html: string } {
-	const safeEmail = escapeHtml(params.email);
-	return {
+}): AuthEmail {
+	return authEmail({
 		subject: `Reset your ${BRAND_NAME} password`,
-		html: wrapEmailLayout(`
-<h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Password Reset</h1>
-<p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">We received a password reset request for <strong>${safeEmail}</strong>.</p>
-<p style="margin:0 0 24px;font-size:15px;color:#3f3f46;">Click the button below to choose a new password.</p>
-${ctaBlock(params.resetUrl, "Reset Password")}
-<p style="font-size:13px;color:#a1a1aa;margin-top:24px;">This link will expire in 1 hour. If you did not request a password reset, you can safely ignore this email.</p>`),
-	};
+		preheader: "Use this link to choose a new password.",
+		body: [
+			emailHeading("Reset your password"),
+			emailText(
+				`We received a request to reset the password for ${emailStrong(params.email)}. Choose a new password with the button below.`,
+			),
+			emailButton(params.resetUrl, "Reset password"),
+			emailLinkFallback(params.resetUrl),
+			emailDivider(),
+			emailNote(
+				"This link works once. If you didn't ask to reset your password, you can ignore this email and your password won't change.",
+			),
+		].join("\n"),
+	});
 }
 
 export function invitationEmail(params: {
 	inviteUrl: string;
 	email: string;
 	inviterName?: string;
-}): { subject: string; html: string } {
-	const safeEmail = escapeHtml(params.email);
-	const inviter = params.inviterName
-		? escapeHtml(params.inviterName)
-		: `A ${BRAND_NAME} landlord`;
-	return {
-		subject: `You're invited to join a ${BRAND_NAME} team`,
-		html: wrapEmailLayout(`
-<h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">You've Been Invited</h1>
-<p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">${inviter} has invited <strong>${safeEmail}</strong> to join their ${BRAND_NAME} workspace.</p>
-<p style="margin:0 0 24px;font-size:15px;color:#3f3f46;">Click the button below to accept the invitation and create your account.</p>
-${ctaBlock(params.inviteUrl, "Accept Invitation")}
-<p style="font-size:13px;color:#a1a1aa;margin-top:24px;">If you were not expecting this invitation, you can safely ignore this email.</p>`),
-	};
+}): AuthEmail {
+	const intro = params.inviterName
+		? `${emailStrong(params.inviterName)} invited ${emailStrong(params.email)} to ${BRAND_NAME}.`
+		: `You've been invited to create a ${BRAND_NAME} account for ${emailStrong(params.email)}.`;
+	return authEmail({
+		subject: `You're invited to ${BRAND_NAME}`,
+		preheader: "Accept your invitation and set a password.",
+		body: [
+			emailHeading(`You've been invited to ${BRAND_NAME}`),
+			emailText(`${intro} Accept the invitation to set your password.`),
+			emailButton(params.inviteUrl, "Accept invitation"),
+			emailLinkFallback(params.inviteUrl),
+			emailDivider(),
+			emailNote(
+				"If you weren't expecting this invitation, you can ignore this email.",
+			),
+		].join("\n"),
+	});
 }
 
 export function magicLinkEmail(params: {
 	magicLinkUrl: string;
 	email: string;
-}): { subject: string; html: string } {
-	const safeEmail = escapeHtml(params.email);
-	return {
+}): AuthEmail {
+	return authEmail({
 		subject: `Your ${BRAND_NAME} sign-in link`,
-		html: wrapEmailLayout(`
-<h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Sign In to ${BRAND_NAME}</h1>
-<p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">Use the link below to sign in as <strong>${safeEmail}</strong>.</p>
-<p style="margin:0 0 24px;font-size:15px;color:#3f3f46;">This link is single-use and will expire shortly.</p>
-${ctaBlock(params.magicLinkUrl, "Sign In")}
-<p style="font-size:13px;color:#a1a1aa;margin-top:24px;">If you did not request this link, you can safely ignore this email.</p>`),
-	};
+		preheader: `Sign in to ${BRAND_NAME} with one click.`,
+		body: [
+			emailHeading(`Sign in to ${BRAND_NAME}`),
+			emailText(
+				`Use the button below to sign in as ${emailStrong(params.email)}.`,
+			),
+			emailButton(params.magicLinkUrl, "Sign in"),
+			emailLinkFallback(params.magicLinkUrl),
+			emailDivider(),
+			emailNote(
+				"This link works once. If you didn't ask for it, you can ignore this email.",
+			),
+		].join("\n"),
+	});
 }
 
 export function emailChangeEmail(params: {
 	confirmUrl: string;
 	email: string;
 	newEmail: string;
-}): { subject: string; html: string } {
-	const safeEmail = escapeHtml(params.email);
-	const safeNewEmail = escapeHtml(params.newEmail);
-	return {
+}): AuthEmail {
+	return authEmail({
 		subject: `Confirm your new ${BRAND_NAME} email address`,
-		html: wrapEmailLayout(`
-<h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Email Address Change</h1>
-<p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">A request was made to change the email address for your ${BRAND_NAME} account from <strong>${safeEmail}</strong> to <strong>${safeNewEmail}</strong>.</p>
-<p style="margin:0 0 24px;font-size:15px;color:#3f3f46;">Click the button below to confirm this change.</p>
-${ctaBlock(params.confirmUrl, "Confirm Email Change")}
-<p style="font-size:13px;color:#a1a1aa;margin-top:24px;">If you did not request this change, please secure your account immediately.</p>`),
-	};
+		preheader: "Confirm the change to your sign-in email.",
+		body: [
+			emailHeading("Confirm your email change"),
+			emailText(
+				`Confirm that you want to change your ${BRAND_NAME} sign-in email from ${emailStrong(params.email)} to ${emailStrong(params.newEmail)}.`,
+			),
+			emailButton(params.confirmUrl, "Confirm email change"),
+			emailLinkFallback(params.confirmUrl),
+			emailDivider(),
+			emailNote(
+				`If you didn't ask for this change, don't use the button. Reset your password with ${emailStrong("Forgot password")} on the sign-in page, and email ${supportLink()}.`,
+			),
+		].join("\n"),
+	});
 }

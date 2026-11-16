@@ -15,7 +15,13 @@ import {
 	getJsonHeaders,
 	handleCorsOptions,
 } from "../_shared/cors.ts";
-import { wrapEmailLayout } from "../_shared/email-layout.ts";
+import {
+	emailButton,
+	emailHeading,
+	emailStrong,
+	emailText,
+	wrapEmailLayout,
+} from "../_shared/email-layout.ts";
 import { validateEnv } from "../_shared/env.ts";
 import { errorResponse } from "../_shared/errors.ts";
 import { escapeHtml } from "../_shared/escape-html.ts";
@@ -63,23 +69,22 @@ async function emailOwnerToCountersign(
 	const record = await fetchLeaseSigningData(supabase, leaseId);
 	if (!record || !EMAIL_RE.test(record.ownerEmail)) return;
 
-	const body = `
-<h1 style="margin:0 0 16px;font-size:20px;color:#18181b;">Your tenant signed the lease</h1>
-<p style="margin:0 0 16px;font-size:15px;color:#3f3f46;line-height:1.6;">
-  ${escapeHtml(record.tenantName)} has signed the residential lease agreement for
-  <strong>${escapeHtml(record.propertyLabel)}</strong>. Sign as the owner to activate
-  the lease.
-</p>
-<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 20px;">
-  <tr><td style="border-radius:6px;background:#2563eb;">
-    <a href="${appUrl}/leases/${leaseId}" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">Review &amp; Countersign</a>
-  </td></tr>
-</table>`;
+	const leaseUrl = `${appUrl}/leases/${leaseId}`;
+	const body = [
+		emailHeading("Your tenant signed the lease"),
+		emailText(
+			`${escapeHtml(record.tenantName)} has signed the residential lease agreement for ${emailStrong(record.propertyLabel)}. Sign as the owner to activate the lease.`,
+		),
+		emailButton(leaseUrl, "Review & Countersign"),
+	].join("\n");
 
 	await sendEmail({
 		to: [record.ownerEmail],
 		subject: "Action needed: countersign your lease",
-		html: wrapEmailLayout(body),
+		html: wrapEmailLayout(body, {
+			preheader: `${record.tenantName} signed. Countersign to activate the lease.`,
+			title: "Your tenant signed the lease",
+		}),
 		tags: [{ name: "type", value: "lease_owner_countersign" }],
 	});
 }

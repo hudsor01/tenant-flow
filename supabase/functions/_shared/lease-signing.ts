@@ -4,7 +4,13 @@
 // sign-lease-token (tenant) Edge Functions.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { wrapEmailLayout } from "./email-layout.ts";
+import {
+	emailHeading,
+	emailNote,
+	emailStrong,
+	emailText,
+	wrapEmailLayout,
+} from "./email-layout.ts";
 import { captureWebhookError } from "./errors.ts";
 import { escapeHtml } from "./escape-html.ts";
 import { type LeasePdfData, renderLeasePdf } from "./lease-pdf.ts";
@@ -247,18 +253,19 @@ export function buildLeasePdfData(
 }
 
 function buildSignedLeaseEmail(record: LeaseSigningRecord): string {
-	const body = `
-<h1 style="margin:0 0 16px;font-size:20px;color:#18181b;">Your lease is fully signed</h1>
-<p style="margin:0 0 16px;font-size:15px;color:#3f3f46;line-height:1.6;">
-  Hi ${escapeHtml(record.tenantName)}, all parties have signed the residential lease
-  agreement for <strong>${escapeHtml(record.propertyLabel)}</strong>. A copy of the
-  fully executed lease is attached to this email for your records.
-</p>
-<p style="margin:0 0 8px;font-size:13px;color:#71717a;line-height:1.6;">
-  Please keep this copy for your records. If you have any questions about the lease,
-  contact your landlord directly.
-</p>`;
-	return wrapEmailLayout(body);
+	const body = [
+		emailHeading("Your lease is fully signed"),
+		emailText(
+			`Hi ${escapeHtml(record.tenantName)}, all parties have signed the residential lease agreement for ${emailStrong(record.propertyLabel)}. A copy of the fully executed lease is attached to this email.`,
+		),
+		emailNote(
+			"Please keep this copy for your records. If you have any questions about the lease, contact your landlord directly.",
+		),
+	].join("\n");
+	return wrapEmailLayout(body, {
+		preheader: "Your fully signed lease is attached.",
+		title: "Your lease is fully signed",
+	});
 }
 
 /** Reset the one-time email claim so a later finalize retry re-attempts the
