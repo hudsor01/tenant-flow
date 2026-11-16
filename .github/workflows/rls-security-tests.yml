@@ -82,6 +82,10 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # No step in this job runs an authenticated git command, so the
+          # checkout token stays out of .git/config.
+          persist-credentials: false
 
       # VERIFY, DO NOT MERELY CHECK. The previous step tested that each secret
       # was non-empty and passed; a secret that was present but WRONG then

@@ -27,6 +27,10 @@ jobs:
           # not just the tip — a secret introduced and "removed" in an
           # earlier commit is still in the pack and still leaked.
           fetch-depth: 0
+          # gitleaks reads the local history and gets its API token from the
+          # GITHUB_TOKEN env below, so the checkout token stays out of
+          # .git/config.
+          persist-credentials: false
 
       - name: gitleaks
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0

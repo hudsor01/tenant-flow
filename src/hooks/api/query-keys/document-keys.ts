@@ -21,6 +21,12 @@ import { DiagnosticError } from "#lib/diagnostic-error";
 import { createLogger } from "#lib/frontend-logger";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
+import {
+	isSafeStorageObjectPath,
+	requireSafeStorageObjectPath,
+	sanitizeStorageFileName,
+	storageObjectPath,
+} from "#lib/storage-path";
 import { isStoragePlanLimitError } from "#lib/storage-plan-limit";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
@@ -163,16 +169,6 @@ export interface DocumentUploadInput {
 	title?: string;
 }
 
-/**
- * Sanitize a filename for S3-key safety without nuking Unicode. We keep
- * letters (including non-ASCII), digits, and a small set of separators;
- * the regex only replaces characters that Supabase storage, signed-URL
- * generators, or common browsers might reject in a key path.
- */
-function sanitizeFilename(name: string): string {
-	return name.replace(/[\\/?%*:|"<>#&\s]+/g, "_");
-}
-
 // Call `all()` — factory pattern matches propertyQueries, tenantQueries,
 // leaseQueries, etc. (see src/hooks/api/query-keys/*.ts). Never a bare
 // tuple — that diverges from the rest of the project and bites consumers
@@ -212,15 +208,20 @@ export const documentQueries = {
 					return { rows: [], totalCount };
 				}
 
-				const paths = rows.map((r) => r.file_path);
-				const { data: signed } = await supabase.storage
-					.from(STORAGE_BUCKET)
-					.createSignedUrls(paths, SIGNED_URL_TTL_SECONDS);
-
+				// A path that fails the storage path check is left unsigned (null
+				// URL) rather than failing the whole list.
+				const paths = rows
+					.map((r) => r.file_path)
+					.filter(isSafeStorageObjectPath);
 				const urlByPath = new Map<string, string>();
-				for (const entry of signed ?? []) {
-					if (entry.path && entry.signedUrl) {
-						urlByPath.set(entry.path, entry.signedUrl);
+				if (paths.length > 0) {
+					const { data: signed } = await supabase.storage
+						.from(STORAGE_BUCKET)
+						.createSignedUrls(paths, SIGNED_URL_TTL_SECONDS);
+					for (const entry of signed ?? []) {
+						if (entry.path && entry.signedUrl) {
+							urlByPath.set(entry.path, entry.signedUrl);
+						}
 					}
 				}
 				return {
@@ -267,8 +268,12 @@ export const documentMutations = {
 				// Path-based storage RLS inspects the first two segments to
 				// verify ownership of the parent entity.
 				const timestamp = Date.now();
-				const safeName = sanitizeFilename(file.name);
-				const storagePath = `${entityType}/${entityId}/${timestamp}-${safeName}`;
+				const safeName = sanitizeStorageFileName(file.name);
+				const storagePath = storageObjectPath(
+					entityType,
+					entityId,
+					`${timestamp}-${safeName}`,
+				);
 
 				const { error: uploadError } = await supabase.storage
 					.from(STORAGE_BUCKET)
@@ -357,10 +362,15 @@ export const documentMutations = {
 					);
 				}
 
-				const { error: storageError } = await supabase.storage
-					.from(STORAGE_BUCKET)
-					.remove([storagePath]);
-				if (storageError) {
+				// storagePath comes from the cached row. One that fails the storage
+				// path check never reaches Storage and takes the same exit as a
+				// failed remove.
+				try {
+					const { error: storageError } = await supabase.storage
+						.from(STORAGE_BUCKET)
+						.remove([requireSafeStorageObjectPath(storagePath)]);
+					if (storageError) throw storageError;
+				} catch (storageError) {
 					// DB row is gone; orphaned blob now — log for operator
 					// visibility but don't surface to the user (the row is
 					// already gone from their view).

@@ -16,6 +16,7 @@ import { calculateAnnualSavings } from "#config/pricing";
 import { DiagnosticError } from "#lib/diagnostic-error";
 import { createLogger } from "#lib/frontend-logger";
 import { handleMutationError } from "#lib/mutation-error-handler";
+import { stripeRedirectUrl } from "#lib/safe-url";
 import { checkoutRateLimiter } from "#lib/security";
 import { createCheckoutSession } from "#lib/stripe/stripe-client";
 import { createClient } from "#lib/supabase/client";
@@ -96,7 +97,7 @@ export function PricingCardFeatured({
 				throw new Error("Failed to create checkout session");
 			}
 
-			window.location.href = result.url;
+			window.location.assign(stripeRedirectUrl(result.url));
 			return { success: true };
 		},
 		onError: (error: Error) => {
@@ -129,7 +130,9 @@ export function PricingCardFeatured({
 			return;
 		}
 
-		await subscriptionMutation.mutateAsync({});
+		// mutate, not mutateAsync: onError already shows the toast, and a
+		// rejection here would escape the click handler unhandled.
+		subscriptionMutation.mutate({});
 	};
 
 	const currentPrice = plan.price[billingCycle];

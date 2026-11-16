@@ -5,6 +5,7 @@ import { createLogger } from "#lib/frontend-logger";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { escapeOrValue } from "#lib/sanitize-search";
+import { requireSafeStorageObjectPath } from "#lib/storage-path";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type {
@@ -419,8 +420,13 @@ export const propertyMutations = {
 				if (dbError) handlePostgrestError(dbError, "delete property image");
 
 				if (imagePath) {
+					// imagePath is parsed out of the image URL; one that fails the
+					// storage path check is logged and skipped like a remove that
+					// throws.
 					try {
-						await supabase.storage.from("property-images").remove([imagePath]);
+						await supabase.storage
+							.from("property-images")
+							.remove([requireSafeStorageObjectPath(imagePath)]);
 					} catch {
 						mutationLogger.warn("Storage deletion failed", {
 							action: "delete_storage_image_failed",

@@ -6,6 +6,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
+import { requireSafeStorageObjectPath } from "#lib/storage-path";
 import { createClient } from "#lib/supabase/client";
 import type { PaginatedResponse } from "#types/api-contracts";
 import type { Lease, Property, Tenant, Unit } from "#types/core";
@@ -218,10 +219,12 @@ export const leaseQueries = {
 				// The finalized signed PDF lives in the private tenant-documents
 				// bucket (owner-scoped RLS); mint a short-lived signed URL on demand.
 				// Surface a storage failure (vs. a missing document) so the download
-				// button can distinguish "failing" from "not available yet".
+				// button can distinguish "failing" from "not available yet". Owners
+				// can write signed_document_path, so a value that fails the storage
+				// path check throws here as that same failure.
 				const { data: signed, error: signError } = await supabase.storage
 					.from("tenant-documents")
-					.createSignedUrl(path, 60 * 60);
+					.createSignedUrl(requireSafeStorageObjectPath(path), 60 * 60);
 				if (signError) throw signError;
 				return { document_url: signed?.signedUrl ?? null, finalizing: false };
 			},

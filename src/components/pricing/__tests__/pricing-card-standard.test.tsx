@@ -16,9 +16,16 @@ import userEvent from "@testing-library/user-event";
 import type { ComponentProps } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { createCheckoutSessionMock, getSessionMock } = vi.hoisted(() => ({
+const {
+	createCheckoutSessionMock,
+	getSessionMock,
+	assignMock,
+	toastErrorMock,
+} = vi.hoisted(() => ({
 	createCheckoutSessionMock: vi.fn(),
 	getSessionMock: vi.fn(),
+	assignMock: vi.fn(),
+	toastErrorMock: vi.fn(),
 }));
 
 vi.mock("@tanstack/react-query", () => ({
@@ -29,19 +36,27 @@ vi.mock("@tanstack/react-query", () => ({
 		}) => Promise<unknown>;
 		onError?: (error: Error) => void;
 		onSettled?: () => void;
-	}) => ({
-		mutateAsync: async (o?: { customerEmail?: string; tenant_id?: string }) => {
+	}) => {
+		// Like TanStack's: onError sees the failure, mutateAsync rethrows it and
+		// mutate swallows it.
+		const run = async (o?: { customerEmail?: string; tenant_id?: string }) => {
 			try {
 				return await opts.mutationFn(o);
 			} catch (error) {
 				opts.onError?.(error as Error);
-				return undefined;
+				throw error;
 			} finally {
 				opts.onSettled?.();
 			}
-		},
-		isPending: false,
-	}),
+		};
+		return {
+			mutateAsync: run,
+			mutate: (o?: { customerEmail?: string; tenant_id?: string }) => {
+				run(o).catch(() => undefined);
+			},
+			isPending: false,
+		};
+	},
 }));
 vi.mock("#lib/supabase/client", () => ({
 	createClient: () => ({
@@ -58,7 +73,7 @@ vi.mock("#lib/frontend-logger", () => ({
 	createLogger: () => ({ error: vi.fn(), info: vi.fn() }),
 }));
 vi.mock("sonner", () => ({
-	toast: { loading: vi.fn(), error: vi.fn(), dismiss: vi.fn() },
+	toast: { loading: vi.fn(), error: toastErrorMock, dismiss: vi.fn() },
 }));
 vi.mock("../owner-subscribe-dialog", () => ({
 	OwnerSubscribeDialog: () => null,
@@ -71,10 +86,12 @@ const originalLocation = window.location;
 beforeEach(() => {
 	getSessionMock.mockResolvedValue({ data: { session: null } });
 	createCheckoutSessionMock.mockReset();
+	assignMock.mockReset();
+	toastErrorMock.mockReset();
 	Object.defineProperty(window, "location", {
 		configurable: true,
 		writable: true,
-		value: { href: "" },
+		value: { href: "", assign: assignMock },
 	});
 });
 
@@ -160,7 +177,7 @@ describe("PricingCardStandard", () => {
 			data: { session: { access_token: "token" } },
 		});
 		createCheckoutSessionMock.mockResolvedValue({
-			url: "https://checkout.stripe.test/session",
+			url: "https://checkout.stripe.com/c/pay/cs_test_max",
 		});
 		const user = userEvent.setup();
 		render(<PricingCardStandard plan={maxPlan} billingCycle="yearly" />);
@@ -175,5 +192,32 @@ describe("PricingCardStandard", () => {
 				}),
 			),
 		);
+		await waitFor(() =>
+			expect(assignMock).toHaveBeenCalledWith(
+				"https://checkout.stripe.com/c/pay/cs_test_max",
+			),
+		);
 	});
+
+	it.each([
+		"https://checkout.example.com/session",
+		"https://checkout.stripe.com.evil.com/c/pay/cs_test_max",
+		"javascript:alert(document.cookie)",
+	])(
+		"does not navigate to the non-Stripe checkout URL %s, and toasts instead",
+		async (url) => {
+			getSessionMock.mockResolvedValue({
+				data: { session: { access_token: "token" } },
+			});
+			createCheckoutSessionMock.mockResolvedValue({ url });
+			const user = userEvent.setup();
+			render(<PricingCardStandard plan={maxPlan} billingCycle="monthly" />);
+
+			await user.click(screen.getByRole("button", { name: /Start free/ }));
+
+			await waitFor(() => expect(toastErrorMock).toHaveBeenCalledTimes(1));
+			expect(createCheckoutSessionMock).toHaveBeenCalledTimes(1);
+			expect(assignMock).not.toHaveBeenCalled();
+		},
+	);
 });

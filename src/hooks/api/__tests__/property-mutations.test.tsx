@@ -329,6 +329,23 @@ describe("useDeletePropertyImageMutation", () => {
 		]);
 	});
 
+	it("skips the storage remove when imagePath fails the storage path check", async () => {
+		const { result } = renderHook(() => useDeletePropertyImageMutation(), {
+			wrapper: createWrapper(),
+		});
+
+		await expect(
+			result.current.mutateAsync({
+				imageId: "img-123",
+				property_id: "prop-123",
+				imagePath: "prop-123/../other-prop/image.webp",
+			}),
+		).resolves.toEqual({ success: true });
+
+		expect(mockSupabaseEq).toHaveBeenCalledWith("id", "img-123");
+		expect(mockSupabaseStorageRemove).not.toHaveBeenCalled();
+	});
+
 	it("should not call storage remove when imagePath is not provided", async () => {
 		const { result } = renderHook(() => useDeletePropertyImageMutation(), {
 			wrapper: createWrapper(),

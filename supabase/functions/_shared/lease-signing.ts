@@ -9,8 +9,12 @@ import { captureWebhookError } from "./errors.ts";
 import { escapeHtml } from "./escape-html.ts";
 import { type LeasePdfData, renderLeasePdf } from "./lease-pdf.ts";
 import { sendEmail, uint8ToBase64 } from "./resend.ts";
+import { isSafeStorageObjectPath, storageObjectPath } from "./storage-path.ts";
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const UUID_RE =
+	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Closest-hop client IP (mirrors _shared/rate-limit.ts getClientIp). The first
  *  x-forwarded-for segment is attacker-controlled, so the LAST is used. */
@@ -35,7 +39,32 @@ export function clientUserAgent(req: Request): string {
 /** Storage bucket + path convention for the finalized signed lease PDF. */
 export const SIGNED_LEASE_BUCKET = "tenant-documents";
 export function signedLeasePath(leaseId: string): string {
-	return `lease/${leaseId}/signed-lease.pdf`;
+	// The service role uploads here with no storage RLS, so the id must be
+	// exactly a UUID before it becomes a path segment.
+	if (!UUID_RE.test(leaseId)) {
+		throw new Error("signedLeasePath: lease id is not a UUID");
+	}
+	// Lower-case, as Postgres renders a uuid and as the storage RLS folder
+	// check (`leases.id::text`) compares it.
+	return storageObjectPath("lease", leaseId.toLowerCase(), "signed-lease.pdf");
+}
+
+/**
+ * True when `path` is a safe path inside this lease's own folder. The download
+ * of leases.signed_document_path needs it: owners hold a column grant on that
+ * pointer, and the service role reads Storage with no RLS, so an unchecked
+ * pointer could name another owner's file or, through a dot segment, another
+ * endpoint on this host. The folder is matched without regard to case, like
+ * UUID_RE, so a lease id in upper case still matches the lower-case path
+ * signedLeasePath writes.
+ */
+function isInLeaseFolder(leaseId: string, path: string): boolean {
+	const folder = `lease/${leaseId.toLowerCase()}/`;
+	return (
+		UUID_RE.test(leaseId) &&
+		isSafeStorageObjectPath(path) &&
+		path.slice(0, folder.length).toLowerCase() === folder
+	);
 }
 
 /** Generate a 256-bit single-use token and its SHA-256 hex hash. */
@@ -349,9 +378,16 @@ async function ensureSignedLeaseEmail(
 
 	let pdfBytes = renderedBytes;
 	if (!pdfBytes) {
-		const { data: blob, error: downloadError } = await supabase.storage
-			.from(SIGNED_LEASE_BUCKET)
-			.download(signedPath);
+		// A pointer outside the lease's folder takes the failed-download exit.
+		const { data: blob, error: downloadError } = isInLeaseFolder(
+			leaseId,
+			signedPath,
+		)
+			? await supabase.storage.from(SIGNED_LEASE_BUCKET).download(signedPath)
+			: {
+					data: null,
+					error: new Error("Signed lease path is outside the lease's folder"),
+				};
 		if (downloadError || !blob) {
 			await releaseSignedLeaseEmailClaim(supabase, leaseId);
 			captureWebhookError(
@@ -418,11 +454,12 @@ export async function finalizeSignedLease(
 	let signedPath = record.signedDocumentPath;
 	if (!signedPath) {
 		try {
+			// Built first so a lease id that fails the path check stops before the render.
+			const path = signedLeasePath(leaseId);
 			const bytes = await renderLeasePdf(
 				buildLeasePdfData(record, { signed: true }),
 			);
 			const hash = await sha256Hex(bytes);
-			const path = signedLeasePath(leaseId);
 			const { error: uploadError } = await supabase.storage
 				.from(SIGNED_LEASE_BUCKET)
 				.upload(path, bytes, { contentType: "application/pdf", upsert: true });

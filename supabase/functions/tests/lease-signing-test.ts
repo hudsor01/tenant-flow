@@ -15,6 +15,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { fakeSupabaseClient } from "./fake-supabase-client.ts";
 import { finalizeSignedLease, formatMoney } from "../_shared/lease-signing.ts";
 
+// signedLeasePath requires a UUID lease id, as the real leases.id always is.
+const LEASE_ID = "11111111-1111-4111-8111-111111111111";
+const SIGNED_PATH = `lease/${LEASE_ID}/signed-lease.pdf`;
+
 interface LeaseRowState {
 	id: string;
 	owner_user_id: string;
@@ -47,7 +51,7 @@ interface LeaseRowState {
 
 function leaseRow(overrides: Partial<LeaseRowState> = {}): LeaseRowState {
 	return {
-		id: "lease-1",
+		id: LEASE_ID,
 		owner_user_id: "owner-1",
 		primary_tenant_id: "tenant-1",
 		unit_id: "unit-1",
@@ -229,7 +233,7 @@ Deno.test("formatMoney: null and empty string fall back to N/A", () => {
 
 Deno.test("finalizeSignedLease: no-op when only one party has signed", async () => {
 	const { client, calls } = makeClient(leaseRow({ tenant_signed_at: null }));
-	await finalizeSignedLease(client, "lease-1");
+	await finalizeSignedLease(client, LEASE_ID);
 	assertEquals(calls.uploads.length, 0);
 	assertEquals(calls.updates.length, 0);
 });
@@ -239,11 +243,11 @@ Deno.test(
 	withResendStub({ ok: true }, async (fetchCount) => {
 		const { client, calls } = makeClient(
 			leaseRow({
-				signed_document_path: "lease/lease-1/signed-lease.pdf",
+				signed_document_path: SIGNED_PATH,
 				signed_lease_emailed_at: "2026-01-03T00:00:00Z",
 			}),
 		);
-		await finalizeSignedLease(client, "lease-1");
+		await finalizeSignedLease(client, LEASE_ID);
 		assertEquals(calls.uploads.length, 0);
 		// The claim update runs but matches no row (already emailed) — no email.
 		assertEquals(fetchCount(), 0);
@@ -260,7 +264,7 @@ Deno.test(
 			upload: async () => ({ error: { message: "boom" } }),
 			download: async () => ({ data: null, error: { message: "no" } }),
 		});
-		await finalizeSignedLease(client, "lease-1");
+		await finalizeSignedLease(client, LEASE_ID);
 		assertEquals(state.row.signed_document_path, null);
 		assertEquals(fetchCount(), 0);
 		assertEquals(calls.uploads.length, 0); // replaced storage stub records nothing
@@ -271,11 +275,11 @@ Deno.test(
 	"finalizeSignedLease: happy path renders, writes the pointer, emails once",
 	withResendStub({ ok: true }, async (fetchCount) => {
 		const { client, calls, state } = makeClient(leaseRow({}));
-		await finalizeSignedLease(client, "lease-1");
+		await finalizeSignedLease(client, LEASE_ID);
 
 		assertEquals(calls.uploads.length, 1);
-		assertEquals(calls.uploads[0].path, "lease/lease-1/signed-lease.pdf");
-		assertEquals(state.row.signed_document_path, "lease/lease-1/signed-lease.pdf");
+		assertEquals(calls.uploads[0].path, SIGNED_PATH);
+		assertEquals(state.row.signed_document_path, SIGNED_PATH);
 		assert(typeof state.row.signed_document_hash === "string");
 		// Exactly one email (attachment reused from the freshly-rendered buffer, so
 		// no storage download on the first pass).
@@ -284,7 +288,7 @@ Deno.test(
 		assert(typeof state.row.signed_lease_emailed_at === "string");
 		// Pointer write is guarded on the pointer still being null (idempotency).
 		const pointerWrite = calls.updates.find(
-			(u) => u.payload.signed_document_path === "lease/lease-1/signed-lease.pdf",
+			(u) => u.payload.signed_document_path === SIGNED_PATH,
 		);
 		assert(pointerWrite);
 		assert(
@@ -297,8 +301,8 @@ Deno.test(
 	"finalizeSignedLease: a second finalize does not re-render or re-email",
 	withResendStub({ ok: true }, async (fetchCount) => {
 		const { client, calls, state } = makeClient(leaseRow({}));
-		await finalizeSignedLease(client, "lease-1"); // first: renders + emails
-		await finalizeSignedLease(client, "lease-1"); // second: no-op
+		await finalizeSignedLease(client, LEASE_ID); // first: renders + emails
+		await finalizeSignedLease(client, LEASE_ID); // second: no-op
 
 		assertEquals(calls.uploads.length, 1); // no second render/upload
 		assertEquals(fetchCount(), 1); // no second email
@@ -310,9 +314,9 @@ Deno.test(
 	"finalizeSignedLease: PDF exists but email not yet sent re-sends from storage",
 	withResendStub({ ok: true }, async (fetchCount) => {
 		const { client, calls, state } = makeClient(
-			leaseRow({ signed_document_path: "lease/lease-1/signed-lease.pdf" }),
+			leaseRow({ signed_document_path: SIGNED_PATH }),
 		);
-		await finalizeSignedLease(client, "lease-1");
+		await finalizeSignedLease(client, LEASE_ID);
 
 		assertEquals(calls.uploads.length, 0); // PDF already exists — no re-render
 		assertEquals(calls.downloads.length, 1); // pulled the stored PDF to attach
@@ -327,7 +331,7 @@ Deno.test(
 		// First finalize with a FAILING Resend stub: the claim must be released.
 		const { client, state } = makeClient(leaseRow({}));
 		await withResendStub({ ok: false }, async (fetchCount) => {
-			await finalizeSignedLease(client, "lease-1");
+			await finalizeSignedLease(client, LEASE_ID);
 			assertEquals(fetchCount(), 1); // attempted once
 			// Claim released back to null so a later retry can re-attempt.
 			assertEquals(state.row.signed_lease_emailed_at, null);
@@ -335,7 +339,7 @@ Deno.test(
 
 		// Second finalize with a SUCCEEDING stub re-sends and sticks the claim.
 		await withResendStub({ ok: true }, async (fetchCount) => {
-			await finalizeSignedLease(client, "lease-1");
+			await finalizeSignedLease(client, LEASE_ID);
 			assertEquals(fetchCount(), 1);
 			assert(typeof state.row.signed_lease_emailed_at === "string");
 		})();
@@ -359,7 +363,7 @@ Deno.test(
 			upload: async () => ({ error: { message: "boom" } }),
 			download: async () => ({ data: null, error: { message: "no" } }),
 		});
-		await finalizeSignedLease(client, "lease-1");
+		await finalizeSignedLease(client, LEASE_ID);
 
 		const failNotice = calls.rpcs.find(
 			(r) =>
@@ -369,7 +373,7 @@ Deno.test(
 		assert(failNotice, "expected a lease_finalize_failed notification");
 		assertEquals(failNotice.args.p_title, "Lease signing needs attention");
 		assertEquals(failNotice.args.p_entity_type, "lease");
-		assertEquals(failNotice.args.p_action_url, "/leases/lease-1");
+		assertEquals(failNotice.args.p_action_url, `/leases/${LEASE_ID}`);
 	}),
 );
 
@@ -378,7 +382,7 @@ Deno.test(
 	async () => {
 		const { client, calls } = makeClient(leaseRow({}));
 		await withResendStub({ ok: false }, async (fetchCount) => {
-			await finalizeSignedLease(client, "lease-1");
+			await finalizeSignedLease(client, LEASE_ID);
 			assertEquals(fetchCount(), 1); // email attempted once, then failed
 		})();
 
@@ -389,6 +393,113 @@ Deno.test(
 		);
 		assert(failNotice, "expected a lease_finalize_failed notification");
 		assertEquals(failNotice.args.p_title, "Lease signing needs attention");
-		assertEquals(failNotice.args.p_action_url, "/leases/lease-1");
+		assertEquals(failNotice.args.p_action_url, `/leases/${LEASE_ID}`);
 	},
+);
+
+// -----------------------------------------------------------------------------
+// Storage path checks. Owners hold a column grant on signed_document_path and
+// the finalize client is the service role (no storage RLS), so a pointer outside
+// this lease's folder, or one that climbs out with a dot segment, must never be
+// downloaded: it takes the failed-download exit (claim released, owner notified).
+// -----------------------------------------------------------------------------
+
+const REFUSED_POINTERS: ReadonlyArray<[string, string]> = [
+	["another lease's folder", "lease/22222222-2222-4222-8222-222222222222/signed-lease.pdf"],
+	["a literal dot segment", `lease/${LEASE_ID}/../../../../../rest/v1/users`],
+	["a percent-encoded dot segment", `lease/${LEASE_ID}/%2e%2e/%2E%2e/x.pdf`],
+	["a backslash", `lease/${LEASE_ID}/..\\x.pdf`],
+	// The URL parser cuts each of these to a bare final "..", one level up.
+	["a dot segment cut off by a query", `lease/${LEASE_ID}/..?x`],
+	["a dot segment cut off by a fragment", `lease/${LEASE_ID}/..#x`],
+	["a dot segment with a trailing space", `lease/${LEASE_ID}/.. `],
+	["a percent-encoded dot segment cut off by a query", `lease/${LEASE_ID}/%2e%2e?`],
+];
+
+for (const [label, pointer] of REFUSED_POINTERS) {
+	Deno.test(
+		`finalizeSignedLease: a pointer with ${label} is never downloaded`,
+		withResendStub({ ok: true }, async (fetchCount) => {
+			const { client, calls, state } = makeClient(
+				leaseRow({ signed_document_path: pointer }),
+			);
+			await finalizeSignedLease(client, LEASE_ID);
+
+			assertEquals(calls.downloads.length, 0);
+			assertEquals(calls.uploads.length, 0);
+			assertEquals(fetchCount(), 0);
+			// Claim released so a retry re-attempts once the pointer is repaired.
+			assertEquals(state.row.signed_lease_emailed_at, null);
+			assert(
+				calls.rpcs.some(
+					(r) =>
+						r.name === "create_notification" &&
+						r.args.p_type === "lease_finalize_failed",
+				),
+				"expected a lease_finalize_failed notification",
+			);
+		}),
+	);
+}
+
+// Postgres matches a uuid without regard to case and renders it in lower case,
+// so a caller may pass the id in upper case while the stored pointer is lower
+// case. (The fake's eq() matches any id, as Postgres would match this one.)
+const UPPER_LEASE_ID = "ABCDEF01-2345-4678-9ABC-DEF012345678";
+const UPPER_LEASE_SIGNED_PATH = `lease/${UPPER_LEASE_ID.toLowerCase()}/signed-lease.pdf`;
+
+Deno.test(
+	"finalizeSignedLease: an upper-case lease id still downloads its lower-case pointer",
+	withResendStub({ ok: true }, async (fetchCount) => {
+		const { client, calls, state } = makeClient(
+			leaseRow({
+				id: UPPER_LEASE_ID.toLowerCase(),
+				signed_document_path: UPPER_LEASE_SIGNED_PATH,
+			}),
+		);
+		await finalizeSignedLease(client, UPPER_LEASE_ID);
+
+		assertEquals(calls.uploads.length, 0);
+		assertEquals(calls.downloads, [{ path: UPPER_LEASE_SIGNED_PATH }]);
+		assertEquals(fetchCount(), 1);
+		assert(typeof state.row.signed_lease_emailed_at === "string");
+		assertEquals(
+			calls.rpcs.filter((r) => r.name === "create_notification").length,
+			0,
+		);
+	}),
+);
+
+Deno.test(
+	"finalizeSignedLease: an upper-case lease id writes a lower-case path",
+	withResendStub({ ok: true }, async (fetchCount) => {
+		const { client, calls, state } = makeClient(
+			leaseRow({ id: UPPER_LEASE_ID.toLowerCase() }),
+		);
+		await finalizeSignedLease(client, UPPER_LEASE_ID);
+
+		assertEquals(calls.uploads, [{ path: UPPER_LEASE_SIGNED_PATH }]);
+		assertEquals(state.row.signed_document_path, UPPER_LEASE_SIGNED_PATH);
+		assertEquals(fetchCount(), 1);
+	}),
+);
+
+Deno.test(
+	"finalizeSignedLease: a lease id that is not a UUID uploads nothing and notifies",
+	withResendStub({ ok: true }, async (fetchCount) => {
+		const { client, calls, state } = makeClient(leaseRow({ id: "lease-1" }));
+		await finalizeSignedLease(client, "../lease-1");
+
+		assertEquals(calls.uploads.length, 0);
+		assertEquals(state.row.signed_document_path, null);
+		assertEquals(fetchCount(), 0);
+		assert(
+			calls.rpcs.some(
+				(r) =>
+					r.name === "create_notification" &&
+					r.args.p_type === "lease_finalize_failed",
+			),
+			"expected a lease_finalize_failed notification",
+		);
+	}),
 );

@@ -11,6 +11,7 @@ import {
 	showStorageQuotaUpgradeToast,
 	userFacingErrorMessage,
 } from "#lib/mutation-error-handler";
+import { safeFileExtension, storageObjectPath } from "#lib/storage-path";
 import {
 	isStoragePlanLimitError,
 	wouldExceedStorageQuota,
@@ -127,10 +128,20 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 
 		const responses = await Promise.all(
 			filesToUpload.map(async (file) => {
-				// Generate unique filename to prevent "resource already exists" errors
-				const ext = file.name.split(".").pop() || "jpg";
-				const uniqueName = `${crypto.randomUUID()}.${ext}`;
-				const uploadPath = path ? `${path}/${uniqueName}` : uniqueName;
+				// Unique filename to prevent "resource already exists" errors. The
+				// folder may hold several segments, each checked like the name.
+				let uploadPath: string;
+				try {
+					uploadPath = storageObjectPath(
+						...(path ? path.split("/") : []),
+						`${crypto.randomUUID()}.${safeFileExtension(file.name, "jpg")}`,
+					);
+				} catch (pathError) {
+					return {
+						name: file.name,
+						message: userFacingErrorMessage(pathError, "Upload failed"),
+					};
+				}
 				const { error } = await supabase.storage
 					.from(bucketName)
 					.upload(uploadPath, file, {
