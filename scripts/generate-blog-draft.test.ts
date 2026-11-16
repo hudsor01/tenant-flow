@@ -3,7 +3,6 @@ import type { Draft, GateContext } from "./generate-blog-draft";
 import {
 	applySlugOverride,
 	blogSlugExists,
-	capDocusealMentions,
 	capH2Count,
 	clampToLength,
 	critique,
@@ -370,31 +369,6 @@ describe("structured failure output (BLOG-09b)", () => {
 	});
 });
 
-describe("capDocusealMentions (docuseal_mention gate, max 1)", () => {
-	it("keeps a single mention untouched", () => {
-		expect(capDocusealMentions("Sign it with DocuSeal today.")).toBe(
-			"Sign it with DocuSeal today.",
-		);
-	});
-
-	it("generifies the second and later mentions, preserving possessives", () => {
-		const input =
-			"DocuSeal handles e-signing. Later, DocuSeal's audit trail helps, and DocuSeal stores copies.";
-		expect(capDocusealMentions(input)).toBe(
-			"DocuSeal handles e-signing. Later, your e-signature tool's audit trail helps, and your e-signature tool stores copies.",
-		);
-	});
-
-	it("is case-insensitive and leaves zero-mention content unchanged", () => {
-		expect(capDocusealMentions("docuseal then DOCUSEAL")).toBe(
-			"docuseal then your e-signature tool",
-		);
-		expect(capDocusealMentions("No e-sign tools here.")).toBe(
-			"No e-sign tools here.",
-		);
-	});
-});
-
 describe("sanitizeBanlist substring safety (EF gate matches substrings)", () => {
 	// Mirror of the EF/generator BANLIST — the gate uses lc.includes(phrase),
 	// so NO output may contain any of these as a substring.
@@ -449,6 +423,29 @@ describe("sanitizeBanlist substring safety (EF gate matches substrings)", () => 
 			"Tenants who paid rent late should pay rent on time next month.",
 		);
 		expectGateClean(out);
+	});
+
+	it('rewrites "tenant portal(s)" to tenant login(s), never "tenant records"', () => {
+		const out = sanitizeBanlist(
+			"TenantFlow does not include a tenant portal. Tenant portals add fees.",
+		);
+		expect(out).toBe(
+			"TenantFlow does not include a tenant login. Tenant logins add fees.",
+		);
+		expect(out.toLowerCase()).not.toContain("tenant records");
+		expectGateClean(out);
+	});
+
+	it("gives a Title Case phrase a Title Case replacement", () => {
+		expect(sanitizeBanlist("Why Landlords Skip the Tenant Portal")).toBe(
+			"Why Landlords Skip the Tenant Login",
+		);
+		expect(
+			sanitizeBanlist("Rent Collection Software for Small Landlords"),
+		).toBe("Property Management Software for Small Landlords");
+		expect(sanitizeBanlist("## Why Tenant Portals Fail")).toBe(
+			"## Why Tenant Logins Fail",
+		);
 	});
 
 	it("clears every banned phrase from a worst-case paragraph", () => {
@@ -738,6 +735,32 @@ const gateNames = (d: Draft, ctx: GateContext = seoCtx): string[] =>
 describe("runGates SEO baseline", () => {
 	it("a fully compliant draft passes all 18 gates", () => {
 		expect(runGates(seoDraft, seoCtx)).toEqual([]);
+	});
+});
+
+describe("runGates docuseal_mention", () => {
+	it("rejects even one DocuSeal mention, because TenantFlow's e-signing is its own", () => {
+		const d = {
+			...seoDraft,
+			content: `${seoDraft.content}\n\nSign it with DocuSeal.`,
+		};
+		expect(gateNames(d)).toContain("docuseal_mention");
+	});
+
+	it.each(["title", "excerpt", "meta_description"] as const)(
+		"checks the %s too, and names it in the repair hint",
+		(field) => {
+			const d = { ...seoDraft, [field]: `${seoDraft[field]} DocuSeal` };
+			const hit = runGates(d, seoCtx).find(
+				(f) => f.gate === "docuseal_mention",
+			);
+			expect(hit?.message).toBe(`${field} 1x`);
+			expect(hit?.fix).toContain(field);
+		},
+	);
+
+	it("passes a draft that never mentions DocuSeal", () => {
+		expect(gateNames(seoDraft)).not.toContain("docuseal_mention");
 	});
 });
 

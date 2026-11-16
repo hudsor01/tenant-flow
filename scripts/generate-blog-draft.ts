@@ -606,12 +606,20 @@ export function runGates(
 			message: `${banHit.phrase} (${banHit.field})`,
 			fix: `Remove the literal phrase "${banHit.phrase}" from the ${banHit.field} and rephrase it (e.g. "pay rent on time" -> "stay current on their lease" / "meet their rent obligations"; "tenant portal" -> drop it entirely). TenantFlow does not facilitate rent payments or offer a tenant portal.`,
 		});
-	const docuseal = (p.content.match(/DocuSeal/gi) ?? []).length;
-	if (docuseal > 1)
+	// TenantFlow's lease e-signing is its own (DocuSeal was removed), so a
+	// mention in any public field misstates the product. Stricter than the
+	// n8n-blog-ingest gate and the DB trigger's gate 9 (content only, at most
+	// one), which predate the removal.
+	const docusealHits = (
+		["title", "excerpt", "meta_description", "content"] as const
+	)
+		.map((field) => ({ field, n: (p[field].match(/DocuSeal/gi) ?? []).length }))
+		.filter((h) => h.n > 0);
+	if (docusealHits.length > 0)
 		out.push({
 			gate: "docuseal_mention",
-			message: `${docuseal}x`,
-			fix: "Mention DocuSeal at most once.",
+			message: docusealHits.map((h) => `${h.field} ${h.n}x`).join(", "),
+			fix: `Remove every mention of DocuSeal from the ${docusealHits.map((h) => h.field).join(", ")}: TenantFlow's lease e-signing is built in (Growth and Max plans).`,
 		});
 
 	// --- SEO gates (generator-side only; the EF does not re-check these) ---
@@ -770,20 +778,66 @@ const BANLIST_REPLACEMENTS: [RegExp, string][] = [
 	[/\brent tracking\b/gi, "rent records"],
 	[/\brecord rent\b/gi, "record payments"],
 	[/\btenants can pay\b/gi, "tenants can stay current"],
-	[/\btenant portal\b/gi, "tenant records"],
+	// "tenant records" (the old swap) read as "TenantFlow lacks tenant records" in
+	// a sentence like "it does not include a tenant portal"; a login is what the
+	// phrase meant, and TenantFlow gives tenants none.
+	[/\btenant portals\b/gi, "tenant logins"],
+	[/\btenant portal\b/gi, "tenant login"],
 	[/\bauto-?pay\b/gi, "consistent payments"],
 	[/\bautomated rent\b/gi, "consistent rent"],
 	[/\bautomated workflow\b/gi, "streamlined process"],
 	[/\bonline payments\b/gi, "payments"],
 	[/\bmobile app access\b/gi, "easy access"],
 ];
+const SMALL_WORDS = new Set([
+	"a",
+	"an",
+	"and",
+	"for",
+	"in",
+	"of",
+	"on",
+	"or",
+	"the",
+	"to",
+	"with",
+]);
+
+/**
+ * Give a replacement the match's case: Title Case for a Title Case phrase
+ * ("Rent Collection Software" -> "Property Management Software"), a leading
+ * capital for a phrase that starts a sentence ("Tenant portals add fees." ->
+ * "Tenant logins add fees."), the replacement as written otherwise.
+ */
+function matchCase(match: string, rep: string): string {
+	const words = match.split(/\s+/);
+	if (words.length > 1 && words.every((w) => /^[A-Z]/.test(w)))
+		return rep
+			.split(" ")
+			.map((w, i) =>
+				i > 0 && SMALL_WORDS.has(w)
+					? w
+					: w.charAt(0).toUpperCase() + w.slice(1),
+			)
+			.join(" ");
+	return /^[A-Z]/.test(match)
+		? rep.charAt(0).toUpperCase() + rep.slice(1)
+		: rep;
+}
+
 export function sanitizeBanlist(s: string): string {
 	let out = s;
 	// Loop to a fixed point: a replacement can leave adjacent fragments that
 	// re-form a banned phrase (e.g. "online online rent" -> "online rent").
 	for (let pass = 0; pass < 5; pass++) {
 		const before = out;
-		for (const [re, rep] of BANLIST_REPLACEMENTS) out = out.replace(re, rep);
+		for (const [re, rep] of BANLIST_REPLACEMENTS) {
+			// A replacement with a group reference ("$1property landlords") keeps
+			// the matched text's own case; every other one follows the match's.
+			out = rep.includes("$")
+				? out.replace(re, rep)
+				: out.replace(re, (match) => matchCase(match, rep));
+		}
 		if (out === before) break;
 	}
 	return out;
@@ -810,19 +864,6 @@ export function capH2Count(content: string, max = 9): string {
 			return line;
 		})
 		.join("\n");
-}
-
-// The docuseal_mention gate allows AT MOST one "DocuSeal" (Phase 4 COPY-04); the
-// model reliably over-mentions it in e-sign-adjacent topics and burns all 4
-// repair attempts failing to fix itself (n8n exec 183). Deterministic cure, same
-// philosophy as sanitizeBanlist: keep the first mention, generify the rest.
-export function capDocusealMentions(s: string): string {
-	let seen = 0;
-	return s.replace(/DocuSeal(['’]s)?/gi, (match, poss: string | undefined) => {
-		seen++;
-		if (seen <= 1) return match; // first mention stays exactly as written
-		return poss ? "your e-signature tool's" : "your e-signature tool";
-	});
 }
 
 // Deterministic cure for the `citations` offlist failure (the model habitually
@@ -1040,8 +1081,7 @@ CALIBRATION — what counts as a violation:
 - A TenantFlow-specific claim is a grounding issue ONLY if it CONTRADICTS the provided facts or INVENTS something not in them. A statement that is true but less detailed than the facts (e.g. "a 14-day trial" without the word "free", "plans start at $19/month" without the annual price, a feature named without its quota) is CORRECT — do NOT flag it and do NOT demand more detail.
 - A payment-facilitation issue exists ONLY if the draft says tenants pay/submit/process payments THROUGH TenantFlow. Generic landlord guidance about rent, deposits, or staying current is fine.
 - Internal links or references to OTHER TenantFlow blog posts — including a "Related reading" footer and any "[Title](/blog/...)" links — are legitimate site navigation, NOT grounding violations. Never flag them as invented or unsupported, and never penalize the draft for naming another article's title.
-- A TenantFlow feature described in DIFFERENT WORDS than the facts (a paraphrase or summary) is CORRECT, not an invention. Examples that are FINE: "maintenance records" / "maintenance tracking" for "Maintenance request tracking"; "financial ledger" / "expense tracking" for the income/expense ledger; "lease tools" / "lease management" for "Lease lifecycle"; "tax-ready reports" for the export list. Only flag a TenantFlow claim that (a) CONTRADICTS a fact (a different price, an invented per-unit or extra fee, a quota or limit the facts do not state), or (b) names a capability that appears NOWHERE in the facts (e.g. a built-in messaging system, customer support, or rent-payment processing). Do NOT reject for paraphrasing, summarizing, or omitting detail.
-- "your e-signature tool" is an accepted stand-in for DocuSeal (produced by the blog's copy rules). Treat it as grounded and equivalent to DocuSeal; never flag it.
+- A TenantFlow feature described in DIFFERENT WORDS than the facts (a paraphrase or summary) is CORRECT, not an invention. Examples that are FINE: "maintenance records" / "maintenance logs" for "Maintenance tracking"; "rent records" / "payment ledger" for the rent ledger; "lease tools" / "lease management" for "Leases"; "year-end reports" for the financial reporting exports. Only flag a TenantFlow claim that (a) CONTRADICTS a fact (a different price, an invented per-unit or extra fee, a quota or limit the facts do not state), or (b) names a capability that appears NOWHERE in the facts (e.g. a built-in messaging system, customer support, or rent-payment processing). Do NOT reject for paraphrasing, summarizing, or omitting detail.
 - Do not list nice-to-haves, style preferences, or suggestions for additional content as issues.
 Set verdict to "reject" if ANY dimension would score below 4, otherwise "pass". List only concrete VIOLATIONS as issues.`;
 
@@ -1183,8 +1223,6 @@ async function generateValidDraft(
 		// meta/excerpt still re-enters the loop (needs the model to write more).
 		d.meta_description = clampToLength(d.meta_description, 155); // gate <= 160
 		d.excerpt = clampToLength(d.excerpt, 180); // gate <= 200
-		// cap DocuSeal at one mention (docuseal_mention gate, max 1)
-		d.content = capDocusealMentions(d.content);
 		// demote surplus H2s (h2_count gate max 10; keep 9 for margin)
 		d.content = capH2Count(d.content);
 		// deterministically clear the two gates the local model rarely lands on
@@ -1439,7 +1477,7 @@ async function main() {
 	};
 
 	// 2. build the prompt (prototype lessons: forbid banlist phrases + high word target)
-	const system = `You are a senior content writer for TenantFlow, landlord-only property management software operated by Hudson Digital Solutions. Write genuinely helpful, accurate, E-E-A-T-credible long-form articles for independent landlords (1-20 units). Authoritative and natural; never hypey or AI-spam. Feature TenantFlow only where it genuinely fits, grounded in the provided facts — never fabricate features.
+	const system = `You are a senior content writer for TenantFlow, landlord-only property management software operated by Hudson Digital Solutions. Write genuinely helpful, accurate, E-E-A-T-credible long-form articles for independent landlords. Authoritative and natural; never hypey or AI-spam. Feature TenantFlow only where it genuinely fits, grounded in the provided facts — never fabricate features.
 E-E-A-T CONVENTIONS:
 - Write from first-hand landlord-operator experience — what an experienced landlord actually does, step by step.
 - Prioritize specific actionable depth over generalities: name the documents, give concrete steps, dollar figures, and timelines.
@@ -1447,7 +1485,7 @@ E-E-A-T CONVENTIONS:
 - Every TenantFlow-specific capability, price, or positioning claim MUST be grounded in the provided facts block. If a fact is not in that block, do not assert it about TenantFlow.
 HARD RULES (a single violation rejects the article):
 - TenantFlow does NOT facilitate rent payments and is NOT a tenant portal. NEVER use these literal phrases: ${BANLIST.join(", ")}. If you need the idea, rephrase: "pay rent on time" -> "stay current on their lease" / "meet their rent obligations".
-- Mention "DocuSeal" at most once, total.
+- Never mention DocuSeal or any other e-signature vendor: TenantFlow's lease e-signing is its own, on the Growth and Max plans only.
 - Output ONLY one valid JSON object.`;
 	const comparisonBrands = extractComparisonBrands(slugOverride ?? "");
 	const internalLinkBlock =

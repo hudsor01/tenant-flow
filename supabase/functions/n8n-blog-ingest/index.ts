@@ -69,8 +69,12 @@ interface GateFailure {
 // The banlist itself (gate 8) is ../_shared/blog-banlist.ts, so the unit suite
 // tests the gate this function runs.
 // The numeric gate thresholds below (word 1200-3000, H2 4-10, meta 50-160,
-// excerpt 80-200, slug 3-120, DocuSeal <=1) are ALSO hand-duplicated in
+// excerpt 80-200, slug 3-120) are ALSO hand-duplicated in
 // scripts/generate-blog-draft.ts and the trigger — change all three together.
+// DocuSeal: this function and the trigger allow at most 1 (gate 9, content
+// only); scripts/generate-blog-draft.ts rejects any mention in any public field
+// on purpose (TenantFlow's e-signing is its own), so do not restore parity by
+// loosening the generator. Tightening this gate to 0 needs a trigger migration.
 // ---------------------------------------------------------------------------
 
 const VALID_CATEGORIES = [

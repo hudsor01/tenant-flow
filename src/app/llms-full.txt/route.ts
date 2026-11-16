@@ -1,6 +1,11 @@
 import { blogAnonClient } from "#lib/blog/blog-queries";
 import { createLogger } from "#lib/frontend-logger";
 import { categoryLabel } from "#lib/seo/blog-categories";
+import {
+	LLMS_FULL_HEAD,
+	LLMS_FULL_PREAMBLE,
+	LLMS_FULL_TAIL,
+} from "#lib/seo/llms-full-facts";
 
 // Revalidate hourly — the published catalogue changes a few times a day at
 // most. The full per-post digest is regenerated on each revalidation.
@@ -13,85 +18,6 @@ const SITE = "https://tenantflow.app";
 const DIGEST_POST_LIMIT = 500;
 
 const logger = createLogger({ component: "LlmsFullTxt" });
-
-/**
- * Static baseline for /llms-full.txt MINUS the blog section. The blog
- * section is appended dynamically (per-category digest of every published
- * post) — replacing the prior static "No articles have published yet ...
- * empty channel until the first post" claim that suppressed 60+ live posts
- * from LLM ingestion.
- */
-const STATIC_HEAD = `# TenantFlow — Full Marketing Surface (for LLM ingestion)
-
-> A consolidated, plain-text view of TenantFlow's public marketing pages.
-> Generated for LLM consumers (Cursor, ChatGPT, Claude, Perplexity) so a
-> single fetch surfaces the same product, pricing, and comparison facts
-> a human would see by clicking through tenantflow.app.
-
-## What is TenantFlow
-
-TenantFlow is property management software for independent landlords. It is intentionally landlord-only — tenants don't log in, there is no tenant authentication, and the product does not facilitate rent payments. Tenants exist as records owned by the landlord, not as users.
-
-The product is operated by Hudson Digital Solutions. It runs on Next.js 16 + Supabase. Lease e-signing is built in on the Growth and Max tiers.
-
-## Core capabilities
-
-- **Property and unit management.** Track buildings, individual units, occupancy state, and rent amounts, with move-out dates and reasons on tenant records.
-- **Lease lifecycle.** Drafts, e-signed leases, renewals, terminations, lease document vault.
-- **Tenant records.** Contact info, lease history, emergency contact, and document attachments. Tenants are records, not users — they do not log in.
-- **Maintenance request tracking.** Submission, vendor assignment, status, photos, completion timestamps.
-- **Document vault.** Global search across leases, tenant docs, inspections, maintenance records, with custom categories per owner.
-- **Financial reporting.** Rent ledger of charges and receipts, expenses by vendor, CSV exports of the income statement, cash flow, balance sheet and year-end report on every plan, and PDF year-end and tax-document exports on Growth and Max.
-- **Inspections.** Move-in and move-out inspection records, room by room, with photo evidence.
-
-## Pricing (USD, billed monthly or annually)
-
-| Plan | Monthly | Annual | Properties | Units | E-sign | Reports |
-|---|---|---|---|---|---|---|
-| Trial | $0 (14d) | — | 1 | 5 | — | basic |
-| Starter | $19 | $190 | 5 | 25 | — | basic |
-| Growth | $49 | $490 | 20 | 100 | 25/mo | premium |
-| Max | $149 | $1,490 | unlimited | unlimited | unlimited | premium |
-
-The Trial row is an account that has not yet confirmed a plan; confirming one at the no-card checkout step runs the 14-day trial at that plan's limits. All plans include the document vault, maintenance tracking, tenant records, and the financial ledger. Plan caps are enforced at the database layer via BEFORE INSERT triggers — Starter and Growth users hitting their property or unit cap see an upgrade prompt with attribution back to the gate that triggered it.
-
-## Comparisons
-
-### TenantFlow vs Buildium
-
-Buildium is targeted at multi-family property managers managing dozens to hundreds of units, often as third-party managers for owners. TenantFlow is positioned at the long tail: independent landlords who manage their own rentals and don't need owner-management features or tenant payment processing. Plans run from Starter (up to 5 properties and 25 units) to Max (unlimited).
-
-### TenantFlow vs AppFolio
-
-AppFolio is a large-portfolio platform with mandatory minimums (often 50+ units), extensive payment processing, and high per-month minimums. TenantFlow has no minimums, a lower price floor, and is optimized for self-managing landlords.
-
-### TenantFlow vs RentRedi
-
-RentRedi competes on tenant-facing features — rent payment collection, tenant credit reporting, applicant screening flows. TenantFlow does not facilitate rent payments and has no tenant app. The product surface area is intentionally narrower and the pricing reflects that.
-
-## Free resources (no signup required)
-
-- **Seasonal maintenance checklist** — printable HVAC/plumbing/electrical/exterior inspection list, organized by quarter.
-- **Landlord tax deduction tracker** — printable tracker keyed to IRS Schedule E with space to record deductible expenses and category totals.
-- **Security deposit reference card** — one-page summary of deposit limits, return deadlines, and required documentation per state.`;
-
-const STATIC_TAIL = `## Company
-
-TenantFlow is operated by Hudson Digital Solutions. Contact: support@tenantflow.app for product support, security@tenantflow.app for vulnerability reports (see /.well-known/security.txt). Founded 2024.
-
-## Legal
-
-Standard SaaS terms. No selling of customer data; analytics limited to product usage. Full text: ${SITE}/privacy and ${SITE}/terms.
-
-## What TenantFlow is NOT
-
-To save anyone reading this answer time:
-
-- Not a multi-family property manager platform (use Buildium, AppFolio).
-- Not a tenant payment platform (use RentRedi, Stripe directly, or your bank's ACH).
-- Not a tenant-facing app — tenants do not have logins or a portal.
-- Not a maintenance-vendor marketplace (you bring your own vendors).
-- Not a property-management-as-a-service offering — TenantFlow is software the landlord operates themselves.`;
 
 interface PostRow {
 	title: string;
@@ -179,7 +105,9 @@ async function buildBlogDigest(): Promise<string> {
 
 export async function GET(): Promise<Response> {
 	const blogDigest = await buildBlogDigest();
-	const body = `${STATIC_HEAD}\n\n${blogDigest}\n\n${STATIC_TAIL}\n`;
+	// The product sections live in #lib/seo/llms-full-facts, which the blog
+	// factory's RAG index also reads; only the blog digest is built here.
+	const body = `${LLMS_FULL_PREAMBLE}\n\n${LLMS_FULL_HEAD}\n\n${blogDigest}\n\n${LLMS_FULL_TAIL}\n`;
 
 	return new Response(body, {
 		headers: {

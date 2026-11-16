@@ -54,7 +54,7 @@ export const AddTenantInfoFields = withForm({
 							icon={Mail}
 							type="email"
 							autoFocus
-							description="Used for lease records and payment receipts"
+							description="Used to email the tenant leases you send for e-signature (Growth and Max)"
 							placeholder="john.smith@example.com"
 						/>
 					)}
