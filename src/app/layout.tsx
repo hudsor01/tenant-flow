@@ -17,13 +17,14 @@ import "./globals.css";
 // `themeColor` and `msapplication-TileColor` are HTML meta attribute
 // values, not CSS — Tailwind tokens / CSS custom properties don't apply.
 // The previous `var(--color-info)` rendered as a literal string and was
-// silently ignored by browsers. Hex matches `--color-primary` (#2563eb).
+// silently ignored by browsers. #0064ef is the light-theme `--primary`
+// (oklch(0.54 0.23 257) in globals.css) as the browser paints it.
 export const viewport: Viewport = {
 	width: "device-width",
 	initialScale: 1,
 	colorScheme: "light dark",
 	themeColor: [
-		{ media: "(prefers-color-scheme: light)", color: "#2563eb" },
+		{ media: "(prefers-color-scheme: light)", color: "#0064ef" },
 		{ media: "(prefers-color-scheme: dark)", color: "#1e3a8a" },
 	],
 };
@@ -65,7 +66,7 @@ export default async function RootLayout({
 				<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 				<meta name="apple-mobile-web-app-title" content="TenantFlow" />
 				<meta name="application-name" content="TenantFlow" />
-				<meta name="msapplication-TileColor" content="#2563eb" />
+				<meta name="msapplication-TileColor" content="#0064ef" />
 				{/* Blog discovery: every RSS-aware reader (Feedly, NetNewsWire,
 				    Slack/Discord bots, AI crawlers fetching fresh content) checks
 				    for this <link>. Cheap to ship and there's a real ecosystem

@@ -109,7 +109,7 @@ function createDefaultMetadata(): Metadata {
 					// CSS custom properties don't apply to HTML attribute
 					// values. Hex matches `--color-primary` so the pinned-tab
 					// icon stays brand-aligned.
-					color: "#2563eb",
+					color: "#0064ef",
 				},
 			],
 		},

@@ -608,8 +608,10 @@ async function assertLabelForType(
 			payload.subject.endsWith(expectedLabel),
 			`subject ends with "${expectedLabel}" for ${reminderType}, got "${payload.subject}"`,
 		);
+		// emailStrong (_shared/email-layout.ts) styles the tag inline, so match
+		// any attributes on <strong> but the exact label inside it.
 		assert(
-			payload.html.includes(`<strong>${expectedLabel}</strong>`),
+			new RegExp(`<strong[^>]*>${expectedLabel}</strong>`).test(payload.html),
 			`body renders <strong>${expectedLabel}</strong> for ${reminderType}`,
 		);
 	})();

@@ -21,7 +21,15 @@ import {
 import { validateEnv } from "../_shared/env.ts";
 import { errorResponse } from "../_shared/errors.ts";
 import { escapeHtml } from "../_shared/escape-html.ts";
-import { wrapEmailLayout } from "../_shared/email-layout.ts";
+import {
+	emailButton,
+	emailHeading,
+	emailNote,
+	emailQuote,
+	emailStrong,
+	emailText,
+	wrapEmailLayout,
+} from "../_shared/email-layout.ts";
 import {
 	buildLeasePdfData,
 	clientIp,
@@ -79,27 +87,23 @@ function buildSigningEmail(params: {
 	message?: string;
 }): string {
 	const message = params.message?.trim();
-	const body = `
-<h1 style="margin:0 0 16px;font-size:20px;color:#18181b;">Please sign your lease</h1>
-<p style="margin:0 0 16px;font-size:15px;color:#3f3f46;line-height:1.6;">
-  ${escapeHtml(params.ownerName)} has sent you a residential lease agreement for
-  <strong>${escapeHtml(params.propertyLabel)}</strong> to review and sign.
-</p>
-${
-	message
-		? `<p style="margin:0 0 16px;padding:12px 16px;background:#f4f4f5;border-radius:6px;font-size:14px;color:#3f3f46;line-height:1.6;">${escapeHtml(message)}</p>`
-		: ""
-}
-<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 20px;">
-  <tr><td style="border-radius:6px;background:#2563eb;">
-    <a href="${params.signUrl}" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">Review &amp; Sign Lease</a>
-  </td></tr>
-</table>
-<p style="margin:0 0 8px;font-size:13px;color:#71717a;line-height:1.6;">
-  This is a secure, single-use link tied to your email. It expires in 14 days.
-  If you did not expect this, you can ignore this message.
-</p>`;
-	return wrapEmailLayout(body);
+	const body = [
+		emailHeading("Please sign your lease"),
+		emailText(
+			`${escapeHtml(params.ownerName)} has sent you a residential lease agreement for ${emailStrong(params.propertyLabel)} to review and sign.`,
+		),
+		message ? emailQuote(message) : "",
+		emailButton(params.signUrl, "Review & Sign Lease"),
+		emailNote(
+			"This is a secure, single-use link tied to your email. It expires in 14 days. If you did not expect this, you can ignore this message.",
+		),
+	]
+		.filter(Boolean)
+		.join("\n");
+	return wrapEmailLayout(body, {
+		preheader: `${params.ownerName} sent you a lease to review and sign.`,
+		title: "Please sign your lease",
+	});
 }
 
 /** Core request handler. Exported so the unit test can drive it with a fake
