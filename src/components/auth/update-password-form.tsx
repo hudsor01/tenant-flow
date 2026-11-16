@@ -1,14 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import {
-	AlertTriangle,
-	CheckCircle2,
-	Eye,
-	EyeOff,
-	Lock,
-	Shield,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle2, Eye, EyeOff, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ComponentPropsWithoutRef, SubmitEvent } from "react";
 import { useState } from "react";
@@ -213,10 +206,7 @@ export function UpdatePasswordForm({
 									Saving...
 								</>
 							) : (
-								<>
-									<Shield className="size-4 mr-2" />
-									Save new password
-								</>
+								"Save new password"
 							)}
 						</Button>
 					</form>
