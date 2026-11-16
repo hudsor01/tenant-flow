@@ -369,106 +369,620 @@ describe("structured failure output (BLOG-09b)", () => {
 	});
 });
 
-describe("sanitizeBanlist substring safety (EF gate matches substrings)", () => {
-	// Mirror of the EF/generator BANLIST — the gate uses lc.includes(phrase),
-	// so NO output may contain any of these as a substring.
-	const BANLIST_MIRROR = [
+// Mirror of the generator's BANLIST: the gates match substrings (case ignored).
+const BANLIST_MIRROR = [
+	"rent collection",
+	"online rent",
+	"autopay",
+	"auto-pay",
+	"tenant portal",
+	"automated rent",
+	"collect rent",
+	"rent processing",
+	"pay rent online",
+	"online payments",
+	"online rent payment",
+	"rent collection software",
+	"tenants can pay",
+	"pay rent through",
+	"automated workflow",
+	"rent tracking",
+	"mobile app access",
+	"record rent",
+	"paid rent",
+	"pay rent",
+];
+const expectGateClean = (output: string) => {
+	const lc = output.toLowerCase();
+	for (const phrase of BANLIST_MIRROR) {
+		expect(lc.includes(phrase), `survived: "${phrase}" in "${output}"`).toBe(
+			false,
+		);
+	}
+	expect(output).not.toMatch(/property owners?\b/i);
+};
+
+// Each rewrite keeps the sentence's grammar and meaning. Many inputs are
+// sentences the n8n writer's model actually wrote (executions 124354-125245),
+// where its fixed swaps gave "rent payments workflows", "tenants can make
+// payments rent by check" or "the platform's focus on the tenant login".
+const REWRITES: [string, string][] = [
+	[
+		"how each platform handles rent collection workflows",
+		"how each platform handles rent payment collection workflows",
+	],
+	[
+		"Innago supports rent collection but integrates it less seamlessly.",
+		"Innago supports rent payment collection but integrates it less seamlessly.",
+	],
+	[
+		"Rent collection is the part of the job most landlords dread.",
+		"Rent payment collection is the part of the job most landlords dread.",
+	],
+	[
+		"Track rent collections by month.",
+		"Track rent payment collections by month.",
+	],
+	[
+		"Landlord Studio excels in rent collection tracking.",
+		"Landlord Studio excels in rent payment tracking.",
+	],
+	[
+		"It includes online rent collection and a maintenance portal.",
+		"It includes electronic rent payment collection and a maintenance portal.",
+	],
+	[
+		"It includes tenant screening and automated rent collection.",
+		"It includes tenant screening and automatic rent payment collection.",
+	],
+	[
+		"Some landlords still collect rent checks in person.",
+		"Some landlords still collect the rent checks in person.",
+	],
+	[
+		"Many small landlords collect rents by check.",
+		"Many small landlords collect the rents by check.",
+	],
+	[
+		"The platform's focus on the tenant portal can overshadow vendor tools.",
+		"The platform's focus on the tenant-facing portal can overshadow vendor tools.",
+	],
+	[
+		"Innago offers robust tenant portals that allow tenants to pay rent online.",
+		"Innago offers robust tenant-facing portals that allow tenants to pay the rent online.",
+	],
+	[
+		"Tenants can pay rent by check.",
+		"Tenants are able to pay the rent by check.",
+	],
+	[
+		"Subtenants can pay the original tenant directly.",
+		"Subtenants are able to pay the original tenant directly.",
+	],
+	[
+		"The tenant must pay rent and utilities by the fifth.",
+		"The tenant must pay the rent and utilities by the fifth.",
+	],
+	[
+		"When tenants pay rent through SimplifyEm, you pay a fee.",
+		"When tenants pay the rent through SimplifyEm, you pay a fee.",
+	],
+	[
+		"Can tenants prepay rent for the whole year?",
+		"Can tenants prepay the rent for the whole year?",
+	],
+	[
+		"Tenants may have to repay rental assistance.",
+		"Tenants may have to repay the rental assistance.",
+	],
+	["The tenant paid rent on the 5th.", "The tenant paid the rent on the 5th."],
+	["The tenant overpaid rent by $50.", "The tenant overpaid the rent by $50."],
+	[
+		"The tenant prepaid rent for six months.",
+		"The tenant prepaid the rent for six months.",
+	],
+	[
+		"A weak lease can lead to disputes, unpaid rent, and legal nightmares.",
+		"A weak lease can lead to disputes, outstanding rent, and legal nightmares.",
+	],
+	[
+		"Within the grace period, the charge shows as unpaid rent, not late rent.",
+		"Within the grace period, the charge shows as outstanding rent, not late rent.",
+	],
+	[
+		"Unpaid rental income is not deductible.",
+		"Outstanding rental income is not deductible.",
+	],
+	[
+		"Prepaid rent is taxable income in the year you receive it.",
+		"Advance rent is taxable income in the year you receive it.",
+	],
+	[
+		"Pre-paid rent is a liability until the month it covers.",
+		"Advance rent is a liability until the month it covers.",
+	],
+	[
+		"Landlords who record rent payments promptly win more disputes.",
+		"Landlords who record the rent payments promptly win more disputes.",
+	],
+	[
+		"Landlords can record rent charges in the ledger.",
+		"Landlords can record the rent charges in the ledger.",
+	],
+	[
+		"Landlords saw record rent increases last year.",
+		"Landlords saw record-setting rent increases last year.",
+	],
+	[
+		"Amid record rent growth, cities passed new protections.",
+		"Amid record-setting rent growth, cities passed new protections.",
+	],
+	[
+		"It combines accurate rent tracking with lease generation.",
+		"It combines accurate rent-tracking with lease generation.",
+	],
+	[
+		"Use market rent tracking tools to price a vacant unit.",
+		"Use market rent-tracking tools to price a vacant unit.",
+	],
+	[
+		"Avail charges extra fees for rent processing.",
+		"Avail charges extra fees for rent payment processing.",
+	],
+	[
+		"RentTrack offers online rent payment and reporting.",
+		"RentTrack offers electronic rent payment and reporting.",
+	],
+	[
+		"Tenants cannot log in or make online payments.",
+		"Tenants cannot log in or make electronic payments.",
+	],
+	[
+		"Apartments.com is a massive online rental marketplace.",
+		"Apartments.com is a massive internet rental marketplace.",
+	],
+	[
+		"Use online rental applications to screen faster.",
+		"Use internet rental applications to screen faster.",
+	],
+	[
+		"Autopay reduces late payments for most landlords.",
+		"Automatic payment reduces late payments for most landlords.",
+	],
+	[
+		"Autopay-enabled accounts get a discount.",
+		"Automatic-payment-enabled accounts get a discount.",
+	],
+	[
+		"Set up auto-payments for utilities.",
+		"Set up automatic payments for utilities.",
+	],
+	[
+		"A fully automated workflow removes manual steps.",
+		"A fully automatic workflow removes manual steps.",
+	],
+	[
+		"Automated renter screening is a competitor feature.",
+		"Automatic renter screening is a competitor feature.",
+	],
+	[
+		"Give tenants mobile app access to their lease documents.",
+		"Give tenants mobile-app access to their lease documents.",
+	],
+	["Mobile app accessibility matters.", "Mobile-app accessibility matters."],
+];
+
+// No single rewrite is right in every context for these, so the text stays as
+// written for gate 8, whose repair turn rewrites the sentence.
+const LEFT_FOR_GATE: [string, string][] = [
+	["Tenants who don't autopay are more likely to pay late.", "autopay"],
+	["Can a tenant autopay from a credit card?", "autopay"],
+	["Autopay your utilities to avoid late fees.", "autopay"],
+	["Autopay ACH debits arrive on the 1st.", "autopay"],
+	["Failed autopays can trigger bank fees.", "autopay"],
+	["Record rents are pushing more renters toward roommates.", "record rent"],
+	["Austin could record rent growth of 4% next year.", "record rent"],
+	["Most landlords record rent increases in an addendum.", "record rent"],
+	["Click the Record Rent button to log a payment.", "record rent"],
+	["Accepting partially paid rent can waive your right to evict.", "paid rent"],
+	["You have paid rent receipts for every month.", "paid rent"],
+	["The landlord refunded overpaid rent.", "paid rent"],
+	["Maria prepaid rent for six months.", "paid rent"],
+	["Most portals have a pay rent button.", "pay rent"],
+	["Most portals include pay rent buttons.", "pay rent"],
+	["Serve a 3-day pay rent or quit notice.", "pay rent"],
+	["Use an online rent calculator to estimate market rent.", "online rent"],
+	[
+		"If one agency fails, try a different collection agency.",
 		"rent collection",
-		"online rent",
-		"autopay",
-		"auto-pay",
-		"tenant portal",
-		"automated rent",
-		"collect rent",
-		"rent processing",
-		"pay rent online",
-		"online payments",
-		"online rent payment",
-		"rent collection software",
-		"tenants can pay",
-		"pay rent through",
-		"automated workflow",
-		"rent tracking",
-		"mobile app access",
-		"record rent",
-		"paid rent",
-		"pay rent",
-	];
+	],
+	[
+		"Your current collection process may be costing you money.",
+		"rent collection",
+	],
+	["Rent Collection Act requirements vary by city.", "rent collection"],
+	[
+		'Many apps advertise "seamless rent collection" as their selling point.',
+		"rent collection",
+	],
+	["A subtenant portal is rare.", "tenant portal"],
+	["Non-property owners cannot claim the deduction.", "property owner"],
+	[
+		"When a single property owner controls most rentals, rents rise.",
+		"property owner",
+	],
+	["Commercial property owners' insurance costs rose.", "property owner"],
+	[
+		"Investment property owner tax deductions include mortgage interest.",
+		"property owner",
+	],
+	[
+		'Texas law defines a "property owner" as anyone who holds title.',
+		"property owner",
+	],
+	[
+		"The ordinance uses the phrase 'property owner' rather than landlord.",
+		"property owner",
+	],
+	["Property owner-occupied duplexes qualify for FHA loans.", "property owner"],
+	[
+		"Home and property owners in the flood zone need insurance.",
+		"property owner",
+	],
+	["Tips for multi property owners managing two states.", "property owner"],
+	["Multiproperty Owners Need a System", "property owner"],
+];
 
-	const expectGateClean = (output: string) => {
-		const lc = output.toLowerCase();
-		for (const phrase of BANLIST_MIRROR) {
-			expect(lc.includes(phrase), `survived: "${phrase}" in "${output}"`).toBe(
-				false,
-			);
-		}
-	};
+describe("sanitizeBanlist rewrites (the gates match substrings)", () => {
+	it.each(REWRITES)("%s", (input, expected) => {
+		expect(sanitizeBanlist(input)).toBe(expected);
+		expectGateClean(expected);
+	});
 
-	it('neutralizes "unpaid rent" (contains the "paid rent" substring — exec 282/283 failure)', () => {
-		const out = sanitizeBanlist(
-			"Send collections notices for unpaid rent promptly.",
+	it.each(LEFT_FOR_GATE)("leaves %s for gate 8", (input, phrase) => {
+		expect(sanitizeBanlist(input)).toBe(input);
+		expect(input.toLowerCase()).toContain(phrase);
+	});
+
+	it.each([
+		"TenantFlow offers automated rent collection.",
+		"With TenantFlow, tenants can pay rent online.",
+		"TenantFlow's autopay feature saves time.",
+		// A negation elsewhere in the sentence denies nothing.
+		"TenantFlow handles rent collection so you don't have to.",
+		"TenantFlow includes a tenant portal at no extra cost.",
+		"Buildium doesn't offer autopay, but TenantFlow does.",
+		// Abbreviations do not split a claim from its subject.
+		"TenantFlow serves U.S. landlords with autopay and online rent payments.",
+		// Ledger wording carries a claim as easily.
+		"TenantFlow automatically chases unpaid rent with text reminders.",
+		// A list, a table, a later paragraph or an H3 in the same section.
+		"TenantFlow includes:\n- Rent collection\n- Online payments\n- A tenant portal",
+		"TenantFlow includes the following features.\n\n- Rent collection\n- Online payments",
+		"| Feature | TenantFlow | Buildium |\n| --- | --- | --- |\n| Autopay | Yes | Yes |",
+		"## Why TenantFlow Fits Small Landlords\n\nIt handles rent collection and autopay.",
+		"TenantFlow is built for small landlords.\n\nWith it, tenants can pay rent online.",
+		"## What TenantFlow Does\n\nIt keeps leases.\n\n### Payments\n\nIt offers autopay.",
+		// Other names for the product, and a pitch.
+		"Tenant Flow lets tenants pay rent through a tenant portal.",
+		"With our software, tenants can pay rent from their phone.",
+		"Our Growth plan adds autopay for every lease.",
+		"Start your free trial: online rent payment for every unit.",
+		// Even a true denial goes to the repair turn, which words it without the phrase.
+		"TenantFlow does not offer rent collection.",
+	])("never rewrites a banlist phrase near TenantFlow: %s", (text) => {
+		expect(sanitizeBanlist(text)).toBe(text);
+	});
+
+	it("still rewrites a section that does not name TenantFlow", () => {
+		expect(
+			sanitizeBanlist(
+				"Use TenantFlow.\n\n## Rent collection tips\n\nRent collection gets easier with reminders.",
+			),
+		).toBe(
+			"Use TenantFlow.\n\n## Rent payment collection tips\n\nRent payment collection gets easier with reminders.",
 		);
-		expect(out).toContain("overdue rent");
-		expectGateClean(out);
 	});
 
-	it('neutralizes "prepaid rent"', () => {
-		const out = sanitizeBanlist("Prepaid rent counts as income when received.");
-		expect(out.toLowerCase()).toContain("rent paid in advance");
-		expectGateClean(out);
+	it("rewrites only persona words in the title, excerpt and meta description", () => {
+		expect(
+			sanitizeBanlist("Set up autopay and rent collection.", {
+				banlist: false,
+			}),
+		).toBe("Set up autopay and rent collection.");
+		expect(
+			sanitizeBanlist("Tips for property owners", { banlist: false }),
+		).toBe("Tips for owners");
 	});
 
-	it("keeps the plain-phrase rewrites working", () => {
+	it('never rewrites "tenant portal" as "tenant records" or "tenant login"', () => {
 		const out = sanitizeBanlist(
-			"Tenants who paid rent late should pay rent on time next month.",
-		);
-		expectGateClean(out);
-	});
-
-	it('rewrites "tenant portal(s)" to tenant login(s), never "tenant records"', () => {
-		const out = sanitizeBanlist(
-			"TenantFlow does not include a tenant portal. Tenant portals add fees.",
+			"Buildium has a tenant portal. Tenant portals add fees.",
 		);
 		expect(out).toBe(
-			"TenantFlow does not include a tenant login. Tenant logins add fees.",
+			"Buildium has a tenant-facing portal. Tenant-facing portals add fees.",
 		);
-		expect(out.toLowerCase()).not.toContain("tenant records");
-		expectGateClean(out);
+		expect(out.toLowerCase()).not.toMatch(/tenant (records|login)/);
 	});
 
-	it("gives a Title Case phrase a Title Case replacement", () => {
-		expect(sanitizeBanlist("Why Landlords Skip the Tenant Portal")).toBe(
-			"Why Landlords Skip the Tenant Login",
-		);
-		expect(
-			sanitizeBanlist("Rent Collection Software for Small Landlords"),
-		).toBe("Property Management Software for Small Landlords");
-		expect(sanitizeBanlist("## Why Tenant Portals Fail")).toBe(
-			"## Why Tenant Logins Fail",
-		);
+	it.each<[string, string]>([
+		["Offer an autopay option.", "Offer an automatic payment option."],
+		[
+			"Is a prepaid rent deposit taxable?",
+			"Is an advance rent deposit taxable?",
+		],
+		["Record an unpaid rent balance.", "Record an outstanding rent balance."],
+		["Join a property owners association.", "Join an owners' association."],
+		[
+			"What's the difference between a property owner and a landlord?",
+			"What's the difference between an owner and a landlord?",
+		],
+		["Buy a rent collection tool.", "Buy a rent payment collection tool."],
+		[
+			"A PROPERTY OWNERS ASSOCIATION CAN LIEN YOUR UNIT",
+			"AN OWNERS' ASSOCIATION CAN LIEN YOUR UNIT",
+		],
+		[
+			"- A prepaid rent credit is a liability.",
+			"- An advance rent credit is a liability.",
+		],
+		[
+			"Tip: A property owner who lives on-site is a landlord.",
+			"Tip: An owner who lives on-site is a landlord.",
+		],
+		[
+			"## Why A Property Owner Needs Insurance",
+			"## Why An Owner Needs Insurance",
+		],
+		// A capital letter label is not an article.
+		[
+			"Class A owners often hire managers.",
+			"Class A owners often hire managers.",
+		],
+	])('keeps "a" and "an" agreeing: %s', (input, expected) => {
+		expect(sanitizeBanlist(input)).toBe(expected);
 	});
 
-	it("clears every banned phrase from a worst-case paragraph", () => {
+	it.each<[string, string]>([
+		[
+			"Why Landlords Skip the Tenant Portal",
+			"Why Landlords Skip the Tenant-Facing Portal",
+		],
+		[
+			"Rent Collection Software for Small Landlords",
+			"Rent Payment Software for Small Landlords",
+		],
+		["## Why Tenant Portals Fail", "## Why Tenant-Facing Portals Fail"],
+		[
+			"## Is Autopay Worth It for Small Landlords?",
+			"## Is Automatic Payment Worth It for Small Landlords?",
+		],
+		["## Autopay and Late Fees", "## Automatic Payment and Late Fees"],
+		[
+			"Landlords Brace for a Record Rent Spike",
+			"Landlords Brace for a Record-Setting Rent Spike",
+		],
+		[
+			"How to Get Tenants to Pay Rent on Time",
+			"How to Get Tenants to Pay the Rent on Time",
+		],
+		["HOW TENANTS PAY RENT", "HOW TENANTS PAY THE RENT"],
+		[
+			"RENT COLLECTION SOFTWARE VS. A SPREADSHEET",
+			"RENT PAYMENT SOFTWARE VS. A SPREADSHEET",
+		],
+		// A capital that only starts a sentence or a sentence-case cell stays a
+		// leading capital, even under a heading.
+		[
+			"## Benefits of Automation\n\nAutopay reduces late payments.",
+			"## Benefits of Automation\n\nAutomatic payment reduces late payments.",
+		],
+		["| Feature | Autopay |", "| Feature | Automatic payment |"],
+		[
+			"## Is the Property Owner-Occupied?",
+			"## Is the Property Occupied by Its Owner?",
+		],
+	])("gives the replacement the match's case: %s", (input, expected) => {
+		expect(sanitizeBanlist(input)).toBe(expected);
+	});
+
+	it("clears a worst-case paragraph, and a second pass changes nothing", () => {
 		const out = sanitizeBanlist(
 			"Use rent collection software with autopay and a tenant portal so tenants can pay rent online; unpaid rent and prepaid rent need rent tracking.",
 		);
+		expect(out).toBe(
+			"Use rent payment software with automatic payment and a tenant-facing portal so tenants are able to pay the rent online; outstanding rent and advance rent need rent-tracking.",
+		);
 		expectGateClean(out);
+		for (const [input] of [...REWRITES, ...PERSONA_REWRITES]) {
+			const once = sanitizeBanlist(input);
+			expect(sanitizeBanlist(once), input).toBe(once);
+		}
+	});
+
+	it("sends a banlist phrase it leaves to the repair turn with a hint for longer words and TenantFlow claims", () => {
+		const hit = runGates(
+			{
+				...seoDraft,
+				content: `${seoDraft.content}\n\nA subtenant portal is rare.`,
+			},
+			seoCtx,
+		).find((f) => f.gate === "banlist");
+		expect(hit?.message).toBe("tenant portal (content)");
+		expect(hit?.fix).toContain("inside a longer word");
+		expect(hit?.fix).toContain(
+			"In a paragraph about TenantFlow, keep only what is true",
+		);
+	});
+
+	it("sends a persona word it leaves to the repair turn with a persona hint", () => {
+		const hit = runGates(
+			{
+				...seoDraft,
+				content: `${seoDraft.content}\n\nNon-property owners cannot claim the deduction.`,
+			},
+			seoCtx,
+		).find((f) => f.gate === "banlist");
+		expect(hit?.message).toBe("property owner (content)");
+		expect(hit?.fix).toContain('"owner(s)"');
+		expect(hit?.fix).not.toContain("rent payments");
 	});
 });
 
-describe("sanitizeBanlist persona purity (persona-consistency e2e words)", () => {
-	it('rewrites "property owner(s)" to landlord(s), preserving case lead', () => {
-		const out = sanitizeBanlist(
-			"Property owners juggle many tasks; a property owner needs systems.",
-		);
-		expect(out.toLowerCase()).not.toContain("property owner");
-		expect(out.toLowerCase()).toContain("landlords");
+describe("runGates banlist on the meta description", () => {
+	it("gates a banned phrase in the meta description, which gate 8 does not check", () => {
+		const hit = runGates(
+			{
+				...seoDraft,
+				meta_description: `${seoDraft.meta_description.slice(0, 120)} rent collection`,
+			},
+			seoCtx,
+		).find((f) => f.gate === "banlist");
+		expect(hit?.message).toBe("rent collection (meta_description)");
 	});
+});
 
-	it("keeps a word glued to property, which the gate bans with no word start", () => {
-		expect(
-			sanitizeBanlist("A single-property owner and multiproperty owners."),
-		).toBe("A single-property landlord and multiproperty landlords.");
+const PERSONA_REWRITES: [string, string][] = [
+	// "landlord" in a paragraph about renting, else the exact "owner".
+	[
+		"Property owners who rent out units need a written lease.",
+		"Landlords who rent out units need a written lease.",
+	],
+	[
+		"For the single property owner, scaling a rental business is hard.",
+		"For the single-property landlord, scaling a rental business is hard.",
+	],
+	[
+		"The county sends assessments to every property owner.",
+		"The county sends assessments to every owner.",
+	],
+	[
+		"Property owners juggle many tasks; a property owner needs systems.",
+		"Owners juggle many tasks; an owner needs systems.",
+	],
+	[
+		"TenantFlow is built for property owners.",
+		"TenantFlow is built for landlords.",
+	],
+	["Rental property owners", "Landlords"],
+	[
+		"Unlike homeowners, rental property owners can deduct depreciation.",
+		"Unlike homeowners, owners of rental property can deduct depreciation.",
+	],
+	[
+		"For the single property owner, scaling is hard.",
+		"For the owner of a single property, scaling is hard.",
+	],
+	[
+		"Advice for a single property owner",
+		"Advice for an owner of a single property",
+	],
+	[
+		"# Top 5 Apps for Single Property Owners",
+		"# Top 5 Apps for Owners of a Single Property",
+	],
+	[
+		"# Top 5 Property Management Apps for Single Property Owners",
+		"# Top 5 Property Management Apps for Single-Property Landlords",
+	],
+	[
+		"Tips for multi-property owners.",
+		"Tips for owners of multiple properties.",
+	],
+	[
+		"A commercial property owner who leases retail space must give notice.",
+		"An owner of commercial property who leases retail space must give notice.",
+	],
+	[
+		"Many vacation property owners are first-time hosts.",
+		"Many owners of vacation property are first-time hosts.",
+	],
+	// "landlords and rental property owners" would read "landlords and landlords".
+	[
+		"Landlords and rental property owners should budget for vacancies.",
+		"Landlords and owners of rental property should budget for vacancies.",
+	],
+	[
+		"This guide is for landlords and property owners.",
+		"This guide is for landlords and owners.",
+	],
+	[
+		"TenantFlow is designed for independent landlords and single-property owners.",
+		"TenantFlow is designed for independent landlords and owners of a single property.",
+	],
+	[
+		"The independent landlord is typically a property owner who manages their own assets.",
+		"The independent landlord is typically an owner who manages their own assets.",
+	],
+	[
+		"## Landlord vs. Property Owner: What's the Difference?",
+		"## Landlord vs. Owner: What's the Difference?",
+	],
+	[
+		"The landlord, i.e. the property owner, signs the lease.",
+		"The landlord, i.e. the owner, signs the lease.",
+	],
+	[
+		"Landlords are not the only U.S. property owners affected by the tax.",
+		"Landlords are not the only U.S. owners affected by the tax.",
+	],
+	[
+		"HOA rules apply to every property owner.",
+		"HOA rules apply to every owner.",
+	],
+	[
+		"| Role | Duty |\n|---|---|\n| Landlord | Repairs |\n| Property owner | Taxes |",
+		"| Role | Duty |\n|---|---|\n| Landlord | Repairs |\n| Owner | Taxes |",
+	],
+	[
+		"Every single property owner must register by June.",
+		"Every single owner must register by June.",
+	],
+	[
+		"Notify adjacent property owners before you build a fence.",
+		"Notify adjacent owners before you build a fence.",
+	],
+	// A contrast, or a second persona phrase in the sentence, means owners in
+	// general; "landlord" in another sentence is not evidence.
+	[
+		"Not every property owner rents out space; many live in the home they own.",
+		"Not every owner rents out space; many live in the home they own.",
+	],
+	[
+		"Unlike most property owners, rental property owners need a business license.",
+		"Unlike most owners, landlords need a business license.",
+	],
+	[
+		"This guide covers property owners and rental property owners.",
+		"This guide covers owners and landlords.",
+	],
+	[
+		"Landlords need reserves. So do property owners who live in their homes.",
+		"Landlords need reserves. So do owners who live in their homes.",
+	],
+	[
+		"Independent property owners who rent out units need a lease.",
+		"Independent landlords who rent out units need a lease.",
+	],
+	[
+		"This approach fails single property owners with one rental.",
+		"This approach fails single-property landlords with one rental.",
+	],
+	["Is the property owner-occupied?", "Is the property occupied by its owner?"],
+	[
+		"Check your property owners association rules before renting.",
+		"Check your owners' association rules before renting.",
+	],
+	[
+		"Real estate investors who flip houses do not need a rent ledger.",
+		"Property investors who flip houses do not need a rent ledger.",
+	],
+];
+
+describe("sanitizeBanlist persona purity (persona-consistency e2e words)", () => {
+	it.each(PERSONA_REWRITES)("%s", (input, expected) => {
+		expect(sanitizeBanlist(input)).toBe(expected);
+		expectGateClean(expected);
 	});
 
 	it("leaves nothing the gate's persona pattern matches", () => {
@@ -480,11 +994,12 @@ describe("sanitizeBanlist persona purity (persona-consistency e2e words)", () =>
 		}
 	});
 
-	it('rewrites "real estate investor(s)"', () => {
-		const out = sanitizeBanlist(
-			"Real estate investors and any real estate investor benefit.",
-		);
-		expect(out.toLowerCase()).not.toContain("real estate investor");
+	it('rewrites "real estate investor(s)", which persona-consistency.spec.ts bans on / and /pricing', () => {
+		expect(
+			sanitizeBanlist(
+				"Real estate investors and any real estate investor benefit.",
+			),
+		).toBe("Property investors and any property investor benefit.");
 	});
 });
 
