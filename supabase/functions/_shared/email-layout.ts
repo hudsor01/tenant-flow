@@ -75,6 +75,11 @@ export function emailLinkFallback(url: string): string {
 	);
 }
 
+/** A one-time code set apart for copying. `code` is escaped here. */
+export function emailCode(code: string): string {
+	return `<p style="margin:4px 0 24px;"><span style="display:inline-block;padding:12px 20px;font-family:'SF Mono',Menlo,Consolas,'Courier New',monospace;font-size:28px;line-height:32px;font-weight:700;letter-spacing:6px;color:${COLOR.foreground};background-color:${COLOR.background};border:1px solid ${COLOR.border};border-radius:8px;">${escapeHtml(code)}</span></p>`;
+}
+
 /** A quoted block, such as a personal message from the owner. `text` is escaped here. */
 export function emailQuote(text: string): string {
 	return `<p style="margin:0 0 16px;padding:12px 16px;font-family:${FONT};font-size:14px;line-height:22px;color:${COLOR.foreground};background-color:${COLOR.background};border:1px solid ${COLOR.border};border-radius:8px;">${escapeHtml(text)}</p>`;
