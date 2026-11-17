@@ -84,14 +84,18 @@ export function Navbar({
 					href="/"
 					className="flex items-center gap-2.5 transition-opacity duration-fast hover:opacity-80"
 				>
-					<Image
-						src="/tenant-flow-logo.png"
-						alt="TenantFlow"
-						width={28}
-						height={28}
-						className="size-7 object-contain"
-						priority
-					/>
+					{/* The mark is drawn for a white ground, so dark mode gives it a
+					    light tile instead of recolouring it. */}
+					<span className="flex size-9 items-center justify-center rounded-md dark:bg-foreground">
+						<Image
+							src="/brand/tenantflow-mark.png"
+							alt=""
+							width={28}
+							height={28}
+							className="size-7"
+							priority
+						/>
+					</span>
 					<span className="text-xl font-semibold text-foreground">{logo}</span>
 				</Link>
 
