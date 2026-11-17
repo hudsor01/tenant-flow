@@ -29,6 +29,17 @@
 #    does not, and the control relies on it: a failed `mktemp -d` must abort, not
 #    carry on with an empty directory.
 #
+# 4. AN ADVISORY IS ACCEPTED ONLY WHEN IT IS FIXED IN-TREE AND NO RELEASE FIXES
+#    IT. The one case today is GHSA-fc5q-39xc-vjpf (picomatch <= 4.0.7 ReDoS):
+#    no fixed picomatch is published and every parent requires ^4, so the fix
+#    is patches/picomatch@4.0.7.patch, pinned by
+#    src/lib/__tests__/picomatch-redos-patch.test.ts. The gate passes it only
+#    while that patch is declared for picomatch@4.0.7, bun.lock resolves
+#    picomatch to 4.0.7 alone, and the registry's latest picomatch is still
+#    4.0.7. A new picomatch release, a second resolved version, a dropped patch
+#    or an unreachable registry each turns the gate red. The full report above
+#    the gate still lists the advisory.
+#
 set -euo pipefail
 
 CANARY_PKG='minimist'
@@ -63,7 +74,25 @@ echo "positive control passed: the gate is live and catches ${CANARY_ADVISORY}"
 echo "--- full report (moderate and low are informational) ---"
 bun audit || true
 echo "--- gate: high and critical ---"
-out=$(bun audit --audit-level=high 2>&1) && code=0 || code=$?
+ignore_args=()
+picomatch_patch='patches/picomatch@4.0.7.patch'
+picomatch_locked=$(grep -oE '"picomatch@[0-9][^"]*"' bun.lock | sort -u) || picomatch_locked=''
+# A herestring, not `curl | grep | head`: under pipefail an early-exiting reader
+# can SIGPIPE the writer and report failure on a match.
+registry_answer=$(curl -fsS --max-time 20 https://registry.npmjs.org/picomatch/latest) || registry_answer=''
+picomatch_latest=$(grep -m 1 -oE '"version":"[^"]*"' <<<"$registry_answer") || picomatch_latest=''
+if grep -qF "\"picomatch@4.0.7\": \"${picomatch_patch}\"" package.json \
+  && [ -f "$picomatch_patch" ] \
+  && grep -qF 'GHSA-fc5q-39xc-vjpf' "$picomatch_patch" \
+  && [ "$picomatch_locked" = '"picomatch@4.0.7"' ] \
+  && [ "$picomatch_latest" = '"version":"4.0.7"' ]; then
+  ignore_args+=(--ignore=GHSA-fc5q-39xc-vjpf)
+  echo "accepted GHSA-fc5q-39xc-vjpf: no fixed picomatch is published and ${picomatch_patch} fixes 4.0.7 in-tree"
+else
+  echo "GHSA-fc5q-39xc-vjpf is gated normally (locked: ${picomatch_locked:-none}; registry latest: ${picomatch_latest:-unreachable})"
+fi
+# ${arr[@]+...}: bash 3.2 (macOS) treats an empty "${arr[@]}" as unbound under set -u.
+out=$(bun audit --audit-level=high ${ignore_args[@]+"${ignore_args[@]}"} 2>&1) && code=0 || code=$?
 printf '%s\n' "$out"
 if [ "$code" -ne 0 ]; then
   if grep -qiE 'vulnerabilit' <<<"$out"; then

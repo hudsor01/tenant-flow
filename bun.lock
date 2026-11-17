@@ -102,6 +102,9 @@
     "msw",
     "lefthook",
   ],
+  "patchedDependencies": {
+    "picomatch@4.0.7": "patches/picomatch@4.0.7.patch",
+  },
   "overrides": {
     "postcss-selector-parser": "^7.1.6",
   },
