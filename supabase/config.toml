@@ -422,13 +422,13 @@ import_map = "./functions/deno.json"
 verify_jwt = false
 import_map = "./functions/deno.json"
 
-# Auth email send — Supabase Auth Hook receiver. Supabase Auth POSTs the
-# `SUPABASE_AUTH_HOOK_SECRET` value as the Bearer token (NOT a Supabase user
-# JWT). The platform JWT gate MUST be off so the hook secret reaches the
-# function; the function then verifies it itself
-# (supabase/functions/auth-email-send/index.ts:78-89). Without
-# verify_jwt=false here, every signup confirmation / password reset /
-# magic link / invitation / email-change email silently 401s.
+# Auth email send — the Supabase Auth Send Email hook. Supabase Auth signs
+# each request with Standard Webhooks headers (NOT a Supabase user JWT), and
+# the function verifies them against its SEND_EMAIL_HOOK_SECRET secret
+# (supabase/functions/_shared/standard-webhooks.ts). The platform JWT gate
+# MUST be off so the request reaches the function; with verify_jwt=true every
+# signup confirmation / password reset / magic link / invitation /
+# email-change email would 401 at the gateway.
 [functions.auth-email-send]
 verify_jwt = false
 import_map = "./functions/deno.json"

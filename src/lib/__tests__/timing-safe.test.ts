@@ -2,9 +2,10 @@
  * CISEC-03 — Constant-time hook-secret compare contract gate.
  *
  * Pins the behavior of the shared `timingSafeEqualStr` helper at
- * `supabase/functions/_shared/timing-safe.ts`, used by `auth-email-send` to
- * compare the Authorization Bearer token against `SUPABASE_AUTH_HOOK_SECRET`
- * in constant time (closing the timing side-channel CISEC-03).
+ * `supabase/functions/_shared/timing-safe.ts`, used by `send-lease-reminders`
+ * to compare the Authorization Bearer token against `REMINDERS_INVOKE_SECRET`
+ * in constant time (closing the timing side-channel CISEC-03), and by
+ * `_shared/rate-limit.ts` for `CLIENT_IP_FORWARD_SECRET`.
  *
  * The helper is pure TS — it depends only on `TextEncoder` + `crypto.subtle`,
  * both available in node/jsdom — so it runs in the `checks`/`unit` gate with no
