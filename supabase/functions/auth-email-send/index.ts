@@ -8,7 +8,7 @@
 //
 // Supabase signs each request with Standard Webhooks headers using the hook
 // secret it generates (`v1,whsec_...`). That value must be stored as this
-// function's SUPABASE_AUTH_HOOK_SECRET; a request whose signature does not
+// function's SEND_EMAIL_HOOK_SECRET; a request whose signature does not
 // match is refused with 401 before anything is read from it.
 //
 // Answering with an error makes Supabase fail the auth action (the user sees
@@ -127,7 +127,7 @@ Deno.serve(async (req: Request) => {
 		env = validateEnv({
 			required: [
 				"RESEND_API_KEY",
-				"SUPABASE_AUTH_HOOK_SECRET",
+				"SEND_EMAIL_HOOK_SECRET",
 				"NEXT_PUBLIC_APP_URL",
 			],
 		});
@@ -145,7 +145,7 @@ Deno.serve(async (req: Request) => {
 			timestamp: req.headers.get("webhook-timestamp"),
 			signature: req.headers.get("webhook-signature"),
 		},
-		secrets: env.SUPABASE_AUTH_HOOK_SECRET,
+		secrets: env.SEND_EMAIL_HOOK_SECRET,
 		nowSeconds: Math.floor(Date.now() / 1000),
 	});
 	if (!verdict.ok) {

@@ -45,11 +45,12 @@
 //
 // IMPORTANT: this compares RAW secret strings directly (no HMAC). It is for
 // callers that hold a shared secret and need a constant-time equality check —
-// e.g. auth-email-send comparing the Authorization Bearer token against
-// SUPABASE_AUTH_HOOK_SECRET. The other webhooks (resend/n8n) compare an
-// HMAC digest against a computed digest; those keep their own HMAC machinery.
+// e.g. send-lease-reminders comparing the Authorization Bearer token against
+// REMINDERS_INVOKE_SECRET. The signed webhooks (resend, n8n, the auth-email-send
+// hook) compare an HMAC digest against a computed digest; those keep their own
+// HMAC machinery.
 //
-// CALLERS: auth-email-send, send-lease-reminders, and _shared/rate-limit.ts,
+// CALLERS: send-lease-reminders and _shared/rate-limit.ts,
 // which as of RATE-03 gates CLIENT_IP_FORWARD_SECRET through this function.
 //
 // `SubtleCryptoWithTimingSafeEqual` types the feature detection below without an
