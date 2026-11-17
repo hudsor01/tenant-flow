@@ -1,199 +1,209 @@
-// Auth Email Send — Supabase Auth Hook handler
+// Auth Email Send: the Supabase Auth "Send Email" hook.
 //
-// SETUP: Register this Edge Function as a Supabase Auth Hook:
-//   Dashboard -> Authentication -> Hooks -> Send Email -> Enable
-//   Set the hook to call this Edge Function URL.
-//   Set SUPABASE_AUTH_HOOK_SECRET in Edge Function secrets.
+// When this function is registered as the project's Send Email hook
+// (Dashboard -> Authentication -> Auth Hooks -> Send Email, HTTPS, this
+// function's URL), Supabase Auth POSTs every auth email here instead of
+// sending its own templates, and we send the branded templates in
+// _shared/auth-email-templates.ts through the Resend API.
 //
-// When configured, Supabase Auth sends a POST here instead of using
-// its built-in email templates. We render branded HTML via Resend.
+// Supabase signs each request with Standard Webhooks headers using the hook
+// secret it generates (`v1,whsec_...`). That value must be stored as this
+// function's SUPABASE_AUTH_HOOK_SECRET; a request whose signature does not
+// match is refused with 401 before anything is read from it.
+//
+// Answering with an error makes Supabase fail the auth action (the user sees
+// that the email could not be sent), so a send that fails is never reported
+// as a success.
 
 import {
+	planAuthEmails,
+	type AuthEmailMessage,
+} from "../_shared/auth-email-routing.ts";
+import {
+	emailChangedEmail,
 	emailChangeEmail,
+	identityLinkedEmail,
+	identityUnlinkedEmail,
 	invitationEmail,
 	magicLinkEmail,
+	mfaFactorEnrolledEmail,
+	mfaFactorUnenrolledEmail,
+	passwordChangedEmail,
 	passwordResetEmail,
+	phoneChangedEmail,
+	reauthenticationEmail,
 	signupConfirmationEmail,
 } from "../_shared/auth-email-templates.ts";
-import { getJsonHeaders, handleCorsOptions } from "../_shared/cors.ts";
 import { validateEnv } from "../_shared/env.ts";
-import {
-	captureWebhookError,
-	errorResponse,
-	logEvent,
-} from "../_shared/errors.ts";
+import { captureWebhookError, logEvent } from "../_shared/errors.ts";
 import { sendEmail } from "../_shared/resend.ts";
-import { timingSafeEqualStr } from "../_shared/timing-safe.ts";
+import { verifyStandardWebhook } from "../_shared/standard-webhooks.ts";
 
-interface AuthEmailHookPayload {
-	user: { email: string; user_metadata: Record<string, unknown> };
-	email_data: {
-		token: string;
-		token_hash: string;
-		redirect_to: string;
-		email_action_type:
-			| "signup"
-			| "recovery"
-			| "invite"
-			| "magiclink"
-			| "email_change";
-	};
+const JSON_HEADERS = { "Content-Type": "application/json" };
+
+/** The error shape Supabase Auth reads from a failed hook response. */
+function hookError(status: number, message: string): Response {
+	return new Response(
+		JSON.stringify({ error: { http_code: status, message } }),
+		{ status, headers: JSON_HEADERS },
+	);
 }
 
-type EmailActionType = AuthEmailHookPayload["email_data"]["email_action_type"];
-
-/** Map email_action_type to the OTP type parameter used in the callback URL. */
-const OTP_TYPE_MAP: Record<EmailActionType, string> = {
-	signup: "signup",
-	recovery: "recovery",
-	invite: "invite",
-	magiclink: "magiclink",
-	email_change: "email_change",
-};
+function render(message: AuthEmailMessage): { subject: string; html: string } {
+	switch (message.kind) {
+		case "signup":
+			return signupConfirmationEmail({
+				confirmUrl: message.url,
+				email: message.to,
+			});
+		case "invite":
+			return invitationEmail({
+				inviteUrl: message.url,
+				email: message.to,
+				...(message.inviterName ? { inviterName: message.inviterName } : {}),
+			});
+		case "magiclink":
+			return magicLinkEmail({ magicLinkUrl: message.url, email: message.to });
+		case "recovery":
+			return passwordResetEmail({ resetUrl: message.url, email: message.to });
+		case "email_change":
+			return emailChangeEmail({
+				confirmUrl: message.url,
+				email: message.email,
+				newEmail: message.newEmail,
+			});
+		case "reauthentication":
+			return reauthenticationEmail({ code: message.code, email: message.to });
+		case "password_changed":
+			return passwordChangedEmail({
+				email: message.to,
+				signInUrl: message.signInUrl,
+			});
+		case "email_changed":
+			return emailChangedEmail({
+				email: message.to,
+				oldEmail: message.oldEmail,
+				signInUrl: message.signInUrl,
+			});
+		case "phone_changed":
+			return phoneChangedEmail({
+				email: message.to,
+				phone: message.phone,
+				oldPhone: message.oldPhone,
+				signInUrl: message.signInUrl,
+			});
+		case "identity_linked":
+			return identityLinkedEmail({
+				email: message.to,
+				provider: message.provider,
+				signInUrl: message.signInUrl,
+			});
+		case "identity_unlinked":
+			return identityUnlinkedEmail({
+				email: message.to,
+				provider: message.provider,
+				signInUrl: message.signInUrl,
+			});
+		case "mfa_enrolled":
+			return mfaFactorEnrolledEmail({
+				email: message.to,
+				factorType: message.factorType,
+				signInUrl: message.signInUrl,
+			});
+		case "mfa_unenrolled":
+			return mfaFactorUnenrolledEmail({
+				email: message.to,
+				factorType: message.factorType,
+				signInUrl: message.signInUrl,
+			});
+	}
+}
 
 Deno.serve(async (req: Request) => {
-	const optionsResponse = handleCorsOptions(req);
-	if (optionsResponse) return optionsResponse;
+	if (req.method !== "POST") return hookError(405, "Method not allowed");
 
-	const jsonHeaders = getJsonHeaders(req);
-
-	if (req.method !== "POST") {
-		return new Response(JSON.stringify({ error: "Method not allowed" }), {
-			status: 405,
-			headers: jsonHeaders,
-		});
-	}
-
+	let env: Record<string, string>;
 	try {
-		const env = validateEnv({
-			required: ["RESEND_API_KEY", "SUPABASE_AUTH_HOOK_SECRET"],
-			optional: ["NEXT_PUBLIC_APP_URL"],
-		});
-
-		// Verify the request comes from Supabase via the hook secret. The
-		// secret is now required at startup (see validateEnv above), so the
-		// function refuses to serve when it's unset — closing the
-		// fail-open path where a missing/dropped env var let any caller
-		// POST arbitrary token_hash + email_data and trigger Resend mails
-		// to attacker-chosen recipients.
-		const hookSecret = env["SUPABASE_AUTH_HOOK_SECRET"];
-		const authHeader = req.headers.get("authorization") ?? "";
-		const token = authHeader.replace(/^Bearer\s+/i, "");
-		if (!timingSafeEqualStr(token, hookSecret)) {
-			captureWebhookError(new Error("Unauthorized: invalid hook secret"), {
-				message: "[AUTH_EMAIL] Unauthorized: invalid hook secret",
-			});
-			return new Response(JSON.stringify({ error: "Unauthorized" }), {
-				status: 401,
-				headers: jsonHeaders,
-			});
-		}
-
-		const payload = (await req.json()) as AuthEmailHookPayload;
-		const { user, email_data } = payload;
-
-		if (!user?.email || !email_data?.email_action_type) {
-			return new Response(JSON.stringify({ error: "Invalid payload" }), {
-				status: 400,
-				headers: jsonHeaders,
-			});
-		}
-
-		const appUrl = env["NEXT_PUBLIC_APP_URL"] ?? "http://localhost:3050";
-		const otpType = OTP_TYPE_MAP[email_data.email_action_type];
-		const callbackUrl = `${appUrl}/auth/callback?token_hash=${encodeURIComponent(email_data.token_hash)}&type=${encodeURIComponent(otpType)}`;
-
-		let template: { subject: string; html: string };
-
-		switch (email_data.email_action_type) {
-			case "signup":
-				template = signupConfirmationEmail({
-					confirmUrl: callbackUrl,
-					email: user.email,
-				});
-				break;
-
-			case "recovery":
-				template = passwordResetEmail({
-					resetUrl: callbackUrl,
-					email: user.email,
-				});
-				break;
-
-			case "invite":
-				template = invitationEmail({
-					inviteUrl: callbackUrl,
-					email: user.email,
-					inviterName:
-						typeof user.user_metadata?.inviter_name === "string"
-							? user.user_metadata.inviter_name
-							: undefined,
-				});
-				break;
-
-			case "magiclink":
-				template = magicLinkEmail({
-					magicLinkUrl: callbackUrl,
-					email: user.email,
-				});
-				break;
-
-			case "email_change":
-				template = emailChangeEmail({
-					confirmUrl: callbackUrl,
-					email: user.email,
-					newEmail:
-						typeof user.user_metadata?.new_email === "string"
-							? user.user_metadata.new_email
-							: user.email,
-				});
-				break;
-
-			default: {
-				const unknownType = email_data.email_action_type as string;
-				captureWebhookError(new Error("Unknown email_action_type"), {
-					message: "[AUTH_EMAIL] Unknown email_action_type",
-					email_action_type: unknownType,
-				});
-				return new Response(
-					JSON.stringify({ error: "Unsupported email action type" }),
-					{ status: 400, headers: jsonHeaders },
-				);
-			}
-		}
-
-		const result = await sendEmail({
-			to: [user.email],
-			subject: template.subject,
-			html: template.html,
-			tags: [
-				{ name: "category", value: "auth" },
-				{ name: "type", value: email_data.email_action_type },
+		env = validateEnv({
+			required: [
+				"RESEND_API_KEY",
+				"SUPABASE_AUTH_HOOK_SECRET",
+				"NEXT_PUBLIC_APP_URL",
 			],
 		});
+	} catch (err) {
+		captureWebhookError(err, { message: "[AUTH_EMAIL] Missing environment" });
+		return hookError(500, "Email hook is not configured");
+	}
 
+	// Verify against the raw body before parsing anything from it.
+	const body = await req.text();
+	const verdict = await verifyStandardWebhook({
+		body,
+		headers: {
+			id: req.headers.get("webhook-id"),
+			timestamp: req.headers.get("webhook-timestamp"),
+			signature: req.headers.get("webhook-signature"),
+		},
+		secrets: env.SUPABASE_AUTH_HOOK_SECRET,
+		nowSeconds: Math.floor(Date.now() / 1000),
+	});
+	if (!verdict.ok) {
+		captureWebhookError(new Error("Unauthorized auth email hook request"), {
+			message: "[AUTH_EMAIL] Signature check failed",
+			reason: verdict.reason,
+		});
+		return hookError(401, "Unauthorized");
+	}
+
+	let payload: unknown;
+	try {
+		payload = JSON.parse(body);
+	} catch {
+		return hookError(400, "Invalid JSON");
+	}
+
+	const plan = planAuthEmails(payload, env.NEXT_PUBLIC_APP_URL);
+	if (!plan.ok) {
+		captureWebhookError(new Error("Unsendable auth email hook payload"), {
+			message: "[AUTH_EMAIL] Payload rejected",
+			reason: plan.reason,
+		});
+		return hookError(400, "Unsupported email request");
+	}
+
+	// The webhook id is stable across Supabase's retries of one request, so it
+	// keys Resend's idempotency and a retry never sends the same email twice.
+	const webhookId = req.headers.get("webhook-id") ?? "";
+	for (const [index, message] of plan.messages.entries()) {
+		const { subject, html } = render(message);
+		const result = await sendEmail({
+			to: [message.to],
+			subject,
+			html,
+			tags: [
+				{ name: "category", value: "auth" },
+				{ name: "type", value: message.kind },
+			],
+			idempotencyKey: `auth-email/${webhookId}/${index}`,
+		});
 		if (!result.success) {
 			captureWebhookError(new Error(result.error), {
 				message: "[AUTH_EMAIL] Failed to send email",
-				email_action_type: email_data.email_action_type,
-				recipient: user.email,
+				email_action_type: plan.actionType,
+				kind: message.kind,
 			});
-			return new Response(JSON.stringify({ error: "Failed to send email" }), {
-				status: 500,
-				headers: jsonHeaders,
-			});
+			return hookError(500, "Failed to send email");
 		}
-
 		logEvent("[AUTH_EMAIL] Sent auth email", {
-			email_action_type: email_data.email_action_type,
-			recipient: user.email,
+			email_action_type: plan.actionType,
+			kind: message.kind,
 			resend_id: result.id,
 		});
-		return new Response(JSON.stringify({ success: true, id: result.id }), {
-			status: 200,
-			headers: jsonHeaders,
-		});
-	} catch (err) {
-		return errorResponse(req, 500, err, { action: "auth_email_send" });
 	}
+
+	return new Response(JSON.stringify({}), {
+		status: 200,
+		headers: JSON_HEADERS,
+	});
 });

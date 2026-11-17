@@ -5,6 +5,7 @@
 import {
 	BRAND_NAME,
 	emailButton,
+	emailCode,
 	emailDivider,
 	emailHeading,
 	emailLinkFallback,
@@ -14,6 +15,7 @@ import {
 	supportLink,
 	wrapEmailLayout,
 } from "./email-layout.ts";
+import { escapeHtml } from "./escape-html.ts";
 
 interface AuthEmail {
 	subject: string;
@@ -32,6 +34,13 @@ function authEmail(params: {
 			title: params.subject,
 		}),
 	};
+}
+
+/** The closing lines of every security notice: what to do if it wasn't you. */
+function notTheOwnerNote(): string {
+	return emailNote(
+		`If you made this change, there's nothing else to do. If you didn't, reset your password now with ${emailStrong("Forgot password")} on the sign-in page, and email ${supportLink()}.`,
+	);
 }
 
 export function signupConfirmationEmail(params: {
@@ -144,5 +153,137 @@ export function emailChangeEmail(params: {
 				`If you didn't ask for this change, don't use the button. Reset your password with ${emailStrong("Forgot password")} on the sign-in page, and email ${supportLink()}.`,
 			),
 		].join("\n"),
+	});
+}
+
+export function reauthenticationEmail(params: {
+	code: string;
+	email: string;
+}): AuthEmail {
+	return authEmail({
+		subject: `Your ${BRAND_NAME} verification code`,
+		preheader: "Enter this code to confirm it's you.",
+		body: [
+			emailHeading("Confirm it's you"),
+			emailText(
+				`Enter this code in ${BRAND_NAME} to confirm the change to ${emailStrong(params.email)}:`,
+			),
+			emailCode(params.code),
+			emailDivider(),
+			emailNote(
+				`If you didn't ask for this code, someone may know your password. Reset it with ${emailStrong("Forgot password")} on the sign-in page, and email ${supportLink()}.`,
+			),
+		].join("\n"),
+	});
+}
+
+/** The shared shape of the security notices: what changed, a way back in, and what to do if it wasn't you. */
+function securityNotice(params: {
+	subject: string;
+	heading: string;
+	whatChanged: string;
+	signInUrl: string;
+}): AuthEmail {
+	return authEmail({
+		subject: params.subject,
+		preheader: params.heading,
+		body: [
+			emailHeading(params.heading),
+			emailText(params.whatChanged),
+			emailButton(params.signInUrl, `Sign in to ${BRAND_NAME}`),
+			emailDivider(),
+			notTheOwnerNote(),
+		].join("\n"),
+	});
+}
+
+export function passwordChangedEmail(params: {
+	email: string;
+	signInUrl: string;
+}): AuthEmail {
+	return securityNotice({
+		subject: `Your ${BRAND_NAME} password was changed`,
+		heading: "Your password was changed",
+		whatChanged: `The password for ${emailStrong(params.email)} was just changed.`,
+		signInUrl: params.signInUrl,
+	});
+}
+
+export function emailChangedEmail(params: {
+	email: string;
+	oldEmail: string;
+	signInUrl: string;
+}): AuthEmail {
+	return securityNotice({
+		subject: `Your ${BRAND_NAME} email address was changed`,
+		heading: "Your email address was changed",
+		whatChanged: `The sign-in email for your ${BRAND_NAME} account was changed from ${emailStrong(params.oldEmail)} to ${emailStrong(params.email)}.`,
+		signInUrl: params.signInUrl,
+	});
+}
+
+export function phoneChangedEmail(params: {
+	email: string;
+	phone: string;
+	oldPhone: string;
+	signInUrl: string;
+}): AuthEmail {
+	return securityNotice({
+		subject: `Your ${BRAND_NAME} phone number was changed`,
+		heading: "Your phone number was changed",
+		whatChanged: `The phone number on your ${BRAND_NAME} account (${escapeHtml(params.email)}) was changed from ${emailStrong(params.oldPhone)} to ${emailStrong(params.phone)}.`,
+		signInUrl: params.signInUrl,
+	});
+}
+
+export function identityLinkedEmail(params: {
+	email: string;
+	provider: string;
+	signInUrl: string;
+}): AuthEmail {
+	return securityNotice({
+		subject: `A sign-in method was linked to your ${BRAND_NAME} account`,
+		heading: "A sign-in method was linked",
+		whatChanged: `${emailStrong(params.provider)} sign-in was linked to your ${BRAND_NAME} account (${escapeHtml(params.email)}).`,
+		signInUrl: params.signInUrl,
+	});
+}
+
+export function identityUnlinkedEmail(params: {
+	email: string;
+	provider: string;
+	signInUrl: string;
+}): AuthEmail {
+	return securityNotice({
+		subject: `A sign-in method was removed from your ${BRAND_NAME} account`,
+		heading: "A sign-in method was removed",
+		whatChanged: `${emailStrong(params.provider)} sign-in was removed from your ${BRAND_NAME} account (${escapeHtml(params.email)}).`,
+		signInUrl: params.signInUrl,
+	});
+}
+
+export function mfaFactorEnrolledEmail(params: {
+	email: string;
+	factorType: string;
+	signInUrl: string;
+}): AuthEmail {
+	return securityNotice({
+		subject: `Two-factor authentication was added to your ${BRAND_NAME} account`,
+		heading: "Two-factor authentication was added",
+		whatChanged: `A two-factor authentication method (${emailStrong(params.factorType)}) was added to your ${BRAND_NAME} account (${escapeHtml(params.email)}).`,
+		signInUrl: params.signInUrl,
+	});
+}
+
+export function mfaFactorUnenrolledEmail(params: {
+	email: string;
+	factorType: string;
+	signInUrl: string;
+}): AuthEmail {
+	return securityNotice({
+		subject: `Two-factor authentication was removed from your ${BRAND_NAME} account`,
+		heading: "Two-factor authentication was removed",
+		whatChanged: `A two-factor authentication method (${emailStrong(params.factorType)}) was removed from your ${BRAND_NAME} account (${escapeHtml(params.email)}).`,
+		signInUrl: params.signInUrl,
 	});
 }
