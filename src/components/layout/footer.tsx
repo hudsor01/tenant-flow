@@ -1,4 +1,4 @@
-import { Home } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 // Sitewide footer links double as the primary internal-link distributor —
@@ -60,7 +60,7 @@ export default function Footer() {
 							<h2 className="text-sm font-semibold text-foreground mb-4">
 								{section.heading}
 							</h2>
-							<ul className="space-y-2 text-sm text-muted-foreground">
+							<ul className="flex flex-col gap-2 pl-0 mt-0 mb-0 [&>li]:mb-0 text-sm text-muted-foreground">
 								{section.links.map((link) => (
 									<li key={link.href}>
 										<Link
@@ -84,12 +84,17 @@ export default function Footer() {
 
 				<div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6 text-sm text-muted-foreground">
 					<div className="flex items-center gap-2">
-						<div className="flex items-center justify-center rounded bg-primary size-5">
-							<Home
-								className="text-primary-foreground size-3"
-								aria-hidden="true"
+						{/* Same treatment as the navbar mark: drawn for a white ground,
+						    so dark mode gives it a light tile. */}
+						<span className="flex size-6 items-center justify-center rounded dark:bg-foreground">
+							<Image
+								src="/brand/tenantflow-mark.png"
+								alt=""
+								width={20}
+								height={20}
+								className="size-5"
 							/>
-						</div>
+						</span>
 						<span className="font-medium text-foreground">TenantFlow</span>
 						<span aria-hidden="true">·</span>
 						<span>© 2026 TenantFlow. All rights reserved.</span>
