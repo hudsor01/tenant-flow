@@ -94,23 +94,12 @@ function createDefaultMetadata(): Metadata {
 		},
 		icons: {
 			icon: [
+				{ url: "/favicon.ico", sizes: "48x48" },
 				{ url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
 				{ url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
 			],
 			apple: [
 				{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-			],
-			other: [
-				{
-					url: "/safari-pinned-tab.svg",
-					rel: "mask-icon",
-					// Must be a valid CSS color literal — `var(--color-info)`
-					// would not resolve in the rendered <meta> tag because
-					// CSS custom properties don't apply to HTML attribute
-					// values. Hex matches `--color-primary` so the pinned-tab
-					// icon stays brand-aligned.
-					color: "#0064ef",
-				},
 			],
 		},
 		manifest: "/manifest.json",
