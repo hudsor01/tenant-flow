@@ -4,19 +4,13 @@ import {
 	filterActiveRedirects,
 } from "../blog-redirects";
 
-// The 9 live published slugs (prod public.blogs WHERE status='published',
-// 2026-05-29). A redirect whose source matches one of these would SHADOW the
-// live post in next.config redirects() — this list is the collision guard.
+// The live published slugs after the 2026-11-22 TenantFlow-first cleanup (prod
+// public.blogs WHERE status='published'). A redirect whose source matches one
+// of these would SHADOW the live post in next.config redirects() — this list
+// is the collision guard.
 const LIVE_PUBLISHED_SLUGS = new Set([
-	"innago-vs-doorloop-complete-comparison-for-2025",
-	"hemlane-vs-zillow-rental-manager-complete-comparison-for-2025",
-	"propertyware-vs-innago-vs-tenantflow-the-definitive-guide-for-small-landlords-in-2025",
-	"cozy-vs-resman-complete-comparison-for-2026",
-	"hemlane-vs-simplifyem-vs-tenantflow-the-definitive-2025-comparison-for-independent-landlords",
-	"the-essential-tenant-screening-checklist-for-first-time-landlords",
-	"virtual-tours-that-attract-quality-tenants",
-	"avail-vs-turbotenant-complete-comparison-for-2026",
-	"stessa-vs-innago-complete-comparison-for-2026",
+	"avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+	"buildium-vs-rentec-direct-complete-comparison-for-2026-and-why-tenantflow-wins-for-independent-landlords",
 ]);
 
 // Static hub/index destinations. A `/blog/<slug>` destination is ALSO valid,

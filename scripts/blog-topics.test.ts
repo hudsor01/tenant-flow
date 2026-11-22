@@ -69,8 +69,13 @@ const bank: BlogTopicEntry[] = (
 ).map(mapTopicEntry);
 
 describe("blog-topics.json bank", () => {
-	it("holds exactly 1,000 topics", () => {
-		expect(bank.length).toBe(1000);
+	// 1,000 at creation. The 2026-11-22 TenantFlow-first cleanup deleted the 143
+	// evergreen posts already written from this bank and removed their entries,
+	// so the factory cannot regenerate them. The remaining evergreen topics are
+	// general landlord guides that predate that rule; rebuild the bank as
+	// TenantFlow-first topics before the factory is unpaused.
+	it("holds exactly 857 topics", () => {
+		expect(bank.length).toBe(857);
 	});
 
 	it("every entry uses a valid generator category", () => {
