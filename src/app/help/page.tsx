@@ -156,7 +156,7 @@ export default function HelpPage() {
 									"How lease e-sign integrates with your workflow on the Growth and Max plans, plus monthly volume limits",
 								badge: "Lease Workflow",
 								badgeColor: "bg-success/10 text-success-text",
-								href: "/blog/category/lease-law",
+								href: "/features",
 							},
 							{
 								title: "Run reports for tax season",
@@ -164,7 +164,7 @@ export default function HelpPage() {
 									"Generate CPA-ready financial reports and bulk-download every receipt and tax document by entity",
 								badge: "Tax Time",
 								badgeColor: "bg-primary/10 text-primary-text",
-								href: "/blog/category/tax-prep",
+								href: "/features",
 							},
 							{
 								title: "Manage billing and your account",
