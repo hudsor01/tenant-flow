@@ -18,12 +18,12 @@ const mockEq = vi.hoisted(() => vi.fn());
 const mockIn = vi.hoisted(() => vi.fn());
 const mockSelect = vi.hoisted(() => vi.fn());
 const mockFrom = vi.hoisted(() => vi.fn());
-const mockCreateClient = vi.hoisted(() => vi.fn());
+const mockBlogAnonClient = vi.hoisted(() => vi.fn());
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
-vi.mock("#lib/supabase/server", () => ({
-	createClient: mockCreateClient,
+vi.mock("#lib/blog/blog-queries", () => ({
+	blogAnonClient: mockBlogAnonClient,
 }));
 
 vi.mock("#components/blog/blog-card", () => ({
@@ -40,7 +40,7 @@ function setupSupabaseChain(returnData: BlogListItem[] | null) {
 	mockIn.mockReturnValue({ eq: mockEq });
 	mockSelect.mockReturnValue({ in: mockIn });
 	mockFrom.mockReturnValue({ select: mockSelect });
-	mockCreateClient.mockResolvedValue({ from: mockFrom });
+	mockBlogAnonClient.mockReturnValue({ from: mockFrom });
 }
 
 // ── Test data ─────────────────────────────────────────────────────────────────

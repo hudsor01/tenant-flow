@@ -123,7 +123,7 @@ export default async function BlogCategoryPage({
 	// 416 "Requested range not satisfiable" (code PGRST103) — a crawler probing
 	// a page beyond the last, not a server error. Return a real 404 so crawlers
 	// drop the URL instead of soft-rendering a false "0 articles" empty state.
-	// Mirrors blog/page.tsx; notFound() throws NEXT_NOT_FOUND, which propagates.
+	// Mirrors blog/page.tsx; nothing here catches what notFound() throws.
 	const rangeCode = (postsResult.error as { code?: string } | null)?.code;
 	if (
 		rangeCode === "PGRST103" ||

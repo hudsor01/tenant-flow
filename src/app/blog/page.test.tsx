@@ -26,8 +26,10 @@ vi.mock("@sentry/nextjs", () => ({
 
 vi.mock("next/navigation", () => ({
 	notFound: () => {
-		const err = new Error("NEXT_NOT_FOUND") as Error & { digest: string };
-		err.digest = "NEXT_NOT_FOUND";
+		const err = new Error("NEXT_HTTP_ERROR_FALLBACK;404") as Error & {
+			digest: string;
+		};
+		err.digest = "NEXT_HTTP_ERROR_FALLBACK;404";
 		throw err;
 	},
 }));
@@ -313,7 +315,7 @@ describe("BlogPage (server component)", () => {
 		mockGetBlogCategories.mockResolvedValue(mockCategories);
 		await expect(
 			BlogPage({ searchParams: Promise.resolve({ page: "11" }) }),
-		).rejects.toMatchObject({ digest: "NEXT_NOT_FOUND" });
+		).rejects.toMatchObject({ digest: "NEXT_HTTP_ERROR_FALLBACK;404" });
 		// the 416 is expected control flow, not a server error to report
 		expect(Sentry.captureException).not.toHaveBeenCalled();
 	});

@@ -377,7 +377,6 @@ src/components/sections/comparison-table.tsx default
 src/components/sections/home-faq.tsx default homeFaqs
 src/components/sections/how-it-works.tsx default
 src/components/sections/logo-cloud.tsx default
-src/components/shared/blog-loading-skeleton.tsx default
 src/components/shared/chart-loading-skeleton.tsx default
 src/components/shared/loading-timeout-wrapper.tsx LoadingTimeoutWrapper
 src/components/shell/main-nav.tsx NavigationItem

@@ -13,18 +13,23 @@ const LIVE_PUBLISHED_SLUGS = new Set([
 	"buildium-vs-rentec-direct-complete-comparison-for-2026-and-why-tenantflow-wins-for-independent-landlords",
 ]);
 
-// Static hub/index destinations. A `/blog/<slug>` destination is ALSO valid,
+// Same-topic static destinations. A `/blog/<slug>` destination is ALSO valid,
 // but only when <slug> is one of the live published slugs (asserted below) —
-// redirecting to a deleted slug would just chain into another 404.
+// redirecting to a deleted slug would just chain into another 404. A generic
+// index (/blog, /compare) is never a destination: Google reports a redirect to
+// a page on another topic as a soft 404, so those entries answer 410 instead.
 const STATIC_DESTINATIONS = new Set([
-	"/blog",
-	"/compare",
 	"/compare/appfolio",
 	"/compare/rentredi",
 	"/compare/buildium",
+	"/resources/security-deposit-reference-card",
+	"/resources/landlord-tax-deduction-tracker",
+	"/resources/seasonal-maintenance-checklist",
 ]);
 
 const HUBS = ["appfolio", "rentredi", "buildium"] as const;
+
+const slugOf = (source: string) => source.replace("/blog/", "");
 
 describe("DELETED_BLOG_REDIRECTS", () => {
 	it("every source is a /blog/<slug> path", () => {
@@ -38,21 +43,20 @@ describe("DELETED_BLOG_REDIRECTS", () => {
 		expect(new Set(sources).size).toBe(sources.length);
 	});
 
-	it("every destination is a live path (static hub/index OR a live /blog post)", () => {
+	it("every destination is null (410) or a same-topic live path", () => {
 		for (const { destination } of DELETED_BLOG_REDIRECTS) {
+			if (destination === null) continue;
 			if (STATIC_DESTINATIONS.has(destination)) continue;
 			// Otherwise it must be a /blog/<live-slug> — never a deleted slug,
-			// which would 301 into another 404.
+			// which would redirect into another 404.
 			expect(destination).toMatch(/^\/blog\//);
-			expect(LIVE_PUBLISHED_SLUGS.has(destination.replace("/blog/", ""))).toBe(
-				true,
-			);
+			expect(LIVE_PUBLISHED_SLUGS.has(slugOf(destination))).toBe(true);
 		}
 	});
 
 	it("no source shadows a live published post", () => {
 		const collisions = DELETED_BLOG_REDIRECTS.filter((r) =>
-			LIVE_PUBLISHED_SLUGS.has(r.source.replace("/blog/", "")),
+			LIVE_PUBLISHED_SLUGS.has(slugOf(r.source)),
 		);
 		expect(collisions).toEqual([]);
 	});
@@ -72,16 +76,40 @@ describe("DELETED_BLOG_REDIRECTS", () => {
 		}
 	});
 
-	it("comparison (-vs-) slugs without a hub go to /compare OR a live comparison post", () => {
+	it("a live comparison post receives only slugs naming one of its competitors", () => {
 		for (const { source, destination } of DELETED_BLOG_REDIRECTS) {
-			const hasHub = HUBS.some((h) => source.includes(h));
-			if (!hasHub && source.includes("-vs-")) {
-				const okLiveBlog =
-					destination.startsWith("/blog/") &&
-					LIVE_PUBLISHED_SLUGS.has(destination.replace("/blog/", ""));
-				expect(destination === "/compare" || okLiveBlog).toBe(true);
-			}
+			if (!destination?.startsWith("/blog/")) continue;
+			const brands = slugOf(destination)
+				.split("-vs-")
+				.map((part) => part.replace(/-(?:the|complete)-.*$/, ""))
+				.filter((brand) => brand !== "tenantflow");
+			expect(
+				brands.some((brand) => slugOf(source).includes(brand)),
+				`${source} -> ${destination}`,
+			).toBe(true);
 		}
+	});
+
+	it("each resource page receives only slugs on its own topic", () => {
+		const topics: Record<string, RegExp> = {
+			"/resources/security-deposit-reference-card":
+				/security-deposit-(?:law|laws|rules|deadlines)\b/,
+			"/resources/landlord-tax-deduction-tracker": /deduct|schedule-e/,
+			"/resources/seasonal-maintenance-checklist":
+				/^(?:spring|summer|fall|winter)-rental-maintenance-checklist$|^twelve-month-preventive-maintenance-calendar-rentals$|winterization-checklist$/,
+		};
+		for (const { source, destination } of DELETED_BLOG_REDIRECTS) {
+			const topic = destination === null ? undefined : topics[destination];
+			if (topic) expect(slugOf(source), destination ?? "").toMatch(topic);
+		}
+	});
+
+	it("every error-<timestamp> slug answers 410", () => {
+		const errorSlugs = DELETED_BLOG_REDIRECTS.filter((r) =>
+			/^error-\d+$/.test(slugOf(r.source)),
+		);
+		expect(errorSlugs.length).toBeGreaterThan(0);
+		for (const r of errorSlugs) expect(r.destination).toBeNull();
 	});
 });
 

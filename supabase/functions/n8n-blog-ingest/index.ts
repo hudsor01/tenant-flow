@@ -88,6 +88,8 @@ const VALID_CATEGORIES = [
 // Plan 06-01 Blocker-#4: slug MUST start with a lowercase letter (closes the
 // numeric-only-slug class). Matches the DB CHECK constraint exactly.
 const SLUG_REGEX = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
+// An earlier writer saved failed generations under error-<timestamp> slugs.
+const ERROR_SLUG_REGEX = /^error-[0-9]+$/;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -202,6 +204,12 @@ function runGates(p: IngestPayload): GateFailure[] {
 		failures.push({
 			gate: "slug_pattern",
 			message: `slug invalid: ${p.slug} (must match ^[a-z][a-z0-9]*(-[a-z0-9]+)*$, length 3..120)`,
+		});
+	} else if (ERROR_SLUG_REGEX.test(p.slug)) {
+		// Gate 4b (validate_blog_post): a failed generation, never a post.
+		failures.push({
+			gate: "slug_pattern",
+			message: `slug invalid: ${p.slug} (error-<digits> is a failed generation, not a post)`,
 		});
 	}
 

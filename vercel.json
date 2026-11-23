@@ -142,6 +142,15 @@
 					"value": "no-store, max-age=0"
 				}
 			]
+		},
+		{
+			"source": "/api/og/(.*)",
+			"headers": [
+				{
+					"key": "X-Robots-Tag",
+					"value": "noindex"
+				}
+			]
 		}
 	],
 	"trailingSlash": false,
