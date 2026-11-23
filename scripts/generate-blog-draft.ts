@@ -87,7 +87,7 @@ type Category = (typeof VALID_CATEGORIES)[number];
 
 // The banlist (gate 8), in step with supabase/functions/_shared/blog-banlist.ts
 // (the n8n-blog-ingest gate) and the validate_blog_post trigger (live body:
-// supabase/migrations/20261115173654_validate_blog_post_gate_published_edits.sql);
+// supabase/migrations/20261123162023_validate_blog_post_reject_error_slugs.sql);
 // src/lib/seo/__tests__/banlist-parity.test.ts fails when they drift.
 // Phrases: a substring, case ignored.
 const BANLIST = [
@@ -141,6 +141,8 @@ function findBanlistHit(
 	return null;
 }
 const SLUG_REGEX = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
+// validate_blog_post gate 4b: an error-<digits> slug is a failed generation.
+const ERROR_SLUG_REGEX = /^error-[0-9]+$/;
 
 // Pick the LM Studio model id to request: prefer a LOADED instance whose id
 // contains the configured base id (handles "...@6bit"-style load identifiers),
@@ -575,11 +577,16 @@ export function runGates(
 			message: 'no "landlord"',
 			fix: 'The body must mention "landlord".',
 		});
-	if (!SLUG_REGEX.test(p.slug) || p.slug.length < 3 || p.slug.length > 120)
+	if (
+		!SLUG_REGEX.test(p.slug) ||
+		p.slug.length < 3 ||
+		p.slug.length > 120 ||
+		ERROR_SLUG_REGEX.test(p.slug)
+	)
 		out.push({
 			gate: "slug_pattern",
 			message: p.slug,
-			fix: "slug must be lowercase words joined by single hyphens (^[a-z][a-z0-9]*(-[a-z0-9]+)*$), 20-70 chars.",
+			fix: "slug must be lowercase words joined by single hyphens (^[a-z][a-z0-9]*(-[a-z0-9]+)*$), 20-70 chars, and not error-<digits>.",
 		});
 	if (p.meta_description.length < 50 || p.meta_description.length > 160)
 		out.push({

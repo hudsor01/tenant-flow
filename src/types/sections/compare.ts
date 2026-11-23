@@ -21,7 +21,8 @@ export interface PricingTier {
 export interface CompetitorData {
 	name: string;
 	slug: string;
-	blogSlug: string;
+	/** A published post comparing this competitor, shown as "Read the Full Comparison". */
+	blogSlug?: string;
 	tagline: string;
 	description: string;
 	metaDescription: string;

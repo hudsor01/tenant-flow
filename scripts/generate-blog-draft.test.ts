@@ -842,6 +842,24 @@ describe("runGates banlist on the meta description", () => {
 	});
 });
 
+describe("runGates slug pattern", () => {
+	it("gates an error-<digits> slug, a failed generation (validate_blog_post gate 4b)", () => {
+		const hit = runGates(
+			{ ...seoDraft, slug: "error-1773361842137" },
+			seoCtx,
+		).find((f) => f.gate === "slug_pattern");
+		expect(hit?.message).toBe("error-1773361842137");
+	});
+
+	it("passes a slug that only starts with the word error", () => {
+		const hit = runGates(
+			{ ...seoDraft, slug: "error-proofing-your-lease-renewals" },
+			seoCtx,
+		).find((f) => f.gate === "slug_pattern");
+		expect(hit).toBeUndefined();
+	});
+});
+
 const PERSONA_REWRITES: [string, string][] = [
 	// "landlord" in a paragraph about renting, else the exact "owner".
 	[

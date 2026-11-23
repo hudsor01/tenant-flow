@@ -2237,8 +2237,21 @@ describe("expectedOwnerFigures", () => {
  * validate_blog_post from before 20261110123128 (md5
  * 33667bfe24d7566b1e7effaa292c8bcd) put back in its place under production's
  * ACL. That older body gated no UPDATE of an in-review or published row.
+ *
+ * The two error-slug entries were added with 20261123162023 (gate 4b) without a
+ * local stack to print them. They are what production's trigger returned for the
+ * same two inserts on 2026-11-23, in a transaction that rolled back.
  */
 const REPLAYED_BLOG_BANLIST = {
+	"error-slug-published": {
+		state: "23514",
+		message:
+			"slug pattern invalid: error-1773361842137 (error-<digits> is a failed generation, not a post)",
+	},
+	"error-word-slug-published": {
+		state: "00000",
+		message: null,
+	},
 	"clean-in-review": {
 		state: "00000",
 		message: null,

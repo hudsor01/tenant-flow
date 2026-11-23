@@ -90,6 +90,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 	let categories: CategoryRow[] = [];
 	let comparisons: BlogListItem[] = [];
 	let totalPages = 1;
+	let outOfRange = false;
 
 	try {
 		const [postsResult, categoriesData, comparisonsResult] = await Promise.all([
@@ -112,47 +113,43 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 		// An out-of-range ?page=N (offset past the last row) makes PostgREST
 		// return 416 "Requested range not satisfiable" (code PGRST103). That's
 		// not a server error — the pagination URL points beyond the last page
-		// (e.g. a crawler probing ?page=11 of a 10-page blog). Return a real 404
-		// so crawlers drop the URL, instead of logging noise + soft-rendering an
-		// empty page. notFound() throws NEXT_NOT_FOUND, which the catch re-raises.
+		// (e.g. a crawler probing ?page=11 of a 10-page blog). It gets a real 404
+		// below, so crawlers drop the URL instead of indexing an empty page.
 		const rangeCode = (postsResult.error as { code?: string } | null)?.code;
-		if (
+		outOfRange =
 			rangeCode === "PGRST103" ||
-			/range not satisfiable/i.test(postsResult.error?.message ?? "")
-		) {
-			notFound();
-		}
+			/range not satisfiable/i.test(postsResult.error?.message ?? "");
 
-		if (postsResult.error || comparisonsResult.error) {
-			throw new Error(
-				postsResult.error?.message ??
-					comparisonsResult.error?.message ??
-					"Unknown Supabase error",
+		if (!outOfRange) {
+			if (postsResult.error || comparisonsResult.error) {
+				throw new Error(
+					postsResult.error?.message ??
+						comparisonsResult.error?.message ??
+						"Unknown Supabase error",
+				);
+			}
+
+			posts = (postsResult.data ?? []) as BlogListItem[];
+			categories = categoriesData;
+			comparisons = (comparisonsResult.data ?? []) as BlogListItem[];
+			totalPages = Math.max(
+				1,
+				Math.ceil((postsResult.count ?? 0) / PAGE_LIMIT),
 			);
 		}
-
-		posts = (postsResult.data ?? []) as BlogListItem[];
-		categories = categoriesData;
-		comparisons = (comparisonsResult.data ?? []) as BlogListItem[];
-		totalPages = Math.max(1, Math.ceil((postsResult.count ?? 0) / PAGE_LIMIT));
 	} catch (err) {
-		// notFound() (and redirect()) signal via a thrown error carrying a
-		// `digest` — re-raise it so Next can render the 404, instead of
-		// swallowing it into the empty-state + a bogus Sentry "error".
-		if (
-			err &&
-			typeof err === "object" &&
-			"digest" in err &&
-			(err.digest === "NEXT_NOT_FOUND" ||
-				String(err.digest).startsWith("NEXT_REDIRECT"))
-		) {
-			throw err;
-		}
 		Sentry.captureException(err, {
 			tags: { surface: "blog-index" },
 			extra: { page },
 		});
 		// posts/categories/comparisons stay [] — page renders empty-state branch.
+	}
+
+	// Outside the try on purpose: notFound() throws, and a catch that has to
+	// recognise Next's error to re-raise it breaks when Next renames the digest
+	// (Next 16's is NEXT_HTTP_ERROR_FALLBACK;404, not NEXT_NOT_FOUND).
+	if (outOfRange) {
+		notFound();
 	}
 
 	return (

@@ -14,20 +14,17 @@ import { COMPETITORS } from "#app/compare/[competitor]/compare-data";
 
 /**
  * Maps resource page route segments to arrays of related blog post slugs.
+ * Every slug must be published (tests/integration/content-links-slugs.test.ts).
+ * The security deposit reference card has no published post on its topic, so
+ * it has no entry and shows no related posts.
  */
 export const RESOURCE_TO_BLOGS: Record<string, string[]> = {
 	"seasonal-maintenance-checklist": [
-		"twelve-month-preventive-maintenance-calendar-rentals",
-		"spring-rental-maintenance-checklist",
-		"fall-rental-maintenance-checklist",
+		"tenantflow-the-simple-way-to-run-move-in-and-move-out-inspections",
 	],
 	"landlord-tax-deduction-tracker": [
-		"mortgage-interest-deduction-rental-property-schedule-e",
-		"repairs-deduction-schedule-e-line-14",
-		"legal-accounting-fees-landlord-deduction",
-	],
-	"security-deposit-reference-card": [
-		"security-deposit-deadlines-and-caps-all-50-states",
+		"how-tenantflow-simplifies-tax-season-for-independent-landlords",
+		"how-tenantflow-s-rent-ledger-brings-order-to-your-rental-income",
 	],
 };
 

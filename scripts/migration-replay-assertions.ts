@@ -2055,9 +2055,9 @@ const ACCEPTED: BlogBanlistOutcome = { state: "00000" };
 
 /**
  * Each case of scripts/migration-replay-blog-banlist.sql (its header lists
- * them), as validate_blog_post must decide it. Every post passes the other
- * gates, so a rejection is the banlist's, and its message names the phrase and
- * the field: the title, the excerpt and the content are each checked, at
+ * them), as validate_blog_post must decide it. Every post but the two slug
+ * cases passes the other gates, so a rejection is the banlist's, and its
+ * message names the phrase and the field: the title, the excerpt and the content are each checked, at
  * in-review and at published, for the phrases (a substring, case ignored) and
  * the persona word with persona-consistency.spec.ts's semantics
  * (/property owners?\b/i: "single-property owner", "multiproperty owners",
@@ -2102,6 +2102,14 @@ export const EXPECTED_BLOG_BANLIST: Readonly<
 	// A NULL status is another status: moving such a row to published is gated.
 	"update-null-status-to-published": personaHit("title"),
 	"update-draft-to-published": personaHit("excerpt"),
+	// Since 20261123162023 (gate 4b) an error-<digits> slug is a failed
+	// generation, never a post; a slug that only starts with "error" is a post.
+	"error-slug-published": {
+		state: "23514",
+		message:
+			"slug pattern invalid: error-1773361842137 (error-<digits> is a failed generation, not a post)",
+	},
+	"error-word-slug-published": ACCEPTED,
 };
 
 /**
@@ -2230,6 +2238,6 @@ export function assertBlogBanlistGate(raw: string): AssertionResult {
 	return {
 		ok: true,
 		message:
-			"validate_blog_post rejects a banlist phrase and the persona word in the title, the excerpt and the content at in-review and at published (as service_role, which holds no EXECUTE), with the spec's semantics (no word start, case ignored, an optional plural, a word end), accepts \"property ownership\", a word character after the word, a clean post and a draft, gates an edit of a gated field on an in-review or published post (an older post's own violation included) but not an edit of an ungated field or an unpublish, gates a draft's (and a status-less row's) UPDATE to published, and its privileges are production's",
+			"validate_blog_post rejects a banlist phrase and the persona word in the title, the excerpt and the content at in-review and at published (as service_role, which holds no EXECUTE), with the spec's semantics (no word start, case ignored, an optional plural, a word end), accepts \"property ownership\", a word character after the word, a clean post and a draft, gates an edit of a gated field on an in-review or published post (an older post's own violation included) but not an edit of an ungated field or an unpublish, gates a draft's (and a status-less row's) UPDATE to published, rejects an error-<digits> slug but not a slug that only starts with \"error\", and its privileges are production's",
 	};
 }

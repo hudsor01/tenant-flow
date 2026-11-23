@@ -9,8 +9,9 @@ import type { NextConfig } from "next";
  * @see https://env.t3.gg/docs/nextjs#validate-schema-on-build
  */
 import "./src/env";
-// 301 map for the deleted Phase-1 blog catalogue (SEO ranking-equity recovery).
+// Redirect-or-410 map for deleted blog posts (SEO ranking-equity recovery).
 import {
+	type BlogRedirect,
 	DELETED_BLOG_REDIRECTS,
 	filterActiveRedirects,
 } from "./src/lib/seo/blog-redirects";
@@ -42,6 +43,19 @@ async function fetchPublishedBlogSlugs(): Promise<Set<string> | null> {
 	} catch {
 		return null;
 	}
+}
+
+// The route handler that serves 410 Gone for a deleted blog post.
+const BLOG_GONE_ROUTE = "/api/blog-gone";
+
+// The deleted-post map minus any slug that has been published again. Fetched
+// once per build: redirects() and rewrites() both read it.
+let activeBlogRedirectsPromise: Promise<BlogRedirect[]> | undefined;
+function activeBlogRedirects(): Promise<BlogRedirect[]> {
+	activeBlogRedirectsPromise ??= fetchPublishedBlogSlugs().then((slugs) =>
+		filterActiveRedirects(DELETED_BLOG_REDIRECTS, slugs ?? new Set<string>()),
+	);
+	return activeBlogRedirectsPromise;
 }
 
 const nextConfig: NextConfig = {
@@ -131,6 +145,28 @@ const nextConfig: NextConfig = {
 					]
 				: []),
 		],
+	},
+
+	async rewrites() {
+		return {
+			// Deleted blog posts with no same-topic page answer 410 Gone, so Google
+			// drops them as removed instead of reporting a soft 404 (a redirect to
+			// an unrelated page) or retrying a 404. `beforeFiles` runs ahead of the
+			// /blog/[slug] route. The `error-<timestamp>` slugs are posts an earlier
+			// writer saved from failed generations; the validate_blog_post trigger
+			// now rejects that slug shape, so none can be published again.
+			beforeFiles: [
+				...(await activeBlogRedirects()).flatMap((r) =>
+					r.destination === null
+						? [{ source: r.source, destination: BLOG_GONE_ROUTE }]
+						: [],
+				),
+				{
+					source: "/blog/:slug(error-\\d+)",
+					destination: BLOG_GONE_ROUTE,
+				},
+			],
+		};
 	},
 
 	async redirects() {
@@ -239,21 +275,17 @@ const nextConfig: NextConfig = {
 				destination: "/billing/checkout/cancel",
 				permanent: true,
 			},
-			// Deleted Phase-1 blog catalogue: 301 each ghost slug (now HTTP-404
-			// under dynamicParams=false) to its closest live equivalent so the
-			// accumulated Google ranking signal transfers instead of decaying on
-			// a bare 404. permanent: true emits 308 (Google treats as 301).
-			// See src/lib/seo/blog-redirects.ts for the map + reclaim notes.
-			// Filtered at build time against the published slug set: a ghost slug
-			// whose post has been republished serves the post, not the 301.
-			...filterActiveRedirects(
-				DELETED_BLOG_REDIRECTS,
-				(await fetchPublishedBlogSlugs()) ?? new Set<string>(),
-			).map((r) => ({
-				source: r.source,
-				destination: r.destination,
-				permanent: true,
-			})),
+			// Deleted blog posts with a same-topic page: 308 each ghost slug there
+			// so its Google ranking signal transfers. The entries with no such page
+			// answer 410 Gone from rewrites() below. See
+			// src/lib/seo/blog-redirects.ts for the map + reclaim notes. Filtered
+			// at build time against the published slug set: a ghost slug whose post
+			// has been republished serves the post, not the redirect.
+			...(await activeBlogRedirects()).flatMap((r) =>
+				r.destination === null
+					? []
+					: [{ source: r.source, destination: r.destination, permanent: true }],
+			),
 			// Phase 56 reporting-hub consolidation: 7 entries, six pointing INTO
 			// /reports and exactly one pointing OUT — /reports/analytics ->
 			// /analytics/overview. That outbound entry is deliberate (D-29 full

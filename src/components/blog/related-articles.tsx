@@ -7,11 +7,13 @@
  *
  * Returns null for empty slug arrays and empty query results — no empty
  * state UI is shown (the caller decides whether to render this section).
+ * Query errors also render nothing: at build time (the checks job's
+ * placeholder Supabase URL) the section is simply left out.
  */
 
 import { BlogCard } from "#components/blog/blog-card";
 import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
-import { createClient } from "#lib/supabase/server";
+import { blogAnonClient } from "#lib/blog/blog-queries";
 import { cn } from "#lib/utils";
 
 interface RelatedArticlesProps {
@@ -27,7 +29,10 @@ export async function RelatedArticles({
 }: RelatedArticlesProps) {
 	if (slugs.length === 0) return null;
 
-	const supabase = await createClient();
+	// The cookie-less anon client: published posts are public, and a server
+	// client would read cookies() and make every page that renders this one
+	// dynamic (the /compare/[competitor] and /resources/* pages).
+	const supabase = blogAnonClient();
 	const { data } = await supabase
 		.from("blogs")
 		.select(

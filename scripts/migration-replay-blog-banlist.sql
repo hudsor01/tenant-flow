@@ -16,7 +16,8 @@
 -- Every post passes gates 1-7 and 9 (2,100-odd words, five "## " headings,
 -- "landlord", a valid slug, a 50-160 character meta description, an 80-200
 -- character excerpt, a listed category, no DocuSeal), so the banlist (gate 8)
--- is the only gate a case can trip. The cases:
+-- is the only gate a case can trip, except the two slug cases at the end. The
+-- cases:
 --   - a persona word in the title, the excerpt and the content, at in-review
 --     and at published, each spelled differently: "single-property owner" and
 --     "multiproperty owners" (no word start, after a hyphen and after a
@@ -43,7 +44,12 @@
 --   - a row with no status (NULL) and the persona word in its title, moved to
 --     published: rejected;
 --   - an UPDATE of a draft with a persona word in its excerpt to published:
---     rejected.
+--     rejected;
+--   - a clean post published under the slug error-1773361842137: rejected,
+--     because since 20261123162023 an error-<digits> slug is a failed
+--     generation (gate 4b);
+--   - a clean post published under the slug error-proofing-a-lease (only its
+--     first word is "error"): accepted.
 --
 -- The 'trigger' row is read before the fixture switches the trigger off and on,
 -- so it reports the state the migrations left.
@@ -275,6 +281,26 @@ begin
     insert into replay_blog values ('update-draft-to-published', jsonb_build_object('state', '00000', 'message', null));
   exception when others then
     insert into replay_blog values ('update-draft-to-published',
+      jsonb_build_object('state', SQLSTATE, 'message', SQLERRM));
+  end;
+
+  -- An error-<digits> slug is a failed generation (gate 4b): rejected.
+  begin
+    insert into public.blogs (title, slug, content, excerpt, meta_description, category, status)
+    values (v_title, 'error-1773361842137', v_body, v_excerpt, v_meta, 'lease-law', 'published');
+    insert into replay_blog values ('error-slug-published', jsonb_build_object('state', '00000', 'message', null));
+  exception when others then
+    insert into replay_blog values ('error-slug-published',
+      jsonb_build_object('state', SQLSTATE, 'message', SQLERRM));
+  end;
+
+  -- A slug whose first word is "error" is an ordinary post: accepted.
+  begin
+    insert into public.blogs (title, slug, content, excerpt, meta_description, category, status)
+    values (v_title, 'error-proofing-a-lease', v_body, v_excerpt, v_meta, 'lease-law', 'published');
+    insert into replay_blog values ('error-word-slug-published', jsonb_build_object('state', '00000', 'message', null));
+  exception when others then
+    insert into replay_blog values ('error-word-slug-published',
       jsonb_build_object('state', SQLSTATE, 'message', SQLERRM));
   end;
 end

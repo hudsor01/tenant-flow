@@ -8,7 +8,7 @@ interface BlogEmptyStateProps {
 /**
  * Branded empty state for blog pages with CSS-only typewriter animation.
  * Displays animated writing lines that expand left-to-right with a blinking cursor.
- * Matches the pattern of ChartLoadingSkeleton and BlogLoadingSkeleton.
+ * Matches the pattern of ChartLoadingSkeleton.
  */
 export function BlogEmptyState({
 	message = "No posts found",
