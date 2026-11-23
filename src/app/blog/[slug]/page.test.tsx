@@ -27,6 +27,15 @@ vi.mock("#hooks/api/use-blogs", () => ({
 	useRelatedPosts: mockUseRelatedPosts,
 }));
 
+// No published post is mapped to a competitor today (the two comparison posts
+// were unpublished on 2026-11-23), so the comparison box gets a test mapping
+// of its own; the resource map stays real.
+const COMPARISON_TEST_SLUG = "comparison-test-post";
+vi.mock("#lib/content-links", async (importOriginal) => ({
+	...(await importOriginal<typeof import("#lib/content-links")>()),
+	BLOG_TO_COMPETITOR: { "comparison-test-post": "buildium" },
+}));
+
 vi.mock("next/link", () => ({
 	default: ({
 		children,
@@ -106,7 +115,7 @@ vi.mock("lucide-react", async (importOriginal) => {
 	};
 });
 
-import { BLOG_TO_COMPETITOR, BLOG_TO_RESOURCE } from "#lib/content-links";
+import { BLOG_TO_RESOURCE } from "#lib/content-links";
 import BlogArticlePage from "./blog-post-page";
 
 // --- Mock data ---
@@ -193,7 +202,7 @@ describe("BlogArticlePage cross-links", () => {
 	});
 
 	it.each([
-		["See Full Comparison", Object.keys(BLOG_TO_COMPETITOR)[0]],
+		["See Full Comparison", COMPARISON_TEST_SLUG],
 		["View Resource", Object.keys(BLOG_TO_RESOURCE)[0]],
 	])("%s keeps a full-strength label on hover", (name, slug) => {
 		expect(slug).toBeDefined();

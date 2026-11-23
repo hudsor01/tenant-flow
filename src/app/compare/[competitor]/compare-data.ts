@@ -19,8 +19,6 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 	buildium: {
 		name: "Buildium",
 		slug: "buildium",
-		blogSlug:
-			"buildium-vs-rentec-direct-complete-comparison-for-2026-and-why-tenantflow-wins-for-independent-landlords",
 		tagline: "The Modern Buildium Alternative",
 		description:
 			"See why landlords are switching from Buildium to TenantFlow for lower costs, modern features, and transparent pricing.",
