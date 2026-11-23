@@ -7,6 +7,7 @@
 Use [GitHub's private vulnerability reporting](https://github.com/hudsor01/tenant-flow/security/advisories/new) instead.
 
 Please include:
+
 - Description of the vulnerability and its impact.
 - Steps to reproduce (a minimal proof-of-concept is appreciated).
 - Affected components or routes.
@@ -49,6 +50,7 @@ There is no semver release train. Production tracks `main`; security fixes ship 
 ### Privileged Column Lockdown (PR #676)
 
 `public.users` had a known escalation surface where any authenticated user could `update({ is_admin: true })` or `update({ subscription_status: 'active' })` on their own row. Closed by:
+
 1. `REVOKE UPDATE ON public.users FROM authenticated`.
 2. `GRANT UPDATE (col1, col2, ...) TO authenticated` on a 10-column allowlist (profile fields only).
 3. `BEFORE UPDATE` trigger `users_guard_self_update` (SECURITY INVOKER) that compares `to_jsonb(NEW) - allowed_cols` against `to_jsonb(OLD) - allowed_cols`; any privileged-column drift raises 42501.
