@@ -27,6 +27,12 @@
 // (next.config.ts rewrites it to src/app/api/blog-gone/route.ts), which tells
 // Google the post was removed on purpose.
 //
+// 2026-11-23, later: the two comparison posts (Avail vs Stessa vs TenantFlow,
+// Buildium vs Rentec Direct) were unpublished, since their claims about
+// competitors could not be verified. Their own slugs joined the map (the
+// Buildium one to /compare/buildium, the other 410), and the 29 entries that
+// pointed at them answer 410: no other page covers Avail, Stessa or Rentec.
+//
 // REPUBLISH-RECLAIM: next.config.ts filters this map AT BUILD TIME against the
 // published slug set (filterActiveRedirects below), so a reclaimed slug 301
 // drops automatically on the next deploy after its post publishes — no manual
@@ -136,30 +142,27 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/avail-vs-apartments-com-complete-comparison-for-2026",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source:
 			"/blog/avail-vs-doorloop-vs-tenantflow-the-2025-guide-for-independent-landlords",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source: "/blog/avail-vs-hemlane-complete-comparison-for-2025",
-		destination:
+		destination: null,
+	},
+	{
+		source:
 			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source: "/blog/avail-vs-turbotenant-complete-comparison-for-2026",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
-	{
-		source: "/blog/avail-vs-zillow-rental-manager-2026",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
-	},
+	{ source: "/blog/avail-vs-zillow-rental-manager-2026", destination: null },
 	{
 		source: "/blog/bank-statements-to-verify-applicant-income",
 		destination: null,
@@ -228,6 +231,11 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/buildium-vs-landlord-studio-complete-comparison-for-2025",
+		destination: "/compare/buildium",
+	},
+	{
+		source:
+			"/blog/buildium-vs-rentec-direct-complete-comparison-for-2026-and-why-tenantflow-wins-for-independent-landlords",
 		destination: "/compare/buildium",
 	},
 	{
@@ -316,8 +324,7 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/cozy-vs-avail-complete-comparison-for-2026",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source:
@@ -341,8 +348,7 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	{
 		source:
 			"/blog/cozy-vs-stessa-complete-comparison-for-2025-and-where-tenantflow-fits",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source: "/blog/credit-freezes-and-fraud-alerts-on-applicant-files",
@@ -403,8 +409,7 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/doorloop-vs-stessa-complete-comparison-for-2026",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source: "/blog/employment-verification-call-what-hr-confirms",
@@ -975,8 +980,7 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/rent-manager-vs-stessa-complete-comparison-for-2025",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source: "/blog/rental-caulk-grout-maintenance-schedule",
@@ -1040,20 +1044,17 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	{
 		source:
 			"/blog/rentec-direct-alternatives-under-20-month-a-practical-guide-for-small-landlords",
-		destination:
-			"/blog/buildium-vs-rentec-direct-complete-comparison-for-2026-and-why-tenantflow-wins-for-independent-landlords",
+		destination: null,
 	},
 	{
 		source:
 			"/blog/rentec-direct-alternatives-under-40-month-a-streamlined-approach-for-independent-landlords",
-		destination:
-			"/blog/buildium-vs-rentec-direct-complete-comparison-for-2026-and-why-tenantflow-wins-for-independent-landlords",
+		destination: null,
 	},
 	{
 		source:
 			"/blog/rentec-direct-alternatives-under-75-month-for-tech-savvy-landlords",
-		destination:
-			"/blog/buildium-vs-rentec-direct-complete-comparison-for-2026-and-why-tenantflow-wins-for-independent-landlords",
+		destination: null,
 	},
 	{
 		source:
@@ -1062,18 +1063,13 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/rentec-direct-vs-avail-complete-comparison-for-2025",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source: "/blog/rentec-direct-vs-buildium-complete-comparison-for-2026",
 		destination: "/compare/buildium",
 	},
-	{
-		source: "/blog/rentec-direct-vs-yardi-breeze-2026",
-		destination:
-			"/blog/buildium-vs-rentec-direct-complete-comparison-for-2026-and-why-tenantflow-wins-for-independent-landlords",
-	},
+	{ source: "/blog/rentec-direct-vs-yardi-breeze-2026", destination: null },
 	{
 		source:
 			"/blog/rentredi-alternatives-under-100-month-a-simple-guide-for-new-landlords",
@@ -1303,13 +1299,11 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/simplifyem-vs-avail-complete-comparison-for-2025",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source: "/blog/simplifyem-vs-avail-complete-comparison-for-2026",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source: "/blog/simplifyem-vs-hemlane-complete-comparison-for-2026",
@@ -1336,8 +1330,7 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/simplifyem-vs-rentec-direct-complete-comparison-for-2025",
-		destination:
-			"/blog/buildium-vs-rentec-direct-complete-comparison-for-2026-and-why-tenantflow-wins-for-independent-landlords",
+		destination: null,
 	},
 	{
 		source:
@@ -1373,42 +1366,33 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	{
 		source:
 			"/blog/stessa-alternatives-under-40-month-a-better-fit-for-independent-commercial-landlords",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source:
 			"/blog/stessa-alternatives-under-50-month-a-comparison-for-tech-savvy-landlords",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source: "/blog/stessa-vs-appfolio-complete-comparison-for-2026",
 		destination: "/compare/appfolio",
 	},
-	{
-		source: "/blog/stessa-vs-avail-2026",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
-	},
+	{ source: "/blog/stessa-vs-avail-2026", destination: null },
 	{
 		source: "/blog/stessa-vs-buildium-complete-comparison-for-2025",
 		destination: "/compare/buildium",
 	},
 	{
 		source: "/blog/stessa-vs-innago-complete-comparison-for-2026",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source: "/blog/stessa-vs-landlord-studio-2026-comparison",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source: "/blog/stessa-vs-rent-manager-complete-comparison-for-2026",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source: "/blog/stessa-vs-rentredi-complete-comparison-for-2026",
@@ -1416,24 +1400,17 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/stessa-vs-simplifyem-complete-comparison-for-2026",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
-	{
-		source: "/blog/stessa-vs-turbotenant-2026",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
-	},
+	{ source: "/blog/stessa-vs-turbotenant-2026", destination: null },
 	{
 		source: "/blog/stessa-vs-turbotenant-complete-comparison-for-2026",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source:
 			"/blog/stessa-vs-zillow-rental-manager-complete-comparison-for-2025",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source:
@@ -1470,13 +1447,11 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/tenantcloud-vs-stessa-complete-comparison-for-2025",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source: "/blog/tenantcloud-vs-stessa-complete-comparison-for-2026",
-		destination:
-			"/blog/avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
+		destination: null,
 	},
 	{
 		source: "/blog/tenantcloud-vs-yardi-breeze-complete-comparison-for-2025",

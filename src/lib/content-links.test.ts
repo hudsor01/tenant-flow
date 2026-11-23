@@ -19,8 +19,6 @@ const TAX_SEASON_POST =
 	"how-tenantflow-simplifies-tax-season-for-independent-landlords";
 const RENT_LEDGER_POST =
 	"how-tenantflow-s-rent-ledger-brings-order-to-your-rental-income";
-const BUILDIUM_POST =
-	"buildium-vs-rentec-direct-complete-comparison-for-2026-and-why-tenantflow-wins-for-independent-landlords";
 
 describe("content-links", () => {
 	describe("RESOURCE_TO_BLOGS", () => {
@@ -62,8 +60,8 @@ describe("content-links", () => {
 	});
 
 	describe("BLOG_TO_COMPETITOR", () => {
-		it("maps only the Buildium comparison post, the one competitor with a published post", () => {
-			expect(BLOG_TO_COMPETITOR).toEqual({ [BUILDIUM_POST]: "buildium" });
+		it("is empty: no competitor has a published comparison post", () => {
+			expect(BLOG_TO_COMPETITOR).toEqual({});
 		});
 	});
 });

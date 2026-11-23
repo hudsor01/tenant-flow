@@ -4,13 +4,20 @@ import {
 	filterActiveRedirects,
 } from "../blog-redirects";
 
-// The live published slugs after the 2026-11-22 TenantFlow-first cleanup (prod
-// public.blogs WHERE status='published'). A redirect whose source matches one
-// of these would SHADOW the live post in next.config redirects() — this list
-// is the collision guard.
+// The live published slugs (prod public.blogs WHERE status='published', read
+// 2026-11-23 after the two comparison posts were unpublished). A redirect whose
+// source matches one of these would SHADOW the live post in next.config
+// redirects() — this list is the collision guard.
 const LIVE_PUBLISHED_SLUGS = new Set([
-	"avail-vs-stessa-vs-tenantflow-the-definitive-comparison-for-2025",
-	"buildium-vs-rentec-direct-complete-comparison-for-2026-and-why-tenantflow-wins-for-independent-landlords",
+	"choosing-the-right-tenantflow-plan-starter-growth-or-max",
+	"how-tenantflow-organizes-your-leases-receipts-and-inspection-photos-in-one-place",
+	"how-tenantflow-organizes-your-properties-and-units-in-one-afternoon",
+	"how-tenantflow-s-rent-ledger-brings-order-to-your-rental-income",
+	"how-tenantflow-simplifies-tax-season-for-independent-landlords",
+	"how-tenantflow-streamlines-application-collection-for-independent-landlords",
+	"tenantflow-how-lease-renewal-reminders-keep-independent-landlords-organized",
+	"tenantflow-the-simple-way-to-run-move-in-and-move-out-inspections",
+	"what-to-set-up-first-during-your-tenantflow-14-day-free-trial",
 ]);
 
 // Same-topic static destinations. A `/blog/<slug>` destination is ALSO valid,
@@ -76,18 +83,15 @@ describe("DELETED_BLOG_REDIRECTS", () => {
 		}
 	});
 
-	it("a live comparison post receives only slugs naming one of its competitors", () => {
-		for (const { source, destination } of DELETED_BLOG_REDIRECTS) {
-			if (!destination?.startsWith("/blog/")) continue;
-			const brands = slugOf(destination)
-				.split("-vs-")
-				.map((part) => part.replace(/-(?:the|complete)-.*$/, ""))
-				.filter((brand) => brand !== "tenantflow");
-			expect(
-				brands.some((brand) => slugOf(source).includes(brand)),
-				`${source} -> ${destination}`,
-			).toBe(true);
-		}
+	it("no entry redirects to a blog post: no published post is a comparison post", () => {
+		// The two comparison posts that received competitor slugs were unpublished
+		// on 2026-11-23, and every other published post is about TenantFlow, not a
+		// deleted post's topic. A /blog destination added later must name a live
+		// post on the same subject; widen this test when one exists.
+		const toBlog = DELETED_BLOG_REDIRECTS.filter((r) =>
+			r.destination?.startsWith("/blog/"),
+		);
+		expect(toBlog).toEqual([]);
 	});
 
 	it("each resource page receives only slugs on its own topic", () => {
