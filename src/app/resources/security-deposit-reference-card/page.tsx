@@ -1,13 +1,11 @@
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { RelatedArticles } from "#components/blog/related-articles";
 import { PageLayout } from "#components/layout/page-layout";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { PrintButton } from "#components/shared/print-button";
 import { Button } from "#components/ui/button";
 import { ScrollRegion } from "#components/ui/scroll-region";
-import { RESOURCE_TO_BLOGS } from "#lib/content-links";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
@@ -704,11 +702,6 @@ export default function SecurityDepositReferenceCardPage() {
 						</div>
 					</div>
 				</section>
-
-				<RelatedArticles
-					slugs={RESOURCE_TO_BLOGS["security-deposit-reference-card"] ?? []}
-					title="Related Blog Posts"
-				/>
 
 				{/* Footer CTA */}
 				<div className="mt-12 text-center print:hidden">

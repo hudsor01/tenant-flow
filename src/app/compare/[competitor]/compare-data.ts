@@ -19,7 +19,8 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 	buildium: {
 		name: "Buildium",
 		slug: "buildium",
-		blogSlug: "buildium-vs-doorloop-vs-tenantflow-2026",
+		blogSlug:
+			"buildium-vs-rentec-direct-complete-comparison-for-2026-and-why-tenantflow-wins-for-independent-landlords",
 		tagline: "The Modern Buildium Alternative",
 		description:
 			"See why landlords are switching from Buildium to TenantFlow for lower costs, modern features, and transparent pricing.",
@@ -122,7 +123,6 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 	appfolio: {
 		name: "AppFolio",
 		slug: "appfolio",
-		blogSlug: "appfolio-alternatives-under-25-month-for-first-time-landlords",
 		tagline: "The AppFolio Alternative for Landlords",
 		description:
 			"AppFolio requires 50+ units and $298/month minimum. TenantFlow starts at $19/month with no minimums. Compare features and pricing.",
@@ -251,8 +251,6 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 	rentredi: {
 		name: "RentRedi",
 		slug: "rentredi",
-		blogSlug:
-			"rentredi-alternatives-under-30-month-for-budget-conscious-landlords",
 		tagline: "TenantFlow vs RentRedi: A Document Vault at a Fair Price",
 		description:
 			"RentRedi is a low-cost, mobile-first option. TenantFlow focuses on a visual maintenance board and a per-entity document vault, starting at $19/month.",
