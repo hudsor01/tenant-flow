@@ -13,7 +13,7 @@ import {
  * Drift guard (BLOG-04/05): the landlord-only banlist (gate 8) is kept in THREE
  * places, the ingest Edge Function's (supabase/functions/_shared/blog-banlist.ts,
  * imported here), the generator script's and the DB trigger's (its live body,
- * 20261123160000). This fails when they differ in their phrases, their persona
+ * 20261123162023). This fails when they differ in their phrases, their persona
  * words, the fields they check, or what the persona pattern matches, and when
  * that pattern stops meaning what persona-consistency.spec.ts bans on every
  * public page. Each copy's own unit test (blog-banlist.test.ts,
@@ -25,7 +25,7 @@ const ROOT = process.cwd();
 const EF_INDEX = "supabase/functions/n8n-blog-ingest/index.ts";
 const SCRIPT = "scripts/generate-blog-draft.ts";
 const TRIGGER =
-	"supabase/migrations/20261123160000_validate_blog_post_reject_error_slugs.sql";
+	"supabase/migrations/20261123162023_validate_blog_post_reject_error_slugs.sql";
 const SPEC = "tests/e2e/tests/public/persona-consistency.spec.ts";
 
 function read(file: string): string {

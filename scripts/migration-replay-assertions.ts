@@ -2102,7 +2102,7 @@ export const EXPECTED_BLOG_BANLIST: Readonly<
 	// A NULL status is another status: moving such a row to published is gated.
 	"update-null-status-to-published": personaHit("title"),
 	"update-draft-to-published": personaHit("excerpt"),
-	// Since 20261123160000 (gate 4b) an error-<digits> slug is a failed
+	// Since 20261123162023 (gate 4b) an error-<digits> slug is a failed
 	// generation, never a post; a slug that only starts with "error" is a post.
 	"error-slug-published": {
 		state: "23514",

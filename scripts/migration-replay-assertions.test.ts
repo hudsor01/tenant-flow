@@ -2238,9 +2238,9 @@ describe("expectedOwnerFigures", () => {
  * 33667bfe24d7566b1e7effaa292c8bcd) put back in its place under production's
  * ACL. That older body gated no UPDATE of an in-review or published row.
  *
- * The two error-slug entries were added with 20261123160000 (gate 4b) without a
- * local stack to print them; they hold what that body's RAISE produces, and the
- * migration-replay job's run of the fixture is what confirms them.
+ * The two error-slug entries were added with 20261123162023 (gate 4b) without a
+ * local stack to print them. They are what production's trigger returned for the
+ * same two inserts on 2026-11-23, in a transaction that rolled back.
  */
 const REPLAYED_BLOG_BANLIST = {
 	"error-slug-published": {

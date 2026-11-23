@@ -46,7 +46,7 @@
 --   - an UPDATE of a draft with a persona word in its excerpt to published:
 --     rejected;
 --   - a clean post published under the slug error-1773361842137: rejected,
---     because since 20261123160000 an error-<digits> slug is a failed
+--     because since 20261123162023 an error-<digits> slug is a failed
 --     generation (gate 4b);
 --   - a clean post published under the slug error-proofing-a-lease (only its
 --     first word is "error"): accepted.
