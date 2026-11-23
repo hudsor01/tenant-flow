@@ -30,6 +30,7 @@ a fix is deployed.
 [support@tenantflow.app](mailto:support@tenantflow.app)
 
 Encrypt sensitive reports with our public key if possible. Include:
+
 - A clear description of the vulnerability
 - Steps to reproduce (proof of concept if applicable)
 - The potential impact and affected components
@@ -58,6 +59,7 @@ rather than go silent.
 The following are in scope for vulnerability reports:
 
 **High priority**
+
 - Cross-tenant data access — one owner or tenant reading/writing another's data
 - Authentication bypass — accessing protected routes or data without valid credentials
 - Row-Level Security (RLS) policy bypasses on any Supabase table
@@ -65,6 +67,7 @@ The following are in scope for vulnerability reports:
 - Privilege escalation — tenant acting as owner, or owner acting across organizations
 
 **Also in scope**
+
 - Injection attacks (SQL, command, template)
 - Cross-site scripting (XSS) — stored or reflected
 - Cross-site request forgery (CSRF)
@@ -79,6 +82,7 @@ The following are in scope for vulnerability reports:
 ## Out of Scope
 
 The following will not be accepted as valid vulnerability reports:
+
 - Vulnerabilities in third-party services (Supabase, Stripe, Vercel, GitHub) — report those directly to the vendor
 - Attacks requiring physical access to a device
 - Social engineering or phishing of users or staff
@@ -104,6 +108,7 @@ handle) unless you prefer to remain anonymous.
 ## Safe Harbor
 
 TenantFlow will not pursue legal action against security researchers who:
+
 - Report vulnerabilities through the channels above in good faith
 - Avoid accessing, modifying, or deleting data beyond what is needed to
   demonstrate the vulnerability

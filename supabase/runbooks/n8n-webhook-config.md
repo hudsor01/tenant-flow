@@ -3,6 +3,7 @@
 Five DB functions deliver event payloads to per-event n8n webhooks via
 `net.http_post()`. Each reads its URL + bearer secret at fire time from rows
 in `public.app_config` (a service-role-only key/value table).
+
 - `notify_n8n_maintenance` — fires on maintenance_requests INSERT / status-change
 - `notify_n8n_payment_reminder` — fires on payment_reminders INSERT
 - `notify_n8n_lease_reminder` — fires on lease_reminders INSERT
@@ -140,6 +141,7 @@ webhook paths:
 ```
 
 Action: **Skip** → check **All managed rules** + **All Super Bot Fight Mode Rules**
+
 - **All remaining custom rules** + **All rate limiting rules**.
 
 ## Rotating the secret
