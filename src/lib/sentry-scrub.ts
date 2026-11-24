@@ -44,20 +44,43 @@ function scrubValue(key: string, value: string): string {
 	return scrubText(value);
 }
 
+/** How deep `scrubAny` walks nested arrays and objects; deeper values are dropped. */
+const MAX_DEPTH = 8;
+
+function isPlainObject(value: object): value is Record<string, unknown> {
+	const proto = Object.getPrototypeOf(value);
+	return proto === Object.prototype || proto === null;
+}
+
+/**
+ * Every string leaf under `value`, at any depth: a console breadcrumb keeps its
+ * logged values in `data.arguments` (an array), and attributes can nest. A
+ * streamed span attribute's `{ value, type }` keeps its own key for `value`,
+ * so `"http.query": { value }` is still emptied by its key. Past MAX_DEPTH a
+ * branch is dropped rather than sent unread.
+ */
+function scrubAny(key: string, value: unknown, depth: number): unknown {
+	if (typeof value === "string") return scrubValue(key, value);
+	if (value === null || typeof value !== "object") return value;
+	if (depth >= MAX_DEPTH) return "[depth limit]";
+	if (Array.isArray(value)) {
+		return value.map((item) => scrubAny(key, item, depth + 1));
+	}
+	if (!isPlainObject(value)) return value;
+	const copy: Record<string, unknown> = {};
+	for (const [childKey, child] of Object.entries(value)) {
+		copy[childKey] = scrubAny(
+			childKey === "value" ? key : childKey,
+			child,
+			depth + 1,
+		);
+	}
+	return copy;
+}
+
 function scrubValues(record: Record<string, unknown>): void {
 	for (const [key, value] of Object.entries(record)) {
-		if (typeof value === "string") {
-			record[key] = scrubValue(key, value);
-		} else if (
-			value !== null &&
-			typeof value === "object" &&
-			"value" in value &&
-			typeof (value as { value: unknown }).value === "string"
-		) {
-			// Streamed span attributes may arrive as { value, type }.
-			const attribute = value as { value: string };
-			record[key] = { ...attribute, value: scrubValue(key, attribute.value) };
-		}
+		record[key] = scrubAny(key, value, 0);
 	}
 }
 
@@ -101,7 +124,16 @@ interface ScrubbableEvent {
 	breadcrumbs?: ScrubbableBreadcrumb[];
 	spans?: ScrubbableSpan[];
 	contexts?: Record<string, Record<string, unknown> | undefined>;
+	extra?: Record<string, unknown>;
+	tags?: Record<string, unknown>;
 }
+
+/**
+ * Request headers that hold the path or query encoded, where `scrubText`
+ * cannot see it: Next's router state tree is URI-encoded JSON of the route
+ * segments (a sign or apply token among them), x-invoke-query a query string.
+ */
+const DROPPED_HEADERS = new Set(["next-router-state-tree", "x-invoke-query"]);
 
 function scrubEvent<T extends ScrubbableEvent>(event: T): T {
 	if (event.message) event.message = scrubText(event.message);
@@ -112,8 +144,11 @@ function scrubEvent<T extends ScrubbableEvent>(event: T): T {
 		const headers = event.request.headers;
 		if (headers) {
 			for (const name of Object.keys(headers)) {
-				if (name.toLowerCase() === "referer" && headers[name]) {
-					headers[name] = scrubUrl(headers[name]);
+				if (DROPPED_HEADERS.has(name.toLowerCase())) {
+					delete headers[name];
+				} else if (typeof headers[name] === "string") {
+					// Referer, next-url, x-matched-path, x-invoke-path, ...
+					headers[name] = scrubText(headers[name]);
 				}
 			}
 		}
@@ -122,6 +157,9 @@ function scrubEvent<T extends ScrubbableEvent>(event: T): T {
 		if (exception.value) exception.value = scrubText(exception.value);
 	}
 	for (const breadcrumb of event.breadcrumbs ?? []) scrubBreadcrumb(breadcrumb);
+	// Call sites pass `url` in captureException extras; browser events tag `url`.
+	if (event.extra) scrubValues(event.extra);
+	if (event.tags) scrubValues(event.tags);
 	for (const span of event.spans ?? []) scrubSpan(span);
 	// contexts.trace.data (span attributes), contexts.feedback.url, ...
 	for (const context of Object.values(event.contexts ?? {})) {

@@ -150,4 +150,82 @@ describe("scrubUrlsIntegration", () => {
 		expect(event.contexts.feedback.message).toBe("it broke");
 		expect(scrubUrlsIntegration().name).toBe("ScrubUrls");
 	});
+
+	it("scrubs every request header and drops the encoded route ones", () => {
+		const ua =
+			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36";
+		const event = processEvent({
+			request: {
+				headers: {
+					"next-url": `/sign/${SIGN_TOKEN}`,
+					"x-matched-path": "/sign/[token]",
+					"x-invoke-path": `/apply/${APPLY_TOKEN}`,
+					"Next-Router-State-Tree": encodeURIComponent(
+						JSON.stringify([
+							"",
+							{
+								children: ["sign", { children: [["token", SIGN_TOKEN, "d"]] }],
+							},
+						]),
+					),
+					"x-invoke-query": encodeURIComponent(
+						JSON.stringify({ token: SIGN_TOKEN }),
+					),
+					"user-agent": ua,
+					accept: "text/html,application/xhtml+xml",
+				},
+			},
+		});
+		const headers = event.request.headers as Record<string, string | undefined>;
+		expect(JSON.stringify(headers)).not.toContain(SIGN_TOKEN);
+		expect(JSON.stringify(headers)).not.toContain(APPLY_TOKEN);
+		expect(headers["next-url"]).toBe("/sign/[token]");
+		expect(headers["Next-Router-State-Tree"]).toBeUndefined();
+		expect(headers["x-invoke-query"]).toBeUndefined();
+		expect(headers["user-agent"]).toBe(ua);
+		expect(headers.accept).toBe("text/html,application/xhtml+xml");
+	});
+
+	it("scrubs extras and tags", () => {
+		const event = processEvent({
+			extra: { url: SIGN, nested: { referrer: CALLBACK } },
+			tags: { url: SEARCH, "user.role": "owner" },
+		});
+		expect(JSON.stringify(event)).not.toMatch(
+			new RegExp(FIXTURES.join("|").replace(/\./g, "\\.")),
+		);
+		expect(event.tags["user.role"]).toBe("owner");
+	});
+});
+
+describe("nested values", () => {
+	it("are scrubbed at any depth: console arguments, arrays, objects", () => {
+		const crumb = scrubBreadcrumb({
+			category: "console",
+			message: "fetch failed",
+			data: {
+				arguments: [
+					`could not load ${SIGN}`,
+					{ request: { url: CALLBACK, retries: [SEARCH] } },
+					42,
+				],
+				logger: "console",
+			},
+		});
+		const sent = JSON.stringify(crumb);
+		for (const fixture of FIXTURES) expect(sent).not.toContain(fixture);
+		expect(crumb.data.arguments[0]).toBe(
+			"could not load https://tenantflow.app/sign/[token]",
+		);
+		expect(crumb.data.arguments[2]).toBe(42);
+		expect(crumb.data.logger).toBe("console");
+	});
+
+	it("past the depth limit are dropped, not sent unread", () => {
+		let deep: unknown = SIGN;
+		for (let i = 0; i < 20; i++) deep = { next: deep };
+		const sent = JSON.stringify(scrubBreadcrumb({ data: { deep } }));
+		expect(sent).not.toContain(SIGN_TOKEN);
+		expect(sent).toContain("[depth limit]");
+	});
 });
