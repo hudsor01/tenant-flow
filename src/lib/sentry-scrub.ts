@@ -16,38 +16,64 @@
  * type (errors, transactions, feedback), where `beforeSend` sees errors only.
  */
 
-/** The routes whose path segment after the prefix is a bearer token. */
-const TOKEN_ROUTE = /(\/(?:sign|apply)\/)[^/?#\s"'<>]+/g;
+/** A path separator, raw or percent-encoded once or twice. */
+const SEP = String.raw`(?:\/|%2[Ff]|%252[Ff])`;
 
-/** An absolute http(s) URL, or a root-relative path not glued to a word. */
-const URL_IN_TEXT = /https?:\/\/[^\s"'<>]+|(?<![\w.:/])\/[^\s"'<>]*/g;
+/**
+ * A sign or apply route and its token segment, written raw or encoded
+ * (`/sign/<t>`, `%2Fsign%2F<t>`, `%252Fapply%252F<t>`). The token runs to the
+ * next separator (raw or encoded), `?`, `#`, `&`, whitespace or a quote.
+ */
+const TOKEN_ROUTE = new RegExp(
+	String.raw`(${SEP}(?:sign|apply)${SEP})(?:(?!${SEP})[^?#&\s"'<>])+`,
+	"g",
+);
 
-/** A URL (absolute or a path) with its query and fragment cut and its token redacted. */
+/**
+ * An absolute http(s) URL (raw, or with its `://` percent-encoded), or a
+ * root-relative path not glued to a word. Matched in the raw text: decoding
+ * first would turn %20 into a space and end a match inside its query.
+ */
+const URL_IN_TEXT =
+	/https?(?::\/\/|%3[Aa]%2[Ff]%2[Ff])[^\s"'<>]+|(?<![\w.:/])\/[^\s"'<>]*/g;
+
+/** Every run of %XX decoded on its own (a malformed run is left as it is), until stable. */
+function decode(text: string): string {
+	let out = text;
+	for (let i = 0; i < 3; i++) {
+		const next = out.replace(/(?:%[0-9A-Fa-f]{2})+/g, (run) => {
+			try {
+				return decodeURIComponent(run);
+			} catch {
+				return run;
+			}
+		});
+		if (next === out) break;
+		out = next;
+	}
+	return out;
+}
+
+/**
+ * A URL (absolute or a path) with its query and fragment cut and its token
+ * redacted. The query is cut in the raw URL first, then the rest is decoded
+ * and cut again, since an encoded `%3F` is a query too once decoded.
+ */
 function scrubUrl(url: string): string {
-	return decode(url)
+	return decode(url.replace(/[?#].*$/s, ""))
 		.replace(/[?#].*$/s, "")
 		.replace(TOKEN_ROUTE, "$1[token]");
 }
 
 /**
- * Percent-decoded text (twice, for double encoding), so "%2Fsign%2F<token>"
- * is a path the token pattern sees; malformed encoding is left as it is.
+ * Text with every URL in it scrubbed ("GET /sign/abc?x=1" -> "GET /sign/[token]"),
+ * then any sign or apply token still in it (an encoded path outside a URL,
+ * "%2Fsign%2F<token>") redacted. Nothing outside a URL match is decoded.
  */
-function decode(text: string): string {
-	let out = text;
-	for (let i = 0; i < 2 && out.includes("%"); i++) {
-		try {
-			out = decodeURIComponent(out);
-		} catch {
-			break;
-		}
-	}
-	return out;
-}
-
-/** Text with every URL in it scrubbed ("GET /sign/abc?x=1" -> "GET /sign/[token]"). */
 function scrubText(text: string): string {
-	return decode(text).replace(URL_IN_TEXT, (url) => scrubUrl(url));
+	return text
+		.replace(URL_IN_TEXT, (url) => scrubUrl(url))
+		.replace(TOKEN_ROUTE, "$1[token]");
 }
 
 /** A key that holds a URL's query or fragment on its own (`http.query`, `url.fragment`). */

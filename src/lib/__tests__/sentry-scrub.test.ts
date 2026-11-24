@@ -259,12 +259,36 @@ describe("nested values", () => {
 		expect(session).toBe("[unscrubbed object]");
 	});
 
-	it("are decoded before scrubbing, so an encoded token is still found", () => {
-		const encoded = `redirect to %2Fsign%2F${SIGN_TOKEN}`;
-		expect(scrubBreadcrumb({ message: encoded }).message).toBe(
-			"redirect to /sign/[token]",
+	it("redact an encoded token, however it is encoded", () => {
+		const message = (text: string) =>
+			scrubBreadcrumb({ message: text }).message;
+		expect(message(`redirect to %2Fsign%2F${SIGN_TOKEN}`)).toBe(
+			"redirect to %2Fsign%2F[token]",
 		);
-		expect(scrubBreadcrumb({ message: "50% done" }).message).toBe("50% done");
+		expect(message(`next=%252Fapply%252F${APPLY_TOKEN}`)).toBe(
+			"next=%252Fapply%252F[token]",
+		);
+		// A malformed % elsewhere in the text must not stop the redaction.
+		expect(message(`50% done %2Fsign%2F${SIGN_TOKEN}`)).toBe(
+			"50% done %2Fsign%2F[token]",
+		);
+		expect(message("50% done")).toBe("50% done");
+	});
+
+	it("cut a query before decoding it, so an encoded space ends nothing early", () => {
+		const message = (text: string) =>
+			scrubBreadcrumb({ message: text }).message;
+		expect(
+			message(
+				`GET https://abc.supabase.co/rest/v1/tenants?q=${TENANT_NAME}%20${TENANT_EMAIL} done`,
+			),
+		).toBe("GET https://abc.supabase.co/rest/v1/tenants done");
+		// An encoded ? is a query once decoded, and an encoded absolute URL is a URL.
+		expect(
+			message(
+				`see https%3A%2F%2Fabc.supabase.co%2Frest%2Fv1%2Ftenants%3For%3D${TENANT_NAME}`,
+			),
+		).toBe("see https://abc.supabase.co/rest/v1/tenants");
 	});
 
 	it("past the depth limit are dropped, not sent unread", () => {
