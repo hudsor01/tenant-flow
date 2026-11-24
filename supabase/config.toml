@@ -486,6 +486,16 @@ import_map = "./functions/deno.json"
 verify_jwt = false
 import_map = "./functions/deno.json"
 
+# Trial lifecycle emails — cron-invoked, hourly. verify_jwt=false; the auth
+# boundary is the function's constant-time Bearer check against
+# app_config.trial_lifecycle.secret (generated in the database, read by the
+# function with the service role). pg_cron invokes it through
+# invoke_trial_lifecycle(), a no-op while app_config.trial_lifecycle.enabled
+# != 'true'.
+[functions.trial-lifecycle]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
 # Rental application intake — PUBLIC: the applicant has no account. The
 # reusable posting token in the /apply/<token> URL is the capability. Validated
 # by SHA-256-hashed lookup inside a SECURITY DEFINER RPC that also enforces the

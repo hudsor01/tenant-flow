@@ -43,8 +43,12 @@ const MONTHS = [
 	"December",
 ] as const;
 
-/** The end as "November 13, 2026, at 2:13 AM UTC" (`trialEnd` in Unix seconds). */
-function formatTrialEnd(trialEnd: number): string {
+/**
+ * The end as "November 13, 2026, at 2:13 AM UTC" (`trialEnd` in Unix seconds).
+ * Also names the end in the database-managed trial's emails
+ * (`trial-lifecycle/index.ts`), so both trials state it the same way.
+ */
+export function formatTrialEnd(trialEnd: number): string {
 	const date = new Date(trialEnd * 1000);
 	const hours = date.getUTCHours();
 	const hour12 = hours % 12 === 0 ? 12 : hours % 12;
