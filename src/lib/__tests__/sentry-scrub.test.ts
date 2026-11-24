@@ -200,9 +200,8 @@ describe("scrubUrlsIntegration", () => {
 			extra: { url: SIGN, nested: { referrer: CALLBACK } },
 			tags: { url: SEARCH, "user.role": "owner" },
 		});
-		expect(JSON.stringify(event)).not.toMatch(
-			new RegExp(FIXTURES.join("|").replace(/\./g, "\\.")),
-		);
+		const sent = JSON.stringify(event);
+		for (const fixture of FIXTURES) expect(sent).not.toContain(fixture);
 		expect(event.tags["user.role"]).toBe("owner");
 	});
 });
