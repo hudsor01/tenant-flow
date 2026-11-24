@@ -4,10 +4,39 @@
  * Configures Sentry for browser-side error tracking and performance monitoring.
  * Includes: Web Vitals (INP), Network Requests, User Feedback.
  * Session Replay is intentionally disabled — see comment below.
+ *
+ * This file is Next's client instrumentation hook: Next loads
+ * `src/instrumentation-client.ts` before the app becomes interactive, under
+ * Turbopack and webpack alike. It used to live at the repo root as
+ * `sentry.client.config.ts`, a name only the Sentry webpack plugin injects;
+ * Turbopack never loaded it, so the browser SDK was never initialized and
+ * every client-side `captureException` (route `error.tsx` files, the error
+ * boundary, the mutation error handler) went nowhere.
  */
 import * as Sentry from "@sentry/nextjs";
 
+// Starts a navigation span for each App Router transition, so client-side
+// navigations are traced, not only the initial page load.
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+
 const isProduction = process.env.NODE_ENV === "production";
+
+// The feedback widget's colors: the app's tokens, which switch with `.dark`.
+// No value may name a variable the widget itself defines from this object
+// (--foreground, --background, --border...): `foreground: "var(--foreground)"`
+// becomes `--foreground: var(--foreground)` inside the widget, a cycle CSS
+// treats as invalid. Text then inherited the page color and looked right, but
+// the icon's SVG fill has no inheritance and fell back to black, invisible on
+// the dark button. The popover pair is the widget's surface and text.
+const FEEDBACK_THEME = {
+	foreground: "var(--popover-foreground)",
+	background: "var(--popover)",
+	accentForeground: "var(--primary-foreground)",
+	accentBackground: "var(--primary)",
+	successColor: "var(--success-text)",
+	errorColor: "var(--destructive-text)",
+	outline: "1px auto var(--ring)",
+};
 
 Sentry.init({
 	dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -65,9 +94,25 @@ Sentry.init({
 		}),
 		// HTTP client instrumentation
 		Sentry.browserApiErrorsIntegration(),
-		// User Feedback widget - lets users report UX issues directly
+		// User Feedback widget - lets users report UX issues directly.
+		// `autoInject: false`: the button appears only inside the owner app,
+		// where FeedbackWidget (src/components/shell/feedback-widget.tsx) adds
+		// it; a floating bug button on the marketing pages reads as unfinished.
+		// Name and email fields are hidden: the reporter is a signed-in owner,
+		// identified by the user id the auth provider sets, and asking for an
+		// email would send PII the rest of this config keeps out of Sentry.
+		// Both schemes read the app's own color tokens (CSS custom properties
+		// reach into the widget's shadow root). FeedbackWidget switches the
+		// scheme with the app's resolved theme via setTheme, so the widget
+		// follows the app's toggle rather than the OS ("system" would), and
+		// takes its preset borders from the matching scheme.
 		Sentry.feedbackIntegration({
-			colorScheme: "system",
+			autoInject: false,
+			colorScheme: "light",
+			themeLight: FEEDBACK_THEME,
+			themeDark: FEEDBACK_THEME,
+			showName: false,
+			showEmail: false,
 			isNameRequired: false,
 			isEmailRequired: false,
 			showBranding: false,

@@ -28,8 +28,8 @@
  * `scripts/`, `supabase/functions/_shared/` and `tests/e2e/lib/`, less the
  * generated `src/types/supabase.ts`, `.d.ts` files, and the files Next.js
  * reads by name (a route segment's `page`, `layout`, `route` and the rest,
- * `src/proxy.ts`, `src/instrumentation.ts`): the framework reads those
- * exports, and no file imports them.
+ * `src/proxy.ts`, `src/instrumentation.ts`, `src/instrumentation-client.ts`):
+ * the framework reads those exports, and no file imports them.
  */
 
 import { posix } from "node:path";
@@ -86,7 +86,7 @@ const DECLARING_ROOT =
 
 /** The files Next.js reads by name: their exports have no importer. */
 const FRAMEWORK_FILE =
-	/^src\/app\/(.*\/)?(page|layout|template|loading|error|global-error|not-found|default|route|sitemap|robots|manifest|opengraph-image|twitter-image|icon|apple-icon)\.(ts|tsx)$|^src\/(proxy|instrumentation)\.ts$/;
+	/^src\/app\/(.*\/)?(page|layout|template|loading|error|global-error|not-found|default|route|sitemap|robots|manifest|opengraph-image|twitter-image|icon|apple-icon)\.(ts|tsx)$|^src\/(proxy|instrumentation|instrumentation-client)\.ts$/;
 
 /** Test code (a test file, a helper, a runner's config): it never ships. */
 function isTestCode(path: string): boolean {
