@@ -357,6 +357,12 @@ Deno.serve(async (req: Request) => {
 			Deno.env.get("INGEST_DB_KEY") ??
 			Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 		if (!dbKey) {
+			// An operator misconfiguration fails every insert, so it must reach
+			// Sentry, not just answer a generic 500 (#794).
+			captureWebhookError(
+				new Error("n8n-blog-ingest: no database key configured"),
+				{ fn: "n8n-blog-ingest" },
+			);
 			return jsonResponse(req, 500, { error: "An error occurred" });
 		}
 		const supabase = createClient(env.SUPABASE_URL, dbKey);

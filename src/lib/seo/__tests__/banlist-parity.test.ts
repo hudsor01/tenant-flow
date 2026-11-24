@@ -200,23 +200,80 @@ describe("the persona pattern means the spec's regex in every copy", () => {
 });
 
 /**
- * The numeric gate thresholds (word 1200-3000, meta ≤160, etc.) are ALSO
- * hand-duplicated across the EF, the generator, and the DB trigger. Assert the
- * distinctive bounds appear in every layer so a one-sided bump fails the build
- * (these numbers are the canonical contract; update all three together).
+ * The numeric gate thresholds are ALSO hand-duplicated across the EF, the
+ * generator, and the DB trigger. Each bound is read from the comparison that
+ * enforces it (exactly one per file, or extractOne throws), so a one-sided
+ * bump to ANY bound fails here, not only to a distinctive number (#795).
  */
-const GATE_FILES = [EF_INDEX, SCRIPT, TRIGGER];
-const DISTINCTIVE_BOUNDS = ["1200", "3000", "160"]; // word min, word max, meta max
+const ts = (subject: string) =>
+	new RegExp(`${subject} < (\\d+) \\|\\|\\s*${subject} > (\\d+)`);
+const sql = (subject: string) =>
+	new RegExp(`${subject} < (\\d+) OR ${subject} > (\\d+)`);
 
-describe("gate threshold parity (distinctive bounds in every layer)", () => {
-	for (const file of GATE_FILES) {
-		it(`${file} carries the canonical gate bounds`, () => {
-			const text = read(file);
-			for (const bound of DISTINCTIVE_BOUNDS) {
-				expect(text).toContain(bound);
-			}
-		});
-	}
+const RANGE_GATES: ReadonlyArray<{
+	gate: string;
+	ef: RegExp;
+	script: RegExp;
+	trigger: RegExp;
+}> = [
+	{
+		gate: "word_count",
+		ef: ts("wc"),
+		script: ts("wc"),
+		trigger: sql("v_word_count"),
+	},
+	{
+		gate: "h2_count",
+		ef: ts("h2"),
+		script: ts("h2"),
+		trigger: sql("v_h2_count"),
+	},
+	{
+		gate: "slug length",
+		ef: ts("p\\.slug\\.length"),
+		script: ts("p\\.slug\\.length"),
+		trigger: sql("length\\(NEW\\.slug\\)"),
+	},
+	{
+		gate: "meta_description length",
+		ef: ts("p\\.meta_description\\.length"),
+		script: ts("p\\.meta_description\\.length"),
+		trigger: sql("length\\(NEW\\.meta_description\\)"),
+	},
+	{
+		gate: "excerpt length",
+		ef: ts("p\\.excerpt\\.length"),
+		script: ts("p\\.excerpt\\.length"),
+		trigger: sql("length\\(NEW\\.excerpt\\)"),
+	},
+];
+
+const bounds = (file: string, pattern: RegExp) =>
+	extractOne(file, pattern).map(Number);
+
+describe("gate threshold parity (every bound, every layer)", () => {
+	it.each(RANGE_GATES)(
+		"$gate: EF, generator and trigger share both bounds",
+		(g) => {
+			const ef = bounds(EF_INDEX, g.ef);
+			expect(ef).toHaveLength(2);
+			expect(ef[0]).toBeLessThan(ef[1] as number);
+			expect(bounds(SCRIPT, g.script)).toEqual(ef);
+			expect(bounds(TRIGGER, g.trigger)).toEqual(ef);
+		},
+	);
+
+	it("DocuSeal: the EF and the trigger allow the same count in the content", () => {
+		const ef = bounds(EF_INDEX, /if \(docusealCount > (\d+)\)/);
+		expect(bounds(TRIGGER, /IF v_docuseal_count > (\d+) THEN/)).toEqual(ef);
+	});
+
+	it("DocuSeal: the generator is stricter, allowing none in any field", () => {
+		const ef = bounds(EF_INDEX, /if \(docusealCount > (\d+)\)/);
+		const script = bounds(SCRIPT, /\.filter\(\(h\) => h\.n > (\d+)\)/);
+		expect(script).toEqual([0]);
+		expect(script[0]).toBeLessThanOrEqual(ef[0] as number);
+	});
 });
 
 /**
