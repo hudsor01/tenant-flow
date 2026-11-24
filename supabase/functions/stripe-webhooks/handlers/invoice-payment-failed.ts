@@ -59,7 +59,7 @@ export async function handleInvoicePaymentFailed(
 	// (66.2-39 fix round 4, Part 8o; Part 8n's copy left out the retries and
 	// the cancellation).
 	const frontendUrl =
-		Deno.env.get("NEXT_PUBLIC_APP_URL") ?? "https://app.tenantflow.app";
+		Deno.env.get("NEXT_PUBLIC_APP_URL") ?? "https://tenantflow.app";
 	await sendEmail({
 		to: [owner.email as string],
 		subject: "Action Required: Subscription Payment Failed",

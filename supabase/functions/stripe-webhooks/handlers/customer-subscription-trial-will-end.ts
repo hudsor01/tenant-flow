@@ -65,7 +65,7 @@ export async function handleCustomerSubscriptionTrialWillEnd(
 	}
 
 	const frontendUrl =
-		Deno.env.get("NEXT_PUBLIC_APP_URL") ?? "https://app.tenantflow.app";
+		Deno.env.get("NEXT_PUBLIC_APP_URL") ?? "https://tenantflow.app";
 	const copy = trialEndCopy(sub.trial_end ?? null);
 
 	await sendEmail({
