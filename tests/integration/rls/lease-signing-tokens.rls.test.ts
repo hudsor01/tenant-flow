@@ -64,6 +64,16 @@ const skipReason = !SUPABASE_URL
 
 const RUN_TAG = `rls-sign-test-${Date.now()}`;
 
+/**
+ * The happy-path tenant's address. Finalizing a signed lease emails the
+ * tenant the executed PDF through Resend, which rejects @example.com with a
+ * 422; every CI run then filed "Signed lease email send failed" and "Resend
+ * API error 422" in production Sentry (256 events in 14 days), burying a real
+ * delivery failure. Resend's test inbox accepts and simulates delivery
+ * without sending mail; the +label tags these sends in the Resend log.
+ */
+const HAPPY_TENANT_EMAIL = "delivered+rls-lease-signing@resend.dev";
+
 describe.skipIf(skipReason)(
 	"lease_signing_tokens RLS + signing RPC grants",
 	() => {
@@ -147,7 +157,7 @@ describe.skipIf(skipReason)(
 					lease_id: leaseId,
 					// Matches the disposable fixture tenant's email so the RPC's
 					// tenant-rebind check passes; the tenant_changed test overrides it.
-					tenant_email: "happy@example.com",
+					tenant_email: HAPPY_TENANT_EMAIL,
 					token_hash: hash,
 					expires_at: new Date(Date.now() + 14 * 864e5).toISOString(),
 					created_by: ownerAId,
@@ -203,7 +213,7 @@ describe.skipIf(skipReason)(
 				.insert({
 					owner_user_id: ownerAId,
 					name: "Happy Path Tenant",
-					email: "happy@example.com",
+					email: HAPPY_TENANT_EMAIL,
 				})
 				.select("id")
 				.single();
@@ -509,7 +519,7 @@ describe.skipIf(skipReason)(
 				.from("lease_signing_tokens")
 				.insert({
 					lease_id: finalizeLeaseId!,
-					tenant_email: "happy@example.com",
+					tenant_email: HAPPY_TENANT_EMAIL,
 					token_hash: sha256Hex(rawToken),
 					expires_at: new Date(Date.now() + 864e5).toISOString(),
 					created_by: ownerAId,
