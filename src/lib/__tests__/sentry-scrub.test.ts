@@ -263,14 +263,14 @@ describe("nested values", () => {
 		const message = (text: string) =>
 			scrubBreadcrumb({ message: text }).message;
 		expect(message(`redirect to %2Fsign%2F${SIGN_TOKEN}`)).toBe(
-			"redirect to %2Fsign%2F[token]",
+			"redirect to /sign/[token]",
 		);
 		expect(message(`next=%252Fapply%252F${APPLY_TOKEN}`)).toBe(
-			"next=%252Fapply%252F[token]",
+			"next=/apply/[token]",
 		);
 		// A malformed % elsewhere in the text must not stop the redaction.
 		expect(message(`50% done %2Fsign%2F${SIGN_TOKEN}`)).toBe(
-			"50% done %2Fsign%2F[token]",
+			"50% done /sign/[token]",
 		);
 		expect(message("50% done")).toBe("50% done");
 	});
@@ -283,10 +283,30 @@ describe("nested values", () => {
 				`GET https://abc.supabase.co/rest/v1/tenants?q=${TENANT_NAME}%20${TENANT_EMAIL} done`,
 			),
 		).toBe("GET https://abc.supabase.co/rest/v1/tenants done");
-		// An encoded ? is a query once decoded, and an encoded absolute URL is a URL.
+	});
+
+	it("cut the query of an encoded URL or path outside any raw URL", () => {
+		const message = (text: string) =>
+			scrubBreadcrumb({ message: text }).message;
+		// An encoded auth callback path, glued to a parameter name.
+		expect(
+			message(
+				`next=%2Fauth%2Fcallback%3Fcode%3D${AUTH_CODE}%26token_hash%3D${AUTH_HASH}`,
+			),
+		).toBe("next=/auth/callback");
+		// An encoded PostgREST query.
+		expect(
+			message(`%2Frest%2Fv1%2Ftenants%3For%3D(email.ilike.*${TENANT_EMAIL}*)`),
+		).toBe("/rest/v1/tenants");
+		// An absolute URL encoded once, and twice.
 		expect(
 			message(
 				`see https%3A%2F%2Fabc.supabase.co%2Frest%2Fv1%2Ftenants%3For%3D${TENANT_NAME}`,
+			),
+		).toBe("see https://abc.supabase.co/rest/v1/tenants");
+		expect(
+			message(
+				`see https%253A%252F%252Fabc.supabase.co%252Frest%252Fv1%252Ftenants%253Fq%253D${TENANT_NAME}`,
 			),
 		).toBe("see https://abc.supabase.co/rest/v1/tenants");
 	});

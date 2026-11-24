@@ -30,12 +30,17 @@ const TOKEN_ROUTE = new RegExp(
 );
 
 /**
- * An absolute http(s) URL (raw, or with its `://` percent-encoded), or a
- * root-relative path not glued to a word. Matched in the raw text: decoding
- * first would turn %20 into a space and end a match inside its query.
+ * A URL in text, raw or percent-encoded once or twice: an absolute http(s) URL
+ * (its `://` raw or encoded), a root-relative path not glued to a word, or a
+ * path that starts with an encoded `/` (glued to anything: `next=%2Fauth…`).
+ * Matched in the raw text: decoding first would turn %20 into a space and end
+ * a match inside its query.
  */
 const URL_IN_TEXT =
-	/https?(?::\/\/|%3[Aa]%2[Ff]%2[Ff])[^\s"'<>]+|(?<![\w.:/])\/[^\s"'<>]*/g;
+	/https?(?::\/\/|%3[Aa]%2[Ff]%2[Ff]|%253[Aa]%252[Ff]%252[Ff])[^\s"'<>]+|(?<![\w.:/])\/[^\s"'<>]*|(?:%2[Ff]|%252[Ff])[^\s"'<>]*/g;
+
+/** A query or fragment start, raw or encoded once or twice, and all that follows. */
+const QUERY_TAIL = /(?:[?#]|%3[Ff]|%253[Ff]|%23|%2523).*$/s;
 
 /** Every run of %XX decoded on its own (a malformed run is left as it is), until stable. */
 function decode(text: string): string {
@@ -55,13 +60,13 @@ function decode(text: string): string {
 }
 
 /**
- * A URL (absolute or a path) with its query and fragment cut and its token
- * redacted. The query is cut in the raw URL first, then the rest is decoded
- * and cut again, since an encoded `%3F` is a query too once decoded.
+ * A URL (absolute or a path, raw or encoded) with its query and fragment cut
+ * and its token redacted. The query is cut at a raw or encoded `?`/`#` before
+ * anything is decoded, then what is left is decoded and cut again.
  */
 function scrubUrl(url: string): string {
-	return decode(url.replace(/[?#].*$/s, ""))
-		.replace(/[?#].*$/s, "")
+	return decode(url.replace(QUERY_TAIL, ""))
+		.replace(QUERY_TAIL, "")
 		.replace(TOKEN_ROUTE, "$1[token]");
 }
 
