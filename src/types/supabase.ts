@@ -2278,6 +2278,44 @@ export type Database = {
 					},
 				];
 			};
+			trial_lifecycle_emails: {
+				Row: {
+					created_at: string;
+					id: string;
+					kind: string;
+					owner_user_id: string;
+					resend_message_id: string | null;
+					sent_at: string | null;
+					status: string;
+				};
+				Insert: {
+					created_at?: string;
+					id?: string;
+					kind: string;
+					owner_user_id: string;
+					resend_message_id?: string | null;
+					sent_at?: string | null;
+					status?: string;
+				};
+				Update: {
+					created_at?: string;
+					id?: string;
+					kind?: string;
+					owner_user_id?: string;
+					resend_message_id?: string | null;
+					sent_at?: string | null;
+					status?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "trial_lifecycle_emails_owner_user_id_fkey";
+						columns: ["owner_user_id"];
+						isOneToOne: false;
+						referencedRelation: "users";
+						referencedColumns: ["id"];
+					},
+				];
+			};
 			units: {
 				Row: {
 					bathrooms: number | null;
@@ -2962,6 +3000,14 @@ export type Database = {
 					tablename: string;
 				}[];
 			};
+			auth_metadata_names: {
+				Args: { email: string; meta: Json };
+				Returns: {
+					first_name: string;
+					full_name: string;
+					last_name: string;
+				}[];
+			};
 			bulk_import_create_lease: {
 				Args: {
 					p_end_date: string;
@@ -3411,6 +3457,7 @@ export type Database = {
 				Returns: Record<string, unknown>[];
 			};
 			invoke_send_lease_reminders: { Args: never; Returns: undefined };
+			invoke_trial_lifecycle: { Args: never; Returns: undefined };
 			is_admin: { Args: never; Returns: boolean };
 			is_notification_suppressed: {
 				Args: { p_email: string };
