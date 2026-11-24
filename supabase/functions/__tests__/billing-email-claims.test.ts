@@ -145,10 +145,10 @@ describe("the trial-ending email", () => {
 	it("states both outcomes, since Stripe sends it whether or not a payment method is on file", () => {
 		expect(html).toContain("<p>${escapeHtml(copy.lead)}</p>");
 		expect(html).toContain(
-			"<p>If you've added a payment method, your plan continues when the trial ends and is billed to it.</p>",
+			"<p>When the trial ends, your plan continues and is billed to your payment method on file.</p>",
 		);
 		expect(html).toContain(
-			"<p>If you haven't, add one in Billing Settings before then. Without one, your subscription is canceled when the trial ends, and every page except Settings closes until you choose a plan.</p>",
+			"<p>If you removed it, add one in Billing Settings before then. Without one, your subscription is canceled when the trial ends, and every page except Settings closes until you choose a plan.</p>",
 		);
 		expect(html).toContain(
 			'/settings?tab=billing">Open Billing Settings</a></p>',
@@ -161,10 +161,15 @@ describe("the trial-ending email", () => {
 		expect(html).not.toMatch(/>Add a payment method</i);
 	});
 
-	it("rests on the carry-over trial's cancel-without-a-card setting", () => {
-		expect(readRepoSource("../stripe-checkout/index.ts")).toMatch(
+	it("rests on checkout collecting a card, and canceling a trial whose card was removed", () => {
+		const checkout = readRepoSource("../stripe-checkout/index.ts");
+		expect(checkout).toMatch(
 			/end_behavior: \{ missing_payment_method: "cancel" as const \}/,
 		);
+		// "billed to your payment method on file" holds only while checkout
+		// collects a card: `if_required` skipped it for a carry-over trial.
+		expect(checkout).not.toMatch(/\{\s*payment_method_collection:/);
+		expect(checkout).not.toMatch(/^\s*payment_method_collection:/m);
 	});
 
 	// Main session, Part 8o: Stripe sends the event three days before the

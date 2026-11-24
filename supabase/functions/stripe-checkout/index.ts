@@ -188,12 +188,16 @@ Deno.serve(async (req: Request) => {
 			success_url: `${frontendUrl}/billing/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
 			cancel_url: `${frontendUrl}/billing/checkout/cancel`,
 			metadata: sessionMetadata,
-			// Carry-over trial only. When trialEndUnix is set, `if_required`
-			// skips card collection (a pure trial owes nothing at checkout) and
-			// `trial_settings` cancels the sub if no card is added by trial end
-			// (the proxy gates dashboard access on subscription_status IN
-			// ('active','trialing')). Otherwise the hosted page collects a card
-			// and charges immediately (no free-trial-farming path).
+			// Carry-over trial only. The hosted page always collects a card
+			// (Stripe's default for subscription mode): with trialEndUnix set it
+			// charges nothing now and bills the plan when the trial ends, so
+			// choosing a plan during the trial is a commitment to pay. It used to
+			// pass `payment_method_collection: "if_required"`, which skipped the
+			// card, so a trial owner who chose a plan was canceled at the trial's
+			// end by default. `trial_settings` still cancels the sub if the card
+			// is removed before then (the proxy gates dashboard access on
+			// subscription_status IN ('active','trialing')). Without a trial the
+			// page charges immediately (no free-trial-farming path).
 			subscription_data: {
 				metadata: sessionMetadata,
 				...(trialEndUnix
@@ -205,9 +209,6 @@ Deno.serve(async (req: Request) => {
 						}
 					: {}),
 			},
-			...(trialEndUnix
-				? { payment_method_collection: "if_required" as const }
-				: {}),
 			allow_promotion_codes: true,
 		});
 
