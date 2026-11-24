@@ -11,6 +11,8 @@ export interface SendEmailParams {
 	html: string;
 	tags?: Array<{ name: string; value: string }>;
 	idempotencyKey?: string;
+	/** Where replies go. Without it a reply goes to the noreply From address. */
+	replyTo?: string;
 	/** Base64-encoded file attachments (e.g. a signed lease PDF). */
 	attachments?: Array<{ filename: string; content: string }>;
 }
@@ -62,6 +64,10 @@ export async function sendEmail(
 			subject: params.subject,
 			html: params.html,
 		};
+
+		if (params.replyTo) {
+			body.reply_to = params.replyTo;
+		}
 
 		if (params.tags && params.tags.length > 0) {
 			body.tags = params.tags;
