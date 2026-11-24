@@ -264,6 +264,16 @@ describe("the function and the migration around it", () => {
 		);
 	});
 
+	it("sends replies to the support inbox, not the noreply sender", () => {
+		expect(fn).toContain("replyTo: SUPPORT_EMAIL,");
+		expect(read("supabase/functions/_shared/email-layout.ts")).toContain(
+			'export const SUPPORT_EMAIL = "support@tenantflow.app";',
+		);
+		const resend = read("supabase/functions/_shared/resend.ts");
+		expect(resend).toContain("body.reply_to = params.replyTo;");
+		expect(resend).toContain('const FROM_ADDRESS = "TenantFlow <noreply@tenantflow.app>";');
+	});
+
 	it("tells the reader how to stop the emails, with a link to the toggle", () => {
 		expect(fn).toContain("/settings?tab=notifications");
 		expect(fn).toContain("turn off General notifications");

@@ -7,7 +7,8 @@ import { escapeHtml } from "./escape-html.ts";
 
 export const BRAND_NAME = "TenantFlow";
 export const TAGLINE = "Property management software for independent landlords";
-const SUPPORT_EMAIL = "support@tenantflow.app";
+/** The support inbox: the footer link, and where replies to owner emails go. */
+export const SUPPORT_EMAIL = "support@tenantflow.app";
 
 /** The cropped logo mark (public/email/tenantflow-mark.png), 120px for a 32px slot. */
 const LOGO_URL = "https://tenantflow.app/email/tenantflow-mark.png";

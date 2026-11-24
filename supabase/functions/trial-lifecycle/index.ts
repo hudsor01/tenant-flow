@@ -27,6 +27,7 @@ import {
 	emailLinkFallback,
 	emailNote,
 	emailText,
+	SUPPORT_EMAIL,
 	wrapEmailLayout,
 } from "../_shared/email-layout.ts";
 import { validateEnv } from "../_shared/env.ts";
@@ -326,6 +327,8 @@ export async function handleRequest(
 						{ name: "kind", value: kind },
 					],
 					idempotencyKey: `trial-lifecycle-${claimId}`,
+					// A reply reaches a person, not the noreply sender.
+					replyTo: SUPPORT_EMAIL,
 				});
 				if (result.success) {
 					await supabase
