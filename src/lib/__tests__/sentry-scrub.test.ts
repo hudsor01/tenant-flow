@@ -311,6 +311,31 @@ describe("nested values", () => {
 		).toBe("see https://abc.supabase.co/rest/v1/tenants");
 	});
 
+	it("cut an uppercase-scheme URL, and redact secret parameters the URL match misses", () => {
+		const message = (text: string) =>
+			scrubBreadcrumb({ message: text }).message;
+		expect(
+			message(
+				`HTTPS://ABC.SUPABASE.CO/rest/v1/tenants?or=(name.ilike.*${TENANT_NAME}*)`,
+			),
+		).toBe("HTTPS://ABC.SUPABASE.CO/rest/v1/tenants");
+		// A path glued to a word, and one with no leading slash: not URLs to the
+		// matcher, so the secret-parameter pass redacts the values.
+		expect(
+			message(
+				`redirectto/auth/callback?code=${AUTH_CODE}&token_hash=${AUTH_HASH}`,
+			),
+		).toBe("redirectto/auth/callback?code=[redacted]&token_hash=[redacted]");
+		expect(message(`auth/callback?access_token=${AUTH_CODE}`)).toBe(
+			"auth/callback?access_token=[redacted]",
+		);
+		expect(message(`state%3Dx%26code%3D${AUTH_CODE}`)).not.toContain(AUTH_CODE);
+		// Ordinary text with no secret parameter is untouched.
+		expect(message("zipcode=12345 and barcode=7")).toBe(
+			"zipcode=12345 and barcode=7",
+		);
+	});
+
 	it("past the depth limit are dropped, not sent unread", () => {
 		let deep: unknown = SIGN;
 		for (let i = 0; i < 20; i++) deep = { next: deep };

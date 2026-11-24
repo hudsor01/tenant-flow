@@ -37,7 +37,7 @@ const TOKEN_ROUTE = new RegExp(
  * a match inside its query.
  */
 const URL_IN_TEXT =
-	/https?(?::\/\/|%3[Aa]%2[Ff]%2[Ff]|%253[Aa]%252[Ff]%252[Ff])[^\s"'<>]+|(?<![\w.:/])\/[^\s"'<>]*|(?:%2[Ff]|%252[Ff])[^\s"'<>]*/g;
+	/https?(?::\/\/|%3[Aa]%2[Ff]%2[Ff]|%253[Aa]%252[Ff]%252[Ff])[^\s"'<>]+|(?<![\w.:/])\/[^\s"'<>]*|(?:%2[Ff]|%252[Ff])[^\s"'<>]*/gi;
 
 /** A query or fragment start, raw or encoded once or twice, and all that follows. */
 const QUERY_TAIL = /(?:[?#]|%3[Ff]|%253[Ff]|%23|%2523).*$/s;
@@ -71,14 +71,29 @@ function scrubUrl(url: string): string {
 }
 
 /**
+ * The value of a parameter that is always a secret, wherever it appears, with
+ * its `=` raw or encoded once or twice: the backstop for a URL the matcher
+ * does not see (glued to a word, no leading slash: "to/auth/callback?code=…").
+ * The name must follow a non-word character or an encoded `&`, `?`, space or
+ * `#` (`%26code%3D…`), so "zipcode=" and "barcode=" are left alone.
+ */
+const SECRET_PARAM =
+	/(?<=^|[^\w-]|%(?:25)?(?:26|3[Ff]|20|23))(code|token|token_hash|access_token|refresh_token|provider_token|apikey|api_key|password|secret)(=|%3D|%253D)[^&\s"'<>]*/gi;
+
+/**
  * Text with every URL in it scrubbed ("GET /sign/abc?x=1" -> "GET /sign/[token]"),
- * then any sign or apply token still in it (an encoded path outside a URL,
- * "%2Fsign%2F<token>") redacted. Nothing outside a URL match is decoded.
+ * then any sign or apply token still in it redacted, then the value of any
+ * secret parameter left. Nothing outside a URL match is decoded.
+ *
+ * Covered: URLs raw or percent-encoded once or twice, any scheme case. Not
+ * covered: three or more layers of encoding, JSON-escaped slashes (`\/`),
+ * base64; the secret-parameter pass still catches auth codes and tokens there.
  */
 function scrubText(text: string): string {
 	return text
 		.replace(URL_IN_TEXT, (url) => scrubUrl(url))
-		.replace(TOKEN_ROUTE, "$1[token]");
+		.replace(TOKEN_ROUTE, "$1[token]")
+		.replace(SECRET_PARAM, "$1$2[redacted]");
 }
 
 /** A key that holds a URL's query or fragment on its own (`http.query`, `url.fragment`). */
