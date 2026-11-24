@@ -30,6 +30,7 @@ import { cn } from "#lib/utils";
 import { AppShellHeader } from "./app-shell-header";
 import { AppShellSearch } from "./app-shell-search";
 import { AppShellSidebar } from "./app-shell-sidebar";
+import { FeedbackWidget } from "./feedback-widget";
 import { QuickActionsDock } from "./quick-actions-dock";
 
 export interface AppShellProps {
@@ -73,8 +74,10 @@ function AppShellFrame({
 	// The floating dock is hidden on form/create routes (it would overlap the
 	// primary submit). The same condition gates the bottom-padding clearance
 	// below so form pages get no reserved dead space with no dock.
-	const dockVisible =
-		showQuickActionsDock && !/\/(new|edit)(?:\/|$)/.test(pathname);
+	// The Sentry feedback button follows the same rule: it floats bottom-right,
+	// where a form's submit row sits.
+	const onFormRoute = /\/(new|edit)(?:\/|$)/.test(pathname);
+	const dockVisible = showQuickActionsDock && !onFormRoute;
 	const { data: user } = useSupabaseUser();
 	const signOutMutation = useSignOutMutation();
 	const router = useRouter();
@@ -349,6 +352,8 @@ function AppShellFrame({
 			{/* Quick Actions Dock — hidden on form/create pages where it would
 			    overlap the primary submit button (Session 11 P2 #14). */}
 			{dockVisible && <QuickActionsDock />}
+
+			{!onFormRoute && <FeedbackWidget />}
 
 			<AppShellSearch
 				open={commandOpen}

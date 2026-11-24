@@ -98,13 +98,12 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 		retry: 1,
 	});
 
-	// Set Sentry user context for error tracking
+	// Set Sentry user context for error tracking: the id only. Sentry counts
+	// affected users by id; the email would send the owner's PII to a third
+	// party, which every Sentry.init here opts out of (`dataCollection`).
 	useEffect(() => {
 		if (user) {
-			Sentry.setUser({
-				id: user.id,
-				...(user.email && { email: user.email }),
-			});
+			Sentry.setUser({ id: user.id });
 			// Set role tag for filtering errors by user type (owner vs tenant)
 			const role = user.app_metadata?.role as string | undefined;
 			if (role) {

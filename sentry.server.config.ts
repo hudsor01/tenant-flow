@@ -5,6 +5,11 @@
  * Runs in Node.js runtime for API routes and SSR.
  */
 import * as Sentry from "@sentry/nextjs";
+import {
+	scrubBreadcrumb,
+	scrubSpan,
+	scrubUrlsIntegration,
+} from "./src/lib/sentry-scrub";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -67,6 +72,14 @@ Sentry.init({
 		// prerequisite for this filter being honest, not an optional follow-up.
 		"Failed to find Server Action",
 	],
+
+	// URLs carry secrets (sign/apply tokens, auth codes, search terms): every
+	// URL Sentry sees is scrubbed (src/lib/sentry-scrub.ts). The integration
+	// covers every event type; these two cover breadcrumbs and streamed spans.
+	beforeBreadcrumb: scrubBreadcrumb,
+	beforeSendSpan: scrubSpan,
+
+	integrations: [scrubUrlsIntegration()],
 
 	// Don't send events in development
 	// Also scrub sensitive data from all events
