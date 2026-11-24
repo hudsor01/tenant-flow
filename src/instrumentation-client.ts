@@ -14,6 +14,11 @@
  * boundary, the mutation error handler) went nowhere.
  */
 import * as Sentry from "@sentry/nextjs";
+import {
+	scrubBreadcrumb,
+	scrubSpan,
+	scrubUrlsIntegration,
+} from "./lib/sentry-scrub";
 
 // Starts a navigation span for each App Router transition, so client-side
 // navigations are traced, not only the initial page load.
@@ -87,7 +92,14 @@ Sentry.init({
 	replaysSessionSampleRate: 0,
 	replaysOnErrorSampleRate: 0,
 
+	// URLs carry secrets (sign/apply tokens, auth codes, search terms): every
+	// URL Sentry sees is scrubbed (src/lib/sentry-scrub.ts). The integration
+	// covers every event type; these two cover breadcrumbs and streamed spans.
+	beforeBreadcrumb: scrubBreadcrumb,
+	beforeSendSpan: scrubSpan,
+
 	integrations: [
+		scrubUrlsIntegration(),
 		// Browser Tracing for Web Vitals
 		Sentry.browserTracingIntegration({
 			enableInp: true, // Interaction to Next Paint

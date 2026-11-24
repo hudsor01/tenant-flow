@@ -4,6 +4,11 @@
  * Configures Sentry for Edge runtime (middleware, edge API routes).
  */
 import * as Sentry from "@sentry/nextjs";
+import {
+	scrubBreadcrumb,
+	scrubSpan,
+	scrubUrlsIntegration,
+} from "./src/lib/sentry-scrub";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -39,6 +44,14 @@ Sentry.init({
 	// the post-deploy Sentry gate as a regression) and errored sessions. Kept
 	// at the v10 default.
 	attachStacktrace: false,
+
+	// URLs carry secrets (sign/apply tokens, auth codes, search terms): every
+	// URL Sentry sees is scrubbed (src/lib/sentry-scrub.ts). The integration
+	// covers every event type; these two cover breadcrumbs and streamed spans.
+	beforeBreadcrumb: scrubBreadcrumb,
+	beforeSendSpan: scrubSpan,
+
+	integrations: [scrubUrlsIntegration()],
 
 	// Don't send events in development, scrub sensitive data
 	beforeSend(event) {
