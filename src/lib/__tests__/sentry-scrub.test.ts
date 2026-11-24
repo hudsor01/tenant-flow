@@ -151,7 +151,7 @@ describe("scrubUrlsIntegration", () => {
 		expect(scrubUrlsIntegration().name).toBe("ScrubUrls");
 	});
 
-	it("scrubs every request header and drops the encoded route ones", () => {
+	it("keeps only allow-listed request headers, scrubbed", () => {
 		const ua =
 			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36";
 		const event = processEvent({
@@ -171,6 +171,9 @@ describe("scrubUrlsIntegration", () => {
 					"x-invoke-query": encodeURIComponent(
 						JSON.stringify({ token: SIGN_TOKEN }),
 					),
+					"x-now-route-matches": `token=${SIGN_TOKEN}`,
+					Referer: `https://tenantflow.app/apply%2F${APPLY_TOKEN}?step=2`,
+					cookie: "sb-access-token=x",
 					"user-agent": ua,
 					accept: "text/html,application/xhtml+xml",
 				},
@@ -182,6 +185,12 @@ describe("scrubUrlsIntegration", () => {
 		expect(headers["next-url"]).toBe("/sign/[token]");
 		expect(headers["Next-Router-State-Tree"]).toBeUndefined();
 		expect(headers["x-invoke-query"]).toBeUndefined();
+		expect(headers["x-now-route-matches"]).toBeUndefined();
+		expect(headers["x-matched-path"]).toBeUndefined();
+		expect(headers["x-invoke-path"]).toBeUndefined();
+		expect(headers.cookie).toBeUndefined();
+		// Percent-encoded: decoded before the token pattern runs.
+		expect(headers.Referer).toBe("https://tenantflow.app/apply/[token]");
 		expect(headers["user-agent"]).toBe(ua);
 		expect(headers.accept).toBe("text/html,application/xhtml+xml");
 	});
@@ -219,6 +228,43 @@ describe("nested values", () => {
 		);
 		expect(crumb.data.arguments[2]).toBe(42);
 		expect(crumb.data.logger).toBe("console");
+	});
+
+	it("fail closed for logged objects: Error, URL, Date and the rest", () => {
+		class Session {
+			token = SIGN_TOKEN;
+		}
+		const error = new Error(`could not open ${SIGN}`);
+		const crumb = scrubBreadcrumb({
+			category: "console",
+			data: {
+				arguments: [
+					error,
+					new URL(CALLBACK),
+					new Date("2026-11-24T00:00:00.000Z"),
+					new Session(),
+				],
+			},
+		});
+		const sent = JSON.stringify(crumb);
+		for (const fixture of FIXTURES) expect(sent).not.toContain(fixture);
+		const [scrubbedError, url, date, session] = crumb.data
+			.arguments as unknown[];
+		expect(scrubbedError).toMatchObject({
+			name: "Error",
+			message: "could not open https://tenantflow.app/sign/[token]",
+		});
+		expect(url).toBe("https://tenantflow.app/auth/callback");
+		expect(date).toBe("2026-11-24T00:00:00.000Z");
+		expect(session).toBe("[unscrubbed object]");
+	});
+
+	it("are decoded before scrubbing, so an encoded token is still found", () => {
+		const encoded = `redirect to %2Fsign%2F${SIGN_TOKEN}`;
+		expect(scrubBreadcrumb({ message: encoded }).message).toBe(
+			"redirect to /sign/[token]",
+		);
+		expect(scrubBreadcrumb({ message: "50% done" }).message).toBe("50% done");
 	});
 
 	it("past the depth limit are dropped, not sent unread", () => {

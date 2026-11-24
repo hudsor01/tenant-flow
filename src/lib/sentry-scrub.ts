@@ -24,12 +24,30 @@ const URL_IN_TEXT = /https?:\/\/[^\s"'<>]+|(?<![\w.:/])\/[^\s"'<>]*/g;
 
 /** A URL (absolute or a path) with its query and fragment cut and its token redacted. */
 function scrubUrl(url: string): string {
-	return url.replace(/[?#].*$/s, "").replace(TOKEN_ROUTE, "$1[token]");
+	return decode(url)
+		.replace(/[?#].*$/s, "")
+		.replace(TOKEN_ROUTE, "$1[token]");
+}
+
+/**
+ * Percent-decoded text (twice, for double encoding), so "%2Fsign%2F<token>"
+ * is a path the token pattern sees; malformed encoding is left as it is.
+ */
+function decode(text: string): string {
+	let out = text;
+	for (let i = 0; i < 2 && out.includes("%"); i++) {
+		try {
+			out = decodeURIComponent(out);
+		} catch {
+			break;
+		}
+	}
+	return out;
 }
 
 /** Text with every URL in it scrubbed ("GET /sign/abc?x=1" -> "GET /sign/[token]"). */
 function scrubText(text: string): string {
-	return text.replace(URL_IN_TEXT, (url) => scrubUrl(url));
+	return decode(text).replace(URL_IN_TEXT, (url) => scrubUrl(url));
 }
 
 /** A key that holds a URL's query or fragment on its own (`http.query`, `url.fragment`). */
@@ -53,6 +71,27 @@ function isPlainObject(value: object): value is Record<string, unknown> {
 }
 
 /**
+ * A non-plain object fails closed: it is reduced to scrubbed text, or replaced,
+ * never sent as it is (an Error or a URL logged to the console carries a URL).
+ */
+function scrubInstance(value: object): unknown {
+	if (value instanceof Error) {
+		return {
+			name: value.name,
+			message: scrubText(value.message),
+			...(value.stack ? { stack: scrubText(value.stack) } : {}),
+		};
+	}
+	if (typeof URL !== "undefined" && value instanceof URL) {
+		return scrubUrl(value.href);
+	}
+	if (value instanceof Date) {
+		return Number.isNaN(value.getTime()) ? "Invalid Date" : value.toISOString();
+	}
+	return "[unscrubbed object]";
+}
+
+/**
  * Every string leaf under `value`, at any depth: a console breadcrumb keeps its
  * logged values in `data.arguments` (an array), and attributes can nest. A
  * streamed span attribute's `{ value, type }` keeps its own key for `value`,
@@ -66,7 +105,7 @@ function scrubAny(key: string, value: unknown, depth: number): unknown {
 	if (Array.isArray(value)) {
 		return value.map((item) => scrubAny(key, item, depth + 1));
 	}
-	if (!isPlainObject(value)) return value;
+	if (!isPlainObject(value)) return scrubInstance(value);
 	const copy: Record<string, unknown> = {};
 	for (const [childKey, child] of Object.entries(value)) {
 		copy[childKey] = scrubAny(
@@ -129,11 +168,20 @@ interface ScrubbableEvent {
 }
 
 /**
- * Request headers that hold the path or query encoded, where `scrubText`
- * cannot see it: Next's router state tree is URI-encoded JSON of the route
- * segments (a sign or apply token among them), x-invoke-query a query string.
+ * The request headers an event keeps; every other header is dropped. An allow
+ * list, because the platform adds headers that carry the path or its params in
+ * forms a text scrub cannot read (Next's next-router-state-tree is URI-encoded
+ * route segments, Vercel's x-now-route-matches the matched params, …). The
+ * kept ones that can hold a URL are scrubbed.
  */
-const DROPPED_HEADERS = new Set(["next-router-state-tree", "x-invoke-query"]);
+const KEPT_HEADERS = new Set([
+	"user-agent",
+	"accept",
+	"accept-language",
+	"content-type",
+	"referer",
+	"next-url",
+]);
 
 function scrubEvent<T extends ScrubbableEvent>(event: T): T {
 	if (event.message) event.message = scrubText(event.message);
@@ -144,10 +192,9 @@ function scrubEvent<T extends ScrubbableEvent>(event: T): T {
 		const headers = event.request.headers;
 		if (headers) {
 			for (const name of Object.keys(headers)) {
-				if (DROPPED_HEADERS.has(name.toLowerCase())) {
+				if (!KEPT_HEADERS.has(name.toLowerCase())) {
 					delete headers[name];
 				} else if (typeof headers[name] === "string") {
-					// Referer, next-url, x-matched-path, x-invoke-path, ...
 					headers[name] = scrubText(headers[name]);
 				}
 			}
