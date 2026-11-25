@@ -46,5 +46,7 @@ describe("Footer", () => {
 		const link = screen.getByRole("link", { name: "Sitemap" });
 		expect(link).toHaveAttribute("target", "_blank");
 		expect(link.getAttribute("rel")).toContain("noopener");
+		// A same-site link keeps its referrer (SEO audit S7).
+		expect(link.getAttribute("rel")).not.toContain("noreferrer");
 	});
 });

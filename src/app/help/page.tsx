@@ -15,6 +15,7 @@ import {
 	ItemSeparator,
 	ItemTitle,
 } from "#components/ui/item";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 import { cn } from "#lib/utils";
@@ -220,7 +221,7 @@ export default function HelpPage() {
 							className="px-8 focus-visible:ring-primary-foreground/80"
 							asChild
 						>
-							<Link href="/pricing">
+							<Link href="/pricing" {...ctaTrackAttributes("help-bottom")}>
 								Start free — no card
 								<ArrowRight className="size-5 ml-2" />
 							</Link>

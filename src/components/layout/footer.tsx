@@ -68,7 +68,10 @@ export default function Footer() {
 											{...(link.external
 												? {
 														target: "_blank",
-														rel: "noopener noreferrer",
+														// Same-site files in a new tab: noopener only.
+														// noreferrer would hide that the visit came from
+														// here (2026-11-24 SEO audit S7).
+														rel: "noopener",
 													}
 												: {})}
 											className="hover:text-foreground transition-colors"

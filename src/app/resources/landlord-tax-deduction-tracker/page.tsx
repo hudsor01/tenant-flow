@@ -6,6 +6,7 @@ import { PageLayout } from "#components/layout/page-layout";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { PrintButton } from "#components/shared/print-button";
 import { Button } from "#components/ui/button";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { RESOURCE_TO_BLOGS } from "#lib/content-links";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
@@ -221,7 +222,12 @@ export default function TaxDeductionTrackerPage() {
 						TenantFlow
 					</p>
 					<Button asChild>
-						<Link href="/pricing">Start free — no card</Link>
+						<Link
+							href="/pricing"
+							{...ctaTrackAttributes("resource-tax-tracker")}
+						>
+							Start free — no card
+						</Link>
 					</Button>
 				</div>
 			</div>

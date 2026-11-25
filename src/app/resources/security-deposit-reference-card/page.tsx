@@ -6,6 +6,7 @@ import { JsonLdScript } from "#components/seo/json-ld-script";
 import { PrintButton } from "#components/shared/print-button";
 import { Button } from "#components/ui/button";
 import { ScrollRegion } from "#components/ui/scroll-region";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 import { stateData } from "./deposit-data";
@@ -250,7 +251,12 @@ export default function SecurityDepositReferenceCardPage() {
 						move-out inspections with TenantFlow
 					</p>
 					<Button asChild>
-						<Link href="/pricing">Start free — no card</Link>
+						<Link
+							href="/pricing"
+							{...ctaTrackAttributes("resource-deposit-card")}
+						>
+							Start free — no card
+						</Link>
 					</Button>
 				</div>
 			</div>

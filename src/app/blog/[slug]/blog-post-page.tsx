@@ -12,6 +12,7 @@ import { NewsletterSignup } from "#components/blog/newsletter-signup";
 import { PageLayout } from "#components/layout/page-layout";
 import { Button } from "#components/ui/button";
 import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { BLOG_TO_COMPETITOR, BLOG_TO_RESOURCE } from "#lib/content-links";
 import { categoryLabel } from "#lib/seo/blog-categories";
 import { cn } from "#lib/utils";
@@ -244,7 +245,7 @@ export default function BlogPostPage({
 						tax-ready reports.
 					</p>
 					<Button size="lg" className="px-8" asChild>
-						<Link href="/pricing">
+						<Link href="/pricing" {...ctaTrackAttributes("blog-post")}>
 							Start free — no card
 							<ArrowRight className="size-5 ml-2" />
 						</Link>

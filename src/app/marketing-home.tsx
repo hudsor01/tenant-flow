@@ -10,6 +10,7 @@ import { PremiumCta } from "#components/sections/premium-cta";
 import { StatsShowcase } from "#components/sections/stats-showcase";
 import { TestimonialsSection } from "#components/sections/testimonials-section";
 import { Button } from "#components/ui/button";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { realTestimonials } from "../data/testimonials";
 
 export default function MarketingHomePage() {
@@ -32,7 +33,7 @@ export default function MarketingHomePage() {
 										<span className="hero-highlight">tenant portal</span>.
 									</h1>
 
-									<p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
+									<p className="mb-0 text-xl text-muted-foreground leading-relaxed max-w-lg">
 										The operations tool for landlords with small portfolios.
 										Track properties, leases, and maintenance in one place — no
 										tenant logins, no rent routed through a middleman, and
@@ -42,7 +43,7 @@ export default function MarketingHomePage() {
 
 								<div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
 									<Button asChild size="lg" className="w-full sm:w-auto">
-										<Link href="/pricing">
+										<Link href="/pricing" {...ctaTrackAttributes("home-hero")}>
 											Start free — no card
 											<ArrowRight className="ml-2 size-4" />
 										</Link>
@@ -57,7 +58,7 @@ export default function MarketingHomePage() {
 									</Button>
 								</div>
 
-								<p className="text-muted-foreground text-sm">
+								<p className="mb-0 text-muted-foreground text-sm">
 									Built for landlords with small portfolios. 14-day free trial,
 									no credit card.
 								</p>

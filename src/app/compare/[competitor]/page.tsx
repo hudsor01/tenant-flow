@@ -9,6 +9,7 @@ import { LeadCaptureModal } from "#components/marketing/lead-capture-modal";
 import { StickyConversionCta } from "#components/marketing/sticky-conversion-cta";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { Button } from "#components/ui/button";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { getSiteUrl } from "#lib/generate-metadata";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { COMPETITORS, VALID_COMPETITORS } from "./compare-data";
@@ -126,7 +127,7 @@ export default async function ComparePage({ params }: PageProps) {
 					</p>
 					<div className="flex flex-col sm:flex-row gap-4 justify-center">
 						<Button size="lg" className="px-8" asChild>
-							<Link href="/pricing">
+							<Link href="/pricing" {...ctaTrackAttributes("compare-hero")}>
 								Start free — no card
 								<ArrowRight className="size-5 ml-2" />
 							</Link>

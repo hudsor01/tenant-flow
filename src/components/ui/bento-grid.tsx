@@ -2,6 +2,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import type { ElementType, ReactNode } from "react";
 import { Button } from "#components/ui/button";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { cn } from "#lib/utils";
 
 interface BentoGridProps {
@@ -17,6 +18,8 @@ interface BentoCardProps {
 	description: string;
 	href: string;
 	cta: string;
+	/** Funnel location, when the card's link is a "Start free" CTA. */
+	ctaTrackLocation?: string;
 }
 
 /**
@@ -49,6 +52,7 @@ const BentoCard = ({
 	description,
 	href,
 	cta,
+	ctaTrackLocation,
 }: BentoCardProps) => (
 	<div
 		className={cn(
@@ -87,7 +91,10 @@ const BentoCard = ({
 		{/* CTA button - slides up on hover */}
 		<div className="absolute bottom-0 left-0 right-0 px-5 pb-4 translate-y-full opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
 			<Button variant="default" size="sm" asChild className="w-fit">
-				<Link href={href}>
+				<Link
+					href={href}
+					{...(ctaTrackLocation ? ctaTrackAttributes(ctaTrackLocation) : {})}
+				>
 					{cta}
 					<ArrowRight className="ml-2 size-4" />
 				</Link>

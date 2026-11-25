@@ -8,6 +8,7 @@ import type { Ref } from "react";
 import { useEffect, useState } from "react";
 import { Button } from "#components/ui/button";
 import { useSupabaseSession } from "#hooks/api/use-auth";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { SUPABASE_AUTH_COOKIE_NAME } from "#lib/supabase/cookie-name";
 import { cn } from "#lib/utils";
 import { useNavigationStore } from "#stores/navigation-store";
@@ -127,7 +128,9 @@ export function Navbar({
 									Sign In
 								</Link>
 								<Button asChild size="default">
-									<Link href={ctaHref}>{ctaText}</Link>
+									<Link href={ctaHref} {...ctaTrackAttributes("navbar")}>
+										{ctaText}
+									</Link>
 								</Button>
 							</>
 						)}

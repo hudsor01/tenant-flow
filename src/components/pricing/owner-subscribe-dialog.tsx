@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import {
@@ -11,6 +11,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#components/ui/dialog";
+import { track } from "#lib/analytics/track";
 import { useAppForm } from "#lib/forms/form-hook";
 import { userFacingErrorMessage } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
@@ -38,6 +39,13 @@ export function OwnerSubscribeDialog({
 }: OwnerSubscribeDialogProps) {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const supabase = createClient();
+
+	// Funnel step (SEO audit T1): the signup form is in front of a visitor.
+	useEffect(() => {
+		if (open) {
+			track({ name: "signup_started", props: { plan: planName ?? "none" } });
+		}
+	}, [open, planName]);
 
 	const form = useAppForm({
 		...subscribeFormOptions,
@@ -77,6 +85,13 @@ export function OwnerSubscribeDialog({
 						if (!isConfirmationError) throw signInError;
 					}
 				}
+				track({
+					name: "signup_completed",
+					props: {
+						plan: planName ?? "none",
+						confirmed: !requiresEmailConfirmation,
+					},
+				});
 				await onComplete({
 					email,
 					...(supabaseuser_id && { tenant_id: supabaseuser_id }),

@@ -133,9 +133,7 @@ describe("the account-deletion copy is what the job does", () => {
 			"20260710220901_reconcile_request_account_deletion.sql",
 		);
 		expect(nightly.file).toBe("20260306180000_gdpr_anonymize_cascade.sql");
-		expect(anonymize.file).toBe(
-			"20260807003639_rental_applications_gdpr_cascade.sql",
-		);
+		expect(anonymize.file).toBe("20261125172716_analytics_events.sql");
 	});
 
 	it("the request only stamps the date, so it never refuses for a lease or a payment", () => {
@@ -186,6 +184,10 @@ describe("the account-deletion copy is what the job does", () => {
 		);
 		expect(anonymize.body).toMatch(/delete from public\.notifications /);
 		expect(anonymize.body).toMatch(/delete from public\.rental_applications /);
+		// Funnel events stay as anonymous counts, unlinked (privacy policy §6).
+		expect(anonymize.body).toMatch(
+			/update public\.analytics_events set user_id = null where user_id = p_user_id/,
+		);
 		expect(ACCOUNT_DELETION_COPY.confirmBody).toContain(
 			"your properties are marked inactive, and your notifications and rental applications are deleted.",
 		);

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Button } from "#components/ui/button";
 import { GlowingEffect } from "#components/ui/glowing-effect";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { cn } from "#lib/utils";
 
 interface PremiumCtaProps {
@@ -61,7 +62,11 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 									className="relative overflow-hidden bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground text-lg font-bold px-10 py-6 rounded shadow-2xl hover:shadow-primary/25 transform hover:scale-[1.02] transition-all duration-500 group"
 									asChild
 								>
-									<Link href="/pricing" aria-label="Start free — no card">
+									<Link
+										href="/pricing"
+										aria-label="Start free — no card"
+										{...ctaTrackAttributes("home-premium")}
+									>
 										<div className="absolute inset-0 bg-linear-to-r from-primary to-primary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 										<span className="relative z-10 flex items-center">
 											Start free — no card

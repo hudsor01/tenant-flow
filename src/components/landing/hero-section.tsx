@@ -2,6 +2,7 @@ import { ArrowRight, Check } from "lucide-react";
 import Link from "next/link";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Button } from "#components/ui/button";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 
 export function HeroSection() {
 	return (
@@ -32,7 +33,11 @@ export function HeroSection() {
 								className="shrink group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 typography-large px-8 py-4"
 								asChild
 							>
-								<Link href="/pricing" aria-label="Start free — no card">
+								<Link
+									href="/pricing"
+									aria-label="Start free — no card"
+									{...ctaTrackAttributes("features-hero")}
+								>
 									<span className="relative z-10 flex items-center">
 										Start free — no card
 										<ArrowRight className="size-5 ml-3 transition-transform group-hover:translate-x-1" />

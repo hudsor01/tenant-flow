@@ -108,7 +108,6 @@ const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
 		1,
 		"0b2dbc8d536722f4b448b00f7eae79a2e2d7d2a3",
 	],
-	"src/app/marketing-home.tsx": [2, "a637d6e38fbbde2a5d0f2d22f23321dfc95cf60c"],
 	"src/app/pricing/page.tsx": [1, "5b684df9ea95251daf511cc5b1ed8b7a09c310c1"],
 	"src/app/sign/[token]/page.tsx": [
 		3,
@@ -157,10 +156,6 @@ const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
 	"src/components/ledger/track-since-dialog.tsx": [
 		2,
 		"020a436558ff1ec2e8d0699b97a819a3f2f81836",
-	],
-	"src/components/marketing/sticky-conversion-cta.tsx": [
-		1,
-		"8e96648044fed78625fe687e2640d43829439dcb",
 	],
 	"src/components/notifications/notification-popover-list.tsx": [
 		1,

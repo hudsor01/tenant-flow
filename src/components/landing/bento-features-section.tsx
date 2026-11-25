@@ -42,6 +42,7 @@ export function BentoFeaturesSection() {
 							description="Track properties and units with occupancy and portfolio analytics. Up to 5/20/unlimited properties depending on plan."
 							href="/pricing"
 							cta="Start free"
+							ctaTrackLocation="features-bento"
 						/>
 						<BentoCard
 							name="Document Vault"
@@ -51,6 +52,7 @@ export function BentoFeaturesSection() {
 							description="Per-entity document storage with global search, multi-select filters, date range, and bulk download"
 							href="/pricing"
 							cta="Start free"
+							ctaTrackLocation="features-bento"
 						/>
 						<BentoCard
 							name="Tenant Records"
@@ -60,6 +62,7 @@ export function BentoFeaturesSection() {
 							description="Track tenant contacts and lease history. No tenant logins — landlords own every record"
 							href="/pricing"
 							cta="Start free"
+							ctaTrackLocation="features-bento"
 						/>
 						<BentoCard
 							name="Maintenance Tracking"
@@ -69,6 +72,7 @@ export function BentoFeaturesSection() {
 							description="Kanban-style board with photo uploads and vendor assignment"
 							href="/pricing"
 							cta="Start free"
+							ctaTrackLocation="features-bento"
 						/>
 						<BentoCard
 							name="Lease Management"
@@ -78,6 +82,7 @@ export function BentoFeaturesSection() {
 							description="Digital lease signing on Growth and Max plans, plus a lease template builder with PDF download"
 							href="/pricing"
 							cta="Start free"
+							ctaTrackLocation="features-bento"
 						/>
 						<BentoCard
 							name="Financial Analytics"
@@ -87,6 +92,7 @@ export function BentoFeaturesSection() {
 							description="Rent ledger, income and cash flow statements, and CSV-exportable financial reports for your entire portfolio"
 							href="/pricing"
 							cta="Start free"
+							ctaTrackLocation="features-bento"
 						/>
 					</BentoGrid>
 				</BlurFade>

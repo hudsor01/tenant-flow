@@ -14,6 +14,7 @@ import {
 	CardTitle,
 } from "#components/ui/card";
 import { subscriptionStatusQuery } from "#hooks/api/query-keys/subscription-keys";
+import { track } from "#lib/analytics/track";
 import { PROXY_ADMITTED_SUBSCRIPTION_STATUSES } from "#lib/routes/private-routes";
 
 /** How often the page reads the status until the proxy would admit it. */
@@ -45,6 +46,13 @@ export function CheckoutSuccessCard() {
 	useEffect(() => {
 		const timer = setTimeout(() => setBoundReached(true), ACTIVATION_BOUND_MS);
 		return () => clearTimeout(timer);
+	}, []);
+
+	// The funnel's last step (SEO audit T1). Stripe sends the owner here only
+	// after a completed checkout; the event carries their account, so the
+	// plan is read from `users` rather than from this URL.
+	useEffect(() => {
+		track({ name: "checkout_completed", props: {} });
 	}, []);
 
 	const { data, dataUpdatedAt } = useQuery({

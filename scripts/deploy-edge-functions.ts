@@ -50,6 +50,7 @@ const FUNCTIONS: Array<{
 	},
 	{ slug: "stripe-checkout", entrypoint: "index.ts", verify_jwt: false },
 	{ slug: "stripe-webhooks", entrypoint: "index.ts", verify_jwt: false },
+	{ slug: "track-event", entrypoint: "index.ts", verify_jwt: false },
 	{ slug: "trial-lifecycle", entrypoint: "index.ts", verify_jwt: false },
 ];
 
