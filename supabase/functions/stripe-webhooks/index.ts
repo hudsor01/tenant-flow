@@ -179,6 +179,12 @@ Deno.serve(async (req: Request) => {
 			case "invoice.payment_failed":
 				await handleInvoicePaymentFailed(supabase, stripe, event);
 				break;
+			// An abandoned checkout. The endpoint subscribes to it so the row the
+			// idempotency insert above writes to stripe_webhook_events records the
+			// abandonment for funnel analysis; nothing else acts on it, and it must
+			// not fall through to the unhandled-type warning.
+			case "checkout.session.expired":
+				break;
 			default:
 				captureWebhookWarning("[WEBHOOK] Unhandled event type", {
 					event_type: event.type,
