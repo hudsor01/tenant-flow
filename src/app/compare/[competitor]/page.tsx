@@ -15,6 +15,7 @@ import { COMPETITORS, VALID_COMPETITORS } from "./compare-data";
 import {
 	BottomCta,
 	FeatureTable,
+	formatCheckedMonth,
 	PricingComparison,
 	WhySwitchSection,
 } from "./compare-sections";
@@ -79,6 +80,13 @@ export default async function ComparePage({ params }: PageProps) {
 
 	if (!data) notFound();
 
+	const ratings = [
+		{ site: "Capterra", value: data.capterra },
+		{ site: "G2", value: data.g2 },
+	].filter((rating): rating is { site: string; value: string } =>
+		Boolean(rating.value),
+	);
+
 	// Single SoftwareApplication schema for THIS page's primary entity
 	// (TenantFlow). The competitor isn't our product — emitting a second
 	// SoftwareApplication for them on the same URL split rich-result
@@ -132,33 +140,30 @@ export default async function ComparePage({ params }: PageProps) {
 
 			{/* Quick Stats. The columns step on the section's own width, never
 			    the viewport's, and each tile holds its figure on one line: a
-			    figure is 20px until its tile holds 4.5/5 (2,131 reviews) at 24px
+			    figure is 20px until its tile holds 4.5/5 (2,236 reviews) at 24px
 			    (229.75px in 14.5rem), and two columns start where two tiles do.
 			    Four never fit in max-w-4xl: four columns left each tile 140px,
 			    where the review counts broke onto three lines and Landlord-only
 			    onto two (and past its tile below 384px) (66.2-39 fix round 4,
-			    Part 8d). */}
+			    Part 8d). A competitor with no listing on a site gets no tile for
+			    it, rather than a "--" placeholder (R1). */}
 			<section className="pb-16">
 				<div className="@container/compare-stats max-w-4xl mx-auto px-6 lg:px-8">
 					<div className="grid grid-cols-1 @min-[36.75rem]/compare-stats:grid-cols-2 gap-6">
-						<div className="@container/compare-stat text-center p-6 rounded-xl border border-border bg-background">
-							<Star className="size-6 text-primary mx-auto mb-2" />
-							<p className="whitespace-nowrap text-xl @min-[14.5rem]/compare-stat:text-2xl font-bold text-foreground">
-								{data.capterra}
-							</p>
-							<p className="mb-0 text-sm text-muted-foreground">
-								{data.name} Capterra
-							</p>
-						</div>
-						<div className="@container/compare-stat text-center p-6 rounded-xl border border-border bg-background">
-							<Star className="size-6 text-primary mx-auto mb-2" />
-							<p className="whitespace-nowrap text-xl @min-[14.5rem]/compare-stat:text-2xl font-bold text-foreground">
-								{data.g2}
-							</p>
-							<p className="mb-0 text-sm text-muted-foreground">
-								{data.name} G2
-							</p>
-						</div>
+						{ratings.map((rating) => (
+							<div
+								key={rating.site}
+								className="@container/compare-stat text-center p-6 rounded-xl border border-border bg-background"
+							>
+								<Star className="size-6 text-primary mx-auto mb-2" />
+								<p className="whitespace-nowrap text-xl @min-[14.5rem]/compare-stat:text-2xl font-bold text-foreground">
+									{rating.value}
+								</p>
+								<p className="mb-0 text-sm text-muted-foreground">
+									{data.name} {rating.site}
+								</p>
+							</div>
+						))}
 						<div className="@container/compare-stat text-center p-6 rounded-xl border border-border bg-background">
 							<Calendar className="size-6 text-primary mx-auto mb-2" />
 							<p className="whitespace-nowrap text-xl @min-[14.5rem]/compare-stat:text-2xl font-bold text-foreground">
@@ -178,6 +183,12 @@ export default async function ComparePage({ params }: PageProps) {
 							</p>
 						</div>
 					</div>
+					{ratings.length > 0 ? (
+						<p className="mt-4 mb-0 text-center text-sm text-muted-foreground">
+							Ratings as of {formatCheckedMonth(data.checkedAt)}, from{" "}
+							{ratings.map((rating) => rating.site).join(" and ")}
+						</p>
+					) : null}
 				</div>
 			</section>
 

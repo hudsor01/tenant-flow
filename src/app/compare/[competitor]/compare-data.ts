@@ -1,47 +1,87 @@
+import {
+	getPricingPlan,
+	type PlanId,
+	type PricingConfig,
+} from "#config/pricing";
+import { DiagnosticError } from "#lib/diagnostic-error";
+import { formatCount } from "#lib/formatters/count";
+import { formatPrice } from "#lib/utils/currency";
 import type { CompetitorData, PricingTier } from "#types/sections/compare";
 
-// Competitor review aggregates and pricing snapshots are captured manually
-// from each vendor's public Capterra / G2 / pricing page. Source: 2026-04-29
-// review of Buildium, AppFolio, RentRedi public listings. Refresh quarterly
-// or whenever a competitor materially changes their pricing.
+// Competitor prices, ratings and figures are read by hand from each vendor's
+// own pricing page and from their Capterra and G2 listings, then dated in
+// `checkedAt`; the pages print "as of <Month YYYY>" from it. Last read
+// 2026-11-24. `compare-data-freshness.test.ts` fails once a `checkedAt` is
+// more than 180 days old, so a stale price can't sit on the site unnoticed.
+// TenantFlow's own prices and limits come from `src/config/pricing.ts`.
 
-const TENANTFLOW_PRICING: PricingTier[] = [
-	{ name: "Starter", price: "$19/mo", note: "Up to 5 properties, 25 units" },
-	{ name: "Growth", price: "$49/mo", note: "Up to 20 properties, 100 units" },
-	{
-		name: "Max",
-		price: "$149/mo",
-		note: "Unlimited properties and units",
-	},
-];
+function plan(id: PlanId): PricingConfig {
+	const config = getPricingPlan(id);
+	if (!config)
+		throw new DiagnosticError(`compare-data: no "${id}" plan in pricing.ts`);
+	return config;
+}
+
+const STARTER = plan("starter");
+const GROWTH = plan("growth");
+const MAX = plan("max");
+
+function limitsNote(config: PricingConfig): string {
+	return config.limits.properties === -1
+		? "Unlimited properties and units"
+		: `Up to ${formatCount(config.limits.properties, "property", "properties")}, ${formatCount(config.limits.units, "unit")}`;
+}
+
+const TENANTFLOW_PRICING: PricingTier[] = [STARTER, GROWTH, MAX].map(
+	(config) => ({
+		name: config.name,
+		price: formatPrice(config.price.monthly, { interval: "month" }),
+		note: limitsNote(config),
+	}),
+);
+
+/** "$1,800" for 1836: the yearly difference, rounded down to the hundred. */
+function savedPerYear(theirMonthly: number, ourMonthly: number): string {
+	const floored = Math.floor(((theirMonthly - ourMonthly) * 12) / 100) * 100;
+	return formatPrice(floored);
+}
+
+// buildium.com/pricing, monthly billing, "starting at".
+const BUILDIUM = { essential: 65, growth: 202, premium: 420 } as const;
+
+const NO_RENT_PROCESSING =
+	"Not offered: TenantFlow doesn't handle rent payments";
 
 export const COMPETITORS: Record<string, CompetitorData> = {
 	buildium: {
 		name: "Buildium",
 		slug: "buildium",
-		tagline: "The Modern Buildium Alternative",
-		description:
-			"See why landlords are switching from Buildium to TenantFlow for lower costs, modern features, and transparent pricing.",
-		metaDescription:
-			"Looking for a Buildium alternative? TenantFlow starts at $19/mo vs Buildium's $58/mo, covering the core landlord features. Compare pricing and features.",
-		heroSubtitle:
-			"Buildium starts at $58/month. TenantFlow starts at $19/month with the core landlord features, modern technology, and no hidden fees.",
-		capterra: "4.5/5 (2,131 reviews)",
-		g2: "4.4/5 (220+ reviews)",
+		tagline: "A Buildium alternative for independent landlords",
+		description: `Buildium is built for property managers, with accounting and a resident portal. TenantFlow is landlord-only, from ${formatPrice(STARTER.price.monthly)}/month.`,
+		metaDescription: `Looking for a Buildium alternative? TenantFlow starts at ${formatPrice(STARTER.price.monthly, { interval: "month" })} vs Buildium's ${formatPrice(BUILDIUM.essential, { interval: "month" })}, covering the core landlord features. Compare pricing and features.`,
+		heroSubtitle: `Buildium starts at ${formatPrice(BUILDIUM.essential)}/month. TenantFlow starts at ${formatPrice(STARTER.price.monthly)}/month for the core landlord tools, with no per-transaction fees.`,
+		capterra: "4.5/5 (2,236 reviews)",
+		g2: "4.4/5 (287 reviews)",
+		checkedAt: "2026-11-24",
+		pricingSource: "buildium.com/pricing",
 		founded: "2004",
 		bestFor: "Small to mid-sized property managers and HOA management",
 		tenantflowPricing: TENANTFLOW_PRICING,
 		competitorPricing: [
-			{ name: "Essential", price: "$58/mo", note: "Basic features" },
+			{
+				name: "Essential",
+				price: formatPrice(BUILDIUM.essential, { interval: "month" }),
+				note: "Accounting, maintenance and leasing basics",
+			},
 			{
 				name: "Growth",
-				price: "$183/mo",
-				note: "Advanced features + analytics",
+				price: formatPrice(BUILDIUM.growth, { interval: "month" }),
+				note: "Adds reporting automation and business analytics",
 			},
 			{
 				name: "Premium",
-				price: "$375/mo",
-				note: "Full suite + priority support",
+				price: formatPrice(BUILDIUM.premium, { interval: "month" }),
+				note: "Adds the Open API and the full AI suite",
 			},
 		],
 		features: [
@@ -75,13 +115,15 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				name: "Background Checks",
 				tenantflow: "no",
 				tenantflowNote: "Use a third-party service",
-				competitor: "yes",
+				competitor: "addon",
+				competitorNote: "TransUnion add-on",
 			},
 			{
 				name: "ACH / Payment Processing",
 				tenantflow: "na",
-				tenantflowNote: "By design — landlord-only platform",
-				competitor: "yes",
+				tenantflowNote: NO_RENT_PROCESSING,
+				competitor: "addon",
+				competitorNote: "Payments add-on",
 			},
 			{
 				name: "HOA Management",
@@ -91,13 +133,6 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				competitorNote: "Violation tracking included",
 			},
 			{
-				name: "Modern Tech Stack",
-				tenantflow: "yes",
-				tenantflowNote: "Cloud-native React",
-				competitor: "no",
-				competitorNote: "Legacy codebase",
-			},
-			{
 				name: "Transparent Pricing",
 				tenantflow: "yes",
 				competitor: "partial",
@@ -105,11 +140,11 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			},
 		],
 		whySwitch: [
-			"Save over $1,600/year compared to Buildium Growth ($49/mo vs $183/mo)",
-			"Modern, fast interface built on cloud-native technology",
+			`Save over ${savedPerYear(BUILDIUM.growth, GROWTH.price.monthly)}/year compared to Buildium Growth (${formatPrice(GROWTH.price.monthly, { interval: "month" })} vs ${formatPrice(BUILDIUM.growth, { interval: "month" })})`,
+			"Landlord-only: tenants are records, never users, so there's no resident portal to run",
 			"Per-entity document vault with global search included on every plan",
-			"14-day free trial with no credit card required",
-			"Purpose-built for independent landlords — admin, documents, and records without accounting bloat",
+			"Flat plan prices with no per-unit pricing and no onboarding fee",
+			"Built for independent landlords: leases, maintenance, documents and records, without property-manager accounting",
 		],
 		competitorStrengths: [
 			"HOA and community association management features",
@@ -122,32 +157,31 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		name: "AppFolio",
 		slug: "appfolio",
 		tagline: "The AppFolio Alternative for Landlords",
-		description:
-			"AppFolio requires 50+ units and $298/month minimum. TenantFlow starts at $19/month with no minimums. Compare features and pricing.",
-		metaDescription:
-			"AppFolio alternative for landlords — no unit minimums. TenantFlow starts at $19/mo vs AppFolio's $298/mo minimum. No unit requirements.",
-		heroSubtitle:
-			"AppFolio requires a minimum of 50 units and $298/month. TenantFlow has no minimums and starts at $19/month — professional tools for any portfolio size.",
-		capterra: "4.5/5",
-		g2: "4.6/5",
+		description: `AppFolio starts at $1.49 per unit per month, with a 50-unit minimum and a minimum spend. TenantFlow starts at ${formatPrice(STARTER.price.monthly)}/month with no unit minimum.`,
+		metaDescription: `AppFolio needs 50+ units and a minimum spend. TenantFlow has no unit minimum and starts at ${formatPrice(STARTER.price.monthly, { interval: "month" })}, with a 14-day free trial.`,
+		heroSubtitle: `AppFolio starts at $1.49 per unit per month, with a 50-unit minimum and a minimum spend. TenantFlow has no unit minimum and starts at ${formatPrice(STARTER.price.monthly)}/month.`,
+		capterra: "4.5/5 (1,892 reviews)",
+		g2: "4.6/5 (1,198 reviews)",
+		checkedAt: "2026-11-24",
+		pricingSource: "appfolio.com/pricing",
 		founded: "2006",
 		bestFor: "Property management companies with 50+ units",
 		tenantflowPricing: TENANTFLOW_PRICING,
 		competitorPricing: [
 			{
 				name: "Core",
-				price: "$298/mo min",
-				note: "50-unit minimum, custom pricing",
+				price: "$1.49/unit/mo",
+				note: "50-unit minimum and a minimum spend",
 			},
 			{
 				name: "Plus",
-				price: "Custom",
-				note: "Advanced features, custom pricing",
+				price: "$3.20/unit/mo",
+				note: "Minimum spend and units apply",
 			},
 			{
 				name: "Max",
-				price: "Custom",
-				note: "Enterprise features, custom pricing",
+				price: "$5.00/unit/mo",
+				note: "Minimum spend and units apply",
 			},
 		],
 		features: [
@@ -183,13 +217,15 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				name: "Background Checks",
 				tenantflow: "no",
 				tenantflowNote: "Use a third-party service",
-				competitor: "yes",
+				competitor: "addon",
+				competitorNote: "Screening add-on",
 			},
 			{
 				name: "ACH / Payment Processing",
 				tenantflow: "na",
-				tenantflowNote: "By design — landlord-only platform",
-				competitor: "yes",
+				tenantflowNote: NO_RENT_PROCESSING,
+				competitor: "addon",
+				competitorNote: "Payments add-on",
 			},
 			{
 				name: "Listing Syndication",
@@ -213,8 +249,8 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			{
 				name: "Transparent Pricing",
 				tenantflow: "yes",
-				competitor: "no",
-				competitorNote: "Custom quotes only",
+				competitor: "partial",
+				competitorNote: "Per-unit starting prices; quote required",
 			},
 			{
 				name: "Free Trial",
@@ -223,41 +259,33 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				competitor: "no",
 				competitorNote: "Demo only",
 			},
-			{
-				name: "Modern Tech Stack",
-				tenantflow: "yes",
-				tenantflowNote: "Cloud-native React",
-				competitor: "partial",
-				competitorNote: "AI features added recently",
-			},
 		],
 		whySwitch: [
-			"No unit minimums: start with 1 unit and grow to 100 on the Growth plan",
-			"Save $2,988/year at 30 units ($49/mo vs $298/mo minimum)",
-			"Transparent pricing — no custom quotes or sales calls needed",
+			`No unit minimum: start with 1 unit and grow to ${GROWTH.limits.units} on the Growth plan`,
+			`AppFolio isn't available below 50 units. TenantFlow Growth covers up to ${formatCount(GROWTH.limits.properties, "property", "properties")} and ${formatCount(GROWTH.limits.units, "unit")} for ${formatPrice(GROWTH.price.monthly)}/month`,
+			"Published flat prices: no quote or sales call needed",
 			"14-day free trial, no credit card required, to try TenantFlow before committing",
 			"Per-entity document vault and lease e-sign (Growth+) without paying for commercial/HOA tools",
 		],
 		competitorStrengths: [
 			"AI-powered maintenance routing and leasing assistant",
-			"Multi-property-type support (commercial, student, senior living)",
+			"Multi-property-type support (commercial, student, affordable housing)",
 			"Full double-entry accounting with owner statements",
 			"Built-in listing syndication and marketing tools",
-			"Enterprise-scale infrastructure with 8.7M units managed",
+			"Over 8 million units managed on the platform, by AppFolio's count",
 		],
 	},
 	rentredi: {
 		name: "RentRedi",
 		slug: "rentredi",
-		tagline: "TenantFlow vs RentRedi: A Document Vault at a Fair Price",
-		description:
-			"RentRedi is a low-cost, mobile-first option. TenantFlow focuses on a visual maintenance board and a per-entity document vault, starting at $19/month.",
-		metaDescription:
-			"Compare TenantFlow vs RentRedi. RentRedi starts at $12/mo billed annually. TenantFlow starts at $19/mo with a maintenance board and a per-entity document vault.",
-		heroSubtitle:
-			"RentRedi starts at $12/month (billed annually) with unlimited units and a mobile app. TenantFlow starts at $19/month with portfolio analytics, a visual maintenance board, and a per-entity document vault.",
-		capterra: "4.5/5 (104 reviews)",
-		g2: "--",
+		tagline: "Landlord-only records vs an all-in-one tenant app",
+		description: `RentRedi is a low-cost all-in-one with a tenant app and built-in rent payments. TenantFlow is landlord-only, with no tenant accounts, from ${formatPrice(STARTER.price.monthly)}/month.`,
+		metaDescription: `RentRedi is $12/mo (annual) with a tenant app and built-in rent payments. TenantFlow is landlord-only from ${formatPrice(STARTER.price.monthly, { interval: "month" })}, with a per-entity document vault.`,
+		heroSubtitle: `RentRedi is an all-in-one from $12/month (billed annually) that includes a tenant app and rent payments. TenantFlow is landlord-only: your records, leases and documents in one vault, with no tenant accounts to manage. From ${formatPrice(STARTER.price.monthly)}/month.`,
+		capterra: "4.5/5 (180 reviews)",
+		g2: "4.4/5 (251 reviews)",
+		checkedAt: "2026-11-24",
+		pricingSource: "rentredi.com/pricing",
 		founded: "2016",
 		bestFor: "Budget-conscious DIY owners who want mobile-first management",
 		tenantflowPricing: TENANTFLOW_PRICING,
@@ -284,7 +312,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				tenantflow: "yes",
 				tenantflowNote: "Per-entity, global search",
 				competitor: "partial",
-				competitorNote: "Leases and receipts",
+				competitorNote: "Leases, addenda and insurance",
 			},
 			{
 				name: "Maintenance Records",
@@ -303,21 +331,22 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			{
 				name: "Tenant Records",
 				tenantflow: "yes",
-				tenantflowNote: "Organized by unit",
 				competitor: "yes",
-				competitorNote: "Mobile app focused",
+				competitorNote: "Tenant app and portal",
 			},
 			{
 				name: "Background Checks",
 				tenantflow: "no",
 				tenantflowNote: "Use a third-party service",
 				competitor: "yes",
+				competitorNote: "Credit, criminal, eviction (tenant-paid)",
 			},
 			{
 				name: "ACH / Payment Processing",
 				tenantflow: "na",
-				tenantflowNote: "By design — landlord-only platform",
+				tenantflowNote: NO_RENT_PROCESSING,
 				competitor: "yes",
+				competitorNote: "ACH, card or cash",
 			},
 			{
 				name: "Team Collaboration",
@@ -329,7 +358,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			{
 				name: "Unlimited Units",
 				tenantflow: "partial",
-				tenantflowNote: "Unlimited on Max; 25/100 on Starter/Growth",
+				tenantflowNote: `Unlimited on Max; ${STARTER.limits.units}/${GROWTH.limits.units} on Starter/Growth`,
 				competitor: "yes",
 				competitorNote: "All plans",
 			},
@@ -340,12 +369,19 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				competitor: "yes",
 				competitorNote: "iOS + Android apps",
 			},
+			{
+				name: "Try Before Paying",
+				tenantflow: "yes",
+				tenantflowNote: "14-day free trial, no card to start",
+				competitor: "partial",
+				competitorNote: "Charged at signup; 30-day refund window",
+			},
 		],
 		whySwitch: [
 			"Per-entity document vault with global search across leases, receipts, and inspections",
 			"Visual kanban maintenance board",
-			"Modern web interface built on Next.js + React 19",
-			"Document storage up to 50GB on Growth plan",
+			"Tenants never get logins, so there's no tenant support to handle",
+			`Document storage up to ${GROWTH.limits.storage}GB on the Growth plan`,
 		],
 		competitorStrengths: [
 			"Flat $12/month (annual) for unlimited units",
@@ -353,6 +389,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			"Native mobile app for iOS and Android",
 			"Unlimited team members included",
 			"Unlimited e-signatures and accounting reports on every plan",
+			"30-day refund window on every plan",
 		],
 	},
 };

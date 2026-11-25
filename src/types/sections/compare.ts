@@ -27,8 +27,20 @@ export interface CompetitorData {
 	description: string;
 	metaDescription: string;
 	heroSubtitle: string;
-	capterra: string;
-	g2: string;
+	/**
+	 * The competitor's Capterra / G2 rating, as read on `checkedAt`. Omitted
+	 * when the competitor has no listing; the page then shows no tile.
+	 */
+	capterra?: string;
+	g2?: string;
+	/**
+	 * When the competitor's prices, ratings and figures were last read from
+	 * their own pages (YYYY-MM-DD). Shown as "as of <Month YYYY>"; a unit test
+	 * fails once it is more than 180 days old.
+	 */
+	checkedAt: string;
+	/** Where the prices were read, e.g. "buildium.com/pricing". */
+	pricingSource: string;
 	founded: string;
 	bestFor: string;
 	tenantflowPricing: PricingTier[];

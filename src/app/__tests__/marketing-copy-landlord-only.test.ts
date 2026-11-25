@@ -201,6 +201,15 @@ const BANNED_SUPERLATIVES = [
 	"any size portfolio",
 	"fits any portfolio",
 	"fits any size",
+	// Unsupported comparative claims the 2026-11-24 SEO audit found on
+	// /compare/* and /features (F4, B5, A5, C4, R4): competitor disparagement
+	// and framework puffery nobody buys on.
+	"overpriced",
+	"best value",
+	"legacy codebase",
+	"landlords are switching",
+	"modern tech stack",
+	"cloud-native",
 ] as const;
 
 // Numeric / dollar / SLA / guarantee claims that v2.7 Phase 67 removed

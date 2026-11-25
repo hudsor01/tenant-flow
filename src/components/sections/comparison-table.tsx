@@ -24,8 +24,9 @@ const comparisonData: ComparisonFeature[] = [
 		name: "Monthly Cost (50 units)",
 		tenantFlow: "$49/mo",
 		spreadsheets: "Free*",
-		enterprise: "$200+/mo",
-		description: "*Excludes your time value (Growth plan, up to 100 units)",
+		enterprise: "Per-unit or tiered",
+		description:
+			"*Excludes your time value (Growth plan, up to 100 units). Enterprise suites price per unit or by tier, often with a unit minimum",
 	},
 	{
 		name: "Document Vault",
@@ -88,8 +89,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 							<span className="hero-highlight">TenantFlow</span>
 						</h2>
 						<p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-							The sweet spot between DIY spreadsheets and overpriced enterprise
-							solutions
+							Between DIY spreadsheets and enterprise property-manager suites
 						</p>
 					</div>
 				</BlurFade>
@@ -111,7 +111,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 												</span>
 											</div>
 											<span className="text-xs text-muted-foreground">
-												Best Value
+												Landlord-only
 											</span>
 										</div>
 									</th>
@@ -126,10 +126,10 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 									<th className="py-4 px-4 text-center">
 										<div className="flex flex-col items-center">
 											<span className="typography-large text-foreground">
-												Enterprise
+												Enterprise suites
 											</span>
 											<span className="text-xs text-muted-foreground">
-												Overpriced
+												For property managers
 											</span>
 										</div>
 									</th>
