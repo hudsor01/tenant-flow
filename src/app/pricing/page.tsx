@@ -44,7 +44,7 @@ const MAX = planSummary("max");
 
 export const metadata: Metadata = createPageMetadata({
 	title: `Property Management Pricing: Plans from ${STARTER.price}`,
-	description: `TenantFlow plans: Starter ${STARTER.price} (${STARTER.properties}), Growth ${GROWTH.price} (${GROWTH.properties}), Max ${MAX.price} (${MAX.properties}). 14-day free trial, no card to start.`,
+	description: `Plans for landlords: Starter ${STARTER.price} (${STARTER.properties}), Growth ${GROWTH.price} (${GROWTH.properties}), Max ${MAX.price} (${MAX.properties}). 14-day free trial, no card to start.`,
 	path: "/pricing",
 	ogCard: "pricing",
 });

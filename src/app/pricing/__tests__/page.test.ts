@@ -89,6 +89,8 @@ describe("pricing/page.tsx PRICE-06 reversal (Phase 5)", () => {
 		// Sanity: Starter + Growth also reflect new Option A prices
 		expect(desc).toContain("Starter $19/mo (5 properties)");
 		expect(desc).toContain("Growth $49/mo (20 properties)");
+		// COPY-02: it names who TenantFlow is for (persona-consistency.spec.ts).
+		expect(desc).toMatch(/landlords/i);
 	});
 
 	it("emits SoftwareApplication + FAQ + Breadcrumb JSON-LD and NEVER a Product node (Merchant-listings fix)", async () => {

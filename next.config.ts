@@ -9,8 +9,8 @@ import type { NextConfig } from "next";
  * @see https://env.t3.gg/docs/nextjs#validate-schema-on-build
  */
 import "./src/env";
-// 308s for the blog listings' old `?page=N` links.
-import { LEGACY_LISTING_REDIRECTS } from "./src/lib/blog/blog-page-urls";
+// 308s for the blog listings' page 1 and old `?page=N` links.
+import { LISTING_REDIRECTS } from "./src/lib/blog/blog-page-urls";
 // Redirect-or-410 map for deleted blog posts (SEO ranking-equity recovery).
 import {
 	type BlogRedirect,
@@ -279,8 +279,9 @@ const nextConfig: NextConfig = {
 			},
 			// The blog listings paginated with `?page=N` until they went static
 			// (2026-11-24 SEO audit BL1, CT-1); page N now lives at
-			// `<listing>/page/N`. See src/lib/blog/blog-page-urls.ts.
-			...LEGACY_LISTING_REDIRECTS,
+			// `<listing>/page/N`, and page 1 at the bare listing. See
+			// src/lib/blog/blog-page-urls.ts.
+			...LISTING_REDIRECTS,
 			// Deleted blog posts with a same-topic page: 308 each ghost slug there
 			// so its Google ranking signal transfers. The entries with no such page
 			// answer 410 Gone from rewrites() below. See
