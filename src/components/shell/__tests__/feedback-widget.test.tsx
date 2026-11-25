@@ -48,6 +48,13 @@ describe("FeedbackWidget", () => {
 		expect(setTheme).toHaveBeenLastCalledWith("light");
 	});
 
+	it("adds no button when Sentry isn't sending", async () => {
+		ensure.mockReturnValue(null);
+		const { unmount } = render(<FeedbackWidget />);
+		await waitFor(() => expect(ensure).toHaveBeenCalled());
+		expect(() => unmount()).not.toThrow();
+	});
+
 	it("adds no button when unmounted before the integration loads", async () => {
 		const { createWidget } = feedbackStub();
 		const { unmount } = render(<FeedbackWidget />);

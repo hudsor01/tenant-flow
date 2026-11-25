@@ -2,10 +2,11 @@
  * The "Report a Bug" integration, registered on demand by the owner shell
  * (2026-11-24 SEO audit S1 moved it out of the site-wide Sentry init).
  */
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const sentry = vi.hoisted(() => ({
 	getFeedback: vi.fn(),
+	getClient: vi.fn(),
 	addIntegration: vi.fn(),
 	feedbackIntegration: vi.fn((options: Record<string, unknown>) => ({
 		name: "Feedback",
@@ -21,7 +22,18 @@ function optionsOf(integration: unknown) {
 }
 
 describe("ensureFeedbackIntegration", () => {
+	beforeEach(() => {
+		sentry.getClient.mockReturnValue({ getDsn: () => ({ host: "sentry.io" }) });
+	});
 	afterEach(() => vi.clearAllMocks());
+
+	it("adds nothing while Sentry isn't sending (no DSN)", () => {
+		sentry.getClient.mockReturnValue({ getDsn: () => undefined });
+		expect(ensureFeedbackIntegration()).toBeNull();
+		sentry.getClient.mockReturnValue(undefined);
+		expect(ensureFeedbackIntegration()).toBeNull();
+		expect(sentry.addIntegration).not.toHaveBeenCalled();
+	});
 
 	it("adds the integration once and reuses the registered one", () => {
 		const added = ensureFeedbackIntegration();

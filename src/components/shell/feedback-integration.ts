@@ -1,6 +1,7 @@
 import {
 	addIntegration,
 	feedbackIntegration,
+	getClient,
 	getFeedback,
 } from "@sentry/nextjs";
 
@@ -42,10 +43,15 @@ export type FeedbackApi = ReturnType<typeof feedbackIntegration>;
  * of the Sentry config keeps out. Both schemes read the app's own color
  * tokens (CSS custom properties reach into the widget's shadow root);
  * `FeedbackWidget` switches the scheme with the app's resolved theme.
+ *
+ * Null when Sentry isn't sending (no DSN, as in CI and local builds): a bug
+ * button that reports nowhere would only cover the page, and it did cover the
+ * onboarding tour's Next button.
  */
-export function ensureFeedbackIntegration(): FeedbackApi {
+export function ensureFeedbackIntegration(): FeedbackApi | null {
 	const registered = getFeedback();
 	if (registered) return registered;
+	if (!getClient()?.getDsn()) return null;
 	const integration = feedbackIntegration({
 		autoInject: false,
 		colorScheme: "light",

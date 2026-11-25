@@ -32,6 +32,7 @@ export function FeedbackWidget() {
 			.then(({ ensureFeedbackIntegration }) => {
 				if (cancelled) return;
 				const integration = ensureFeedbackIntegration();
+				if (!integration) return;
 				widget = integration.createWidget();
 				setFeedback(integration);
 			})
