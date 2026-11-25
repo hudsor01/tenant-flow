@@ -5,6 +5,7 @@ import type { SubmitEvent } from "react";
 import { useEffect, useState } from "react";
 import { Button } from "#components/ui/button";
 import { useFormWithProgress } from "#hooks/use-form-progress";
+import { track } from "#lib/analytics/track";
 import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import { createLogger } from "#lib/frontend-logger";
 import { createClient } from "#lib/supabase/client";
@@ -134,6 +135,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 								: String(error ?? "send did not report success"),
 					},
 				});
+				track({ name: "contact_failed", props: { subject: data.subject } });
 				// Thrown message becomes submitError (rendered) — thank-you is skipped.
 				throw new Error(
 					"We couldn't send your message. Please try again, or email us directly at support@tenantflow.app.",
@@ -143,6 +145,16 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 			logger.info("Contact form submitted", {
 				action: "contact_form_submit",
 				metadata: { email: data.email, subject: data.subject },
+			});
+			// "How did you hear about us?" is the `type` select; its unset value
+			// is "general" (SEO audit CT9: a free attribution report).
+			track({
+				name: "contact_submitted",
+				props: {
+					subject: data.subject,
+					referral_source:
+						data.type && data.type !== "general" ? data.type : "none",
+				},
 			});
 
 			setSubmitMessage(

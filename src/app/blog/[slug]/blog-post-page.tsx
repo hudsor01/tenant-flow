@@ -12,7 +12,10 @@ import { NewsletterSignup } from "#components/blog/newsletter-signup";
 import { PageLayout } from "#components/layout/page-layout";
 import { Button } from "#components/ui/button";
 import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
-import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
+import {
+	clickTrackAttributes,
+	ctaTrackAttributes,
+} from "#lib/analytics/cta-attributes";
 import { BLOG_TO_COMPETITOR, BLOG_TO_RESOURCE } from "#lib/content-links";
 import { categoryLabel } from "#lib/seo/blog-categories";
 import { cn } from "#lib/utils";
@@ -224,6 +227,10 @@ export default function BlogPostPage({
 						</p>
 						<Link
 							href={`/resources/${resourceSlug}`}
+							{...clickTrackAttributes({
+								name: "resource_open",
+								props: { resource: resourceSlug, from: "blog-post" },
+							})}
 							className="inline-flex items-center text-primary-text font-semibold hover:underline transition-colors"
 						>
 							View Resource
@@ -254,7 +261,7 @@ export default function BlogPostPage({
 
 				{/* Newsletter Signup */}
 				<div className="mt-12">
-					<NewsletterSignup />
+					<NewsletterSignup location="blog-post" />
 				</div>
 
 				{/* Related Articles */}

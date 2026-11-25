@@ -23,6 +23,7 @@ import {
 	type QueryClient,
 	queryOptions,
 } from "@tanstack/react-query";
+import { track } from "#lib/analytics/track";
 import { DiagnosticError } from "#lib/diagnostic-error";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
@@ -239,6 +240,8 @@ export function createApplicationLinkMutationOptions(queryClient: QueryClient) {
 			};
 		},
 		onSuccess: async () => {
+			// Activation step for the funnel (SEO audit Appendix B).
+			track({ name: "application_link_created", props: {} });
 			await queryClient.invalidateQueries({
 				queryKey: applicationLinkKeys.all,
 			});

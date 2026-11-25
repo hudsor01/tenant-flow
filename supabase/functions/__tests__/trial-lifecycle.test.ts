@@ -19,6 +19,7 @@ import { describe, expect, it } from "vitest";
 import { PRICING_PLANS } from "#config/pricing";
 import { BLOG_BANLIST } from "../_shared/blog-banlist";
 import {
+	campaignPath,
 	dueTrialEmail,
 	ENDED_WINDOW_MS,
 	isUndeliverableTestAddress,
@@ -221,6 +222,21 @@ describe("what the emails say is true", () => {
 		expect(trialEmailCopy("welcome", "Sam", "x").paragraphs[0]).toBe("Hi Sam,");
 		expect(trialEmailCopy("welcome", null, "x").paragraphs[0]).toBe("Hi there,");
 		expect(trialEmailCopy("welcome", "  ", "x").paragraphs[0]).toBe("Hi there,");
+	});
+});
+
+describe("the links carry campaign tags (SEO audit T3)", () => {
+	it("tags an email's path with the lifecycle source and its kind", () => {
+		expect(campaignPath("/billing/plans", "trial_ending")).toBe(
+			"/billing/plans?utm_source=lifecycle&utm_medium=email&utm_campaign=trial_ending",
+		);
+		expect(campaignPath("/x?tab=1", "welcome")).toBe(
+			"/x?tab=1&utm_source=lifecycle&utm_medium=email&utm_campaign=welcome",
+		);
+	});
+
+	it("is how the function builds each email's button link", () => {
+		expect(read("supabase/functions/trial-lifecycle/index.ts")).toContain("const ctaUrl = `${appUrl}${campaignPath(copy.ctaPath, kind)}`;");
 	});
 });
 

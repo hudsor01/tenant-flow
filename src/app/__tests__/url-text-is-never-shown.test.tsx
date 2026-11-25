@@ -290,6 +290,11 @@ const REVIEWED: Record<string, { reads: number; reason: string }> = {
 		reads: 1,
 		reason: "token looked up and posted back, never rendered",
 	},
+	"src/components/analytics/utm-capture.tsx": {
+		reads: 1,
+		reason:
+			"utm_source/medium/campaign kept in sessionStorage for funnel events; never rendered",
+	},
 	"src/components/contact/contact-form.tsx": {
 		reads: 1,
 		reason:

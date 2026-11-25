@@ -12,7 +12,7 @@ vi.mock("#lib/supabase/client", () => ({
 	createClient: () => ({ auth: { getSession } }),
 }));
 
-import { track } from "#lib/analytics/track";
+import { track, UTM_STORAGE_KEY } from "#lib/analytics/track";
 
 const fetchMock = vi.fn();
 
@@ -70,6 +70,29 @@ describe("track", () => {
 		});
 		track({ name: "checkout_started", props: { plan: "Growth" } });
 		expect((await sent()).headers.Authorization).toBe("Bearer owner-jwt");
+	});
+
+	it("attaches the visit's campaign tags to the event's props", async () => {
+		window.sessionStorage.setItem(
+			UTM_STORAGE_KEY,
+			JSON.stringify({ utm_source: "lifecycle", utm_campaign: "trial_ending" }),
+		);
+		track({ name: "checkout_started", props: { plan: "Growth" } });
+		expect((await sent()).body.props).toEqual({
+			plan: "Growth",
+			utm_source: "lifecycle",
+			utm_campaign: "trial_ending",
+		});
+	});
+
+	it("trims a long campaign tag to the server's 120 characters", async () => {
+		window.sessionStorage.setItem(
+			UTM_STORAGE_KEY,
+			JSON.stringify({ utm_campaign: "x".repeat(300) }),
+		);
+		track({ name: "checkout_completed", props: {} });
+		const props = (await sent()).body.props as Record<string, string>;
+		expect(props.utm_campaign).toHaveLength(120);
 	});
 
 	it("never throws, even when the request fails", async () => {

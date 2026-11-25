@@ -14,6 +14,10 @@ import { PageLayout } from "#components/layout/page-layout";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
+import {
+	clickTrackAttributes,
+	contactTrackAttributes,
+} from "#lib/analytics/cta-attributes";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
@@ -125,6 +129,13 @@ export default function ResourcesPage() {
 							<Link
 								key={resource.title}
 								href={resource.href}
+								{...clickTrackAttributes({
+									name: "resource_open",
+									props: {
+										resource: resource.href.split("/").pop() ?? resource.href,
+										from: "resources-hub",
+									},
+								})}
 								className="group relative"
 							>
 								<div
@@ -177,6 +188,13 @@ export default function ResourcesPage() {
 							<Link
 								key={resource.title}
 								href={resource.href}
+								{...clickTrackAttributes({
+									name: "resource_open",
+									props: {
+										resource: resource.href.split("/").pop() ?? resource.href,
+										from: "resources-hub",
+									},
+								})}
 								className="group rounded-2xl border border-border bg-card p-6 hover:shadow-lg hover:border-primary/50 transition-all duration-300"
 							>
 								<div className="flex items-center gap-3 mb-4">
@@ -225,7 +243,10 @@ export default function ResourcesPage() {
 								className="shadow-2xl shadow-primary/25 typography-large px-8 py-4"
 								asChild
 							>
-								<Link href="/contact">
+								<Link
+									href="/contact"
+									{...contactTrackAttributes("resources-bottom")}
+								>
 									Contact Support
 									<ArrowRight className="size-5 ml-3" />
 								</Link>

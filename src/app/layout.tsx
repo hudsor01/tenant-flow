@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { UtmCapture } from "#components/analytics/utm-capture";
 
 import { ErrorBoundary } from "#components/error-boundary/error-boundary";
 import { Providers } from "#components/providers";
@@ -96,6 +97,7 @@ export default async function RootLayout({
 						<ErrorBoundary>{children} </ErrorBoundary>
 						{/* Register service worker silently for performance/offline */}
 						<RegisterServiceWorker />
+						<UtmCapture />
 						<Toaster position="top-right" richColors closeButton />
 					</div>
 				</Providers>

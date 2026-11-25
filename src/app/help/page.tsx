@@ -15,7 +15,11 @@ import {
 	ItemSeparator,
 	ItemTitle,
 } from "#components/ui/item";
-import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
+import {
+	clickTrackAttributes,
+	contactTrackAttributes,
+	ctaTrackAttributes,
+} from "#lib/analytics/cta-attributes";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 import { cn } from "#lib/utils";
@@ -40,7 +44,11 @@ export default function HelpPage() {
 					label: "See Pricing",
 					href: "/pricing",
 				}}
-				secondaryCta={{ label: "Contact Sales", href: "/contact" }}
+				secondaryCta={{
+					label: "Contact Sales",
+					href: "/contact",
+					trackLocation: "help-hero",
+				}}
 				trustSignals="Email support on every plan • Priority support on Growth and Max"
 			/>
 
@@ -73,7 +81,15 @@ export default function HelpPage() {
 							</ItemContent>
 							<ItemActions>
 								<Button className="w-full" variant="outline" asChild>
-									<a href="mailto:support@tenantflow.app">Send Email</a>
+									<a
+										href="mailto:support@tenantflow.app"
+										{...clickTrackAttributes({
+											name: "support_email_click",
+											props: { location: "help" },
+										})}
+									>
+										Send Email
+									</a>
 								</Button>
 							</ItemActions>
 						</Item>
@@ -98,7 +114,12 @@ export default function HelpPage() {
 							</ItemContent>
 							<ItemActions>
 								<Button className="w-full" variant="outline" asChild>
-									<Link href="/contact?topic=call">Request a call</Link>
+									<Link
+										href="/contact?topic=call"
+										{...contactTrackAttributes("help-call")}
+									>
+										Request a call
+									</Link>
 								</Button>
 							</ItemActions>
 						</Item>
@@ -123,7 +144,12 @@ export default function HelpPage() {
 							</ItemContent>
 							<ItemActions>
 								<Button className="w-full" asChild>
-									<Link href="/contact">Contact Sales</Link>
+									<Link
+										href="/contact"
+										{...contactTrackAttributes("help-sales")}
+									>
+										Contact Sales
+									</Link>
 								</Button>
 							</ItemActions>
 						</Item>
@@ -232,7 +258,9 @@ export default function HelpPage() {
 							className="px-8 bg-transparent text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary-text dark:bg-transparent dark:border-primary-foreground/50 dark:hover:bg-primary-foreground dark:hover:text-primary-text focus-visible:border-primary-foreground focus-visible:ring-primary-foreground/80"
 							asChild
 						>
-							<Link href="/contact">Talk to an Expert</Link>
+							<Link href="/contact" {...contactTrackAttributes("help-bottom")}>
+								Talk to an Expert
+							</Link>
 						</Button>
 					</div>
 				</div>

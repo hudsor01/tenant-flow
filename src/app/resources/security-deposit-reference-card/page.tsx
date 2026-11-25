@@ -49,7 +49,7 @@ export default function SecurityDepositReferenceCardPage() {
 						<ArrowLeft className="size-4 mr-2" />
 						Back to Resources
 					</Link>
-					<PrintButton />
+					<PrintButton resource="security-deposit-card" />
 				</div>
 
 				<header className="mb-12 text-center">

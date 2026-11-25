@@ -150,6 +150,20 @@ export interface TrialEmailCopy {
 	note: string | null;
 }
 
+/**
+ * An email's link path with its campaign tags (2026-11-24 SEO audit T3), so
+ * a plan bought from a trial email traces back to that email: the site saves
+ * `utm_*` on arrival and attaches them to its funnel events.
+ */
+export function campaignPath(path: string, kind: TrialEmailKind): string {
+	const tags = new URLSearchParams({
+		utm_source: "lifecycle",
+		utm_medium: "email",
+		utm_campaign: kind,
+	});
+	return `${path}${path.includes("?") ? "&" : "?"}${tags.toString()}`;
+}
+
 /** The routes the emails link to. */
 const ADD_PROPERTY_PATH = "/properties/new";
 /** The plans page, which the proxy keeps open to an owner whose trial ended. */

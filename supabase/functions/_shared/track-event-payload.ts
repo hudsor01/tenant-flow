@@ -11,9 +11,10 @@
  */
 
 /**
- * The funnel's events, in order. A closed list, copied in the
- * `analytics_events_name_check` constraint and in `src/lib/analytics/track.ts`;
- * the parity test holds the three together.
+ * The events the table accepts: the funnel's five steps, in order, then the
+ * engagement events between them. A closed list, copied in the
+ * `analytics_events_name_check` constraint and in `src/lib/analytics/track.ts`
+ * (click events in `cta-attributes.ts`); the parity test holds them together.
  */
 const TRACK_EVENT_NAMES = [
 	"cta_start_free",
@@ -21,6 +22,16 @@ const TRACK_EVENT_NAMES = [
 	"signup_completed",
 	"checkout_started",
 	"checkout_completed",
+	"cta_contact",
+	"compare_card_click",
+	"resource_open",
+	"support_email_click",
+	"faq_open",
+	"resource_print",
+	"contact_submitted",
+	"contact_failed",
+	"newsletter_subscribed",
+	"application_link_created",
 ] as const;
 
 export type TrackEventName = (typeof TRACK_EVENT_NAMES)[number];

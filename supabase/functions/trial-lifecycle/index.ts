@@ -38,6 +38,7 @@ import { createAdminClient } from "../_shared/supabase-client.ts";
 import { timingSafeEqualStr } from "../_shared/timing-safe.ts";
 import { formatTrialEnd } from "../_shared/trial-end-text.ts";
 import {
+	campaignPath,
 	dueTrialEmail,
 	ENDED_WINDOW_MS,
 	isUndeliverableTestAddress,
@@ -156,7 +157,7 @@ export function renderEmail(
 		owner.first_name,
 		formatTrialEnd(Math.floor(trialEndsAtMs / 1000)),
 	);
-	const ctaUrl = `${appUrl}${copy.ctaPath}`;
+	const ctaUrl = `${appUrl}${campaignPath(copy.ctaPath, kind)}`;
 	const settingsUrl = `${appUrl}/settings?tab=notifications`;
 	const body = [
 		emailHeading(copy.heading),

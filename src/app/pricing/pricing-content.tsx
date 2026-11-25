@@ -6,12 +6,7 @@ import {
 	Home,
 } from "lucide-react";
 import Link from "next/link";
-import {
-	Accordion,
-	AccordionContent,
-	AccordionItem,
-	AccordionTrigger,
-} from "#components/ui/accordion";
+import { PricingFaqItem } from "#components/pricing/pricing-faq-item";
 import { Button } from "#components/ui/button";
 import { Card } from "#components/ui/card";
 import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
@@ -129,28 +124,12 @@ export function PricingFaqSection() {
 						</p>
 					</div>
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-						{FAQS.map((faq, index) => (
-							<Accordion
+						{FAQS.map((faq) => (
+							<PricingFaqItem
 								key={faq.question}
-								type="single"
-								collapsible
-								className="w-full"
-							>
-								<AccordionItem
-									value={`item-${index}`}
-									className="rounded-2xl border border-border/50 bg-background/60 px-5 transition-colors hover:border-primary/30"
-								>
-									<AccordionTrigger className="text-left text-base font-medium leading-7 text-foreground hover:no-underline sm:text-lg sm:leading-8">
-										{faq.question}
-									</AccordionTrigger>
-									<AccordionContent
-										forceMount
-										className="pb-5 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7"
-									>
-										{faq.answer}
-									</AccordionContent>
-								</AccordionItem>
-							</Accordion>
+								question={faq.question}
+								answer={faq.answer}
+							/>
 						))}
 					</div>
 					<div className="mt-14 flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">

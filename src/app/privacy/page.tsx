@@ -93,7 +93,7 @@ export default function PrivacyPage() {
 							<li>
 								<strong>Usage Data:</strong> Pages viewed and how quickly they
 								load, counted by Vercel Web Analytics and Speed Insights, and a
-								few sign-up and checkout steps we record ourselves (Section 8)
+								few actions on the site we record ourselves (Section 8)
 							</li>
 							<li>
 								<strong>Device Information:</strong> Browser type, operating
@@ -313,8 +313,8 @@ export default function PrivacyPage() {
 								out of the app after 90 days
 							</li>
 							<li>
-								<strong>Sign-up and Checkout Steps:</strong> Deleted after 180
-								days, and unlinked from your account when it is deleted
+								<strong>Recorded Actions:</strong> Deleted after 180 days, and
+								unlinked from your account when it is deleted
 							</li>
 							<li>
 								<strong>Security Logs:</strong> Moved out of the app after 30
@@ -416,18 +416,22 @@ export default function PrivacyPage() {
 						</ul>
 						<p>
 							Our analytics, Vercel Web Analytics and Speed Insights, do not use
-							cookies. We also record a few steps toward signing up in our own
-							database: clicking &quot;Start free&quot;, opening and completing
-							sign-up, and starting and completing checkout. Each record holds
-							the page, the site you came from, and a random ID for your visit
-							that your browser keeps in session storage until you close the
-							tab; when you are signed in, it is linked to your account. These
-							records hold no IP address or cookie (your IP address is used only
-							briefly, to limit abuse) and are deleted after 180 days. We also
-							keep some data in your browser&apos;s own storage: your display
-							preferences, unsent form drafts, which prompts you have dismissed,
-							and a copy of your recently viewed data so pages load faster. It
-							stays on your device.
+							cookies. We also record a few actions in our own database: the
+							steps toward signing up (clicking &quot;Start free&quot;, opening
+							and completing sign-up, starting and completing checkout), which
+							questions, comparisons and guides you open or print, clicks on our
+							contact links, and whether a contact or newsletter form was sent,
+							with the subject and how you heard about us. Each record holds the
+							page, the site you came from, the campaign tags of the link that
+							brought you (such as utm_source), and a random ID for your visit
+							that your browser keeps, with those tags, in session storage until
+							you close the tab; when you are signed in, it is linked to your
+							account. These records hold no IP address or cookie (your IP
+							address is used only briefly, to limit abuse) and are deleted
+							after 180 days. We also keep some data in your browser&apos;s own
+							storage: your display preferences, unsent form drafts, which
+							prompts you have dismissed, and a copy of your recently viewed
+							data so pages load faster. It stays on your device.
 						</p>
 						<p>
 							You can block or delete cookies and browser storage in your

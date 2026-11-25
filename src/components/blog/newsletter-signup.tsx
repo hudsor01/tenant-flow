@@ -4,15 +4,21 @@ import { useMutation } from "@tanstack/react-query";
 import { Mail } from "lucide-react";
 import { type SubmitEvent, useRef } from "react";
 import { toast } from "sonner";
+import { track } from "#lib/analytics/track";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
 
 interface NewsletterSignupProps {
 	className?: string;
+	/** Where the form sits, for the funnel's `newsletter_subscribed` event. */
+	location: string;
 }
 
-export function NewsletterSignup({ className }: NewsletterSignupProps) {
+export function NewsletterSignup({
+	className,
+	location,
+}: NewsletterSignupProps) {
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	const mutation = useMutation({
@@ -27,6 +33,7 @@ export function NewsletterSignup({ className }: NewsletterSignupProps) {
 			if (error) throw error;
 		},
 		onSuccess: () => {
+			track({ name: "newsletter_subscribed", props: { location } });
 			toast.success("You're on the list.");
 			if (inputRef.current) {
 				inputRef.current.value = "";

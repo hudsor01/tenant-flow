@@ -10,35 +10,53 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { readTrackEvent } from "../_shared/track-event-payload";
 
-const MIGRATION = readFileSync(
+const FUNNEL_MIGRATION = readFileSync(
 	"supabase/migrations/20261125172716_analytics_events.sql",
 	"utf8",
 );
-const CLIENT = readFileSync("src/lib/analytics/track.ts", "utf8");
+/** The newest definition of analytics_events_name_check. */
+const NAMES_MIGRATION = readFileSync(
+	"supabase/migrations/20261125181804_analytics_events_engagement.sql",
+	"utf8",
+);
+const CLIENT_TRACK = readFileSync("src/lib/analytics/track.ts", "utf8");
+const CLIENT_CLICKS = readFileSync(
+	"src/lib/analytics/cta-attributes.ts",
+	"utf8",
+);
 const VISIT = "3f2504e0-4f89-41d3-9a0c-0305e82c3301";
 
-describe("track-event event names", () => {
-	/** The quoted names in one span of the migration, in order. */
-	const namesIn = (from: string, to: string) =>
-		(MIGRATION.slice(MIGRATION.indexOf(from), MIGRATION.indexOf(to)).match(
-			/'[a-z_]+'/g,
-		) ?? []).map((quoted) => quoted.slice(1, -1));
-	const DATABASE = namesIn(
-		"analytics_events_name_check",
-		"analytics_events_props_check",
-	);
+/** The quoted names between two markers of a SQL file, in order. */
+function namesIn(sql: string, from: string, to: string): string[] {
+	const span = sql.slice(sql.indexOf(from), sql.indexOf(to, sql.indexOf(from)));
+	return (span.match(/'[a-z_]+'/g) ?? []).map((quoted) => quoted.slice(1, -1));
+}
 
-	it("are the same list in the database's constraint and funnel report", () => {
-		expect(DATABASE).toHaveLength(5);
-		expect(namesIn("from unnest(array[", "with ordinality")).toEqual(DATABASE);
+/** The `name: "…"` literals of a TypeScript union, from its declaration on. */
+function unionNames(source: string, declaration: string): string[] {
+	const union = source.slice(source.indexOf(declaration));
+	const end = union.indexOf(";\n\n");
+	return [...union.slice(0, end).matchAll(/name: "([a-z_]+)"/g)].map(
+		(match) => match[1] ?? "",
+	);
+}
+
+describe("track-event event names", () => {
+	const DATABASE = namesIn(NAMES_MIGRATION, "add constraint", ");\n");
+	const FUNNEL = namesIn(FUNNEL_MIGRATION, "from unnest(array[", "with ordinality");
+
+	it("put the funnel report's five steps first in the constraint", () => {
+		expect(FUNNEL).toHaveLength(5);
+		expect(DATABASE.slice(0, 5)).toEqual(FUNNEL);
+		expect(new Set(DATABASE).size).toBe(DATABASE.length);
 	});
 
-	it("are the client's TrackEvent names, in order", () => {
-		const union = CLIENT.slice(CLIENT.indexOf("export type TrackEvent ="));
-		const names = [...union.matchAll(/name: "([a-z_]+)"/g)].map(
-			(match) => match[1],
-		);
-		expect(names).toEqual(DATABASE);
+	it("are the client's events: the click union plus track.ts's own", () => {
+		const client = [
+			...unionNames(CLIENT_CLICKS, "export type ClickEvent ="),
+			...unionNames(CLIENT_TRACK, "export type TrackEvent ="),
+		];
+		expect([...client].sort()).toEqual([...DATABASE].sort());
 	});
 
 	it("are exactly the names the validator accepts", () => {

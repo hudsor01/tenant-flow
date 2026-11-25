@@ -16,6 +16,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const invokeMock = vi.fn();
 
+const { track } = vi.hoisted(() => ({ track: vi.fn() }));
+vi.mock("#lib/analytics/track", () => ({ track }));
+
 vi.mock("#lib/supabase/client", () => ({
 	createClient: () => ({
 		functions: { invoke: invokeMock },
@@ -94,6 +97,11 @@ describe("ContactForm submit (FORMFIX-02)", () => {
 		expect(
 			await screen.findByRole("heading", { name: /thank you/i }),
 		).toBeInTheDocument();
+		// SEO audit CT9: the send and how they heard about us, as an event.
+		expect(track).toHaveBeenCalledWith({
+			name: "contact_submitted",
+			props: { subject: "Product Demo", referral_source: "none" },
+		});
 	});
 
 	it("surfaces an error and does NOT show the thank-you when the invoke errors", async () => {
@@ -118,6 +126,13 @@ describe("ContactForm submit (FORMFIX-02)", () => {
 		expect(
 			await screen.findByText(/couldn't send your message/i),
 		).toBeInTheDocument();
+		expect(track).toHaveBeenCalledWith({
+			name: "contact_failed",
+			props: { subject: "Product Demo" },
+		});
+		expect(track).not.toHaveBeenCalledWith(
+			expect.objectContaining({ name: "contact_submitted" }),
+		);
 	});
 
 	it("treats a non-success payload as a failure (no thank-you)", async () => {
