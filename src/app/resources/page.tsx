@@ -26,6 +26,7 @@ export const metadata: Metadata = createPageMetadata({
 	description:
 		"Free downloadable property management templates: seasonal maintenance checklists, tax deduction trackers, security deposit law guides for landlords.",
 	path: "/resources",
+	ogCard: "resources",
 });
 
 const mainResources = [

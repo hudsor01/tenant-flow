@@ -19,6 +19,7 @@ export const metadata: Metadata = createPageMetadata({
 	description:
 		"Side-by-side comparisons of TenantFlow against Buildium, AppFolio, and RentRedi on pricing, features, and the landlord-only model.",
 	path: "/compare",
+	ogCard: "compare-overview",
 });
 
 export default function ComparePage() {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { env } from "#env";
+import { OG_CARDS, ogCardAlt, ogCardPath } from "#lib/seo/og-cards";
 
 const PRODUCTION_URL = "https://tenantflow.app";
 
@@ -59,11 +60,11 @@ function createDefaultMetadata(): Metadata {
 			locale: "en_US",
 			images: [
 				{
-					url: `${SITE_URL}/images/property-management-og.jpg`,
+					url: `${SITE_URL}${ogCardPath("site")}`,
 					width: 1200,
 					height: 630,
-					alt: "Glass office towers seen from street level",
-					type: "image/jpeg",
+					alt: ogCardAlt(OG_CARDS.site),
+					type: "image/png",
 				},
 				{
 					url: `${SITE_URL}/tenant-flow-logo.png`,
@@ -82,7 +83,12 @@ function createDefaultMetadata(): Metadata {
 				"Landlord-only property management software. Track leases, maintenance, and tenants. Plans from $19/mo.",
 			site: "@tenantflow",
 			creator: "@tenantflow",
-			images: [`${SITE_URL}/images/property-management-og.jpg`],
+			images: [
+				{
+					url: `${SITE_URL}${ogCardPath("site")}`,
+					alt: ogCardAlt(OG_CARDS.site),
+				},
+			],
 		},
 		applicationName: "TenantFlow",
 		referrer: "origin-when-cross-origin",
@@ -172,7 +178,7 @@ export function getSoftwareApplicationJsonLd() {
 			"Property management software for independent landlords. Track leases, maintenance, tenants, and financial reporting. 14-day free trial.",
 		url: SITE_URL,
 		image: [
-			`${SITE_URL}/images/property-management-og.jpg`,
+			`${SITE_URL}${ogCardPath("site")}`,
 			`${SITE_URL}/tenant-flow-logo.png`,
 		],
 		author: {

@@ -21,6 +21,7 @@ export const metadata: Metadata = createPageMetadata({
 	description:
 		"Answers to common landlord questions about lease management, the document vault, lease e-signing, maintenance tracking, and financial reporting. Get started with TenantFlow.",
 	path: "/faq",
+	ogCard: "faq",
 });
 
 export default function FAQPage() {

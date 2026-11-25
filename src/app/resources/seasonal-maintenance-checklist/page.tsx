@@ -16,6 +16,7 @@ export const metadata: Metadata = createPageMetadata({
 	description:
 		"Free printable season-by-season maintenance checklist for landlords. Covers HVAC, plumbing, exterior, and safety inspections.",
 	path: "/resources/seasonal-maintenance-checklist",
+	ogCard: "seasonal-maintenance-checklist",
 });
 
 const seasons = [

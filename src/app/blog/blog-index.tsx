@@ -56,6 +56,7 @@ export async function blogIndexMetadata(page: number): Promise<Metadata> {
 		description:
 			"Operational guides for independent landlords: leases, maintenance, tax season, and the document vault.",
 		path: blogPageHref("/blog", page),
+		ogCard: "blog-index",
 		noindex: page > 1 || count === 0,
 	});
 }

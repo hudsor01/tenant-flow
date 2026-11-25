@@ -107,8 +107,6 @@ const HEX_ALIAS_PREFIXES = [
 // justification comment (mirrors the BANLIST_EXEMPTIONS discipline in
 // marketing-copy-landlord-only.test.ts). Adding an entry is a reviewed change.
 const DRIFT_EXEMPTIONS: Record<string, readonly DriftPattern[]> = {
-	// next/og ImageResponse (satori) renders a static image, no CSS-variable access (D-03)
-	"src/app/opengraph-image.tsx": ["hex"],
 	// HTML <meta> themeColor / msapplication-TileColor, browser-chrome colors (D-03)
 	"src/app/layout.tsx": ["hex"],
 	// Generated standalone HTML/PDF document templates, self-contained output (D-03)

@@ -17,6 +17,7 @@ export const metadata: Metadata = createPageMetadata({
 	description:
 		"Free printable tax deduction tracker for landlords. Categorized by IRS Schedule E with common deductions, examples, and space to track amounts year-round.",
 	path: "/resources/landlord-tax-deduction-tracker",
+	ogCard: "landlord-tax-deduction-tracker",
 });
 
 export default function TaxDeductionTrackerPage() {

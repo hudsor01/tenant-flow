@@ -120,18 +120,6 @@ describe("createPageMetadata", () => {
 		expect(result.robots).toBe("noindex, follow");
 	});
 
-	it("default OG image URL contains property-management-og.jpg", () => {
-		const result = createPageMetadata({
-			title: "FAQ",
-			description: "desc",
-			path: "/faq",
-		});
-
-		const og = result.openGraph as { images?: Array<{ url: string }> };
-		const firstImage = og.images?.[0];
-		expect(firstImage?.url).toContain("/images/property-management-og.jpg");
-	});
-
 	it("normalizes path missing leading slash", () => {
 		const result = createPageMetadata({
 			title: "FAQ",
@@ -149,7 +137,7 @@ describe("createPageMetadata", () => {
 		// "Contact TenantFlow Support", appending " | TenantFlow" would
 		// produce "Contact TenantFlow Support | TenantFlow" with a duplicate
 		// brand token. The helper detects the embedded brand and skips the
-		// suffix on og/twitter/image alt AND short-circuits `title.template`
+		// suffix on og/twitter AND short-circuits `title.template`
 		// via `title.absolute` so the doc title doesn't double-brand either.
 		// Caught by AUDIT-1 cycle-2 review (2026-05-18). The `/compare/[competitor]`
 		// route is the real-world shape this protects against; today that route
@@ -165,9 +153,6 @@ describe("createPageMetadata", () => {
 		expect(og.title).toBe("TenantFlow vs Buildium");
 		const twitter = result.twitter as Record<string, unknown>;
 		expect(twitter.title).toBe("TenantFlow vs Buildium");
-		const ogImages = (result.openGraph as { images?: Array<{ alt: string }> })
-			.images;
-		expect(ogImages?.[0]?.alt).toBe("TenantFlow vs Buildium");
 	});
 
 	it("absoluteTitle + already-branded title: no duplicate brand in title.absolute", () => {
@@ -187,18 +172,5 @@ describe("createPageMetadata", () => {
 		expect(result.title).toEqual({ absolute: "TenantFlow vs Buildium" });
 		const og = result.openGraph as Record<string, unknown>;
 		expect(og.title).toBe("TenantFlow vs Buildium");
-	});
-
-	it("custom ogImage overrides default", () => {
-		const result = createPageMetadata({
-			title: "FAQ",
-			description: "desc",
-			path: "/faq",
-			ogImage: "https://tenantflow.app/images/custom.jpg",
-		});
-
-		const og = result.openGraph as { images?: Array<{ url: string }> };
-		const firstImage = og.images?.[0];
-		expect(firstImage?.url).toBe("https://tenantflow.app/images/custom.jpg");
 	});
 });

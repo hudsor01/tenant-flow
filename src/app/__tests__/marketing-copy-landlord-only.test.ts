@@ -283,7 +283,7 @@ const MARKETING_FILES = [
 	"src/app/(auth)/login/page.tsx",
 	"src/app/(auth)/login/layout.tsx",
 	"src/app/auth/confirm-email/confirm-email-states.tsx",
-	"src/app/opengraph-image.tsx",
+	"src/lib/seo/og-cards.ts",
 	"src/app/compare/[competitor]/page.tsx",
 	"src/app/compare/[competitor]/compare-data.ts",
 	"src/data/faqs.ts",

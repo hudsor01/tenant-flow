@@ -12,6 +12,7 @@ import { Button } from "#components/ui/button";
 import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { getSiteUrl } from "#lib/generate-metadata";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { compareCard, ogCardAlt } from "#lib/seo/og-cards";
 import { COMPETITORS, VALID_COMPETITORS } from "./compare-data";
 import {
 	BottomCta,
@@ -62,7 +63,14 @@ export async function generateMetadata({
 			// `siteName` explicitly so it doesn't depend on parent merge.
 			type: "website",
 			siteName: "TenantFlow",
-			images: [ogImageUrl],
+			images: [
+				{
+					url: ogImageUrl,
+					width: 1200,
+					height: 630,
+					alt: ogCardAlt(compareCard(data.name)),
+				},
+			],
 		},
 		twitter: {
 			card: "summary_large_image",

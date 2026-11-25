@@ -29,6 +29,7 @@ export const metadata = createPageMetadata({
 	description:
 		"Get help with TenantFlow property management software. Browse setup guides, feature tutorials, and support resources for landlords.",
 	path: "/help",
+	ogCard: "help",
 });
 
 export default function HelpPage() {

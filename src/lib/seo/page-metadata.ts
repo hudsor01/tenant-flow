@@ -1,13 +1,25 @@
 import type { Metadata } from "next";
 
 import { getSiteUrl } from "#lib/generate-metadata";
+import {
+	OG_CARDS,
+	type OgCardKey,
+	ogCardAlt,
+	ogCardPath,
+} from "#lib/seo/og-cards";
 
 interface PageMetadataConfig {
 	title: string;
 	description: string;
 	path: string;
 	noindex?: boolean;
-	ogImage?: string;
+	/**
+	 * The page's share card from `OG_CARDS`; `site` when omitted. Ignored when
+	 * `ogImage` is set.
+	 */
+	ogCard?: OgCardKey;
+	/** A share image outside `OG_CARDS`: a site-relative path and its alt text. */
+	ogImage?: { path: string; alt: string };
 	/**
 	 * When true, emit `title: { absolute: "<title> | TenantFlow" }` instead of
 	 * a plain string. Plain-string titles get the root layout's
@@ -34,18 +46,17 @@ interface PageMetadataConfig {
  * Generates canonical URL, OG tags, and Twitter card from minimal config.
  */
 export function createPageMetadata(config: PageMetadataConfig): Metadata {
-	const { title, description, path, noindex, ogImage, absoluteTitle } = config;
+	const { title, description, path, noindex, absoluteTitle } = config;
 	const siteUrl = getSiteUrl();
 	const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 	const canonicalUrl = `${siteUrl}${normalizedPath}`;
-	const normalizedOgImage = ogImage
-		? /^https?:\/\//.test(ogImage)
-			? ogImage
-			: `${siteUrl}${ogImage.startsWith("/") ? ogImage : `/${ogImage}`}`
-		: undefined;
-	const imageUrl =
-		normalizedOgImage ?? `${siteUrl}/images/property-management-og.jpg`;
-	// Brand-suffixed form used for openGraph + twitter + image alt on every
+	const card = config.ogCard ?? "site";
+	const image = config.ogImage ?? {
+		path: ogCardPath(card),
+		alt: ogCardAlt(OG_CARDS[card]),
+	};
+	const imageUrl = `${siteUrl}${image.path}`;
+	// Brand-suffixed form used for openGraph + twitter on every
 	// page (those fields don't inherit `title.template`, so we apply the
 	// suffix here for consistency with the rendered <title>). For the doc
 	// title, `absoluteTitle` decides whether to short-circuit the template
@@ -87,7 +98,7 @@ export function createPageMetadata(config: PageMetadataConfig): Metadata {
 					url: imageUrl,
 					width: 1200,
 					height: 630,
-					alt: suffixed,
+					alt: image.alt,
 				},
 			],
 		},
@@ -102,7 +113,7 @@ export function createPageMetadata(config: PageMetadataConfig): Metadata {
 			creator: "@tenantflow",
 			title: suffixed,
 			description,
-			images: [imageUrl],
+			images: [{ url: imageUrl, alt: image.alt }],
 		},
 		// `noindex` here means "index:false, follow:true" — the paginated /blog
 		// and /blog/category pages stay out of the index but still pass link

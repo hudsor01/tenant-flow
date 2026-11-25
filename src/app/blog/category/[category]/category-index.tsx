@@ -24,6 +24,7 @@ import {
 	MIN_INDEXED_CATEGORY_POSTS,
 } from "#lib/seo/blog-categories";
 import { createBlogCategoryBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { blogCategoryOgImage } from "#lib/seo/og-cards";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
 /**
@@ -63,6 +64,7 @@ export async function categoryIndexMetadata(
 		title: `${label} Articles & Guides`,
 		description: `Browse TenantFlow blog posts about ${label.toLowerCase()}. Expert insights and practical guides for landlords.`,
 		path: blogPageHref(`/blog/category/${category}`, page),
+		ogImage: blogCategoryOgImage(category),
 		noindex: page > 1 || validCategory.post_count < MIN_INDEXED_CATEGORY_POSTS,
 	});
 }
