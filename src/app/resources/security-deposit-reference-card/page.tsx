@@ -8,6 +8,7 @@ import { Button } from "#components/ui/button";
 import { ScrollRegion } from "#components/ui/scroll-region";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
+import { stateData } from "./deposit-data";
 
 export const metadata: Metadata = createPageMetadata({
 	title: "Security Deposit Laws by State | Quick Reference Card",
@@ -15,480 +16,6 @@ export const metadata: Metadata = createPageMetadata({
 		"Free printable security deposit reference card with deposit limits, return deadlines, and required documentation for all 50 states plus DC.",
 	path: "/resources/security-deposit-reference-card",
 });
-
-interface StateDeposit {
-	state: string;
-	abbr: string;
-	maxDeposit: string;
-	returnDeadline: string;
-	itemizedRequired: boolean;
-	interestRequired: boolean;
-	notes: string;
-}
-
-const stateData: StateDeposit[] = [
-	{
-		state: "Alabama",
-		abbr: "AL",
-		maxDeposit: "No limit",
-		returnDeadline: "60 days",
-		itemizedRequired: false,
-		interestRequired: false,
-		notes: "After 35 days if no forwarding address",
-	},
-	{
-		state: "Alaska",
-		abbr: "AK",
-		maxDeposit: "2 months",
-		returnDeadline: "14 days (30 if longer term)",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Arizona",
-		abbr: "AZ",
-		maxDeposit: "1.5 months",
-		returnDeadline: "14 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Arkansas",
-		abbr: "AR",
-		maxDeposit: "2 months",
-		returnDeadline: "60 days",
-		itemizedRequired: false,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "California",
-		abbr: "CA",
-		maxDeposit: "1 month (2 for small landlords)",
-		returnDeadline: "21 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes:
-			"AB 12: 1-month cap since 7/1/2024; small landlords (2 or fewer properties) may charge 2 months",
-	},
-	{
-		state: "Colorado",
-		abbr: "CO",
-		maxDeposit: "1 month",
-		returnDeadline: "30 days (60 with lease)",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "1-month cap effective 1/1/2026 (HB 25-1249)",
-	},
-	{
-		state: "Connecticut",
-		abbr: "CT",
-		maxDeposit: "2 months",
-		returnDeadline: "30 days (15 after termination)",
-		itemizedRequired: true,
-		interestRequired: true,
-		notes: "Interest must be paid annually",
-	},
-	{
-		state: "Delaware",
-		abbr: "DE",
-		maxDeposit: "1 month (after 1st yr)",
-		returnDeadline: "20 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "DC",
-		abbr: "DC",
-		maxDeposit: "1 month",
-		returnDeadline: "45 days",
-		itemizedRequired: true,
-		interestRequired: true,
-		notes: "",
-	},
-	{
-		state: "Florida",
-		abbr: "FL",
-		maxDeposit: "No limit",
-		returnDeadline: "15-30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "15 if no deductions; 30 with deductions",
-	},
-	{
-		state: "Georgia",
-		abbr: "GA",
-		maxDeposit: "No limit",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Hawaii",
-		abbr: "HI",
-		maxDeposit: "1 month",
-		returnDeadline: "14 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Idaho",
-		abbr: "ID",
-		maxDeposit: "No limit",
-		returnDeadline: "21 days (30 w/lease term)",
-		itemizedRequired: false,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Illinois",
-		abbr: "IL",
-		maxDeposit: "No limit",
-		returnDeadline: "30-45 days",
-		itemizedRequired: true,
-		interestRequired: true,
-		notes: "Interest req. if 25+ units (Chicago local rules differ)",
-	},
-	{
-		state: "Indiana",
-		abbr: "IN",
-		maxDeposit: "No limit",
-		returnDeadline: "45 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Iowa",
-		abbr: "IA",
-		maxDeposit: "2 months",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Kansas",
-		abbr: "KS",
-		maxDeposit: "1 month (unfurn) / 1.5 (furn)",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Kentucky",
-		abbr: "KY",
-		maxDeposit: "No limit",
-		returnDeadline: "30-60 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "Must hold in separate account",
-	},
-	{
-		state: "Louisiana",
-		abbr: "LA",
-		maxDeposit: "No limit",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Maine",
-		abbr: "ME",
-		maxDeposit: "2 months",
-		returnDeadline: "30 days (21 if no forwarding)",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Maryland",
-		abbr: "MD",
-		maxDeposit: "2 months",
-		returnDeadline: "45 days",
-		itemizedRequired: true,
-		interestRequired: true,
-		notes: "Interest if held 50+ units",
-	},
-	{
-		state: "Massachusetts",
-		abbr: "MA",
-		maxDeposit: "1 month",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: true,
-		notes: "5% annual interest or actual rate",
-	},
-	{
-		state: "Michigan",
-		abbr: "MI",
-		maxDeposit: "1.5 months",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "Detailed move-in checklist required",
-	},
-	{
-		state: "Minnesota",
-		abbr: "MN",
-		maxDeposit: "No limit",
-		returnDeadline: "21 days (5 for old/sick)",
-		itemizedRequired: true,
-		interestRequired: true,
-		notes: "1% simple interest",
-	},
-	{
-		state: "Mississippi",
-		abbr: "MS",
-		maxDeposit: "No limit",
-		returnDeadline: "45 days",
-		itemizedRequired: false,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Missouri",
-		abbr: "MO",
-		maxDeposit: "2 months",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Montana",
-		abbr: "MT",
-		maxDeposit: "No limit",
-		returnDeadline: "30 days (10 if no deductions)",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Nebraska",
-		abbr: "NE",
-		maxDeposit: "1 month (no pets) / 1.25 (pets)",
-		returnDeadline: "14 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Nevada",
-		abbr: "NV",
-		maxDeposit: "3 months",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "New Hampshire",
-		abbr: "NH",
-		maxDeposit: "1 month or $100",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "Whichever is greater",
-	},
-	{
-		state: "New Jersey",
-		abbr: "NJ",
-		maxDeposit: "1.5 months",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: true,
-		notes: "Must be in interest-bearing account",
-	},
-	{
-		state: "New Mexico",
-		abbr: "NM",
-		maxDeposit: "1 month (< 1yr lease)",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "New York",
-		abbr: "NY",
-		maxDeposit: "1 month",
-		returnDeadline: "14 days",
-		itemizedRequired: true,
-		interestRequired: true,
-		notes: "HSTPA 2019 reforms; must hold in interest-bearing account",
-	},
-	{
-		state: "North Carolina",
-		abbr: "NC",
-		maxDeposit: "2 months (or 1.5 for mo-to-mo)",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "Must hold in trust account",
-	},
-	{
-		state: "North Dakota",
-		abbr: "ND",
-		maxDeposit: "1 month (2 for pet damage history)",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Ohio",
-		abbr: "OH",
-		maxDeposit: "No limit",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: true,
-		notes: "Interest if over $50 and lease > 6 months",
-	},
-	{
-		state: "Oklahoma",
-		abbr: "OK",
-		maxDeposit: "No limit",
-		returnDeadline: "45 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Oregon",
-		abbr: "OR",
-		maxDeposit: "No limit",
-		returnDeadline: "31 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Pennsylvania",
-		abbr: "PA",
-		maxDeposit: "2 months (1 after 1st yr)",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: true,
-		notes: "Interest after 25 months in escrow",
-	},
-	{
-		state: "Rhode Island",
-		abbr: "RI",
-		maxDeposit: "1 month",
-		returnDeadline: "20 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "South Carolina",
-		abbr: "SC",
-		maxDeposit: "No limit",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "South Dakota",
-		abbr: "SD",
-		maxDeposit: "1 month (2 for special circumstances)",
-		returnDeadline: "14 days (45 after lease end)",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Tennessee",
-		abbr: "TN",
-		maxDeposit: "No limit",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Texas",
-		abbr: "TX",
-		maxDeposit: "No limit",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "Must provide forwarding address",
-	},
-	{
-		state: "Utah",
-		abbr: "UT",
-		maxDeposit: "No limit",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Vermont",
-		abbr: "VT",
-		maxDeposit: "No limit",
-		returnDeadline: "14 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Virginia",
-		abbr: "VA",
-		maxDeposit: "2 months",
-		returnDeadline: "45 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Washington",
-		abbr: "WA",
-		maxDeposit: "No limit",
-		returnDeadline: "30 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes:
-			"Written checklist at move-in; itemized receipts required for deductions",
-	},
-	{
-		state: "West Virginia",
-		abbr: "WV",
-		maxDeposit: "No limit",
-		returnDeadline: "60 days",
-		itemizedRequired: false,
-		interestRequired: false,
-		notes: "",
-	},
-	{
-		state: "Wisconsin",
-		abbr: "WI",
-		maxDeposit: "No limit",
-		returnDeadline: "21 days",
-		itemizedRequired: true,
-		interestRequired: false,
-		notes: "Move-in/move-out checklist required",
-	},
-	{
-		state: "Wyoming",
-		abbr: "WY",
-		maxDeposit: "No limit",
-		returnDeadline: "30 days (15 if no deductions)",
-		itemizedRequired: false,
-		interestRequired: false,
-		notes: "",
-	},
-];
 
 export default function SecurityDepositReferenceCardPage() {
 	const breadcrumbSchema = createBreadcrumbJsonLd(
@@ -554,7 +81,7 @@ export default function SecurityDepositReferenceCardPage() {
 							aria-hidden="true"
 						/>
 						<span className="text-muted-foreground">
-							Interest payment required
+							Interest required in some or all cases (see notes)
 						</span>
 					</div>
 					<div className="flex items-center gap-2 text-sm">
@@ -587,7 +114,7 @@ export default function SecurityDepositReferenceCardPage() {
 									Interest
 								</th>
 								<th className="p-3 text-left font-semibold text-foreground">
-									Notes
+									Notes and Statute
 								</th>
 							</tr>
 						</thead>
@@ -635,7 +162,19 @@ export default function SecurityDepositReferenceCardPage() {
 										/>
 									</td>
 									<td className="p-3 text-xs text-muted-foreground">
-										{s.notes}
+										{s.notes ? <p className="mb-1">{s.notes}</p> : null}
+										<p className="mb-0">
+											{s.citationUrl ? (
+												<a
+													href={s.citationUrl}
+													className="text-primary-text underline-offset-2 hover:underline"
+												>
+													{s.citation}
+												</a>
+											) : (
+												s.citation
+											)}
+										</p>
 									</td>
 								</tr>
 							))}
@@ -647,10 +186,11 @@ export default function SecurityDepositReferenceCardPage() {
 				<div className="mt-8 rounded-xl border border-warning/20 bg-warning/10 p-6">
 					<p className="mb-0 text-sm text-warning-text">
 						<strong>Disclaimer:</strong> This reference card provides a general
-						overview of state security deposit laws as of July 2026. Laws change
-						frequently and local jurisdictions may have additional requirements.
-						Always verify current regulations with your state landlord-tenant
-						statute or a local attorney before relying on this information.
+						overview of state security deposit laws, each row checked against
+						the statute cited on November 25, 2026. Laws change frequently and
+						cities and counties may have additional requirements. Always verify
+						current regulations with your state landlord-tenant statute or a
+						local attorney before relying on this information.
 					</p>
 				</div>
 
