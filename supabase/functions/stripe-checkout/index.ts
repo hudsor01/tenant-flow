@@ -29,6 +29,20 @@ const LIVE_SUBSCRIPTION_STATUSES = new Set([
 // Stripe rejects a `trial_end` less than 48h in the future.
 const MIN_TRIAL_CARRYOVER_MS = 48 * 60 * 60 * 1000;
 
+// The Stripe account is shared with another business, so its public name
+// headed the hosted page an owner meets when entering a card. These settings
+// brand this session as TenantFlow, leaving the account alone. Stripe applies
+// `display_name` to the top of the page only: terms and receipts still carry
+// the account's public business name. The icon is public/icon-512x512.png,
+// fetched by Stripe, so it must stay a public HTTPS URL; the button color is
+// the app's --primary, oklch(0.54 0.23 257), and the font is the app's Roboto.
+const CHECKOUT_BRANDING = {
+	display_name: "TenantFlow",
+	icon: { type: "url" as const, url: "https://tenantflow.app/icon-512x512.png" },
+	button_color: "#0064ef",
+	font_family: "roboto" as const,
+};
+
 Deno.serve(async (req: Request) => {
 	const optionsResponse = handleCorsOptions(req);
 	if (optionsResponse) return optionsResponse;
@@ -188,6 +202,7 @@ Deno.serve(async (req: Request) => {
 			success_url: `${frontendUrl}/billing/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
 			cancel_url: `${frontendUrl}/billing/checkout/cancel`,
 			metadata: sessionMetadata,
+			branding_settings: CHECKOUT_BRANDING,
 			// Carry-over trial only. The hosted page always collects a card
 			// (Stripe's default for subscription mode): with trialEndUnix set it
 			// charges nothing now and bills the plan when the trial ends, so
