@@ -25,9 +25,15 @@ on:
 # also carry a cancel-on-supersede key, because a job may hold exactly one
 # concurrency key and its key has to be the global account lock. Cancelling at
 # the RUN level covers both, and mirrors what rls-security-tests.yml does.
+#
+# Only a pull request's run is cancelled. A cancel kills e2e-smoke before its
+# fixture cleanup runs, leaving rows on the production test accounts (a
+# main-branch rls-security run cancelled on 2026-11-25 left a zero-unit
+# property that broke owner-reflow-320). A push to main supersedes only on a
+# merge, so its runs finish; the next one waits for the account lock.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
