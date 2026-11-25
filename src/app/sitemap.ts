@@ -16,8 +16,8 @@ const logger = createLogger({ component: "Sitemap" });
 //
 // Source: src/app/{terms,privacy,security-policy}/page.tsx visible
 // "Last Updated" line.
-const TERMS_LAST_UPDATED = "2026-11-09";
-const PRIVACY_LAST_UPDATED = "2026-11-09";
+const TERMS_LAST_UPDATED = "2026-11-25";
+const PRIVACY_LAST_UPDATED = "2026-11-25";
 const SECURITY_POLICY_LAST_UPDATED = "2026-05-11";
 
 // "Last meaningful copy refresh" for the static marketing/company/compare/
