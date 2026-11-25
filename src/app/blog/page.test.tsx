@@ -449,10 +449,10 @@ describe("BlogPage generateMetadata", () => {
 		expect(meta.robots).toBe("noindex, follow");
 	});
 
-	it("emits twitter:site and twitter:creator parity with the post pages", async () => {
+	it("names no twitter:site or twitter:creator (owner D-04: no X account)", async () => {
 		const meta = await metaFor(1, { postsCount: 18 });
 		const twitter = meta.twitter as Record<string, unknown>;
-		expect(twitter.site).toBe("@tenantflow");
-		expect(twitter.creator).toBe("@tenantflow");
+		expect(twitter).not.toHaveProperty("site");
+		expect(twitter).not.toHaveProperty("creator");
 	});
 });

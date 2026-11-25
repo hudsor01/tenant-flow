@@ -1,6 +1,14 @@
 import { ArrowRight, Check } from "lucide-react";
 import Link from "next/link";
 import { BlurFade } from "#components/ui/blur-fade";
+import {
+	Breadcrumb,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
+} from "#components/ui/breadcrumb";
 import { Button } from "#components/ui/button";
 import {
 	contactTrackAttributes,
@@ -14,6 +22,21 @@ export function HeroSection() {
 			<div className="absolute inset-0 opacity-[0.015] bg-[radial-gradient(circle_at_1px_1px,var(--color-foreground)_1px,transparent_0)] bg-size-[32px_32px]" />
 
 			<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+				{/* The /features breadcrumb, on the hero's tint; matches the page's
+				    BreadcrumbList JSON-LD (2026-11-24 SEO audit F3). */}
+				<Breadcrumb className="pt-6 pb-10">
+					<BreadcrumbList>
+						<BreadcrumbItem>
+							<BreadcrumbLink asChild>
+								<Link href="/">Home</Link>
+							</BreadcrumbLink>
+						</BreadcrumbItem>
+						<BreadcrumbSeparator />
+						<BreadcrumbItem>
+							<BreadcrumbPage>Features</BreadcrumbPage>
+						</BreadcrumbItem>
+					</BreadcrumbList>
+				</Breadcrumb>
 				<BlurFade delay={0.1}>
 					<div className="text-center max-w-5xl mx-auto space-y-8">
 						<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-tight">

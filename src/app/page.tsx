@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import type { SoftwareApplication, WithContext } from "schema-dts";
+import type { SoftwareApplication, WebSite, WithContext } from "schema-dts";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import {
 	getSiteUrl,
 	getSoftwareApplicationJsonLd,
+	organizationRef,
 } from "#lib/generate-metadata";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
@@ -38,21 +39,18 @@ export const metadata: Metadata = createPageMetadata({
 export default function RootPage() {
 	const siteUrl = getSiteUrl();
 
-	// WebSite schema with SearchAction for sitelinks search box (SCHEMA-03)
-	// Uses Record spread for Google's non-standard `query-input` property
-	const websiteSchema = {
-		"@context": "https://schema.org" as const,
-		"@type": "WebSite" as const,
+	// WebSite: the site's name for search results, published by the
+	// Organization. No SearchAction: Google retired the sitelinks search box
+	// on 2024-11-21, so it earned nothing (2026-11-24 SEO audit S2).
+	const websiteSchema: WithContext<WebSite> = {
+		"@context": "https://schema.org",
+		"@type": "WebSite",
 		name: "TenantFlow",
 		url: siteUrl,
 		description:
 			"Property management software for independent landlords. Track leases, maintenance, tenants, and finances in one place.",
-		potentialAction: {
-			"@type": "SearchAction" as const,
-			target: `${siteUrl}/search?q={search_term_string}`,
-			"query-input": "required name=search_term_string",
-		},
-	} satisfies Record<string, unknown>;
+		publisher: organizationRef(),
+	};
 
 	// SoftwareApplication + AggregateOffer — the commercial product entity.
 	// Scoped to the homepage (NOT site-wide) so it doesn't dilute the Article
@@ -62,13 +60,7 @@ export default function RootPage() {
 
 	return (
 		<>
-			<JsonLdScript
-				schema={
-					websiteSchema as import("schema-dts").WithContext<
-						import("schema-dts").WebSite
-					>
-				}
-			/>
+			<JsonLdScript schema={websiteSchema} />
 			<JsonLdScript schema={softwareSchema} />
 			<MarketingHomePage />
 		</>

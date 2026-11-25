@@ -22,7 +22,7 @@ export const metadata: Metadata = createPageMetadata({
 export default function FeaturesPage() {
 	// SoftwareApplication — the product entity, scoped to commercial pages
 	// (homepage + /pricing + /features) and kept off /blog/* so it doesn't
-	// dilute the Article schema there.
+	// dilute the BlogPosting schema there.
 	const softwareJsonLd =
 		getSoftwareApplicationJsonLd() as WithContext<SoftwareApplication>;
 	return (

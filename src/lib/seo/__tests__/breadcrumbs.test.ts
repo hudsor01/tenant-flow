@@ -53,10 +53,11 @@ describe("createBreadcrumbJsonLd", () => {
 	it("last breadcrumb item omits the item URL (per Schema.org spec)", () => {
 		const items = getItems(createBreadcrumbJsonLd("/faq"));
 
+		// "FAQ", not the slug capitalized as "Faq" (2026-11-24 SEO audit Q10).
 		expect(items[1]).toMatchObject({
 			"@type": "ListItem",
 			position: 2,
-			name: "Faq",
+			name: "FAQ",
 		});
 		expect(items[1]).not.toHaveProperty("item");
 	});

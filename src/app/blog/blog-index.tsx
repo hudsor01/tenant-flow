@@ -25,6 +25,7 @@ import {
 } from "#lib/blog/blog-queries";
 import { categoryLabel } from "#lib/seo/blog-categories";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createBlogJsonLd } from "#lib/seo/collection-schema";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
 /**
@@ -33,6 +34,10 @@ import { createPageMetadata } from "#lib/seo/page-metadata";
  * minutes (2026-11-24 SEO audit BL1: reading `?page=` made the hub render on
  * every request).
  */
+/** The blog hub's description, in its metadata and its `Blog` JSON-LD. */
+const BLOG_DESCRIPTION =
+	"Practical guides for independent landlords on leases, maintenance, inspections, rent records and tax season, and how to run them in TenantFlow.";
+
 export async function blogIndexMetadata(page: number): Promise<Metadata> {
 	// Soft-404 guard: with zero published posts the hub is an empty
 	// placeholder, so it is noindex until the first post lands. A failed count
@@ -53,8 +58,7 @@ export async function blogIndexMetadata(page: number): Promise<Metadata> {
 
 	return createPageMetadata({
 		title: "Landlord Blog: Guides for Independent Landlords",
-		description:
-			"Practical guides for independent landlords on leases, maintenance, inspections, rent records and tax season, and how to run them in TenantFlow.",
+		description: BLOG_DESCRIPTION,
 		path: blogPageHref("/blog", page),
 		ogCard: "blog-index",
 		noindex: page > 1 || count === 0,
@@ -75,6 +79,18 @@ export async function BlogIndex({ page }: { page: number }) {
 	return (
 		<PageLayout>
 			<JsonLdScript schema={createBreadcrumbJsonLd("/blog")} />
+			<JsonLdScript
+				schema={createBlogJsonLd({
+					path: blogPageHref("/blog", page),
+					description: BLOG_DESCRIPTION,
+					posts: posts.map((post) => ({
+						title: post.title,
+						slug: post.slug,
+						publishedAt: post.published_at,
+						image: post.featured_image,
+					})),
+				})}
+			/>
 
 			<div className="container mx-auto max-w-6xl px-6 lg:px-8 pt-8">
 				<Breadcrumb>

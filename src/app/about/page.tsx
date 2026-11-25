@@ -33,6 +33,7 @@ import {
 	ctaTrackAttributes,
 } from "#lib/analytics/cta-attributes";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createOrganizationPageJsonLd } from "#lib/seo/collection-schema";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
 const stats = [
@@ -69,6 +70,12 @@ export default function AboutPage() {
 	return (
 		<PageLayout>
 			<JsonLdScript schema={createBreadcrumbJsonLd("/about")} />
+			<JsonLdScript
+				schema={createOrganizationPageJsonLd("AboutPage", {
+					name: "About TenantFlow",
+					path: "/about",
+				})}
+			/>
 
 			{/* Hero Section */}
 			<HeroSection

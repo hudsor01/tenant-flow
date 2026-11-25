@@ -161,7 +161,7 @@ test.describe("SEO Smoke Tests", () => {
 	});
 
 	test("/blog has full SEO metadata", async ({ page }) => {
-		await assertPageSeo(page, "/blog", ["BreadcrumbList"]);
+		await assertPageSeo(page, "/blog", ["BreadcrumbList", "Blog"]);
 	});
 
 	test("/faq has full SEO metadata", async ({ page }) => {
@@ -169,11 +169,11 @@ test.describe("SEO Smoke Tests", () => {
 	});
 
 	test("/about has full SEO metadata", async ({ page }) => {
-		await assertPageSeo(page, "/about", ["BreadcrumbList"]);
+		await assertPageSeo(page, "/about", ["BreadcrumbList", "AboutPage"]);
 	});
 
 	test("/contact has full SEO metadata", async ({ page }) => {
-		await assertPageSeo(page, "/contact", ["BreadcrumbList"]);
+		await assertPageSeo(page, "/contact", ["BreadcrumbList", "ContactPage"]);
 	});
 
 	test("/help has full SEO metadata", async ({ page }) => {
@@ -181,7 +181,10 @@ test.describe("SEO Smoke Tests", () => {
 	});
 
 	test("/resources has full SEO metadata", async ({ page }) => {
-		await assertPageSeo(page, "/resources", ["BreadcrumbList"]);
+		await assertPageSeo(page, "/resources", [
+			"BreadcrumbList",
+			"CollectionPage",
+		]);
 	});
 
 	test("/terms has full SEO metadata", async ({ page }) => {
@@ -234,9 +237,9 @@ test.describe("SEO Smoke Tests", () => {
 		]);
 	});
 
-	test("/blog/[slug] has Article schema", async ({ page }) => {
+	test("/blog/[slug] has BlogPosting schema", async ({ page }) => {
 		const href = await firstBlogHref(page, POST_LINK, "post link");
-		await assertPageSeo(page, href, ["Article", "BreadcrumbList"]);
+		await assertPageSeo(page, href, ["BlogPosting", "BreadcrumbList"]);
 	});
 
 	test("/blog/[slug] renders visible breadcrumb + dynamic /api/og/blog/ OG image (Plan 06-02)", async ({

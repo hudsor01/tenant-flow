@@ -9,137 +9,89 @@ vi.mock("#env", () => ({
 
 vi.mock("#lib/generate-metadata", () => ({
 	getSiteUrl: () => "https://tenantflow.app",
+	organizationRef: () => ({ "@id": "https://tenantflow.app/#organization" }),
 }));
 
-import { createArticleJsonLd } from "../article-schema";
+import { createBlogPostingJsonLd } from "../article-schema";
 
 /** Convert schema-dts readonly result to plain JSON for easier assertions */
 function toPlain(value: unknown): Record<string, unknown> {
 	return JSON.parse(JSON.stringify(value)) as Record<string, unknown>;
 }
 
-describe("createArticleJsonLd", () => {
+const ORGANIZATION = { "@id": "https://tenantflow.app/#organization" };
+
+describe("createBlogPostingJsonLd (2026-11-24 SEO audit PT-5, PT-6)", () => {
 	const baseInput = {
-		title: "Test Article",
-		slug: "test-article",
+		title: "Test Post",
+		slug: "test-post",
 		datePublished: "2026-01-15T10:00:00Z",
 		dateModified: "2026-01-16T10:00:00Z",
-		authorName: "Richard Hudson",
 		image: "https://example.com/image.jpg",
 		wordCount: 1500,
-		keywords: ["property management", "landlord tips"],
-		description: "A test article about property management.",
+		description: "A test post about property management.",
 		timeRequired: "PT5M",
+		section: "Tax Prep",
 	};
 
-	it("returns object with @type Article", () => {
-		const result = toPlain(createArticleJsonLd(baseInput));
-		expect(result["@type"]).toBe("Article");
+	it("is a BlogPosting in US English", () => {
+		const result = toPlain(createBlogPostingJsonLd(baseInput));
+		expect(result["@type"]).toBe("BlogPosting");
+		expect(result["inLanguage"]).toBe("en-US");
 	});
 
-	it("headline matches input title", () => {
-		const result = toPlain(createArticleJsonLd(baseInput));
-		expect(result.headline).toBe("Test Article");
+	it("credits the Organization node, by @id, as author and publisher", () => {
+		const result = toPlain(createBlogPostingJsonLd(baseInput));
+		expect(result["author"]).toEqual(ORGANIZATION);
+		expect(result["publisher"]).toEqual(ORGANIZATION);
 	});
 
-	it("datePublished is ISO string from input", () => {
-		const result = toPlain(createArticleJsonLd(baseInput));
-		expect(result.datePublished).toBe("2026-01-15T10:00:00Z");
+	it("carries the post's fields", () => {
+		expect(toPlain(createBlogPostingJsonLd(baseInput))).toMatchObject({
+			headline: "Test Post",
+			description: "A test post about property management.",
+			datePublished: "2026-01-15T10:00:00Z",
+			dateModified: "2026-01-16T10:00:00Z",
+			mainEntityOfPage: "https://tenantflow.app/blog/test-post",
+			articleSection: "Tax Prep",
+			image: "https://example.com/image.jpg",
+			wordCount: 1500,
+			timeRequired: "PT5M",
+		});
 	});
 
-	it("dateModified is included when provided", () => {
-		const result = toPlain(createArticleJsonLd(baseInput));
-		expect(result.dateModified).toBe("2026-01-16T10:00:00Z");
+	it("has no keywords: the tags were boilerplate", () => {
+		expect(toPlain(createBlogPostingJsonLd(baseInput))).not.toHaveProperty(
+			"keywords",
+		);
 	});
 
-	it("author defaults to Person type with name", () => {
-		const result = toPlain(createArticleJsonLd(baseInput));
-		const author = result.author as Record<string, unknown>;
-		expect(author["@type"]).toBe("Person");
-		expect(author.name).toBe("Richard Hudson");
-	});
-
-	it("author respects authorType when provided (Organization for team bylines)", () => {
-		// Brand bylines like "TenantFlow Team" are Organization, not
-		// Person. Schema.org type must match the entity kind.
+	it("leaves out optional fields it wasn't given", () => {
 		const result = toPlain(
-			createArticleJsonLd({
-				...baseInput,
-				authorName: "TenantFlow Team",
-				authorType: "Organization",
+			createBlogPostingJsonLd({
+				title: "Bare",
+				slug: "bare",
+				datePublished: "2026-01-15T10:00:00Z",
 			}),
 		);
-		const author = result.author as Record<string, unknown>;
-		expect(author["@type"]).toBe("Organization");
-		expect(author.name).toBe("TenantFlow Team");
+		for (const key of [
+			"description",
+			"dateModified",
+			"articleSection",
+			"image",
+			"wordCount",
+			"timeRequired",
+		]) {
+			expect(result).not.toHaveProperty(key);
+		}
 	});
 
-	it("wordCount is included when provided", () => {
-		const result = toPlain(createArticleJsonLd(baseInput));
-		expect(result.wordCount).toBe(1500);
-	});
-
-	it("keywords are joined as comma-separated string", () => {
-		const result = toPlain(createArticleJsonLd(baseInput));
-		expect(result.keywords).toBe("property management, landlord tips");
-	});
-
-	it("mainEntityOfPage URL is constructed from getSiteUrl() + slug", () => {
-		const result = toPlain(createArticleJsonLd(baseInput));
-		expect(result.mainEntityOfPage).toBe(
-			"https://tenantflow.app/blog/test-article",
+	it("encodes the slug in mainEntityOfPage", () => {
+		const result = toPlain(
+			createBlogPostingJsonLd({ ...baseInput, slug: "a b" }),
 		);
-	});
-
-	it("publisher is Organization with name TenantFlow and logo", () => {
-		const result = toPlain(createArticleJsonLd(baseInput));
-		const publisher = result.publisher as Record<string, unknown>;
-		expect(publisher["@type"]).toBe("Organization");
-		expect(publisher.name).toBe("TenantFlow");
-		const logo = publisher.logo as Record<string, unknown>;
-		expect(logo["@type"]).toBe("ImageObject");
-		expect(logo.url).toBe("https://tenantflow.app/tenant-flow-logo.png");
-	});
-
-	it("omits dateModified when not provided", () => {
-		const { dateModified: _, ...inputWithoutModified } = baseInput;
-		const result = toPlain(createArticleJsonLd(inputWithoutModified));
-		expect(result).not.toHaveProperty("dateModified");
-	});
-
-	it("omits image when not provided", () => {
-		const { image: _, ...inputWithoutImage } = baseInput;
-		const result = toPlain(createArticleJsonLd(inputWithoutImage));
-		expect(result).not.toHaveProperty("image");
-	});
-
-	it("omits wordCount when not provided", () => {
-		const { wordCount: _, ...inputWithoutWordCount } = baseInput;
-		const result = toPlain(createArticleJsonLd(inputWithoutWordCount));
-		expect(result).not.toHaveProperty("wordCount");
-	});
-
-	it("omits keywords when not provided", () => {
-		const { keywords: _, ...inputWithoutKeywords } = baseInput;
-		const result = toPlain(createArticleJsonLd(inputWithoutKeywords));
-		expect(result).not.toHaveProperty("keywords");
-	});
-
-	it("description matches input", () => {
-		const result = toPlain(createArticleJsonLd(baseInput));
-		expect(result.description).toBe(
-			"A test article about property management.",
+		expect(result["mainEntityOfPage"]).toBe(
+			"https://tenantflow.app/blog/a%20b",
 		);
-	});
-
-	it("timeRequired is included when provided", () => {
-		const result = toPlain(createArticleJsonLd(baseInput));
-		expect(result.timeRequired).toBe("PT5M");
-	});
-
-	it("omits timeRequired when not provided", () => {
-		const { timeRequired: _, ...inputWithoutTimeRequired } = baseInput;
-		const result = toPlain(createArticleJsonLd(inputWithoutTimeRequired));
-		expect(result).not.toHaveProperty("timeRequired");
 	});
 });

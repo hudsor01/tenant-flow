@@ -6,6 +6,7 @@ import { JsonLdScript } from "#components/seo/json-ld-script";
 import { BlurFade } from "#components/ui/blur-fade";
 import { clickTrackAttributes } from "#lib/analytics/cta-attributes";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createItemListJsonLd } from "#lib/seo/collection-schema";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
 import { COMPETITORS, VALID_COMPETITORS } from "./[competitor]/compare-data";
@@ -31,6 +32,21 @@ export default function ComparePage() {
 	return (
 		<PageLayout>
 			<JsonLdScript schema={createBreadcrumbJsonLd("/compare")} />
+			<JsonLdScript
+				schema={createItemListJsonLd(
+					VALID_COMPETITORS.flatMap((slug) => {
+						const competitor = COMPETITORS[slug];
+						return competitor
+							? [
+									{
+										name: `TenantFlow vs ${competitor.name}`,
+										path: `/compare/${slug}`,
+									},
+								]
+							: [];
+					}),
+				)}
+			/>
 
 			<section className="section-spacing">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
