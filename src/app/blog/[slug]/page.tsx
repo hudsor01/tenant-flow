@@ -15,6 +15,7 @@ import { createFaqJsonLd, parseFaqSection } from "#lib/seo/faq-schema";
 import type { Database } from "#types/supabase";
 import BlogPostPage from "./blog-post-page";
 import MarkdownContent from "./markdown-content";
+import { postDocumentTitle } from "./post-title";
 import { stripTitleHeading } from "./strip-title-heading";
 
 /**
@@ -195,6 +196,7 @@ export async function generateStaticParams() {
 type BlogPostRow = Pick<
 	Database["public"]["Tables"]["blogs"]["Row"],
 	| "title"
+	| "seo_title"
 	| "slug"
 	| "published_at"
 	| "updated_at"
@@ -287,7 +289,7 @@ const getBlogPost = cache(async (slug: string) => {
 			const { data, error } = await supabase
 				.from("blogs")
 				.select(
-					"title, slug, published_at, updated_at, featured_image, content, reading_time, category, meta_description, excerpt, tags, canonical_url",
+					"title, seo_title, slug, published_at, updated_at, featured_image, content, reading_time, category, meta_description, excerpt, tags, canonical_url",
 				)
 				.eq("status", "published")
 				.order("published_at", { ascending: false })
@@ -332,7 +334,7 @@ const getBlogPost = cache(async (slug: string) => {
 		const query = supabase
 			.from("blogs")
 			.select(
-				"title, slug, published_at, updated_at, featured_image, content, reading_time, category, meta_description, excerpt, tags, canonical_url",
+				"title, seo_title, slug, published_at, updated_at, featured_image, content, reading_time, category, meta_description, excerpt, tags, canonical_url",
 			)
 			.eq("slug", slug)
 			.eq("status", "published")
@@ -402,9 +404,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 	return {
 		// `title.absolute` opts out of the parent layout's `'%s | TenantFlow'`
-		// template — without this, the rendered <title> would be
-		// "Post Title | TenantFlow Blog | TenantFlow" (template stacking).
-		title: { absolute: `${post.title} | TenantFlow Blog` },
+		// template; `postDocumentTitle` adds the brand only when it fits.
+		title: { absolute: postDocumentTitle(post) },
 		description,
 		openGraph: {
 			title: post.title,
