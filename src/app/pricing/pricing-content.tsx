@@ -40,7 +40,7 @@ const FAQS = [
 	{
 		question: "Can I change plans later?",
 		answer:
-			"Yes! Upgrade or downgrade anytime. Changes take effect immediately and we prorate the difference.",
+			"Yes. Upgrade or downgrade any time from Billing settings. The change takes effect immediately, and the price difference is prorated.",
 	},
 	{
 		question: "What payment methods do you accept?",
@@ -60,7 +60,7 @@ const FAQS = [
 	{
 		question: "What happens if I exceed my plan limits?",
 		answer:
-			"We'll notify you when you're approaching your limits. You can upgrade anytime to accommodate growth.",
+			"Adding a property or unit past your plan's limit is blocked, with a prompt to upgrade. Nothing you already have is removed, and you can upgrade any time.",
 	},
 	{
 		question: "Can I cancel any time?",

@@ -19,14 +19,17 @@ import {
 } from "../_shared/cors.ts";
 import { validateEnv } from "../_shared/env.ts";
 import { errorResponse } from "../_shared/errors.ts";
+import { SUPPORT_EMAIL } from "../_shared/email-layout.ts";
 import { escapeHtml } from "../_shared/escape-html.ts";
 import { rateLimit } from "../_shared/rate-limit.ts";
 import { sendEmail } from "../_shared/resend.ts";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Destination business inbox (matches the address the /contact page displays).
-const CONTACT_INBOX = "sales@tenantflow.app";
+// Destination inbox: support@, the one public address (the /contact page shows
+// it). Demo and call requests arrive here too, and the owner replies to set a
+// time, so each message's Reply-To is the visitor's own address.
+const CONTACT_INBOX = SUPPORT_EMAIL;
 
 // Length bounds -- reject oversized payloads before building an email.
 const MAX_NAME = 200;
@@ -147,6 +150,9 @@ ${rows}
 			to: [CONTACT_INBOX],
 			subject: `Contact form: ${subject}`,
 			html,
+			// Validated above against EMAIL_REGEX and MAX_EMAIL; Resend takes it
+			// as a JSON field, not a raw header.
+			replyTo: email,
 			tags: [{ name: "source", value: "contact-form" }],
 		});
 

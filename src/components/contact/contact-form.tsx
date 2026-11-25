@@ -2,7 +2,7 @@
 
 import { Check, Mail } from "lucide-react";
 import type { SubmitEvent } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "#components/ui/button";
 import { useFormWithProgress } from "#hooks/use-form-progress";
 import { VALIDATION_LIMITS } from "#lib/constants/billing";
@@ -12,6 +12,15 @@ import type { ContactFormRequest } from "#types/domain";
 import { ContactFormFields } from "./contact-form-fields";
 
 const logger = createLogger({ component: "ContactForm" });
+
+/**
+ * `/contact?topic=demo` or `?topic=call` preselects the request, so the site's
+ * demo and call buttons land on the matching option (2026-11-24 audit F5).
+ */
+const TOPIC_SUBJECTS: Readonly<Record<string, string>> = {
+	demo: "Product Demo",
+	call: "Call Request",
+};
 
 interface ContactFormProps {
 	className?: string;
@@ -126,7 +135,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 				});
 				// Thrown message becomes submitError (rendered) — thank-you is skipped.
 				throw new Error(
-					"We couldn't send your message. Please try again, or email us directly at sales@tenantflow.app.",
+					"We couldn't send your message. Please try again, or email us directly at support@tenantflow.app.",
 				);
 			}
 
@@ -154,6 +163,14 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 			phone: "",
 		},
 	);
+
+	// After the saved draft is restored, and only when it chose no subject.
+	useEffect(() => {
+		if (!isHydrated || formData.subject) return;
+		const topic = new URLSearchParams(window.location.search).get("topic");
+		const subject = topic ? TOPIC_SUBJECTS[topic] : undefined;
+		if (subject) updateField("subject", subject);
+	}, [isHydrated, formData.subject, updateField]);
 
 	const handleSubmit = async (e: SubmitEvent) => {
 		e.preventDefault();
@@ -237,7 +254,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 							</div>
 							<div className="ml-3">
 								<p className="text-foreground font-semibold">Email Us</p>
-								<p className="text-muted-foreground">sales@tenantflow.app</p>
+								<p className="text-muted-foreground">support@tenantflow.app</p>
 								<p className="mb-0 text-muted-foreground text-sm">
 									US business hours, Monday through Friday
 								</p>
@@ -252,9 +269,9 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 				<div className="max-w-xl mx-auto w-full">
 					<h2 className="typography-h3 text-foreground mb-2">Get in Touch</h2>
 					<p className="text-muted-foreground mb-8">
-						Have questions about TenantFlow? Want to see a demo? We&apos;d love
-						to hear from you. Our team responds during US business hours, Monday
-						through Friday.
+						Have questions about TenantFlow? Want a demo or a call? Pick it
+						below, share a few times that work, and we&apos;ll email you to set
+						it up. We respond during US business hours, Monday through Friday.
 					</p>
 
 					{!isHydrated && (

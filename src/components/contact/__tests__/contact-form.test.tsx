@@ -200,3 +200,92 @@ describe("ContactForm submit (FORMFIX-02)", () => {
 		expect(invokeMock).not.toHaveBeenCalled();
 	});
 });
+
+/**
+ * F5 (2026-11-24 SEO audit): the site's "Request a demo" and "Request a call"
+ * buttons open `/contact?topic=demo|call`. The topic preselects the request,
+ * the form asks for times, and the owner replies by email to confirm one.
+ */
+describe("ContactForm demo and call requests (F5)", () => {
+	let mockStorage: Record<string, string>;
+
+	beforeEach(() => {
+		invokeMock.mockReset();
+		mockStorage = {};
+		vi.stubGlobal("localStorage", {
+			getItem: (key: string) => mockStorage[key] ?? null,
+			setItem: (key: string, value: string) => {
+				mockStorage[key] = value;
+			},
+			removeItem: (key: string) => {
+				delete mockStorage[key];
+			},
+			clear: () => {
+				for (const key of Object.keys(mockStorage)) delete mockStorage[key];
+			},
+		});
+	});
+
+	afterEach(() => {
+		window.history.replaceState(null, "", "/");
+		vi.unstubAllGlobals();
+		vi.clearAllMocks();
+	});
+
+	it.each([
+		["demo", /scheduling a product demo/i],
+		["call", /booking a call/i],
+	])(
+		"?topic=%s preselects the request and asks for times",
+		async (topic, option) => {
+			window.history.replaceState(null, "", `/contact?topic=${topic}`);
+			render(<ContactForm />);
+
+			const subject = screen.getByRole("combobox", { name: /interested in/i });
+			await waitFor(() => expect(subject).toHaveTextContent(option));
+			expect(
+				screen.getByText("We'll email you to confirm a time."),
+			).toBeInTheDocument();
+		},
+	);
+
+	it("leaves the subject empty for an unknown topic", async () => {
+		window.history.replaceState(null, "", "/contact?topic=nonsense");
+		render(<ContactForm />);
+
+		const subject = screen.getByRole("combobox", { name: /interested in/i });
+		await waitFor(() =>
+			expect(subject).toHaveTextContent(/what brings you to tenantflow/i),
+		);
+		expect(
+			screen.queryByText("We'll email you to confirm a time."),
+		).not.toBeInTheDocument();
+	});
+
+	it("sends a call request with its subject", async () => {
+		const user = userEvent.setup();
+		invokeMock.mockResolvedValue({ data: { success: true }, error: null });
+		window.history.replaceState(null, "", "/contact?topic=call");
+		render(<ContactForm />);
+
+		await user.type(screen.getByLabelText(/full name/i), "Jane Landlord");
+		await user.type(
+			screen.getByLabelText(/email address/i),
+			"jane@example.com",
+		);
+		await user.type(
+			screen.getByLabelText(/how can we help/i),
+			"Tuesday or Wednesday afternoon, Central time.",
+		);
+		await user.click(screen.getByRole("button", { name: /send message/i }));
+
+		await waitFor(() => {
+			expect(invokeMock).toHaveBeenCalledWith(
+				"send-contact-email",
+				expect.objectContaining({
+					body: expect.objectContaining({ subject: "Call Request" }),
+				}),
+			);
+		});
+	});
+});

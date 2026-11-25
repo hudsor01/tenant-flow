@@ -44,10 +44,6 @@ const ROOT = process.cwd();
 
 /** Hits in files this PR does not change: deferred, not fixed here, each with its blob at d9c7329f0. */
 const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
-	"src/app/security-policy/page.tsx": [
-		6,
-		"e573dca49e90859aae9b8708c2ed96240108116c",
-	],
 	"src/components/dashboard/dashboard-activity-card.tsx": [
 		1,
 		"b19802c47ad4b87175aa27eeedd6f7e0085652f9",

@@ -43,7 +43,7 @@ describe("getJsonLd", () => {
 		expect(result).toHaveLength(2);
 	});
 
-	it("element 0 is a valid Organization with E.164 contactPoint.telephone", () => {
+	it("element 0 is a valid Organization whose contactPoint is email-only", () => {
 		const [orgRaw] = getJsonLd();
 		const org = toPlain(orgRaw);
 
@@ -54,14 +54,14 @@ describe("getJsonLd", () => {
 		expect(org.logo).toBeTruthy();
 
 		// contactPoint may be an object or an array per schema.org — narrow
-		// to a single record. Pin the E.164 telephone string exactly to
-		// guard against a regression to the rejected vanity format
-		// (`+1-888-TENANT-1`) Google's validator failed on.
+		// to a single record. No phone line is answered, so none may be
+		// published (2026-11-24 audit CT2): support@ is the one contact.
 		const contactPointRaw = org.contactPoint;
 		const contactPoint = Array.isArray(contactPointRaw)
 			? asRecord(contactPointRaw[0])
 			: asRecord(contactPointRaw);
-		expect(contactPoint.telephone).toBe("+1-214-843-0779");
+		expect(contactPoint.telephone).toBeUndefined();
+		expect(contactPoint.email).toBe("support@tenantflow.app");
 	});
 
 	it("element 1 is a valid SoftwareApplication with AggregateOffer + featureList", () => {
@@ -90,7 +90,8 @@ describe("granular JSON-LD getters", () => {
 		const contactPoint = Array.isArray(contactPointRaw)
 			? asRecord(contactPointRaw[0])
 			: asRecord(contactPointRaw);
-		expect(contactPoint.telephone).toBe("+1-214-843-0779");
+		expect(contactPoint.telephone).toBeUndefined();
+		expect(contactPoint.email).toBe("support@tenantflow.app");
 	});
 
 	it("getSoftwareApplicationJsonLd returns only the SoftwareApplication entity", () => {

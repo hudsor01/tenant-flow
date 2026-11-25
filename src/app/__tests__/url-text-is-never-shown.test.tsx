@@ -287,6 +287,11 @@ const REVIEWED: Record<string, { reads: number; reason: string }> = {
 		reads: 2,
 		reason: "?page= parsed as an integer; the pathname builds page links",
 	},
+	"src/components/contact/contact-form.tsx": {
+		reads: 1,
+		reason:
+			"?topic= picks one of two fixed subjects (demo, call); any other value selects nothing and is never shown",
+	},
 	"src/components/dashboard/components/portfolio-preset-menu.tsx": {
 		reads: 1,
 		reason:

@@ -1,6 +1,11 @@
 import { Mail, Phone } from "lucide-react";
 import type { ChangeEvent } from "react";
-import { Field, FieldError, FieldLabel } from "#components/ui/field";
+import {
+	Field,
+	FieldDescription,
+	FieldError,
+	FieldLabel,
+} from "#components/ui/field";
 import { Input } from "#components/ui/input";
 import {
 	InputGroup,
@@ -18,6 +23,12 @@ import { Textarea } from "#components/ui/textarea";
 import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import type { ContactFormRequest } from "#types/domain";
 
+/** Subjects the owner follows up on by email to agree a time. */
+const TIME_REQUEST_SUBJECTS: ReadonlySet<string> = new Set([
+	"Product Demo",
+	"Call Request",
+]);
+
 interface ContactFormFieldsProps {
 	formData: ContactFormRequest;
 	errors: Record<string, string>;
@@ -29,6 +40,9 @@ export function ContactFormFields({
 	errors,
 	onInputChange,
 }: ContactFormFieldsProps) {
+	// A demo or a call is set up by email: the message carries the times.
+	const asksForTime = TIME_REQUEST_SUBJECTS.has(formData.subject);
+
 	return (
 		<>
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -141,6 +155,7 @@ export function ContactFormFields({
 						<SelectItem value="Product Demo">
 							Scheduling a product demo
 						</SelectItem>
+						<SelectItem value="Call Request">Booking a call</SelectItem>
 						<SelectItem value="Pricing Information">
 							Learning about pricing plans
 						</SelectItem>
@@ -190,11 +205,20 @@ export function ContactFormFields({
 					onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
 						onInputChange("message", e.target.value)
 					}
-					placeholder="Tell us about your property portfolio, current challenges, or any specific questions you have about TenantFlow..."
+					placeholder={
+						asksForTime
+							? "A few days and times that work for you, with your time zone, and anything you'd like to cover..."
+							: "Tell us about your property portfolio, current challenges, or any specific questions you have about TenantFlow..."
+					}
 					required
 					rows={5}
 					className={`resize-none ${errors.message ? "border-destructive" : ""}`}
 				/>
+				{asksForTime && !errors.message ? (
+					<FieldDescription className="mb-0">
+						We&apos;ll email you to confirm a time.
+					</FieldDescription>
+				) : null}
 				{errors.message && <FieldError>{errors.message}</FieldError>}
 			</Field>
 		</>

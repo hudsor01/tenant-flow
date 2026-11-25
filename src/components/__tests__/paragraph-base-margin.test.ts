@@ -110,10 +110,6 @@ const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
 	],
 	"src/app/marketing-home.tsx": [2, "a637d6e38fbbde2a5d0f2d22f23321dfc95cf60c"],
 	"src/app/pricing/page.tsx": [1, "5b684df9ea95251daf511cc5b1ed8b7a09c310c1"],
-	"src/app/security-policy/page.tsx": [
-		1,
-		"e573dca49e90859aae9b8708c2ed96240108116c",
-	],
 	"src/app/sign/[token]/page.tsx": [
 		3,
 		"59920fd69e0b49cae40d4a631849c72d03953bb7",

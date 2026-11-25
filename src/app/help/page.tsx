@@ -1,4 +1,4 @@
-import { ArrowRight, Mail, MessageCircle, Phone } from "lucide-react";
+import { ArrowRight, CalendarClock, Mail, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { PageLayout } from "#components/layout/page-layout";
 import { HeroSection } from "#components/sections/hero-section";
@@ -34,13 +34,13 @@ export default function HelpPage() {
 			<HeroSection
 				title="We're here to help"
 				titleHighlight="when you need us"
-				subtitle="Email support on every plan, with priority and phone support on Growth and Max. Browse the help center below for setup, billing, document vault, and lease e-sign questions."
+				subtitle="Email support on every plan, with priority support on Growth and Max. Browse the help center below for setup, billing, document vault, and lease e-sign questions."
 				primaryCta={{
 					label: "See Pricing",
 					href: "/pricing",
 				}}
 				secondaryCta={{ label: "Contact Sales", href: "/contact" }}
-				trustSignals="Email support on every plan • Priority and phone support on Growth and Max"
+				trustSignals="Email support on every plan • Priority support on Growth and Max"
 			/>
 
 			{/* Support Options */}
@@ -49,8 +49,8 @@ export default function HelpPage() {
 					<div className="text-center mb-16">
 						<h2 className="typography-h1 mb-4">Pick the channel that fits</h2>
 						<p className="text-xl text-muted-foreground">
-							Email support on every plan. Phone and priority support on Growth
-							and Max.
+							Email support on every plan, with priority support on Growth and
+							Max.
 						</p>
 					</div>
 
@@ -81,23 +81,23 @@ export default function HelpPage() {
 
 						<Item variant="outline">
 							<ItemMedia variant="icon">
-								<Phone />
+								<CalendarClock />
 							</ItemMedia>
 							<ItemContent>
-								<ItemTitle>Phone Support</ItemTitle>
+								<ItemTitle>Demo or Call</ItemTitle>
 								<ItemDescription className="mb-0">
-									Growth and Max plans
+									Before or after you sign up
 								</ItemDescription>
 								<div className="mt-2">
 									<p className="mb-0 text-muted-foreground">
-										Talk to a real person about onboarding, billing, or feature
-										questions
+										Share a few times that work and we&apos;ll email you to
+										confirm one
 									</p>
 								</div>
 							</ItemContent>
 							<ItemActions>
 								<Button className="w-full" variant="outline" asChild>
-									<Link href="/contact">Schedule Call</Link>
+									<Link href="/contact?topic=call">Request a call</Link>
 								</Button>
 							</ItemActions>
 						</Item>
