@@ -12,9 +12,14 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import AboutPage from "#app/about/page";
+import FAQPage from "#app/faq/page";
 import SecurityDepositReferenceCardPage from "#app/resources/security-deposit-reference-card/page";
+import { BentoFeaturesSection } from "#components/landing/bento-features-section";
 import { PricingComparisonTable } from "#components/pricing/pricing-comparison-table";
 import FeaturesSection from "#components/sections/features-section";
+import { HeroDashboardMockup } from "#components/sections/hero-dashboard-mockup";
+import { LogoCloud } from "#components/sections/logo-cloud";
 import {
 	Accordion,
 	AccordionContent,
@@ -80,5 +85,44 @@ describe("server HTML carries the real content", () => {
 		expect(textOf(renderToString(<FeaturesSection />))).toContain(
 			"The core tools for professional property management",
 		);
+	});
+});
+
+/** Server-render inside the QueryClient the marketing navbar reads. */
+function pageHtml(page: React.ReactElement): string {
+	return renderToString(
+		<QueryClientProvider client={new QueryClient()}>
+			{page}
+		</QueryClientProvider>,
+	);
+}
+
+describe("server HTML keeps sample data out of the page text (2b)", () => {
+	it("marks the home dashboard mock as one image, outside snippets (H3)", () => {
+		const doc = new DOMParser().parseFromString(
+			renderToString(<HeroDashboardMockup />),
+			"text/html",
+		);
+		const root = doc.body.firstElementChild;
+		expect(root?.getAttribute("role")).toBe("img");
+		expect(root?.getAttribute("aria-label")).toMatch(/sample data/);
+		expect(root?.hasAttribute("data-nosnippet")).toBe(true);
+	});
+
+	it("drops the mock from /about and /faq (AB8, Q11)", () => {
+		for (const page of [<AboutPage key="about" />, <FAQPage key="faq" />])
+			expect(textOf(pageHtml(page))).not.toContain("Welcome back");
+	});
+
+	it("keeps the feature mocks out of snippets, with no 2024 dates (F1)", () => {
+		const html = renderToString(<BentoFeaturesSection />);
+		expect(html).toContain("data-nosnippet");
+		expect(textOf(html)).not.toMatch(/20\d\d/);
+	});
+
+	it("names every vendor in the logo strip's text (H4)", () => {
+		const text = textOf(renderToString(<LogoCloud />));
+		for (const vendor of ["Stripe", "Supabase", "Vercel", "Resend"])
+			expect(text).toContain(vendor);
 	});
 });

@@ -176,13 +176,6 @@ const NOT_STAT_ROWS: { file: string; classString: string; reason: string }[] = [
 		reason: "testimonial cards: a quote and its author",
 	},
 	{
-		file: "src/components/sections/hero-section.tsx",
-		classString:
-			"grid grid-cols-1 lg:grid-cols-2 gap-16 items-center min-h-150 flex flex-col items-center justify-center min-h-100 text-center",
-		reason:
-			"the hero's two columns, copy beside the dashboard mockup (whose own row steps on its container)",
-	},
-	{
 		file: "src/app/marketing-home.tsx",
 		classString:
 			"grid grid-cols-1 lg:grid-cols-2 gap-16 items-center lg:min-h-150",

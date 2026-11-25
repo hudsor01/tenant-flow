@@ -154,6 +154,8 @@ export function useFormWithProgress<T extends FormProgressData>(
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [submitError, setSubmitError] = useState<string | null>(null);
 	const [isHydrated, setIsHydrated] = useState(false);
+	// True once a draft saved on an earlier visit has been put back in the form.
+	const [restoredDraft, setRestoredDraft] = useState(false);
 
 	// FORMFIX-03: the serialized (password-free) payload of the last save. The
 	// auto-save effect writes only when the current serialized payload differs,
@@ -221,6 +223,7 @@ export function useFormWithProgress<T extends FormProgressData>(
 		// never re-enter this merge.
 		hasRestoredRef.current = true;
 		if (!progressData) return;
+		setRestoredDraft(true);
 
 		setFormData((prev) => {
 			const merged = { ...prev, ...progressData };
@@ -259,6 +262,7 @@ export function useFormWithProgress<T extends FormProgressData>(
 		isSubmitting,
 		submitError,
 		isHydrated,
+		restoredDraft,
 		progress: {
 			isLoading: progress.isLoading,
 			error: progress.error,

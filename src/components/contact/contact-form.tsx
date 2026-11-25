@@ -106,6 +106,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 		isSubmitting,
 		submitError,
 		isHydrated,
+		restoredDraft,
 	} = useFormWithProgress<ContactFormRequest>(
 		"contact",
 		async (data: ContactFormRequest) => {
@@ -274,10 +275,13 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 						it up. We respond during US business hours, Monday through Friday.
 					</p>
 
-					{!isHydrated && (
+					{/* Only a draft saved on an earlier visit: the old "Restoring
+					    your progress..." showed before every hydration, to every
+					    first-time visitor and in the server HTML (audit CT1). */}
+					{restoredDraft && (
 						<div className="mb-4 p-3 bg-muted rounded-md">
 							<p className="mb-0 text-muted-foreground">
-								Restoring your progress...
+								We restored the message you started earlier.
 							</p>
 						</div>
 					)}

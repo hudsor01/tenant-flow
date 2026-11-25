@@ -291,22 +291,22 @@ export function LeaseDocuments() {
 					{
 						name: "Lease Agreement - Unit 2A",
 						statusLabel: "Signed",
-						date: "Dec 1, 2024",
+						date: "Dec 1",
 					},
 					{
 						name: "Lease Agreement - Unit 3B",
 						statusLabel: "Pending",
-						date: "Dec 15, 2024",
+						date: "Dec 15",
 					},
 					{
 						name: "Lease Agreement - Unit 4D",
 						statusLabel: "Signed",
-						date: "Nov 28, 2024",
+						date: "Nov 28",
 					},
 					{
 						name: "Lease Agreement - Unit 1C",
 						statusLabel: "Signed",
-						date: "Nov 20, 2024",
+						date: "Nov 20",
 					},
 				].map((doc) => (
 					<div key={doc.name} className="card-standard p-3 flex-between">

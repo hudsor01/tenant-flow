@@ -14,9 +14,20 @@ import {
 import type { ReactNode } from "react";
 import { cn } from "#lib/utils";
 
+/**
+ * A picture of the dashboard filled with sample data. To search engines and
+ * screen readers it is one image, never page text: `role="img"` makes its
+ * contents presentational, and `data-nosnippet` keeps the invented names and
+ * figures out of Google's snippets (2026-11-24 SEO audit H3).
+ */
 export function HeroDashboardMockup({ className }: { className?: string }) {
 	return (
-		<div className={cn("@container/hero-mockup relative", className)}>
+		<div
+			role="img"
+			aria-label="TenantFlow dashboard preview with sample data"
+			data-nosnippet
+			className={cn("@container/hero-mockup relative", className)}
+		>
 			<div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border bg-card">
 				<div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border-b border-border">
 					<div className="flex gap-1.5">
