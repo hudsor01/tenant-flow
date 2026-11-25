@@ -168,7 +168,7 @@ export async function BlogIndex({ page }: { page: number }) {
 
 			<section className="section-spacing">
 				<div className="mx-auto max-w-2xl px-6 lg:px-8">
-					<NewsletterSignup className="shadow-sm" />
+					<NewsletterSignup className="shadow-sm" location="blog-hub" />
 				</div>
 			</section>
 		</PageLayout>

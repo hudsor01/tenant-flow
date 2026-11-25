@@ -2,7 +2,10 @@ import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "#components/ui/button";
-import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
+import {
+	contactTrackAttributes,
+	ctaTrackAttributes,
+} from "#lib/analytics/cta-attributes";
 import type { HeroSectionProps } from "#types/frontend";
 
 export function HeroSection({
@@ -79,7 +82,14 @@ export function HeroSection({
 									</Link>
 								</Button>
 								<Button variant="outline" asChild>
-									<Link href={secondaryCta.href}>{secondaryCta.label}</Link>
+									<Link
+										href={secondaryCta.href}
+										{...(secondaryCta.trackLocation
+											? contactTrackAttributes(secondaryCta.trackLocation)
+											: {})}
+									>
+										{secondaryCta.label}
+									</Link>
 								</Button>
 							</div>
 

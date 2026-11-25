@@ -50,7 +50,11 @@ export function HomeFaq({ className }: HomeFaqProps) {
 				</BlurFade>
 
 				<BlurFade delay={0.2}>
-					<FaqsAccordion faqs={homeFaqs} defaultOpenIndex={0} />
+					<FaqsAccordion
+						faqs={homeFaqs}
+						defaultOpenIndex={0}
+						trackLocation="home"
+					/>
 				</BlurFade>
 			</div>
 		</section>

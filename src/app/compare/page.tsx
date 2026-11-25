@@ -1,10 +1,10 @@
 import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-
 import { PageLayout } from "#components/layout/page-layout";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { BlurFade } from "#components/ui/blur-fade";
+import { clickTrackAttributes } from "#lib/analytics/cta-attributes";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
@@ -51,6 +51,10 @@ export default function ComparePage() {
 							<BlurFade key={competitor.slug} delay={0.15 + index * 0.05}>
 								<Link
 									href={`/compare/${competitor.slug}`}
+									{...clickTrackAttributes({
+										name: "compare_card_click",
+										props: { competitor: competitor.slug },
+									})}
 									className="group flex h-full flex-col rounded-lg border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 								>
 									<h2 className="text-lg font-semibold group-hover:underline">

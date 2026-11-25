@@ -28,7 +28,10 @@ import {
 	ItemSeparator,
 	ItemTitle,
 } from "#components/ui/item";
-import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
+import {
+	contactTrackAttributes,
+	ctaTrackAttributes,
+} from "#lib/analytics/cta-attributes";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
@@ -76,7 +79,11 @@ export default function AboutPage() {
 					href: "/pricing",
 					trackLocation: "about-hero",
 				}}
-				secondaryCta={{ label: "Contact Sales", href: "/contact" }}
+				secondaryCta={{
+					label: "Contact Sales",
+					href: "/contact",
+					trackLocation: "about-hero",
+				}}
 			/>
 
 			{/* Mission Section */}
@@ -285,7 +292,12 @@ export default function AboutPage() {
 									</Link>
 								</Button>
 								<Button asChild variant="outline" size="lg">
-									<Link href="/contact">Contact Sales</Link>
+									<Link
+										href="/contact"
+										{...contactTrackAttributes("about-bottom")}
+									>
+										Contact Sales
+									</Link>
 								</Button>
 							</div>
 							<p className="mb-0 text-muted-foreground">

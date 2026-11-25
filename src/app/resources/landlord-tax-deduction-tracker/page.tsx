@@ -49,7 +49,7 @@ export default function TaxDeductionTrackerPage() {
 						<ArrowLeft className="size-4 mr-2" />
 						Back to Resources
 					</Link>
-					<PrintButton />
+					<PrintButton resource="tax-deduction-tracker" />
 				</div>
 
 				<header className="mb-12 text-center">

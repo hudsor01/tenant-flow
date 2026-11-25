@@ -2,7 +2,10 @@ import { ArrowRight, Check } from "lucide-react";
 import Link from "next/link";
 import { BlurFade } from "#components/ui/blur-fade";
 import { Button } from "#components/ui/button";
-import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
+import {
+	contactTrackAttributes,
+	ctaTrackAttributes,
+} from "#lib/analytics/cta-attributes";
 
 export function HeroSection() {
 	return (
@@ -50,7 +53,10 @@ export function HeroSection() {
 								className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 dark:border-muted-foreground/30 dark:hover:bg-primary/5 typography-large px-8 py-4 transition-all duration-300"
 								asChild
 							>
-								<Link href="/contact?topic=demo">
+								<Link
+									href="/contact?topic=demo"
+									{...contactTrackAttributes("features-hero-demo")}
+								>
 									<ArrowRight className="size-5 mr-3 opacity-70 group-hover:opacity-100" />
 									Request a demo
 								</Link>

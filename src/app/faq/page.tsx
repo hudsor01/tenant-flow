@@ -7,6 +7,7 @@ import { StickyConversionCta } from "#components/marketing/sticky-conversion-cta
 import { HeroSection } from "#components/sections/hero-section";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { Button } from "#components/ui/button";
+import { contactTrackAttributes } from "#lib/analytics/cta-attributes";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createFaqJsonLd } from "#lib/seo/faq-schema";
 import { createPageMetadata } from "#lib/seo/page-metadata";
@@ -43,7 +44,11 @@ export default function FAQPage() {
 					label: "See Pricing",
 					href: "/pricing",
 				}}
-				secondaryCta={{ label: "Contact Sales", href: "/contact" }}
+				secondaryCta={{
+					label: "Contact Sales",
+					href: "/contact",
+					trackLocation: "faq-hero",
+				}}
 				trustSignals="Document vault • Lease e-sign on Growth+ • 14-day free trial"
 			/>
 			<section className="section-spacing">
@@ -60,6 +65,7 @@ export default function FAQPage() {
 								category={category.category}
 								faqs={category.questions}
 								defaultOpenIndex={null}
+								trackLocation="faq"
 							/>
 						))}
 				</div>
@@ -80,7 +86,7 @@ export default function FAQPage() {
 							variant="secondary"
 							className="px-8 focus-visible:ring-primary-foreground/80"
 						>
-							<Link href="/contact">
+							<Link href="/contact" {...contactTrackAttributes("faq-bottom")}>
 								Contact Sales
 								<ArrowRight className="size-5 ml-2" />
 							</Link>

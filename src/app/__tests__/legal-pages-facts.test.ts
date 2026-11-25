@@ -93,7 +93,8 @@ describe("Privacy Policy", () => {
 		expect(migration).toContain(
 			"update public.analytics_events set user_id = null",
 		);
-		expect(PRIVACY).toContain("session storage until you close the tab");
+		expect(PRIVACY).toContain("storage until you close the tab");
+		expect(PRIVACY).toContain("the campaign tags of the link that brought you");
 		expect(PRIVACY).toContain("are deleted after 180 days");
 		expect(PRIVACY).toContain("unlinked from your account when it is deleted");
 	});

@@ -149,7 +149,7 @@ export async function CategoryIndex({
 
 			<section className="section-spacing">
 				<div className="mx-auto max-w-2xl px-6 lg:px-8">
-					<NewsletterSignup className="shadow-sm" />
+					<NewsletterSignup className="shadow-sm" location="blog-category" />
 				</div>
 			</section>
 		</PageLayout>

@@ -67,6 +67,8 @@ export interface HeroSectionProps {
 	secondaryCta: {
 		label: string;
 		href: string;
+		/** Funnel location, when this is a contact CTA (SEO audit 3b). */
+		trackLocation?: string;
 	};
 	trustSignals?: string;
 	image?: {

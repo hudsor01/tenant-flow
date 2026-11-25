@@ -302,7 +302,7 @@ export default function SeasonalMaintenanceChecklistPage() {
 						<ArrowLeft className="size-4 mr-2" />
 						Back to Resources
 					</Link>
-					<PrintButton />
+					<PrintButton resource="seasonal-maintenance-checklist" />
 				</div>
 
 				{/* Header */}

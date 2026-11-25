@@ -2,6 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import { useId, useRef, useState } from "react";
+import { track } from "#lib/analytics/track";
 import { cn } from "#lib/utils";
 
 interface FaqItem {
@@ -15,6 +16,8 @@ interface FaqsAccordionProps {
 	category?: string;
 	faqs: FaqItem[];
 	defaultOpenIndex?: number | null;
+	/** Where the list sits, for the funnel's `faq_open` event (SEO audit P14). */
+	trackLocation: string;
 }
 
 export function FaqsAccordion({
@@ -23,11 +26,21 @@ export function FaqsAccordion({
 	category,
 	faqs,
 	defaultOpenIndex = null,
+	trackLocation,
 }: FaqsAccordionProps) {
 	const [openIndex, setOpenIndex] = useState<number | null>(defaultOpenIndex);
 
 	const toggleAccordion = (index: number) => {
-		setOpenIndex(openIndex === index ? null : index);
+		const opening = openIndex !== index;
+		setOpenIndex(opening ? index : null);
+		const question = faqs[index]?.question;
+		if (opening && question) {
+			// The server keeps prop values to 120 characters.
+			track({
+				name: "faq_open",
+				props: { question: question.slice(0, 120), location: trackLocation },
+			});
+		}
 	};
 
 	return (
