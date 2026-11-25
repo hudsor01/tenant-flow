@@ -47,7 +47,7 @@ Side-by-side feature and pricing comparisons against the most-considered alterna
 
 ## Resources
 
-Free downloadable tools landlords can use without signing up:
+Free printable tools landlords can use without signing up:
 
 - [Seasonal maintenance checklist](${SITE}/resources/seasonal-maintenance-checklist)
 - [Landlord tax deduction tracker](${SITE}/resources/landlord-tax-deduction-tracker)

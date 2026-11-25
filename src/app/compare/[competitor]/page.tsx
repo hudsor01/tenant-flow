@@ -45,10 +45,10 @@ export async function generateMetadata({
 	const ogImageUrl = `${baseUrl}/api/og/compare/${slug}`;
 
 	return {
-		// `title.absolute` opts out of the parent template, otherwise
-		// rendered as "...Comparison | TenantFlow | TenantFlow".
+		// `title.absolute` opts out of the parent template, which would add a
+		// second brand. The year is the one the prices were read in (B11/A9).
 		title: {
-			absolute: `TenantFlow vs ${data.name} | Feature & Pricing Comparison`,
+			absolute: `TenantFlow vs ${data.name} (${data.checkedAt.slice(0, 4)}): Pricing & Features`,
 		},
 		description: data.metaDescription,
 		alternates: { canonical: `${baseUrl}/compare/${slug}` },

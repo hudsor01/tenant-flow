@@ -25,7 +25,7 @@ import { createPageMetadata } from "#lib/seo/page-metadata";
 import { cn } from "#lib/utils";
 
 export const metadata = createPageMetadata({
-	title: "Help Center | Property Management Support & Guides",
+	title: "TenantFlow Help Center | Setup & Support",
 	description:
 		"Get help with TenantFlow property management software. Browse setup guides, feature tutorials, and support resources for landlords.",
 	path: "/help",

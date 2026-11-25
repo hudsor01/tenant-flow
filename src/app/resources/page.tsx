@@ -24,7 +24,7 @@ import { createPageMetadata } from "#lib/seo/page-metadata";
 export const metadata: Metadata = createPageMetadata({
 	title: "Free Landlord Resources | Templates & Tools",
 	description:
-		"Free downloadable property management templates: seasonal maintenance checklists, tax deduction trackers, security deposit law guides for landlords.",
+		"Free printable landlord tools: a seasonal maintenance checklist, a Schedule E tax deduction tracker, and a 50-state security deposit reference card.",
 	path: "/resources",
 	ogCard: "resources",
 });
@@ -106,7 +106,7 @@ export default function ResourcesPage() {
 						</h1>
 
 						<p className="mb-0 text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
-							Setup guides, downloadable checklists, and reference material for
+							Setup guides, printable checklists, and reference material for
 							running your portfolio with TenantFlow.
 						</p>
 					</div>

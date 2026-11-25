@@ -7,7 +7,7 @@ import { createPageMetadata } from "#lib/seo/page-metadata";
 export const metadata: Metadata = createPageMetadata({
 	title: "Terms of Service",
 	description:
-		"TenantFlow's terms of service: accounts, subscriptions and billing, free trials, acceptable use, and liability.",
+		"TenantFlow's terms of service: accounts, subscriptions and billing, free trials, acceptable use, your content, disputes, and liability.",
 	path: "/terms",
 });
 

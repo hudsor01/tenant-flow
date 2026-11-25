@@ -5,10 +5,14 @@ import { PageLayout } from "#components/layout/page-layout";
 import { LeadCaptureModal } from "#components/marketing/lead-capture-modal";
 import { StickyConversionCta } from "#components/marketing/sticky-conversion-cta";
 import { JsonLdScript } from "#components/seo/json-ld-script";
+import { getPricingPlan, type PlanId } from "#config/pricing";
+import { DiagnosticError } from "#lib/diagnostic-error";
+import { formatCount } from "#lib/formatters/count";
 import { getSoftwareApplicationJsonLd } from "#lib/generate-metadata";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createFaqJsonLd } from "#lib/seo/faq-schema";
 import { createPageMetadata } from "#lib/seo/page-metadata";
+import { formatPrice } from "#lib/utils/currency";
 import { PricingSection } from "./_components/pricing-section";
 import {
 	PricingCtaSection,
@@ -21,10 +25,26 @@ import {
 // any pricing-content.tsx edits without a full redeploy.
 export const revalidate = 3600;
 
+/** A plan's price and property limit, from `src/config/pricing.ts` (P8). */
+function planSummary(id: PlanId): { price: string; properties: string } {
+	const plan = getPricingPlan(id);
+	if (!plan) throw new DiagnosticError(`pricing page: no "${id}" plan`);
+	return {
+		price: formatPrice(plan.price.monthly, { interval: "month" }),
+		properties:
+			plan.limits.properties === -1
+				? "unlimited"
+				: formatCount(plan.limits.properties, "property", "properties"),
+	};
+}
+
+const STARTER = planSummary("starter");
+const GROWTH = planSummary("growth");
+const MAX = planSummary("max");
+
 export const metadata: Metadata = createPageMetadata({
-	title: "Property Management Software Pricing | Plans from $19/mo",
-	description:
-		"Property management software for independent landlords. Starter ($19/mo, 5 properties), Growth ($49/mo, 20 properties), Max ($149/mo, unlimited properties). 14-day free trial, no credit card required.",
+	title: `Property Management Pricing: Plans from ${STARTER.price}`,
+	description: `TenantFlow plans: Starter ${STARTER.price} (${STARTER.properties}), Growth ${GROWTH.price} (${GROWTH.properties}), Max ${MAX.price} (${MAX.properties}). 14-day free trial, no card to start.`,
 	path: "/pricing",
 	ogCard: "pricing",
 });
