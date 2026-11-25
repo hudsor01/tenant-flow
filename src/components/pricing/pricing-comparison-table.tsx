@@ -194,7 +194,9 @@ function CategorySection({
 					/>
 				</Button>
 			</CollapsibleTrigger>
-			<CollapsibleContent>
+			{/* Closed categories stay in the HTML, hidden, so the full comparison
+			    is indexed (2026-11-24 SEO audit P2). */}
+			<CollapsibleContent forceMount className="data-[state=closed]:hidden">
 				{features.map((feature, idx) => (
 					<div
 						key={feature.name}

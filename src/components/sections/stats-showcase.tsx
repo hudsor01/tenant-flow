@@ -53,7 +53,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 				<div className="text-center mb-16 max-w-3xl mx-auto">
 					<BlurFade delay={0.1}>
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4 leading-tight">
-							Made for real
+							Made for real{" "}
 							<span className="text-primary-text block">owner workflows</span>
 						</h2>
 						<p className="text-xl text-muted-foreground leading-relaxed">
@@ -77,6 +77,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 											{stat.prefix}
 											<NumberTicker
 												value={stat.value}
+												startAtFinal
 												delay={0.3 + index * 0.1}
 												className="font-bold"
 											/>

@@ -132,34 +132,34 @@ export default function SecurityDepositReferenceCardPage() {
 										{s.returnDeadline}
 									</td>
 									<td className="p-3 text-center">
-										<span
-											role="img"
-											aria-label={
-												s.itemizedRequired
-													? "Itemized statement required"
-													: "Itemized statement not required"
-											}
-											className={`inline-block size-3 rounded-full ${
-												s.itemizedRequired
-													? "bg-success-text"
-													: "border-2 border-muted-foreground"
-											}`}
-										/>
+										<span className="inline-flex items-center gap-2">
+											<span
+												aria-hidden="true"
+												className={`inline-block size-3 rounded-full ${
+													s.itemizedRequired
+														? "bg-success-text"
+														: "border-2 border-muted-foreground"
+												}`}
+											/>
+											<span className="text-xs text-muted-foreground">
+												{s.itemizedRequired ? "Yes" : "No"}
+											</span>
+										</span>
 									</td>
 									<td className="p-3 text-center">
-										<span
-											role="img"
-											aria-label={
-												s.interestRequired
-													? "Interest payment required"
-													: "Interest payment not required"
-											}
-											className={`inline-block size-3 rounded-full ${
-												s.interestRequired
-													? "bg-info-text"
-													: "border-2 border-muted-foreground"
-											}`}
-										/>
+										<span className="inline-flex items-center gap-2">
+											<span
+												aria-hidden="true"
+												className={`inline-block size-3 rounded-full ${
+													s.interestRequired
+														? "bg-info-text"
+														: "border-2 border-muted-foreground"
+												}`}
+											/>
+											<span className="text-xs text-muted-foreground">
+												{s.interestRequired ? "Yes" : "No"}
+											</span>
+										</span>
 									</td>
 									<td className="p-3 text-xs text-muted-foreground">
 										{s.notes ? <p className="mb-1">{s.notes}</p> : null}

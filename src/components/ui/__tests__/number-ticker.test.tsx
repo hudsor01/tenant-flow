@@ -277,4 +277,33 @@ describe("NumberTicker", () => {
 			expect(container.querySelector("span span")).toBeNull();
 		});
 	});
+
+	describe("startAtFinal (2026-11-24 SEO audit H1)", () => {
+		const place = (top: number) =>
+			vi
+				.spyOn(HTMLElement.prototype, "getBoundingClientRect")
+				.mockReturnValue({ top, bottom: top + 40 } as DOMRect);
+
+		afterEach(() => vi.restoreAllMocks());
+
+		it("keeps the real value, never 0, when it hydrates in view", async () => {
+			place(100);
+			render(<NumberTicker value={1234} startAtFinal />);
+			expect(screen.getByText("1,234")).toBeInTheDocument();
+			await act(async () => {
+				await vi.advanceTimersByTimeAsync(100);
+			});
+			expect(screen.getByText("1,234")).toBeInTheDocument();
+		});
+
+		it("drops to 0 out of view, then counts up to the real value", async () => {
+			place(window.innerHeight + 500);
+			render(<NumberTicker value={1234} startAtFinal duration={2000} />);
+			expect(screen.getByText("0")).toBeInTheDocument();
+			await act(async () => {
+				await vi.advanceTimersByTimeAsync(2100);
+			});
+			expect(screen.getByText("1,234")).toBeInTheDocument();
+		});
+	});
 });
