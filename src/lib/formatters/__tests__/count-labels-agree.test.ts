@@ -146,7 +146,7 @@ const REVIEWED: readonly { file: string; expr: RegExp; reason: string }[] = [
 		reason: "the branches past days <= 3, whose own branch writes '1 day'",
 	},
 	{
-		file: "src/app/blog/category/[category]/page.tsx",
+		file: "src/app/blog/category/[category]/category-index.tsx",
 		expr: /^label$/,
 		reason: "a category's name in a page title ('Tax Prep Articles & Guides')",
 	},

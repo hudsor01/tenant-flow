@@ -56,6 +56,12 @@ const mockBlogPosts: MockBlogPost[] = [
 		updated_at: null,
 		category: "Legal",
 	},
+	{
+		slug: "post-five",
+		published_at: "2026-01-02T00:00:00Z",
+		updated_at: null,
+		category: "Property Management", // the third: this hub is listed
+	},
 ];
 
 /**
@@ -267,8 +273,11 @@ describe("sitemap()", () => {
 			e.url.includes("property-management"),
 		);
 		expect(pmUrls).toHaveLength(1);
-		// Three unique categories: property-management, tenant-tips, legal.
-		expect(categoryUrls).toHaveLength(3);
+		// Only Property Management holds 3+ posts; Tenant Tips and Legal
+		// (1 each) are noindex and stay out of the sitemap (CT-2).
+		expect(categoryUrls.map((e) => e.url)).toEqual([
+			"https://tenantflow.app/blog/category/property-management",
+		]);
 		// The Property Management hub uses the most recent post in that
 		// category (post-one's updated_at, 2026-01-20, beats post-three's
 		// 2026-02-10? No — 2026-02-10 > 2026-01-20. The freshest is

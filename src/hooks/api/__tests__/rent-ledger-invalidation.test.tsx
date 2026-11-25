@@ -80,10 +80,7 @@ const LEDGER_FED: ReadonlyArray<readonly [string, readonly unknown[]]> = [
 ];
 
 /** A query no ledger write can change. */
-const UNRELATED = blogQueries.related({
-	category: "Tips",
-	excludeSlug: "a-post",
-}).queryKey;
+const UNRELATED = blogQueries.reviewQueue().queryKey;
 
 function seeded(): QueryClient {
 	const queryClient = new QueryClient({

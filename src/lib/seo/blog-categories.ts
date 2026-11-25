@@ -33,3 +33,12 @@ export function categoryLabel(slug: string): string {
 		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
 		.join(" ");
 }
+
+/**
+ * A category page is indexed, and listed in the sitemap, only once it holds
+ * this many posts. A one- or two-card page with a templated description reads
+ * as thin content (2026-11-24 SEO audit CT-2). Below it the page is
+ * `noindex, follow`: still crawlable, so its posts are found, and it joins
+ * the index by itself as posts are published.
+ */
+export const MIN_INDEXED_CATEGORY_POSTS = 3;

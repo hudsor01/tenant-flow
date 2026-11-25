@@ -2,7 +2,9 @@
  * Blog Hub Page Tests (Server Component / RSC pattern)
  *
  * Tests hub page composition: server-rendered post grid, category pills,
- * comparisons zone, breadcrumb visibility, empty-state branch.
+ * comparisons zone, breadcrumb visibility, empty-state branch. `/blog` and
+ * `/blog/page/[page]` both render `BlogIndex`, which is tested directly
+ * (2026-11-24 SEO audit BL1).
  *
  * @vitest-environment jsdom
  */
@@ -17,6 +19,7 @@ const mockGetBlogCategories = vi.hoisted(() => vi.fn());
 
 vi.mock("#lib/blog/blog-queries", () => ({
 	blogAnonClient: mockBlogAnonClient,
+	blogReadsUnavailable: () => false,
 	getBlogCategories: mockGetBlogCategories,
 }));
 
@@ -76,14 +79,20 @@ vi.mock("#components/blog/blog-card", () => ({
 
 vi.mock("#components/blog/blog-pagination", () => ({
 	BlogPagination: ({
+		basePath,
+		currentPage,
 		totalPages,
 		className,
 	}: {
+		basePath: string;
+		currentPage: number;
 		totalPages: number;
 		className?: string;
 	}) => (
 		<div
 			data-testid="blog-pagination"
+			data-base-path={basePath}
+			data-current-page={currentPage}
 			data-total-pages={totalPages}
 			className={className}
 		>
@@ -117,7 +126,8 @@ vi.mock("#components/seo/json-ld-script", () => ({
 }));
 
 import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
-import BlogPage, { generateMetadata } from "./page";
+import { BlogIndex, blogIndexMetadata } from "./blog-index";
+import BlogPage, { revalidate } from "./page";
 
 const mockPosts: BlogListItem[] = [
 	{
@@ -260,13 +270,15 @@ function makeFromBuilder({
 	return { from: fromMock, rpc: rpcMock };
 }
 
-async function renderPage(opts?: MockBuilderOpts): Promise<ReactElement> {
+async function renderPage(
+	opts?: MockBuilderOpts,
+	page = 1,
+): Promise<ReactElement> {
 	mockBlogAnonClient.mockReturnValue(makeFromBuilder(opts));
 	mockGetBlogCategories.mockResolvedValue(
 		opts?.categoriesError ? [] : mockCategories,
 	);
-	const ui = await BlogPage({ searchParams: Promise.resolve({}) });
-	return ui;
+	return BlogIndex({ page });
 }
 
 describe("BlogPage (server component)", () => {
@@ -292,10 +304,19 @@ describe("BlogPage (server component)", () => {
 		expect(blogCards[0]).toHaveTextContent("How to Reduce Vacancy Rates");
 	});
 
+	it("is static: /blog renders page 1 and revalidates every 5 minutes", () => {
+		expect(revalidate).toBe(300);
+		const element = BlogPage();
+		expect(element.type).toBe(BlogIndex);
+		expect(element.props).toEqual({ page: 1 });
+	});
+
 	it("renders pagination when totalPages > 1", async () => {
-		render(await renderPage({ postsCount: 27 }));
+		render(await renderPage({ postsCount: 27 }, 2));
 		const pagination = screen.getByTestId("blog-pagination");
 		expect(pagination.getAttribute("data-total-pages")).toBe("3");
+		expect(pagination.getAttribute("data-current-page")).toBe("2");
+		expect(pagination.getAttribute("data-base-path")).toBe("/blog");
 	});
 
 	it("does NOT render pagination when totalPages = 1", async () => {
@@ -303,7 +324,7 @@ describe("BlogPage (server component)", () => {
 		expect(screen.queryByTestId("blog-pagination")).not.toBeInTheDocument();
 	});
 
-	it("returns a 404 (notFound) for an out-of-range ?page — PostgREST 416 — without logging a Sentry error", async () => {
+	it("returns a 404 (notFound) for an out-of-range page — PostgREST 416 — without logging a Sentry error", async () => {
 		mockBlogAnonClient.mockReturnValue(
 			makeFromBuilder({
 				postsError: {
@@ -313,9 +334,9 @@ describe("BlogPage (server component)", () => {
 			}),
 		);
 		mockGetBlogCategories.mockResolvedValue(mockCategories);
-		await expect(
-			BlogPage({ searchParams: Promise.resolve({ page: "11" }) }),
-		).rejects.toMatchObject({ digest: "NEXT_HTTP_ERROR_FALLBACK;404" });
+		await expect(BlogIndex({ page: 11 })).rejects.toMatchObject({
+			digest: "NEXT_HTTP_ERROR_FALLBACK;404",
+		});
 		// the 416 is expected control flow, not a server error to report
 		expect(Sentry.captureException).not.toHaveBeenCalled();
 	});
@@ -361,35 +382,26 @@ describe("BlogPage (server component)", () => {
 		expect(screen.getByTestId("newsletter-signup")).toBeInTheDocument();
 	});
 
-	it("routes postsResult.error to Sentry with surface tag and renders empty state", async () => {
-		render(
-			await renderPage({
-				postsError: { message: "PostgREST error" },
-			}),
-		);
-		expect(screen.getByTestId("blog-empty-state")).toBeInTheDocument();
-		expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledTimes(1);
-		expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
-			expect.anything(),
-			expect.objectContaining({
-				tags: { surface: "blog-index" },
-				extra: expect.objectContaining({ page: expect.any(Number) }),
-			}),
-		);
+	it("throws on a posts read error, so a static page keeps its last good render", async () => {
+		await expect(
+			renderPage({ postsError: { message: "PostgREST error" } }),
+		).rejects.toMatchObject({
+			message: expect.stringContaining("PostgREST error"),
+		});
 	});
 
-	it("routes Promise.all rejection to Sentry and renders empty state without throwing", async () => {
-		// Should NOT throw — if BlogPage rethrows, this await chain would reject.
-		const ui = await renderPage({ rejectPosts: true });
-		render(ui);
-		expect(screen.getByTestId("blog-empty-state")).toBeInTheDocument();
-		expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledTimes(1);
-		expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
-			expect.anything(),
-			expect.objectContaining({
-				tags: { surface: "blog-index" },
-			}),
-		);
+	it("throws when the posts read rejects", async () => {
+		await expect(renderPage({ rejectPosts: true })).rejects.toMatchObject({
+			message: expect.stringContaining("range failed"),
+		});
+	});
+
+	it("throws on a comparisons read error", async () => {
+		await expect(
+			renderPage({ comparisonsError: { message: "comparisons down" } }),
+		).rejects.toMatchObject({
+			message: expect.stringContaining("comparisons down"),
+		});
 	});
 
 	it("degrades gracefully when categories are unavailable: posts still render, no category pills, no Sentry error", async () => {
@@ -404,21 +416,6 @@ describe("BlogPage (server component)", () => {
 		expect(categoryLinks).toHaveLength(0);
 		expect(vi.mocked(Sentry.captureException)).not.toHaveBeenCalled();
 	});
-
-	it("passes extra.page to Sentry matching the requested pagination cursor", async () => {
-		mockBlogAnonClient.mockReturnValue(
-			makeFromBuilder({ postsError: { message: "fail" } }),
-		);
-		mockGetBlogCategories.mockResolvedValue(mockCategories);
-		await BlogPage({ searchParams: Promise.resolve({ page: "3" }) });
-		expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
-			expect.anything(),
-			expect.objectContaining({
-				tags: { surface: "blog-index" },
-				extra: { page: 3 },
-			}),
-		);
-	});
 });
 
 describe("BlogPage generateMetadata", () => {
@@ -427,32 +424,33 @@ describe("BlogPage generateMetadata", () => {
 	});
 
 	async function metaFor(
-		searchParams: Record<string, string | string[] | undefined>,
+		page: number,
 		opts?: MockBuilderOpts,
 	): Promise<import("next").Metadata> {
 		mockBlogAnonClient.mockReturnValue(makeFromBuilder(opts));
-		return generateMetadata({ searchParams: Promise.resolve(searchParams) });
+		return blogIndexMetadata(page);
 	}
 
 	it("paginated page (page>1) is index:false, follow:true so links still pass equity", async () => {
 		// `noindex, follow` === index:false, follow:true — keeps the paginated
 		// page out of the index while passing equity to the post URLs it links.
-		const meta = await metaFor({ page: "2" }, { postsCount: 18 });
+		const meta = await metaFor(2, { postsCount: 18 });
 		expect(meta.robots).toBe("noindex, follow");
+		expect(meta.alternates?.canonical).toMatch(/\/blog\/page\/2$/);
 	});
 
 	it("page 1 with published posts is indexable", async () => {
-		const meta = await metaFor({}, { postsCount: 18 });
+		const meta = await metaFor(1, { postsCount: 18 });
 		expect(meta.robots).toBeUndefined();
 	});
 
 	it("noindexes the empty blog (zero published posts)", async () => {
-		const meta = await metaFor({}, { postsCount: 0 });
+		const meta = await metaFor(1, { postsCount: 0 });
 		expect(meta.robots).toBe("noindex, follow");
 	});
 
 	it("emits twitter:site and twitter:creator parity with the post pages", async () => {
-		const meta = await metaFor({}, { postsCount: 18 });
+		const meta = await metaFor(1, { postsCount: 18 });
 		const twitter = meta.twitter as Record<string, unknown>;
 		expect(twitter.site).toBe("@tenantflow");
 		expect(twitter.creator).toBe("@tenantflow");

@@ -7,6 +7,7 @@ import { BlogInlineCta } from "#components/blog/blog-inline-cta";
 import { LeadMagnetCta } from "#components/blog/lead-magnet-cta";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { env } from "#env";
+import { loadRelatedPosts } from "#lib/blog/blog-listing";
 import { createLogger } from "#lib/frontend-logger";
 import { createArticleJsonLd } from "#lib/seo/article-schema";
 import { createBlogPostBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
@@ -454,6 +455,7 @@ export default async function Page({ params }: Props) {
 	const { slug } = await params;
 	const post = await getBlogPost(slug);
 	if (!post) notFound();
+	const relatedPosts = await loadRelatedPosts(slug, post.category);
 
 	const wordCount = post?.content
 		? post.content.trim().split(/\s+/).length
@@ -539,7 +541,12 @@ export default async function Page({ params }: Props) {
 			{/* The visible breadcrumb renders INSIDE BlogPostPage's PageLayout so
 			    it sits below the fixed navbar (page-offset-navbar). Rendering it
 			    here put it underneath the navbar. */}
-			<BlogPostPage post={post} slug={slug} articleBody={articleBody} />
+			<BlogPostPage
+				post={post}
+				slug={slug}
+				articleBody={articleBody}
+				relatedPosts={relatedPosts}
+			/>
 		</>
 	);
 }

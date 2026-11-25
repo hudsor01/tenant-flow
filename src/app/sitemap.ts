@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { env } from "#env";
 import { blogAnonClient } from "#lib/blog/blog-queries";
 import { createLogger } from "#lib/frontend-logger";
+import { MIN_INDEXED_CATEGORY_POSTS } from "#lib/seo/blog-categories";
 
 // Cache sitemap for 24h via ISR — crawlers never hit a live DB call.
 export const revalidate = 86400;
@@ -203,25 +204,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		resourcesHubLastModified = blogHubLastModified;
 
 		// Category hub lastmod = the most recent post within that
-		// category. Group then take max(published_at|updated_at).
+		// category. Group then take max(published_at|updated_at). A category
+		// with fewer than MIN_INDEXED_CATEGORY_POSTS posts is noindex (its
+		// page says so), so it stays out of the sitemap until it fills
+		// (2026-11-24 SEO audit CT-2).
 		const categoryFreshness = new Map<string, string>();
+		const categoryCounts = new Map<string, number>();
 		for (const post of posts) {
 			if (!post.category) continue;
+			const slug = String(post.category).toLowerCase().replace(/\s+/g, "-");
+			categoryCounts.set(slug, (categoryCounts.get(slug) ?? 0) + 1);
 			const stamp = post.updated_at ?? post.published_at;
 			if (!stamp) continue;
-			const slug = String(post.category).toLowerCase().replace(/\s+/g, "-");
 			const current = categoryFreshness.get(slug);
 			if (!current || stamp > current) {
 				categoryFreshness.set(slug, stamp);
 			}
 		}
-		blogCategoryPages = Array.from(categoryFreshness.entries()).map(
-			([slug, stamp]) => ({
+		blogCategoryPages = Array.from(categoryFreshness.entries())
+			.filter(
+				([slug]) =>
+					(categoryCounts.get(slug) ?? 0) >= MIN_INDEXED_CATEGORY_POSTS,
+			)
+			.map(([slug, stamp]) => ({
 				url: `${baseUrl}/blog/category/${slug}`,
 				lastModified: stamp,
 				priority: 0.6,
-			}),
-		);
+			}));
 	} catch (error) {
 		logger.error("Failed to generate blog sitemap entries", {
 			action: "generateBlogSitemap",

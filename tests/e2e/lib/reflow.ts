@@ -151,6 +151,17 @@ export const REFLOW_UNLISTED_PAGES: Readonly<Record<string, UnlistedPage>> = {
 		measuredBy: "public/reflow-320.spec.ts",
 		marker: "main a[href^='/compare/']",
 	},
+	// Page 2 and up of a listing render the same view as page 1 (BlogIndex,
+	// CategoryIndex), which the specs above measure; they exist only once a
+	// listing holds more than 9 posts.
+	"/blog/page/[page]": {
+		notMeasured:
+			"exists only past 9 published posts; renders BlogIndex, measured at /blog",
+	},
+	"/blog/category/[category]/page/[page]": {
+		notMeasured:
+			"exists only past 9 posts in a category; renders CategoryIndex, measured at /blog/category/[category]",
+	},
 	// The detail and edit pages, on owner A's newest record of each kind; the
 	// maintenance request, which owner A has none of, is a synthetic record
 	// answered in the browser.
