@@ -26,8 +26,7 @@ export const metadata = createPageMetadata({
 		"Search TenantFlow's property management guides for independent landlords — leases, maintenance, tax season, and the document vault.",
 	path: "/search",
 	// Public search surface, but a thin query-driven results page has no
-	// standalone content value — keep it out of the index while still serving
-	// the homepage WebSite SearchAction contract.
+	// standalone content value, so it stays out of the index.
 	noindex: true,
 });
 

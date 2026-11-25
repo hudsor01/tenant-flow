@@ -24,6 +24,7 @@ import {
 	MIN_INDEXED_CATEGORY_POSTS,
 } from "#lib/seo/blog-categories";
 import { createBlogCategoryBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createCollectionPageJsonLd } from "#lib/seo/collection-schema";
 import { blogCategoryOgImage } from "#lib/seo/og-cards";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
@@ -46,6 +47,11 @@ export async function blogCategorySlugs(): Promise<{ category: string }[]> {
 	return categories.map((category) => ({ category: category.slug }));
 }
 
+/** A category page's description, in its metadata and its JSON-LD. */
+function categoryDescription(label: string): string {
+	return `Browse TenantFlow blog posts about ${label.toLowerCase()}. Expert insights and practical guides for landlords.`;
+}
+
 export async function categoryIndexMetadata(
 	category: string,
 	page: number,
@@ -62,7 +68,7 @@ export async function categoryIndexMetadata(
 	// itself once enough posts are published.
 	return createPageMetadata({
 		title: `${label} Articles & Guides`,
-		description: `Browse TenantFlow blog posts about ${label.toLowerCase()}. Expert insights and practical guides for landlords.`,
+		description: categoryDescription(label),
 		path: blogPageHref(`/blog/category/${category}`, page),
 		ogImage: blogCategoryOgImage(category),
 		noindex: page > 1 || validCategory.post_count < MIN_INDEXED_CATEGORY_POSTS,
@@ -91,6 +97,17 @@ export async function CategoryIndex({
 	return (
 		<PageLayout>
 			<JsonLdScript schema={createBlogCategoryBreadcrumbJsonLd(category)} />
+			<JsonLdScript
+				schema={createCollectionPageJsonLd({
+					name: `${label} Articles & Guides`,
+					path: blogPageHref(`/blog/category/${category}`, page),
+					description: categoryDescription(label),
+					pages: posts.map((post) => ({
+						name: post.title,
+						path: `/blog/${post.slug}`,
+					})),
+				})}
+			/>
 
 			<div className="container mx-auto max-w-6xl px-6 lg:px-8 pt-8">
 				<Breadcrumb>

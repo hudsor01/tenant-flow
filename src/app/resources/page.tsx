@@ -19,12 +19,15 @@ import {
 	contactTrackAttributes,
 } from "#lib/analytics/cta-attributes";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createCollectionPageJsonLd } from "#lib/seo/collection-schema";
 import { createPageMetadata } from "#lib/seo/page-metadata";
+
+const RESOURCES_DESCRIPTION =
+	"Free printable landlord tools: a seasonal maintenance checklist, a Schedule E tax deduction tracker, and a 50-state security deposit reference card.";
 
 export const metadata: Metadata = createPageMetadata({
 	title: "Free Landlord Resources | Templates & Tools",
-	description:
-		"Free printable landlord tools: a seasonal maintenance checklist, a Schedule E tax deduction tracker, and a 50-state security deposit reference card.",
+	description: RESOURCES_DESCRIPTION,
 	path: "/resources",
 	ogCard: "resources",
 });
@@ -92,6 +95,17 @@ export default function ResourcesPage() {
 	return (
 		<PageLayout>
 			<JsonLdScript schema={createBreadcrumbJsonLd("/resources")} />
+			<JsonLdScript
+				schema={createCollectionPageJsonLd({
+					name: "Free Landlord Resources",
+					path: "/resources",
+					description: RESOURCES_DESCRIPTION,
+					pages: downloadResources.map((resource) => ({
+						name: resource.title,
+						path: resource.href,
+					})),
+				})}
+			/>
 
 			{/* Hero Section */}
 			<section className="relative pb-20 overflow-hidden">

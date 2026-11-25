@@ -104,13 +104,8 @@ export function createPageMetadata(config: PageMetadataConfig): Metadata {
 		},
 		twitter: {
 			card: "summary_large_image",
-			// Next.js replaces the parent `twitter` object wholesale (no deep
-			// merge per nested field), so a page built via this helper would
-			// otherwise drop the root layout's `twitter:site` / `twitter:creator`.
-			// Emit them here so every helper-built page has the same
-			// `@tenantflow` site/creator parity the post pages set by hand.
-			site: "@tenantflow",
-			creator: "@tenantflow",
+			// No twitter:site / twitter:creator: TenantFlow has no X account
+			// (owner D-04, 2026-11-25), so naming one would point at a stranger.
 			title: suffixed,
 			description,
 			images: [{ url: imageUrl, alt: image.alt }],

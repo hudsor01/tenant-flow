@@ -19,10 +19,13 @@ vi.mock("#env", () => ({
 	},
 }));
 
+import { getPricingPlan } from "#config/pricing";
 import {
+	generateSiteMetadata,
 	getJsonLd,
 	getOrganizationJsonLd,
 	getSoftwareApplicationJsonLd,
+	organizationRef,
 } from "#lib/generate-metadata";
 
 /** schema-dts readonly result -> plain JSON for assertions */
@@ -106,5 +109,74 @@ describe("granular JSON-LD getters", () => {
 		const [org, software] = getJsonLd();
 		expect(toPlain(org)["@type"]).toBe("Organization");
 		expect(toPlain(software)["@type"]).toBe("SoftwareApplication");
+	});
+});
+
+describe("one connected entity graph (2026-11-24 SEO audit S5, S6, S8, P3)", () => {
+	const ORGANIZATION_ID = "https://tenantflow.app/#organization";
+
+	it("gives the Organization an @id, a square logo and only owned profiles", () => {
+		const org = toPlain(getOrganizationJsonLd());
+		expect(org["@id"]).toBe(ORGANIZATION_ID);
+		expect(org.logo).toEqual({
+			"@type": "ImageObject",
+			url: "https://tenantflow.app/icon-512x512.png",
+			width: 512,
+			height: 512,
+		});
+		// Owner D-04: the Facebook page is TenantFlow's; there is no X or
+		// LinkedIn account.
+		expect(org.sameAs).toEqual(["https://facebook.com/tenantflow"]);
+		expect(organizationRef()).toEqual({ "@id": ORGANIZATION_ID });
+	});
+
+	it("names no @tenantflow X account in the root metadata", async () => {
+		const twitter = asRecord((await generateSiteMetadata()).twitter);
+		expect(twitter).not.toHaveProperty("site");
+		expect(twitter).not.toHaveProperty("creator");
+	});
+
+	it("credits the product to the Organization node", () => {
+		const software = toPlain(getSoftwareApplicationJsonLd());
+		expect(software.author).toEqual({ "@id": ORGANIZATION_ID });
+		expect(software.publisher).toEqual({ "@id": ORGANIZATION_ID });
+	});
+
+	it("prices the range from the pricing config", () => {
+		const offers = asRecord(toPlain(getSoftwareApplicationJsonLd()).offers);
+		expect(offers).toMatchObject({
+			lowPrice: String(getPricingPlan("starter")?.price.monthly),
+			highPrice: String(getPricingPlan("max")?.price.monthly),
+			offerCount: "3",
+		});
+	});
+
+	it("lists every plan, monthly and annual, on the pricing page", () => {
+		const offers = toPlain(
+			getSoftwareApplicationJsonLd({ offers: "plans" }),
+		).offers;
+		if (!Array.isArray(offers)) throw new Error("Expected an Offer list");
+		const expected = (["starter", "growth", "max"] as const).flatMap((id) => {
+			const plan = getPricingPlan(id);
+			if (!plan) throw new Error(`no ${id} plan`);
+			return [
+				[`${plan.name} (monthly)`, String(plan.price.monthly), "P1M"],
+				[`${plan.name} (annual)`, String(plan.price.annual), "P1Y"],
+			];
+		});
+		expect(
+			offers.map((raw) => {
+				const offer = asRecord(raw);
+				const spec = asRecord(offer.priceSpecification);
+				return [offer.name, offer.price, spec.billingDuration];
+			}),
+		).toEqual(expected);
+		for (const raw of offers) {
+			expect(asRecord(raw)).toMatchObject({
+				"@type": "Offer",
+				priceCurrency: "USD",
+				url: "https://tenantflow.app/pricing",
+			});
+		}
 	});
 });

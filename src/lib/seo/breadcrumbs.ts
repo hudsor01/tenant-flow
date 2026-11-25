@@ -150,9 +150,19 @@ function stripHtmlTags(input: string): string {
 }
 
 /** Capitalize first letter of each word and replace hyphens with spaces */
+/**
+ * Words a slug spells in lower case that read as acronyms (2026-11-24 SEO
+ * audit Q10: "/faq" became "Faq").
+ */
+const ACRONYMS: Readonly<Record<string, string>> = { faq: "FAQ" };
+
 function formatSegment(segment: string): string {
 	return segment
 		.split("-")
-		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+		.map((word) =>
+			Object.hasOwn(ACRONYMS, word)
+				? (ACRONYMS[word] ?? word)
+				: word.charAt(0).toUpperCase() + word.slice(1),
+		)
 		.join(" ");
 }

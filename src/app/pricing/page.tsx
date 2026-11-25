@@ -57,12 +57,13 @@ export default async function PricingPage() {
 	// SoftwareApplication + AggregateOffer — the commercial product entity, the
 	// correct schema for a SaaS pricing page. Emitted explicitly here (and on the
 	// homepage) since it was scoped out of the site-wide SeoJsonLd to keep it off
-	// `/blog/*`, where it would dilute the Article schema. NOTE: this is NOT a
+	// `/blog/*`, where it would dilute the BlogPosting schema. NOTE: this is NOT a
 	// Product schema — a Product node pulled the page into Google's Merchant-
 	// listings validation (shippingDetails / hasMerchantReturnPolicy, meaningless
 	// for SaaS); SoftwareApplication is the rich-result-eligible alternative.
-	const softwareJsonLd =
-		getSoftwareApplicationJsonLd() as WithContext<SoftwareApplication>;
+	const softwareJsonLd = getSoftwareApplicationJsonLd({
+		offers: "plans",
+	}) as WithContext<SoftwareApplication>;
 
 	return (
 		<PageLayout>

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { getPricingPlan, type PricingConfig } from "#config/pricing";
 import { env } from "#env";
+import { DiagnosticError } from "#lib/diagnostic-error";
 import { OG_CARDS, ogCardAlt, ogCardPath } from "#lib/seo/og-cards";
 
 const PRODUCTION_URL = "https://tenantflow.app";
@@ -81,8 +83,6 @@ function createDefaultMetadata(): Metadata {
 				"TenantFlow | Property Management Software for Independent Landlords",
 			description:
 				"Landlord-only property management software. Track leases, maintenance, and tenants. Plans from $19/mo.",
-			site: "@tenantflow",
-			creator: "@tenantflow",
 			images: [
 				{
 					url: `${SITE_URL}${ogCardPath("site")}`,
@@ -121,6 +121,21 @@ function getDefaultMetadata(): Metadata {
 }
 
 /**
+ * The Organization node's `@id` (2026-11-24 SEO audit S6). Every other node
+ * that names TenantFlow (the product, the blog posts, the about and contact
+ * pages) points here with `organizationRef()`, so search engines read one
+ * connected entity instead of several same-named ones.
+ */
+function organizationId(): string {
+	return `${getSiteUrl()}/#organization`;
+}
+
+/** A reference to the Organization node, for `author`, `publisher` and the like. */
+export function organizationRef(): { "@id": string } {
+	return { "@id": organizationId() };
+}
+
+/**
  * Organization JSON-LD — emitted site-wide (every route) via `SeoJsonLd` in
  * the root layout. The Organization entity is route-neutral brand identity
  * and is correct on every page, including `/blog/*`.
@@ -131,9 +146,16 @@ export function getOrganizationJsonLd() {
 	return {
 		"@context": "https://schema.org",
 		"@type": "Organization",
+		"@id": organizationId(),
 		name: "TenantFlow",
 		url: SITE_URL,
-		logo: `${SITE_URL}/tenant-flow-logo.png`,
+		// Square, as Google asks for a logo (S8): the 512x512 brand mark.
+		logo: {
+			"@type": "ImageObject",
+			url: `${SITE_URL}/icon-512x512.png`,
+			width: 512,
+			height: 512,
+		},
 		description:
 			"Property management software for independent landlords. Track leases, maintenance, and tenants. 14-day free trial.",
 		foundingDate: "2024",
@@ -147,24 +169,80 @@ export function getOrganizationJsonLd() {
 			areaServed: "US",
 			availableLanguage: "English",
 		},
-		sameAs: [
-			"https://twitter.com/tenantflow",
-			"https://linkedin.com/company/tenantflow",
-			"https://facebook.com/tenantflow",
-		],
+		// Only profiles TenantFlow owns (owner D-04, 2026-11-25): a sameAs
+		// pointing at someone else's account merges two entities. There is no
+		// TenantFlow X/Twitter or LinkedIn account, so no @tenantflow tags either.
+		sameAs: ["https://facebook.com/tenantflow"],
+	};
+}
+
+/** The paid plans, in price order, from `src/config/pricing.ts`. */
+function paidPlans(): PricingConfig[] {
+	return (["starter", "growth", "max"] as const).map((id) => {
+		const plan = getPricingPlan(id);
+		if (!plan) {
+			throw new DiagnosticError(
+				`generate-metadata: no "${id}" plan in pricing.ts`,
+			);
+		}
+		return plan;
+	});
+}
+
+/**
+ * One Offer per plan and billing period (2026-11-24 SEO audit P3): the
+ * machine-readable price list that AI answers and shopping surfaces read.
+ */
+function planOffers(siteUrl: string) {
+	return paidPlans().flatMap((plan) =>
+		(
+			[
+				["monthly", "P1M"],
+				["annual", "P1Y"],
+			] as const
+		).map(([period, billingDuration]) => ({
+			"@type": "Offer",
+			name: `${plan.name} (${period === "monthly" ? "monthly" : "annual"})`,
+			price: String(plan.price[period]),
+			priceCurrency: "USD",
+			priceSpecification: {
+				"@type": "UnitPriceSpecification",
+				price: String(plan.price[period]),
+				priceCurrency: "USD",
+				billingDuration,
+			},
+			url: `${siteUrl}/pricing`,
+			availability: "https://schema.org/InStock",
+		})),
+	);
+}
+
+/** The monthly price range across the paid plans. */
+function offerRange() {
+	const prices = paidPlans().map((plan) => plan.price.monthly);
+	return {
+		"@type": "AggregateOffer",
+		priceCurrency: "USD",
+		lowPrice: String(Math.min(...prices)),
+		highPrice: String(Math.max(...prices)),
+		offerCount: String(prices.length),
+		availability: "https://schema.org/InStock",
 	};
 }
 
 /**
- * SoftwareApplication + AggregateOffer JSON-LD — the commercial product
- * entity. Emitted ONLY on the marketing homepage (`MarketingJsonLd`), NOT
- * site-wide. On `/blog/*` a site-wide SoftwareApplication node competes with
- * each post's `Article` schema for the page's primary-entity signal and
- * dilutes it — the same reason PR 674 dropped SoftwareApplication from the
- * compare pages. Scoping it to the homepage keeps the product entity where
- * it belongs without polluting editorial pages.
+ * SoftwareApplication JSON-LD — the commercial product entity. Emitted ONLY
+ * on the homepage, /features and /pricing, NOT site-wide. On `/blog/*` a
+ * site-wide SoftwareApplication node competes with each post's `BlogPosting`
+ * for the page's primary-entity signal and dilutes it — the same reason PR
+ * 674 dropped SoftwareApplication from the compare pages.
+ *
+ * `offers: "plans"` (the pricing page) lists every plan and billing period;
+ * elsewhere it is the monthly price range. Both come from the pricing config.
  */
-export function getSoftwareApplicationJsonLd() {
+export function getSoftwareApplicationJsonLd(
+	options: { offers?: "range" | "plans" } = {},
+) {
 	const SITE_URL = getSiteUrl();
 
 	return {
@@ -177,23 +255,10 @@ export function getSoftwareApplicationJsonLd() {
 		description:
 			"Property management software for independent landlords. Track leases, maintenance, tenants, and financial reporting. 14-day free trial.",
 		url: SITE_URL,
-		image: [
-			`${SITE_URL}${ogCardPath("site")}`,
-			`${SITE_URL}/tenant-flow-logo.png`,
-		],
-		author: {
-			"@type": "Organization",
-			name: "TenantFlow",
-			url: SITE_URL,
-		},
-		offers: {
-			"@type": "AggregateOffer",
-			priceCurrency: "USD",
-			lowPrice: "19",
-			highPrice: "149",
-			offerCount: "3",
-			availability: "https://schema.org/InStock",
-		},
+		image: [`${SITE_URL}${ogCardPath("site")}`, `${SITE_URL}/icon-512x512.png`],
+		author: organizationRef(),
+		publisher: organizationRef(),
+		offers: options.offers === "plans" ? planOffers(SITE_URL) : offerRange(),
 		featureList: [
 			"Property Management",
 			"Tenant Records",

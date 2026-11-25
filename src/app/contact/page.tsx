@@ -4,6 +4,7 @@ import { ContactForm } from "#components/contact/contact-form";
 import { PageLayout } from "#components/layout/page-layout";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createOrganizationPageJsonLd } from "#lib/seo/collection-schema";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
 export const metadata: Metadata = createPageMetadata({
@@ -18,6 +19,12 @@ export default function ContactPage() {
 	return (
 		<PageLayout>
 			<JsonLdScript schema={createBreadcrumbJsonLd("/contact")} />
+			<JsonLdScript
+				schema={createOrganizationPageJsonLd("ContactPage", {
+					name: "Contact TenantFlow",
+					path: "/contact",
+				})}
+			/>
 			<ContactForm />
 		</PageLayout>
 	);

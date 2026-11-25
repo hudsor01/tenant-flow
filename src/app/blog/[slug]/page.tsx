@@ -9,7 +9,8 @@ import { JsonLdScript } from "#components/seo/json-ld-script";
 import { env } from "#env";
 import { loadRelatedPosts } from "#lib/blog/blog-listing";
 import { createLogger } from "#lib/frontend-logger";
-import { createArticleJsonLd } from "#lib/seo/article-schema";
+import { createBlogPostingJsonLd } from "#lib/seo/article-schema";
+import { categoryLabel } from "#lib/seo/blog-categories";
 import { createBlogPostBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createFaqJsonLd, parseFaqSection } from "#lib/seo/faq-schema";
 import type { Database } from "#types/supabase";
@@ -206,7 +207,6 @@ type BlogPostRow = Pick<
 	| "category"
 	| "meta_description"
 	| "excerpt"
-	| "tags"
 	| "canonical_url"
 >;
 
@@ -289,7 +289,7 @@ const getBlogPost = cache(async (slug: string) => {
 			const { data, error } = await supabase
 				.from("blogs")
 				.select(
-					"title, seo_title, slug, published_at, updated_at, featured_image, content, reading_time, category, meta_description, excerpt, tags, canonical_url",
+					"title, seo_title, slug, published_at, updated_at, featured_image, content, reading_time, category, meta_description, excerpt, canonical_url",
 				)
 				.eq("status", "published")
 				.order("published_at", { ascending: false })
@@ -334,7 +334,7 @@ const getBlogPost = cache(async (slug: string) => {
 		const query = supabase
 			.from("blogs")
 			.select(
-				"title, seo_title, slug, published_at, updated_at, featured_image, content, reading_time, category, meta_description, excerpt, tags, canonical_url",
+				"title, seo_title, slug, published_at, updated_at, featured_image, content, reading_time, category, meta_description, excerpt, canonical_url",
 			)
 			.eq("slug", slug)
 			.eq("status", "published")
@@ -417,7 +417,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 			// `createPageMetadata` (which sets it). Mirror
 			// `alternates.canonical` so the OG canonical and the
 			// <link rel="canonical"> agree. Guarded by seo-smoke.spec.ts
-			// "/blog/[slug] has Article schema".
+			// "/blog/[slug] has BlogPosting schema".
 			url: canonical,
 			publishedTime: post.published_at ?? undefined,
 			modifiedTime: post.updated_at ?? post.published_at ?? undefined,
@@ -440,8 +440,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 		},
 		twitter: {
 			card: "summary_large_image",
-			site: "@tenantflow",
-			creator: "@tenantflow",
 			title: post.title,
 			description,
 			images: [ogImageUrl],
@@ -478,33 +476,23 @@ export default async function Page({ params }: Props) {
 	const faqItems = post ? parseFaqSection(post.content) : [];
 	const faqSchema = faqItems.length >= 3 ? createFaqJsonLd(faqItems) : null;
 
-	// Article schema only emits when we have a real published_at — Google's
-	// Article rich-result eligibility requires datePublished, and faking
-	// `new Date().toISOString()` produces a misleading freshness signal that
-	// will not match what crawlers see on subsequent visits.
+	// BlogPosting only emits with a real published_at: datePublished is
+	// required, and faking `new Date().toISOString()` would send a freshness
+	// signal that doesn't match what crawlers see on later visits.
 	const articleSchema =
 		post && post.published_at
-			? createArticleJsonLd({
+			? createBlogPostingJsonLd({
 					title: post.title,
 					slug: post.slug,
 					datePublished: post.published_at,
 					dateModified: post.updated_at ?? post.published_at,
-					// Author byline on the rendered page reads "TenantFlow Team", and
-					// individual posts are not reliably attributed to a single human.
-					// Schema author follows the visible byline so the entity matches —
-					// `authorType: 'Organization'` because a team/brand isn't a
-					// schema.org `Person`.
-					authorName: "TenantFlow Team",
-					authorType: "Organization",
 					image: post.featured_image ?? undefined,
 					wordCount,
-					keywords: Array.isArray(post.tags)
-						? post.tags.filter((t): t is string => typeof t === "string")
-						: undefined,
 					description: post.meta_description ?? post.excerpt ?? undefined,
 					timeRequired: post.reading_time
 						? `PT${post.reading_time}M`
 						: undefined,
+					section: post.category ? categoryLabel(post.category) : undefined,
 				})
 			: null;
 

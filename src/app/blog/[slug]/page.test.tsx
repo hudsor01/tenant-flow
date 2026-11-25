@@ -469,7 +469,7 @@ describe("generateMetadata (server entry)", () => {
 
 		expect(metadata.alternates?.canonical).toBe("/compare/buildium");
 		// og:url mirrors the canonical so the OG + <link rel=canonical>
-		// signals agree (seo-smoke.spec.ts "/blog/[slug] has Article schema").
+		// signals agree (seo-smoke.spec.ts "/blog/[slug] has BlogPosting schema").
 		expect(metadata.openGraph?.url).toBe("/compare/buildium");
 	});
 

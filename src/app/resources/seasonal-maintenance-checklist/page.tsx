@@ -262,10 +262,12 @@ export default function SeasonalMaintenanceChecklistPage() {
 		step: seasons.map((season) => ({
 			"@type": "HowToSection" as const,
 			name: season.name,
+			// No "[Exterior] " prefix on the text: it repeated the step's name
+			// with a bracketed label (2026-11-24 SEO audit M2).
 			itemListElement: season.tasks.map((task) => ({
 				"@type": "HowToStep" as const,
 				name: task.task,
-				text: `[${task.area}] ${task.task}`,
+				text: task.task,
 			})),
 		})),
 	};
