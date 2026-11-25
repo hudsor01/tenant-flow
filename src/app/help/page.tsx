@@ -1,4 +1,4 @@
-import { ArrowRight, Mail, MessageCircle } from "lucide-react";
+import { ArrowRight, CalendarClock, Mail, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { PageLayout } from "#components/layout/page-layout";
 import { HeroSection } from "#components/sections/hero-section";
@@ -73,6 +73,31 @@ export default function HelpPage() {
 							<ItemActions>
 								<Button className="w-full" variant="outline" asChild>
 									<a href="mailto:support@tenantflow.app">Send Email</a>
+								</Button>
+							</ItemActions>
+						</Item>
+
+						<ItemSeparator />
+
+						<Item variant="outline">
+							<ItemMedia variant="icon">
+								<CalendarClock />
+							</ItemMedia>
+							<ItemContent>
+								<ItemTitle>Demo or Call</ItemTitle>
+								<ItemDescription className="mb-0">
+									Before or after you sign up
+								</ItemDescription>
+								<div className="mt-2">
+									<p className="mb-0 text-muted-foreground">
+										Share a few times that work and we&apos;ll email you to
+										confirm one
+									</p>
+								</div>
+							</ItemContent>
+							<ItemActions>
+								<Button className="w-full" variant="outline" asChild>
+									<Link href="/contact?topic=call">Request a call</Link>
 								</Button>
 							</ItemActions>
 						</Item>

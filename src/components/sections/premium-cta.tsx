@@ -78,9 +78,9 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 								className="group border-2 border-border/50 hover:border-primary/40 hover:bg-primary/5 dark:border-border/50 dark:hover:bg-primary/5 typography-large px-10 py-6 rounded transition-all duration-500 backdrop-blur-sm hover:shadow-lg"
 								asChild
 							>
-								<Link href="/contact" aria-label="Talk to our team">
+								<Link href="/contact?topic=call">
 									<MessageCircle className="size-6 mr-3 opacity-70 group-hover:opacity-100 group-hover:text-primary transition-all duration-500" />
-									Talk to Our Team
+									Request a call
 								</Link>
 							</Button>
 						</div>

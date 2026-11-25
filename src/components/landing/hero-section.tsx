@@ -45,9 +45,9 @@ export function HeroSection() {
 								className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 dark:border-muted-foreground/30 dark:hover:bg-primary/5 typography-large px-8 py-4 transition-all duration-300"
 								asChild
 							>
-								<Link href="/contact">
+								<Link href="/contact?topic=demo">
 									<ArrowRight className="size-5 mr-3 opacity-70 group-hover:opacity-100" />
-									See it in action
+									Request a demo
 								</Link>
 							</Button>
 						</div>
