@@ -11,7 +11,7 @@ Policy: https://tenantflow.app/security-policy
 # 
 # Response Time: We aim to acknowledge reports within 24 hours
 # Disclosure Timeline: 90 days for coordinated disclosure
-# Bug Bounty: Contact us for information about our bug bounty program
+# Bug Bounty: No monetary bug bounty; we credit researchers with their permission (see Policy)
 # 
 # Scope:
 # In Scope:

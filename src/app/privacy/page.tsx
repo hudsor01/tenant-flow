@@ -7,7 +7,7 @@ import { createPageMetadata } from "#lib/seo/page-metadata";
 export const metadata: Metadata = createPageMetadata({
 	title: "Privacy Policy | Data Protection & User Rights",
 	description:
-		"TenantFlow Privacy Policy. Learn how we collect, use, and safeguard your data, including tenant records, payment information, and account activity.",
+		"How TenantFlow collects, uses and protects your account data, property and tenant records, and billing details processed by Stripe.",
 	path: "/privacy",
 });
 
@@ -18,12 +18,14 @@ export default function PrivacyPage() {
 			<div className="mx-auto min-h-screen max-w-4xl px-6 lg:px-8 section-spacing">
 				<h1 className="mb-8 typography-h1">Privacy Policy</h1>
 				<p className="mb-6 text-muted-foreground">
-					Last Updated: November 9, 2026
+					Last Updated: November 25, 2026
 				</p>
 
 				<div className="prose prose-gray dark:prose-invert max-w-none">
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">1. Introduction</h2>
+						<h2 id="introduction" className="mb-4 typography-h3 scroll-mt-24">
+							1. Introduction
+						</h2>
 						<p>
 							Welcome to TenantFlow (&quot;we,&quot; &quot;our,&quot; or
 							&quot;us&quot;). We are committed to protecting your privacy and
@@ -40,7 +42,12 @@ export default function PrivacyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">2. Information We Collect</h2>
+						<h2
+							id="information-we-collect"
+							className="mb-4 typography-h3 scroll-mt-24"
+						>
+							2. Information We Collect
+						</h2>
 
 						<h3 className="mb-3 typography-h4">2.1 Information You Provide</h3>
 						<p>We collect information that you voluntarily provide to us:</p>
@@ -84,21 +91,20 @@ export default function PrivacyPage() {
 						</p>
 						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
-								<strong>Usage Data:</strong> Pages viewed, features used, time
-								spent on pages, and interaction patterns
+								<strong>Usage Data:</strong> Pages viewed and how quickly they
+								load, counted by Vercel Web Analytics and Speed Insights
 							</li>
 							<li>
 								<strong>Device Information:</strong> Browser type, operating
 								system, device type, IP address
 							</li>
 							<li>
-								<strong>Log Data:</strong> Access times, error logs, and
+								<strong>Log Data:</strong> Access times, error reports, and
 								performance metrics
 							</li>
 							<li>
-								<strong>Cookies and Tracking:</strong> We use cookies and
-								similar technologies to enhance your experience and collect
-								analytics data
+								<strong>Cookies and Browser Storage:</strong> A sign-in cookie,
+								a sidebar cookie and the browser storage described in Section 8
 							</li>
 						</ul>
 
@@ -124,7 +130,10 @@ export default function PrivacyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">
+						<h2
+							id="how-we-use-information"
+							className="mb-4 typography-h3 scroll-mt-24"
+						>
 							3. How We Use Your Information
 						</h2>
 						<p>We use the collected information for the following purposes:</p>
@@ -161,7 +170,7 @@ export default function PrivacyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">
+						<h2 id="sharing" className="mb-4 typography-h3 scroll-mt-24">
 							4. How We Share Your Information
 						</h2>
 						<p>
@@ -170,25 +179,42 @@ export default function PrivacyPage() {
 						</p>
 
 						<h3 className="mb-3 typography-h4">4.1 Service Providers</h3>
-						<p>We share data with trusted third-party service providers:</p>
+						<p>We share data with these third-party service providers:</p>
 						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
-								<strong>Supabase:</strong> Database hosting and authentication
+								<strong>Supabase:</strong> Database hosting, authentication and
+								file storage
 							</li>
 							<li>
-								<strong>Stripe:</strong> Payment processing for TenantFlow
-								subscriptions
+								<strong>Stripe:</strong> Subscription payments and sales tax
+								calculation. Stripe collects your card details directly; we
+								never receive them
 							</li>
 							<li>
-								<strong>Vercel:</strong> Frontend hosting and deployment
+								<strong>Vercel:</strong> Website hosting, plus Web Analytics and
+								Speed Insights, which count page views and measure load times
+								without cookies
 							</li>
 							<li>
-								<strong>Resend:</strong> Transactional email delivery
+								<strong>Resend:</strong> Email delivery
+							</li>
+							<li>
+								<strong>Sentry:</strong> Error monitoring. When something
+								breaks, Sentry receives an error report with your browser and
+								device type, the page address with any query string removed,
+								and, when you are signed in, your account ID
+							</li>
+							<li>
+								<strong>Google:</strong> Sign-in, only if you choose Sign in
+								with Google (see Section 2.3)
 							</li>
 						</ul>
 						<p>
 							These providers are contractually obligated to protect your data
-							and use it only for the services they provide to us.
+							and use it only for the services they provide to us. We also run
+							n8n, workflow automation software, on our own server: it receives
+							maintenance request and error notifications so we can respond to
+							them.
 						</p>
 
 						<h3 className="mb-3 typography-h4">4.2 Legal Requirements</h3>
@@ -211,7 +237,9 @@ export default function PrivacyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">5. Data Security</h2>
+						<h2 id="security" className="mb-4 typography-h3 scroll-mt-24">
+							5. Data Security
+						</h2>
 						<p>
 							We implement industry-standard security measures to protect your
 							data:
@@ -246,7 +274,9 @@ export default function PrivacyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">6. Data Retention</h2>
+						<h2 id="retention" className="mb-4 typography-h3 scroll-mt-24">
+							6. Data Retention
+						</h2>
 						<p>
 							We retain your personal information for as long as necessary to
 							provide our services and comply with legal obligations:
@@ -274,14 +304,37 @@ export default function PrivacyPage() {
 								does not remove them
 							</li>
 							<li>
+								<strong>Notifications:</strong> Moved out of the app 90 days
+								after you read them, or 180 days after they arrive if unread
+							</li>
+							<li>
+								<strong>Error Reports and Email Delivery Records:</strong> Moved
+								out of the app after 90 days
+							</li>
+							<li>
+								<strong>Security Logs:</strong> Moved out of the app after 30
+								days to 1 year, depending on severity
+							</li>
+							<li>
+								<strong>Rental Applications:</strong> Applications that never
+								became a tenant record are anonymized 730 days after they are
+								submitted
+							</li>
+							<li>
 								<strong>Backup Data:</strong> Backups are retained for disaster
 								recovery purposes
 							</li>
 						</ul>
+						<p>
+							Records moved out of the app are kept in archives that only our
+							systems can read.
+						</p>
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">7. Your Rights and Choices</h2>
+						<h2 id="your-rights" className="mb-4 typography-h3 scroll-mt-24">
+							7. Your Rights and Choices
+						</h2>
 						<p>
 							You have the following rights regarding your personal information:
 						</p>
@@ -342,32 +395,37 @@ export default function PrivacyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">
+						<h2 id="cookies" className="mb-4 typography-h3 scroll-mt-24">
 							8. Cookies and Tracking Technologies
 						</h2>
-						<p>We use the following types of cookies:</p>
+						<p>We use two cookies:</p>
 						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
-								<strong>Essential Cookies:</strong> Required for basic platform
-								functionality (authentication, security)
+								<strong>Sign-in Cookie:</strong> Keeps you signed in. The
+								platform does not work without it
 							</li>
 							<li>
-								<strong>Analytics Cookies:</strong> Help us understand usage
-								patterns and improve the platform
-							</li>
-							<li>
-								<strong>Preference Cookies:</strong> Remember your settings and
-								preferences
+								<strong>Sidebar Cookie:</strong> Remembers whether you left the
+								dashboard sidebar open or closed
 							</li>
 						</ul>
 						<p>
-							You can control cookie preferences through your browser settings.
-							Disabling essential cookies may impact platform functionality.
+							Our analytics, Vercel Web Analytics and Speed Insights, do not use
+							cookies. We also keep some data in your browser&apos;s own
+							storage: your display preferences, unsent form drafts, which
+							prompts you have dismissed, and a copy of your recently viewed
+							data so pages load faster. It stays on your device.
+						</p>
+						<p>
+							You can block or delete cookies and browser storage in your
+							browser settings. Blocking the sign-in cookie signs you out.
 						</p>
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">9. Children&apos;s Privacy</h2>
+						<h2 id="children" className="mb-4 typography-h3 scroll-mt-24">
+							9. Children&apos;s Privacy
+						</h2>
 						<p>
 							TenantFlow is not intended for use by individuals under the age of
 							18. We do not knowingly collect personal information from
@@ -377,7 +435,12 @@ export default function PrivacyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">10. International Users</h2>
+						<h2
+							id="international-users"
+							className="mb-4 typography-h3 scroll-mt-24"
+						>
+							10. International Users
+						</h2>
 						<p>
 							TenantFlow is operated in the United States. If you are accessing
 							our services from outside the U.S., your information will be
@@ -400,7 +463,12 @@ export default function PrivacyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">11. Third-Party Links</h2>
+						<h2
+							id="third-party-links"
+							className="mb-4 typography-h3 scroll-mt-24"
+						>
+							11. Third-Party Links
+						</h2>
 						<p>
 							Our platform may contain links to third-party websites or
 							services. We are not responsible for the privacy practices of
@@ -410,7 +478,7 @@ export default function PrivacyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">
+						<h2 id="changes" className="mb-4 typography-h3 scroll-mt-24">
 							12. Changes to This Privacy Policy
 						</h2>
 						<p>
@@ -430,7 +498,9 @@ export default function PrivacyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">13. Contact Us</h2>
+						<h2 id="contact" className="mb-4 typography-h3 scroll-mt-24">
+							13. Contact Us
+						</h2>
 						<p>
 							If you have questions, concerns, or requests regarding this
 							Privacy Policy or our data practices, please contact us:
@@ -462,7 +532,7 @@ export default function PrivacyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">
+						<h2 id="ccpa" className="mb-4 typography-h3 scroll-mt-24">
 							14. California Privacy Rights (CCPA)
 						</h2>
 						<p>

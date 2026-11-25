@@ -7,7 +7,7 @@ import { createPageMetadata } from "#lib/seo/page-metadata";
 export const metadata: Metadata = createPageMetadata({
 	title: "Terms of Service",
 	description:
-		"TenantFlow Terms of Service. Review the terms and conditions governing use of our property management platform, billing, and user obligations.",
+		"TenantFlow's terms of service: accounts, subscriptions and billing, free trials, acceptable use, and liability.",
 	path: "/terms",
 });
 
@@ -18,12 +18,14 @@ export default function TermsPage() {
 			<div className="mx-auto min-h-screen max-w-4xl px-6 lg:px-8 section-spacing">
 				<h1 className="mb-8 typography-h1">Terms of Service</h1>
 				<p className="mb-6 text-muted-foreground">
-					Last Updated: November 9, 2026
+					Last Updated: November 25, 2026
 				</p>
 
 				<div className="prose prose-gray dark:prose-invert max-w-none">
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">1. Agreement to Terms</h2>
+						<h2 id="agreement" className="mb-4 typography-h3 scroll-mt-24">
+							1. Agreement to Terms
+						</h2>
 						<p>
 							These Terms of Service (&quot;Terms&quot;) constitute a legally
 							binding agreement between you (&quot;User,&quot; &quot;you,&quot;
@@ -40,7 +42,9 @@ export default function TermsPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">2. Eligibility</h2>
+						<h2 id="eligibility" className="mb-4 typography-h3 scroll-mt-24">
+							2. Eligibility
+						</h2>
 						<p>To use TenantFlow, you must:</p>
 						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>Be at least 18 years of age</li>
@@ -59,7 +63,7 @@ export default function TermsPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">
+						<h2 id="accounts" className="mb-4 typography-h3 scroll-mt-24">
 							3. Account Registration and Security
 						</h2>
 
@@ -107,7 +111,9 @@ export default function TermsPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">4. Subscription and Payment</h2>
+						<h2 id="subscription" className="mb-4 typography-h3 scroll-mt-24">
+							4. Subscription and Payment
+						</h2>
 
 						<h3 className="mb-3 typography-h4">4.1 Subscription Plans</h3>
 						<p>
@@ -119,7 +125,41 @@ export default function TermsPage() {
 							.
 						</p>
 
-						<h3 className="mb-3 typography-h4">4.2 Billing</h3>
+						<h3 id="free-trial" className="mb-3 typography-h4 scroll-mt-24">
+							4.2 Free Trial
+						</h3>
+						<ul className="mt-0 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
+							<li>
+								New accounts start with a 14-day free trial. No payment card is
+								needed to start it
+							</li>
+							<li>
+								If you choose a plan during the trial, you enter a payment card
+								at checkout and are not charged until the trial ends. When it
+								ends, your card is charged the plan&apos;s price plus any
+								applicable tax, and the subscription then renews automatically
+								each billing period until you cancel. If fewer than two days of
+								the trial remain when you choose a plan, you are charged when
+								you subscribe
+							</li>
+							<li>
+								Before that first charge, we email you to say when the trial
+								ends and that your card will be charged
+							</li>
+							<li>
+								To avoid the charge, cancel in Settings &gt; Billing before the
+								trial ends
+							</li>
+							<li>
+								If you don&apos;t choose a plan, nothing is charged. When the
+								trial ends, the Service, other than your account settings, is
+								unavailable until you subscribe
+							</li>
+						</ul>
+
+						<h3 id="billing" className="mb-3 typography-h4 scroll-mt-24">
+							4.3 Billing
+						</h3>
 						<ul className="mt-0 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								<strong>Recurring Charges:</strong> Subscriptions are billed on
@@ -145,13 +185,28 @@ export default function TermsPage() {
 							</li>
 						</ul>
 
+						<h3 id="taxes" className="mb-3 typography-h4 scroll-mt-24">
+							4.4 Taxes
+						</h3>
+						<p>
+							Prices are in US dollars and exclude sales and use taxes. Where we
+							are required to collect tax, it is calculated from your billing
+							address, shown at checkout and added to your invoices.
+						</p>
+
 						<h3 id="cancellation" className="mb-3 typography-h4 scroll-mt-24">
-							4.3 Cancellation and Refunds
+							4.5 Plan Changes, Cancellation and Refunds
 						</h3>
 						<ul className="mt-0 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
-								You may cancel your subscription at any time through account
-								settings
+								Plan changes take effect immediately. The price difference for
+								the rest of the current billing period is prorated: charged
+								right away when you move to a higher-priced plan, or credited to
+								your future invoices when you move to a lower-priced one
+							</li>
+							<li>
+								You may cancel your subscription at any time in Settings &gt;
+								Billing
 							</li>
 							<li>
 								Cancellations take effect at the end of the current billing
@@ -167,7 +222,7 @@ export default function TermsPage() {
 							</li>
 						</ul>
 
-						<h3 className="mb-3 typography-h4">4.4 Price Changes</h3>
+						<h3 className="mb-3 typography-h4">4.6 Price Changes</h3>
 						<p>
 							We reserve the right to modify subscription pricing with 30
 							days&apos; notice. Price changes will not affect existing
@@ -176,7 +231,9 @@ export default function TermsPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">5. Acceptable Use</h2>
+						<h2 id="acceptable-use" className="mb-4 typography-h3 scroll-mt-24">
+							5. Acceptable Use
+						</h2>
 
 						<h3 className="mb-3 typography-h4">5.1 Permitted Use</h3>
 						<p>You may use TenantFlow only for:</p>
@@ -233,7 +290,9 @@ export default function TermsPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">6. User Content</h2>
+						<h2 id="user-content" className="mb-4 typography-h3 scroll-mt-24">
+							6. User Content
+						</h2>
 
 						<h3 className="mb-3 typography-h4">6.1 Your Content</h3>
 						<p>
@@ -287,7 +346,12 @@ export default function TermsPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">7. Intellectual Property</h2>
+						<h2
+							id="intellectual-property"
+							className="mb-4 typography-h3 scroll-mt-24"
+						>
+							7. Intellectual Property
+						</h2>
 
 						<h3 className="mb-3 typography-h4">7.1 Our Property</h3>
 						<p>
@@ -312,7 +376,12 @@ export default function TermsPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">8. Third-Party Services</h2>
+						<h2
+							id="third-party-services"
+							className="mb-4 typography-h3 scroll-mt-24"
+						>
+							8. Third-Party Services
+						</h2>
 						<p>The Service integrates with third-party services including:</p>
 						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
@@ -335,7 +404,7 @@ export default function TermsPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">
+						<h2 id="disclaimers" className="mb-4 typography-h3 scroll-mt-24">
 							9. Disclaimers and Limitations of Liability
 						</h2>
 
@@ -390,7 +459,12 @@ export default function TermsPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">10. Indemnification</h2>
+						<h2
+							id="indemnification"
+							className="mb-4 typography-h3 scroll-mt-24"
+						>
+							10. Indemnification
+						</h2>
 						<p>
 							You agree to indemnify, defend, and hold harmless TenantFlow, its
 							officers, directors, employees, and agents from any claims,
@@ -406,7 +480,9 @@ export default function TermsPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">11. Dispute Resolution</h2>
+						<h2 id="disputes" className="mb-4 typography-h3 scroll-mt-24">
+							11. Dispute Resolution
+						</h2>
 
 						<h3 className="mb-3 typography-h4">11.1 Informal Resolution</h3>
 						<p>
@@ -437,7 +513,10 @@ export default function TermsPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">
+						<h2
+							id="service-changes"
+							className="mb-4 typography-h3 scroll-mt-24"
+						>
 							12. Modifications to the Service
 						</h2>
 						<p>We reserve the right to:</p>
@@ -454,7 +533,12 @@ export default function TermsPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">13. Modifications to Terms</h2>
+						<h2
+							id="changes-to-terms"
+							className="mb-4 typography-h3 scroll-mt-24"
+						>
+							13. Modifications to Terms
+						</h2>
 						<p>
 							We may revise these Terms at any time. Material changes will be
 							communicated by:
@@ -471,7 +555,9 @@ export default function TermsPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">14. Governing Law</h2>
+						<h2 id="governing-law" className="mb-4 typography-h3 scroll-mt-24">
+							14. Governing Law
+						</h2>
 						<p>
 							These Terms are governed by and construed in accordance with the
 							laws of the State of Texas, without regard to conflict of law
@@ -480,7 +566,9 @@ export default function TermsPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">15. Severability</h2>
+						<h2 id="severability" className="mb-4 typography-h3 scroll-mt-24">
+							15. Severability
+						</h2>
 						<p>
 							If any provision of these Terms is found to be unenforceable or
 							invalid, that provision will be limited or eliminated to the
@@ -490,7 +578,12 @@ export default function TermsPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">16. Entire Agreement</h2>
+						<h2
+							id="entire-agreement"
+							className="mb-4 typography-h3 scroll-mt-24"
+						>
+							16. Entire Agreement
+						</h2>
 						<p>
 							These Terms, together with our Privacy Policy, constitute the
 							entire agreement between you and TenantFlow regarding the Service
@@ -499,7 +592,9 @@ export default function TermsPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">17. Contact Information</h2>
+						<h2 id="contact" className="mb-4 typography-h3 scroll-mt-24">
+							17. Contact Information
+						</h2>
 						<p>For questions about these Terms, contact us:</p>
 						<div className="mt-4 rounded-lg bg-muted p-6">
 							<p className="mt-0 mb-2">
@@ -533,7 +628,7 @@ export default function TermsPage() {
 							understood, and agree to be bound by these Terms of Service.
 						</p>
 						<p className="mt-4 mb-0">
-							<strong>Last Updated:</strong> November 9, 2026
+							<strong>Last Updated:</strong> November 25, 2026
 						</p>
 						<p className="mt-2 mb-0">
 							<strong>Effective Date:</strong> October 5, 2025
