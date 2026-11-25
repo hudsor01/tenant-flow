@@ -108,7 +108,7 @@ describe("pricing/page.tsx PRICE-06 reversal (Phase 5)", () => {
 		expect(schemaTypes).not.toContain("Product");
 	});
 
-	it("FAQPage JSON-LD mainEntity has exactly 5 entries (COPY-05 — pricing FAQ trim)", async () => {
+	it("FAQPage JSON-LD mainEntity has exactly 6 entries (COPY-05 trim, then the sales-tax entry)", async () => {
 		await PricingPage();
 
 		expect(mocks.createFaqJsonLdSpy).toHaveBeenCalledTimes(1);
@@ -117,7 +117,9 @@ describe("pricing/page.tsx PRICE-06 reversal (Phase 5)", () => {
 			answer: string;
 		}>;
 
-		expect(entries).toHaveLength(5);
+		// COPY-05 trimmed the list to 5; the sales-tax entry (Stripe Tax at
+		// checkout) made it 6.
+		expect(entries).toHaveLength(6);
 		// The trial-overlap entry was dropped in Plan 04-02 Task 3.
 		expect(
 			entries.find((e) =>

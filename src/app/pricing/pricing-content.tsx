@@ -48,6 +48,11 @@ const FAQS = [
 			"We accept all major credit and debit cards. Payments are processed securely through Stripe.",
 	},
 	{
+		question: "Is sales tax included in the price?",
+		answer:
+			"No. Where TenantFlow is registered to collect sales tax, it's added at checkout based on your billing address, and you see the total before you pay.",
+	},
+	{
 		question: "Is there a long-term contract?",
 		answer:
 			"No contracts required. All plans are month-to-month. Cancel anytime with no penalties or fees.",
