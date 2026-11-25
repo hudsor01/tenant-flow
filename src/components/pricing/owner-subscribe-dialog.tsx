@@ -14,7 +14,6 @@ import {
 import { track } from "#lib/analytics/track";
 import { useAppForm } from "#lib/forms/form-hook";
 import { userFacingErrorMessage } from "#lib/mutation-error-handler";
-import { createClient } from "#lib/supabase/client";
 import { subscribeFormOptions } from "./owner-subscribe-form-options";
 import { SubscribeFormFields } from "./owner-subscribe-plan-selector";
 
@@ -38,7 +37,6 @@ export function OwnerSubscribeDialog({
 	planCta,
 }: OwnerSubscribeDialogProps) {
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const supabase = createClient();
 
 	// Funnel step (SEO audit T1): the signup form is in front of a visitor.
 	useEffect(() => {
@@ -52,6 +50,10 @@ export function OwnerSubscribeDialog({
 		onSubmit: async ({ value }) => {
 			setIsSubmitting(true);
 			try {
+				// Loaded on submit, so the pricing page ships no supabase-js
+				// until a visitor signs up (2026-11-24 SEO audit S1).
+				const { createClient } = await import("#lib/supabase/client");
+				const supabase = createClient();
 				const { first_name, last_name, email, password } = value;
 				const { data, error } = await supabase.auth.signUp({
 					email,

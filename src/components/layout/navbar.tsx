@@ -7,7 +7,6 @@ import { usePathname } from "next/navigation";
 import type { Ref } from "react";
 import { useEffect, useState } from "react";
 import { Button } from "#components/ui/button";
-import { useSupabaseSession } from "#hooks/api/use-auth";
 import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { SUPABASE_AUTH_COOKIE_NAME } from "#lib/supabase/cookie-name";
 import { cn } from "#lib/utils";
@@ -26,35 +25,24 @@ export function Navbar({
 	...props
 }: NavbarProps & { ref?: Ref<HTMLElement> }) {
 	const [isScrolled, setIsScrolled] = useState(false);
-	// Synchronous cookie probe for the signed-OUT fast-path. Starts `false`
-	// so SSR and first-client-paint render identically (no hydration
-	// mismatch). useEffect below promotes it to `true` if the cookie is
-	// actually present — at which point we defer to the query. Without
-	// this fast-path the navbar would hang at authPending=true indefinitely
-	// for signed-out cold-start visitors on /pricing (PersistQueryClient
-	// can pause queries during IDB restoration even when the persisted
-	// namespace is excluded — battle-test Session 6 P1).
-	const [hasAuthCookie, setHasAuthCookie] = useState(false);
+	// Signed in or not, from the Supabase auth cookie alone. It starts
+	// `false` so the server HTML and the first client paint match, and the
+	// effect below reads the cookie after hydration.
+	//
+	// No session query: that loaded supabase-js and React Query onto every
+	// marketing page to choose between two buttons (2026-11-24 SEO audit
+	// S1). A stale cookie shows "Dashboard", and the proxy, which checks the
+	// session with getUser(), sends that click to /login, so nothing is
+	// exposed by trusting the cookie here. The prefix match covers a chunked
+	// cookie (`<name>.0`).
+	const [isAuthenticated, setIsAuthenticated] = useState(false);
 
 	const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } =
 		useNavigationStore();
 	const pathname = usePathname();
-	// Session-only check — reads local cookie cache via getSession(), no
-	// network round-trip.
-	const { data: authSession, isPending: authPending } = useSupabaseSession();
-	// Authentication decision:
-	//   - While the session query is pending, trust the cookie probe
-	//     (optimistic: cookie present → "Dashboard", absent → "Sign In").
-	//     Session 10/11 P1: waiting for the query to resolve stranded
-	//     signed-in users on marketing pages with no Dashboard CTA when
-	//     the query stayed pending.
-	//   - Once the query resolves, prefer its result (authoritative):
-	//     a stale/expired cookie that the server rejects will downgrade
-	//     the user to the signed-out state.
-	const isAuthenticated = authPending ? hasAuthCookie : !!authSession;
 
 	useEffect(() => {
-		setHasAuthCookie(document.cookie.includes(`${SUPABASE_AUTH_COOKIE_NAME}=`));
+		setIsAuthenticated(document.cookie.includes(SUPABASE_AUTH_COOKIE_NAME));
 	}, []);
 
 	useEffect(() => {

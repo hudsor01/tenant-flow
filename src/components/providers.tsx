@@ -3,9 +3,7 @@
 import type { ReactNode } from "react";
 import { TooltipProvider } from "#components/ui/tooltip";
 import { DEFAULT_THEME_MODE, THEME_MODE_STORAGE_KEY } from "#lib/theme-utils";
-import { AuthStoreProvider } from "#providers/auth-provider";
 import { PreferencesStoreProvider } from "#providers/preferences-provider";
-import { QueryProvider } from "#providers/query-provider";
 import { ThemeProvider } from "#providers/theme-provider";
 import type { PreferencesState } from "#stores/preferences-store";
 
@@ -37,23 +35,25 @@ export function Providers({
 			storageKey={THEME_MODE_STORAGE_KEY}
 		>
 			<PreferencesStoreProvider themeMode={initialThemeMode}>
-				<QueryProvider>
-					{/*
-					 * NuqsAdapter is intentionally NOT at the root. It calls
-					 * useSearchParams() internally, which — wrapping the whole
-					 * app from the shared root layout — forces EVERY static
-					 * marketing/auth page to defer its content to the client
-					 * (the page renders behind the root `app/loading.tsx`
-					 * "Loading TenantFlow…" Suspense fallback until hydration).
-					 * Any JS hiccup (slow network, a 503'd chunk, an ad-blocker)
-					 * then leaves the user stuck on the spinner. The adapter is
-					 * scoped to the only subtrees that use nuqs query state:
-					 * `app/(owner)/layout.tsx` and `app/blog/layout.tsx`.
-					 */}
-					<TooltipProvider>
-						<AuthStoreProvider>{children}</AuthStoreProvider>
-					</TooltipProvider>
-				</QueryProvider>
+				{/*
+				 * No QueryProvider or AuthStoreProvider here: they put supabase-js,
+				 * the persisted query cache and zod on every marketing page
+				 * (2026-11-24 SEO audit S1). Account pages mount them through
+				 * `AccountProviders` in their own layouts.
+				 */}
+				{/*
+				 * NuqsAdapter is intentionally NOT at the root. It calls
+				 * useSearchParams() internally, which — wrapping the whole
+				 * app from the shared root layout — forces EVERY static
+				 * marketing/auth page to defer its content to the client
+				 * (the page renders behind the root `app/loading.tsx`
+				 * "Loading TenantFlow…" Suspense fallback until hydration).
+				 * Any JS hiccup (slow network, a 503'd chunk, an ad-blocker)
+				 * then leaves the user stuck on the spinner. The adapter is
+				 * scoped to the only subtrees that use nuqs query state:
+				 * `app/(owner)/layout.tsx` and `app/blog/layout.tsx`.
+				 */}
+				<TooltipProvider>{children}</TooltipProvider>
 			</PreferencesStoreProvider>
 		</ThemeProvider>
 	);

@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import type { ReactNode } from "react";
+import { AccountProviders } from "#components/account-providers";
 import ModalLayout from "#components/layout/modal-layout";
 import { OwnerDashboardLayout } from "./owner-dashboard-layout";
 
@@ -69,10 +70,12 @@ export default function OwnerLayout({
 	// server-side here with no CSR bailout. Covers the dashboard data tables,
 	// document vault, preset menu, and property image lightbox.
 	return (
-		<NuqsAdapter>
-			<OwnerDashboardLayout>
-				<ModalLayout modal={modal}>{children}</ModalLayout>
-			</OwnerDashboardLayout>
-		</NuqsAdapter>
+		<AccountProviders>
+			<NuqsAdapter>
+				<OwnerDashboardLayout>
+					<ModalLayout modal={modal}>{children}</ModalLayout>
+				</OwnerDashboardLayout>
+			</NuqsAdapter>
+		</AccountProviders>
 	);
 }

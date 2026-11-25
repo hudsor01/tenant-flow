@@ -12,8 +12,6 @@ import { createLogger } from "#lib/frontend-logger";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { stripeRedirectUrl } from "#lib/safe-url";
 import { checkoutRateLimiter } from "#lib/security";
-import { createCheckoutSession } from "#lib/stripe/stripe-client";
-import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
 import { formatCurrency } from "#lib/utils/currency";
 import { OwnerSubscribeDialog } from "./owner-subscribe-dialog";
@@ -79,6 +77,10 @@ export function PricingCardStandard({
 
 			toast.loading("Creating checkout session...", { id: "checkout" });
 
+			// Loaded on click, with supabase-js behind it (SEO audit S1).
+			const { createCheckoutSession } = await import(
+				"#lib/stripe/stripe-client"
+			);
 			const result = await createCheckoutSession({
 				priceId: stripePriceId,
 				planName: plan.name,
@@ -114,6 +116,7 @@ export function PricingCardStandard({
 		// getUser() failed for a transient reason. If no local session, prompt
 		// new-visitor signup; otherwise let the mutation hit the Edge Function
 		// (which JWT-validates and surfaces a real error via toast on failure).
+		const { createClient } = await import("#lib/supabase/client");
 		const supabase = createClient();
 		const {
 			data: { session },

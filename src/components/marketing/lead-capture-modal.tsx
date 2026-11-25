@@ -16,7 +16,6 @@ import {
 } from "#components/ui/dialog";
 import { Input } from "#components/ui/input";
 import { handleMutationError } from "#lib/mutation-error-handler";
-import { createClient } from "#lib/supabase/client";
 
 interface LeadCaptureModalProps {
 	scrollPercentTrigger?: number;
@@ -93,6 +92,8 @@ export function LeadCaptureModal({
 
 	const mutation = useMutation({
 		mutationFn: async (email: string) => {
+			// Loaded on submit, so the page ships no supabase-js (SEO audit S1).
+			const { createClient } = await import("#lib/supabase/client");
 			const supabase = createClient();
 			const { error } = await supabase.functions.invoke(
 				"newsletter-subscribe",

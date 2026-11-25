@@ -10,8 +10,6 @@
  * without invoking Supabase's full client (e.g., the marketing navbar's
  * fast-path for the signed-out CTA render).
  */
-import { env } from "#env";
-
 function deriveProjectRef(url: string): string {
 	try {
 		const hostname = new URL(url).hostname;
@@ -23,5 +21,8 @@ function deriveProjectRef(url: string): string {
 	}
 }
 
+// `process.env`, not `#env`: Next inlines NEXT_PUBLIC_ values at build time,
+// and `#env`'s validator (zod) would otherwise ship to every marketing page
+// through the navbar and the click tracker (2026-11-24 SEO audit S1).
 export const SUPABASE_AUTH_COOKIE_NAME =
-	`sb-${deriveProjectRef(env.NEXT_PUBLIC_SUPABASE_URL)}-auth-token` as const;
+	`sb-${deriveProjectRef(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "")}-auth-token` as const;
