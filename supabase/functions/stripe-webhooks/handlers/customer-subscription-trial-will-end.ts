@@ -10,17 +10,17 @@ import type { SupabaseAdmin } from "./types.ts";
 
 /**
  * Handle customer.subscription.trial_will_end — Stripe fires this ~3 days
- * before a trial ends. For the carry-over no-card trials that stripe-checkout
- * creates (trial_settings.end_behavior.missing_payment_method: "cancel"), the
- * subscription auto-cancels at trial end, so this event is the only reminder
- * window. Emails the owner a nudge to add a payment method.
+ * before a trial ends. stripe-checkout's carry-over trials collect a card at
+ * checkout and bill the plan to it when the trial ends; one whose card was
+ * removed is canceled then (trial_settings.end_behavior.missing_payment_method:
+ * "cancel"). Emails the owner what happens at the end.
  *
- * Stripe sends it whether or not a payment method is on file (an owner can add
- * one in the billing portal during the trial), and the event carries the
- * customer as an id only: a card set as the customer's default is not in the
- * payload. So the copy states both outcomes rather than branching on the
- * payload or calling Stripe; it told every owner to add a payment method
- * (66.2-39 fix round 4, Part 8n).
+ * Stripe sends it whether or not a payment method is still on file, and the
+ * event carries the customer as an id only: a card set as the customer's
+ * default is not in the payload. So the copy states both outcomes, billed by
+ * default, canceled without a card, rather than branching on the payload or
+ * calling Stripe; it told every owner to add a payment method (66.2-39 fix
+ * round 4, Part 8n).
  *
  * The subject said "ends in 3 days" and the line "ends on" a UTC date, or
  * "ends on in 3 days" with no `trial_end`. Stripe also sends this event at
@@ -73,8 +73,8 @@ export async function handleCustomerSubscriptionTrialWillEnd(
 		subject: copy.subject,
 		html: `<p>Hi ${escapeHtml((owner.first_name as string) || "there")},</p>
       <p>${escapeHtml(copy.lead)}</p>
-      <p>If you've added a payment method, your plan continues when the trial ends and is billed to it.</p>
-      <p>If you haven't, add one in Billing Settings before then. Without one, your subscription is canceled when the trial ends, and every page except Settings closes until you choose a plan.</p>
+      <p>When the trial ends, your plan continues and is billed to your payment method on file.</p>
+      <p>If you removed it, add one in Billing Settings before then. Without one, your subscription is canceled when the trial ends, and every page except Settings closes until you choose a plan.</p>
       <p><a href="${escapeHtml(frontendUrl)}/settings?tab=billing">Open Billing Settings</a></p>`,
 		tags: [{ name: "category", value: "trial_will_end" }],
 	});

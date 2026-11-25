@@ -217,25 +217,25 @@ describe("SubscriptionStatusBanner", () => {
 	});
 
 	// 66.2-39 fix round 4, Part 8n: a trial of a chosen plan (stripe-checkout's
-	// carry-over trial, whose row names the plan) needs no upgrade; Stripe
-	// cancels it at the end without a payment method on file and bills the
-	// plan with one. It was told to "upgrade to keep access".
+	// carry-over trial, whose row names the plan) needs no upgrade; checkout
+	// collected a card and Stripe bills the plan to it when the trial ends. It
+	// was told to "upgrade to keep access".
 	it.each([
 		[
 			5 * 24 * 60 * 60 * 1000,
-			"5 days left in your trial. Without a payment method on file when the trial ends, your subscription is canceled.",
+			"5 days left in your trial. When it ends, your plan is billed to your payment method on file.",
 		],
 		[
 			12 * 60 * 60 * 1000,
-			"1 day left in your trial. Without a payment method on file when the trial ends, your subscription is canceled.",
+			"1 day left in your trial. When it ends, your plan is billed to your payment method on file.",
 		],
 		[
 			-2 * 24 * 60 * 60 * 1000,
-			"Your trial has ended. Without a payment method on file, your subscription is canceled.",
+			"Your trial has ended. Your plan is billed to your payment method on file.",
 		],
 		[
 			null,
-			"Your plan's trial is on. Without a payment method on file when the trial ends, your subscription is canceled.",
+			"Your plan's trial is on. When it ends, your plan is billed to your payment method on file.",
 		],
 	])(
 		"tells a trial of a chosen plan what happens at its end (%s ms left)",

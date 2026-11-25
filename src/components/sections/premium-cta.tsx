@@ -40,8 +40,9 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 							<span className="block mt-3 text-foreground font-medium">
 								Your 14-day free trial needs no card. Pick a plan at checkout
 								before its last two days and the rest of the trial runs on that
-								plan, with the full document vault, every financial statement,
-								and lease e-sign on Growth and Max.
+								plan, billed only when the trial ends, with the full document
+								vault, every financial statement, and lease e-sign on Growth and
+								Max.
 							</span>
 						</p>
 					</BlurFade>

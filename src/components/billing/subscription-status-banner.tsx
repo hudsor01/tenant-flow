@@ -70,17 +70,18 @@ export function SubscriptionStatusBanner() {
 		const dayWord = daysLeft === 1 ? "day" : "days";
 		// A trial of a chosen plan: stripe-checkout's carry-over trial, the only
 		// Stripe trial, whose row names the plan (a signup trial names none).
-		// It needs no upgrade: Stripe cancels it at the trial's end without a
-		// payment method on file (`missing_payment_method: "cancel"`) and bills
-		// the plan with one. It told this owner to "upgrade to keep access"
-		// (66.2-39 fix round 4, Part 8n; the trial-ending email says the same).
+		// It needs no upgrade: checkout collected a card, and Stripe bills the
+		// plan to it when the trial ends (it cancels only if the card was
+		// removed, `missing_payment_method: "cancel"`). It told this owner to
+		// "upgrade to keep access" (66.2-39 fix round 4, Part 8n; the
+		// trial-ending email says the same).
 		if (subscription.stripePriceId !== null) {
 			const plan =
 				daysLeft === null
-					? "Your plan's trial is on. Without a payment method on file when the trial ends, your subscription is canceled."
+					? "Your plan's trial is on. When it ends, your plan is billed to your payment method on file."
 					: daysLeft <= 0
-						? "Your trial has ended. Without a payment method on file, your subscription is canceled."
-						: `${daysLeft} ${dayWord} left in your trial. Without a payment method on file when the trial ends, your subscription is canceled.`;
+						? "Your trial has ended. Your plan is billed to your payment method on file."
+						: `${daysLeft} ${dayWord} left in your trial. When it ends, your plan is billed to your payment method on file.`;
 			return (
 				<StatusBanner
 					tone="primary"
