@@ -21,9 +21,15 @@ on:
     - cron: "0 9 * * 1" # Every Monday 09:00 UTC
   workflow_dispatch:
 
+# Only a pull request's run is cancelled when superseded. A cancel kills the
+# suite before its afterAll cleanup, leaving fixtures on the production test
+# accounts: run 45542386721 (main, cancelled 2026-11-25 04:09:03Z by the next
+# merge) left "Phase-66 Mutation RPCs Property" 5s after inserting it, and
+# owner A carried 18 such zero-unit properties. Main-branch, scheduled and
+# dispatched runs always finish.
 concurrency:
   group: rls-security-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
