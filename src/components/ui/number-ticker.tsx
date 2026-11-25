@@ -11,6 +11,12 @@
  * letter-spacing while the sign and digits keep the ticker's `tracking-wider`.
  * Never place a "$" next to a ticker by hand: the ticker's minus sign then
  * lands between the two (66.2-39).
+ *
+ * SERVER HTML. By default the server renders `startValue`, so crawlers and
+ * no-JS readers saw "0" for every marketing stat (2026-11-24 SEO audit H1).
+ * `startAtFinal` renders `value` instead. A ticker that hydrates in view keeps
+ * it, unanimated, so nothing flashes; one that hydrates out of view drops to
+ * `startValue` while still off-screen and counts up when it scrolls in.
  */
 
 import {
@@ -35,6 +41,8 @@ interface NumberTickerProps extends ComponentPropsWithoutRef<"span"> {
 	currency?: boolean;
 	/** Classes for the currency symbol's span; only used with `currency`. */
 	symbolClassName?: string;
+	/** Render `value` on the server; see SERVER HTML above. */
+	startAtFinal?: boolean;
 }
 
 /** Each frame's text, split so the currency symbol can carry its own classes. */
@@ -60,11 +68,29 @@ export function NumberTicker({
 	duration = 2000,
 	currency = false,
 	symbolClassName,
+	startAtFinal = false,
 	...props
 }: NumberTickerProps) {
 	const ref = useRef<HTMLSpanElement>(null);
-	const [displayValue, setDisplayValue] = useState(startValue);
+	const from = direction === "down" ? value : startValue;
+	const to = direction === "down" ? startValue : value;
+	const [displayValue, setDisplayValue] = useState(startAtFinal ? to : from);
+	// False only for a `startAtFinal` ticker until it is known to start out of
+	// view; one that hydrates in view never animates.
+	const [animates, setAnimates] = useState(!startAtFinal);
 	const reducedMotion = useReducedMotion();
+
+	// Once, at hydration: a later change of `from` must not re-zero a ticker.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: hydration-time check
+	useEffect(() => {
+		if (!startAtFinal) return;
+		const node = ref.current;
+		if (!node) return;
+		const { top, bottom } = node.getBoundingClientRect();
+		if (top < window.innerHeight && bottom > 0) return;
+		setDisplayValue(from);
+		setAnimates(true);
+	}, [startAtFinal]);
 
 	const { hasIntersected } = useIntersectionObserver(
 		ref as RefObject<Element>,
@@ -77,14 +103,13 @@ export function NumberTicker({
 		},
 	);
 
-	const from = direction === "down" ? value : startValue;
-	const to = direction === "down" ? startValue : value;
-
 	useEffect(() => {
 		if (reducedMotion) {
 			setDisplayValue(to);
 			return;
 		}
+		// A still ticker shows `to` directly (`shown` below), so it writes nothing.
+		if (!animates) return;
 		if (!hasIntersected) return;
 
 		let rafId = 0;
@@ -125,9 +150,10 @@ export function NumberTicker({
 			if (rafId) cancelAnimationFrame(rafId);
 			if (timeoutId) clearTimeout(timeoutId);
 		};
-	}, [reducedMotion, hasIntersected, from, to, delay, duration]);
+	}, [reducedMotion, animates, hasIntersected, from, to, delay, duration]);
 
-	const parts = formatTickerParts(displayValue, decimalPlaces, currency);
+	const shown = animates ? displayValue : to;
+	const parts = formatTickerParts(shown, decimalPlaces, currency);
 	const symbolAt = parts.findIndex((part) => part.type === "currency");
 	const text = (list: Intl.NumberFormatPart[]) =>
 		list.map((part) => part.value).join("");

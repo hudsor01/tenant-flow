@@ -6,6 +6,10 @@
  * - focus ring `ring-ring`, opaque, where upstream draws `ring-ring/50`: the
  *   half-alpha ring read 2.17-2.58:1 on the page, card and popover, under
  *   WCAG 1.4.11's 3:1.
+ * - `forceMount` on AccordionContent keeps a closed panel in the HTML and
+ *   hides it with `data-[state=closed]:hidden`: Radix renders a force-mounted
+ *   panel open, so without the class a closed answer would show (2026-11-24
+ *   SEO audit P1, FAQ answers the FAQPage schema carries).
  */
 import { ChevronDownIcon } from "lucide-react";
 import { Accordion as AccordionPrimitive } from "radix-ui";
@@ -62,7 +66,10 @@ function AccordionContent({
 	return (
 		<AccordionPrimitive.Content
 			data-slot="accordion-content"
-			className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+			className={cn(
+				"data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm",
+				props.forceMount && "data-[state=closed]:hidden",
+			)}
 			{...props}
 		>
 			<div className={cn("pt-0 pb-4", className)}>{children}</div>

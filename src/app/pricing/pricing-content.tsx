@@ -142,7 +142,10 @@ export function PricingFaqSection() {
 									<AccordionTrigger className="text-left text-base font-medium leading-7 text-foreground hover:no-underline sm:text-lg sm:leading-8">
 										{faq.question}
 									</AccordionTrigger>
-									<AccordionContent className="pb-5 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
+									<AccordionContent
+										forceMount
+										className="pb-5 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7"
+									>
 										{faq.answer}
 									</AccordionContent>
 								</AccordionItem>
