@@ -14,9 +14,9 @@ import MarketingHomePage from "./marketing-home";
 export const dynamic = "force-static";
 
 export const metadata: Metadata = createPageMetadata({
-	title: "Property Management Software for Independent Landlords",
+	title: "Property Management Software for Landlords",
 	description:
-		"Property management software for independent landlords. Track leases, maintenance requests, tenant records, and finances in one place. 14-day free trial, no credit card required.",
+		"Property management software for independent landlords. Track leases, maintenance, tenants, and documents in one place. 14-day free trial, no card needed.",
 	path: "/",
 	// Root segment: Next.js does not apply the root layout's
 	// `title.template` here, so without `absoluteTitle` the homepage

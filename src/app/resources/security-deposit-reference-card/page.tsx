@@ -7,12 +7,25 @@ import { PrintButton } from "#components/shared/print-button";
 import { Button } from "#components/ui/button";
 import { ScrollRegion } from "#components/ui/scroll-region";
 import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
+import { DiagnosticError } from "#lib/diagnostic-error";
+import { parseLocalYmd } from "#lib/formatters/date";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
-import { stateData } from "./deposit-data";
+import { DEPOSIT_RULES_CHECKED_AT, stateData } from "./deposit-data";
+
+/** "November 25, 2026" for the date the rows were checked. */
+function formatCheckedDate(ymd: string): string {
+	const date = parseLocalYmd(ymd);
+	if (!date) throw new DiagnosticError(`deposit-data: bad date "${ymd}"`);
+	return new Intl.DateTimeFormat("en-US", {
+		month: "long",
+		day: "numeric",
+		year: "numeric",
+	}).format(date);
+}
 
 export const metadata: Metadata = createPageMetadata({
-	title: "Security Deposit Laws by State | Quick Reference Card",
+	title: `Security Deposit Laws by State (${DEPOSIT_RULES_CHECKED_AT.slice(0, 4)} Chart)`,
 	description:
 		"Free printable security deposit reference card with deposit limits, return deadlines, and required documentation for all 50 states plus DC.",
 	path: "/resources/security-deposit-reference-card",
@@ -189,10 +202,11 @@ export default function SecurityDepositReferenceCardPage() {
 					<p className="mb-0 text-sm text-warning-text">
 						<strong>Disclaimer:</strong> This reference card provides a general
 						overview of state security deposit laws, each row checked against
-						the statute cited on November 25, 2026. Laws change frequently and
-						cities and counties may have additional requirements. Always verify
-						current regulations with your state landlord-tenant statute or a
-						local attorney before relying on this information.
+						the statute cited on {formatCheckedDate(DEPOSIT_RULES_CHECKED_AT)}.
+						Laws change frequently and cities and counties may have additional
+						requirements. Always verify current regulations with your state
+						landlord-tenant statute or a local attorney before relying on this
+						information.
 					</p>
 				</div>
 

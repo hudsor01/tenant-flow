@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	blogPageHref,
-	LEGACY_LISTING_REDIRECTS,
+	LISTING_REDIRECTS,
 	parseListingPage,
 } from "#lib/blog/blog-page-urls";
 
@@ -23,26 +23,42 @@ describe("blogPageHref", () => {
 
 describe("parseListingPage", () => {
 	it.each([
-		["1", 1],
 		["2", 2],
 		["37", 37],
+		["999999", 999999],
 	])("reads %s as %i", (raw, page) => {
 		expect(parseListingPage(raw)).toBe(page);
 	});
 
-	it.each(["0", "02", "2.0", "+2", "-1", "x", "", "1e3", "9999999"])(
-		"rejects %j, so one page never has two URLs",
+	it.each(["1", "0", "02", "2.0", "+2", "-1", "x", "", "1e3", "9999999"])(
+		"rejects %j: page 1 is the bare listing, and one page has one URL",
 		(raw) => {
 			expect(parseListingPage(raw)).toBeNull();
 		},
 	);
 });
 
-describe("LEGACY_LISTING_REDIRECTS", () => {
-	const [hub, category] = LEGACY_LISTING_REDIRECTS;
+describe("LISTING_REDIRECTS", () => {
+	const [hubPageOne, categoryPageOne, hub, category] = LISTING_REDIRECTS;
+
+	it("sends /page/1 to the bare listing from config, never a render", () => {
+		// A permanentRedirect from the on-demand page answered a cache miss with
+		// the Location header twice.
+		expect(hubPageOne).toEqual({
+			source: "/blog/page/1",
+			destination: "/blog",
+			permanent: true,
+		});
+		expect(categoryPageOne).toEqual({
+			source: "/blog/category/:category/page/1",
+			destination: "/blog/category/:category",
+			permanent: true,
+		});
+	});
+
 	/** Next anchors a `has` value and reads its named groups. */
 	const match = (value: string) =>
-		new RegExp(`^${hub?.has[0]?.value}$`).exec(value)?.groups?.n ?? null;
+		new RegExp(`^${hub?.has?.[0]?.value}$`).exec(value)?.groups?.n ?? null;
 
 	it("sends ?page=N, from 2 up, to the page's path for good", () => {
 		expect(hub).toMatchObject({

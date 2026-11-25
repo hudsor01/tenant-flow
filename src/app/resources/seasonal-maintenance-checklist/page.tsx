@@ -12,9 +12,9 @@ import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
 export const metadata: Metadata = createPageMetadata({
-	title: "Seasonal Maintenance Checklist for Rental Properties",
+	title: "Seasonal Maintenance Checklist for Rentals",
 	description:
-		"Free printable season-by-season maintenance checklist for landlords. Covers HVAC, plumbing, exterior, and safety inspections.",
+		"Free printable rental property maintenance checklist for spring, summer, fall and winter: HVAC, plumbing, exterior, safety and landscaping.",
 	path: "/resources/seasonal-maintenance-checklist",
 	ogCard: "seasonal-maintenance-checklist",
 });

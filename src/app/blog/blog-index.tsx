@@ -52,9 +52,9 @@ export async function blogIndexMetadata(page: number): Promise<Metadata> {
 	}
 
 	return createPageMetadata({
-		title: "Property Management Blog | Tips for Independent Landlords",
+		title: "Landlord Blog: Guides for Independent Landlords",
 		description:
-			"Operational guides for independent landlords: leases, maintenance, tax season, and the document vault.",
+			"Practical guides for independent landlords on leases, maintenance, inspections, rent records and tax season, and how to run them in TenantFlow.",
 		path: blogPageHref("/blog", page),
 		ogCard: "blog-index",
 		noindex: page > 1 || count === 0,

@@ -14,11 +14,13 @@ export interface StateDeposit {
 }
 
 /**
- * Every row was checked against its state's statute on 2026-11-25 (2026-11-24
+ * Every row was checked against its state's statute on this date (2026-11-24
  * audit D1-D3): the cap, the return deadline, the itemization and interest
  * rules. Re-check each row every year, and whenever a state amends its
- * deposit law.
+ * deposit law, then move this date: the page's title and disclaimer print it.
  */
+export const DEPOSIT_RULES_CHECKED_AT = "2026-11-25";
+
 export const stateData: StateDeposit[] = [
 	{
 		state: "Alabama",

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { parseListingPage } from "#lib/blog/blog-page-urls";
 import { CategoryIndex, categoryIndexMetadata } from "../../category-index";
 
@@ -18,15 +18,14 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const { category, page: raw } = await params;
 	const page = parseListingPage(raw);
-	if (page === null || page === 1) return {};
+	if (page === null) return {};
 	return categoryIndexMetadata(category, page);
 }
 
 export default async function BlogCategoryListingPage({ params }: Props) {
 	const { category, page: raw } = await params;
 	const page = parseListingPage(raw);
+	// Page 1 never arrives: next.config.ts redirects it to the bare listing.
 	if (page === null) notFound();
-	// Page 1 has one URL: the bare category path.
-	if (page === 1) permanentRedirect(`/blog/category/${category}`);
 	return <CategoryIndex category={category} page={page} />;
 }

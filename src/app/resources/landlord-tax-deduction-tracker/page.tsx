@@ -13,7 +13,7 @@ import { createPageMetadata } from "#lib/seo/page-metadata";
 import { deductionCategories, scheduleLinesLabel } from "./tax-deduction-data";
 
 export const metadata: Metadata = createPageMetadata({
-	title: "Landlord Tax Deduction Tracker",
+	title: "Landlord Tax Deduction Tracker (Schedule E)",
 	description:
 		"Free printable tax deduction tracker for landlords. Categorized by IRS Schedule E with common deductions, examples, and space to track amounts year-round.",
 	path: "/resources/landlord-tax-deduction-tracker",

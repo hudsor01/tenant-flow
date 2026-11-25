@@ -58,7 +58,7 @@ const stats = [
 export const revalidate = 3600;
 
 export const metadata: Metadata = createPageMetadata({
-	title: "About | Our Mission",
+	title: "About TenantFlow: Property Management Software for Landlords",
 	description:
 		"TenantFlow is a landlord-only property management platform with a per-entity document vault, lease e-signing, and tax-ready reports.",
 	path: "/about",

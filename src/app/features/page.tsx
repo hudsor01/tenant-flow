@@ -12,10 +12,9 @@ import FeaturesClient from "./features-client";
 export const revalidate = 3600;
 
 export const metadata: Metadata = createPageMetadata({
-	title:
-		"Property Management Features | Document Vault, Lease E-Signing & Maintenance",
+	title: "Property Management Features for Landlords",
 	description:
-		"Per-entity document vault with global search, lease e-signing on Growth and Max, maintenance tracking, and financial reporting: the core tools landlords need to administer rental properties in one platform.",
+		"Document vault, lease e-signing, maintenance tracking, rent ledger, and financial reports. Everything a landlord needs to run rentals, in one place.",
 	path: "/features",
 	ogCard: "features",
 });

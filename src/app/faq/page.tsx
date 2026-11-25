@@ -17,9 +17,9 @@ import { faqData } from "../../data/faqs";
 export const revalidate = 3600;
 
 export const metadata: Metadata = createPageMetadata({
-	title: "Property Management FAQ | Questions About Leases, Maintenance & More",
+	title: "TenantFlow FAQ: Leases, Documents, Billing & Security",
 	description:
-		"Answers to common landlord questions about lease management, the document vault, lease e-signing, maintenance tracking, and financial reporting. Get started with TenantFlow.",
+		"Answers about TenantFlow's document vault, lease e-signing, tenant records, security, trials and billing, for independent landlords.",
 	path: "/faq",
 	ogCard: "faq",
 });

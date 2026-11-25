@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { parseListingPage } from "#lib/blog/blog-page-urls";
 import { BlogIndex, blogIndexMetadata } from "../../blog-index";
 
@@ -17,14 +17,13 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const page = parseListingPage((await params).page);
-	if (page === null || page === 1) return {};
+	if (page === null) return {};
 	return blogIndexMetadata(page);
 }
 
 export default async function BlogListingPage({ params }: Props) {
 	const page = parseListingPage((await params).page);
+	// Page 1 never arrives: next.config.ts redirects it to the bare listing.
 	if (page === null) notFound();
-	// Page 1 has one URL: the bare /blog.
-	if (page === 1) permanentRedirect("/blog");
 	return <BlogIndex page={page} />;
 }
