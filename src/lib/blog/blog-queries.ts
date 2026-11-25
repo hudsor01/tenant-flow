@@ -17,6 +17,15 @@ export function blogAnonClient() {
 	);
 }
 
+/**
+ * True during the CI build, which runs with a placeholder Supabase URL: blog
+ * reads would fail, so static blog pages render empty instead. Production
+ * builds and requests have the real URL.
+ */
+export function blogReadsUnavailable(): boolean {
+	return env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder");
+}
+
 export interface BlogCategoryRow {
 	name: string;
 	slug: string;

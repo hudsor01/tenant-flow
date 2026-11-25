@@ -3,6 +3,8 @@
  *
  * Tests server-rendered category page: DB-resolved name, posts grid, breadcrumb
  * (Home > Blog > Category), pagination, empty state, notFound() for invalid slugs.
+ * Page 1 and `/page/[page]` both render `CategoryIndex`, tested directly
+ * (2026-11-24 SEO audit CT-1).
  *
  * @vitest-environment jsdom
  */
@@ -21,6 +23,7 @@ const mockNotFound = vi.hoisted(() =>
 
 vi.mock("#lib/blog/blog-queries", () => ({
 	blogAnonClient: mockBlogAnonClient,
+	blogReadsUnavailable: () => false,
 	getBlogCategories: mockGetBlogCategories,
 }));
 
@@ -53,8 +56,18 @@ vi.mock("#components/blog/blog-card", () => ({
 }));
 
 vi.mock("#components/blog/blog-pagination", () => ({
-	BlogPagination: ({ totalPages }: { totalPages: number }) => (
-		<nav data-testid="blog-pagination">Pages: {totalPages}</nav>
+	BlogPagination: ({
+		basePath,
+		currentPage,
+		totalPages,
+	}: {
+		basePath: string;
+		currentPage: number;
+		totalPages: number;
+	}) => (
+		<nav data-testid="blog-pagination" data-base-path={basePath}>
+			Page {currentPage}. Pages: {totalPages}
+		</nav>
 	),
 }));
 
@@ -83,7 +96,8 @@ vi.mock("#components/seo/json-ld-script", () => ({
 }));
 
 import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
-import BlogCategoryPage, { generateMetadata } from "./page";
+import { CategoryIndex, categoryIndexMetadata } from "./category-index";
+import BlogCategoryPage, { revalidate } from "./page";
 
 const mockCategories = [
 	{ name: "Software Comparisons", slug: "software-comparisons", post_count: 5 },
@@ -173,14 +187,11 @@ function makeClient({
 async function renderPage(
 	categorySlug: string,
 	opts?: MockBuilderOpts,
+	page = 1,
 ): Promise<ReactElement> {
 	mockBlogAnonClient.mockReturnValue(makeClient(opts));
 	mockGetBlogCategories.mockResolvedValue(opts?.categories ?? mockCategories);
-	const ui = await BlogCategoryPage({
-		params: Promise.resolve({ category: categorySlug }),
-		searchParams: Promise.resolve({}),
-	});
-	return ui;
+	return CategoryIndex({ category: categorySlug, page });
 }
 
 describe("BlogCategoryPage (server component)", () => {
@@ -220,10 +231,7 @@ describe("BlogCategoryPage (server component)", () => {
 	it("generateMetadata humanizes the category slug in the title", async () => {
 		mockBlogAnonClient.mockReturnValue(makeClient({ postsCount: 9 }));
 		mockGetBlogCategories.mockResolvedValue(mockCategories);
-		const meta = await generateMetadata({
-			params: Promise.resolve({ category: "lease-law" }),
-			searchParams: Promise.resolve({}),
-		});
+		const meta = await categoryIndexMetadata("lease-law", 1);
 		expect(meta.title).toBe("Lease Law Articles & Guides");
 	});
 
@@ -236,10 +244,23 @@ describe("BlogCategoryPage (server component)", () => {
 		);
 	});
 
+	it("is static: page 1 revalidates every 5 minutes", async () => {
+		expect(revalidate).toBe(300);
+		const element = await BlogCategoryPage({
+			params: Promise.resolve({ category: "lease-law" }),
+		});
+		expect(element.type).toBe(CategoryIndex);
+		expect(element.props).toEqual({ category: "lease-law", page: 1 });
+	});
+
 	it("renders BlogPagination when total > PAGE_LIMIT", async () => {
-		render(await renderPage("software-comparisons", { postsCount: 27 }));
+		render(await renderPage("software-comparisons", { postsCount: 27 }, 2));
 		const pagination = screen.getByTestId("blog-pagination");
-		expect(pagination).toHaveTextContent("Pages: 3");
+		expect(pagination).toHaveTextContent("Page 2. Pages: 3");
+		expect(pagination).toHaveAttribute(
+			"data-base-path",
+			"/blog/category/software-comparisons",
+		);
 	});
 
 	it("does NOT render BlogPagination when total ≤ PAGE_LIMIT", async () => {
@@ -261,10 +282,7 @@ describe("BlogCategoryPage (server component)", () => {
 		mockBlogAnonClient.mockReturnValue(makeClient());
 		mockGetBlogCategories.mockResolvedValue(mockCategories);
 		await expect(
-			BlogCategoryPage({
-				params: Promise.resolve({ category: "does-not-exist" }),
-				searchParams: Promise.resolve({}),
-			}),
+			CategoryIndex({ category: "does-not-exist", page: 1 }),
 		).rejects.toMatchObject({
 			message: expect.stringContaining("NEXT_NOT_FOUND"),
 		});
@@ -287,10 +305,7 @@ describe("BlogCategoryPage (server component)", () => {
 		);
 		mockGetBlogCategories.mockResolvedValue(mockCategories);
 		await expect(
-			BlogCategoryPage({
-				params: Promise.resolve({ category: "software-comparisons" }),
-				searchParams: Promise.resolve({ page: "9999" }),
-			}),
+			CategoryIndex({ category: "software-comparisons", page: 9999 }),
 		).rejects.toMatchObject({
 			message: expect.stringContaining("NEXT_NOT_FOUND"),
 		});
@@ -303,10 +318,7 @@ describe("BlogCategoryPage (server component)", () => {
 		);
 		mockGetBlogCategories.mockResolvedValue(mockCategories);
 		await expect(
-			BlogCategoryPage({
-				params: Promise.resolve({ category: "software-comparisons" }),
-				searchParams: Promise.resolve({}),
-			}),
+			CategoryIndex({ category: "software-comparisons", page: 1 }),
 		).rejects.toMatchObject({
 			message: expect.stringContaining("boom"),
 		});
@@ -314,41 +326,41 @@ describe("BlogCategoryPage (server component)", () => {
 	});
 });
 
-describe("BlogCategoryPage generateMetadata (SEO-03 empty-category noindex)", () => {
+describe("BlogCategoryPage metadata (CT-2 thin-category noindex)", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 	});
 
-	async function metaFor(
-		categorySlug: string,
-		opts?: MockBuilderOpts,
-	): Promise<import("next").Metadata> {
-		mockBlogAnonClient.mockReturnValue(makeClient(opts));
-		mockGetBlogCategories.mockResolvedValue(opts?.categories ?? mockCategories);
-		return generateMetadata({
-			params: Promise.resolve({ category: categorySlug }),
-			searchParams: Promise.resolve({}),
-		});
+	/** Metadata for `software-comparisons` holding `postCount` posts. */
+	async function metaFor(postCount: number, page = 1) {
+		mockBlogAnonClient.mockReturnValue(makeClient());
+		mockGetBlogCategories.mockResolvedValue([
+			{
+				name: "Software Comparisons",
+				slug: "software-comparisons",
+				post_count: postCount,
+			},
+		]);
+		return categoryIndexMetadata("software-comparisons", page);
 	}
 
-	it("noindexes an empty category (zero published posts) so it does not bleed crawl signal", async () => {
-		const meta = await metaFor("software-comparisons", { postsCount: 0 });
-		expect(meta.robots).toBe("noindex, follow");
-	});
+	it.each([0, 1, 2])(
+		"noindexes, but follows, a category with %i posts (fewer than 3)",
+		async (count) => {
+			expect((await metaFor(count)).robots).toBe("noindex, follow");
+		},
+	);
 
-	it("leaves a non-empty category indexable (page 1)", async () => {
-		const meta = await metaFor("software-comparisons", { postsCount: 5 });
+	it("indexes a category from 3 posts (page 1)", async () => {
 		// createPageMetadata omits robots when indexable.
-		expect(meta.robots).toBeUndefined();
+		expect((await metaFor(3)).robots).toBeUndefined();
 	});
 
-	it("noindexes paginated pages regardless of count", async () => {
-		mockBlogAnonClient.mockReturnValue(makeClient({ postsCount: 5 }));
-		mockGetBlogCategories.mockResolvedValue(mockCategories);
-		const meta = await generateMetadata({
-			params: Promise.resolve({ category: "software-comparisons" }),
-			searchParams: Promise.resolve({ page: "2" }),
-		});
+	it("noindexes later pages regardless of count, with their own canonical", async () => {
+		const meta = await metaFor(30, 2);
 		expect(meta.robots).toBe("noindex, follow");
+		expect(meta.alternates?.canonical).toMatch(
+			/\/blog\/category\/software-comparisons\/page\/2$/,
+		);
 	});
 });

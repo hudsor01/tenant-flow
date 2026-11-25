@@ -6,7 +6,9 @@ import { expect, test } from "@playwright/test";
 //
 //  - /blog and /blog/category/<slug> must answer a real 404 for a page or
 //    category that does not exist. A route-level loading.tsx used to stream
-//    these with a 200 before notFound() ran.
+//    these with a 200 before notFound() ran. Page N lives at
+//    <listing>/page/N since the listings went static (2026-11-24 SEO audit
+//    BL1); an old ?page=N link 308s there first.
 //  - A deleted post with no same-topic page answers 410 Gone, with the site's
 //    404 page as its body (next.config.ts rewrites() and
 //    src/app/api/blog-gone/route.ts).
@@ -20,11 +22,31 @@ test.describe("Blog status codes (no soft 404s)", () => {
 		expect(response.status()).toBe(200);
 	});
 
-	test("/blog?page=99 (past the last page) answers 404", async ({ page }) => {
-		const response = await page.request.get("/blog?page=99", {
+	test("/blog/page/99 (past the last page) answers 404", async ({ page }) => {
+		const response = await page.request.get("/blog/page/99", {
 			maxRedirects: 0,
 		});
 		expect(response.status()).toBe(404);
+	});
+
+	test("an old /blog?page=99 link redirects to /blog/page/99, which is a 404", async ({
+		page,
+	}) => {
+		const response = await page.request.get("/blog?page=99", {
+			maxRedirects: 0,
+		});
+		expect(response.status()).toBe(308);
+		expect(response.headers().location).toMatch(/^\/blog\/page\/99(\?|$)/);
+		const landed = await page.request.get("/blog?page=99");
+		expect(landed.status()).toBe(404);
+	});
+
+	test("/blog/page/1 redirects to /blog, its one URL", async ({ page }) => {
+		const response = await page.request.get("/blog/page/1", {
+			maxRedirects: 0,
+		});
+		expect(response.status()).toBe(308);
+		expect(response.headers().location).toBe("/blog");
 	});
 
 	test("an unknown blog category answers 404", async ({ page }) => {

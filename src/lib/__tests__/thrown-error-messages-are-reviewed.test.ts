@@ -157,10 +157,6 @@ const REVIEWED: ReadonlyMap<string, Reason> = new Map<string, Reason>([
 	],
 	['`Blog post query exhausted attempts (slug: "${slug}")`', "SERVER"],
 	["postsResult.error.message", "SERVER"],
-	[
-		'postsResult.error?.message ?? comparisonsResult.error?.message ?? "Unknown Supabase error"',
-		"SERVER",
-	],
 	["error.message", "SERVER"],
 	["categoriesResult.error.message", "SERVER"],
 	["`Failed to fetch blog posts: ${error.message}`", "SERVER"],

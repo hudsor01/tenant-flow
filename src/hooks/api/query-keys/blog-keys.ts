@@ -37,15 +37,6 @@ export type BlogReviewItem = Pick<
 	| "created_at"
 >;
 
-export interface RelatedPostsParams {
-	category: string;
-	excludeSlug: string;
-	limit?: number;
-}
-
-const BLOG_LIST_COLUMNS =
-	"id, title, slug, excerpt, published_at, category, reading_time, featured_image, author_user_id, status, tags";
-
 export const BLOG_REVIEW_COLUMNS =
 	"id, title, slug, content, excerpt, category, word_count, reading_time, created_at";
 
@@ -109,28 +100,5 @@ export const blogQueries = {
 				);
 			},
 			...QUERY_CACHE_TIMES.BLOG,
-		}),
-
-	related: (params: RelatedPostsParams) =>
-		queryOptions({
-			queryKey: [...blogQueries.all(), "related", params],
-			queryFn: async (): Promise<BlogListItem[]> => {
-				const supabase = createClient();
-
-				const { data, error } = await supabase
-					.from("blogs")
-					.select(BLOG_LIST_COLUMNS)
-					.eq("category", params.category)
-					.neq("slug", params.excludeSlug)
-					.eq("status", "published")
-					.order("published_at", { ascending: false })
-					.limit(params.limit ?? 3);
-
-				if (error) handlePostgrestError(error, "blogs");
-
-				return (data ?? []) as BlogListItem[];
-			},
-			...QUERY_CACHE_TIMES.BLOG,
-			enabled: !!params.category && !!params.excludeSlug,
 		}),
 };

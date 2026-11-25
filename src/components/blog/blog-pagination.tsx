@@ -2,30 +2,30 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { parseAsInteger, useQueryState } from "nuqs";
+import { blogPageHref } from "#lib/blog/blog-page-urls";
 import { cn } from "#lib/utils";
 
 interface BlogPaginationProps {
+	/** The listing's first page, e.g. `/blog` or `/blog/category/lease-law`. */
+	basePath: string;
+	/** The page being shown; the server knows it from the route. */
+	currentPage: number;
 	totalPages: number;
 	className?: string;
 }
 
 /**
- * Build a `?page=N` href for the current pathname. Page 1 drops the param
- * entirely so the canonical first page stays at the bare path.
+ * Previous / next links between a listing's pages. Page N lives at
+ * `<basePath>/page/N` (page 1 at the bare path), so the listings render
+ * statically (2026-11-24 SEO audit BL1, CT-1).
  */
-function pageHref(pathname: string, page: number): string {
-	return page <= 1 ? pathname : `${pathname}?page=${page}`;
-}
-
-export function BlogPagination({ totalPages, className }: BlogPaginationProps) {
-	const pathname = usePathname();
-	// Read-only: the reactive "Page X of Y" label tracks the URL `?page` after a
-	// real navigation. No setter — navigation is driven by the <Link> hrefs.
-	const [page] = useQueryState("page", parseAsInteger.withDefault(1));
-
-	const currentPage = Math.max(1, Math.min(page, totalPages));
+export function BlogPagination({
+	basePath,
+	currentPage: requestedPage,
+	totalPages,
+	className,
+}: BlogPaginationProps) {
+	const currentPage = Math.max(1, Math.min(requestedPage, totalPages));
 
 	if (totalPages <= 1) {
 		return null;
@@ -46,14 +46,12 @@ export function BlogPagination({ totalPages, className }: BlogPaginationProps) {
 			className={cn("flex items-center justify-center gap-4", className)}
 		>
 			{/* Real anchors so the page>1 URLs exist in the SSR HTML and are
-			    crawlable — a click performs real <Link> navigation, which
-			    re-runs the Server Component so the post grid actually changes.
-			    The onClick is a guard only: it preventDefaults nothing but a
-			    disabled boundary link. aria-disabled (not the `disabled`
-			    attribute, invalid on <a>) plus pointer-events-none gate the
-			    boundary pages. */}
+			    crawlable. The onClick is a guard only: it preventDefaults
+			    nothing but a disabled boundary link. aria-disabled (not the
+			    `disabled` attribute, invalid on <a>) plus pointer-events-none
+			    gate the boundary pages. */}
 			<Link
-				href={pageHref(pathname, prevPage)}
+				href={blogPageHref(basePath, prevPage)}
 				className={cn(linkClasses, !hasPrev && disabledClasses)}
 				aria-label="Previous page"
 				aria-disabled={!hasPrev}
@@ -70,7 +68,7 @@ export function BlogPagination({ totalPages, className }: BlogPaginationProps) {
 			</span>
 
 			<Link
-				href={pageHref(pathname, nextPage)}
+				href={blogPageHref(basePath, nextPage)}
 				className={cn(linkClasses, !hasNext && disabledClasses)}
 				aria-label="Next page"
 				aria-disabled={!hasNext}

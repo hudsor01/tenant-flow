@@ -265,11 +265,18 @@ const REVIEWED: Record<string, { reads: number; reason: string }> = {
 		reason: "slug looked up; unknown is a 404",
 	},
 	"src/app/blog/category/[category]/page.tsx": {
-		reads: 4,
-		reason:
-			"category validated against the category list (unknown is a 404); ?page= is a number",
+		reads: 2,
+		reason: "category validated against the category list (unknown is a 404)",
 	},
-	"src/app/blog/page.tsx": { reads: 2, reason: "?page= is a number" },
+	"src/app/blog/category/[category]/page/[page]/page.tsx": {
+		reads: 2,
+		reason:
+			"category validated against the category list; page parsed by parseListingPage (a canonical integer, else a 404)",
+	},
+	"src/app/blog/page/[page]/page.tsx": {
+		reads: 2,
+		reason: "page parsed by parseListingPage (a canonical integer, else a 404)",
+	},
 	"src/app/compare/[competitor]/page.tsx": {
 		reads: 2,
 		reason: "slug looked up in COMPETITORS; unknown is a 404",
@@ -282,10 +289,6 @@ const REVIEWED: Record<string, { reads: number; reason: string }> = {
 	"src/app/sign/[token]/page.tsx": {
 		reads: 1,
 		reason: "token looked up and posted back, never rendered",
-	},
-	"src/components/blog/blog-pagination.tsx": {
-		reads: 2,
-		reason: "?page= parsed as an integer; the pathname builds page links",
 	},
 	"src/components/contact/contact-form.tsx": {
 		reads: 1,

@@ -16,15 +16,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // --- Hoisted mocks ---
 
-// `useBlogBySlug` was removed when the page was refactored to receive
-// `post` directly from the server (so the article body lands in initial
-// HTML for SEO). Tests now pass the post via props instead of mocking
-// the fetcher. `useBlogCategories` was also dropped — the slug is now
-// derived locally from `post.category` rather than fetched.
-const mockUseRelatedPosts = vi.hoisted(() => vi.fn());
-
-vi.mock("#hooks/api/use-blogs", () => ({
-	useRelatedPosts: mockUseRelatedPosts,
+// The page receives `post`, its server-rendered body and its related posts
+// as props, so the client fetches nothing (2026-11-24 SEO audit PT-1). The
+// server entry's related-posts read is stubbed here.
+vi.mock("#lib/blog/blog-listing", () => ({
+	loadRelatedPosts: vi.fn(async () => []),
 }));
 
 // No published post is mapped to a competitor today (the two comparison posts
@@ -197,10 +193,6 @@ const mockRelatedPosts = [
 // hover keeps the full primary-text label and underlines it (66.2-39 fix
 // round 3, F29, OD-16).
 describe("BlogArticlePage cross-links", () => {
-	beforeEach(() => {
-		mockUseRelatedPosts.mockReturnValue({ data: [], isLoading: false });
-	});
-
 	it.each([
 		["See Full Comparison", COMPARISON_TEST_SLUG],
 		["View Resource", Object.keys(BLOG_TO_RESOURCE)[0]],
@@ -211,6 +203,7 @@ describe("BlogArticlePage cross-links", () => {
 				post={mockPost}
 				slug={slug ?? ""}
 				articleBody={mockArticleBody}
+				relatedPosts={[]}
 			/>,
 		);
 		const classes = screen
@@ -224,19 +217,13 @@ describe("BlogArticlePage cross-links", () => {
 });
 
 describe("BlogArticlePage", () => {
-	beforeEach(() => {
-		mockUseRelatedPosts.mockReturnValue({
-			data: mockRelatedPosts,
-			isLoading: false,
-		});
-	});
-
 	it("renders featured image with next/image when post.featured_image exists", () => {
 		render(
 			<BlogArticlePage
 				post={mockPost}
 				slug="test-post"
 				articleBody={mockArticleBody}
+				relatedPosts={mockRelatedPosts}
 			/>,
 		);
 		const image = screen.getByTestId("featured-image");
@@ -253,6 +240,7 @@ describe("BlogArticlePage", () => {
 				post={mockPostNoImage}
 				slug="test-post"
 				articleBody={mockArticleBody}
+				relatedPosts={mockRelatedPosts}
 			/>,
 		);
 		// Unique on-brand cover from /api/og/blog/[slug] — every post gets hero
@@ -267,6 +255,7 @@ describe("BlogArticlePage", () => {
 				post={mockPost}
 				slug="test-post"
 				articleBody={mockArticleBody}
+				relatedPosts={mockRelatedPosts}
 			/>,
 		);
 		// Two by design: the breadcrumb (inside PageLayout so it clears the
@@ -289,6 +278,7 @@ describe("BlogArticlePage", () => {
 				post={mockPost}
 				slug="test-post"
 				articleBody={mockArticleBody}
+				relatedPosts={mockRelatedPosts}
 			/>,
 		);
 		expect(screen.getByText("TenantFlow Team")).toBeInTheDocument();
@@ -301,6 +291,7 @@ describe("BlogArticlePage", () => {
 				post={mockPost}
 				slug="test-post"
 				articleBody={mockArticleBody}
+				relatedPosts={mockRelatedPosts}
 			/>,
 		);
 		// The .prose wrapper lives in page.tsx (server entry), not blog-post-page.tsx.
@@ -315,6 +306,7 @@ describe("BlogArticlePage", () => {
 				post={mockPost}
 				slug="test-post"
 				articleBody={mockArticleBody}
+				relatedPosts={mockRelatedPosts}
 			/>,
 		);
 		const markdown = screen.getByTestId("markdown-content");
@@ -328,6 +320,7 @@ describe("BlogArticlePage", () => {
 				post={mockPost}
 				slug="test-post"
 				articleBody={mockArticleBody}
+				relatedPosts={mockRelatedPosts}
 			/>,
 		);
 		expect(
@@ -341,6 +334,7 @@ describe("BlogArticlePage", () => {
 				post={mockPost}
 				slug="test-post"
 				articleBody={mockArticleBody}
+				relatedPosts={mockRelatedPosts}
 			/>,
 		);
 		const cards = screen.getAllByTestId("blog-card");
@@ -356,6 +350,7 @@ describe("BlogArticlePage", () => {
 				post={mockPost}
 				slug="test-post"
 				articleBody={mockArticleBody}
+				relatedPosts={mockRelatedPosts}
 			/>,
 		);
 		const emailInputs = container.querySelectorAll('input[type="email"]');
@@ -639,6 +634,7 @@ describe("On this page (table of contents)", () => {
 				post={post}
 				slug="test-post"
 				articleBody={mockArticleBody}
+				relatedPosts={[]}
 			/>,
 		);
 		const nav = screen.getByRole("navigation", { name: "Table of contents" });
@@ -662,6 +658,7 @@ describe("On this page (table of contents)", () => {
 				post={post}
 				slug="test-post"
 				articleBody={mockArticleBody}
+				relatedPosts={[]}
 			/>,
 		);
 		const nav = screen.getByRole("navigation", { name: "Table of contents" });
@@ -681,6 +678,7 @@ describe("On this page (table of contents)", () => {
 				post={mockPost}
 				slug="test-post"
 				articleBody={mockArticleBody}
+				relatedPosts={[]}
 			/>,
 		);
 		expect(
@@ -692,7 +690,6 @@ describe("On this page (table of contents)", () => {
 describe("Page (server entry) article body", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		mockUseRelatedPosts.mockReturnValue({ data: [], isLoading: false });
 	});
 
 	it("drops a body's opening '# <title>' line before rendering the markdown", async () => {

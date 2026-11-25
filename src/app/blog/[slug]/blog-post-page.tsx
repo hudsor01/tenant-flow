@@ -11,7 +11,7 @@ import { BlogPostBreadcrumb } from "#components/blog/blog-post-breadcrumb";
 import { NewsletterSignup } from "#components/blog/newsletter-signup";
 import { PageLayout } from "#components/layout/page-layout";
 import { Button } from "#components/ui/button";
-import { useRelatedPosts } from "#hooks/api/use-blogs";
+import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
 import { BLOG_TO_COMPETITOR, BLOG_TO_RESOURCE } from "#lib/content-links";
 import { categoryLabel } from "#lib/seo/blog-categories";
 import { cn } from "#lib/utils";
@@ -36,6 +36,11 @@ export type BlogPostProps = {
 	slug: string;
 	/** Server-rendered article body (SEO-02). */
 	articleBody: ReactNode;
+	/**
+	 * Posts to link from this one, read on the server so the links are in the
+	 * HTML crawlers read (2026-11-24 SEO audit PT-1, PT-2).
+	 */
+	relatedPosts: BlogListItem[];
 };
 
 /** Extract the section headings for the "On this page" nav: `## ` lines, and
@@ -59,6 +64,7 @@ export default function BlogPostPage({
 	post,
 	slug,
 	articleBody,
+	relatedPosts,
 }: BlogPostProps) {
 	// Hero LCP: the image must be VISIBLE in the no-JS / pre-hydration render
 	// (social scrapers, non-JS crawlers, and the LCP measurement all see the
@@ -74,13 +80,6 @@ export default function BlogPostPage({
 	}, []);
 
 	const heroBlurUp = jsReady && !imageLoaded;
-
-	// Related-posts is the only remaining client fetch. `useBlogCategories`
-	// was dropped — its only consumer was a category-name → slug lookup
-	// that's deterministic from the visible category string. The server
-	// already passes `post.category`, so a network round-trip just to
-	// confirm `lower-and-dasherize` was wasted.
-	const { data: relatedPosts } = useRelatedPosts(post.category ?? "", slug, 3);
 
 	// `post.category` is the raw `blogs.category` value — the kebab SLUG.
 	// Use it verbatim as the category-page slug (the lower-and-dasherize is a
@@ -258,7 +257,7 @@ export default function BlogPostPage({
 				</div>
 
 				{/* Related Articles */}
-				{relatedPosts && relatedPosts.length > 0 && (
+				{relatedPosts.length > 0 && (
 					<section className="mt-16">
 						<h2 className="text-2xl font-bold mb-6">Related Articles</h2>
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
