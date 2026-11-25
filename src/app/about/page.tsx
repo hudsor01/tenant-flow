@@ -28,6 +28,7 @@ import {
 	ItemSeparator,
 	ItemTitle,
 } from "#components/ui/item";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
@@ -70,7 +71,11 @@ export default function AboutPage() {
 				title="Property management"
 				titleHighlight="built for landlords"
 				subtitle="One platform for property records, leases, maintenance, and the document vault. Tenants are records you keep for your own tracking — never users on the platform."
-				primaryCta={{ label: "Start free — no card", href: "/pricing" }}
+				primaryCta={{
+					label: "Start free — no card",
+					href: "/pricing",
+					trackLocation: "about-hero",
+				}}
 				secondaryCta={{ label: "Contact Sales", href: "/contact" }}
 			/>
 
@@ -274,7 +279,7 @@ export default function AboutPage() {
 							</p>
 							<div className="flex flex-col sm:flex-row gap-4 justify-center">
 								<Button asChild size="lg" className="group">
-									<Link href="/pricing">
+									<Link href="/pricing" {...ctaTrackAttributes("about-bottom")}>
 										Start free — no card
 										<ArrowRight className="size-4 ml-2 transition-transform group-hover:translate-x-1" />
 									</Link>

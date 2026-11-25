@@ -7,6 +7,7 @@
  * to checkout.stripe.com. No Stripe.js bundle is required.
  */
 
+import { track } from "#lib/analytics/track";
 import { ERROR_MESSAGES } from "#lib/constants/error-messages";
 import { createClient } from "#lib/supabase/client";
 
@@ -54,6 +55,9 @@ export async function createCheckoutSession(
 	}
 
 	const user = session?.user;
+
+	// Funnel step (SEO audit T1): the owner is on their way to Stripe.
+	track({ name: "checkout_started", props: { plan: request.planName } });
 
 	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 	const response = await fetch(`${supabaseUrl}/functions/v1/stripe-checkout`, {

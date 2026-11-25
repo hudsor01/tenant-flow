@@ -2,6 +2,7 @@ import { ArrowRight, Check, Minus, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { Button } from "#components/ui/button";
 import { ScrollRegion } from "#components/ui/scroll-region";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { DiagnosticError } from "#lib/diagnostic-error";
 import { parseLocalYmd } from "#lib/formatters/date";
 import type { CompetitorData, FeatureSupport } from "#types/sections/compare";
@@ -245,7 +246,7 @@ export function BottomCta() {
 					</p>
 					<div className="flex flex-col sm:flex-row gap-4 justify-center">
 						<Button size="lg" className="px-8" asChild>
-							<Link href="/pricing">
+							<Link href="/pricing" {...ctaTrackAttributes("compare-bottom")}>
 								Start free — no card
 								<ArrowRight className="size-5 ml-2" />
 							</Link>

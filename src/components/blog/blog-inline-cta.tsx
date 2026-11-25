@@ -1,6 +1,7 @@
 import { ArrowRight, Check } from "lucide-react";
 import Link from "next/link";
 import { Button } from "#components/ui/button";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 
 const benefits = [
 	"Free 14-day trial",
@@ -35,7 +36,7 @@ export function BlogInlineCta() {
 				</div>
 				<div className="mt-2">
 					<Button asChild>
-						<Link href="/pricing">
+						<Link href="/pricing" {...ctaTrackAttributes("blog-inline")}>
 							Start free
 							<ArrowRight className="size-4 ml-2" />
 						</Link>

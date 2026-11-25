@@ -3,8 +3,8 @@
 import { ArrowRight, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
 import { Button } from "#components/ui/button";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { cn } from "#lib/utils";
 
 interface StickyConversionCtaProps {
@@ -83,7 +83,7 @@ export function StickyConversionCta({
 				<p className="text-sm font-semibold text-foreground">
 					Ready to simplify your rental admin?
 				</p>
-				<p className="text-xs text-muted-foreground">
+				<p className="mb-0 text-xs text-muted-foreground">
 					14-day free trial. No credit card required.
 				</p>
 			</div>
@@ -94,7 +94,7 @@ export function StickyConversionCta({
 					</Button>
 				)}
 				<Button asChild size="sm">
-					<Link href={primaryHref}>
+					<Link href={primaryHref} {...ctaTrackAttributes("sticky-bar")}>
 						{primaryLabel}
 						<ArrowRight className="size-4 ml-1" />
 					</Link>

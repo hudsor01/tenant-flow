@@ -61,6 +61,8 @@ export interface HeroSectionProps {
 	primaryCta: {
 		label: string;
 		href: string;
+		/** Funnel location, when this is a "Start free" CTA (SEO audit T1). */
+		trackLocation?: string;
 	};
 	secondaryCta: {
 		label: string;

@@ -422,6 +422,13 @@ import_map = "./functions/deno.json"
 verify_jwt = false
 import_map = "./functions/deno.json"
 
+# Unauthenticated by design: marketing visitors post funnel events here
+# (2026-11-24 SEO audit T1). A signed-in owner's Bearer token, when sent, is
+# verified in the function and links the event. Rate limited, fail-closed.
+[functions.track-event]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
 # Auth email send — the Supabase Auth Send Email hook. Supabase Auth signs
 # each request with Standard Webhooks headers (NOT a Supabase user JWT), and
 # the function verifies them against its SEND_EMAIL_HOOK_SECRET secret

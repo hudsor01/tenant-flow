@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { calculateAnnualSavings } from "#config/pricing";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { DiagnosticError } from "#lib/diagnostic-error";
 import { createLogger } from "#lib/frontend-logger";
 import { handleMutationError } from "#lib/mutation-error-handler";
@@ -235,6 +236,7 @@ export function PricingCardFeatured({
 							className="w-full group relative overflow-hidden shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-300"
 							disabled={subscriptionMutation.isPending}
 							onClick={handleSubscribe}
+							{...ctaTrackAttributes("pricing-card-featured")}
 						>
 							{subscriptionMutation.isPending ? (
 								<>

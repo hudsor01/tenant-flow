@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { calculateAnnualSavings } from "#config/pricing";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { DiagnosticError } from "#lib/diagnostic-error";
 import { createLogger } from "#lib/frontend-logger";
 import { handleMutationError } from "#lib/mutation-error-handler";
@@ -220,6 +221,7 @@ export function PricingCardStandard({
 					className="w-full group transition-all duration-300 border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary-text dark:border-border dark:hover:bg-primary/5 dark:hover:text-primary-text"
 					disabled={subscriptionMutation.isPending}
 					onClick={handleSubscribe}
+					{...ctaTrackAttributes("pricing-card")}
 				>
 					{subscriptionMutation.isPending ? (
 						<>

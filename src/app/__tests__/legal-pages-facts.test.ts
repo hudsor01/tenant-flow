@@ -82,6 +82,22 @@ describe("Privacy Policy", () => {
 		expect(PRIVACY).toContain("do not use cookies");
 	});
 
+	it("discloses the first-party funnel events and their retention (PV2, T1)", () => {
+		const migration = flat(
+			readFileSync(
+				"supabase/migrations/20261125172716_analytics_events.sql",
+				"utf8",
+			),
+		);
+		expect(migration).toContain("interval '180 days'");
+		expect(migration).toContain(
+			"update public.analytics_events set user_id = null",
+		);
+		expect(PRIVACY).toContain("session storage until you close the tab");
+		expect(PRIVACY).toContain("are deleted after 180 days");
+		expect(PRIVACY).toContain("unlinked from your account when it is deleted");
+	});
+
 	it("states the retention windows the sweeps use (PV5)", () => {
 		expect(PRIVACY).toContain("90 days after you read them");
 		expect(PRIVACY).toContain("180 days after they arrive if unread");

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ClickTracker } from "#components/analytics/click-tracker";
 import Footer from "#components/layout/footer";
 import { Navbar } from "#components/layout/navbar";
 import { GridPattern } from "#components/ui/grid-pattern";
@@ -61,6 +62,7 @@ export function PageLayout({
 				{children}
 			</main>
 			{showFooter && <Footer />}
+			<ClickTracker />
 		</div>
 	);
 }

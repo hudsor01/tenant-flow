@@ -2,6 +2,7 @@ import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "#components/ui/button";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import type { HeroSectionProps } from "#types/frontend";
 
 export function HeroSection({
@@ -67,7 +68,12 @@ export function HeroSection({
 
 							<div className="flex flex-col sm:flex-row gap-4">
 								<Button asChild>
-									<Link href={primaryCta.href}>
+									<Link
+										href={primaryCta.href}
+										{...(primaryCta.trackLocation
+											? ctaTrackAttributes(primaryCta.trackLocation)
+											: {})}
+									>
 										{primaryCta.label}
 										<ArrowRight className="ml-2 size-4" />
 									</Link>

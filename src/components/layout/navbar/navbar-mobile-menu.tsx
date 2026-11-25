@@ -9,6 +9,7 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "#components/ui/sheet";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { isActiveLink, navAriaCurrent } from "#lib/is-active-link";
 import { cn } from "#lib/utils";
 import type { NavItem } from "./types";
@@ -147,6 +148,7 @@ export function NavbarMobileMenu({
 								</Link>
 								<Link
 									href={ctaHref}
+									{...ctaTrackAttributes("navbar-mobile")}
 									onClick={() => onClose()}
 									className="flex items-center justify-center w-full px-6 py-3 mt-2 bg-primary text-primary-foreground font-medium text-sm rounded-md hover:bg-primary-text dark:hover:bg-primary/90 transition-colors duration-fast"
 								>

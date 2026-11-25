@@ -14,6 +14,7 @@ import {
 } from "#components/ui/accordion";
 import { Button } from "#components/ui/button";
 import { Card } from "#components/ui/card";
+import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 
 const STATS = [
 	{
@@ -200,7 +201,7 @@ export function PricingCtaSection() {
 						</p>
 						<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 							<Button size="lg" className="px-8" asChild>
-								<Link href="#plans">
+								<Link href="#plans" {...ctaTrackAttributes("pricing-bottom")}>
 									Start free — no card
 									<ArrowRight className="ml-2 h-4 w-4" />
 								</Link>
