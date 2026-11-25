@@ -48,6 +48,7 @@ const CASE_TRANSFORM =
 const REVIEWED: Readonly<Record<string, string>> = {
 	"stat.label": "pricing page stats, a constant list",
 	"data.tagline": "compare page copy, a constant",
+	"card.eyebrow": "share card eyebrow, from the OG_CARDS constants",
 	categoryDisplayLabel: "blog category label map",
 	PERIOD_LABEL: "a constant",
 	title: "logo cloud heading, a prop the page writes",

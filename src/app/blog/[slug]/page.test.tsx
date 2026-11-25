@@ -246,7 +246,7 @@ describe("BlogArticlePage", () => {
 		// Unique on-brand cover from /api/og/blog/[slug] — every post gets hero
 		// art, never a bare header.
 		const image = screen.getByTestId("featured-image");
-		expect(image).toHaveAttribute("src", "/api/og/blog/test-post?v=4");
+		expect(image).toHaveAttribute("src", "/api/og/blog/test-post?v=5");
 	});
 
 	it("renders category links (breadcrumb + meta bar) to /blog/category/[slug]", () => {

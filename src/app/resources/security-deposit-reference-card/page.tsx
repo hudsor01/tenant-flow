@@ -16,6 +16,7 @@ export const metadata: Metadata = createPageMetadata({
 	description:
 		"Free printable security deposit reference card with deposit limits, return deadlines, and required documentation for all 50 states plus DC.",
 	path: "/resources/security-deposit-reference-card",
+	ogCard: "security-deposit-reference-card",
 });
 
 export default function SecurityDepositReferenceCardPage() {

@@ -160,7 +160,7 @@ export default function BlogPostPage({
 				    slug-hashed composition) so every post has unique on-brand art. */}
 				<div className="relative aspect-video overflow-hidden rounded-xl border border-border mb-12">
 					<Image
-						src={post.featured_image ?? `/api/og/blog/${slug}?v=4`}
+						src={post.featured_image ?? `/api/og/blog/${slug}?v=5`}
 						alt={post.title}
 						fill
 						sizes="(max-width: 768px) 100vw, 896px"

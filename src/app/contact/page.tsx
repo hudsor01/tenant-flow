@@ -11,6 +11,7 @@ export const metadata: Metadata = createPageMetadata({
 	description:
 		"Reach our team for help with setup, features, and growing your portfolio. We respond during US business hours, Monday through Friday.",
 	path: "/contact",
+	ogCard: "contact",
 });
 
 export default function ContactPage() {

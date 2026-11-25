@@ -151,6 +151,12 @@ const REVIEWED: readonly { file: string; expr: RegExp; reason: string }[] = [
 		reason: "a category's name in a page title ('Tax Prep Articles & Guides')",
 	},
 	{
+		file: "src/lib/seo/og-cards.ts",
+		expr: /^label$/,
+		reason:
+			"a category's name on its share card ('Tax Prep articles & guides')",
+	},
+	{
 		file: "src/components/ui/file-upload/file-upload-validation.ts",
 		expr: /^maxFiles$/,
 		reason:

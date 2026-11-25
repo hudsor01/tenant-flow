@@ -1,24 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 /**
- * SEO-02 regression pin — /features Open Graph image wiring.
- *
- * Pins three contracts that together guarantee the /features OG image
- * survives future edits:
- *   1. `createPageMetadata` receives `ogImage: "/api/og/features"`.
- *   2. The `/api/og/features` route does NOT pin a runtime, and exports
- *      `revalidate = 3600` (kept in lockstep with the sibling
- *      `/api/og/pricing` route as documentation of the intended cache
- *      horizon — actual caching is driven by the `Cache-Control` header
- *      `ImageResponse` sets). The route used to pin `runtime = "edge"`
- *      because the standalone `@vercel/og` required it; it now imports
- *      `next/og` and runs on the default nodejs runtime, which Next 16.3
- *      requires since it deprecated the edge runtime. Asserting the
- *      ABSENCE of the export is the point: re-adding it would reintroduce
- *      a build-time deprecation warning.
- *   3. The route uses the canonical 1200x630 OG dimensions.
- *
- * No production code is modified by this test — it asserts shipped state.
+ * SEO-02 regression pin: /features names its share card. The card itself is
+ * rendered and checked in `src/app/api/og/__tests__/og-cards.test.ts`.
  */
 
 vi.mock("#env", () => ({
@@ -48,7 +32,7 @@ vi.mock("../features-client", () => ({
 	default: () => null,
 }));
 
-// Spy on createPageMetadata so we can assert the ogImage arg the page passes
+// Spy on createPageMetadata so we can assert the card the page names
 // (the helper itself is unit-tested elsewhere — this isolates the wiring).
 // `vi.hoisted()` keeps the spy initialised before the `vi.mock` factory runs
 // (CLAUDE.md testing rules: any mock variable referenced in `vi.mock()` must
@@ -59,7 +43,7 @@ const { createPageMetadataSpy } = vi.hoisted(() => ({
 			title: string;
 			description: string;
 			path: string;
-			ogImage?: string;
+			ogCard?: string;
 		}) => ({
 			title: cfg.title,
 			description: cfg.description,
@@ -73,53 +57,13 @@ vi.mock("#lib/seo/page-metadata", () => ({
 }));
 
 describe("features/page.tsx — SEO-02 OG image wiring", () => {
-	it('passes ogImage: "/api/og/features" to createPageMetadata', async () => {
+	it('passes ogCard: "features" to createPageMetadata', async () => {
 		// Importing the module triggers the top-level createPageMetadata call.
 		await import("../page");
 
 		expect(createPageMetadataSpy).toHaveBeenCalled();
 		const cfg = createPageMetadataSpy.mock.calls[0]![0];
-		expect(cfg.ogImage).toBe("/api/og/features");
+		expect(cfg.ogCard).toBe("features");
 		expect(cfg.path).toBe("/features");
-	});
-});
-
-describe("/api/og/features/route.tsx — SEO-02 OG route contract", () => {
-	it("pins no runtime and exports revalidate = 3600", async () => {
-		const mod: Record<string, unknown> = await import(
-			"../../api/og/features/route"
-		);
-		// No runtime export at all -- nodejs is the default, and the edge runtime
-		// is deprecated as of Next 16.3 ("The Edge Runtime is deprecated. You can
-		// use the nodejs runtime instead."), which the build warned about on every
-		// run while this route pinned it.
-		expect(mod["runtime"]).toBeUndefined();
-		expect(mod["revalidate"]).toBe(3600);
-	});
-
-	it("declares a 1200x630 OG image (read from source)", async () => {
-		const { readFileSync } = await import("node:fs");
-		const { resolve } = await import("node:path");
-		const source = readFileSync(
-			resolve(__dirname, "../../api/og/features/route.tsx"),
-			"utf8",
-		);
-		expect(source).toMatch(/width:\s*1200/);
-		expect(source).toMatch(/height:\s*630/);
-	});
-
-	it("uses only hsl() color literals — no oklch (satori renders it black), no hex", async () => {
-		const { readFileSync } = await import("node:fs");
-		const { resolve } = await import("node:path");
-		const source = readFileSync(
-			resolve(__dirname, "../../api/og/features/route.tsx"),
-			"utf8",
-		);
-		// MKT-01: satori does not support oklch (renders it as solid black), so the
-		// OG route must use hsl() literals only.
-		expect(source).toMatch(/hsl\(/);
-		// no oklch in a style string (comments may mention it) + no hex colors
-		expect(source).not.toMatch(/["'`][^"'`]*oklch\(/);
-		expect(source).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
 	});
 });

@@ -17,7 +17,7 @@ export const metadata: Metadata = createPageMetadata({
 	description:
 		"Per-entity document vault with global search, lease e-signing on Growth and Max, maintenance tracking, and financial reporting: the core tools landlords need to administer rental properties in one platform.",
 	path: "/features",
-	ogImage: "/api/og/features",
+	ogCard: "features",
 });
 
 export default function FeaturesPage() {

@@ -26,7 +26,7 @@ export const metadata: Metadata = createPageMetadata({
 	description:
 		"Property management software for independent landlords. Starter ($19/mo, 5 properties), Growth ($49/mo, 20 properties), Max ($149/mo, unlimited properties). 14-day free trial, no credit card required.",
 	path: "/pricing",
-	ogImage: "/api/og/pricing",
+	ogCard: "pricing",
 });
 
 export default async function PricingPage() {
@@ -57,7 +57,7 @@ export default async function PricingPage() {
 							Simple, transparent pricing for{" "}
 							<span className="hero-highlight">every portfolio</span>
 						</h1>
-						<p className="mx-auto max-w-2xl text-balance text-lg text-muted-foreground">
+						<p className="mx-auto mb-0 max-w-2xl text-balance text-lg text-muted-foreground">
 							Choose your plan and start your 14-day free trial. Upgrade anytime
 							as your portfolio grows.
 						</p>

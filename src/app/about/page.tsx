@@ -62,6 +62,7 @@ export const metadata: Metadata = createPageMetadata({
 	description:
 		"TenantFlow is a landlord-only property management platform with a per-entity document vault, lease e-signing, and tax-ready reports.",
 	path: "/about",
+	ogCard: "about",
 });
 
 export default function AboutPage() {

@@ -419,7 +419,6 @@ src/lib/generate-metadata.ts getJsonLd
 src/lib/ledger/ledger-math.ts GRACE_PERIOD_DAYS isLate
 src/lib/reports/generate-excel.ts computeColumnWidths sanitizeSheetName
 src/lib/reports/report-data.ts isMissingRelationError safeFetch
-src/lib/seo/blog-categories.ts CATEGORY_LABELS
 src/lib/seo/evergreen-topics.ts EVERGREEN_TOPICS EvergreenTopic
 src/lib/seo/reclaim-queue.ts RECLAIM_QUEUE ReclaimQueueItem
 src/lib/storage-plan-limit.ts STORAGE_PLAN_LIMIT_PREFIX

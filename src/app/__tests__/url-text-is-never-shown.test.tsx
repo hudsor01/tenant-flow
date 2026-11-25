@@ -232,6 +232,14 @@ const REVIEWED: Record<string, { reads: number; reason: string }> = {
 		reads: 1,
 		reason: "record id for the query",
 	},
+	"src/app/api/og/[page]/route.tsx": {
+		reads: 1,
+		reason: "key looked up in OG_CARDS; unknown is a 404",
+	},
+	"src/app/api/og/blog/category/[category]/route.tsx": {
+		reads: 1,
+		reason: "slug looked up in CATEGORY_LABELS; the image shows the label",
+	},
 	"src/app/api/og/blog/[slug]/route.tsx": {
 		reads: 1,
 		reason:
