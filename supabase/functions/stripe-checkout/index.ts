@@ -205,6 +205,17 @@ Deno.serve(async (req: Request) => {
 			cancel_url: `${frontendUrl}/billing/checkout/cancel`,
 			metadata: sessionMetadata,
 			branding_settings: CHECKOUT_BRANDING,
+			// Stripe Tax: tax is calculated, and collected, only in the places the
+			// account has a tax registration (Dashboard > Tax > Locations); with
+			// none it is $0. The resulting subscription keeps automatic tax, so
+			// renewals and portal plan changes are taxed the same way. Prices
+			// carry no tax_behavior, so the account default applies (USD: tax is
+			// added on top of the plan price). Tax needs the buyer's location, and
+			// the page collects the billing address; `customer_update.address`
+			// saves it to the Stripe customer, which Stripe requires when an
+			// existing customer is passed and lacks an address.
+			automatic_tax: { enabled: true },
+			customer_update: { address: "auto" as const },
 			// Carry-over trial only. The hosted page always collects a card
 			// (Stripe's default for subscription mode): with trialEndUnix set it
 			// charges nothing now and bills the plan when the trial ends, so

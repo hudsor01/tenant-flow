@@ -10,7 +10,7 @@ export const homeFaqs = [
 	{
 		question: "How long does it take to get started?",
 		answer:
-			"Import your properties via CSV, add tenant records, and start tracking leases the same day. The 14-day free trial needs no card, and picking a plan at checkout with more than two days left runs the rest of it on that plan, so you can see the workflow before committing.",
+			"Import your properties via CSV, add tenant records, and start tracking leases the same day. The 14-day free trial needs no card, so you can see the workflow before committing. Pick a plan at checkout with more than two days left and the rest of the trial runs on that plan; checkout takes a card and bills the plan when the trial ends.",
 	},
 	{
 		question: "What if I have fewer than 10 units?",
@@ -30,7 +30,7 @@ export const homeFaqs = [
 	{
 		question: "What's included in the free trial?",
 		answer:
-			"14 days, with no credit card required. The trial starts at 1 property and 5 units. Pick a plan at checkout while more than two days remain and the rest of the trial runs on that plan's limits and features, including lease e-sign on Growth and Max, still with no card. There's no obligation: you're never charged unless you add a payment method.",
+			"14 days, with no credit card required. The trial starts at 1 property and 5 units. Pick a plan at checkout while more than two days remain and the rest of the trial runs on that plan's limits and features, including lease e-sign on Growth and Max. Checkout takes a card and charges nothing until the trial ends. If you don't pick a plan, you're never charged.",
 	},
 ];
 

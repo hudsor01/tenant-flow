@@ -49,7 +49,7 @@ The product is operated by Hudson Digital Solutions. It runs on Next.js 16 + Sup
 | Growth | $49 | $490 | 20 | 100 | 25/mo | premium |
 | Max | $149 | $1,490 | unlimited | unlimited | unlimited | premium |
 
-The Trial row is a new account's 14-day free trial before it picks a plan. Picking a plan at checkout with more than two days of the trial left continues the remaining trial days at that plan's limits, with no card; after that, checkout takes a card and billing starts. All plans include the document vault, maintenance tracking, tenant records, and the financial ledger. Property and unit caps are enforced in the database (BEFORE INSERT triggers); an account at its cap (Trial, Starter, or Growth) sees an upgrade prompt when it adds one more.
+The Trial row is a new account's 14-day free trial before it picks a plan. Picking a plan at checkout with more than two days of the trial left continues the remaining trial days at that plan's limits; checkout takes a card and bills the plan when the trial ends. With two days or fewer left, checkout takes a card and billing starts at once. All plans include the document vault, maintenance tracking, tenant records, and the financial ledger. Property and unit caps are enforced in the database (BEFORE INSERT triggers); an account at its cap (Trial, Starter, or Growth) sees an upgrade prompt when it adds one more.
 
 ## Comparisons
 
