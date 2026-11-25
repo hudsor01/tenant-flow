@@ -54,7 +54,7 @@ const seasons = [
 			{ area: "HVAC", task: "Schedule A/C tune-up; replace filters" },
 			{
 				area: "HVAC",
-				task: "Clean condenser coils and check refrigerant levels",
+				task: "Clean condenser coils; have your HVAC tech check refrigerant during the tune-up",
 			},
 			{ area: "Plumbing", task: "Reconnect and test exterior hose bibs" },
 			{
@@ -184,7 +184,7 @@ const seasons = [
 			},
 			{
 				area: "General",
-				task: "Check attic insulation depth (R-38 minimum recommended)",
+				task: "Check attic insulation depth against the DOE recommendation for your climate zone (typically R-30 to R-60)",
 			},
 			{
 				area: "General",

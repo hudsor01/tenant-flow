@@ -9,7 +9,7 @@ import { Button } from "#components/ui/button";
 import { RESOURCE_TO_BLOGS } from "#lib/content-links";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
-import { deductionCategories } from "./tax-deduction-data";
+import { deductionCategories, scheduleLinesLabel } from "./tax-deduction-data";
 
 export const metadata: Metadata = createPageMetadata({
 	title: "Landlord Tax Deduction Tracker",
@@ -71,8 +71,8 @@ export default function TaxDeductionTrackerPage() {
 						<strong>Disclaimer:</strong> This tracker is for informational
 						purposes only and does not constitute tax advice. Consult a
 						qualified tax professional for advice specific to your situation.
-						Tax laws change annually — verify current rules with the IRS or your
-						CPA.
+						Line numbers and rates are for tax year 2026; tax laws change
+						annually, so verify current rules with the IRS or your CPA.
 					</p>
 				</div>
 
@@ -100,7 +100,7 @@ export default function TaxDeductionTrackerPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground mb-1">
-								Building Value (for depreciation)
+								Building Basis (cost excluding land)
 							</p>
 							<div className="border-b border-dashed border-muted-foreground/30 pb-2 min-h-8" />
 						</div>
@@ -119,20 +119,23 @@ export default function TaxDeductionTrackerPage() {
 									{cat.category}
 								</h2>
 								<span className="text-sm text-muted-foreground">
-									{cat.scheduleRef}
+									{scheduleLinesLabel(cat)}
 								</span>
 							</div>
+							{cat.note ? (
+								<p className="mb-4 text-sm text-muted-foreground">{cat.note}</p>
+							) : null}
 							<div className={`rounded-xl border ${cat.color} overflow-hidden`}>
 								<table className="w-full">
 									<thead>
 										<tr className={cat.headerColor}>
-											<th className="p-3 text-left text-sm font-semibold w-44">
+											<th className="p-3 text-left text-sm font-semibold w-28 sm:w-44">
 												Deduction
 											</th>
 											<th className="p-3 text-left text-sm font-semibold">
 												Description
 											</th>
-											<th className="p-3 text-right text-sm font-semibold w-28">
+											<th className="p-3 text-right text-sm font-semibold w-16 sm:w-28">
 												Amount
 											</th>
 										</tr>
@@ -146,7 +149,10 @@ export default function TaxDeductionTrackerPage() {
 												}
 											>
 												<td className="p-3 text-sm font-medium text-foreground align-top">
-													{item.deduction}
+													<p className="mb-0">{item.deduction}</p>
+													<p className="text-xs mt-1 mb-0 font-normal text-muted-foreground">
+														Line {item.line}
+													</p>
 												</td>
 												<td className="p-3 text-sm text-muted-foreground align-top">
 													<p className="mb-0">{item.description}</p>
@@ -158,7 +164,7 @@ export default function TaxDeductionTrackerPage() {
 													<span className="text-sm text-muted-foreground">
 														$
 													</span>
-													<span className="inline-block w-20 border-b border-dashed border-muted-foreground/30" />
+													<span className="inline-block w-10 sm:w-20 border-b border-dashed border-muted-foreground/30" />
 												</td>
 											</tr>
 										))}
@@ -171,7 +177,7 @@ export default function TaxDeductionTrackerPage() {
 											</td>
 											<td className="p-3 text-right">
 												<span className="text-sm font-bold">$</span>
-												<span className="inline-block w-20 border-b-2 border-current" />
+												<span className="inline-block w-10 sm:w-20 border-b-2 border-current" />
 											</td>
 										</tr>
 									</tbody>
@@ -194,9 +200,11 @@ export default function TaxDeductionTrackerPage() {
 							</div>
 						</div>
 						<p className="text-sm text-muted-foreground mt-4 mb-0">
-							Transfer this total to IRS Schedule E. Keep all receipts and
-							documentation for at least 3 years (7 years if claiming
-							depreciation).
+							Enter each expense on its Schedule E line, in the column for this
+							property; line 20 is the total. Keep receipts for at least 3 years
+							after you file. Keep purchase, improvement and depreciation
+							records until 3 years after you file the return for the year you
+							sell the property.
 						</p>
 					</div>
 				</section>

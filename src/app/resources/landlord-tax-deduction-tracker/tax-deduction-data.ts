@@ -1,215 +1,288 @@
+/**
+ * The tracker's deductions, each on its own Schedule E (Form 1040) Part I
+ * line. Checked 2026-11-25 against the 2026 Schedule E and its instructions
+ * (irs.gov/pub/irs-dft/f1040se--dft.pdf, i1040se--dft.pdf), Pub. 527, Pub.
+ * 946, Treas. Reg. § 1.263(a)-3, IR-2025-128 and Announcement 2026-11.
+ * Re-check every January: the mileage rate, the safe-harbor limits and the
+ * form's line layout change.
+ */
+
+/** A Schedule E Part I expense line on the 2026 form (5 through 19). */
+const SCHEDULE_E_LINES = [
+	"5",
+	"6",
+	"7",
+	"8",
+	"9",
+	"10",
+	"11",
+	"12",
+	"13a",
+	"13b",
+	"14",
+	"15",
+	"16",
+	"17",
+	"18",
+	"19",
+] as const;
+
+export type ScheduleELine = (typeof SCHEDULE_E_LINES)[number];
+
 export interface DeductionCategory {
 	category: string;
-	scheduleRef: string;
 	color: string;
 	headerColor: string;
+	/** Shown under the category heading, for rules that aren't one row. */
+	note?: string;
 	items: Array<{
 		deduction: string;
+		line: ScheduleELine;
 		description: string;
 		example: string;
 	}>;
 }
 
+/** "Line 12" or "Lines 9, 16, 17, 19", in the form's order. */
+export function scheduleLinesLabel(category: DeductionCategory): string {
+	const lines = SCHEDULE_E_LINES.filter((line) =>
+		category.items.some((item) => item.line === line),
+	);
+	return `Schedule E, ${lines.length === 1 ? "Line" : "Lines"} ${lines.join(", ")}`;
+}
+
 export const deductionCategories: DeductionCategory[] = [
 	{
 		category: "Mortgage & Financing",
-		scheduleRef: "Schedule E, Line 12-13",
 		color: "border-info/20",
 		headerColor: "bg-info/10 text-info-text",
 		items: [
 			{
 				deduction: "Mortgage Interest",
+				line: "12",
 				description:
-					"Interest paid on loans used to acquire or improve rental property",
-				example: "Monthly mortgage interest portion from Form 1098",
+					"Interest paid to a bank or lender on loans used to buy or improve the rental",
+				example: "Interest shown on your Form 1098",
 			},
 			{
 				deduction: "Points & Loan Origination Fees",
+				line: "12",
 				description:
-					"Points paid to obtain a mortgage (amortized over loan term for refinances)",
-				example: "$3,000 in points on a 30-year loan = $100/year",
+					"Points paid to get a rental-property loan, purchase or refinance, deducted over the life of the loan",
+				example:
+					"$3,000 in points on a 30-year loan = $100/year (straight-line applies when the points are small enough; see Pub. 527)",
 			},
 			{
-				deduction: "Loan Interest (Other)",
+				deduction: "Other Interest",
+				line: "13b",
 				description:
-					"Interest on other loans used for rental property purposes",
-				example: "HELOC used for rental property renovations",
+					"Interest on other loans, to the extent the money went to the rental",
+				example:
+					"HELOC interest on the part of the loan spent on rental repairs",
 			},
 		],
 	},
 	{
 		category: "Property Expenses",
-		scheduleRef: "Schedule E, Lines 5-19",
 		color: "border-success/20",
 		headerColor: "bg-success/10 text-success-text",
 		items: [
 			{
-				deduction: "Property Taxes",
-				description: "State and local property taxes on rental property",
-				example: "Annual property tax bill from county assessor",
-			},
-			{
 				deduction: "Insurance Premiums",
-				description: "Landlord insurance, liability, flood, umbrella policies",
-				example: "Annual landlord policy: $1,200-$2,400/year per property",
+				line: "9",
+				description:
+					"Landlord, liability, flood and umbrella premiums for the rental (rental share only; a multi-year prepayment is deducted year by year)",
+				example: "Annual premium from your policy's declarations page",
 			},
 			{
-				deduction: "HOA / Condo Fees",
+				deduction: "Property Taxes",
+				line: "16",
 				description:
-					"Monthly association fees for rental units in managed communities",
-				example: "Monthly HOA fee of $350 = $4,200/year",
+					"State and local property taxes on the rental (assessments for new streets, sidewalks or sewers are added to basis instead)",
+				example: "Annual property tax bill from the county assessor",
 			},
 			{
 				deduction: "Utilities",
+				line: "17",
 				description:
-					"Utilities paid by landlord (water, electric, gas, trash, internet)",
+					"Utilities paid by the landlord (water, electric, gas, trash, internet)",
 				example: "Water bill paid by landlord: $80/month per unit",
+			},
+			{
+				deduction: "HOA / Condo Fees",
+				line: "19",
+				description:
+					"Regular association dues for the rental unit (special assessments for improvements are depreciated, not deducted)",
+				example: "Monthly HOA fee of $350 = $4,200/year",
 			},
 		],
 	},
 	{
 		category: "Repairs & Maintenance",
-		scheduleRef: "Schedule E, Line 14",
 		color: "border-warning/20",
 		headerColor: "bg-warning/10 text-warning-text",
 		items: [
 			{
+				deduction: "Cleaning & Maintenance",
+				line: "7",
+				description:
+					"Ongoing upkeep: lawn care, snow removal, pest control, cleaning",
+				example: "Monthly lawn service: $120/month = $1,440/year",
+			},
+			{
 				deduction: "Routine Repairs",
+				line: "14",
 				description:
 					"Fixing broken items to restore property to working condition",
 				example:
 					"Fixing a leaky faucet ($150), replacing a broken window ($300)",
 			},
 			{
-				deduction: "Maintenance Services",
+				deduction: "Appliance & System Repairs",
+				line: "14",
 				description:
-					"Ongoing maintenance: lawn care, snow removal, pest control, cleaning",
-				example: "Monthly lawn service: $120/month = $1,440/year",
-			},
-			{
-				deduction: "Appliance Repairs",
-				description:
-					"Repairing (not replacing) appliances: HVAC service, dishwasher fix",
+					"Repairing (not replacing) appliances and systems: HVAC service, dishwasher fix",
 				example: "HVAC tune-up: $150/visit, dishwasher repair: $200",
 			},
 			{
 				deduction: "Painting & Flooring",
+				line: "14",
 				description: "Repainting between tenants, minor flooring repairs",
-				example: "Interior repaint: $1,500-$3,000 per unit",
+				example: "Interior repaint between tenants",
 			},
 		],
 	},
 	{
 		category: "Depreciation",
-		scheduleRef: "Schedule E, Line 18 / Form 4562",
 		color: "border-primary/20",
 		headerColor: "bg-primary/10 text-primary-text",
+		note: "Elections made each year with a statement on your return: items costing $2,500 or less per invoice or item can be deducted in full (de minimis safe harbor). If the building's unadjusted basis is $1 million or less, repairs and improvements on it totaling no more than $10,000 or 2% of that basis, whichever is less, can be deducted in full (safe harbor for small taxpayers).",
 		items: [
 			{
-				deduction: "Building Depreciation",
+				deduction: "Building",
+				line: "18",
 				description:
-					"Residential rental property depreciated over 27.5 years (straight-line)",
-				example: "$275,000 building value / 27.5 = $10,000/year deduction",
+					"The building's cost, not the land's, recovered over 27.5 years (straight-line)",
+				example:
+					"$275,000 building basis / 27.5 = $10,000 per full year; the first and last years are prorated",
 			},
 			{
-				deduction: "Appliance / Equipment",
+				deduction: "Building Improvements",
+				line: "18",
 				description:
-					"Major appliances and equipment depreciated over 5-7 years",
-				example: "New $2,500 HVAC unit: $357-$500/year for 5-7 years",
+					"Roof, HVAC system, water heater, additions: depreciated over 27.5 years, like the building",
+				example: "New $15,000 roof / 27.5 = $545 per full year",
 			},
 			{
-				deduction: "Improvements (Section 179)",
+				deduction: "Appliances, Carpet & Furniture",
+				line: "18",
 				description:
-					"Qualifying improvements can be expensed immediately up to annual limit",
-				example: "New roof ($15,000) may qualify under safe harbor rules",
+					"5-year property. For items bought in 2026, 100% bonus depreciation applies unless you elect out",
+				example:
+					"New $1,200 refrigerator: deducted in full for 2026 with bonus depreciation",
 			},
 			{
 				deduction: "Land Improvements",
+				line: "18",
 				description:
-					"Fencing, parking lots, landscaping depreciated over 15 years",
-				example: "New fence ($6,000) = $400/year for 15 years",
+					"Fences, driveways, parking areas, shrubbery: 15-year property. For 2026 purchases, 100% bonus depreciation applies unless you elect out",
+				example:
+					"New $6,000 fence: deducted in full for 2026, or over 15 years if you elect out",
 			},
 		],
 	},
 	{
 		category: "Professional Services",
-		scheduleRef: "Schedule E, Lines 10-11, 17",
 		color: "border-destructive/20",
 		headerColor: "bg-destructive/10 text-destructive-text",
 		items: [
 			{
-				deduction: "Property Management Fees",
-				description:
-					"Fees paid to property management company (typically 8-12% of rent)",
-				example: "$1,500/month rent x 10% = $150/month = $1,800/year",
-			},
-			{
 				deduction: "Legal Fees",
+				line: "10",
 				description:
-					"Attorney fees for lease review, evictions, entity formation",
-				example: "Eviction attorney: $500-$2,000 per case",
+					"Attorney fees for lease drafting or review and evictions (fees to buy the property, defend its title or improve it are added to basis)",
+				example: "Eviction attorney's invoice",
 			},
 			{
 				deduction: "Accounting / Tax Prep",
+				line: "10",
 				description: "CPA fees for rental property tax preparation and advice",
-				example: "Annual tax prep with Schedule E: $300-$800",
+				example: "Annual tax prep with Schedule E",
+			},
+			{
+				deduction: "Property Management Fees",
+				line: "11",
+				description: "Fees paid to a property manager",
+				example: "$1,500/month rent x a 10% fee = $150/month = $1,800/year",
 			},
 			{
 				deduction: "Tenant Screening",
+				line: "19",
 				description:
 					"Background check and credit report fees (if paid by landlord)",
-				example: "$30-$50 per applicant screened",
+				example: "Screening fee for each applicant",
 			},
 		],
 	},
 	{
 		category: "Travel & Auto",
-		scheduleRef: "Schedule E / Form 4562",
 		color: "border-info/20",
 		headerColor: "bg-info/10 text-info-text",
+		note: "Claiming car expenses? Also complete Form 4562, Part V.",
 		items: [
 			{
 				deduction: "Mileage (Standard Rate)",
+				line: "6",
 				description:
-					"IRS standard mileage rate for rental property trips (check the current-year rate at irs.gov)",
-				example:
-					"500 miles for showings, repairs, inspections at 76 cents/mile = $380 deduction",
+					"Trips to manage, maintain or show the property, at the IRS standard rate (2026: 72.5 cents a mile through June 30, 76 cents from July 1), plus parking and tolls",
+				example: "500 miles driven July to December 2026 x 76 cents = $380",
 			},
 			{
 				deduction: "Travel to Distant Properties",
+				line: "6",
 				description:
-					"Airfare, hotel, and meals for managing out-of-area rental property",
-				example: "Quarterly trips to out-of-state rental: flights + hotel",
+					"Airfare, lodging and 50% of meals when the trip's main purpose is managing or maintaining the rental (not improving it)",
+				example: "Quarterly trips to an out-of-state rental: flights + hotel",
+			},
+			{
+				deduction: "Vehicle Loan Interest",
+				line: "13a",
+				description:
+					"The rental-use share of interest on a loan for a vehicle used in the rental activity (a new line on the 2026 form)",
+				example: "$1,000 of interest x 40% rental use = $400",
 			},
 		],
 	},
 	{
 		category: "Other Deductions",
-		scheduleRef: "Schedule E, Line 19",
 		color: "bg-muted/50 border-border",
 		headerColor: "bg-muted text-foreground",
 		items: [
 			{
 				deduction: "Advertising",
+				line: "5",
 				description: "Listing fees, signage, online advertising for vacancies",
-				example: "Zillow listing: $10-$30/week, yard sign: $25",
+				example: "Listing-site fees and a yard sign",
+			},
+			{
+				deduction: "Office Supplies",
+				line: "15",
+				description:
+					"Printer ink, paper, envelopes, stamps for rental correspondence",
+				example: "Stamps and envelopes for lease renewals",
 			},
 			{
 				deduction: "Software & Tools",
+				line: "19",
 				description: "Property management software subscriptions",
 				example: "TenantFlow subscription: $19-$149/month",
 			},
 			{
-				deduction: "Office Supplies",
+				deduction: "Association Dues & Education",
+				line: "19",
 				description:
-					"Printer ink, paper, envelopes, stamps for rental correspondence",
-				example: "$100-$300/year in supplies",
-			},
-			{
-				deduction: "Education",
-				description:
-					"Landlord courses, books, membership dues for real estate associations",
-				example: "Local landlord association membership: $100-$300/year",
+					"Landlord association dues and publications; seminar or course costs only if your rental is a trade or business",
+				example: "Local landlord association membership",
 			},
 		],
 	},
