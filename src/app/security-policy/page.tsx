@@ -41,7 +41,7 @@ export default function SecurityPolicyPage() {
 							If you discover a security vulnerability, please report it to us
 							by email:
 						</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								Email:{" "}
 								<a
@@ -62,7 +62,7 @@ export default function SecurityPolicyPage() {
 							</li>
 						</ul>
 						<p>Please include the following in your report:</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								A clear description of the vulnerability and its potential
 								impact
@@ -75,7 +75,7 @@ export default function SecurityPolicyPage() {
 
 					<section className="mb-8">
 						<h2 className="mb-4 typography-h3">3. Response Timeline</h2>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								<strong>Acknowledgment:</strong> We aim to acknowledge your
 								report within 24 hours.
@@ -100,7 +100,7 @@ export default function SecurityPolicyPage() {
 					<section className="mb-8">
 						<h2 className="mb-4 typography-h3">4. Scope</h2>
 						<h3 className="mb-3 typography-h4">4.1 In Scope</h3>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>tenantflow.app and all subdomains</li>
 							<li>Authentication and authorization vulnerabilities</li>
 							<li>
@@ -116,7 +116,7 @@ export default function SecurityPolicyPage() {
 						</ul>
 
 						<h3 className="mb-3 typography-h4">4.2 Out of Scope</h3>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>Social engineering attacks against employees or users</li>
 							<li>Physical security issues</li>
 							<li>Denial of service (DoS/DDoS) attacks</li>
@@ -141,7 +141,7 @@ export default function SecurityPolicyPage() {
 							policy to be authorized, and we will not pursue legal action
 							against researchers who:
 						</p>
-						<ul className="mb-4 ml-6 list-disc space-y-2">
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>Act in good faith and follow this disclosure policy</li>
 							<li>
 								Avoid accessing, modifying, or deleting data belonging to other
@@ -179,7 +179,7 @@ export default function SecurityPolicyPage() {
 						<h2 className="mb-4 typography-h3">
 							7. Contact &amp; Monitored Inboxes
 						</h2>
-						<p>
+						<p className="mb-0">
 							For security-related inquiries, contact us at{" "}
 							<a
 								href="mailto:security@tenantflow.app"
@@ -190,18 +190,7 @@ export default function SecurityPolicyPage() {
 							. Acknowledged within 24 hours per § 3.
 						</p>
 						<p className="mt-3">
-							For sales and product inquiries, contact{" "}
-							<a
-								href="mailto:sales@tenantflow.app"
-								className="text-primary-text underline"
-							>
-								sales@tenantflow.app
-							</a>
-							. Responded to within 1 business day (US business hours, Monday
-							through Friday).
-						</p>
-						<p>
-							For general support, visit our{" "}
+							For support, sales and product questions, visit the{" "}
 							<a href="/help" className="text-primary-text underline">
 								Help Center
 							</a>{" "}
@@ -212,7 +201,8 @@ export default function SecurityPolicyPage() {
 							>
 								support@tenantflow.app
 							</a>
-							.
+							. Responded to within 1 business day (US business hours, Monday
+							through Friday).
 						</p>
 					</section>
 				</div>

@@ -155,9 +155,9 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			"Renewal reminders",
 			"Year-end and tax-document PDF exports",
 			"50GB document storage",
-			"Phone and priority email support",
+			"Priority email support",
 		],
-		support: "Phone & Email",
+		support: "Priority email",
 		trial: false,
 	},
 	TENANTFLOW_MAX: {
@@ -184,10 +184,9 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		features: [
 			"Unlimited properties, units, and lease e-signs",
 			"Unlimited document storage",
-			"Dedicated account manager",
 			"Priority support during US business hours",
 		],
-		support: "Dedicated account manager",
+		support: "Priority email",
 		trial: false,
 	},
 };

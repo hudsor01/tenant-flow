@@ -55,7 +55,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: "Is TenantFlow suitable for my portfolio size?",
 				answer:
-					"Yes. Starter handles up to 5 properties / 25 units, Growth manages up to 20 properties / 100 units, and Max supports unlimited properties with a dedicated account manager.",
+					"Yes. Starter handles up to 5 properties / 25 units, Growth manages up to 20 properties / 100 units, and Max supports unlimited properties and units.",
 			},
 		],
 	},
@@ -70,12 +70,12 @@ export const faqData: FAQCategory[] = [
 			{
 				question: "What kind of support do you provide?",
 				answer:
-					"Email support is included on every plan. Growth and Max plans add phone support. We are not a 24/7 operation — expect responses during US business hours.",
+					"Email support is included on every plan, with priority support on Growth and Max. We are not a 24/7 operation — expect responses during US business hours.",
 			},
 			{
 				question: "Do you integrate with my existing systems?",
 				answer:
-					"Every plan exports the income statement, cash flow, balance sheet and year-end report as CSV for accounting imports; Growth and Max add the year-end and tax-document PDFs. Lease e-signatures are included on Growth (25/month) and Max (unlimited); Starter does not include e-sign.",
+					"Not directly yet: TenantFlow has no built-in integrations with accounting or listing tools. Every plan exports the income statement, cash flow, balance sheet and year-end report as CSV, which you can open in a spreadsheet or hand to your accountant; Growth and Max add the year-end and tax-document PDFs.",
 			},
 		],
 	},
@@ -105,7 +105,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: "Are there any hidden fees?",
 				answer:
-					"No. Pricing on this page is what you pay. Lease e-sign volume scales with the plan you choose (Growth: 25/month, Max: unlimited; Starter does not include e-sign). Storage scales the same way (10GB / 50GB / unlimited).",
+					"No. You pay the plan price on the pricing page, plus sales tax where it applies, which checkout shows before you pay. Lease e-sign volume scales with the plan you choose (Growth: 25/month, Max: unlimited; Starter does not include e-sign). Storage scales the same way (10GB / 50GB / unlimited).",
 			},
 			{
 				question: "Can I try TenantFlow risk-free?",

@@ -45,7 +45,7 @@ export default function FeaturesSectionDemo({
 		{
 			title: "Email Support",
 			description:
-				"Email support on every plan. Phone and priority support on Growth and Max. No tenant tickets to triage.",
+				"Email support on every plan, with priority support on Growth and Max. No tenant tickets to triage.",
 			icon: <HelpCircle />,
 		},
 		{

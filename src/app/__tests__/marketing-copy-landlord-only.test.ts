@@ -68,6 +68,10 @@ const BANNED_FEATURE_CLAIMS = [
 	"process rent",
 	"tenant invitation",
 	"invite team members",
+	// No phone line is answered and no account manager is staffed (owner,
+	// 2026-11-24 audit D-02, D-07): support is email only.
+	"phone support",
+	"account manager",
 	"team (3 users)",
 	"team-member seats",
 	"team billing",

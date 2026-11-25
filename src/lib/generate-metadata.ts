@@ -131,12 +131,11 @@ export function getOrganizationJsonLd() {
 		description:
 			"Property management software for independent landlords. Track leases, maintenance, and tenants. 14-day free trial.",
 		foundingDate: "2024",
-		// E.164-formatted business line (Schema.org expects digits-only,
-		// hyphens optional). The previous vanity `+1-888-TENANT-1`
-		// contained letters and was rejected by Google's validator.
+		// Email only: no phone line is answered, so none is published
+		// (2026-11-24 audit CT2). Search engines cross-check contact details
+		// against the pages, which list support@ alone.
 		contactPoint: {
 			"@type": "ContactPoint",
-			telephone: "+1-214-843-0779",
 			contactType: "Customer Service",
 			email: "support@tenantflow.app",
 			areaServed: "US",

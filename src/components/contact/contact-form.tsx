@@ -126,7 +126,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 				});
 				// Thrown message becomes submitError (rendered) — thank-you is skipped.
 				throw new Error(
-					"We couldn't send your message. Please try again, or email us directly at sales@tenantflow.app.",
+					"We couldn't send your message. Please try again, or email us directly at support@tenantflow.app.",
 				);
 			}
 
@@ -237,7 +237,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 							</div>
 							<div className="ml-3">
 								<p className="text-foreground font-semibold">Email Us</p>
-								<p className="text-muted-foreground">sales@tenantflow.app</p>
+								<p className="text-muted-foreground">support@tenantflow.app</p>
 								<p className="mb-0 text-muted-foreground text-sm">
 									US business hours, Monday through Friday
 								</p>

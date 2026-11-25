@@ -124,13 +124,6 @@ const comparisonData: FeatureCategory[] = [
 				growth: true,
 				max: true,
 			},
-			{ name: "Phone support", starter: false, growth: true, max: true },
-			{
-				name: "Dedicated account manager",
-				starter: false,
-				growth: false,
-				max: true,
-			},
 		],
 	},
 ];

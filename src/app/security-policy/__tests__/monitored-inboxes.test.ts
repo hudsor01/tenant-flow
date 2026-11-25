@@ -2,7 +2,7 @@
  * Regression pins for TRUST-03 / TRUST-04.
  *
  * /security-policy § 7 "Contact & Monitored Inboxes" documents the two
- * monitored inboxes (security@, sales@) and their response SLAs. These
+ * monitored inboxes (security@, support@) and their response SLAs. These
  * tests fail if a future edit drops either inbox, the section heading,
  * or either SLA from src/app/security-policy/page.tsx.
  *
@@ -22,9 +22,9 @@ describe("TRUST-03/04: monitored-inbox documentation", () => {
 		);
 	});
 
-	it("/security-policy documents the sales@ monitored inbox", () => {
-		expect(src, "sales@tenantflow.app is not documented").toContain(
-			"sales@tenantflow.app",
+	it("/security-policy documents the support@ monitored inbox", () => {
+		expect(src, "support@tenantflow.app is not documented").toContain(
+			"support@tenantflow.app",
 		);
 	});
 
@@ -41,8 +41,8 @@ describe("TRUST-03/04: monitored-inbox documentation", () => {
 		);
 	});
 
-	it("documents the sales@ 1-business-day response SLA", () => {
-		expect(src, "the sales@ 1-business-day response SLA is missing").toMatch(
+	it("documents the support@ 1-business-day response SLA", () => {
+		expect(src, "the support@ 1-business-day response SLA is missing").toMatch(
 			/within 1 business day/,
 		);
 	});

@@ -58,7 +58,7 @@ const REVIEWED: ReadonlyMap<string, Reason> = new Map<string, Reason>([
 	["PASSWORD_COMPLEXITY_MESSAGE", "COPY"],
 	['"Please check your input"', "COPY"],
 	[
-		'"We couldn\'t send your message. Please try again, or email us directly at sales@tenantflow.app."',
+		'"We couldn\'t send your message. Please try again, or email us directly at support@tenantflow.app."',
 		"COPY",
 	],
 	['"Unable to load the lease document"', "COPY"],
