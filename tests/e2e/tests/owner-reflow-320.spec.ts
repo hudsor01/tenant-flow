@@ -51,6 +51,10 @@ import { tourProgressWriteBody } from "../lib/tour-progress-write";
  * take owner A's newest record of each kind, read over PostgREST as owner A;
  * owner A has no maintenance request, so that kind is a synthetic record
  * answered in the browser, never written. A lookup that fails fails its pages.
+ * The property is owner A's newest one with an active unit: the property
+ * page's unit card holds the Edit button the modal flow presses, and a
+ * zero-unit property left behind by an interrupted RLS run (its afterAll
+ * skipped) is newer than owner A's real ones.
  */
 // Reduced motion: an overlay's entrance finishes at once (globals.css), so
 // each state reads settled on its first poll.
@@ -110,6 +114,11 @@ interface DetailRoute {
 	table: string;
 	/** The soft-delete column, or null for a hard-deleted table. */
 	statusColumn: string | null;
+	/**
+	 * A child table the record must have an active row in, read as a
+	 * PostgREST inner embed (the property's units).
+	 */
+	requiresActiveChild?: string;
 	paths: (id: string) => string[];
 }
 
@@ -118,6 +127,7 @@ const DETAIL_ROUTES: DetailRoute[] = [
 		kind: "property",
 		table: "properties",
 		statusColumn: "status",
+		requiresActiveChild: "units",
 		paths: (id) => [`/properties/${id}`, `/properties/${id}/edit`],
 	},
 	{
@@ -314,12 +324,14 @@ test.describe("detail and edit pages, and the flows", () => {
 			return;
 		}
 		for (const route of DETAIL_ROUTES) {
+			const child = route.requiresActiveChild;
 			let query = client
 				.from(route.table)
-				.select("id")
+				.select(child ? `id, ${child}!inner(id)` : "id")
 				.order("created_at", { ascending: false })
 				.limit(1);
 			if (route.statusColumn) query = query.neq(route.statusColumn, "inactive");
+			if (child) query = query.neq(`${child}.status`, "inactive");
 			const { data, error } = await query;
 			records.set(route.kind, newestRecord(route.kind, { data, error }));
 		}
