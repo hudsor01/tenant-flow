@@ -29,13 +29,15 @@ const LIVE_SUBSCRIPTION_STATUSES = new Set([
 // Stripe rejects a `trial_end` less than 48h in the future.
 const MIN_TRIAL_CARRYOVER_MS = 48 * 60 * 60 * 1000;
 
-// The Stripe account is shared with another business, so its public name
-// headed the hosted page an owner meets when entering a card. These settings
-// brand this session as TenantFlow, leaving the account alone. Stripe applies
-// `display_name` to the top of the page only: terms and receipts still carry
-// the account's public business name. The icon is public/icon-512x512.png,
-// fetched by Stripe, so it must stay a public HTTPS URL; the button color is
-// the app's --primary, oklch(0.54 0.23 257), and the font is the app's Roboto.
+// The hosted page an owner meets when entering a card was headed by the Stripe
+// account's public business name, which read "Hudson Digital Solutions" (the
+// legal entity) until the account's public details were set to TenantFlow.
+// These settings brand every session as TenantFlow whatever the account's
+// public details say; `display_name` covers the top of the page only, and
+// terms, receipts and the statement descriptor come from the account. The
+// icon is public/icon-512x512.png, fetched by Stripe, so it must stay a
+// public HTTPS URL; the button color is the app's --primary,
+// oklch(0.54 0.23 257), and the font is the app's Roboto.
 const CHECKOUT_BRANDING = {
 	display_name: "TenantFlow",
 	icon: { type: "url" as const, url: "https://tenantflow.app/icon-512x512.png" },

@@ -1,10 +1,10 @@
 /**
  * The hosted checkout page is branded TenantFlow.
  *
- * The Stripe account is shared with another business, so without per-session
- * branding the page an owner meets when entering a card was headed by that
- * business's name. `stripe-checkout` sets `branding_settings` on every
- * session. The source is read as text because the function is a Deno module
+ * The page an owner meets when entering a card was headed by the Stripe
+ * account's public business name, which read "Hudson Digital Solutions" (the
+ * legal entity). `stripe-checkout` sets `branding_settings` on every session,
+ * so the page reads TenantFlow whatever the account's public details say. The source is read as text because the function is a Deno module
  * Vitest cannot import (as `billing-email-claims.test.ts` reads it).
  */
 
