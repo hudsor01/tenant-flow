@@ -12,31 +12,6 @@ export type Database = {
 	__InternalSupabase: {
 		PostgrestVersion: "14.18";
 	};
-	graphql_public: {
-		Tables: {
-			[_ in never]: never;
-		};
-		Views: {
-			[_ in never]: never;
-		};
-		Functions: {
-			graphql: {
-				Args: {
-					extensions?: Json;
-					operationName?: string;
-					query?: string;
-					variables?: Json;
-				};
-				Returns: Json;
-			};
-		};
-		Enums: {
-			[_ in never]: never;
-		};
-		CompositeTypes: {
-			[_ in never]: never;
-		};
-	};
 	public: {
 		Tables: {
 			activity: {
@@ -71,6 +46,47 @@ export type Database = {
 					user_id?: string;
 				};
 				Relationships: [];
+			};
+			analytics_events: {
+				Row: {
+					created_at: string;
+					id: number;
+					name: string;
+					path: string | null;
+					props: Json;
+					referrer_host: string | null;
+					user_id: string | null;
+					visit_id: string | null;
+				};
+				Insert: {
+					created_at?: string;
+					id?: never;
+					name: string;
+					path?: string | null;
+					props?: Json;
+					referrer_host?: string | null;
+					user_id?: string | null;
+					visit_id?: string | null;
+				};
+				Update: {
+					created_at?: string;
+					id?: never;
+					name?: string;
+					path?: string | null;
+					props?: Json;
+					referrer_host?: string | null;
+					user_id?: string | null;
+					visit_id?: string | null;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "analytics_events_user_id_fkey";
+						columns: ["user_id"];
+						isOneToOne: false;
+						referencedRelation: "users";
+						referencedColumns: ["id"];
+					},
+				];
 			};
 			app_config: {
 				Row: {
@@ -134,6 +150,7 @@ export type Database = {
 					published_at: string | null;
 					quality_score: number | null;
 					reading_time: number | null;
+					seo_title: string | null;
 					slug: string;
 					status: string | null;
 					tags: string[] | null;
@@ -154,6 +171,7 @@ export type Database = {
 					published_at?: string | null;
 					quality_score?: number | null;
 					reading_time?: number | null;
+					seo_title?: string | null;
 					slug: string;
 					status?: string | null;
 					tags?: string[] | null;
@@ -174,6 +192,7 @@ export type Database = {
 					published_at?: string | null;
 					quality_score?: number | null;
 					reading_time?: number | null;
+					seo_title?: string | null;
 					slug?: string;
 					status?: string | null;
 					tags?: string[] | null;
@@ -3094,6 +3113,7 @@ export type Database = {
 					isSetofReturn: true;
 				};
 			};
+			cleanup_analytics_events: { Args: never; Returns: undefined };
 			cleanup_cron_job_run_details: { Args: never; Returns: number };
 			cleanup_old_email_deliverability: { Args: never; Returns: number };
 			cleanup_old_errors: { Args: never; Returns: number };
@@ -3314,6 +3334,15 @@ export type Database = {
 			get_maintenance_stats: {
 				Args: { p_month_start?: string; p_user_id: string };
 				Returns: Json;
+			};
+			get_marketing_funnel: {
+				Args: { p_days?: number };
+				Returns: {
+					events: number;
+					owners: number;
+					step: string;
+					visits: number;
+				}[];
 			};
 			get_metric_trend: {
 				Args: { p_metric_name: string; p_period?: string; p_user_id: string };
@@ -3871,9 +3900,6 @@ export type CompositeTypes<
 		: never;
 
 export const Constants = {
-	graphql_public: {
-		Enums: {},
-	},
 	public: {
 		Enums: {},
 	},
