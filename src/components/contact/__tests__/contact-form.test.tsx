@@ -11,6 +11,7 @@
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const invokeMock = vi.fn();
@@ -287,5 +288,60 @@ describe("ContactForm demo and call requests (F5)", () => {
 				}),
 			);
 		});
+	});
+});
+
+/**
+ * CT1 (2026-11-24 SEO audit): "Restoring your progress..." rendered before
+ * every hydration, so it was in the server HTML and flashed for first-time
+ * visitors. The form now speaks only when it put back a saved draft.
+ */
+describe("ContactForm draft notice (CT1)", () => {
+	let mockStorage: Record<string, string>;
+
+	beforeEach(() => {
+		mockStorage = {};
+		vi.stubGlobal("localStorage", {
+			getItem: (key: string) => mockStorage[key] ?? null,
+			setItem: (key: string, value: string) => {
+				mockStorage[key] = value;
+			},
+			removeItem: (key: string) => {
+				delete mockStorage[key];
+			},
+			clear: () => {
+				for (const key of Object.keys(mockStorage)) delete mockStorage[key];
+			},
+		});
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	it("says nothing about a draft in the server HTML", () => {
+		const html = renderToString(<ContactForm />);
+		expect(html).not.toContain("Restoring");
+		expect(html).not.toContain("restored");
+	});
+
+	it("says nothing to a visitor with no saved draft", async () => {
+		render(<ContactForm />);
+		await waitFor(() =>
+			expect(screen.getByLabelText(/full name/i)).toBeInTheDocument(),
+		);
+		expect(screen.queryByText(/restored the message/i)).not.toBeInTheDocument();
+	});
+
+	it("tells a returning visitor their draft is back", async () => {
+		mockStorage["form-progress-contact"] = JSON.stringify({
+			name: "Jane Landlord",
+			email: "jane@example.com",
+		});
+		render(<ContactForm />);
+		expect(
+			await screen.findByText("We restored the message you started earlier."),
+		).toBeInTheDocument();
+		expect(screen.getByLabelText(/full name/i)).toHaveValue("Jane Landlord");
 	});
 });

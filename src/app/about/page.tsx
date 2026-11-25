@@ -72,7 +72,6 @@ export default function AboutPage() {
 				subtitle="One platform for property records, leases, maintenance, and the document vault. Tenants are records you keep for your own tracking — never users on the platform."
 				primaryCta={{ label: "Start free — no card", href: "/pricing" }}
 				secondaryCta={{ label: "Contact Sales", href: "/contact" }}
-				brandArt
 			/>
 
 			{/* Mission Section */}

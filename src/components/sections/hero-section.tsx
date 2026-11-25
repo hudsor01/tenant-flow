@@ -1,7 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { HeroDashboardMockup } from "#components/sections/hero-dashboard-mockup";
 import { Button } from "#components/ui/button";
 import type { HeroSectionProps } from "#types/frontend";
 
@@ -14,9 +13,8 @@ export function HeroSection({
 	secondaryCta,
 	trustSignals,
 	image,
-	brandArt,
 }: HeroSectionProps) {
-	const hasVisual = Boolean(image) || Boolean(brandArt);
+	const hasVisual = Boolean(image);
 	return (
 		<section className="relative flex-1 flex flex-col pt-8 lg:pt-12 pb-20">
 			{/* Trust Badge */}
@@ -61,7 +59,7 @@ export function HeroSection({
 								</h1>
 
 								<p
-									className={`mb-0 text-xl text-muted-foreground leading-relaxed ${hasVisual ? "max-w-lg" : "max-w-2xl"}`}
+									className={`mb-0 text-xl text-muted-foreground leading-relaxed ${hasVisual ? "max-w-lg" : "max-w-2xl mx-auto"}`}
 								>
 									{subtitle}
 								</p>
@@ -86,11 +84,10 @@ export function HeroSection({
 							)}
 						</div>
 
-						{/* Hero visual — brand product mockup (preferred) or, for
-							legacy callers, an explicit image. Never stock photography. */}
-						{brandArt ? (
-							<HeroDashboardMockup />
-						) : image ? (
+						{/* Hero visual: an explicit image when a caller passes one.
+						    The sample-data dashboard mock lives on the home page only
+						    (2026-11-24 SEO audit AB8, Q11). Never stock photography. */}
+						{image ? (
 							<div className="relative">
 								<div className="relative h-150 rounded-3xl overflow-hidden shadow-2xl">
 									<Image

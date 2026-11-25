@@ -45,7 +45,6 @@ export default function FAQPage() {
 				}}
 				secondaryCta={{ label: "Contact Sales", href: "/contact" }}
 				trustSignals="Document vault • Lease e-sign on Growth+ • 14-day free trial"
-				brandArt
 			/>
 			<section className="section-spacing">
 				<div className="max-w-4xl mx-auto px-6 lg:px-8">

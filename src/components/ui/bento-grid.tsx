@@ -59,7 +59,11 @@ const BentoCard = ({
 		)}
 	>
 		{/* Background content - positioned absolutely */}
-		<div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+		<div
+			className="absolute inset-0 overflow-hidden"
+			aria-hidden="true"
+			data-nosnippet
+		>
 			{background}
 		</div>
 
