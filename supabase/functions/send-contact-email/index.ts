@@ -3,7 +3,8 @@
 // Unauthenticated by design -- the public /contact form posts here.
 // Rate limited at 10 req/min per IP (Postgres sliding window, fail-CLOSED).
 // Every user-supplied value is HTML-escaped before interpolation (anti-injection).
-// The From address stays the fixed FROM_ADDRESS -- user input never sets From/Reply-To.
+// From stays the fixed FROM_ADDRESS; Reply-To is the visitor's validated email,
+// so the owner answers them directly. User input never sets From.
 //
 // POST { name, email, subject, message, type?, phone?, company?, urgency? }
 // -> 200 { success: true }
