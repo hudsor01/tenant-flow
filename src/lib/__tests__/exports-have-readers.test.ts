@@ -389,7 +389,7 @@ src/components/ui/stepper-context.tsx ActivationMode Direction Orientation ROOT_
 src/components/ui/stepper-types.ts GetDataStateFn GetFocusIntentFn
 src/components/ui/stepper.tsx StepperContent StepperNext StepperPrev StepperProps useStepper
 src/components/ui/table.tsx TableCaption TableFooter
-src/config/pricing.ts PRICING_PLANS UsageMetrics checkPlanLimits getPricingPlan getRecommendedUpgrade getStripePriceId getTrialConfig hasTrial
+src/config/pricing.ts PRICING_PLANS UsageMetrics checkPlanLimits getRecommendedUpgrade getStripePriceId getTrialConfig hasTrial
 src/env.ts Env
 src/hooks/api/query-keys/application-keys.ts ApplicationConversionResult RecordApplicationConversionInput SetApplicationStatusInput applicationKeys mapRentalApplicationRow mapRentalApplicationSummaryRow
 src/hooks/api/query-keys/application-link-keys.ts CreatedApplicationLink DEFAULT_LINK_EXPIRY_DAYS applicationLinkKeys mapApplicationLinkRow
@@ -425,7 +425,7 @@ src/lib/seo/reclaim-queue.ts RECLAIM_QUEUE ReclaimQueueItem
 src/lib/storage-plan-limit.ts STORAGE_PLAN_LIMIT_PREFIX
 src/lib/templates/lease-template.ts LeaseTemplatePreviewRequest
 src/lib/utils/api-error.ts logErrorInDev
-src/lib/utils/currency.ts PriceFormatOptions PriceInterval formatCurrencyChange formatPercentageChange formatPrice getDashboardCurrency getDashboardPercentage getIntervalSuffix
+src/lib/utils/currency.ts formatCurrencyChange formatPercentageChange getDashboardCurrency getDashboardPercentage getIntervalSuffix
 src/lib/utils/optimistic-locking.ts withVersion
 src/lib/validation/auth.ts registerZodSchema
 src/lib/validation/common.ts isValidEmail isValidUUID isValidUrl requiredDescription requiredTitle safeIntegerSchema stringBoolSchema urlSchema

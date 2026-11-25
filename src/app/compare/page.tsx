@@ -9,6 +9,7 @@ import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
 import { COMPETITORS, VALID_COMPETITORS } from "./[competitor]/compare-data";
+import { formatCheckedMonth } from "./[competitor]/compare-sections";
 
 // ISR — competitor list is static; 1h revalidate covers card-copy edits.
 export const revalidate = 3600;
@@ -60,6 +61,9 @@ export default function ComparePage() {
 									</p>
 									<p className="mt-4 mb-0 text-sm text-muted-foreground line-clamp-3">
 										{competitor.description}
+									</p>
+									<p className="mt-2 mb-0 text-xs text-muted-foreground">
+										Prices as of {formatCheckedMonth(competitor.checkedAt)}
 									</p>
 									<span className="mt-auto pt-4 inline-flex items-center text-sm font-medium text-primary-text">
 										See comparison

@@ -2,7 +2,20 @@ import { ArrowRight, Check, Minus, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { Button } from "#components/ui/button";
 import { ScrollRegion } from "#components/ui/scroll-region";
+import { DiagnosticError } from "#lib/diagnostic-error";
+import { parseLocalYmd } from "#lib/formatters/date";
 import type { CompetitorData, FeatureSupport } from "#types/sections/compare";
+
+/** "November 2026" for "2026-11-24": when a competitor's figures were read. */
+export function formatCheckedMonth(checkedAt: string): string {
+	const date = parseLocalYmd(checkedAt);
+	if (!date)
+		throw new DiagnosticError(`compare-data: bad checkedAt "${checkedAt}"`);
+	return new Intl.DateTimeFormat("en-US", {
+		month: "long",
+		year: "numeric",
+	}).format(date);
+}
 
 function FeatureIcon({ support }: { support: FeatureSupport }) {
 	switch (support) {
@@ -104,6 +117,10 @@ export function PricingComparison({ data }: { data: CompetitorData }) {
 								</div>
 							))}
 						</div>
+						<p className="mt-4 mb-0 text-sm text-muted-foreground">
+							Prices as of {formatCheckedMonth(data.checkedAt)}, from{" "}
+							{data.pricingSource}
+						</p>
 					</div>
 				</div>
 			</div>
