@@ -10,7 +10,7 @@ export const homeFaqs = [
 	{
 		question: "How long does it take to get started?",
 		answer:
-			"Import your properties via CSV, add tenant records, and start tracking leases the same day. The 14-day free trial needs no card, so you can see the workflow before committing. Pick a plan at checkout with more than two days left and the rest of the trial runs on that plan; checkout takes a card and bills the plan when the trial ends.",
+			"Import your properties via CSV, add tenant records, and start tracking leases the same day. 14-day free trial, no card to start.",
 	},
 	{
 		question: "What if I have fewer than 10 units?",
