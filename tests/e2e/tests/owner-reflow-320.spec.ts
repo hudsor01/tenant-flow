@@ -274,6 +274,39 @@ async function answerSyntheticRequest(
 }
 
 /**
+ * Answers a read with production's body lengthened and each row passed
+ * through `edit`. When the page moves on, or the test ends, while the read is
+ * still in flight, the closing context disposes the response and the handler
+ * has nothing to answer: it aborts the read instead of failing the test after
+ * its assertions passed (the `lib/reflow-states.ts` handlers do the same).
+ */
+async function answerReadEdited(
+	route: Route,
+	edit: (row: Record<string, unknown>) => Record<string, unknown>,
+): Promise<void> {
+	try {
+		const response = await route.fetch();
+		const body = lengthenRead(await response.json());
+		const edited = (row: unknown) =>
+			row !== null && typeof row === "object"
+				? edit(row as Record<string, unknown>)
+				: row;
+		const headers = { ...response.headers() };
+		delete headers["content-encoding"];
+		delete headers["content-length"];
+		await route.fulfill({
+			status: response.status(),
+			headers,
+			body: JSON.stringify(
+				Array.isArray(body) ? body.map(edited) : edited(body),
+			),
+		});
+	} catch {
+		await route.abort("failed").catch(() => {});
+	}
+}
+
+/**
  * Answers owner A's lease read in the browser (a GET, never a write) with
  * production's row lengthened and `fields` set: `ledger_start_date`, so the
  * page shows a tracked ledger and its Record receipt and Add line controls,
@@ -284,25 +317,10 @@ async function answerLeaseAs(
 	id: string,
 	fields: Record<string, unknown>,
 ): Promise<void> {
-	await page.route(
-		new RegExp(`/rest/v1/leases\\?.*id=eq\\.${id}`),
-		async (route) => {
-			if (route.request().method() !== "GET") return route.fallback();
-			const response = await route.fetch();
-			const tracked = (row: unknown) =>
-				row !== null && typeof row === "object" ? { ...row, ...fields } : row;
-			const body = lengthenRead(await response.json());
-			const headers = { ...response.headers() };
-			delete headers["content-encoding"];
-			delete headers["content-length"];
-			return route.fulfill({
-				status: response.status(),
-				headers,
-				body: JSON.stringify(
-					Array.isArray(body) ? body.map(tracked) : tracked(body),
-				),
-			});
-		},
+	await page.route(new RegExp(`/rest/v1/leases\\?.*id=eq\\.${id}`), (route) =>
+		route.request().method() === "GET"
+			? answerReadEdited(route, (row) => ({ ...row, ...fields }))
+			: route.fallback(),
 	);
 }
 
@@ -499,25 +517,13 @@ test.describe("detail and edit pages, and the flows", () => {
 		// multi-unit type: owner A's property read, answered as an apartment.
 		await page.route(
 			new RegExp(`/rest/v1/properties\\?.*id=eq\\.${property}`),
-			async (route) => {
-				if (route.request().method() !== "GET") return route.fallback();
-				const response = await route.fetch();
-				const body = lengthenRead(await response.json());
-				const asApartment = (row: unknown) =>
-					row !== null && typeof row === "object"
-						? { ...row, property_type: "APARTMENT" }
-						: row;
-				const headers = { ...response.headers() };
-				delete headers["content-encoding"];
-				delete headers["content-length"];
-				return route.fulfill({
-					status: response.status(),
-					headers,
-					body: JSON.stringify(
-						Array.isArray(body) ? body.map(asApartment) : asApartment(body),
-					),
-				});
-			},
+			(route) =>
+				route.request().method() === "GET"
+					? answerReadEdited(route, (row) => ({
+							...row,
+							property_type: "APARTMENT",
+						}))
+					: route.fallback(),
 		);
 		const imports = await answerImports(page);
 		await signIn(page, context);
