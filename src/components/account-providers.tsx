@@ -1,12 +1,14 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { TooltipProvider } from "#components/ui/tooltip";
 import { AuthStoreProvider } from "#providers/auth-provider";
 import { QueryProvider } from "#providers/query-provider";
 
 /**
- * The data and session providers for pages that work with an account: the
- * owner app, admin, login and the `/auth/*` pages.
+ * The data, session and tooltip providers for pages that work with an
+ * account: the owner app, admin, login and the `/auth/*` pages. Every
+ * `Tooltip` lives on those pages.
  *
  * They used to wrap the whole site from the root `Providers`, which put
  * supabase-js, React Query's persisted cache and zod on every static
@@ -17,7 +19,9 @@ import { QueryProvider } from "#providers/query-provider";
 export function AccountProviders({ children }: { children: ReactNode }) {
 	return (
 		<QueryProvider>
-			<AuthStoreProvider>{children}</AuthStoreProvider>
+			<AuthStoreProvider>
+				<TooltipProvider>{children}</TooltipProvider>
+			</AuthStoreProvider>
 		</QueryProvider>
 	);
 }

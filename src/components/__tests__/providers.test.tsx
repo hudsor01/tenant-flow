@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
+import { AccountProviders } from "#components/account-providers";
 import { Providers } from "#components/providers";
 import {
 	Tooltip,
@@ -37,15 +38,17 @@ vi.mock("#providers/auth-provider", () => ({
 	AuthStoreProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
-describe("Providers", () => {
+describe("AccountProviders", () => {
+	// Every Tooltip is on an account page; the root no longer carries Radix
+	// Tooltip onto marketing pages (2026-11-24 SEO audit S1).
 	it("supplies a tooltip provider to descendants", () => {
 		render(
-			<Providers>
+			<AccountProviders>
 				<Tooltip defaultOpen>
 					<TooltipTrigger>Trigger</TooltipTrigger>
 					<TooltipContent>Tip body</TooltipContent>
 				</Tooltip>
-			</Providers>,
+			</AccountProviders>,
 		);
 
 		expect(screen.getByRole("tooltip")).toHaveTextContent("Tip body");
@@ -53,7 +56,9 @@ describe("Providers", () => {
 			document.querySelector('[data-slot="tooltip-content"]'),
 		).not.toBeNull();
 	});
+});
 
+describe("Providers", () => {
 	it("keeps the ThemeProvider props that the CSP script hash depends on", () => {
 		// THEME_NO_FLASH_SCRIPT_HASH in src/proxy.ts hashes the script these props produce.
 		const { unmount } = render(
