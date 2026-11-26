@@ -4,6 +4,7 @@ import Link from "next/link";
 import { PageLayout } from "#components/layout/page-layout";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { BlurFade } from "#components/ui/blur-fade";
+import { ScrollRegion } from "#components/ui/scroll-region";
 import { clickTrackAttributes } from "#lib/analytics/cta-attributes";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createItemListJsonLd } from "#lib/seo/collection-schema";
@@ -90,13 +91,8 @@ export default function ComparePage() {
 								At a glance
 							</h2>
 							{/* Wide on a phone: the table scrolls inside its own box,
-							    which keyboard users can focus and scroll. */}
-							<div
-								className="overflow-x-auto rounded-lg border bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-								role="region"
-								aria-label="Property management software at a glance"
-								tabIndex={0}
-							>
+							    which a keyboard can reach while it does. */}
+							<ScrollRegion className="overflow-x-auto rounded-lg border bg-card">
 								<table className="w-full min-w-5xl border-collapse text-left text-sm">
 									<caption className="caption-bottom px-4 py-3 text-left text-xs text-muted-foreground">
 										Competitor figures from each vendor&apos;s own pricing page
@@ -153,7 +149,7 @@ export default function ComparePage() {
 										))}
 									</tbody>
 								</table>
-							</div>
+							</ScrollRegion>
 						</div>
 					</BlurFade>
 

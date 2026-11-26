@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { RelatedArticles } from "#components/blog/related-articles";
 import { PageLayout } from "#components/layout/page-layout";
+import { LastReviewed } from "#components/resources/last-reviewed";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { PrintButton } from "#components/shared/print-button";
 import { Button } from "#components/ui/button";
@@ -10,12 +11,21 @@ import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { RESOURCE_TO_BLOGS } from "#lib/content-links";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
-import { deductionCategories, scheduleLinesLabel } from "./tax-deduction-data";
+import { createResourcePageJsonLd } from "#lib/seo/resource-schema";
+import {
+	deductionCategories,
+	scheduleLinesLabel,
+	TAX_DATA_CHECKED_AT,
+	TAX_TRACKER_PUBLISHED_AT,
+	TAX_YEAR,
+} from "./tax-deduction-data";
+
+const DESCRIPTION =
+	"Free printable tax deduction tracker for landlords. Categorized by IRS Schedule E with common deductions, examples, and space to track amounts year-round.";
 
 export const metadata: Metadata = createPageMetadata({
 	title: "Landlord Tax Deduction Tracker (Schedule E)",
-	description:
-		"Free printable tax deduction tracker for landlords. Categorized by IRS Schedule E with common deductions, examples, and space to track amounts year-round.",
+	description: DESCRIPTION,
 	path: "/resources/landlord-tax-deduction-tracker",
 	ogCard: "landlord-tax-deduction-tracker",
 });
@@ -27,6 +37,15 @@ export default function TaxDeductionTrackerPage() {
 				schema={createBreadcrumbJsonLd(
 					"/resources/landlord-tax-deduction-tracker",
 				)}
+			/>
+			<JsonLdScript
+				schema={createResourcePageJsonLd({
+					name: "Landlord Tax Deduction Tracker",
+					path: "/resources/landlord-tax-deduction-tracker",
+					description: DESCRIPTION,
+					datePublished: TAX_TRACKER_PUBLISHED_AT,
+					dateModified: TAX_DATA_CHECKED_AT,
+				})}
 			/>
 			<style
 				dangerouslySetInnerHTML={{
@@ -65,7 +84,32 @@ export default function TaxDeductionTrackerPage() {
 						E categories with common deductions, examples, and space to record
 						your amounts.
 					</p>
+					<LastReviewed
+						reviewedAt={TAX_DATA_CHECKED_AT}
+						suffix={` for tax year ${TAX_YEAR}`}
+					/>
 				</header>
+
+				{/* A plain-language summary above the tables (SEO audit X13),
+				    every statement matching tax-deduction-data.ts. */}
+				<section className="mb-12">
+					<h2 className="text-xl font-bold text-foreground mb-4">
+						Common rental property tax deductions
+					</h2>
+					<p className="mb-0 leading-relaxed text-muted-foreground">
+						Most of what you spend to run a rental is deducted on Schedule E in
+						the year you pay it: mortgage interest (not principal), property
+						taxes, insurance, the utilities you pay, cleaning and lawn care,
+						repairs that restore something to working order, management, legal
+						and accounting fees, advertising, and travel to the property.
+						Improvements that add value or extend the property&apos;s life, such
+						as a new roof or HVAC system, are not deducted at once: you recover
+						them through depreciation, over 27.5 years like the building, unless
+						a safe harbor lets you deduct them in full. The land is never
+						depreciated. The tables below put each deduction on its {TAX_YEAR}{" "}
+						Schedule E line, with an example.
+					</p>
+				</section>
 
 				{/* Important notice */}
 				<div className="rounded-xl border border-warning/20 bg-warning/10 p-6 mb-12">
@@ -73,7 +117,7 @@ export default function TaxDeductionTrackerPage() {
 						<strong>Disclaimer:</strong> This tracker is for informational
 						purposes only and does not constitute tax advice. Consult a
 						qualified tax professional for advice specific to your situation.
-						Line numbers and rates are for tax year 2026; tax laws change
+						Line numbers and rates are for tax year {TAX_YEAR}; tax laws change
 						annually, so verify current rules with the IRS or your CPA.
 					</p>
 				</div>

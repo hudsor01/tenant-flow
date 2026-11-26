@@ -106,8 +106,9 @@ const REVIEWED: readonly Reviewed[] = [
 	},
 	{
 		file: "src/app/resources/page.tsx",
-		tag: "div",
-		reason: "inside the resource card's Link",
+		tag: "article",
+		reason:
+			"a resource card: its heading link's ::after covers the card, so the whole card is the link",
 	},
 	{
 		file: "src/components/maintenance/detail/photos-card.tsx",

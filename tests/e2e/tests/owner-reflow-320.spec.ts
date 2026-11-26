@@ -1124,11 +1124,31 @@ test(`a positioned overlay keeps its place when the viewport changes`, async ({
 		await page.keyboard.press("Escape");
 		await expect(list).toBeHidden();
 	};
+	// The layout gate after a resize with the list open: Floating UI
+	// re-measures the room around the trigger (--dice-available-width, the
+	// list's max width) on its next frame, and a read before then measured
+	// the 1280 box (859px wide at 390, run 45746736131). This waits for the
+	// positioner to run at the new width, not for the list to fit: had it
+	// stopped re-measuring, the gate would time out and the test still fail.
+	const repositioned = async (width: number) => {
+		await expect
+			.poll(
+				() =>
+					list.evaluate((el) =>
+						Number.parseFloat(
+							getComputedStyle(el).getPropertyValue("--dice-available-width"),
+						),
+					),
+				{ message: `the property list re-measured at ${width}px` },
+			)
+			.toBeLessThanOrEqual(width);
+	};
 	const fresh = await open("the property list, on a page loaded at 390");
 	await close();
 	await page.setViewportSize({ width: 1280, height: 800 });
 	await open("the property list, opened at 1280");
 	await page.setViewportSize({ width: 390, height: 800 });
+	await repositioned(390);
 	const live = await read("the property list, open from 1280 to 390");
 	await close();
 	await page.setViewportSize({ width: 1280, height: 800 });
