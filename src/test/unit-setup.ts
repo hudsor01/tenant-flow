@@ -140,6 +140,12 @@ if (typeof window !== "undefined") {
 }
 
 // Mock Next.js router hooks (needed for component rendering)
+// Importing `src/lib/sentry-browser-init.ts` runs `Sentry.init` with the
+// production config. `#lib/sentry-lazy` imports it before its first report;
+// in tests that would initialise whatever `@sentry/nextjs` mock the test set
+// up. Tests that check the config import its actual module.
+vi.mock("#lib/sentry-browser-init", () => ({}));
+
 vi.mock("next/navigation", () => ({
 	useRouter: () => ({
 		push: vi.fn(),

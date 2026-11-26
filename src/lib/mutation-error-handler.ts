@@ -14,10 +14,10 @@
  * ```
  */
 
-import * as Sentry from "@sentry/nextjs";
 import { toast } from "sonner";
 import { DiagnosticError } from "#lib/diagnostic-error";
 import { createLogger } from "#lib/frontend-logger";
+import { addBreadcrumb, captureException } from "#lib/sentry-lazy";
 import { isStoragePlanLimitError } from "#lib/storage-plan-limit";
 import { isApiError } from "#lib/utils/api-error";
 
@@ -247,7 +247,16 @@ function showPlanLimitUpgradeToast(
 		action: {
 			label: "Upgrade",
 			onClick: () => {
-				window.location.href = `/billing/plans?source=${encodeURIComponent(upgradeSource)}`;
+				// Always the same-origin plans page. The source is attribution text
+				// from the database trigger; only a slug is passed on.
+				const plans = new URL("/billing/plans", window.location.origin);
+				plans.searchParams.set(
+					"source",
+					/^[a-z0-9_]{1,64}$/.test(upgradeSource)
+						? upgradeSource
+						: "plan_limit_gate",
+				);
+				window.location.assign(plans);
 			},
 		},
 	};
@@ -339,7 +348,7 @@ export function handleMutationError(
 	// `captureException` here is intentional — `logger.error` would
 	// fall through to `captureMessage` and ship a duplicate event for
 	// the same failure.
-	Sentry.captureException(toError(error, `${context} failed`), {
+	captureException(toError(error, `${context} failed`), {
 		tags: { mutation: action },
 		extra: { context, status, message },
 	});
@@ -347,7 +356,7 @@ export function handleMutationError(
 	// Breadcrumb trail for the next captured event (free — does not fire
 	// its own Sentry event). Replaces the prior `logger.error` call which
 	// emitted a duplicate `captureMessage` for every mutation error.
-	Sentry.addBreadcrumb({
+	addBreadcrumb({
 		category: "mutation",
 		level: "error",
 		message: `${context} failed`,

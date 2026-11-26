@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -52,10 +52,13 @@ describe("ErrorBoundary", () => {
 		).toBeInTheDocument();
 	});
 
-	it("routes the error through Sentry as a proper exception", () => {
+	it("routes the error through Sentry as a proper exception", async () => {
 		render(createElement(ErrorBoundary, null, createElement(Boom)));
 
-		expect(sentryMock.captureException).toHaveBeenCalledTimes(1);
+		// Reported through #lib/sentry-lazy, which loads the SDK first.
+		await waitFor(() =>
+			expect(sentryMock.captureException).toHaveBeenCalledTimes(1),
+		);
 		const [err, ctx] = sentryMock.captureException.mock.calls[0] as [
 			Error,
 			{ tags: Record<string, string>; extra: Record<string, unknown> },
@@ -97,7 +100,7 @@ describe("ErrorBoundary", () => {
 		expect(routerMock.refresh).toHaveBeenCalledTimes(1);
 	});
 
-	it("renders the explicit fallback prop when provided", () => {
+	it("renders the explicit fallback prop when provided", async () => {
 		const fallback = createElement(
 			"div",
 			{ "data-testid": "custom-fallback" },
@@ -109,7 +112,9 @@ describe("ErrorBoundary", () => {
 
 		expect(screen.getByTestId("custom-fallback")).toBeInTheDocument();
 		// Sentry + store side-effects still fire when an explicit fallback is used.
-		expect(sentryMock.captureException).toHaveBeenCalledTimes(1);
+		await waitFor(() =>
+			expect(sentryMock.captureException).toHaveBeenCalledTimes(1),
+		);
 		expect(useErrorBoundaryStore.getState().errorState.hasError).toBe(true);
 	});
 });
