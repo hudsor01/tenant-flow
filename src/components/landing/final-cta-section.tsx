@@ -9,7 +9,7 @@ import {
 
 const checkItems = [
 	"No setup fees",
-	"Postgres row-level security",
+	"Your data is isolated per landlord",
 	"14-day free trial",
 	"Cancel anytime",
 ];
@@ -23,10 +23,8 @@ export function FinalCtaSection() {
 				<BlurFade delay={0.5}>
 					<div className="text-center space-y-8">
 						<h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-tight">
-							<span className="text-foreground">
-								Start your transformation{" "}
-							</span>
-							<span className="hero-highlight">today</span>
+							<span className="text-foreground">Start your </span>
+							<span className="hero-highlight">14-day free trial</span>
 						</h2>
 
 						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">

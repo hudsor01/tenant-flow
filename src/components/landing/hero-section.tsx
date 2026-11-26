@@ -39,14 +39,21 @@ export function HeroSection() {
 				</Breadcrumb>
 				<BlurFade delay={0.1}>
 					<div className="text-center max-w-5xl mx-auto space-y-8">
-						<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-tight">
-							<span className="text-foreground">Run your rentals from a</span>{" "}
-							<span className="hero-highlight">single document vault</span>
+						{/* The H1 names the query; the vault line is the subline
+						    (2026-11-24 SEO audit F9). */}
+						<h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight leading-tight">
+							<span className="text-foreground">
+								Property management features built for independent
+							</span>{" "}
+							{/* One word: the highlighter band draws under the whole
+							    span, so a span that wraps gets one wide band. */}
+							<span className="hero-highlight">landlords</span>
 						</h1>
 
 						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl font-medium">
-							Per-entity storage with global search, multi-select filters,
-							date-range, and tax-season zip downloads.{" "}
+							Run your rentals from a single document vault, with per-entity
+							storage, global search, filters by record type, category and date,
+							and tax-season ZIP downloads.{" "}
 							<span className="text-foreground font-semibold">
 								Lease e-sign on Growth and Max plans. Tenants are records, never
 								users.
@@ -88,7 +95,7 @@ export function HeroSection() {
 
 						<p className="mb-0 text-muted-foreground typography-small">
 							<Check className="size-4 inline text-primary mr-2" />
-							14-day free trial • No credit card required
+							14-day free trial, no card to start
 						</p>
 					</div>
 				</BlurFade>

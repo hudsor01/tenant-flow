@@ -9,12 +9,12 @@ const stats = [
 	{
 		icon: FolderArchive,
 		value: "5",
-		label: "Entity branches in the vault",
+		label: "Record types with document storage",
 	},
 	{
 		icon: Search,
 		value: "Global",
-		label: "Search by title, description and tags",
+		label: "Search by title and description",
 	},
 	{
 		icon: Download,

@@ -175,11 +175,22 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 
 				{/* CTA */}
 				<BlurFade delay={0.3}>
-					<div className="text-center mt-12">
+					<div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
 						<Button size="lg" className="shadow-lg shadow-primary/20" asChild>
 							<Link href="/pricing">
 								See Pricing Details
 								<ArrowRight className="size-5 ml-2" />
+							</Link>
+						</Button>
+						{/* SEO audit F2: the comparison pages, from the comparison. */}
+						<Button
+							size="lg"
+							variant="outline"
+							className="h-auto min-h-10 whitespace-normal py-2 text-center"
+							asChild
+						>
+							<Link href="/compare">
+								Compare with Buildium, AppFolio and RentRedi
 							</Link>
 						</Button>
 					</div>
