@@ -7,6 +7,19 @@
  * form's line layout change.
  */
 
+/**
+ * The date the rows above were last checked, shown under the H1 and given as
+ * the page's `dateModified`; `review-freshness.test.ts` fails once its tax
+ * year is behind the calendar year.
+ */
+export const TAX_DATA_CHECKED_AT = "2026-11-25";
+
+/** The tax year the rows describe. */
+export const TAX_YEAR = 2026;
+
+/** When the tracker was first published (its page's first commit). */
+export const TAX_TRACKER_PUBLISHED_AT = "2026-04-01";
+
 /** A Schedule E Part I expense line on the 2026 form (5 through 19). */
 const SCHEDULE_E_LINES = [
 	"5",

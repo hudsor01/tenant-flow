@@ -2,32 +2,29 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageLayout } from "#components/layout/page-layout";
+import { LastReviewed } from "#components/resources/last-reviewed";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { PrintButton } from "#components/shared/print-button";
 import { Button } from "#components/ui/button";
 import { ScrollRegion } from "#components/ui/scroll-region";
 import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
-import { DiagnosticError } from "#lib/diagnostic-error";
-import { parseLocalYmd } from "#lib/formatters/date";
+import { formatDate } from "#lib/formatters/date";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
-import { DEPOSIT_RULES_CHECKED_AT, stateData } from "./deposit-data";
+import { createResourcePageJsonLd } from "#lib/seo/resource-schema";
+import {
+	DEPOSIT_CARD_PUBLISHED_AT,
+	DEPOSIT_RULES_CHECKED_AT,
+	stateAnchor,
+	stateData,
+} from "./deposit-data";
 
-/** "November 25, 2026" for the date the rows were checked. */
-function formatCheckedDate(ymd: string): string {
-	const date = parseLocalYmd(ymd);
-	if (!date) throw new DiagnosticError(`deposit-data: bad date "${ymd}"`);
-	return new Intl.DateTimeFormat("en-US", {
-		month: "long",
-		day: "numeric",
-		year: "numeric",
-	}).format(date);
-}
+const DESCRIPTION =
+	"Free printable security deposit reference card with deposit limits, return deadlines, and required documentation for all 50 states plus DC.";
 
 export const metadata: Metadata = createPageMetadata({
 	title: `Security Deposit Laws by State (${DEPOSIT_RULES_CHECKED_AT.slice(0, 4)} Chart)`,
-	description:
-		"Free printable security deposit reference card with deposit limits, return deadlines, and required documentation for all 50 states plus DC.",
+	description: DESCRIPTION,
 	path: "/resources/security-deposit-reference-card",
 	ogCard: "security-deposit-reference-card",
 });
@@ -41,6 +38,15 @@ export default function SecurityDepositReferenceCardPage() {
 	return (
 		<PageLayout>
 			<JsonLdScript schema={breadcrumbSchema} />
+			<JsonLdScript
+				schema={createResourcePageJsonLd({
+					name: "Security Deposit Laws by State",
+					path: "/resources/security-deposit-reference-card",
+					description: DESCRIPTION,
+					datePublished: DEPOSIT_CARD_PUBLISHED_AT,
+					dateModified: DEPOSIT_RULES_CHECKED_AT,
+				})}
+			/>
 			<style
 				dangerouslySetInnerHTML={{
 					__html: `
@@ -77,7 +83,28 @@ export default function SecurityDepositReferenceCardPage() {
 						Quick reference card with deposit limits, return deadlines, and
 						documentation requirements for all 50 states plus Washington DC.
 					</p>
+					<LastReviewed reviewedAt={DEPOSIT_RULES_CHECKED_AT} />
 				</header>
+
+				{/* 51 rows: a link to each state's row (SEO audit D7). */}
+				<nav aria-label="Jump to a state" className="mb-8 print:hidden">
+					<p className="mb-3 text-sm font-medium text-foreground">
+						Jump to a state
+					</p>
+					<ul className="m-0 flex flex-wrap gap-2 pl-0 [&>li]:mb-0">
+						{stateData.map((s) => (
+							<li key={s.abbr}>
+								<a
+									href={`#${stateAnchor(s.state)}`}
+									aria-label={`${s.state} (${s.abbr})`}
+									className="inline-flex min-h-8 min-w-10 items-center justify-center rounded-md border border-border px-2 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+								>
+									{s.abbr}
+								</a>
+							</li>
+						))}
+					</ul>
+				</nav>
 
 				{/* Legend */}
 				<div className="flex flex-wrap gap-6 mb-8 p-4 rounded-xl border border-border bg-muted/30">
@@ -137,7 +164,8 @@ export default function SecurityDepositReferenceCardPage() {
 							{stateData.map((s, i) => (
 								<tr
 									key={s.abbr}
-									className={i % 2 === 0 ? "bg-background" : "bg-muted/20"}
+									id={stateAnchor(s.state)}
+									className={`scroll-mt-24 ${i % 2 === 0 ? "bg-background" : "bg-muted/20"}`}
 								>
 									<td className="p-3 font-medium text-foreground sticky left-0 bg-inherit">
 										{s.state}
@@ -202,8 +230,9 @@ export default function SecurityDepositReferenceCardPage() {
 					<p className="mb-0 text-sm text-warning-text">
 						<strong>Disclaimer:</strong> This reference card provides a general
 						overview of state security deposit laws, each row checked against
-						the statute cited on {formatCheckedDate(DEPOSIT_RULES_CHECKED_AT)}.
-						Laws change frequently and cities and counties may have additional
+						the statute cited on{" "}
+						{formatDate(DEPOSIT_RULES_CHECKED_AT, { style: "long" })}. Laws
+						change frequently and cities and counties may have additional
 						requirements. Always verify current regulations with your state
 						landlord-tenant statute or a local attorney before relying on this
 						information.
@@ -242,8 +271,12 @@ export default function SecurityDepositReferenceCardPage() {
 							</h3>
 							<p className="mb-0 text-sm text-muted-foreground">
 								Returning deposits quickly builds goodwill and reduces dispute
-								risk. Many states impose penalties (2-3x the deposit) for late
-								returns.
+								risk. Keeping a deposit wrongly is costly: up to twice the
+								deposit on top of actual damages in California for bad faith;
+								$100 plus three times the amount withheld in Texas, where
+								missing the 30-day deadline is presumed bad faith; and three
+								times the deposit, with interest, in Massachusetts for missing
+								its 30-day return.
 							</p>
 						</div>
 						<div className="rounded-xl border border-border p-6">
@@ -257,6 +290,37 @@ export default function SecurityDepositReferenceCardPage() {
 							</p>
 						</div>
 					</div>
+				</section>
+
+				{/* SEO audit D8: where to go next. */}
+				<section className="mt-12 print:hidden">
+					<h2 className="text-2xl font-bold text-foreground mb-4">Related</h2>
+					<ul className="m-0 flex flex-col gap-2 pl-0 [&>li]:mb-0">
+						<li>
+							<Link
+								href="/blog/tenantflow-the-simple-way-to-run-move-in-and-move-out-inspections"
+								className="text-primary-text underline underline-offset-4 hover:no-underline"
+							>
+								Document move-in condition with move-in and move-out inspections
+							</Link>
+						</li>
+						<li>
+							<Link
+								href="/features#maintenance-tracking"
+								className="text-primary-text underline underline-offset-4 hover:no-underline"
+							>
+								Room-by-room inspections with photos in TenantFlow
+							</Link>
+						</li>
+						<li>
+							<Link
+								href="/resources/seasonal-maintenance-checklist"
+								className="text-primary-text underline underline-offset-4 hover:no-underline"
+							>
+								Seasonal maintenance checklist for rentals
+							</Link>
+						</li>
+					</ul>
 				</section>
 
 				{/* Footer CTA */}

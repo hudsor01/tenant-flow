@@ -21,6 +21,17 @@ export interface StateDeposit {
  */
 export const DEPOSIT_RULES_CHECKED_AT = "2026-11-25";
 
+/** When the card was first published (its page's first commit). */
+export const DEPOSIT_CARD_PUBLISHED_AT = "2026-04-01";
+
+/**
+ * A state row's fragment id, e.g. "new-york" for New York, so a post can
+ * link straight to a state (2026-11-24 SEO audit D7).
+ */
+export function stateAnchor(state: string): string {
+	return state.toLowerCase().replace(/[^a-z]+/g, "-");
+}
+
 export const stateData: StateDeposit[] = [
 	{
 		state: "Alabama",

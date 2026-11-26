@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { RelatedArticles } from "#components/blog/related-articles";
 import { PageLayout } from "#components/layout/page-layout";
+import { LastReviewed } from "#components/resources/last-reviewed";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { PrintButton } from "#components/shared/print-button";
 import { Button } from "#components/ui/button";
@@ -10,6 +11,10 @@ import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
 import { RESOURCE_TO_BLOGS } from "#lib/content-links";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
+import {
+	CHECKLIST_PUBLISHED_AT,
+	CHECKLIST_REVIEWED_AT,
+} from "./checklist-review";
 
 export const metadata: Metadata = createPageMetadata({
 	title: "Seasonal Maintenance Checklist for Rentals",
@@ -227,7 +232,7 @@ const seasons = [
 			{ area: "Exterior", task: "Stock ice melt or sand for common areas" },
 			{
 				area: "Exterior",
-				task: "Monitor roof for ice dams; remove if forming",
+				task: "Watch the roof edge for ice dams; have a roofer remove any that form",
 			},
 			{
 				area: "Safety",
@@ -258,7 +263,9 @@ export default function SeasonalMaintenanceChecklistPage() {
 		"@type": "HowTo" as const,
 		name: "Seasonal Maintenance Checklist for Rental Properties",
 		description:
-			"A comprehensive season-by-season maintenance checklist covering HVAC, plumbing, exterior, safety, and landscaping inspections.",
+			"A season-by-season maintenance checklist for HVAC, plumbing, exterior, safety, and landscaping inspections.",
+		datePublished: CHECKLIST_PUBLISHED_AT,
+		dateModified: CHECKLIST_REVIEWED_AT,
 		step: seasons.map((season) => ({
 			"@type": "HowToSection" as const,
 			name: season.name,
@@ -316,11 +323,17 @@ export default function SeasonalMaintenanceChecklistPage() {
 					<h1 className="text-4xl font-bold text-foreground mb-4">
 						Seasonal Maintenance Checklist for Rental Properties
 					</h1>
-					<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-						A comprehensive season-by-season checklist covering HVAC, plumbing,
-						exterior, safety, and landscaping inspections. Print it and keep it
-						with your property files.
+					<p className="mb-0 text-lg text-muted-foreground max-w-2xl mx-auto">
+						A season-by-season checklist for HVAC, plumbing, exterior, safety,
+						and landscaping inspections. Print it and keep it with your property
+						files.
 					</p>
+					{/* The months assume four seasons (SEO audit M6). */}
+					<p className="mt-3 mb-0 text-muted-foreground max-w-2xl mx-auto">
+						In warm climates, shift the freeze-prep tasks to your first cold
+						snap and run the A/C tasks twice a year.
+					</p>
+					<LastReviewed reviewedAt={CHECKLIST_REVIEWED_AT} />
 				</header>
 
 				{/* Seasons */}
@@ -399,7 +412,13 @@ export default function SeasonalMaintenanceChecklistPage() {
 				{/* Footer CTA */}
 				<div className="mt-12 text-center print:hidden">
 					<p className="text-muted-foreground mb-4">
-						Track maintenance requests digitally with TenantFlow
+						{/* SEO audit M9: the feature these tasks become. */}
+						<Link
+							href="/features#maintenance-tracking"
+							className="text-primary-text underline underline-offset-4 hover:no-underline"
+						>
+							Track these tasks in TenantFlow&apos;s maintenance board
+						</Link>
 					</p>
 					<Button asChild>
 						<Link
