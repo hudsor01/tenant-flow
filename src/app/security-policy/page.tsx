@@ -17,17 +17,51 @@ export default function SecurityPolicyPage() {
 			<JsonLdScript schema={createBreadcrumbJsonLd("/security-policy")} />
 			<div className="mx-auto min-h-screen max-w-4xl px-6 lg:px-8 section-spacing">
 				<h1 className="mb-8 typography-h1">Security Policy</h1>
-				<p className="mb-6 text-muted-foreground">Last Updated: May 11, 2026</p>
+				<p className="mb-6 text-muted-foreground">
+					Last Updated: November 26, 2026
+				</p>
 
 				<div className="prose prose-gray dark:prose-invert max-w-none">
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">1. Commitment to Security</h2>
+						<h2 id="commitment" className="mb-4 typography-h3 scroll-mt-24">
+							1. Commitment to Security
+						</h2>
+						{/* The concrete controls (2026-11-24 SEO audit SP4). */}
 						<p>
-							TenantFlow handles sensitive property management data including
-							financial transactions, lease agreements, and personal
-							information. We take the security of our platform seriously and
-							appreciate the work of security researchers who help us maintain
-							the safety of our users.
+							TenantFlow holds landlords&apos; property records, leases, rent
+							ledgers, documents and tenant contact details. These controls
+							protect them:
+						</p>
+						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
+							<li>
+								Data is encrypted in transit (TLS) and at rest, on Supabase.
+							</li>
+							<li>
+								Postgres row-level security isolates each landlord&apos;s data
+								on every request. Tenants never sign in, so there are no tenant
+								accounts to attack.
+							</li>
+							<li>
+								Owners can turn on two-factor sign-in with an authenticator app
+								in Settings.
+							</li>
+							<li>
+								Lease-signing and rental-application links are stored only as
+								hashes.
+							</li>
+							<li>
+								Error reports drop the query string from every URL and replace
+								signing and application link tokens before they leave the
+								browser or server.
+							</li>
+							<li>
+								Owners can download their data and request account deletion from
+								Settings at any time.
+							</li>
+						</ul>
+						<p>
+							We appreciate the work of security researchers who help keep these
+							controls sound.
 						</p>
 						<p>
 							This policy outlines how to report security vulnerabilities
@@ -36,7 +70,9 @@ export default function SecurityPolicyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">2. Reporting a Vulnerability</h2>
+						<h2 id="reporting" className="mb-4 typography-h3 scroll-mt-24">
+							2. Reporting a Vulnerability
+						</h2>
 						<p>
 							If you discover a security vulnerability, please report it to us
 							by email:
@@ -74,7 +110,12 @@ export default function SecurityPolicyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">3. Response Timeline</h2>
+						<h2
+							id="response-timeline"
+							className="mb-4 typography-h3 scroll-mt-24"
+						>
+							3. Response Timeline
+						</h2>
 						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>
 								<strong>Acknowledgment:</strong> We aim to acknowledge your
@@ -98,7 +139,9 @@ export default function SecurityPolicyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">4. Scope</h2>
+						<h2 id="scope" className="mb-4 typography-h3 scroll-mt-24">
+							4. Scope
+						</h2>
 						<h3 className="mb-3 typography-h4">4.1 In Scope</h3>
 						<ul className="mt-5 mb-4 ml-6 pl-6.5 list-disc [&>li]:my-2">
 							<li>tenantflow.app and all subdomains</li>
@@ -135,7 +178,9 @@ export default function SecurityPolicyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">5. Safe Harbor</h2>
+						<h2 id="safe-harbor" className="mb-4 typography-h3 scroll-mt-24">
+							5. Safe Harbor
+						</h2>
 						<p>
 							We consider security research conducted in accordance with this
 							policy to be authorized, and we will not pursue legal action
@@ -166,7 +211,9 @@ export default function SecurityPolicyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">6. Recognition</h2>
+						<h2 id="recognition" className="mb-4 typography-h3 scroll-mt-24">
+							6. Recognition
+						</h2>
 						<p>
 							We value the contributions of security researchers. With your
 							permission, we will acknowledge your contribution after the issue
@@ -176,7 +223,7 @@ export default function SecurityPolicyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">
+						<h2 id="contact" className="mb-4 typography-h3 scroll-mt-24">
 							7. Contact &amp; Monitored Inboxes
 						</h2>
 						<p className="mb-0">
@@ -190,7 +237,7 @@ export default function SecurityPolicyPage() {
 							. Acknowledged within 24 hours per § 3.
 						</p>
 						<p className="mt-3">
-							For support, sales and product questions, visit the{" "}
+							For support and product questions, visit the{" "}
 							<a href="/help" className="text-primary-text underline">
 								Help Center
 							</a>{" "}

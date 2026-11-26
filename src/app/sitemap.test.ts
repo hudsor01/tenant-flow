@@ -216,7 +216,7 @@ describe("sitemap()", () => {
 		const securityPolicy = entries.find(
 			(e) => e.url === "https://tenantflow.app/security-policy",
 		);
-		expect(securityPolicy?.lastModified).toBe("2026-05-11");
+		expect(securityPolicy?.lastModified).toBe("2026-11-26");
 	});
 
 	it("Test 5: blog post entries prefer updated_at then published_at", async () => {
