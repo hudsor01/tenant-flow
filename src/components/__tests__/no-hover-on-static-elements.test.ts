@@ -105,6 +105,12 @@ const REVIEWED: readonly Reviewed[] = [
 		reason: "the slider thumb, a focusable control",
 	},
 	{
+		file: "src/components/blog/blog-card.tsx",
+		tag: "article",
+		reason:
+			"a blog post card: its heading link's ::after covers the card, so the whole card is the link",
+	},
+	{
 		file: "src/app/help/page.tsx",
 		tag: "li",
 		reason:
