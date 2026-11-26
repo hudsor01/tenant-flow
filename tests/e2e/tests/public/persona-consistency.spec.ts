@@ -92,12 +92,13 @@ test.describe("Persona consistency — homepage hero (COPY-01 + COPY-03)", () =>
 		expect(body).toContain("landlords with small portfolios");
 	});
 
-	test('Hero subhead contains "tenants stay off the platform"', async ({
-		page,
-	}) => {
+	// The landlord-only wedge: tenants never get logins. The subhead said it
+	// twice ("no tenant logins ... and tenants stay off the platform"); the
+	// 2026-11-24 SEO audit (H9) kept one statement of it.
+	test('Hero subhead contains "No tenant logins"', async ({ page }) => {
 		await page.goto("/");
 		const body = (await page.textContent("body")) ?? "";
-		expect(body).toContain("tenants stay off the platform");
+		expect(body).toContain("No tenant logins");
 	});
 
 	test("Mobile 375px: hero fits in viewport without horizontal scroll", async ({

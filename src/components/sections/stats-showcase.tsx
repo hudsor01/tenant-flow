@@ -14,7 +14,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 	const stats = [
 		{
 			value: 5,
-			label: "Entity Branches",
+			label: "Record types",
 			description: "Property, lease, tenant, maintenance, inspection",
 			suffix: "",
 			prefix: "",
@@ -36,7 +36,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 		{
 			value: 14,
 			label: "Day Free Trial",
-			description: "No credit card required",
+			description: "No card to start",
 			suffix: "",
 			prefix: "",
 		},

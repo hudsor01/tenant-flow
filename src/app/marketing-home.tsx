@@ -28,16 +28,20 @@ export default function MarketingHomePage() {
 							{/* Content */}
 							<div className="flex flex-col space-y-8">
 								<div className="space-y-6">
+									{/* The H1 carries the query the page answers, as an eyebrow
+									    line above the hook (2026-11-24 SEO audit H7). */}
 									<h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground tracking-tight leading-[1.05] text-balance">
+										<span className="mb-4 block text-base font-semibold leading-normal tracking-normal text-primary-text sm:text-lg">
+											Property management software for independent landlords
+										</span>{" "}
 										Skip the{" "}
 										<span className="hero-highlight">tenant portal</span>.
 									</h1>
 
 									<p className="mb-0 text-xl text-muted-foreground leading-relaxed max-w-lg">
 										The operations tool for landlords with small portfolios.
-										Track properties, leases, and maintenance in one place — no
-										tenant logins, no rent routed through a middleman, and
-										tenants stay off the platform.
+										Track properties, leases, and maintenance in one place. No
+										tenant logins, and no rent routed through a middleman.
 									</p>
 								</div>
 
@@ -59,8 +63,7 @@ export default function MarketingHomePage() {
 								</div>
 
 								<p className="mb-0 text-muted-foreground text-sm">
-									Built for landlords with small portfolios. 14-day free trial,
-									no credit card.
+									14-day free trial, no card to start.
 								</p>
 							</div>
 
