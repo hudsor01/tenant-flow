@@ -20,7 +20,7 @@ const logger = createLogger({ component: "Sitemap" });
 // "Last Updated" line.
 const TERMS_LAST_UPDATED = "2026-11-25";
 const PRIVACY_LAST_UPDATED = "2026-11-25";
-const SECURITY_POLICY_LAST_UPDATED = "2026-05-11";
+const SECURITY_POLICY_LAST_UPDATED = "2026-11-26";
 
 // "Last meaningful copy refresh" for the static marketing/company/compare/
 // resource pages. These pages don't have visible "Last Updated" lines
