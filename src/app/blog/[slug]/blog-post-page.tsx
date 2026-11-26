@@ -88,7 +88,7 @@ export default function BlogPostPage({
 	// `post.category` is the raw `blogs.category` value — the kebab SLUG.
 	// Use it verbatim as the category-page slug (the lower-and-dasherize is a
 	// harmless no-op on an already-kebab value) and humanize it for the
-	// visible chip label so it reads "Software Vault", not "software-vault".
+	// visible chip label so it reads "Using TenantFlow", not "software-vault".
 	const postCategory = post.category ?? "";
 	const categorySlug = postCategory.toLowerCase().replace(/\s+/g, "-");
 	const categoryDisplayLabel = postCategory ? categoryLabel(categorySlug) : "";

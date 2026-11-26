@@ -71,7 +71,7 @@ describe("BlogPostBreadcrumb", () => {
 	it("links the category node to the slug verbatim and shows the mapped label", () => {
 		render(<BlogPostBreadcrumb title="Vault Post" category="software-vault" />);
 		expect(
-			screen.getByRole("link", { name: "Software Vault" }),
+			screen.getByRole("link", { name: "Using TenantFlow" }),
 		).toHaveAttribute("href", "/blog/category/software-vault");
 	});
 

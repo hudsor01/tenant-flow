@@ -20,6 +20,8 @@ import { loadBlogListing } from "#lib/blog/blog-listing";
 import { blogPageHref } from "#lib/blog/blog-page-urls";
 import { getBlogCategories } from "#lib/blog/blog-queries";
 import {
+	CATEGORY_COPY,
+	categoryDescription,
 	categoryLabel,
 	MIN_INDEXED_CATEGORY_POSTS,
 } from "#lib/seo/blog-categories";
@@ -47,11 +49,6 @@ export async function blogCategorySlugs(): Promise<{ category: string }[]> {
 	return categories.map((category) => ({ category: category.slug }));
 }
 
-/** A category page's description, in its metadata and its JSON-LD. */
-function categoryDescription(label: string): string {
-	return `Browse TenantFlow blog posts about ${label.toLowerCase()}. Expert insights and practical guides for landlords.`;
-}
-
 export async function categoryIndexMetadata(
 	category: string,
 	page: number,
@@ -68,7 +65,7 @@ export async function categoryIndexMetadata(
 	// itself once enough posts are published.
 	return createPageMetadata({
 		title: `${label} Articles & Guides`,
-		description: categoryDescription(label),
+		description: categoryDescription(validCategory.slug),
 		path: blogPageHref(`/blog/category/${category}`, page),
 		ogImage: blogCategoryOgImage(category),
 		noindex: page > 1 || validCategory.post_count < MIN_INDEXED_CATEGORY_POSTS,
@@ -93,6 +90,7 @@ export async function CategoryIndex({
 	if (!listing) notFound();
 	const { posts, total, totalPages } = listing;
 	const label = categoryLabel(validCategory.slug);
+	const copy = CATEGORY_COPY[validCategory.slug];
 
 	return (
 		<PageLayout>
@@ -101,7 +99,7 @@ export async function CategoryIndex({
 				schema={createCollectionPageJsonLd({
 					name: `${label} Articles & Guides`,
 					path: blogPageHref(`/blog/category/${category}`, page),
-					description: categoryDescription(label),
+					description: categoryDescription(validCategory.slug),
 					pages: posts.map((post) => ({
 						name: post.title,
 						path: `/blog/${post.slug}`,
@@ -136,8 +134,23 @@ export async function CategoryIndex({
 					<h1 className="text-responsive-display-xl font-bold tracking-tight">
 						{label}
 					</h1>
-					<p className="mt-4 mb-0 text-lg text-muted-foreground">
-						{total} article{total === 1 ? "" : "s"} on {label.toLowerCase()}.
+					{copy && (
+						<p className="mt-4 mb-0 text-lg leading-relaxed text-muted-foreground">
+							{copy.intro}
+						</p>
+					)}
+					{copy?.link && (
+						<p className="mt-3 mb-0">
+							<Link
+								href={copy.link.href}
+								className="text-primary-text underline underline-offset-4 hover:no-underline"
+							>
+								{copy.link.label}
+							</Link>
+						</p>
+					)}
+					<p className="mt-4 mb-0 text-sm text-muted-foreground">
+						{total} article{total === 1 ? "" : "s"}
 					</p>
 				</div>
 			</section>
