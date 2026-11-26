@@ -1,6 +1,5 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ErrorInfo, ReactElement, ReactNode } from "react";
@@ -10,6 +9,7 @@ import {
 } from "react-error-boundary";
 import { Button } from "#components/ui/button";
 import { CardLayout } from "#components/ui/card-layout";
+import { captureException } from "#lib/sentry-lazy";
 import { useErrorBoundaryStore } from "#stores/error-boundary-store";
 
 interface Props {
@@ -23,7 +23,7 @@ function handleError(error: unknown, info: ErrorInfo) {
 	// Route to Sentry as a proper exception event — preserves the stack
 	// trace and exception class. Previously routed through logger.error
 	// which falls through to captureMessage (no stack, no class).
-	Sentry.captureException(err, {
+	captureException(err, {
 		tags: { boundary: "component-error-boundary" },
 		extra: { componentStack: info.componentStack },
 	});

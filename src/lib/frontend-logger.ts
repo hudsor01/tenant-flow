@@ -7,7 +7,11 @@
  *   info → breadcrumbs attached to the next error event for free)
  */
 
-import * as Sentry from "@sentry/nextjs";
+import {
+	addBreadcrumb,
+	captureException,
+	captureMessage,
+} from "#lib/sentry-lazy";
 
 // TypeScript interfaces for structured logging
 export interface LogContext {
@@ -94,8 +98,9 @@ const developmentConsoleFallback = (entry: LogEntry) => {
  * - WARN: captureMessage with 'warning' level
  * - INFO/DEBUG: addBreadcrumb (free — attached to next error event)
  *
- * Each Sentry call is guarded — partial mocks in tests or missing SDK methods
- * in older Sentry versions will degrade gracefully instead of crashing the app.
+ * Calls go through `#lib/sentry-lazy`, which loads the SDK on first use and
+ * drops a report it can't make (a missing SDK method included) instead of
+ * throwing into the app.
  */
 const reportToSentry = (entry: LogEntry) => {
 	const extra: Record<string, unknown> = {
@@ -107,32 +112,28 @@ const reportToSentry = (entry: LogEntry) => {
 		switch (entry.level) {
 			case "ERROR": {
 				const errArg = entry.args?.find((a): a is Error => a instanceof Error);
-				if (errArg && typeof Sentry.captureException === "function") {
-					Sentry.captureException(errArg, {
+				if (errArg) {
+					captureException(errArg, {
 						extra: { message: entry.message, ...extra },
 					});
-				} else if (typeof Sentry.captureMessage === "function") {
-					Sentry.captureMessage(entry.message, { level: "error", extra });
+				} else {
+					captureMessage(entry.message, { level: "error", extra });
 				}
 				break;
 			}
 			case "WARN":
-				if (typeof Sentry.captureMessage === "function") {
-					Sentry.captureMessage(entry.message, { level: "warning", extra });
-				}
+				captureMessage(entry.message, { level: "warning", extra });
 				break;
 			case "INFO":
 			case "DEBUG":
-				if (typeof Sentry.addBreadcrumb === "function") {
-					Sentry.addBreadcrumb({
-						category: entry.context?.component ?? "app",
-						level: entry.level === "DEBUG" ? "debug" : "info",
-						message: entry.message,
-						...(entry.context
-							? { data: entry.context as Record<string, unknown> }
-							: {}),
-					});
-				}
+				addBreadcrumb({
+					category: entry.context?.component ?? "app",
+					level: entry.level === "DEBUG" ? "debug" : "info",
+					message: entry.message,
+					...(entry.context
+						? { data: entry.context as Record<string, unknown> }
+						: {}),
+				});
 				break;
 		}
 	} catch {

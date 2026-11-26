@@ -1,9 +1,8 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
-
 import { ErrorPage } from "#components/shared/error-page";
+import { captureException } from "#lib/sentry-lazy";
 
 export default function AuthError({
 	error,
@@ -13,7 +12,7 @@ export default function AuthError({
 	reset: () => void;
 }) {
 	useEffect(() => {
-		Sentry.captureException(error, {
+		captureException(error, {
 			tags: { boundary: "auth-error" },
 			extra: { digest: error.digest },
 		});

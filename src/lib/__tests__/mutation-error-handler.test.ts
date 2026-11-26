@@ -207,14 +207,22 @@ describe("handleMutationError — storage plan-limit (StorageApiError message pr
 	// `.hint`/`.detail` — so the trigger's `plan_limit_exceeded:` message prefix
 	// is the ONLY quota signal that survives to the client (Plan 04 contract).
 	const originalLocation = window.location;
+	const assign = vi.fn();
+
+	/** Where the Upgrade CTA sent the browser, as a path and query. */
+	function navigatedTo(): string {
+		const target = assign.mock.calls.at(-1)?.[0] as URL | undefined;
+		return target ? `${target.pathname}${target.search}` : "";
+	}
 
 	beforeEach(() => {
 		vi.mocked(toast.error).mockClear();
+		assign.mockClear();
 		// Capture the Upgrade CTA navigation without hitting jsdom's unimplemented
-		// navigation. Plain object → `window.location.href = …` writes to `.href`.
+		// navigation.
 		Object.defineProperty(window, "location", {
 			configurable: true,
-			value: { href: "" },
+			value: { origin: "https://tenantflow.app", assign },
 		});
 	});
 
@@ -248,9 +256,7 @@ describe("handleMutationError — storage plan-limit (StorageApiError message pr
 		// The CTA points at the storage-quota source (no DETAIL JSON on a
 		// StorageApiError, so the storage default is used).
 		action?.onClick?.();
-		expect(window.location.href).toBe(
-			"/billing/plans?source=storage_quota_gate",
-		);
+		expect(navigatedTo()).toBe("/billing/plans?source=storage_quota_gate");
 	});
 
 	it("still routes the PostgREST hint path to its parsed source (no regression)", () => {
@@ -275,9 +281,22 @@ describe("handleMutationError — storage plan-limit (StorageApiError message pr
 		expect(action?.label).toBe("Upgrade");
 		// DETAIL JSON still wins over the storage default for the PostgREST path.
 		action?.onClick?.();
-		expect(window.location.href).toBe(
-			"/billing/plans?source=property_limit_gate",
+		expect(navigatedTo()).toBe("/billing/plans?source=property_limit_gate");
+	});
+
+	it("passes on only a slug as the source, and stays on the plans page", () => {
+		handleMutationError(
+			{
+				message: "plan_limit_exceeded: properties (1 / 1 used)",
+				code: "P0001",
+				hint: "plan_limit_exceeded",
+				details: '{"resource":"properties","upgrade_source":"x\\" onload=1"}',
+			},
+			"Create property",
 		);
+		const [, opts] = lastToastErrorCall();
+		(opts?.action as { onClick?: () => void } | undefined)?.onClick?.();
+		expect(navigatedTo()).toBe("/billing/plans?source=plan_limit_gate");
 	});
 });
 

@@ -1,9 +1,8 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
-
 import { ErrorPage } from "#components/shared/error-page";
+import { captureException } from "#lib/sentry-lazy";
 
 export default function BlogError({
 	error,
@@ -13,7 +12,7 @@ export default function BlogError({
 	reset: () => void;
 }) {
 	useEffect(() => {
-		Sentry.captureException(error, {
+		captureException(error, {
 			tags: { boundary: "blog-error" },
 			extra: { digest: error.digest },
 		});
