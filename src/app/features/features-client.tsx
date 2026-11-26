@@ -1,5 +1,6 @@
 import { BentoFeaturesSection } from "#components/landing/bento-features-section";
 import { FeatureCallouts } from "#components/landing/feature-callouts";
+import { FeatureDetailsSection } from "#components/landing/feature-details-section";
 import { FinalCtaSection } from "#components/landing/final-cta-section";
 // Page sections
 import { HeroSection } from "#components/landing/hero-section";
@@ -16,6 +17,7 @@ export default function FeaturesClient() {
 			<FeatureCallouts />
 			<TestimonialsSection />
 			<BentoFeaturesSection />
+			<FeatureDetailsSection />
 
 			<LogoCloud />
 
