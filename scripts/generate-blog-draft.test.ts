@@ -58,6 +58,7 @@ function mockJudge(body: unknown): void {
 
 const draft = {
 	title: "Tenant Screening Tips for New Landlords",
+	seo_title: "Tenant screening tips for new landlords",
 	slug: "tenant-screening-tips-for-new-landlords",
 	excerpt: "x".repeat(120),
 	meta_description: "y".repeat(130),
@@ -244,6 +245,7 @@ describe("parseSlugOverride", () => {
 describe("applySlugOverride", () => {
 	const base: Draft = {
 		title: "Top Property Management Apps",
+		seo_title: "Top property management apps for landlords",
 		slug: "model-chosen-slug",
 		excerpt: "x".repeat(120),
 		meta_description: "y".repeat(130),
@@ -829,8 +831,8 @@ describe("sanitizeBanlist rewrites (the gates match substrings)", () => {
 	});
 });
 
-describe("runGates banlist on the meta description", () => {
-	it("gates a banned phrase in the meta description, which gate 8 does not check", () => {
+describe("runGates banlist on the SEO fields", () => {
+	it("gates a banned phrase in the meta description (gate 8 since 20261126174726)", () => {
 		const hit = runGates(
 			{
 				...seoDraft,
@@ -839,6 +841,37 @@ describe("runGates banlist on the meta description", () => {
 			seoCtx,
 		).find((f) => f.gate === "banlist");
 		expect(hit?.message).toBe("rent collection (meta_description)");
+	});
+
+	it("gates a banned phrase in the SEO title", () => {
+		const hit = runGates(
+			{ ...seoDraft, seo_title: "Autopay for landlords, explained" },
+			seoCtx,
+		).find((f) => f.gate === "banlist");
+		expect(hit?.message).toBe("autopay (seo_title)");
+	});
+});
+
+describe("runGates SEO title length (validate_blog_post gate 5c)", () => {
+	it("gates an SEO title outside 10..60 characters", () => {
+		expect(gateNames({ ...seoDraft, seo_title: "Too short" })).toContain(
+			"seo_title_length",
+		);
+		expect(gateNames({ ...seoDraft, seo_title: "x".repeat(61) })).toContain(
+			"seo_title_length",
+		);
+		expect(gateNames({ ...seoDraft, seo_title: "x".repeat(60) })).not.toContain(
+			"seo_title_length",
+		);
+	});
+
+	it("gates a meta description outside 120..155 characters", () => {
+		expect(
+			gateNames({ ...seoDraft, meta_description: "y".repeat(119) }),
+		).toContain("meta_length");
+		expect(
+			gateNames({ ...seoDraft, meta_description: "y".repeat(156) }),
+		).toContain("meta_length");
 	});
 });
 
@@ -1253,6 +1286,7 @@ const seoCtx: GateContext = {
 
 const seoDraft: Draft = {
 	title: "Tenant Screening Tips for New Landlords", // 40 chars
+	seo_title: "Tenant screening tips for new landlords",
 	slug: "tenant-screening-tips-for-new-landlords",
 	excerpt:
 		"A practical screening walkthrough for landlords: written criteria, income checks, credit review, and documentation habits.",
@@ -1266,7 +1300,7 @@ const gateNames = (d: Draft, ctx: GateContext = seoCtx): string[] =>
 	runGates(d, ctx).map((f) => f.gate);
 
 describe("runGates SEO baseline", () => {
-	it("a fully compliant draft passes all 18 gates", () => {
+	it("a fully compliant draft passes all 19 gates", () => {
 		expect(runGates(seoDraft, seoCtx)).toEqual([]);
 	});
 });

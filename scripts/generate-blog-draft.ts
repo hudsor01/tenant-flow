@@ -87,7 +87,7 @@ type Category = (typeof VALID_CATEGORIES)[number];
 
 // The banlist (gate 8), in step with supabase/functions/_shared/blog-banlist.ts
 // (the n8n-blog-ingest gate) and the validate_blog_post trigger (live body:
-// supabase/migrations/20261123162023_validate_blog_post_reject_error_slugs.sql);
+// supabase/migrations/20261126174726_validate_blog_post_seo_fields.sql);
 // src/lib/seo/__tests__/banlist-parity.test.ts fails when they drift.
 // Phrases: a substring, case ignored.
 const BANLIST = [
@@ -120,12 +120,20 @@ const PERSONA_BANLIST = ["property owner"] as const;
 const personaWordPattern = (word: string): RegExp =>
 	new RegExp(`${word}s?\\b`, "i");
 // The fields the banlist checks, in order: /blog renders the title and the
-// excerpt of every post.
-const BANLIST_FIELDS = ["title", "excerpt", "content"] as const;
+// excerpt of every post, and search results show its SEO title and meta
+// description.
+const BANLIST_FIELDS = [
+	"title",
+	"seo_title",
+	"excerpt",
+	"meta_description",
+	"content",
+] as const;
 
 /**
- * The first banned phrase or persona word in a draft's title, excerpt or
- * content (in that order; phrases, then persona words), or null.
+ * The first banned phrase or persona word in a draft's title, SEO title,
+ * excerpt, meta description or content (in that order; phrases, then persona
+ * words), or null.
  */
 function findBanlistHit(
 	p: Pick<Draft, (typeof BANLIST_FIELDS)[number]>,
@@ -178,6 +186,8 @@ async function resolveGenModel(): Promise<void> {
 
 interface Draft {
 	title: string;
+	/** The post's <title>, 10..60 characters (validate_blog_post gate 5c). */
+	seo_title: string;
 	slug: string;
 	excerpt: string;
 	meta_description: string;
@@ -513,7 +523,8 @@ export async function headCheckCitations(
 	);
 }
 
-// --- the 18 gates: 9 mirror runGates() in the EF, 9 are generator-side SEO
+// --- the 19 gates: 10 mirror runGates() in the EF (seo_title_length since
+// 20261126174726), 9 are generator-side SEO
 // guards (slug_brand_match, title_length, meta_not_truncated, boilerplate_h2,
 // table_required, takeaways_required, faq_required, internal_links, citations)
 // the EF does not re-check -> structured fix hints. ---
@@ -522,11 +533,11 @@ export async function headCheckCitations(
 // NOTE: the fix-hint + prompt ranges are deliberate GENERATION TARGETS that are
 // narrower than the actual rejection bounds checked below (e.g. excerpt aim
 // 110-180, gate 80-200) — the margin makes an obedient first draft clear the gate.
-const TOTAL_GATES = 18;
+const TOTAL_GATES = 19;
 
 // SEO-completeness gates that are BEST-EFFORT, not publish-blocking. The prompt
 // drives them and the sanitizers cover the mechanical ones (external/internal
-// links), but the 6-bit model can't satisfy all 18 hard gates in a single
+// links), but the 6-bit model can't satisfy all 19 hard gates in a single
 // whole-draft regeneration, so forcing them collapses throughput. Un-met ones
 // are logged and backfilled in a later pass. The correctness/persona/structure
 // gates (word_count, h2_count, persona_phrase, banlist, meta_length,
@@ -588,11 +599,17 @@ export function runGates(
 			message: p.slug,
 			fix: "slug must be lowercase words joined by single hyphens (^[a-z][a-z0-9]*(-[a-z0-9]+)*$), 20-70 chars, and not error-<digits>.",
 		});
-	if (p.meta_description.length < 50 || p.meta_description.length > 160)
+	if (p.meta_description.length < 120 || p.meta_description.length > 155)
 		out.push({
 			gate: "meta_length",
 			message: `${p.meta_description.length} chars`,
-			fix: "meta_description must be 115-155 characters.",
+			fix: "meta_description must be 120-155 characters.",
+		});
+	if (p.seo_title.length < 10 || p.seo_title.length > 60)
+		out.push({
+			gate: "seo_title_length",
+			message: `${p.seo_title.length} chars`,
+			fix: "seo_title must be 10-60 characters: the search query first, then TenantFlow as the answer.",
 		});
 	if (p.excerpt.length < 80 || p.excerpt.length > 200)
 		out.push({
@@ -615,26 +632,12 @@ export function runGates(
 				? `Replace "property owner(s)" in the ${banHit.field} (it can sit inside a longer word: "non-property owners", "a two-property owner") with wording that keeps the meaning: "owner(s)", "landlord(s)" for owners who rent property out, "an owner of two properties", "people who own no property". Describe a quoted legal term instead of quoting it.`
 				: `Remove the literal phrase "${banHit.phrase}" from the ${banHit.field} and rephrase it; it can sit inside a longer word ("overpaid rent" holds "paid rent", "online renters" holds "online rent"). In general advice keep the meaning ("pay rent on time" -> "pay the rent on time"; "rent collection" -> "rent payment collection"; "tenant portal" -> "tenant-facing portal"). In a paragraph about TenantFlow, keep only what is true: TenantFlow does not take, process or automate rent payments or give tenants logins, so delete a claim that it does, and word a denial without the phrase ("TenantFlow does not process rent payments").`,
 		});
-	// The meta description renders in search results and meta tags, but gate
-	// 8 (the ingest function and the DB trigger) checks only title, excerpt
-	// and content, and sanitizeBanlist leaves a phrase near a TenantFlow claim
-	// for the repair turn. So the generator gates it too.
-	const metaLower = p.meta_description.toLowerCase();
-	const metaHit =
-		BANLIST.find((b) => metaLower.includes(b)) ??
-		PERSONA_BANLIST.find((w) => personaWordPattern(w).test(p.meta_description));
-	if (!banHit && metaHit !== undefined)
-		out.push({
-			gate: "banlist",
-			message: `${metaHit} (meta_description)`,
-			fix: `Rewrite the meta_description without the phrase "${metaHit}". TenantFlow does not take, process or automate rent payments or give tenants logins; describe what it does (leases, e-signing on Growth and Max, the document vault, maintenance tracking, the rent ledger).`,
-		});
 	// TenantFlow's lease e-signing is its own (DocuSeal was removed), so a
 	// mention in any public field misstates the product. Stricter than the
 	// n8n-blog-ingest gate and the DB trigger's gate 9 (content only, at most
 	// one), which predate the removal.
 	const docusealHits = (
-		["title", "excerpt", "meta_description", "content"] as const
+		["title", "seo_title", "excerpt", "meta_description", "content"] as const
 	)
 		.map((field) => ({ field, n: (p[field].match(/DocuSeal/gi) ?? []).length }))
 		.filter((h) => h.n > 0);
@@ -1436,6 +1439,7 @@ async function generate(
 						type: "object",
 						properties: {
 							title: { type: "string" },
+							seo_title: { type: "string" },
 							slug: { type: "string" },
 							excerpt: { type: "string" },
 							meta_description: { type: "string" },
@@ -1444,6 +1448,7 @@ async function generate(
 						},
 						required: [
 							"title",
+							"seo_title",
 							"slug",
 							"excerpt",
 							"meta_description",
@@ -1476,6 +1481,7 @@ async function generate(
 	const p = JSON.parse(content) as Record<string, unknown>;
 	for (const k of [
 		"title",
+		"seo_title",
 		"slug",
 		"excerpt",
 		"meta_description",
@@ -1488,6 +1494,7 @@ async function generate(
 	}
 	return {
 		title: String(p.title),
+		seo_title: String(p.seo_title),
 		slug: String(p.slug),
 		excerpt: String(p.excerpt),
 		meta_description: String(p.meta_description),
@@ -1661,6 +1668,7 @@ async function generateValidDraft(
 		// (title, excerpt) or the meta gate rather than being rewritten. Length
 		// gates re-run below, so a shrunk excerpt re-enters the repair loop.
 		d.title = sanitizeBanlist(d.title, { banlist: false });
+		d.seo_title = sanitizeBanlist(d.seo_title, { banlist: false });
 		d.excerpt = sanitizeBanlist(d.excerpt, { banlist: false });
 		d.meta_description = sanitizeBanlist(d.meta_description, {
 			banlist: false,
@@ -1670,7 +1678,7 @@ async function generateValidDraft(
 		// words just to reshape a ~150-char blurb (pure waste — the Buildium
 		// topic burned 3 full regenerations on excerpt_length alone). A too-SHORT
 		// meta/excerpt still re-enters the loop (needs the model to write more).
-		d.meta_description = clampToLength(d.meta_description, 155); // gate <= 160
+		d.meta_description = clampToLength(d.meta_description, 155); // gate <= 155
 		d.excerpt = clampToLength(d.excerpt, 180); // gate <= 200
 		// demote surplus H2s (h2_count gate max 10; keep 9 for margin)
 		d.content = capH2Count(d.content);
@@ -1957,9 +1965,10 @@ STRICT requirements:
 - "## FAQ": at least 3 "### " sub-headings, each a real landlord question ending with "?", each answered in 2-4 sentences.
 - Every OTHER section heading must be specific to THIS topic — never generic reusable headings (e.g. NOT "Red Flags to Watch For", "Common Mistakes First-Time Landlords Make", "A Step-by-Step Screening Checklist", "Questions to Ask Previous Landlords").${needsComparisonTable(slugOverride ?? "", topic) ? '\n- Include at least one GFM markdown table (header row, "|---|" separator row) presenting the comparative data.' : ""}${internalLinkBlock}${citationRule}
 - "title": compelling, 25-55 characters (the page template appends " | TenantFlow Blog").${comparisonBrands.length >= 2 ? ` The title MUST name both compared products: ${comparisonBrands.map((b) => `"${b}"`).join(" and ")}.` : ' If the slug contains "-vs-", the title must name BOTH compared products from the slug.'}
+- "seo_title": the page's <title> in search results, 10-60 characters. Lead with what a landlord would search for (for example "Lease renewal reminders for independent landlords"). The site appends the brand, so do not end it with "TenantFlow".
 - "slug": lowercase words joined by single hyphens, ^[a-z][a-z0-9]*(-[a-z0-9]+)*$, 20-70 chars.
 - "excerpt": 110-180 characters, a standalone summary in your own words — never copy the article's opening text and never end with "...".
-- "meta_description": 115-155 characters, a standalone value proposition — never copy the article's opening text and never end with "...".
+- "meta_description": 120-155 characters, a standalone value proposition — never copy the article's opening text and never end with "...".
 - "category": exactly "${category}".`;
 
 	const baseMessages = [
@@ -2068,6 +2077,7 @@ STRICT requirements:
 		content: draft.content,
 		category: draft.category,
 		meta_description: draft.meta_description,
+		seo_title: draft.seo_title,
 		og_image_url: ogImageUrl,
 	};
 	const body = JSON.stringify(payload);

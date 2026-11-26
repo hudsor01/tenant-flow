@@ -5,7 +5,7 @@
  *   - scripts/generate-blog-draft.ts (BANLIST, PERSONA_BANLIST, BANLIST_FIELDS)
  *   - the validate_blog_post trigger (v_banlist, v_persona_banlist,
  *     v_banlist_fields), whose live body is
- *     supabase/migrations/20261115173654_validate_blog_post_gate_published_edits.sql
+ *     supabase/migrations/20261126174726_validate_blog_post_seo_fields.sql
  * src/lib/seo/__tests__/banlist-parity.test.ts fails when the phrases, the
  * persona words, the fields or the persona pattern of the three drift, or when
  * the pattern stops meaning persona-consistency.spec.ts's /property owners?\b/i.
@@ -60,10 +60,17 @@ export const BLOG_PERSONA_BANLIST = ["property owner"] as const;
 
 /**
  * The fields the banlist checks, in the order it checks them. /blog renders
- * the title and the excerpt of every post, so a phrase in either is as public
- * as one in the content.
+ * the title and the excerpt of every post, and search results show its SEO
+ * title and meta description, so a phrase in any of them is as public as one
+ * in the content.
  */
-export const BLOG_BANLIST_FIELDS = ["title", "excerpt", "content"] as const;
+export const BLOG_BANLIST_FIELDS = [
+	"title",
+	"seo_title",
+	"excerpt",
+	"meta_description",
+	"content",
+] as const;
 
 export type BlogBanlistField = (typeof BLOG_BANLIST_FIELDS)[number];
 

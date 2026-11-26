@@ -18,7 +18,10 @@ import {
 
 const CLEAN = {
 	title: "What landlords check in a lease",
+	seo_title: "What landlords check in a lease before signing",
 	excerpt: "A plain guide for landlords on what to check in a lease.",
+	meta_description:
+		"What landlords should check in a lease before signing it, in plain steps.",
 	content: "## Section 1\nA landlord reviews the lease terms here.",
 };
 

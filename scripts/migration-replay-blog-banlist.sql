@@ -14,8 +14,10 @@
 -- two in step.
 --
 -- Every post passes gates 1-7 and 9 (2,100-odd words, five "## " headings,
--- "landlord", a valid slug, a 50-160 character meta description, an 80-200
--- character excerpt, a listed category, no DocuSeal), so the banlist (gate 8)
+-- "landlord", a valid slug, a 120-155 character meta description, a 10-60
+-- character SEO title (a column default this fixture sets inside its
+-- transaction, since 20261126174726 requires one), an 80-200 character
+-- excerpt, a listed category, no DocuSeal), so the banlist (gate 8)
 -- is the only gate a case can trip, except the two slug cases at the end. The
 -- cases:
 --   - a persona word in the title, the excerpt and the content, at in-review
@@ -78,6 +80,9 @@ where t.tgrelid = 'public.blogs'::regclass and t.tgname = 'validate_blog_post_tr
 -- word in its title, one with the same title and no status at all
 -- (blogs.status is nullable). postgres owns public.blogs, so it can switch the
 -- trigger off for these inserts; the rollback at the end undoes both.
+-- Every post below gets an SEO title (gate 5c) from this default; the
+-- rollback at the end drops it with everything else.
+alter table public.blogs alter column seo_title set default 'What landlords check in a lease';
 alter table public.blogs disable trigger validate_blog_post_trigger;
 insert into public.blogs (title, slug, content, excerpt, meta_description, category, status)
 select
@@ -85,7 +90,7 @@ select
   'replay-null-status',
   string_agg('## Section ' || n || E'\n' || repeat('A landlord reviews the lease terms here. ', 60), E'\n'),
   'A plain guide for landlords on what to check in a lease before it is signed, one step at a time.',
-  'What landlords should check in a lease before signing it, in plain steps.',
+  'What landlords should check in a lease before signing it, in plain steps: the term, the rent, the deposit, repairs, and how either side can end it.',
   'lease-law',
   null
 from generate_series(1, 5) as n;
@@ -95,7 +100,7 @@ select
   'replay-legacy-published',
   string_agg('## Section ' || n || E'\n' || repeat('A landlord reviews the lease terms here. ', 60), E'\n'),
   'A plain guide for landlords on what to check in a lease before it is signed, one step at a time.',
-  'What landlords should check in a lease before signing it, in plain steps.',
+  'What landlords should check in a lease before signing it, in plain steps: the term, the rent, the deposit, repairs, and how either side can end it.',
   'lease-law',
   'published'
 from generate_series(1, 5) as n;
@@ -109,7 +114,7 @@ declare
   v_excerpt constant text :=
     'A plain guide for landlords on what to check in a lease before it is signed, one step at a time.';
   v_meta constant text :=
-    'What landlords should check in a lease before signing it, in plain steps.';
+    'What landlords should check in a lease before signing it, in plain steps: the term, the rent, the deposit, repairs, and how either side can end it.';
   v_body text;
   c record;
   v_post_id uuid;
@@ -235,7 +240,7 @@ begin
 
   -- A new meta description is a gated edit too, so the title's violation blocks it.
   begin
-    update public.blogs set meta_description = 'What landlords should check in a lease before signing it, in clear plain steps.' where id = v_post_id;
+    update public.blogs set meta_description = 'What landlords should check in a lease before signing it, in clear plain steps: the term, the rent, the deposit, repairs, and how either side ends it.' where id = v_post_id;
     insert into replay_blog values ('update-published-legacy-meta', jsonb_build_object('state', '00000', 'message', null));
   exception when others then
     insert into replay_blog values ('update-published-legacy-meta',
