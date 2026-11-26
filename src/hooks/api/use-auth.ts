@@ -49,7 +49,6 @@ export const authKeys = {
 	supabase: {
 		all: ["supabase-auth"] as const,
 		user: () => ["supabase-auth", "user"] as const,
-		session: () => ["supabase-auth", "session"] as const,
 	},
 };
 
@@ -112,24 +111,6 @@ const authQueries = {
 			queryFn: async () => {
 				const user = await getCachedUser();
 				return user;
-			},
-			...QUERY_CACHE_TIMES.DETAIL,
-		}),
-
-	/**
-	 * Supabase auth session (direct Supabase call - no NestJS)
-	 */
-	supabaseSession: () =>
-		queryOptions({
-			queryKey: authKeys.supabase.session(),
-			queryFn: async () => {
-				const supabase = createClient();
-				const {
-					data: { session },
-					error,
-				} = await supabase.auth.getSession();
-				if (error) throw error;
-				return session;
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 		}),
@@ -239,17 +220,4 @@ export function useUser() {
  */
 export function useSupabaseUser() {
 	return useQuery(authQueries.supabaseUser());
-}
-
-/**
- * Get Supabase session (local cookie cache, no network round-trip).
- *
- * Use this for "is there a session?" UX gates (navbar CTAs, optimistic
- * surfaces) where a server-validated JWT is not required. Reads from
- * Supabase's local cookie cache via `getSession()` and skips the
- * `/auth/v1/user` network call that `useSupabaseUser()` triggers on
- * cache miss.
- */
-export function useSupabaseSession() {
-	return useQuery(authQueries.supabaseSession());
 }

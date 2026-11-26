@@ -1,3 +1,4 @@
+import { AccountProviders } from "#components/account-providers";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
 // CISEC-02: the proxy serves /login with a per-request nonce CSP
@@ -22,5 +23,9 @@ export default function LoginLayout({
 }: {
 	children: React.ReactNode;
 }) {
-	return <main id="main-content">{children}</main>;
+	return (
+		<main id="main-content">
+			<AccountProviders>{children}</AccountProviders>
+		</main>
+	);
 }

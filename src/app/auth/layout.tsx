@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { AccountProviders } from "#components/account-providers";
 
 // CISEC-02: the proxy serves every /auth/* route with a per-request nonce CSP
 // (`script-src 'self' 'nonce-…' 'strict-dynamic'`). Next only injects that
@@ -22,5 +23,9 @@ export const metadata: Metadata = {
 };
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
-	return <main id="main-content">{children}</main>;
+	return (
+		<main id="main-content">
+			<AccountProviders>{children}</AccountProviders>
+		</main>
+	);
 }

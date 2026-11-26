@@ -13,6 +13,7 @@ vi.mock("#lib/supabase/client", () => ({
 }));
 
 import { track, UTM_STORAGE_KEY } from "#lib/analytics/track";
+import { SUPABASE_AUTH_COOKIE_NAME } from "#lib/supabase/cookie-name";
 
 const fetchMock = vi.fn();
 
@@ -65,11 +66,22 @@ describe("track", () => {
 	});
 
 	it("sends a signed-in owner's session token, so the server can link them", async () => {
+		document.cookie = `${SUPABASE_AUTH_COOKIE_NAME}=chunked`;
 		getSession.mockResolvedValue({
 			data: { session: { access_token: "owner-jwt" } },
 		});
-		track({ name: "checkout_started", props: { plan: "Growth" } });
-		expect((await sent()).headers.Authorization).toBe("Bearer owner-jwt");
+		try {
+			track({ name: "checkout_started", props: { plan: "Growth" } });
+			expect((await sent()).headers.Authorization).toBe("Bearer owner-jwt");
+		} finally {
+			document.cookie = `${SUPABASE_AUTH_COOKIE_NAME}=; max-age=0`;
+		}
+	});
+
+	it("never loads the Supabase client for a visitor with no auth cookie (S1)", async () => {
+		track({ name: "cta_start_free", props: { location: "home-hero" } });
+		expect((await sent()).headers.Authorization).toBeUndefined();
+		expect(getSession).not.toHaveBeenCalled();
 	});
 
 	it("attaches the visit's campaign tags to the event's props", async () => {

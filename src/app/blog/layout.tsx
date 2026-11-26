@@ -1,5 +1,6 @@
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import type { ReactNode } from "react";
+import { MutationScope } from "#components/shared/mutation-scope";
 
 /**
  * Blog layout. Hosts NuqsAdapter for the only nuqs consumer outside the
@@ -14,5 +15,11 @@ import type { ReactNode } from "react";
  * bodies stream through it as RSC children.
  */
 export default function BlogLayout({ children }: { children: ReactNode }) {
-	return <NuqsAdapter>{children}</NuqsAdapter>;
+	// MutationScope: the newsletter signup's mutation (no account providers
+	// on marketing pages).
+	return (
+		<NuqsAdapter>
+			<MutationScope>{children}</MutationScope>
+		</NuqsAdapter>
+	);
 }

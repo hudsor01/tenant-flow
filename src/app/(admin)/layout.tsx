@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AccountProviders } from "#components/account-providers";
 import { createClient } from "#lib/supabase/server";
 
 // Auth-walled, admin-only. Block search engines from indexing admin pages.
@@ -55,7 +56,9 @@ export default async function AdminLayout({
 					</nav>
 				</div>
 			</header>
-			<main id="main-content">{children}</main>
+			<main id="main-content">
+				<AccountProviders>{children}</AccountProviders>
+			</main>
 		</div>
 	);
 }

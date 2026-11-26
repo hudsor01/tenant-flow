@@ -12,9 +12,8 @@
  * server can link the event to them.
  */
 
-import { env } from "#env";
 import type { ClickEvent } from "#lib/analytics/cta-attributes";
-import { createClient } from "#lib/supabase/client";
+import { SUPABASE_AUTH_COOKIE_NAME } from "#lib/supabase/cookie-name";
 
 /**
  * The funnel's events, in order. A closed list, copied in the
@@ -90,16 +89,35 @@ function referrerHost(): string | null {
 	}
 }
 
-async function send(event: TrackEvent): Promise<void> {
+/**
+ * A signed-in owner's access token, or null.
+ *
+ * The Supabase client is imported only when the browser holds a Supabase
+ * auth cookie, so an anonymous visitor's marketing page never downloads
+ * supabase-js to send a click (2026-11-24 SEO audit S1). The cookie may be
+ * chunked (`<name>.0`), hence the prefix match.
+ */
+async function sessionToken(): Promise<string | null> {
+	if (!document.cookie.includes(SUPABASE_AUTH_COOKIE_NAME)) return null;
+	const { createClient } = await import("#lib/supabase/client");
 	const { data } = await createClient().auth.getSession();
-	const token = data.session?.access_token;
-	await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/track-event`, {
+	return data.session?.access_token ?? null;
+}
+
+async function send(event: TrackEvent): Promise<void> {
+	// Inlined at build time; read directly rather than through `#env`, whose
+	// validator (zod) would otherwise ship to every marketing page.
+	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+	const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+	if (!supabaseUrl || !publishableKey) return;
+	const token = await sessionToken();
+	await fetch(`${supabaseUrl}/functions/v1/track-event`, {
 		method: "POST",
 		// Outlives a navigation, so a click that leaves the page still counts.
 		keepalive: true,
 		headers: {
 			"Content-Type": "application/json",
-			apikey: env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+			apikey: publishableKey,
 			...(token ? { Authorization: `Bearer ${token}` } : {}),
 		},
 		body: JSON.stringify({

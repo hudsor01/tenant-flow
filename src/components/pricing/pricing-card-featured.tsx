@@ -19,8 +19,6 @@ import { createLogger } from "#lib/frontend-logger";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { stripeRedirectUrl } from "#lib/safe-url";
 import { checkoutRateLimiter } from "#lib/security";
-import { createCheckoutSession } from "#lib/stripe/stripe-client";
-import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
 import { formatCurrency } from "#lib/utils/currency";
 import { OwnerSubscribeDialog } from "./owner-subscribe-dialog";
@@ -85,6 +83,10 @@ export function PricingCardFeatured({
 
 			toast.loading("Creating checkout session...", { id: "checkout" });
 
+			// Loaded on click, with supabase-js behind it (SEO audit S1).
+			const { createCheckoutSession } = await import(
+				"#lib/stripe/stripe-client"
+			);
 			const result = await createCheckoutSession({
 				priceId: stripePriceId,
 				planName: plan.name,
@@ -121,6 +123,7 @@ export function PricingCardFeatured({
 		// Edge Function validates the JWT and surfaces a real error via toast
 		// if the session is rejected. If no local session, prompt new-visitor
 		// signup via the dialog.
+		const { createClient } = await import("#lib/supabase/client");
 		const supabase = createClient();
 		const {
 			data: { session },

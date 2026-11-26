@@ -54,36 +54,13 @@ describe("Sentry client instrumentation", () => {
 		expect(options.dataCollection?.cookies).toBe(false);
 	});
 
-	it("never places the feedback button on its own, and asks for no PII", async () => {
+	it("registers no feedback integration: its UI code would ship to every page (SEO audit S1)", async () => {
 		await import("../instrumentation-client");
-		const options = sentry.feedbackIntegration.mock.calls.at(-1)?.[0] as
-			| Record<string, unknown>
-			| undefined;
-		// Only the owner shell adds it (FeedbackWidget); marketing pages never do.
-		expect(options?.autoInject).toBe(false);
-		expect(options?.showEmail).toBe(false);
-		expect(options?.showName).toBe(false);
-	});
-
-	it("themes the feedback widget without naming a variable the widget defines", async () => {
-		await import("../instrumentation-client");
-		const options = sentry.feedbackIntegration.mock.calls.at(-1)?.[0] as
-			| {
-					themeLight?: Record<string, string>;
-					themeDark?: Record<string, string>;
-			  }
-			| undefined;
-		// The widget sets --foreground, --background, --border, ... from these
-		// values; `var(--foreground)` there is a cycle, and the icon's SVG fill
-		// (no inheritance to fall back on) rendered black on the dark button.
-		const widgetVars =
-			/var\(--(?:foreground|background|accent-foreground|accent-background|success-color|error-color|border|input-border|box-shadow|outline|interactive-filter)\)/;
-		for (const theme of [options?.themeLight, options?.themeDark]) {
-			expect(theme).toBeDefined();
-			for (const value of Object.values(theme ?? {})) {
-				expect(value).not.toMatch(widgetVars);
-			}
-		}
+		expect(sentry.feedbackIntegration).not.toHaveBeenCalled();
+		const options = sentry.init.mock.calls.at(-1)?.[0] as {
+			integrations?: { name: string }[];
+		};
+		expect(options.integrations?.map((i) => i.name)).not.toContain("Feedback");
 	});
 
 	it("traces App Router navigations", async () => {

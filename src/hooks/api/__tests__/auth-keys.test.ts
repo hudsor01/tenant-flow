@@ -26,8 +26,4 @@ describe("authKeys structure", () => {
 	it('authKeys.supabase.user() returns ["supabase-auth", "user"]', () => {
 		expect(authKeys.supabase.user()).toEqual(["supabase-auth", "user"]);
 	});
-
-	it('authKeys.supabase.session() returns ["supabase-auth", "session"]', () => {
-		expect(authKeys.supabase.session()).toEqual(["supabase-auth", "session"]);
-	});
 });

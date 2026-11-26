@@ -6,7 +6,6 @@ import { type SubmitEvent, useRef } from "react";
 import { toast } from "sonner";
 import { track } from "#lib/analytics/track";
 import { handleMutationError } from "#lib/mutation-error-handler";
-import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
 
 interface NewsletterSignupProps {
@@ -23,6 +22,8 @@ export function NewsletterSignup({
 
 	const mutation = useMutation({
 		mutationFn: async (email: string) => {
+			// Loaded on submit, so the page ships no supabase-js (SEO audit S1).
+			const { createClient } = await import("#lib/supabase/client");
 			const supabase = createClient();
 			const { error } = await supabase.functions.invoke(
 				"newsletter-subscribe",
