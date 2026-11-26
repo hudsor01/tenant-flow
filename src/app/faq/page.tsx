@@ -9,6 +9,7 @@ import { JsonLdScript } from "#components/seo/json-ld-script";
 import { Button } from "#components/ui/button";
 import { contactTrackAttributes } from "#lib/analytics/cta-attributes";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { faqAnchor } from "#lib/seo/faq-anchor";
 import { createFaqJsonLd } from "#lib/seo/faq-schema";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 import { faqData } from "../../data/faqs";
@@ -38,15 +39,15 @@ export default function FAQPage() {
 			/>
 			<JsonLdScript schema={createBreadcrumbJsonLd("/faq")} />
 			<HeroSection
-				title="Frequently asked"
-				titleHighlight="questions"
+				title="TenantFlow"
+				titleHighlight="FAQ"
 				subtitle="How TenantFlow handles documents, e-signing, tenant records, security, and billing. If anything is missing, talk to our team."
 				primaryCta={{
 					label: "See Pricing",
 					href: "/pricing",
 				}}
 				secondaryCta={{
-					label: "Contact Sales",
+					label: "Contact us",
 					href: "/contact",
 					trackLocation: "faq-hero",
 				}}
@@ -58,6 +59,23 @@ export default function FAQPage() {
 						<div className="py-8 text-center text-muted-foreground">
 							No FAQs available at the moment. Please check back later.
 						</div>
+					)}
+					{faqCategories.length > 0 && (
+						// Q7: a contents list of the groups.
+						<nav aria-label="FAQ topics" className="mb-12">
+							<ul className="m-0 flex flex-wrap justify-center gap-x-6 gap-y-2 pl-0 [&>li]:mb-0">
+								{faqCategories.map((category) => (
+									<li key={category.category}>
+										<a
+											href={`#${faqAnchor(category.category)}`}
+											className="text-sm text-primary-text underline underline-offset-4 hover:no-underline"
+										>
+											{category.category}
+										</a>
+									</li>
+								))}
+							</ul>
+						</nav>
 					)}
 					{faqCategories.length > 0 &&
 						faqCategories.map((category) => (
@@ -88,7 +106,7 @@ export default function FAQPage() {
 							className="px-8 focus-visible:ring-primary-foreground/80"
 						>
 							<Link href="/contact" {...contactTrackAttributes("faq-bottom")}>
-								Contact Sales
+								Contact us
 								<ArrowRight className="size-5 ml-2" />
 							</Link>
 						</Button>

@@ -318,6 +318,11 @@ const REVIEWED: Record<string, { reads: number; reason: string }> = {
 		reason:
 			"?q= is the search box's value; entity, categories and dates validated against fixed sets (rejects scrubbed); ?page= is a number",
 	},
+	"src/components/faq-accordion.tsx": {
+		reads: 1,
+		reason:
+			"location.hash is compared with each question's fixed anchor, to open the one a link points at; never shown",
+	},
 	"src/components/inspections/inspection-list.client.tsx": {
 		reads: 1,
 		reason: "?page= parsed as an integer",
