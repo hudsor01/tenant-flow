@@ -159,7 +159,7 @@ export function PricingCardStandard({
 				{/* Price — CONS-09: whitespace-nowrap keeps `$XX` + `/mo` on the
 				    same line at narrow grid columns. */}
 				<div className="mb-6">
-					<div className="flex items-baseline gap-1 whitespace-nowrap">
+					<div className="flex items-baseline justify-center gap-1 whitespace-nowrap">
 						<span className="text-3xl font-bold text-foreground">
 							{formatCurrency(currentPrice, {
 								maximumFractionDigits: 0,
@@ -181,7 +181,7 @@ export function PricingCardStandard({
 					<p className="text-xs text-muted-foreground mt-1 mb-0">
 						{billingCycle === "yearly"
 							? `Billed annually (${formatCurrency(plan.annualTotal, { maximumFractionDigits: 0, minimumFractionDigits: 0 })}/year)`
-							: "Billed monthly"}
+							: `Billed monthly, or ${formatCurrency(plan.annualTotal, { maximumFractionDigits: 0, minimumFractionDigits: 0 })}/year billed annually`}
 					</p>
 					{/* CONS-10: per-card savings — via calculateAnnualSavings
 					    (2 months free on annual). Phase 5 math: Starter $38 /
@@ -200,9 +200,9 @@ export function PricingCardStandard({
 				</div>
 
 				{/* Features */}
-				<div className="space-y-2.5 mb-6 flex-1">
+				<div className="space-y-2.5 mb-6 flex-1 text-left">
 					{plan.includesPrevious && (
-						<p className="text-sm font-medium text-foreground pb-1">
+						<p className="text-sm font-medium text-foreground pb-1 text-center">
 							{plan.includesPrevious}
 						</p>
 					)}
@@ -224,7 +224,7 @@ export function PricingCardStandard({
 					className="w-full group transition-all duration-300 border-border hover:border-primary/50 hover:bg-primary/5 hover:text-primary-text dark:border-border dark:hover:bg-primary/5 dark:hover:text-primary-text"
 					disabled={subscriptionMutation.isPending}
 					onClick={handleSubscribe}
-					{...ctaTrackAttributes("pricing-card")}
+					{...ctaTrackAttributes(`pricing-card-${plan.id}`)}
 				>
 					{subscriptionMutation.isPending ? (
 						<>

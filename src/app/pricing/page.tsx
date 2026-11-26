@@ -74,13 +74,14 @@ export default async function PricingPage() {
 			<section className="relative overflow-hidden section-spacing animate-in fade-in duration-700">
 				<div className="relative mx-auto flex max-w-7xl flex-col gap-12 px-6 text-center lg:px-8">
 					<div className="flex flex-col items-center gap-6">
+						{/* The H1 names the query (2026-11-24 SEO audit P9). */}
 						<h1 className="text-balance typography-h1 tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-							Simple, transparent pricing for{" "}
-							<span className="hero-highlight">every portfolio</span>
+							Property management software{" "}
+							<span className="hero-highlight">pricing</span>
 						</h1>
 						<p className="mx-auto mb-0 max-w-2xl text-balance text-lg text-muted-foreground">
-							Choose your plan and start your 14-day free trial. Upgrade anytime
-							as your portfolio grows.
+							Simple pricing for every portfolio. Choose your plan and start
+							your 14-day free trial. Upgrade anytime as your portfolio grows.
 						</p>
 					</div>
 					<div id="plans">

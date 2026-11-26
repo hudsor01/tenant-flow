@@ -193,7 +193,7 @@ export function PricingCardFeatured({
 						<p className="text-sm text-muted-foreground mt-1 mb-0">
 							{billingCycle === "yearly"
 								? `Billed annually (${formatCurrency(plan.annualTotal, { maximumFractionDigits: 0, minimumFractionDigits: 0 })}/year)`
-								: "Billed monthly"}
+								: `Billed monthly, or ${formatCurrency(plan.annualTotal, { maximumFractionDigits: 0, minimumFractionDigits: 0 })}/year billed annually`}
 						</p>
 						{/* CONS-10: per-card savings — via calculateAnnualSavings
 						    (2 months free on annual). Phase 5 math: Growth $98.
@@ -219,7 +219,7 @@ export function PricingCardFeatured({
 								{plan.includesPrevious}
 							</p>
 						)}
-						<div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-left">
 							{plan.features.map((feature) => (
 								<div
 									key={feature}
@@ -239,7 +239,7 @@ export function PricingCardFeatured({
 							className="w-full group relative overflow-hidden shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-300"
 							disabled={subscriptionMutation.isPending}
 							onClick={handleSubscribe}
-							{...ctaTrackAttributes("pricing-card-featured")}
+							{...ctaTrackAttributes(`pricing-card-${plan.id}`)}
 						>
 							{subscriptionMutation.isPending ? (
 								<>
