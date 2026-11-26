@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu, X } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -12,8 +13,15 @@ import { SUPABASE_AUTH_COOKIE_NAME } from "#lib/supabase/cookie-name";
 import { cn } from "#lib/utils";
 import { useNavigationStore } from "#stores/navigation-store";
 import { NavbarDesktopNav } from "./navbar/navbar-desktop-nav";
-import { NavbarMobileMenu } from "./navbar/navbar-mobile-menu";
 import { DEFAULT_NAV_ITEMS, type NavbarProps } from "./navbar/types";
+
+// The mobile menu (a Radix dialog sheet) loads after hydration rather than in
+// every page's initial JavaScript (2026-11-24 SEO audit S1). It is mounted
+// closed from the start, so opening it never waits on a download.
+const NavbarMobileMenu = dynamic(
+	() => import("./navbar/navbar-mobile-menu").then((m) => m.NavbarMobileMenu),
+	{ ssr: false },
+);
 
 export function Navbar({
 	className,

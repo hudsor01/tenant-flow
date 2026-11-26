@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { TooltipProvider } from "#components/ui/tooltip";
 import { DEFAULT_THEME_MODE, THEME_MODE_STORAGE_KEY } from "#lib/theme-utils";
 import { PreferencesStoreProvider } from "#providers/preferences-provider";
 import { ThemeProvider } from "#providers/theme-provider";
@@ -36,10 +35,11 @@ export function Providers({
 		>
 			<PreferencesStoreProvider themeMode={initialThemeMode}>
 				{/*
-				 * No QueryProvider or AuthStoreProvider here: they put supabase-js,
-				 * the persisted query cache and zod on every marketing page
-				 * (2026-11-24 SEO audit S1). Account pages mount them through
-				 * `AccountProviders` in their own layouts.
+				 * No QueryProvider, AuthStoreProvider or TooltipProvider here: they
+				 * put supabase-js, the persisted query cache, zod and Radix Tooltip
+				 * on every marketing page (2026-11-24 SEO audit S1), and only
+				 * account pages use them. `AccountProviders` mounts them in those
+				 * pages' layouts.
 				 */}
 				{/*
 				 * NuqsAdapter is intentionally NOT at the root. It calls
@@ -53,7 +53,7 @@ export function Providers({
 				 * scoped to the only subtrees that use nuqs query state:
 				 * `app/(owner)/layout.tsx` and `app/blog/layout.tsx`.
 				 */}
-				<TooltipProvider>{children}</TooltipProvider>
+				{children}
 			</PreferencesStoreProvider>
 		</ThemeProvider>
 	);
