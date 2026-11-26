@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getPricingPlan, type PlanId } from "#config/pricing";
 import { DiagnosticError } from "#lib/diagnostic-error";
 import { formatCount } from "#lib/formatters/count";
@@ -21,6 +22,8 @@ interface FeatureDetail {
 	id: string;
 	title: string;
 	paragraphs: string[];
+	/** The Help Center article for it (SEO audit HC7). */
+	guide?: { label: string; slug: string };
 }
 
 const FEATURES: FeatureDetail[] = [
@@ -31,14 +34,22 @@ const FEATURES: FeatureDetail[] = [
 			"Add each building and its units, with the rent amount and occupancy for every unit. A unit's status follows its leases, and the dashboard shows occupancy across the whole portfolio.",
 			`Starter covers up to ${planLimits("starter")}, Growth up to ${planLimits("growth")}, and Max has no limit. An account at its plan's cap sees an upgrade prompt when it adds one more.`,
 		],
+		guide: {
+			label: "Import your properties, units and tenants from a CSV file",
+			slug: "import-properties-from-csv",
+		},
 	},
 	{
 		id: "document-vault",
 		title: "Document vault",
 		paragraphs: [
 			"Upload PDFs and images, up to 10 MB each, to the Documents section of a property, lease, tenant, maintenance request or inspection. Every file, each e-signed lease included, appears in one vault list.",
-			"Search it by title and description, and filter by the kind of record a file belongs to, by category and by date. Define your own categories, then download up to 500 files as one ZIP, such as a year of receipts for your accountant.",
+			"Search it by file name, and filter by the kind of record a file belongs to, by category and by upload date. Define your own categories, then download up to 500 files as one ZIP, such as a year of receipts for your accountant.",
 		],
+		guide: {
+			label: "Upload and organize documents",
+			slug: "upload-and-organize-documents",
+		},
 	},
 	{
 		id: "tenant-records",
@@ -47,6 +58,10 @@ const FEATURES: FeatureDetail[] = [
 			"Keep each tenant's contact details, an emergency contact, their linked leases and uploaded documents, and a move-out date and reason. Tenants are records you own, not users: they never get a login.",
 			"Applicants apply through a shareable link for a unit, without an account. Set each application's status, keep private notes on it, and convert an approved applicant into a tenant record. TenantFlow runs no credit, background or eviction checks.",
 		],
+		guide: {
+			label: "Add a tenant and create a lease",
+			slug: "add-a-tenant-and-create-a-lease",
+		},
 	},
 	{
 		id: "maintenance-tracking",
@@ -63,6 +78,10 @@ const FEATURES: FeatureDetail[] = [
 			"Create a lease in a guided form with the property, unit, tenant, rent, deposit, dates and payment terms, then renew, end or terminate it. Reminders before a lease ends show in the app on every plan, and by email on Growth and Max.",
 			"On Growth and Max, send a lease for signature: the tenant signs from an emailed link with no account, you sign in the app, and the executed PDF with its signature audit certificate is filed on the lease and emailed to the tenant. Growth includes 25 signature requests a month; Max has no limit. A separate template builder assembles built-in clauses into a downloadable lease PDF.",
 		],
+		guide: {
+			label: "Send a lease for e-signature",
+			slug: "send-a-lease-for-e-signature",
+		},
 	},
 	{
 		id: "financial-reporting",
@@ -71,6 +90,10 @@ const FEATURES: FeatureDetail[] = [
 			"Each lease has its own ledger. Once you start tracking a lease, a rent charge posts every month; you add other charges and log each payment you receive. Entries are corrected by reversal, never edited, so the history stays intact.",
 			"TenantFlow builds an income statement, cash flow statement, balance sheet and year-end report from the ledger and the repair costs on your maintenance requests. Every plan exports them as CSV; Growth and Max add PDF year-end and tax-document exports.",
 		],
+		guide: {
+			label: "Track rent in a lease's ledger",
+			slug: "track-rent-in-the-ledger",
+		},
 	},
 ];
 
@@ -100,6 +123,17 @@ export function FeatureDetailsSection() {
 										{paragraph}
 									</p>
 								))}
+								{feature.guide && (
+									<p className="mb-0 text-sm">
+										<span className="text-muted-foreground">How to: </span>
+										<Link
+											href={`/help/${feature.guide.slug}`}
+											className="text-primary-text underline underline-offset-4 hover:no-underline"
+										>
+											{feature.guide.label}
+										</Link>
+									</p>
+								)}
 							</div>
 						</div>
 					))}

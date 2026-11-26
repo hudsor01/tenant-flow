@@ -298,7 +298,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 							</li>
 							<li>
 								<Link
-									href="/help"
+									href="/help/import-properties-from-csv"
 									className="text-primary-text underline underline-offset-4 hover:no-underline"
 								>
 									Getting your properties into TenantFlow

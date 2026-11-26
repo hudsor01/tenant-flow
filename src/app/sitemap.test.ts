@@ -247,6 +247,20 @@ describe("sitemap()", () => {
 		expect(urls).toContain("https://tenantflow.app/compare/rentredi");
 	});
 
+	it("lists every help article with its review date", async () => {
+		const { HELP_ARTICLES } = await import("#app/help/help-articles");
+		const { default: sitemap } = await import("./sitemap");
+		const entries = await sitemap();
+		expect(HELP_ARTICLES.length).toBeGreaterThan(0);
+		for (const article of HELP_ARTICLES) {
+			const entry = entries.find(
+				(e) => e.url === `https://tenantflow.app/help/${article.slug}`,
+			);
+			expect(entry, `/help/${article.slug} is in the sitemap`).toBeDefined();
+			expect(entry?.lastModified).toBe(article.reviewedAt);
+		}
+	});
+
 	it("Test 7: resource pages are present", async () => {
 		const { default: sitemap } = await import("./sitemap");
 		const entries = await sitemap();

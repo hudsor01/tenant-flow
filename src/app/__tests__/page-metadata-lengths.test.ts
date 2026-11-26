@@ -84,6 +84,17 @@ describe("marketing page titles and descriptions fit a search result", () => {
 		},
 	);
 
+	it("every /help article", async () => {
+		const { HELP_ARTICLES } = await import("../help/help-articles");
+		const { generateMetadata } = await import("../help/[slug]/page");
+		for (const article of HELP_ARTICLES) {
+			const metadata = await generateMetadata({
+				params: Promise.resolve({ slug: article.slug }),
+			});
+			expectFits(metadata);
+		}
+	});
+
 	it("/blog", async () => {
 		const { blogIndexMetadata } = await import("../blog/blog-index");
 		expectFits(await blogIndexMetadata(1));

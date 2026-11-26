@@ -1,4 +1,4 @@
-import type { BlogPosting } from "schema-dts";
+import type { BlogPosting, TechArticle, WithContext } from "schema-dts";
 
 import { getSiteUrl, organizationRef } from "#lib/generate-metadata";
 
@@ -54,5 +54,30 @@ export function createBlogPostingJsonLd(
 		...(image ? { image } : {}),
 		...(wordCount ? { wordCount } : {}),
 		...(timeRequired ? { timeRequired } : {}),
+	};
+}
+
+/**
+ * A help article's `TechArticle` JSON-LD (2026-11-24 SEO audit HC7): written
+ * and published by the Organization, dated by its last review.
+ */
+export function createHelpArticleJsonLd(config: {
+	title: string;
+	slug: string;
+	description: string;
+	datePublished: string;
+	dateModified: string;
+}): WithContext<TechArticle> {
+	return {
+		"@context": "https://schema.org",
+		"@type": "TechArticle",
+		headline: config.title,
+		description: config.description,
+		datePublished: config.datePublished,
+		dateModified: config.dateModified,
+		author: organizationRef(),
+		publisher: organizationRef(),
+		mainEntityOfPage: `${getSiteUrl()}/help/${config.slug}`,
+		inLanguage: "en-US",
 	};
 }

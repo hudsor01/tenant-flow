@@ -14,7 +14,7 @@ const stats = [
 	{
 		icon: Search,
 		value: "Global",
-		label: "Search by title and description",
+		label: "Search by file name",
 	},
 	{
 		icon: Download,

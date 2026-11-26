@@ -132,10 +132,12 @@ export default function AboutPage() {
 								</ItemMedia>
 								<ItemContent>
 									{/* AB2: a value a landlord can check, in place of the
-									    stack. "Download My Data" in Settings saves it. */}
+									    stack. Settings' "Download My Data" saves exactly
+									    these records (export-user-data). */}
 									<ItemTitle>Your data is yours</ItemTitle>
 									<ItemDescription className="mb-0">
-										Download your account&apos;s data as a file from Settings,
+										Download your properties, units, tenants, leases,
+										maintenance requests and expenses as a file from Settings,
 										any time.
 									</ItemDescription>
 								</ItemContent>

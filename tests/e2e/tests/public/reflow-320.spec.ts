@@ -80,6 +80,19 @@ test(`a blog post, a blog category and every comparison page fit ${REFLOW_WIDTH}
 	}
 });
 
+test(`every help article fits ${REFLOW_WIDTH}px`, async ({ page }) => {
+	test.setTimeout(120_000);
+	await page.goto("/help");
+	const articleLinks = page.locator("main a[href^='/help/']");
+	await expect
+		.poll(() => articleLinks.count(), { timeout: 15_000 })
+		.toBeGreaterThan(0);
+	const articles = await articleLinks.evaluateAll((links) => [
+		...new Set(links.map((a) => a.getAttribute("href") ?? "")),
+	]);
+	for (const path of articles) await expectReflowStates(page, path);
+});
+
 let fixtures: ApplyTokenFixtures = {
 	active: null,
 	dead: null,

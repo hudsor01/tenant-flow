@@ -4,7 +4,6 @@ import { PageLayout } from "#components/layout/page-layout";
 import { HeroSection } from "#components/sections/hero-section";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { Button } from "#components/ui/button";
-import { CardLayout } from "#components/ui/card-layout";
 import {
 	Item,
 	ItemActions,
@@ -22,12 +21,12 @@ import {
 } from "#lib/analytics/cta-attributes";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
-import { cn } from "#lib/utils";
+import { HELP_ARTICLES } from "./help-articles";
 
 export const metadata = createPageMetadata({
 	title: "TenantFlow Help Center | Setup & Support",
 	description:
-		"Get help with TenantFlow: email support on every plan, priority support on Growth and Max, and answers to common questions from landlords.",
+		"How-to guides for TenantFlow: import properties, create and e-sign leases, track rent, organize documents. Email support on every plan.",
 	path: "/help",
 	ogCard: "help",
 });
@@ -40,7 +39,7 @@ export default function HelpPage() {
 			<HeroSection
 				title="TenantFlow"
 				titleHighlight="Help Center"
-				subtitle="We're here when you need us: email support on every plan, with priority support on Growth and Max."
+				subtitle="Step-by-step guides below, and email support on every plan, with priority support on Growth and Max."
 				primaryCta={{
 					label: "See Pricing",
 					href: "/pricing",
@@ -52,6 +51,44 @@ export default function HelpPage() {
 				}}
 				trustSignals="Email support on every plan • Priority support on Growth and Max"
 			/>
+
+			{/* How-to guides (2026-11-24 SEO audit HC1): each card's link is its
+			    heading, with an ::after overlay (HC8). */}
+			<section className="section-spacing">
+				<div className="max-w-5xl mx-auto px-6 lg:px-8">
+					<div className="text-center mb-16">
+						<h2 className="typography-h1 mb-4">How-to guides</h2>
+						<p className="text-xl text-muted-foreground">
+							Step-by-step help for the things landlords do most in TenantFlow
+						</p>
+					</div>
+
+					<ul className="m-0 grid grid-cols-1 gap-6 pl-0 md:grid-cols-2 [&>li]:mb-0">
+						{HELP_ARTICLES.map((article) => (
+							<li
+								key={article.slug}
+								className="group relative flex flex-col rounded-xl border border-border/50 bg-card p-6 shadow-sm transition-all hover:border-primary/40 hover:shadow-md has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-ring"
+							>
+								<h3 className="mb-2 text-lg font-semibold text-foreground">
+									<Link
+										href={`/help/${article.slug}`}
+										{...clickTrackAttributes({
+											name: "resource_open",
+											props: { resource: article.slug, from: "help" },
+										})}
+										className="text-foreground after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none group-hover:text-primary-text"
+									>
+										{article.title}
+									</Link>
+								</h3>
+								<p className="mb-0 text-sm text-muted-foreground">
+									{article.summary}
+								</p>
+							</li>
+						))}
+					</ul>
+				</div>
+			</section>
 
 			{/* Support Options */}
 			<section className="section-spacing">
@@ -154,79 +191,6 @@ export default function HelpPage() {
 							</ItemActions>
 						</Item>
 					</ItemGroup>
-				</div>
-			</section>
-
-			{/* Popular Resources */}
-			<section className="section-spacing">
-				<div className="max-w-4xl mx-auto px-6 lg:px-8">
-					<div className="text-center mb-16">
-						<h2 className="typography-h1 mb-4">Popular resources</h2>
-						<p className="text-xl text-muted-foreground">
-							Quick access to the most requested help topics
-						</p>
-					</div>
-
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-						{[
-							{
-								title: "Set up the document vault",
-								description:
-									"Per-entity uploads, custom categories, search, filters, and tax-season zip exports — see everything the vault does",
-								badge: "Most Popular",
-								badgeColor: "bg-primary/10 text-primary-text",
-								href: "/features",
-							},
-							{
-								title: "Send a lease for e-signature",
-								description:
-									"How lease e-sign integrates with your workflow on the Growth and Max plans, plus monthly volume limits",
-								badge: "Lease Workflow",
-								badgeColor: "bg-success/10 text-success-text",
-								href: "/features",
-							},
-							{
-								title: "Run reports for tax season",
-								description:
-									"Generate CPA-ready financial reports and bulk-download every receipt and tax document by entity",
-								badge: "Tax Time",
-								badgeColor: "bg-primary/10 text-primary-text",
-								href: "/features",
-							},
-							{
-								title: "Manage billing and your account",
-								description:
-									"Switch plans, update payment methods, and export account data",
-								badge: "Account",
-								badgeColor: "bg-success/10 text-success-text",
-								href: "/faq",
-							},
-						].map((resource) => (
-							<Link
-								key={resource.title}
-								href={resource.href}
-								className="group block h-full"
-							>
-								<CardLayout
-									title={resource.title}
-									description={resource.description}
-									className="h-full bg-card border border-border/50 shadow-md transition-all group-hover:border-primary/40 group-hover:shadow-lg"
-								>
-									<div className="flex items-center justify-between">
-										<span
-											className={cn(
-												"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
-												resource.badgeColor,
-											)}
-										>
-											{resource.badge}
-										</span>
-										<ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
-									</div>
-								</CardLayout>
-							</Link>
-						))}
-					</div>
 				</div>
 			</section>
 
