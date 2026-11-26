@@ -62,7 +62,7 @@ export function ContactFormFields({
 							onChange={(e: ChangeEvent<HTMLInputElement>) =>
 								onInputChange("name", e.target.value)
 							}
-							placeholder="John Smith"
+							placeholder="Jane Doe"
 							required
 							className={errors.name ? "border-destructive" : ""}
 						/>
@@ -85,7 +85,7 @@ export function ContactFormFields({
 							onChange={(e: ChangeEvent<HTMLInputElement>) =>
 								onInputChange("email", e.target.value)
 							}
-							placeholder="john@propertyco.com"
+							placeholder="jane@example.com"
 							required
 							className={errors.email ? "border-destructive" : ""}
 						/>
@@ -96,7 +96,7 @@ export function ContactFormFields({
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<Field>
-					<FieldLabel htmlFor="company">Company Name</FieldLabel>
+					<FieldLabel htmlFor="company">Business name (optional)</FieldLabel>
 					<Input
 						id="company"
 						name="organization"
@@ -107,7 +107,7 @@ export function ContactFormFields({
 						onChange={(e: ChangeEvent<HTMLInputElement>) =>
 							onInputChange("company", e.target.value)
 						}
-						placeholder="Property Management Co"
+						placeholder="Doe Rentals LLC"
 						className={errors.company ? "border-destructive" : ""}
 					/>
 					{errors.company && <FieldError>{errors.company}</FieldError>}
@@ -208,7 +208,7 @@ export function ContactFormFields({
 					placeholder={
 						asksForTime
 							? "A few days and times that work for you, with your time zone, and anything you'd like to cover..."
-							: "Tell us about your property portfolio, current challenges, or any specific questions you have about TenantFlow..."
+							: "How many rentals you have, what you use today, and what you'd like to know about TenantFlow..."
 					}
 					required
 					rows={5}

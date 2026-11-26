@@ -1,15 +1,11 @@
 import {
 	ArrowRight,
 	CalendarClock,
+	Download,
 	FileSignature,
 	FolderLock,
-	Handshake,
-	Lightbulb,
 	Lock,
-	Rocket,
 	ShieldCheck,
-	Sprout,
-	Target,
 	Zap,
 } from "lucide-react";
 import type { Metadata } from "next";
@@ -88,7 +84,7 @@ export default function AboutPage() {
 					trackLocation: "about-hero",
 				}}
 				secondaryCta={{
-					label: "Contact Sales",
+					label: "Contact us",
 					href: "/contact",
 					trackLocation: "about-hero",
 				}}
@@ -98,33 +94,19 @@ export default function AboutPage() {
 			<section className="section-spacing">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.2}>
-						<div className="grid grid-cols-1 xl:grid-cols-2 gap-16 items-center">
-							<div className="space-y-6">
-								<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground">
-									Our Mission
-								</h2>
-								<div className="space-y-4">
-									<p className="text-xl text-muted-foreground leading-relaxed">
-										To empower landlords with the tools they need to grow their
-										business, reduce operational overhead, and stay organized
-										across their entire portfolio.
-									</p>
-									<p className="mb-0 text-base text-muted-foreground leading-relaxed">
-										We believe property management should be streamlined,
-										data-driven, and give landlords a reliable system of record
-										for every property they own.
-									</p>
-								</div>
-							</div>
-							<div className="bg-card rounded-2xl p-8 text-center border border-border/50 shadow-md">
-								<Target className="size-20 mx-auto mb-6 text-primary" />
-								<h3 className="typography-h3 text-foreground">
-									Mission-Driven Development
-								</h3>
-								<p className="text-muted-foreground mt-3 mb-0">
-									Every feature built with landlords in mind
-								</p>
-							</div>
+						{/* The position, not a generic mission (2026-11-24 SEO audit
+						    AB3); the filler "Mission-Driven Development" card is gone
+						    (AB7). */}
+						<div className="mx-auto max-w-3xl space-y-6 text-center">
+							<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground">
+								Our Mission
+							</h2>
+							<p className="mb-0 text-xl text-muted-foreground leading-relaxed">
+								TenantFlow exists for landlords who manage their own rentals and
+								don&apos;t want a tenant portal or a payment processor in the
+								middle. It keeps every property, lease, maintenance request and
+								document in one place you control.
+							</p>
 						</div>
 					</BlurFade>
 				</div>
@@ -139,36 +121,22 @@ export default function AboutPage() {
 								Our Values
 							</h2>
 							<p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-								These principles guide everything we do, from product
-								development to customer support.
+								What the product holds to, in what it does.
 							</p>
 						</div>
 
 						<ItemGroup>
 							<Item variant="outline">
 								<ItemMedia variant="icon">
-									<Rocket />
+									<Download />
 								</ItemMedia>
 								<ItemContent>
-									<ItemTitle>Built on a modern stack</ItemTitle>
+									{/* AB2: a value a landlord can check, in place of the
+									    stack. "Download My Data" in Settings saves it. */}
+									<ItemTitle>Your data is yours</ItemTitle>
 									<ItemDescription className="mb-0">
-										TenantFlow runs on modern, well-documented infrastructure
-										and stays current with security and platform updates.
-									</ItemDescription>
-								</ItemContent>
-							</Item>
-
-							<ItemSeparator />
-
-							<Item variant="outline">
-								<ItemMedia variant="icon">
-									<Handshake />
-								</ItemMedia>
-								<ItemContent>
-									<ItemTitle>Customer Success</ItemTitle>
-									<ItemDescription className="mb-0">
-										Your success is our success. We are committed to helping you
-										achieve your goals.
+										Download your account&apos;s data as a file from Settings,
+										any time.
 									</ItemDescription>
 								</ItemContent>
 							</Item>
@@ -203,36 +171,6 @@ export default function AboutPage() {
 									</ItemDescription>
 								</ItemContent>
 							</Item>
-
-							<ItemSeparator />
-
-							<Item variant="outline">
-								<ItemMedia variant="icon">
-									<Sprout />
-								</ItemMedia>
-								<ItemContent>
-									<ItemTitle>Sustainable Growth</ItemTitle>
-									<ItemDescription className="mb-0">
-										We build for the long term, creating lasting value for our
-										customers and community.
-									</ItemDescription>
-								</ItemContent>
-							</Item>
-
-							<ItemSeparator />
-
-							<Item variant="outline">
-								<ItemMedia variant="icon">
-									<Lightbulb />
-								</ItemMedia>
-								<ItemContent>
-									<ItemTitle>Continuous Learning</ItemTitle>
-									<ItemDescription className="mb-0">
-										We listen, learn, and adapt to meet the evolving needs of
-										landlords.
-									</ItemDescription>
-								</ItemContent>
-							</Item>
 						</ItemGroup>
 					</BlurFade>
 				</div>
@@ -247,8 +185,8 @@ export default function AboutPage() {
 								What ships in the box
 							</h2>
 							<p className="text-xl text-muted-foreground leading-relaxed">
-								Every plan starts with the document vault and lease e-sign on
-								Growth and Max.
+								Every plan includes the document vault. Growth and Max add lease
+								e-sign.
 							</p>
 						</div>
 
@@ -304,7 +242,7 @@ export default function AboutPage() {
 										href="/contact"
 										{...contactTrackAttributes("about-bottom")}
 									>
-										Contact Sales
+										Contact us
 									</Link>
 								</Button>
 							</div>

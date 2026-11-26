@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Mail } from "lucide-react";
+import Link from "next/link";
 import type { SubmitEvent } from "react";
 import { useEffect, useState } from "react";
 import { Button } from "#components/ui/button";
@@ -256,8 +257,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 						Let&apos;s talk about your properties
 					</h1>
 					<p className="mt-4 text-muted-foreground text-lg">
-						Whether you manage 5 or 500 units, we&apos;re here to help
-						streamline your operations and save you time every day.
+						Whether you own one rental or forty, we&apos;ll help you get set up.
 					</p>
 
 					<div className="mt-8 space-y-6">
@@ -267,12 +267,52 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 							</div>
 							<div className="ml-3">
 								<p className="text-foreground font-semibold">Email Us</p>
-								<p className="text-muted-foreground">support@tenantflow.app</p>
+								<p className="text-muted-foreground">
+									<a
+										href="mailto:support@tenantflow.app"
+										className="text-primary-text underline underline-offset-4 hover:no-underline"
+									>
+										support@tenantflow.app
+									</a>
+								</p>
 								<p className="mb-0 text-muted-foreground text-sm">
 									US business hours, Monday through Friday
 								</p>
 							</div>
 						</div>
+					</div>
+
+					{/* Answers people often email for (2026-11-24 SEO audit CT6). */}
+					<div className="mt-8 border-t border-border/40 pt-6">
+						<h2 className="mb-3 text-base font-semibold text-foreground">
+							Quick answers
+						</h2>
+						<ul className="m-0 flex flex-col gap-2 pl-0 text-sm [&>li]:mb-0">
+							<li>
+								<Link
+									href="/pricing#pricing-faq"
+									className="text-primary-text underline underline-offset-4 hover:no-underline"
+								>
+									Billing and plan questions
+								</Link>
+							</li>
+							<li>
+								<Link
+									href="/help"
+									className="text-primary-text underline underline-offset-4 hover:no-underline"
+								>
+									Getting your properties into TenantFlow
+								</Link>
+							</li>
+							<li>
+								<Link
+									href="/security-policy"
+									className="text-primary-text underline underline-offset-4 hover:no-underline"
+								>
+									How your data is protected
+								</Link>
+							</li>
+						</ul>
 					</div>
 				</div>
 			</div>

@@ -33,13 +33,25 @@ import { render } from "#test/utils/test-render";
 const BANDS: Array<{ page: string; render: () => ReactElement; cta: string }> =
 	[
 		{ page: "/faq", render: () => <FaqPage />, cta: "View Pricing" },
-		{ page: "/help", render: () => <HelpPage />, cta: "Talk to an Expert" },
+		{ page: "/help", render: () => <HelpPage />, cta: "Contact us" },
 	];
+
+/**
+ * The band's own CTA: the hero can carry a link with the same name ("Contact
+ * us" on /help), so the one inside the primary band is the one checked.
+ */
+function bandCta(name: string): HTMLElement {
+	const link = screen
+		.getAllByRole("link", { name })
+		.find((candidate) => candidate.closest("section.bg-primary"));
+	if (!link) throw new Error(`no "${name}" link in a bg-primary band`);
+	return link;
+}
 
 describe.each(BANDS)("$page closing CTA band", ({ render: page, cta }) => {
 	it("draws the outline CTA transparent on the primary band in both themes", () => {
 		render(page());
-		const link = screen.getByRole("link", { name: cta });
+		const link = bandCta(cta);
 		const classes = link.className.split(/\s+/);
 		expect(link.closest("section")).toHaveClass("bg-primary");
 		expect(classes).toEqual(
@@ -67,7 +79,7 @@ describe.each(BANDS)("$page closing CTA band", ({ render: page, cta }) => {
 
 	it("draws every CTA's focus ring in primary-foreground on the band", () => {
 		render(page());
-		const section = screen.getByRole("link", { name: cta }).closest("section");
+		const section = bandCta(cta).closest("section");
 		const links = [...(section?.querySelectorAll("a") ?? [])];
 		expect(links).toHaveLength(2);
 		for (const link of links) {
@@ -75,16 +87,14 @@ describe.each(BANDS)("$page closing CTA band", ({ render: page, cta }) => {
 			expect(classes).toContain("focus-visible:ring-primary-foreground/80");
 			expect(classes).not.toContain("focus-visible:ring-ring/50");
 		}
-		const outline = screen
-			.getByRole("link", { name: cta })
-			.className.split(/\s+/);
+		const outline = bandCta(cta).className.split(/\s+/);
 		expect(outline).toContain("focus-visible:border-primary-foreground");
 		expect(outline).not.toContain("focus-visible:border-ring");
 	});
 
 	it("sets the band paragraph in the full primary-foreground token", () => {
 		render(page());
-		const section = screen.getByRole("link", { name: cta }).closest("section");
+		const section = bandCta(cta).closest("section");
 		const paragraph = section?.querySelector("p");
 		expect(paragraph).toHaveClass("text-primary-foreground");
 		expect(paragraph).not.toHaveClass("text-primary-foreground/90");

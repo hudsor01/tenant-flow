@@ -27,7 +27,7 @@ import { cn } from "#lib/utils";
 export const metadata = createPageMetadata({
 	title: "TenantFlow Help Center | Setup & Support",
 	description:
-		"Get help with TenantFlow property management software. Browse setup guides, feature tutorials, and support resources for landlords.",
+		"Get help with TenantFlow: email support on every plan, priority support on Growth and Max, and answers to common questions from landlords.",
 	path: "/help",
 	ogCard: "help",
 });
@@ -38,15 +38,15 @@ export default function HelpPage() {
 			<JsonLdScript schema={createBreadcrumbJsonLd("/help")} />
 			{/* Hero Section */}
 			<HeroSection
-				title="We're here to help"
-				titleHighlight="when you need us"
-				subtitle="Email support on every plan, with priority support on Growth and Max. Browse the help center below for setup, billing, document vault, and lease e-sign questions."
+				title="TenantFlow"
+				titleHighlight="Help Center"
+				subtitle="We're here when you need us: email support on every plan, with priority support on Growth and Max."
 				primaryCta={{
 					label: "See Pricing",
 					href: "/pricing",
 				}}
 				secondaryCta={{
-					label: "Contact Sales",
+					label: "Contact us",
 					href: "/contact",
 					trackLocation: "help-hero",
 				}}
@@ -132,14 +132,13 @@ export default function HelpPage() {
 								<MessageCircle />
 							</ItemMedia>
 							<ItemContent>
-								<ItemTitle>Contact Sales</ItemTitle>
+								<ItemTitle>Questions before you buy</ItemTitle>
 								<ItemDescription className="mb-0">
-									Pre-purchase questions or migration help
+									Which plan fits, or help moving your records in
 								</ItemDescription>
 								<div className="mt-2">
 									<p className="mb-0 text-muted-foreground">
-										Walk through your portfolio with our team and pick the right
-										plan
+										Tell us about your portfolio and we&apos;ll recommend a plan
 									</p>
 								</div>
 							</ItemContent>
@@ -149,7 +148,7 @@ export default function HelpPage() {
 										href="/contact"
 										{...contactTrackAttributes("help-sales")}
 									>
-										Contact Sales
+										Contact us
 									</Link>
 								</Button>
 							</ItemActions>
@@ -239,7 +238,7 @@ export default function HelpPage() {
 					</h2>
 					<p className="text-xl text-primary-foreground mb-8">
 						Replace spreadsheets, Dropbox, and email with a single landlord-only
-						platform. Our team is here to help you migrate and get going.
+						platform. We&apos;ll help you check your CSV import.
 					</p>
 					<div className="flex flex-col sm:flex-row gap-4 justify-center">
 						<Button
@@ -260,7 +259,7 @@ export default function HelpPage() {
 							asChild
 						>
 							<Link href="/contact" {...contactTrackAttributes("help-bottom")}>
-								Talk to an Expert
+								Contact us
 							</Link>
 						</Button>
 					</div>

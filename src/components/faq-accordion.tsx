@@ -1,8 +1,9 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { track } from "#lib/analytics/track";
+import { faqAnchor } from "#lib/seo/faq-anchor";
 import { cn } from "#lib/utils";
 
 interface FaqItem {
@@ -30,6 +31,14 @@ export function FaqsAccordion({
 }: FaqsAccordionProps) {
 	const [openIndex, setOpenIndex] = useState<number | null>(defaultOpenIndex);
 
+	// A link to one question (/faq#its-anchor) opens it.
+	useEffect(() => {
+		const index = faqs.findIndex(
+			(faq) => `#${faqAnchor(faq.question)}` === window.location.hash,
+		);
+		if (index >= 0) setOpenIndex(index);
+	}, [faqs]);
+
 	const toggleAccordion = (index: number) => {
 		const opening = openIndex !== index;
 		setOpenIndex(opening ? index : null);
@@ -49,7 +58,12 @@ export function FaqsAccordion({
 			{(title || description || category) && (
 				<div className="text-center mb-12">
 					{category && (
-						<h2 className="typography-h2 mb-8 text-foreground">{category}</h2>
+						<h2
+							id={faqAnchor(category)}
+							className="scroll-mt-24 typography-h2 mb-8 text-foreground"
+						>
+							{category}
+						</h2>
 					)}
 					{title && !category && (
 						<h2 className="text-foreground mb-4 typography-h2 lg:text-4xl">
@@ -94,7 +108,10 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 	const panelId = useId();
 
 	return (
-		<div className="overflow-hidden rounded-lg border border-border bg-card">
+		<div
+			id={faqAnchor(faq.question)}
+			className="scroll-mt-24 overflow-hidden rounded-lg border border-border bg-card"
+		>
 			<button
 				onClick={onToggle}
 				aria-expanded={isOpen}

@@ -111,7 +111,10 @@ export function PricingStatsGrid() {
 
 export function PricingFaqSection() {
 	return (
-		<section className="section-spacing animate-in fade-in duration-700 delay-300">
+		<section
+			id="pricing-faq"
+			className="scroll-mt-24 section-spacing animate-in fade-in duration-700 delay-300"
+		>
 			<div className="mx-auto max-w-6xl px-6 lg:px-8">
 				<div className="rounded-3xl border border-border/60 bg-card/60 p-10 shadow-sm backdrop-blur sm:p-14">
 					<div className="mx-auto mb-14 max-w-3xl text-center">
