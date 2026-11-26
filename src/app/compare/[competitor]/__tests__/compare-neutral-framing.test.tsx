@@ -41,6 +41,14 @@ function makeData(features: CompetitorData["features"]): CompetitorData {
 		tenantflowPricing: [],
 		competitorPricing: [],
 		features,
+		summary: {
+			startingPrice: "",
+			minimum: "",
+			tenantAccess: "",
+			rentPayments: "",
+			leaseESign: "",
+			documents: "",
+		},
 		whySwitch: [],
 		competitorStrengths: [],
 	};
