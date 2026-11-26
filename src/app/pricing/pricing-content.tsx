@@ -138,8 +138,7 @@ export function PricingFaqSection() {
 								Still unsure which plan fits best?
 							</p>
 							<p className="mb-0 text-sm text-muted-foreground sm:text-base">
-								Our team can walk through your portfolio and recommend the right
-								setup.
+								Tell us about your portfolio and we&apos;ll recommend a plan.
 							</p>
 						</div>
 						<div className="flex flex-col items-center gap-3 sm:flex-row">
@@ -151,8 +150,9 @@ export function PricingFaqSection() {
 								<ArrowRight className="size-3.5" aria-hidden="true" />
 							</Link>
 							<Button size="lg" className="px-7" asChild>
+								{/* No sales team (SEO audit P10): support answers by email. */}
 								<Link href="/contact">
-									Contact Sales
+									Ask which plan fits
 									<ArrowRight className="ml-2 h-4 w-4" />
 								</Link>
 							</Button>
@@ -186,7 +186,7 @@ export function PricingCtaSection() {
 								</Link>
 							</Button>
 							<Button size="lg" variant="outline" className="px-8" asChild>
-								<Link href="/contact">Contact Sales</Link>
+								<Link href="/contact">Ask which plan fits</Link>
 							</Button>
 						</div>
 					</div>
@@ -201,7 +201,7 @@ export function PricingCtaSection() {
 								desc: "Switch plans whenever you want. Monthly and annual billing are available on every tier.",
 							},
 							{
-								title: "Guided onboarding",
+								title: "Import what you have",
 								desc: "CSV import covers properties, units, tenants, and leases. Existing PDFs and receipts upload directly into the document vault.",
 							},
 						].map((item) => (
