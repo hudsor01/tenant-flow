@@ -151,6 +151,11 @@ export const REFLOW_UNLISTED_PAGES: Readonly<Record<string, UnlistedPage>> = {
 		measuredBy: "public/reflow-320.spec.ts",
 		marker: "main a[href^='/compare/']",
 	},
+	// Every help article the Help Center lists.
+	"/help/[slug]": {
+		measuredBy: "public/reflow-320.spec.ts",
+		marker: "main a[href^='/help/']",
+	},
 	// Page 2 and up of a listing render the same view as page 1 (BlogIndex,
 	// CategoryIndex), which the specs above measure; they exist only once a
 	// listing holds more than 9 posts.

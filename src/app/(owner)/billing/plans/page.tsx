@@ -282,7 +282,7 @@ export default function BillingPlansPage() {
 						href="/contact"
 						className="text-primary-text hover:underline underline-offset-4"
 					>
-						Contact our sales team
+						Contact us
 					</Link>
 				</p>
 				<p className="text-xs text-muted-foreground mt-2 mb-0">

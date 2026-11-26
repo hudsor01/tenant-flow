@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { HELP_ARTICLES } from "#app/help/help-articles";
 import { env } from "#env";
 import { blogAnonClient } from "#lib/blog/blog-queries";
 import { createLogger } from "#lib/frontend-logger";
@@ -104,6 +105,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		lastModified: STATIC_PAGES_LAST_UPDATED,
 		priority: 0.7,
 	}));
+
+	// Help articles carry their own review date (help-articles.ts).
+	const helpArticlePages: MetadataRoute.Sitemap = HELP_ARTICLES.map(
+		(article) => ({
+			url: `${baseUrl}/help/${article.slug}`,
+			lastModified: article.reviewedAt,
+			priority: 0.6,
+		}),
+	);
 
 	const companyPages: MetadataRoute.Sitemap = [
 		{
@@ -278,6 +288,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		...comparePages,
 		...resourcePages,
 		...companyPages,
+		...helpArticlePages,
 		...legalPages,
 		...blogPages,
 		...blogCategoryPages,

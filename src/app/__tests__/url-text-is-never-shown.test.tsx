@@ -298,6 +298,11 @@ const REVIEWED: Record<string, { reads: number; reason: string }> = {
 		reads: 1,
 		reason: "token looked up and posted back, never rendered",
 	},
+	"src/app/help/[slug]/page.tsx": {
+		reads: 2,
+		reason:
+			"the slug looks up a fixed article in help-articles.ts (metadata and page); an unknown slug 404s, and the slug is never shown",
+	},
 	"src/components/analytics/utm-capture.tsx": {
 		reads: 1,
 		reason:

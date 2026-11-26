@@ -249,6 +249,11 @@ const REVIEWED: { file: string; classString: string; reason: string }[] = [
 			"four columns need the lg viewport AND a 38.5rem card (the overview places it in a narrow column, where four overflowed); the step below it is the card's own",
 	},
 	{
+		file: "src/app/help/page.tsx",
+		classString: "m-0 grid grid-cols-1 gap-6 pl-0 md:grid-cols-2 [&>li]:mb-0",
+		reason: "the list of help-article cards (text items), not a stat row",
+	},
+	{
 		file: "src/app/compare/[competitor]/page.tsx",
 		classString:
 			"grid grid-cols-1 gap-3 pl-0 mt-0 mb-0 [&>li]:mb-0 sm:grid-cols-2",
