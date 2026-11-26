@@ -6,7 +6,11 @@ import {
 import { DiagnosticError } from "#lib/diagnostic-error";
 import { formatCount } from "#lib/formatters/count";
 import { formatPrice } from "#lib/utils/currency";
-import type { CompetitorData, PricingTier } from "#types/sections/compare";
+import type {
+	CompareSummary,
+	CompetitorData,
+	PricingTier,
+} from "#types/sections/compare";
 
 // Competitor prices, ratings and figures are read by hand from each vendor's
 // own pricing page and from their Capterra and G2 listings, then dated in
@@ -39,6 +43,16 @@ const TENANTFLOW_PRICING: PricingTier[] = [STARTER, GROWTH, MAX].map(
 		note: limitsNote(config),
 	}),
 );
+
+/** TenantFlow's row in the `/compare` hub's summary table. */
+export const TENANTFLOW_SUMMARY: CompareSummary = {
+	startingPrice: formatPrice(STARTER.price.monthly, { interval: "month" }),
+	minimum: "None",
+	tenantAccess: "None: tenants are records, not users",
+	rentPayments: "Not processed: log payments in the rent ledger",
+	leaseESign: "Included: 25 a month on Growth, unlimited on Max",
+	documents: "Per-entity vault with search, every plan",
+};
 
 /** "$1,800" for 1836: the yearly difference, rounded down to the hundred. */
 function savedPerYear(theirMonthly: number, ourMonthly: number): string {
@@ -104,6 +118,16 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				tenantflowNote: "Lease e-sign (Growth+)",
 				competitor: "yes",
 			},
+			{
+				// Buildium's per-use fees (2026-11-24 SEO audit B6), read on
+				// buildium.com/pricing with the plan prices.
+				name: "Lease E-Signature",
+				tenantflow: "yes",
+				tenantflowNote: "Included: 25 a month on Growth, unlimited on Max",
+				competitor: "addon",
+				competitorNote:
+					"$5 per document on Essential, $1 on Growth, included on Premium",
+			},
 			{ name: "Tenant Records", tenantflow: "yes", competitor: "yes" },
 			{
 				name: "Financial Reporting",
@@ -123,7 +147,8 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				tenantflow: "na",
 				tenantflowNote: NO_RENT_PROCESSING,
 				competitor: "addon",
-				competitorNote: "Payments add-on",
+				competitorNote:
+					"Incoming EFT $2.35 per transaction on Essential, $1.35 on Growth",
 			},
 			{
 				name: "HOA Management",
@@ -136,9 +161,20 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				name: "Transparent Pricing",
 				tenantflow: "yes",
 				competitor: "partial",
-				competitorNote: "Add-on costs",
+				competitorNote:
+					"Per-use fees, such as $99 per bank account setup on Essential",
 			},
 		],
+		summary: {
+			startingPrice: `${formatPrice(BUILDIUM.essential, { interval: "month" })} (Essential)`,
+			minimum: "None stated",
+			tenantAccess: "Resident portal",
+			rentPayments:
+				"Incoming EFT $2.35 a payment on Essential, $1.35 on Growth",
+			leaseESign:
+				"$5 a document on Essential, $1 on Growth, included on Premium",
+			documents: "Basic file storage",
+		},
 		whySwitch: [
 			`Save over ${savedPerYear(BUILDIUM.growth, GROWTH.price.monthly)}/year compared to Buildium Growth (${formatPrice(GROWTH.price.monthly, { interval: "month" })} vs ${formatPrice(BUILDIUM.growth, { interval: "month" })})`,
 			"Landlord-only: tenants are records, never users, so there's no resident portal to run",
@@ -156,7 +192,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 	appfolio: {
 		name: "AppFolio",
 		slug: "appfolio",
-		tagline: "The AppFolio Alternative for Landlords",
+		tagline: "An AppFolio alternative with no unit minimum",
 		description: `AppFolio starts at $1.49 per unit per month, with a 50-unit minimum and a minimum spend. TenantFlow starts at ${formatPrice(STARTER.price.monthly)}/month with no unit minimum.`,
 		metaDescription: `AppFolio needs 50+ units and a minimum spend. TenantFlow has no unit minimum and starts at ${formatPrice(STARTER.price.monthly, { interval: "month" })}, with a 14-day free trial.`,
 		heroSubtitle: `AppFolio starts at $1.49 per unit per month, with a 50-unit minimum and a minimum spend. TenantFlow has no unit minimum and starts at ${formatPrice(STARTER.price.monthly)}/month.`,
@@ -260,6 +296,14 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				competitorNote: "Demo only",
 			},
 		],
+		summary: {
+			startingPrice: "$1.49/unit/mo (Core)",
+			minimum: "50 units and a minimum spend",
+			tenantAccess: "Resident portal",
+			rentPayments: "Payments add-on",
+			leaseESign: "Not itemized on its pricing page",
+			documents: "Basic file storage",
+		},
 		whySwitch: [
 			`No unit minimum: start with 1 unit and grow to ${GROWTH.limits.units} on the Growth plan`,
 			`AppFolio isn't available below 50 units. TenantFlow Growth covers up to ${formatCount(GROWTH.limits.properties, "property", "properties")} and ${formatCount(GROWTH.limits.units, "unit")} for ${formatPrice(GROWTH.price.monthly)}/month`,
@@ -377,6 +421,14 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				competitorNote: "Charged at signup; 30-day refund window",
 			},
 		],
+		summary: {
+			startingPrice: "$12/mo billed annually",
+			minimum: "None: unlimited units",
+			tenantAccess: "Tenant app (iOS and Android)",
+			rentPayments: "ACH, card and cash",
+			leaseESign: "Unlimited, every plan",
+			documents: "Leases and receipts",
+		},
 		whySwitch: [
 			"Per-entity document vault with global search across leases, receipts, and inspections",
 			"Visual kanban maintenance board",

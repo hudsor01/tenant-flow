@@ -18,6 +18,20 @@ export interface PricingTier {
 	note?: string;
 }
 
+/**
+ * One product's row in the `/compare` hub's summary table (2026-11-24 SEO
+ * audit C6). A competitor's cells state only what its own pricing page said
+ * on `checkedAt`.
+ */
+export interface CompareSummary {
+	startingPrice: string;
+	minimum: string;
+	tenantAccess: string;
+	rentPayments: string;
+	leaseESign: string;
+	documents: string;
+}
+
 export interface CompetitorData {
 	name: string;
 	slug: string;
@@ -46,6 +60,7 @@ export interface CompetitorData {
 	tenantflowPricing: PricingTier[];
 	competitorPricing: PricingTier[];
 	features: FeatureRow[];
+	summary: CompareSummary;
 	whySwitch: string[];
 	competitorStrengths: string[];
 }

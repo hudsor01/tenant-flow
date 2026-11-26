@@ -79,6 +79,12 @@ const REVIEWED: readonly Reviewed[] = [
 		reason: "the card body, rendered inside the card's button or Link",
 	},
 	{
+		file: "src/app/compare/page.tsx",
+		tag: "article",
+		reason:
+			"a compare card: its heading link's ::after covers the card, so the whole card is the link",
+	},
+	{
 		file: "src/components/ui/bento-grid.tsx",
 		tag: "div",
 		reason: "the card's hover reveals its link (as focus-within does)",
