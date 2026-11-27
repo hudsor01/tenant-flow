@@ -46,7 +46,7 @@ interface ClaimedReminder {
 	id: string;
 	lease_id: string;
 	reminder_type: string;
-	/** The lease end date the reminder was queued for (migration 20261127152501). */
+	/** The lease end date the reminder was queued for (migration 20261127152624). */
 	lease_end_date: string;
 	attempt_count: number;
 }
