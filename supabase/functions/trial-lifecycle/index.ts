@@ -164,6 +164,13 @@ export function renderEmail(
 		...copy.paragraphs.map((p) => emailText(escapeHtml(p))),
 		emailButton(ctaUrl, copy.ctaLabel),
 		...(copy.note ? [emailNote(escapeHtml(copy.note))] : []),
+		...(copy.guide
+			? [
+					emailText(
+						`${escapeHtml(copy.guide.lead)} <a href="${escapeHtml(`${appUrl}${campaignPath(copy.guide.path, kind)}`)}" style="color:inherit;text-decoration:underline;">${escapeHtml(copy.guide.label)}</a>.`,
+					),
+				]
+			: []),
 		emailLinkFallback(ctaUrl),
 		emailNote(
 			`You get this email because you started a TenantFlow trial. To stop these emails, turn off General notifications in <a href="${escapeHtml(settingsUrl)}" style="color:inherit;text-decoration:underline;">Settings</a>.`,

@@ -17,6 +17,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { PRICING_PLANS } from "#config/pricing";
+import { TRIAL_SETUP_POST_SLUG } from "#lib/content-links";
+import { DELETED_BLOG_REDIRECTS } from "#lib/seo/blog-redirects";
 import { BLOG_BANLIST } from "../_shared/blog-banlist";
 import {
 	campaignPath,
@@ -177,7 +179,14 @@ describe("what the emails say is true", () => {
 		copy: trialEmailCopy(kind, "Sam", "December 8, 2026, at 7:52 PM UTC"),
 	}));
 	const text = (c: (typeof all)[number]["copy"]) =>
-		[c.subject, c.preheader, c.heading, ...c.paragraphs, c.note ?? ""].join(" ");
+		[
+			c.subject,
+			c.preheader,
+			c.heading,
+			...c.paragraphs,
+			c.note ?? "",
+			c.guide ? `${c.guide.lead} ${c.guide.label}` : "",
+		].join(" ");
 
 	it("states the trial length and limits PRICING_PLANS.FREETRIAL holds", () => {
 		const trial = PRICING_PLANS["FREETRIAL"];
@@ -198,6 +207,21 @@ describe("what the emails say is true", () => {
 		expect(existsSync(repo(`src/app/(owner)${CHOOSE_PLAN_PATH}/page.tsx`))).toBe(true);
 		const proxy = read("src/proxy.ts");
 		expect(proxy).toMatch(/SUBSCRIPTION_ALLOWLIST_PREFIXES = \[[^\]]*"\/billing\/plans"/);
+	});
+
+	it("points the first two emails at the trial setup post the empty dashboard links to", () => {
+		const guidePath = `/blog/${TRIAL_SETUP_POST_SLUG}`;
+		expect(DELETED_BLOG_REDIRECTS.map((r) => r.source)).not.toContain(guidePath);
+		for (const { kind, copy } of all) {
+			if (kind === "welcome" || kind === "add_first_property") {
+				expect(copy.guide?.path).toBe(guidePath);
+			} else {
+				expect(copy.guide).toBeNull();
+			}
+		}
+		expect(read("supabase/functions/trial-lifecycle/index.ts")).toContain(
+			"${appUrl}${campaignPath(copy.guide.path, kind)}",
+		);
 	});
 
 	it("says only Settings and the plans page stay open after the trial, as the proxy does", () => {
