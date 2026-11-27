@@ -148,6 +148,8 @@ export interface TrialEmailCopy {
 	/** Path on the app, joined to the app URL by the caller. */
 	ctaPath: string;
 	note: string | null;
+	/** A text link under the button to a post that helps with this step. */
+	guide: { lead: string; label: string; path: string } | null;
 }
 
 /**
@@ -168,6 +170,19 @@ export function campaignPath(path: string, kind: TrialEmailKind): string {
 const ADD_PROPERTY_PATH = "/properties/new";
 /** The plans page, which the proxy keeps open to an owner whose trial ended. */
 const CHOOSE_PLAN_PATH = "/billing/plans";
+/**
+ * The post on what to set up first during the trial (2026-11-24 SEO audit
+ * P26-1). Its slug is `TRIAL_SETUP_POST_SLUG` in src/lib/content-links.ts,
+ * which the empty dashboard links to too; trial-lifecycle.test.ts holds the
+ * two equal.
+ */
+const TRIAL_SETUP_GUIDE_PATH =
+	"/blog/what-to-set-up-first-during-your-tenantflow-14-day-free-trial";
+const SETUP_GUIDE = {
+	lead: "Not sure what to do first?",
+	label: "Read what to set up first during your trial",
+	path: TRIAL_SETUP_GUIDE_PATH,
+};
 
 /**
  * The copy for one kind. `endText` names the trial's end as
@@ -193,6 +208,7 @@ export function trialEmailCopy(
 				ctaLabel: "Add your first property",
 				ctaPath: ADD_PROPERTY_PATH,
 				note: `During the trial you can add one property with up to five units. Your trial ends on ${endText}.`,
+				guide: SETUP_GUIDE,
 			};
 		case "add_first_property":
 			return {
@@ -207,6 +223,7 @@ export function trialEmailCopy(
 				ctaLabel: "Add your first property",
 				ctaPath: ADD_PROPERTY_PATH,
 				note: `During the trial you can add one property with up to five units. Your trial ends on ${endText}.`,
+				guide: SETUP_GUIDE,
 			};
 		case "trial_ending":
 			return {
@@ -221,6 +238,7 @@ export function trialEmailCopy(
 				ctaLabel: "Choose a plan",
 				ctaPath: CHOOSE_PLAN_PATH,
 				note: null,
+				guide: null,
 			};
 		case "trial_ended":
 			return {
@@ -235,6 +253,7 @@ export function trialEmailCopy(
 				ctaLabel: "Choose a plan",
 				ctaPath: CHOOSE_PLAN_PATH,
 				note: null,
+				guide: null,
 			};
 	}
 }

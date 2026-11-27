@@ -19,7 +19,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
 import { COMPETITORS } from "#app/compare/[competitor]/compare-data";
-import { RESOURCE_TO_BLOGS } from "#lib/content-links";
+import { RESOURCE_TO_BLOGS, TRIAL_SETUP_POST_SLUG } from "#lib/content-links";
 
 const SUPABASE_URL = process.env["NEXT_PUBLIC_SUPABASE_URL"];
 const SUPABASE_PUBLISHABLE_KEY =
@@ -29,6 +29,7 @@ const hasEnv = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
 
 /** Every blog slug referenced by the compare + resource cross-link config. */
 const REFERENCED_SLUGS: string[] = [
+	TRIAL_SETUP_POST_SLUG,
 	...Object.values(RESOURCE_TO_BLOGS).flat(),
 	...Object.values(COMPETITORS)
 		.map((c) => c.blogSlug)

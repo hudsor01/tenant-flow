@@ -49,7 +49,10 @@ export interface PricingConfig {
 	readonly limits: {
 		readonly properties: number;
 		readonly units: number;
+		/** Document storage in GB; -1 is unlimited. */
 		readonly storage: number;
+		/** Lease e-signature requests a month: 0 is none, -1 is unlimited. */
+		readonly leaseESignsPerMonth: number;
 	};
 	readonly features: readonly string[];
 	/** Optional "Everything in <lower tier>, plus:" lead-in rendered above the
@@ -79,6 +82,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			properties: 1,
 			units: 5,
 			storage: 1,
+			leaseESignsPerMonth: 0,
 		},
 		features: [
 			"1 property",
@@ -114,6 +118,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			properties: 5,
 			units: 25,
 			storage: 10,
+			leaseESignsPerMonth: 0,
 		},
 		features: [
 			"Up to 5 properties",
@@ -147,6 +152,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			properties: 20,
 			units: 100,
 			storage: 50,
+			leaseESignsPerMonth: 25,
 		},
 		includesPrevious: "Everything in Starter, plus:",
 		features: [
@@ -179,6 +185,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			properties: -1,
 			units: -1,
 			storage: -1,
+			leaseESignsPerMonth: -1,
 		},
 		includesPrevious: "Everything in Growth, plus:",
 		features: [

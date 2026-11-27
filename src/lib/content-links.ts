@@ -13,6 +13,16 @@
 import { COMPETITORS } from "#app/compare/[competitor]/compare-data";
 
 /**
+ * The post that walks a new owner through what to set up first. The empty
+ * dashboard links to it, and so do the trial's first emails
+ * (`supabase/functions/_shared/trial-lifecycle.ts`, held to this slug by
+ * `trial-lifecycle.test.ts`). It must be published
+ * (tests/integration/content-links-slugs.test.ts).
+ */
+export const TRIAL_SETUP_POST_SLUG =
+	"what-to-set-up-first-during-your-tenantflow-14-day-free-trial";
+
+/**
  * Maps resource page route segments to arrays of related blog post slugs.
  * Every slug must be published (tests/integration/content-links-slugs.test.ts).
  * The security deposit reference card has no published post on its topic, so

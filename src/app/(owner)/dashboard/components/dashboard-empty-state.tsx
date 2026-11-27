@@ -7,6 +7,7 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "#components/ui/empty";
+import { TRIAL_SETUP_POST_SLUG } from "#lib/content-links";
 
 /**
  * Dashboard Empty State
@@ -31,6 +32,12 @@ export function DashboardEmptyState() {
 					>
 						<Home className="w-5 h-5" />
 						Add Your First Property
+					</Link>
+					<Link
+						href={`/blog/${TRIAL_SETUP_POST_SLUG}`}
+						className="text-sm font-medium text-primary-text underline-offset-4 hover:underline"
+					>
+						Read what to set up first
 					</Link>
 				</EmptyContent>
 			</Empty>

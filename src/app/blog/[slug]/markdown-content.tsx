@@ -14,6 +14,7 @@ import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
+import { expandPlanComparison } from "#lib/blog/plan-comparison";
 import { headingId } from "./heading-id";
 
 interface MarkdownContentProps {
@@ -65,7 +66,7 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
 				),
 			}}
 		>
-			{content}
+			{expandPlanComparison(content)}
 		</ReactMarkdown>
 	);
 }
