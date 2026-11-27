@@ -234,6 +234,10 @@ describe("what the emails say is true", () => {
 		}
 	});
 
+	it("never says a lease is built from a state template (leases are a guided form; llms-full-facts.ts)", () => {
+		for (const { copy } of all) expect(text(copy)).not.toMatch(/state template/i);
+	});
+
 	it("uses no phrase the blog's banlist bans, and no em dash", () => {
 		for (const { copy } of all) {
 			const lower = text(copy).toLowerCase();

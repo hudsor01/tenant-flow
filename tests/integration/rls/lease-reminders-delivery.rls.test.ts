@@ -178,6 +178,7 @@ describe("Lease reminders delivery RLS - cross-owner isolation + write boundary"
 			.insert({
 				lease_id: leaseId,
 				reminder_type: "30_days",
+				lease_end_date: "2027-01-31",
 				delivery_status: "pending",
 			})
 			.select("id")
