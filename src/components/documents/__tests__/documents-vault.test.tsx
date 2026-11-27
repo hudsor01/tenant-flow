@@ -10,6 +10,8 @@ import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { documentSearchQueries } from "#hooks/api/query-keys/document-search-keys";
+import { expectConsole } from "#test/utils/expect-console";
+import { expectNavigation } from "#test/utils/expect-navigation";
 import { DocumentsVaultClient } from "../documents-vault.client";
 
 const mockUseQuery = vi.fn();
@@ -768,6 +770,7 @@ describe("DocumentsVaultClient", () => {
 		});
 
 		it("clicking the button POSTs the filter set with expanded date boundaries", async () => {
+			const navigations = expectNavigation();
 			const user = userEvent.setup();
 			queryParamValue = "tax";
 			entityParamValue = "lease";
@@ -820,9 +823,13 @@ describe("DocumentsVaultClient", () => {
 			expect(toLocal.getMonth()).toBe(11);
 			expect(toLocal.getDate()).toBe(31);
 			expect(toLocal.getHours()).toBe(23);
+			// The returned zip is saved through one anchor on its object URL.
+			await waitFor(() => expect(navigations).toHaveLength(1));
+			expect(navigations[0]).toMatch(/^blob:/);
 		});
 
 		it("shows a toast when the Edge Function returns an error", async () => {
+			const consoleError = expectConsole("error");
 			const user = userEvent.setup();
 			global.fetch = vi.fn().mockResolvedValue(
 				new Response(
@@ -849,9 +856,16 @@ describe("DocumentsVaultClient", () => {
 					expect.stringMatching(/cap is 500/i),
 				);
 			});
+			expect(consoleError).toHaveBeenCalledWith(
+				"[mutation] Download documents failed",
+				expect.objectContaining({
+					error: "Filter matches 600 documents; cap is 500.",
+				}),
+			);
 		});
 
 		it("never toasts the status line when the error body is not JSON", async () => {
+			const consoleError = expectConsole("error");
 			const user = userEvent.setup();
 			global.fetch = vi.fn().mockResolvedValue(
 				new Response("<html>upstream</html>", {
@@ -875,6 +889,13 @@ describe("DocumentsVaultClient", () => {
 			expect(mockToastError).not.toHaveBeenCalledWith(
 				expect.stringMatching(/Bad Gateway|upstream/),
 			);
+			// The developer log keeps the status line the toast leaves out.
+			expect(consoleError).toHaveBeenCalledWith(
+				"[mutation] Download documents failed",
+				expect.objectContaining({
+					error: "API request failed: Bad Gateway",
+				}),
+			);
 		});
 
 		it("double-click guard prevents two concurrent fetches", async () => {
@@ -882,6 +903,7 @@ describe("DocumentsVaultClient", () => {
 			// first call resolves (and BEFORE setIsDownloading commits).
 			// Without the ref-based guard, the closures would both see
 			// isDownloading === false and fire two POSTs.
+			const navigations = expectNavigation();
 			let resolveFetch!: (value: Response) => void;
 			const pendingResponse = new Promise<Response>((r) => {
 				resolveFetch = r;
@@ -914,6 +936,9 @@ describe("DocumentsVaultClient", () => {
 			await waitFor(() => {
 				expect(global.fetch).toHaveBeenCalledTimes(1);
 			});
+			// One fetch, so one saved zip.
+			await waitFor(() => expect(navigations).toHaveLength(1));
+			expect(navigations[0]).toMatch(/^blob:/);
 		});
 
 		it("shows an auth-required toast when getSession returns no token", async () => {

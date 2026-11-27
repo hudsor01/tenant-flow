@@ -56,10 +56,6 @@ const DEFERRED: Record<string, readonly [hits: number, blob: string]> = {
 		1,
 		"9887cf96726efb1069afafe83a815b765115dbf2",
 	],
-	"src/components/ui/field.tsx": [
-		1,
-		"af8c9df150d91c52443dba4ea8d0a36520074682",
-	],
 };
 
 /**

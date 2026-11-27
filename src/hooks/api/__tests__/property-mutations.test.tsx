@@ -14,6 +14,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { expectConsole } from "#test/utils/expect-console";
 import { usePropertyImages } from "../use-properties";
 import {
 	useDeletePropertyImageMutation,
@@ -187,6 +188,7 @@ describe("useUpdatePropertyMutation", () => {
 	});
 
 	it("should call handlePostgrestError on PostgREST failure", async () => {
+		const consoleError = expectConsole("error");
 		const postgrestError = {
 			code: "42501",
 			message: "permission denied",
@@ -212,6 +214,10 @@ describe("useUpdatePropertyMutation", () => {
 		expect(mockHandlePostgrestError).toHaveBeenCalledWith(
 			postgrestError,
 			"properties",
+		);
+		expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+			"[mutation] Update property failed",
+			expect.objectContaining({ error: "permission denied" }),
 		);
 	});
 });
@@ -258,6 +264,7 @@ describe("useDeletePropertyMutation", () => {
 	});
 
 	it("should call handlePostgrestError on PostgREST failure", async () => {
+		const consoleError = expectConsole("error");
 		const postgrestError = {
 			code: "42501",
 			message: "permission denied",
@@ -278,6 +285,10 @@ describe("useDeletePropertyMutation", () => {
 		expect(mockHandlePostgrestError).toHaveBeenCalledWith(
 			postgrestError,
 			"properties",
+		);
+		expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+			"[mutation] Delete property failed",
+			expect.objectContaining({ error: "permission denied" }),
 		);
 	});
 });
@@ -373,6 +384,7 @@ describe("useDeletePropertyImageMutation", () => {
 	});
 
 	it("should throw error when database delete fails", async () => {
+		const consoleError = expectConsole("error");
 		// The PostgREST error goes through handlePostgrestError (which rethrows
 		// it, code intact) rather than being rewrapped in a plain Error that
 		// drops its code (66.2-39 fix round 4, Part 5d).
@@ -397,6 +409,10 @@ describe("useDeletePropertyImageMutation", () => {
 		expect(mockHandlePostgrestError).toHaveBeenCalledWith(
 			dbError,
 			"delete property image",
+		);
+		expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+			"[mutation] Delete image failed",
+			expect.objectContaining({ error: "DB delete failed" }),
 		);
 	});
 

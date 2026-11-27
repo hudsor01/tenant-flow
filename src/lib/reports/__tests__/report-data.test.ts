@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { QueryClient } from "@tanstack/react-query";
 import { describe, expect, it } from "vitest";
+import { expectConsole } from "#test/utils/expect-console";
 import { isMissingRelationError, safeFetch } from "../report-data";
 
 /**
@@ -143,19 +144,26 @@ describe("safeFetch", () => {
 	});
 
 	it("returns fallback + available=false on 42P01", async () => {
+		const consoleWarn = expectConsole("warn");
+		const missing = { code: "42P01", message: 'relation "x" does not exist' };
 		const qc = makeClient();
 		const result = await safeFetch(
 			qc,
 			{
 				queryKey: ["test", "missing"] as const,
 				queryFn: async () => {
-					throw { code: "42P01", message: 'relation "x" does not exist' };
+					throw missing;
 				},
 			},
 			FALLBACK,
 		);
 		expect(result.available).toBe(false);
 		expect(result.data).toBe(FALLBACK);
+		// The fallback is logged for the developer, with the swallowed error.
+		expect(consoleWarn).toHaveBeenCalledExactlyOnceWith(
+			"[reports] RPC references a removed relation; falling back to zeros:",
+			missing,
+		);
 	});
 
 	it("re-throws on other errors (not 42P01)", async () => {

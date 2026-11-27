@@ -33,6 +33,7 @@ import {
 	userFacingErrorMessage,
 } from "#lib/mutation-error-handler";
 import { ApiErrorCode, createApiErrorFromResponse } from "#lib/utils/api-error";
+import { expectConsole } from "#test/utils/expect-console";
 
 type ToastCall = [string, Record<string, unknown> | undefined];
 
@@ -49,12 +50,35 @@ const lastToastErrorCall = (): ToastCall => {
 	];
 };
 
+/**
+ * handleMutationError's development log (console.error outside production):
+ * one call per failure since the last check, with the context and the error's
+ * own message, never the toast's sanitized copy. Clears the calls it checked.
+ */
+function expectLogged(
+	consoleError: ReturnType<typeof expectConsole>,
+	context: string,
+	message: string,
+	status?: number,
+) {
+	expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+		`[mutation] ${context} failed`,
+		{
+			action: context.toLowerCase().replace(/\s+/g, "_"),
+			error: message,
+			status,
+		},
+	);
+	consoleError.mockClear();
+}
+
 describe("handleMutationError — plan-limit detection", () => {
 	beforeEach(() => {
 		vi.mocked(toast.error).mockClear();
 	});
 
 	it("routes properties trigger error to upgrade toast with parsed source", () => {
+		const consoleError = expectConsole("error");
 		// Shape that the BEFORE INSERT trigger surfaces through PostgREST →
 		// supabase-js → mutation onError. Top-level `hint` + `details`.
 		const error = {
@@ -66,6 +90,7 @@ describe("handleMutationError — plan-limit detection", () => {
 		};
 
 		handleMutationError(error, "Create property");
+		expectLogged(consoleError, "Create property", error.message);
 
 		const [title, opts] = lastToastErrorCall();
 		expect(title).toBe("Plan limit reached");
@@ -82,6 +107,7 @@ describe("handleMutationError — plan-limit detection", () => {
 	});
 
 	it("routes units trigger error with the units source tag", () => {
+		const consoleError = expectConsole("error");
 		const error = {
 			message: "plan_limit_exceeded: units (5 / 5 used)",
 			code: "P0001",
@@ -91,6 +117,7 @@ describe("handleMutationError — plan-limit detection", () => {
 		};
 
 		handleMutationError(error, "Create unit");
+		expectLogged(consoleError, "Create unit", error.message);
 
 		const [title, opts] = lastToastErrorCall();
 		expect(title).toBe("Plan limit reached");
@@ -100,6 +127,7 @@ describe("handleMutationError — plan-limit detection", () => {
 	});
 
 	it("never shows the trigger's plan_limit_exceeded message, whatever the DETAIL says", () => {
+		const consoleError = expectConsole("error");
 		const cases: Array<[string | undefined, string]> = [
 			[
 				'{"resource":"storage","used":5,"limit":5,"upgrade_source":"storage_quota_gate"}',
@@ -131,10 +159,16 @@ describe("handleMutationError — plan-limit detection", () => {
 			);
 			const [, opts] = lastToastErrorCall();
 			expect(opts?.description, String(details)).toBe(copy);
+			expectLogged(
+				consoleError,
+				"Create unit",
+				"plan_limit_exceeded: units (5 / 5 used)",
+			);
 		}
 	});
 
 	it("falls back to default upgrade source when DETAIL is malformed JSON", () => {
+		const consoleError = expectConsole("error");
 		const error = {
 			message: "plan_limit_exceeded",
 			code: "P0001",
@@ -143,6 +177,7 @@ describe("handleMutationError — plan-limit detection", () => {
 		};
 
 		handleMutationError(error, "Create property");
+		expectLogged(consoleError, "Create property", error.message);
 
 		// Toast still fires with upgrade action — the parse failure is
 		// swallowed and the default 'plan_limit_gate' source is used.
@@ -153,6 +188,7 @@ describe("handleMutationError — plan-limit detection", () => {
 	});
 
 	it("falls back to default upgrade source when DETAIL is missing", () => {
+		const consoleError = expectConsole("error");
 		const error = {
 			message: "plan_limit_exceeded",
 			code: "P0001",
@@ -161,6 +197,7 @@ describe("handleMutationError — plan-limit detection", () => {
 		};
 
 		handleMutationError(error, "Create property");
+		expectLogged(consoleError, "Create property", error.message);
 
 		const [title, opts] = lastToastErrorCall();
 		expect(title).toBe("Plan limit reached");
@@ -169,6 +206,7 @@ describe("handleMutationError — plan-limit detection", () => {
 	});
 
 	it("maps a 23505 unique-violation to friendly copy (no raw constraint text)", () => {
+		const consoleError = expectConsole("error");
 		const error = {
 			message: "duplicate key value violates unique constraint",
 			code: "23505", // unique_violation
@@ -177,6 +215,7 @@ describe("handleMutationError — plan-limit detection", () => {
 		};
 
 		handleMutationError(error, "Create property");
+		expectLogged(consoleError, "Create property", error.message);
 
 		// Leaky SQLSTATE → friendly product copy, NOT the raw DB message.
 		const [title, opts] = lastToastErrorCall();
@@ -186,6 +225,7 @@ describe("handleMutationError — plan-limit detection", () => {
 	});
 
 	it("does NOT confuse a different P0001 error (no plan_limit_exceeded hint)", () => {
+		const consoleError = expectConsole("error");
 		const error = {
 			message: "some other raise_exception",
 			code: "P0001",
@@ -194,6 +234,7 @@ describe("handleMutationError — plan-limit detection", () => {
 		};
 
 		handleMutationError(error, "Create property");
+		expectLogged(consoleError, "Create property", error.message);
 
 		// P0001 is author-written RAISE copy — not leaky, surfaces verbatim.
 		const [title, opts] = lastToastErrorCall();
@@ -234,6 +275,7 @@ describe("handleMutationError — storage plan-limit (StorageApiError message pr
 	});
 
 	it("fires the 'Plan limit reached' Upgrade toast for a storage rejection (source=storage_quota_gate)", () => {
+		const consoleError = expectConsole("error");
 		const storageError = {
 			name: "StorageApiError",
 			message:
@@ -243,6 +285,7 @@ describe("handleMutationError — storage plan-limit (StorageApiError message pr
 		};
 
 		handleMutationError(storageError, "Upload document");
+		expectLogged(consoleError, "Upload document", storageError.message, 400);
 
 		const [title, opts] = lastToastErrorCall();
 		expect(title).toBe("Plan limit reached");
@@ -260,6 +303,7 @@ describe("handleMutationError — storage plan-limit (StorageApiError message pr
 	});
 
 	it("still routes the PostgREST hint path to its parsed source (no regression)", () => {
+		const consoleError = expectConsole("error");
 		const error = {
 			message: "plan_limit_exceeded: properties (1 / 1 used)",
 			code: "P0001",
@@ -269,6 +313,7 @@ describe("handleMutationError — storage plan-limit (StorageApiError message pr
 		};
 
 		handleMutationError(error, "Create property");
+		expectLogged(consoleError, "Create property", error.message);
 
 		const [title, opts] = lastToastErrorCall();
 		expect(title).toBe("Plan limit reached");
@@ -285,6 +330,7 @@ describe("handleMutationError — storage plan-limit (StorageApiError message pr
 	});
 
 	it("passes on only a slug as the source, and stays on the plans page", () => {
+		const consoleError = expectConsole("error");
 		handleMutationError(
 			{
 				message: "plan_limit_exceeded: properties (1 / 1 used)",
@@ -293,6 +339,11 @@ describe("handleMutationError — storage plan-limit (StorageApiError message pr
 				details: '{"resource":"properties","upgrade_source":"x\\" onload=1"}',
 			},
 			"Create property",
+		);
+		expectLogged(
+			consoleError,
+			"Create property",
+			"plan_limit_exceeded: properties (1 / 1 used)",
 		);
 		const [, opts] = lastToastErrorCall();
 		(opts?.action as { onClick?: () => void } | undefined)?.onClick?.();
@@ -306,6 +357,7 @@ describe("handleMutationError — leaky SQLSTATE → friendly copy (UIX-04)", ()
 	});
 
 	it("maps a RAW Postgres constraint message to its friendly copy by SQLSTATE", () => {
+		const consoleError = expectConsole("error");
 		// Each case pairs a real auto-generated Postgres system message (which leaks
 		// schema internals) with the friendly copy it must be replaced by.
 		const cases: Array<[string, string, string]> = [
@@ -339,6 +391,7 @@ describe("handleMutationError — leaky SQLSTATE → friendly copy (UIX-04)", ()
 		for (const [code, raw, friendly] of cases) {
 			vi.mocked(toast.error).mockClear();
 			handleMutationError({ message: raw, code }, "Save record");
+			expectLogged(consoleError, "Save record", raw);
 			const [title, opts] = lastToastErrorCall();
 			expect(title).toBe(friendly);
 			expect(opts?.action).toBeUndefined();
@@ -346,6 +399,7 @@ describe("handleMutationError — leaky SQLSTATE → friendly copy (UIX-04)", ()
 	});
 
 	it("surfaces an AUTHOR-written RAISE message verbatim even under a constraint SQLSTATE (regression)", () => {
+		const consoleError = expectConsole("error");
 		// The codebase RAISEs user-facing copy under 23514 (term-lock trigger) and
 		// 42501 (default-category delete). These must NOT be genericized.
 		const authorCases: Array<[string, string]> = [
@@ -355,21 +409,29 @@ describe("handleMutationError — leaky SQLSTATE → friendly copy (UIX-04)", ()
 		for (const [code, authorMsg] of authorCases) {
 			vi.mocked(toast.error).mockClear();
 			handleMutationError({ message: authorMsg, code }, "Update lease");
+			expectLogged(consoleError, "Update lease", authorMsg);
 			const [title] = lastToastErrorCall();
 			expect(title).toBe(authorMsg);
 		}
 	});
 
 	it("maps an unmapped leaky class-22 code to the generic fallback", () => {
+		const consoleError = expectConsole("error");
 		handleMutationError(
 			{ message: "date/time field value out of range", code: "22007" },
 			"Save record",
+		);
+		expectLogged(
+			consoleError,
+			"Save record",
+			"date/time field value out of range",
 		);
 		const [title] = lastToastErrorCall();
 		expect(title).toBe("Something went wrong. Please try again.");
 	});
 
 	it("maps an unmapped PGRST* code to the generic fallback", () => {
+		const consoleError = expectConsole("error");
 		handleMutationError(
 			{
 				message: "JSON object requested, multiple rows returned",
@@ -377,11 +439,17 @@ describe("handleMutationError — leaky SQLSTATE → friendly copy (UIX-04)", ()
 			},
 			"Save record",
 		);
+		expectLogged(
+			consoleError,
+			"Save record",
+			"JSON object requested, multiple rows returned",
+		);
 		const [title] = lastToastErrorCall();
 		expect(title).toBe("Something went wrong. Please try again.");
 	});
 
 	it("lets a customMessage override a mapped SQLSTATE code", () => {
+		const consoleError = expectConsole("error");
 		handleMutationError(
 			{
 				message: "duplicate key value violates unique constraint",
@@ -389,6 +457,11 @@ describe("handleMutationError — leaky SQLSTATE → friendly copy (UIX-04)", ()
 			},
 			"Create tenant",
 			"A tenant with that email already exists.",
+		);
+		expectLogged(
+			consoleError,
+			"Create tenant",
+			"duplicate key value violates unique constraint",
 		);
 		const [title] = lastToastErrorCall();
 		expect(title).toBe("A tenant with that email already exists.");
@@ -416,6 +489,7 @@ describe("handleMutationError — leaky SQLSTATE → friendly copy (UIX-04)", ()
 	});
 
 	it("never shows Postgres's own text under any other SQLSTATE (66.2-39 fix round 4, Part 5d)", () => {
+		const consoleError = expectConsole("error");
 		// None of these matches RAW_DB_INTERNALS: before, each was toasted verbatim.
 		const cases: Array<[string, string]> = [
 			["57014", "canceling statement due to statement timeout"],
@@ -427,16 +501,19 @@ describe("handleMutationError — leaky SQLSTATE → friendly copy (UIX-04)", ()
 		for (const [code, message] of cases) {
 			vi.mocked(toast.error).mockClear();
 			handleMutationError({ message, code, details: null, hint: null }, "Save");
+			expectLogged(consoleError, "Save", message);
 			const [title] = lastToastErrorCall();
 			expect(title, code).toBe("Something went wrong. Please try again.");
 		}
 	});
 
 	it("keeps a message with no code verbatim", () => {
+		const consoleError = expectConsole("error");
 		handleMutationError(
 			{ message: "Choose a unit before saving." },
 			"Save record",
 		);
+		expectLogged(consoleError, "Save record", "Choose a unit before saving.");
 		const [title] = lastToastErrorCall();
 		expect(title).toBe("Choose a unit before saving.");
 	});
@@ -452,6 +529,12 @@ const BROWSER_FETCH_FAILURES = [
 	"Load failed",
 ];
 
+/**
+ * Each offline client gets its own auth storage key: auth-js warns when two
+ * clients in one browser context share one, as the default would.
+ */
+let offlineClientCount = 0;
+
 /** A real supabase-js client whose every request fails as `fetch` does offline. */
 function offlineClient(failure: unknown) {
 	return createClient("http://localhost:54321", "sb_publishable_mock", {
@@ -461,6 +544,7 @@ function offlineClient(failure: unknown) {
 			},
 		},
 		auth: {
+			storageKey: `offline-client-${++offlineClientCount}`,
 			persistSession: false,
 			autoRefreshToken: false,
 			detectSessionInUrl: false,
@@ -510,10 +594,12 @@ describe("userFacingErrorMessage — a failed fetch, as each library passes it o
 	});
 
 	it("toasts the network copy for a mutation whose PostgREST call failed offline", async () => {
+		const consoleError = expectConsole("error");
 		const { error } = await offlineClient(new TypeError("Failed to fetch")).rpc(
 			"get_lease_stats",
 		);
 		handleMutationError(error, "Save lease");
+		expectLogged(consoleError, "Save lease", "TypeError: Failed to fetch");
 		expect(lastToastErrorCall()[0]).toBe(NETWORK_COPY);
 	});
 
@@ -535,6 +621,7 @@ describe("userFacingErrorMessage — the one sanitizer (66.2-39 part I)", () => 
 	});
 
 	it("shows an ApiError's product copy, never the HTTP status line", () => {
+		const consoleError = expectConsole("error");
 		const error = createApiErrorFromResponse(
 			new Response("raw body", { status: 502, statusText: "Bad Gateway" }),
 			ApiErrorCode.PDF_GENERATION_FAILED,
@@ -544,6 +631,7 @@ describe("userFacingErrorMessage — the one sanitizer (66.2-39 part I)", () => 
 			"Failed to generate the PDF. Please try again.",
 		);
 		handleMutationError(error, "Download PDF");
+		expectLogged(consoleError, "Download PDF", error.message);
 		expect(lastToastErrorCall()[0]).toBe(
 			"Failed to generate the PDF. Please try again.",
 		);
@@ -596,6 +684,7 @@ describe("userFacingErrorMessage — a message that names code is never shown (6
 	});
 
 	it("shows the fallback for a DiagnosticError (a boundary mapper's shape check)", () => {
+		const consoleError = expectConsole("error");
 		const error = new DiagnosticError(
 			"mapDocumentCategoryRow: NOT NULL field 'slug' missing or non-string from PostgREST response",
 		);
@@ -603,6 +692,7 @@ describe("userFacingErrorMessage — a message that names code is never shown (6
 			"Rename failed",
 		);
 		handleMutationError(error, "Rename category");
+		expectLogged(consoleError, "Rename category", error.message);
 		expect(lastToastErrorCall()[0]).toBe(
 			"Something went wrong. Please try again.",
 		);
@@ -678,18 +768,28 @@ describe("handleMutationError — a status branch's own copy for an error with n
 		[403, "Access Denied", "You do not have permission to perform this action"],
 		[404, "Not Found", "The requested item could not be found"],
 	])("a %i shows %s with its copy", (status, title, copy) => {
+		const consoleError = expectConsole("error");
 		handleMutationError(Object.assign(new Error(""), { status }), "Load lease");
+		expectLogged(consoleError, "Load lease", "", status);
 		expect(lastToastErrorCall()).toEqual([title, { description: copy }]);
 
 		handleMutationError({ status }, "Load lease");
+		expectLogged(
+			consoleError,
+			"Load lease",
+			"An unexpected error occurred",
+			status,
+		);
 		expect(lastToastErrorCall()).toEqual([title, { description: copy }]);
 	});
 
 	it("keeps the sanitized message, and the caller's copy, over the branch copy", () => {
+		const consoleError = expectConsole("error");
 		handleMutationError(
 			Object.assign(new Error("Lease is already signed"), { status: 409 }),
 			"Edit lease",
 		);
+		expectLogged(consoleError, "Edit lease", "Lease is already signed", 409);
 		expect(lastToastErrorCall()).toEqual([
 			"Conflict",
 			{ description: "Lease is already signed" },
@@ -700,6 +800,7 @@ describe("handleMutationError — a status branch's own copy for an error with n
 			"Load lease",
 			"That lease is gone",
 		);
+		expectLogged(consoleError, "Load lease", "", 404);
 		expect(lastToastErrorCall()).toEqual([
 			"Not Found",
 			{ description: "That lease is gone" },
@@ -707,7 +808,9 @@ describe("handleMutationError — a status branch's own copy for an error with n
 	});
 
 	it("shows the generic copy for an error with no message and no status", () => {
+		const consoleError = expectConsole("error");
 		handleMutationError(new Error(""), "Save notes");
+		expectLogged(consoleError, "Save notes", "");
 		expect(lastToastErrorCall()).toEqual([
 			"Something went wrong. Please try again.",
 			undefined,

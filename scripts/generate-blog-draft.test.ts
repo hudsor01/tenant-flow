@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { expectConsole } from "#test/utils/expect-console";
 import type { Draft, GateContext } from "./generate-blog-draft";
 import {
 	applySlugOverride,
@@ -173,6 +174,7 @@ describe("gateOnCritique (fail-closed judge gate)", () => {
 				["thin and off-brand"],
 			),
 		);
+		const consoleLog = expectConsole("log");
 		const regenerate = vi.fn(async () => draft);
 		await expect(
 			gateOnCritique(draft, "facts", regenerate),
@@ -181,14 +183,24 @@ describe("gateOnCritique (fail-closed judge gate)", () => {
 		});
 		// bounded: MAX_CRITIQUE (2) regenerate attempts, then fail closed
 		expect(regenerate).toHaveBeenCalledTimes(2);
+		// Each of the three rounds reports its rejection; none reports a pass.
+		expect(consoleLog.mock.calls).toEqual([
+			["  judge: REJECT (1/1/1/1) — thin and off-brand"],
+			["  judge: REJECT (1/1/1/1) — thin and off-brand"],
+			["  judge: REJECT (1/1/1/1) — thin and off-brand"],
+		]);
 	});
 
 	it("a passing judge returns the draft without regenerating", async () => {
+		const consoleLog = expectConsole("log");
 		mockJudge(critiqueBody(ALL_FIVE, "pass"));
 		const regenerate = vi.fn(async () => draft);
 		const result = await gateOnCritique(draft, "facts", regenerate);
 		expect(result).toBe(draft);
 		expect(regenerate).not.toHaveBeenCalled();
+		expect(consoleLog).toHaveBeenCalledExactlyOnceWith(
+			"  judge: PASS (5/5/5/5)",
+		);
 	});
 });
 

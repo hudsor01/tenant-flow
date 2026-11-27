@@ -9,7 +9,7 @@
  * contain "in progress"); and once the PR named the column Status, the card
  * still said "Category analysis" and "Request counts by category" over it.
  */
-import { fireEvent, screen, within } from "@testing-library/react";
+import { act, fireEvent, screen, within } from "@testing-library/react";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import { type ReactNode, Suspense } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -60,8 +60,12 @@ describe("the maintenance insights' status card", () => {
 	it("finds a status by the label it shows", async () => {
 		render(<MaintenanceInsightsSection />, { wrapper: Wrapper });
 		const card = await statusCard();
-		fireEvent.change(within(card).getByPlaceholderText("Search status..."), {
-			target: { value: "In Progress" },
+		// The filtered rows queue the table's page reset on a microtask; the
+		// async act runs it before the assertions.
+		await act(async () => {
+			fireEvent.change(within(card).getByPlaceholderText("Search status..."), {
+				target: { value: "In Progress" },
+			});
 		});
 		const rows = within(card).getAllByRole("row").slice(1);
 		expect(rows.map((row) => row.textContent)).toEqual(["In Progress3"]);

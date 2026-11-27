@@ -21,6 +21,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
+import { expectConsole } from "#test/utils/expect-console";
 import { tenantQueries } from "../query-keys/tenant-keys";
 import { useAllTenants, useTenantList } from "../use-tenant";
 import {
@@ -503,6 +504,7 @@ describe("Mutation Hooks", () => {
 		});
 
 		it("should block deletion when tenant has active lease", async () => {
+			const consoleError = expectConsole("error");
 			// Override lease_tenants mock to return an active lease
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === "lease_tenants") {
@@ -536,6 +538,13 @@ describe("Mutation Hooks", () => {
 					"Cannot delete tenant with active lease",
 				),
 			});
+			expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+				"[mutation] Delete tenant failed",
+				expect.objectContaining({
+					error:
+						"Cannot delete tenant with active lease. End or transfer the lease before removing them.",
+				}),
+			);
 		});
 	});
 
@@ -699,6 +708,7 @@ describe("Error Handling", () => {
 	});
 
 	it("should handle mutation errors via PostgREST", async () => {
+		const consoleError = expectConsole("error");
 		supabaseFromMock.mockImplementation(() => ({
 			insert: vi.fn().mockReturnValue({
 				select: vi.fn().mockReturnValue({
@@ -737,5 +747,9 @@ describe("Error Handling", () => {
 		await expect(
 			result.current.mutateAsync({ first_name: "Jane" }),
 		).rejects.toThrow();
+		expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+			"[mutation] Create tenant failed",
+			expect.objectContaining({ error: "Unique violation" }),
+		);
 	});
 });

@@ -7,6 +7,7 @@ import { TooltipProvider } from "#components/ui/tooltip";
 import { mutationKeys } from "#hooks/api/mutation-keys";
 import { expectAvailable, expectUnavailable } from "#test/utils/availability";
 import { computeListCascade } from "#test/utils/base-rule-cascade";
+import { expectConsole } from "#test/utils/expect-console";
 import { CategoriesSettings } from "../categories-settings";
 
 const mockUseDocumentCategories = vi.fn();
@@ -480,9 +481,16 @@ describe("CategoriesSettings", () => {
 		});
 		expect(queryClient.getQueryData(listKey)).toEqual(reordered);
 
-		// Failure path — onError should restore the snapshot.
+		// Failure path — onError should restore the snapshot. The handler
+		// logs the failure in development; claim and assert that log.
+		const consoleError = expectConsole("error");
 		expect(reorderHooks.onError).toBeDefined();
 		reorderHooks.onError!(new Error("rpc failed"), undefined, ctx);
+		expect(consoleError).toHaveBeenCalledTimes(1);
+		expect(consoleError).toHaveBeenCalledWith(
+			"[mutation] Reorder categories failed",
+			{ action: "reorder_categories", error: "rpc failed", status: undefined },
+		);
 
 		expect(queryClient.getQueryData(listKey)).toEqual(initial);
 		expect(mockToastError).toHaveBeenCalledWith(

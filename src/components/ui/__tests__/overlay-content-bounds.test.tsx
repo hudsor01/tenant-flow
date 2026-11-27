@@ -22,7 +22,7 @@
  * resolved here, as the app-shell display guard resolves it.
  */
 
-import { render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import type { AtRule, Container, Rule } from "postcss";
 import type { ReactElement } from "react";
 import { describe, expect, it } from "vitest";
@@ -99,6 +99,8 @@ interface Case {
 	height: string;
 	width: string;
 	ui: ReactElement;
+	/** What the open overlay does after mount, awaited before it is read. */
+	settled?: () => void;
 }
 
 const CASES: Case[] = [
@@ -159,14 +161,23 @@ const CASES: Case[] = [
 				</ComboboxContent>
 			</Combobox>
 		),
+		// The open content's focus manager (floating-ui) moves focus to the
+		// input on the next animation frame, which the anchor records.
+		settled: () =>
+			expect(screen.getByRole("combobox", { name: "Search" })).toHaveFocus(),
 	},
 ];
 
 describe("every overlay list fits the space beside its trigger, and scrolls", () => {
 	it.each(CASES)(
 		"$name is bounded by $height and $width and scrolls",
-		async ({ slot, height, width, ui }) => {
+		async ({ slot, height, width, ui, settled }) => {
 			render(ui);
+			// An open overlay's positioner (floating-ui) measures and places the
+			// content on resolved promises after mount, and the content's state
+			// follows; let that land inside act() before the stylesheet compile.
+			await act(async () => {});
+			if (settled) await waitFor(settled);
 			const content = document.querySelector(`[data-slot="${slot}"]`);
 			if (!content) throw new Error(`${slot} did not render`);
 			const rules = await boxRules(content);

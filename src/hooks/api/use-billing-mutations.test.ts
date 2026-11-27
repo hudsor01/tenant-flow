@@ -21,6 +21,7 @@ vi.mock("#lib/supabase/get-cached-user", () => ({
 }));
 
 import { DiagnosticError } from "#lib/diagnostic-error";
+import { expectConsole } from "#test/utils/expect-console";
 import {
 	useBillingPortalMutation,
 	useCancelSubscriptionMutation,
@@ -113,6 +114,7 @@ describe("useCancelSubscriptionMutation", () => {
 	});
 
 	it("throws a generic error when the Edge Function returns 4xx/5xx", async () => {
+		const consoleError = expectConsole("error");
 		globalThis.fetch = vi
 			.fn<typeof fetch>()
 			.mockResolvedValue(
@@ -126,6 +128,10 @@ describe("useCancelSubscriptionMutation", () => {
 		await expect(result.current.mutateAsync()).rejects.toMatchObject({
 			message: expect.stringContaining("An error occurred"),
 		});
+		expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+			"[mutation] Cancel subscription failed",
+			expect.objectContaining({ error: "An error occurred" }),
+		);
 	});
 });
 
@@ -297,6 +303,7 @@ describe("useBillingPortalMutation", () => {
 		["a script URL", "javascript:alert(document.cookie)"],
 		["a missing URL", undefined],
 	])("does not navigate to %s", async (_label, url) => {
+		const consoleError = expectConsole("error");
 		globalThis.fetch = vi
 			.fn<typeof fetch>()
 			.mockResolvedValue(Response.json({ url }, { status: 200 }));
@@ -307,5 +314,15 @@ describe("useBillingPortalMutation", () => {
 		);
 
 		expect(assign).not.toHaveBeenCalled();
+		// The refusal is logged for the developer, with the reason.
+		expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+			"[mutation] Open billing portal failed",
+			expect.objectContaining({
+				error:
+					url === undefined
+						? "stripeRedirectUrl: no redirect URL returned"
+						: "stripeRedirectUrl: refused a redirect URL that is not an https Stripe page",
+			}),
+		);
 	});
 });

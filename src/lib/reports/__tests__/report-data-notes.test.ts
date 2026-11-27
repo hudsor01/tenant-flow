@@ -31,6 +31,7 @@ vi.mock("#lib/supabase/get-cached-user", () => ({
 	getCachedUser: async () => ({ id: "owner-1" }),
 }));
 
+import { expectConsole } from "#test/utils/expect-console";
 import { buildReportData, type ReportSection } from "../report-data";
 
 const START = "2026-02-01";
@@ -96,6 +97,25 @@ const ANSWERS: Record<string, unknown> = {
 	},
 };
 
+/**
+ * Claims safeFetch's dev log for each read that falls back, for this test.
+ * Call `assertLogged()` once the report is built: each failing read logs once.
+ */
+function claimFallbackLogs(failing: readonly string[]) {
+	const consoleWarn = expectConsole("warn");
+	return {
+		assertLogged: () => {
+			expect(consoleWarn).toHaveBeenCalledTimes(failing.length);
+			for (const call of consoleWarn.mock.calls) {
+				expect(call).toEqual([
+					"[reports] RPC references a removed relation; falling back to zeros:",
+					MISSING_RELATION.error,
+				]);
+			}
+		},
+	};
+}
+
 /** Answer every RPC, except those named, which fail as a missing relation. */
 function answer(
 	failing: readonly string[],
@@ -152,6 +172,7 @@ describe("each table says what it lists when empty", () => {
 	});
 
 	it("maintenance, failed: none of its own, the note says why", async () => {
+		const logs = claimFallbackLogs(["get_maintenance_analytics"]);
 		answer(["get_maintenance_analytics"]);
 		const report = await buildReportData(
 			"maintenance-operations",
@@ -159,6 +180,7 @@ describe("each table says what it lists when empty", () => {
 			START,
 			END,
 		);
+		logs.assertLogged();
 		expect(Object.values(tables(report.sections))).toEqual([
 			null,
 			null,
@@ -203,36 +225,46 @@ describe("each table says what it lists when empty", () => {
 
 describe("each fallback's note is under the section its read feeds", () => {
 	it("executive: a failed occupancy read notes Key Metrics, not the rent table", async () => {
+		const logs = claimFallbackLogs(["get_occupancy_trends_optimized"]);
 		answer(["get_occupancy_trends_optimized"]);
 		const byHeading = await build("executive-monthly");
+		logs.assertLogged();
 		expect(byHeading["Key Metrics"]).toBe(ZEROS);
 		expect(byHeading["Scheduled Rent (last 12 months)"]).toBeUndefined();
 	});
 
 	it("executive: a failed scheduled rent read notes its own table", async () => {
+		const logs = claimFallbackLogs(["get_revenue_trends_optimized"]);
 		answer(["get_revenue_trends_optimized"]);
 		const byHeading = await build("executive-monthly");
+		logs.assertLogged();
 		expect(byHeading["Key Metrics"]).toBeUndefined();
 		expect(byHeading["Scheduled Rent (last 12 months)"]).toBe(TABLE);
 	});
 
 	it("financial performance: a failed occupancy read notes the Summary", async () => {
+		const logs = claimFallbackLogs(["get_occupancy_trends_optimized"]);
 		answer(["get_occupancy_trends_optimized"]);
 		const byHeading = await build("financial-performance");
+		logs.assertLogged();
 		expect(byHeading.Summary).toBe(ZEROS);
 		expect(byHeading["Expenses by Vendor"]).toBeUndefined();
 	});
 
 	it("property portfolio: a failed occupancy read notes the Portfolio Summary", async () => {
+		const logs = claimFallbackLogs(["get_occupancy_trends_optimized"]);
 		answer(["get_occupancy_trends_optimized"]);
 		const byHeading = await build("property-portfolio");
+		logs.assertLogged();
 		expect(byHeading["Portfolio Summary"]).toBe(ZEROS);
 		expect(byHeading["Property Performance"]).toBeUndefined();
 	});
 
 	it("maintenance: a failed read notes the zeros and each empty table, never 'does not report'", async () => {
+		const logs = claimFallbackLogs(["get_maintenance_analytics"]);
 		answer(["get_maintenance_analytics"]);
 		const byHeading = await build("maintenance-operations");
+		logs.assertLogged();
 		expect(byHeading).toEqual({
 			"Operations Summary": ZEROS,
 			"By Status (to date)": TABLE,

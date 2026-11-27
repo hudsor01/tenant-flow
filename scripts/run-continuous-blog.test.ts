@@ -2,8 +2,9 @@ import { existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import { expectConsole } from "#test/utils/expect-console";
 import { main, nextUnwrittenTopic } from "./run-continuous-blog";
-import type { BlogTopicEntry } from "./run-scheduled-blog";
+import { type BlogTopicEntry, STOP_SENTINEL_PATH } from "./run-scheduled-blog";
 
 const entry = (
 	slug: string,
@@ -57,9 +58,13 @@ describe("main kill-switch", () => {
 	});
 
 	it("returns 0 and never acquires the shared lock when BLOG_FACTORY_OFF=1", async () => {
+		const consoleLog = expectConsole("log");
 		rmSync(SHARED_LOCK_PATH, { force: true }); // start from a clean slate
 		process.env.BLOG_FACTORY_OFF = "1";
 		await expect(main()).resolves.toBe(0);
+		expect(consoleLog).toHaveBeenCalledExactlyOnceWith(
+			`blog factory paused — kill-switch on; not starting the continuous run (re-arm: rm ${STOP_SENTINEL_PATH} or unset BLOG_FACTORY_OFF).`,
+		);
 		// The kill-switch runs BEFORE acquireLock, so the shared lock is untouched.
 		expect(existsSync(SHARED_LOCK_PATH)).toBe(false);
 	});

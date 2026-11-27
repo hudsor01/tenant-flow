@@ -21,7 +21,7 @@
  * @vitest-environment jsdom
  */
 import { createRequire } from "node:module";
-import { render, waitFor } from "@testing-library/react";
+import { act, render, waitFor } from "@testing-library/react";
 import { beforeAll, describe, expect, it } from "vitest";
 import { type ChartConfig, ChartContainer } from "#components/ui/chart";
 import {
@@ -170,7 +170,10 @@ describe(`ChartContainer's recharts rules against recharts ${installed.version}`
 				rules.map(
 					({ selector }) => container.querySelectorAll(selector).length,
 				);
-			surface?.focus();
+			// Keyboard focus moves recharts' active point and tooltip (state).
+			act(() => {
+				surface?.focus();
+			});
 			const onSurface = count();
 			// A Pie's own tab stop is its layer group: the pie focus rule
 			// paints its sectors' stroke (66.2-39 fix round 4, Part 5b).
@@ -178,7 +181,9 @@ describe(`ChartContainer's recharts rules against recharts ${installed.version}`
 				'[data-probe="pie"] g.recharts-pie',
 			);
 			expect(pie?.getAttribute("tabindex")).toBe("0");
-			pie?.focus();
+			act(() => {
+				pie?.focus();
+			});
 			const onPie = count();
 			const reach = Object.fromEntries(
 				rules.map(({ candidate }, i) => [

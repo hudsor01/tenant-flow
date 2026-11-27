@@ -11,6 +11,7 @@ import {
 	type DocumentRow,
 	documentQueries,
 } from "#hooks/api/query-keys/document-keys";
+import { expectConsole } from "#test/utils/expect-console";
 import { createTestWrapper, render } from "#test/utils/test-render";
 import { DownloadSignedLeaseButton } from "../download-signed-lease-button";
 
@@ -98,6 +99,7 @@ describe("DownloadSignedLeaseButton", () => {
 		`${PROJECT_URL}/rest/v1/leases`,
 		"javascript:alert(document.cookie)",
 	])("does not open %s, and toasts instead", (url) => {
+		const consoleError = expectConsole("error");
 		const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
 		mockUseSignedDocumentUrl.mockReturnValue({
 			data: { document_url: url },
@@ -111,6 +113,15 @@ describe("DownloadSignedLeaseButton", () => {
 		expect(openSpy).not.toHaveBeenCalled();
 		expect(toastError).toHaveBeenCalledTimes(1);
 		expect(toastError).toHaveBeenCalledWith("Signed document not available");
+		expect(consoleError).toHaveBeenCalledTimes(1);
+		expect(consoleError).toHaveBeenCalledWith(
+			"[mutation] Download signed lease failed",
+			expect.objectContaining({
+				action: "download_signed_lease",
+				error:
+					"supabaseStorageUrl: refused a URL outside this project's Storage",
+			}),
+		);
 		openSpy.mockRestore();
 	});
 

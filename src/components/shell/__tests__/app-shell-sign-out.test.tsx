@@ -68,6 +68,7 @@ vi.mock("#components/notifications/notification-bell", () => ({
 	NotificationBell: () => null,
 }));
 
+import { expectConsole } from "#test/utils/expect-console";
 import { AppShell } from "../app-shell";
 
 beforeAll(() => {
@@ -128,6 +129,7 @@ describe.each([
 	});
 
 	it("stays after a failed first request, whose session is kept", async () => {
+		const consoleError = expectConsole("error");
 		signOut.mockResolvedValueOnce({ error: new Error("Failed to fetch") });
 
 		await press();
@@ -136,9 +138,18 @@ describe.each([
 		expect(router.replace).not.toHaveBeenCalled();
 		expect(router.push).not.toHaveBeenCalled();
 		expect(clearAuthData).not.toHaveBeenCalled();
+		await waitFor(() =>
+			expect(consoleError).toHaveBeenCalledWith("[mutation] Sign out failed", {
+				action: "sign_out",
+				error: "Failed to fetch",
+				status: undefined,
+			}),
+		);
+		expect(consoleError).toHaveBeenCalledTimes(1);
 	});
 
 	it("lands on /login after a failed second request, whose browser is signed out", async () => {
+		const consoleError = expectConsole("error");
 		signOut
 			.mockResolvedValueOnce({ error: null })
 			.mockResolvedValueOnce({ error: new Error("server error") });
@@ -149,5 +160,14 @@ describe.each([
 		expect(router.replace).toHaveBeenCalledTimes(1);
 		expect(router.replace).toHaveBeenCalledWith("/login");
 		expect(clearAuthData).toHaveBeenCalledTimes(1);
+		await waitFor(() =>
+			expect(consoleError).toHaveBeenCalledWith("[mutation] Sign out failed", {
+				action: "sign_out",
+				error:
+					"Sign out did not finish. You are signed out of this browser, but its session may still be open on our server. Sign in again and end it under Active Sessions in Settings.",
+				status: undefined,
+			}),
+		);
+		expect(consoleError).toHaveBeenCalledTimes(1);
 	});
 });

@@ -47,13 +47,16 @@ beforeEach(() => {
 });
 
 describe("GlobalSyncIndicator", () => {
-	it("names a focusable button trigger 'Saved' and keeps the text in a status region", () => {
+	it("names a focusable button trigger 'Saved' and keeps the text in a status region", async () => {
 		renderIndicator();
 
 		const trigger = screen.getByRole("button", { name: "Saved" });
 		expect(trigger).toHaveAttribute("type", "button");
 		expect(trigger).not.toBeDisabled();
-		trigger.focus();
+		// Focus opens the tooltip, which positions itself a microtask later.
+		await act(async () => {
+			trigger.focus();
+		});
 		expect(document.activeElement).toBe(trigger);
 		const status = screen.getByRole("status");
 		expect(status).toHaveTextContent("Saved");

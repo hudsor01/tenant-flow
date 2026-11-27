@@ -1,7 +1,15 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createElement } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	type MockInstance,
+	vi,
+} from "vitest";
 
 const sentryMock = vi.hoisted(() => ({
 	captureException: vi.fn(),
@@ -27,17 +35,29 @@ function Boom(): never {
 }
 
 describe("ErrorBoundary", () => {
+	let consoleError: MockInstance<typeof console.error>;
+
 	beforeEach(() => {
 		// Reset the zustand store between tests.
 		useErrorBoundaryStore.getState().clearError();
 		sentryMock.captureException.mockClear();
 		routerMock.refresh.mockClear();
-		// Silence the expected React console.error from intentional throws.
-		vi.spyOn(console, "error").mockImplementation(() => {});
+		// Every test here throws on purpose, and React reports the caught
+		// error on console.error; claim that, and only that (afterEach).
+		consoleError = vi
+			.spyOn(console, "error")
+			.mockImplementation(() => undefined);
 	});
 
 	afterEach(() => {
 		cleanup();
+		// React reports a caught error as ("%o\n\n%s\n\n%s\n", error, "The
+		// above error occurred in the <Boom> component.", ...).
+		for (const [, error, where] of consoleError.mock.calls) {
+			expect(error).toBeInstanceOf(Error);
+			expect(error instanceof Error && error.message).toBe("boom");
+			expect(where).toMatch(/The above error occurred in the <Boom> component/);
+		}
 		vi.restoreAllMocks();
 	});
 

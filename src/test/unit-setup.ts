@@ -5,9 +5,11 @@
  * Used for component tests, store tests, and pure utility tests.
  */
 
-import { afterEach, vi } from "vitest";
+import { format } from "node:util";
+import { afterAll, afterEach, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
 import { cleanup, configure } from "@testing-library/react";
+import { currentNavigationClaim } from "#test/utils/expect-navigation";
 
 // Configure React Testing Library for better async handling
 configure({
@@ -208,10 +210,85 @@ export function createMockResponse<T>(
 }
 
 /**
- * Global cleanup after each test.
- * Ensures React Testing Library cleans up properly.
- * Individual tests can call cleanup() manually if needed for iteration.
+ * A passing test prints nothing (2026-11-27). Console output from a test is
+ * either a defect (a React act() or key warning, a prop leaking to the DOM)
+ * or a log the test means to cause and should assert. Any console call a
+ * test did not claim fails it here, with the message. A test that expects
+ * one claims it with `vi.spyOn(console, "error").mockImplementation(...)`
+ * and asserts the call; the spy replaces this recorder for that test.
  */
+const CONSOLE_LEVELS = ["error", "warn", "log", "info", "debug"] as const;
+const unclaimed: string[] = [];
+for (const level of CONSOLE_LEVELS) {
+	console[level] = (...args: unknown[]) => {
+		unclaimed.push(`console.${level}: ${format(...args)}`);
+	};
+}
+
+// jsdom reports what it cannot do (following a link to another document,
+// for one) on its own virtual console, which Vitest forwards to the outer
+// console, past the recorder above. Route those reports to the recorder.
+type JsdomVirtualConsole = {
+	removeAllListeners: (event: string) => void;
+	on: (event: string, listener: (error: Error) => void) => void;
+};
+const jsdomConsole = (
+	globalThis as { jsdom?: { virtualConsole?: JsdomVirtualConsole } }
+).jsdom?.virtualConsole;
+jsdomConsole?.removeAllListeners("jsdomError");
+jsdomConsole?.on("jsdomError", (error) => {
+	unclaimed.push(`jsdom: ${error.message}`);
+});
+
+// jsdom queues those reports until the file's environment is torn down,
+// after every hook, so catch the usual cause where it starts: a click on a
+// link that would load another document. The click is cancelled after the
+// app's own handlers have run, and fails the test unless the test claimed
+// it with expectNavigation(), which records the destination instead.
+// Kept here so a test that stubs the URL global cannot break the listener.
+const RealURL = URL;
+globalThis.window?.addEventListener("click", (event) => {
+	if (event.defaultPrevented || !(event.target instanceof Element)) return;
+	const link = event.target.closest("a[href]");
+	if (!(link instanceof HTMLAnchorElement)) return;
+	const to = new RealURL(link.href, window.location.href);
+	const here = new RealURL(window.location.href);
+	if (
+		to.hash &&
+		to.origin + to.pathname + to.search ===
+			here.origin + here.pathname + here.search
+	) {
+		return;
+	}
+	event.preventDefault();
+	const claim = currentNavigationClaim();
+	if (claim) {
+		claim.hrefs.push(link.getAttribute("href") ?? link.href);
+		return;
+	}
+	unclaimed.push(
+		`navigation: a click on <a href="${link.getAttribute("href")}"> would load another document`,
+	);
+});
+
+/**
+ * Global cleanup after each test: React Testing Library unmounts first, so
+ * a warning raised while unmounting is checked too. Individual tests can
+ * call cleanup() manually if needed for iteration.
+ */
+function failOnUnclaimed(who: string) {
+	if (unclaimed.length === 0) return;
+	const calls = unclaimed.splice(0);
+	throw new Error(
+		`${who} wrote to the console ${calls.length} time(s). Fix the cause, or spy on the console method and assert the call:\n\n${calls.join("\n\n")}`,
+	);
+}
+
 afterEach(() => {
 	cleanup();
+	failOnUnclaimed("This test");
 });
+
+// Output that lands after a test's own teardown (a report jsdom queues, a
+// timer that fires late) still fails the file.
+afterAll(() => failOnUnclaimed("This file, after its last test,"));

@@ -1,7 +1,8 @@
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { expectConsole } from "#test/utils/expect-console";
 import type { BlogTopicEntry } from "./run-scheduled-blog";
 import {
 	acquireLock,
@@ -224,12 +225,23 @@ describe("triggerFbPostSession", () => {
 		}
 	});
 
-	it("never throws even when the binary is missing (fail-open)", () => {
+	it("never throws even when the binary is missing (fail-open)", async () => {
+		const consoleLog = expectConsole("log");
+		const consoleWarn = expectConsole("warn");
 		const prev = process.env.FB_POST_TRIGGER;
 		delete process.env.FB_POST_TRIGGER;
 		process.env.CLAUDE_BIN = "/nonexistent/claude-binary";
 		try {
 			expect(() => triggerFbPostSession("any-slug")).not.toThrow();
+			expect(consoleLog).toHaveBeenCalledExactlyOnceWith(
+				`fb-post trigger spawned for "any-slug" (pid ?) — log: ${join(tmpdir(), "fb-post-any-slug.log")}`,
+			);
+			// spawn() reports the missing binary later, as a logged warning.
+			await vi.waitFor(() =>
+				expect(consoleWarn).toHaveBeenCalledExactlyOnceWith(
+					"fb-post trigger spawn error (non-fatal): spawn /nonexistent/claude-binary ENOENT",
+				),
+			);
 		} finally {
 			if (prev !== undefined) process.env.FB_POST_TRIGGER = prev;
 			delete process.env.CLAUDE_BIN;

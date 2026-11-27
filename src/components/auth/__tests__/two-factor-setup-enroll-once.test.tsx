@@ -11,7 +11,7 @@
  * a rejecting client, and one opening must post once and keep the error up.
  */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { createElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -43,6 +43,7 @@ vi.mock("sonner", () => ({
 	toast: { success: vi.fn(), error: vi.fn() },
 }));
 
+import { expectConsole } from "#test/utils/expect-console";
 import { TwoFactorSetupDialog } from "../two-factor-setup-dialog";
 
 afterEach(() => {
@@ -70,10 +71,19 @@ function renderOpen(open: boolean) {
 	};
 }
 
-const settle = () => new Promise<void>((resolve) => setTimeout(resolve, 300));
+// Inside act: closing the dialog resets the enroll mutation, whose observer
+// notifies on TanStack's next tick, so the wait must let React apply it.
+const settle = () =>
+	act(() => new Promise<void>((resolve) => setTimeout(resolve, 300)));
+
+const ENROLL_FAILED = [
+	"[mutation] MFA enrollment failed",
+	{ action: "mfa_enrollment", error: "enroll rejected", status: 422 },
+] as const;
 
 describe("TwoFactorSetupDialog enrollment", () => {
 	it("posts one enrollment per opening when it fails, and keeps the error up", async () => {
+		const consoleError = expectConsole("error");
 		renderOpen(true);
 		expect(
 			await screen.findByText("Failed to start 2FA setup. Please try again."),
@@ -83,9 +93,12 @@ describe("TwoFactorSetupDialog enrollment", () => {
 		expect(
 			screen.getByText("Failed to start 2FA setup. Please try again."),
 		).toBeInTheDocument();
+		expect(consoleError).toHaveBeenCalledTimes(1);
+		expect(consoleError).toHaveBeenCalledWith(...ENROLL_FAILED);
 	});
 
 	it("posts again when it is closed and opened again", async () => {
+		const consoleError = expectConsole("error");
 		const { reopen } = renderOpen(true);
 		await screen.findByText("Failed to start 2FA setup. Please try again.");
 		reopen(false);
@@ -94,5 +107,8 @@ describe("TwoFactorSetupDialog enrollment", () => {
 		await screen.findByText("Failed to start 2FA setup. Please try again.");
 		await settle();
 		expect(auth.enroll).toHaveBeenCalledTimes(2);
+		expect(consoleError).toHaveBeenCalledTimes(2);
+		expect(consoleError).toHaveBeenNthCalledWith(1, ...ENROLL_FAILED);
+		expect(consoleError).toHaveBeenNthCalledWith(2, ...ENROLL_FAILED);
 	});
 });

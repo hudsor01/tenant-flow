@@ -25,7 +25,7 @@
  */
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import type { AtRule, Container, Rule } from "postcss";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { MfaVerificationDialog } from "#components/auth/mfa-verification-dialog";
@@ -103,8 +103,21 @@ async function rulesAt(
 	return out;
 }
 
+/**
+ * The dialog focuses the code input as it opens, and input-otp answers focus
+ * on timers: it re-reads the caret 0, 10 and 50ms later and looks for a
+ * password manager's badge at 0ms, setting its state from each. Let those
+ * land inside act() before the (slow) stylesheet compile below.
+ */
+async function settleCodeInput() {
+	await act(async () => {
+		await new Promise((resolve) => setTimeout(resolve, 60));
+	});
+}
+
 /** The code row: slots share the group's width, the row stops at 360px. */
 async function expectFluidCodeRow() {
+	await settleCodeInput();
 	const slots = [...document.querySelectorAll('[data-slot="input-otp-slot"]')];
 	expect(slots).toHaveLength(6);
 	for (const slot of slots) {

@@ -4,7 +4,7 @@
  * @vitest-environment jsdom
  */
 
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render } from "#test/utils/test-render";
@@ -89,10 +89,12 @@ describe("SendForSignatureButton preview", () => {
 
 		// Close the dialog mid-fetch (Cancel), then let the fetch resolve.
 		fireEvent.click(screen.getByRole("button", { name: /^cancel$/i }));
-		d.resolve(pdfResponse);
-
-		// Give the resolved chain a tick; window.open must stay un-called.
-		await new Promise((r) => setTimeout(r, 0));
+		// Give the resolved chain a tick, inside act: its finally clears the
+		// button's loading state. window.open must stay un-called.
+		await act(async () => {
+			d.resolve(pdfResponse);
+			await new Promise((r) => setTimeout(r, 0));
+		});
 		expect(openSpy).not.toHaveBeenCalled();
 	});
 
@@ -104,9 +106,10 @@ describe("SendForSignatureButton preview", () => {
 		// Close mid-fetch (aborts the controller), then reject the in-flight fetch
 		// the way a real aborted fetch does — the catch-path guard must stay silent.
 		fireEvent.click(screen.getByRole("button", { name: /^cancel$/i }));
-		d.reject(new DOMException("aborted", "AbortError"));
-
-		await new Promise((r) => setTimeout(r, 0));
+		await act(async () => {
+			d.reject(new DOMException("aborted", "AbortError"));
+			await new Promise((r) => setTimeout(r, 0));
+		});
 		expect(openSpy).not.toHaveBeenCalled();
 		expect(toast.error).not.toHaveBeenCalled();
 	});

@@ -19,6 +19,7 @@ vi.mock("sonner", () => ({
 	toast: { success: vi.fn(), error: vi.fn() },
 }));
 
+import { expectConsole } from "#test/utils/expect-console";
 import { blogQueries } from "./query-keys/blog-keys";
 import {
 	useApproveBlogMutation,
@@ -76,6 +77,7 @@ describe("useApproveBlogMutation", () => {
 			ok: false,
 			error: "Not authorized",
 		});
+		const consoleError = expectConsole("error");
 
 		const { result } = renderWithClient(() => useApproveBlogMutation());
 
@@ -84,6 +86,10 @@ describe("useApproveBlogMutation", () => {
 		).rejects.toMatchObject({
 			message: expect.stringContaining("Not authorized"),
 		});
+		expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+			"[mutation] Approve blog post failed",
+			expect.objectContaining({ error: "Not authorized" }),
+		);
 	});
 });
 
@@ -121,6 +127,7 @@ describe("useRejectBlogMutation", () => {
 			ok: false,
 			error: "Failed to reject post",
 		});
+		const consoleError = expectConsole("error");
 
 		const { result } = renderWithClient(() => useRejectBlogMutation());
 
@@ -129,5 +136,9 @@ describe("useRejectBlogMutation", () => {
 		).rejects.toMatchObject({
 			message: expect.stringContaining("Failed to reject post"),
 		});
+		expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+			"[mutation] Reject blog post failed",
+			expect.objectContaining({ error: "Failed to reject post" }),
+		);
 	});
 });

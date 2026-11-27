@@ -11,6 +11,7 @@
 
 import { act, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { expectConsole } from "#test/utils/expect-console";
 import { render } from "#test/utils/test-render";
 import { NumberTicker } from "../number-ticker";
 
@@ -75,17 +76,18 @@ describe("NumberTicker", () => {
 	});
 
 	it("cancels the rAF chain on unmount (no setState-after-unmount warning)", async () => {
-		const consoleError = vi
-			.spyOn(console, "error")
-			.mockImplementation(() => {});
+		const consoleError = expectConsole("error");
 		const { unmount } = render(<NumberTicker value={5} duration={2000} />);
-		await vi.advanceTimersByTimeAsync(500);
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(500);
+		});
 		unmount();
 		await vi.advanceTimersByTimeAsync(2000);
 		expect(consoleError).not.toHaveBeenCalledWith(
 			expect.stringContaining("unmounted component"),
 		);
-		consoleError.mockRestore();
+		// A frame after unmount would set state outside act() and warn.
+		expect(consoleError).not.toHaveBeenCalled();
 	});
 
 	it("snaps to the final value immediately under prefers-reduced-motion (D-04)", () => {
@@ -182,8 +184,12 @@ describe("NumberTicker", () => {
 					time: performance.now(),
 				}) as IntersectionObserverEntry;
 
-			capturedCallback([makeEntry(false)], {} as IntersectionObserver);
-			capturedCallback([makeEntry(true)], {} as IntersectionObserver);
+			const callback = capturedCallback;
+			// The observer's callback sets the hook's state, as a real scroll does.
+			act(() => {
+				callback([makeEntry(false)], {} as IntersectionObserver);
+				callback([makeEntry(true)], {} as IntersectionObserver);
+			});
 		}
 
 		// hasIntersected is one-shot: stays true, effect deps unchanged, animation must NOT
