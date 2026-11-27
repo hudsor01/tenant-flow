@@ -4,6 +4,7 @@ import {
 	CheckCircle2,
 	FileCheck,
 	FileText,
+	Loader2,
 	X,
 } from "lucide-react";
 import { Badge } from "#components/ui/badge";
@@ -25,6 +26,8 @@ interface BulkImportValidateStepProps<T> {
 	 *  the whole CSV file is malformed (mismatched quotes, wrong delimiter,
 	 *  unsupported encoding). Renders a distinct CSV-level banner. */
 	csvMalformed?: boolean;
+	/** The rows are still being matched to records (`config.resolveRows`). */
+	resolving?: boolean;
 }
 
 // Headers render as "Unit Number" rather than "unit_number" — same display
@@ -41,6 +44,7 @@ export function BulkImportValidateStep<T>({
 	parseResult,
 	templateHeaders,
 	csvMalformed,
+	resolving = false,
 }: BulkImportValidateStepProps<T>) {
 	const parsedData = parseResult?.rows ?? [];
 	const errorCount = parsedData.filter((row) => row.errors.length > 0).length;
@@ -272,6 +276,16 @@ export function BulkImportValidateStep<T>({
 							</tbody>
 						</table>
 					</ScrollRegion>
+				</div>
+			) : resolving ? (
+				<div className="card-standard p-8 text-center" role="status">
+					<Loader2
+						className="size-6 mx-auto mb-3 animate-spin text-muted-foreground"
+						aria-hidden="true"
+					/>
+					<p className="mb-0 typography-small text-muted-foreground">
+						Matching each row to your properties, units and tenants…
+					</p>
 				</div>
 			) : (
 				<div className="card-standard p-8 text-center">

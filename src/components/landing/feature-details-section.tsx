@@ -35,7 +35,8 @@ const FEATURES: FeatureDetail[] = [
 			`Starter covers up to ${planLimits("starter")}, Growth up to ${planLimits("growth")}, and Max has no limit. An account at its plan's cap sees an upgrade prompt when it adds one more.`,
 		],
 		guide: {
-			label: "Import your properties, units and tenants from a CSV file",
+			label:
+				"Import your properties, units, tenants and leases from a CSV file",
 			slug: "import-properties-from-csv",
 		},
 	},

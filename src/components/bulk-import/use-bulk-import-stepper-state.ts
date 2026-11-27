@@ -55,6 +55,8 @@ export function useBulkImportStepperState<T>({
 	const [cumulative, setCumulative] = useState(ZERO_CUMULATIVE);
 	// Retries disable the auto-close so the user can read cumulative totals.
 	const [retryCount, setRetryCount] = useState(0);
+	/** True while `config.resolveRows` matches the parsed rows to records. */
+	const [resolving, setResolving] = useState(false);
 	const mountedRef = useMountedRef();
 
 	const bulkImportMutation = useBulkImportMutation<T>({
@@ -106,7 +108,41 @@ export function useBulkImportStepperState<T>({
 			try {
 				const text = await selectedFile.text();
 				const parsed = config.parseAndValidate(text);
-				setParseResult(parsed);
+				if (!config.resolveRows) {
+					setParseResult(parsed);
+					return;
+				}
+				setResolving(true);
+				try {
+					setParseResult(await config.resolveRows(parsed));
+				} catch (error) {
+					// The lookup failed (offline, a server error): hold every row
+					// back with the reason, rather than import unmatched rows.
+					logger.error("Failed to match CSV rows", {
+						error,
+						entity: config.entityLabel.plural,
+					});
+					setParseResult({
+						...parsed,
+						rows: parsed.rows.map((row) =>
+							row.parsed
+								? {
+										...row,
+										parsed: null,
+										errors: [
+											{
+												field: "row",
+												message:
+													"Couldn't check this row against your records. Upload the file again.",
+											},
+										],
+									}
+								: row,
+						),
+					});
+				} finally {
+					setResolving(false);
+				}
 			} catch (error) {
 				logger.error("Failed to parse CSV", {
 					error,
@@ -189,6 +225,7 @@ export function useBulkImportStepperState<T>({
 		result,
 		cumulative,
 		retryCount,
+		resolving,
 		isImporting: bulkImportMutation.isPending,
 		validRowCount,
 		hasErrors,
