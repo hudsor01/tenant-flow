@@ -113,4 +113,20 @@ describe("security.txt", () => {
 			"do not currently offer monetary bounties",
 		);
 	});
+	it("expires less than a year out and is renewed before it lapses (SP5)", () => {
+		// RFC 9116 section 2.5.5: Expires SHOULD be less than a year in the
+		// future, and a reader ignores the file once it has passed. This
+		// fails 30 days before the date, so the renewal happens on a PR.
+		const value = SECURITY_TXT.match(/^Expires: (\S+)$/m)?.[1];
+		const expires = value ? Date.parse(value) : Number.NaN;
+		expect(Number.isNaN(expires), "Expires must be an ISO 8601 date").toBe(
+			false,
+		);
+		const daysLeft = (expires - Date.now()) / (24 * 60 * 60 * 1000);
+		expect(
+			daysLeft,
+			`security.txt expires in ${Math.floor(daysLeft)} days; set Expires to just under a year from today`,
+		).toBeGreaterThan(30);
+		expect(daysLeft, "Expires is more than a year out").toBeLessThan(366);
+	});
 });

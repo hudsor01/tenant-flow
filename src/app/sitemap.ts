@@ -1,5 +1,8 @@
 import type { MetadataRoute } from "next";
 import { HELP_ARTICLES } from "#app/help/help-articles";
+import { TAX_DATA_CHECKED_AT } from "#app/resources/landlord-tax-deduction-tracker/tax-deduction-data";
+import { CHECKLIST_REVIEWED_AT } from "#app/resources/seasonal-maintenance-checklist/checklist-review";
+import { DEPOSIT_RULES_CHECKED_AT } from "#app/resources/security-deposit-reference-card/deposit-data";
 import { env } from "#env";
 import { blogAnonClient } from "#lib/blog/blog-queries";
 import { createLogger } from "#lib/frontend-logger";
@@ -22,8 +25,8 @@ const TERMS_LAST_UPDATED = "2026-11-25";
 const PRIVACY_LAST_UPDATED = "2026-11-25";
 const SECURITY_POLICY_LAST_UPDATED = "2026-11-26";
 
-// "Last meaningful copy refresh" for the static marketing/company/compare/
-// resource pages. These pages don't have visible "Last Updated" lines
+// "Last meaningful copy refresh" for the static marketing, company and
+// compare pages. These pages don't have visible "Last Updated" lines
 // like the legal pages, but they DO change in coordinated copy waves
 // (pricing refreshes, feature reframings, brand updates). Bump this
 // constant — together with whatever copy change triggered it — whenever
@@ -34,7 +37,7 @@ const SECURITY_POLICY_LAST_UPDATED = "2026-11-26";
 // Battle-test Session 5 (P3) flagged that sparse lastmod coverage looked
 // unintentional; this constant + per-page entries below close that gap
 // without resorting to file-mtime ("today" on every commit) noise.
-const STATIC_PAGES_LAST_UPDATED = "2026-05-15";
+const STATIC_PAGES_LAST_UPDATED = "2026-11-26";
 
 // `changeFrequency` is no longer consulted by Google as of 2023, and the
 // `lastmod` field is the only freshness signal that still affects crawl
@@ -96,13 +99,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		},
 	];
 
+	// Each resource carries the review date it prints under its H1 and gives
+	// as its JSON-LD dateModified, so its lastmod is that date.
 	const resourcePages: MetadataRoute.Sitemap = [
-		"seasonal-maintenance-checklist",
-		"landlord-tax-deduction-tracker",
-		"security-deposit-reference-card",
-	].map((resource) => ({
+		["seasonal-maintenance-checklist", CHECKLIST_REVIEWED_AT],
+		["landlord-tax-deduction-tracker", TAX_DATA_CHECKED_AT],
+		["security-deposit-reference-card", DEPOSIT_RULES_CHECKED_AT],
+	].map(([resource, reviewedAt]) => ({
 		url: `${baseUrl}/resources/${resource}`,
-		lastModified: STATIC_PAGES_LAST_UPDATED,
+		lastModified: reviewedAt,
 		priority: 0.7,
 	}));
 
