@@ -210,7 +210,6 @@ export type SignLease = z.infer<typeof signLeaseSchema>;
 export type LeaseWithSignature = z.infer<typeof leaseWithSignatureSchema>;
 
 // Export types
-export type LeaseInput = z.infer<typeof leaseInputSchema>;
 export type LeaseUpdateInput = z.infer<typeof leaseUpdateSchema>;
 export type LeaseQuery = z.infer<typeof leaseQuerySchema>;
 export type LeaseCreate = z.infer<typeof leaseCreateSchema>;

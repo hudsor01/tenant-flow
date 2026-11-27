@@ -186,10 +186,16 @@ export function Tenants({
 							</EmptyDescription>
 						</EmptyHeader>
 						<EmptyContent>
-							<Button onClick={handleAddClick}>
-								<UserPlus className="size-5 mr-2" />
-								Add Your First Tenant
-							</Button>
+							<div className="flex flex-wrap items-center justify-center gap-3">
+								<BulkImportDialog
+									config={tenantBulkImportConfig()}
+									triggerLabel="Import Tenants"
+								/>
+								<Button onClick={handleAddClick}>
+									<UserPlus className="size-5 mr-2" />
+									Add Your First Tenant
+								</Button>
+							</div>
 						</EmptyContent>
 					</Empty>
 				</BlurFade>

@@ -44,6 +44,7 @@ export function BulkImportStepper<T>({
 		result,
 		cumulative,
 		retryCount,
+		resolving,
 		isImporting,
 		validRowCount,
 		hasErrors,
@@ -142,6 +143,7 @@ export function BulkImportStepper<T>({
 						<BulkImportValidateStep
 							file={file}
 							parseResult={parseResult}
+							resolving={resolving}
 							templateHeaders={config.templateHeaders}
 							csvMalformed={csvMalformed}
 						/>
@@ -182,6 +184,7 @@ export function BulkImportStepper<T>({
 					<Button
 						onClick={handleUpload}
 						disabled={
+							resolving ||
 							validRowCount === 0 ||
 							hasErrors ||
 							(parseResult?.tooManyRows ?? false) ||

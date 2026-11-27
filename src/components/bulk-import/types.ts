@@ -44,6 +44,15 @@ export interface BulkImportConfig<TInsert> {
 	requiredFields: string;
 	optionalFields?: string;
 	parseAndValidate: (csvText: string) => BulkImportParseResult<TInsert>;
+	/**
+	 * An optional async step after parsing, before the preview: match rows
+	 * to the owner's records (the lease importer turns property names, unit
+	 * numbers and tenant emails into ids). It returns the same rows, with an
+	 * error on any it could not resolve.
+	 */
+	resolveRows?: (
+		result: BulkImportParseResult<TInsert>,
+	) => Promise<BulkImportParseResult<TInsert>>;
 	insertRow: (row: TInsert) => Promise<{ error: Error | null }>;
 	invalidateKeys: QueryKey[];
 }

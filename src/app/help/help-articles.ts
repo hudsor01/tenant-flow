@@ -40,10 +40,10 @@ const REVIEWED_AT = "2026-11-25";
 export const HELP_ARTICLES: HelpArticle[] = [
 	{
 		slug: "import-properties-from-csv",
-		title: "Import your properties, units and tenants from a CSV file",
-		metaTitle: "Import Properties, Units and Tenants from CSV",
+		title: "Import your properties, units, tenants and leases from a CSV file",
+		metaTitle: "Import Properties, Tenants and Leases from CSV",
 		description:
-			"Import properties, units and tenants into TenantFlow from a CSV file: the template, the columns each import needs, the 100-row limit, and fixing errors.",
+			"Import properties, units, tenants and leases into TenantFlow from CSV: each template, the columns it needs, the 100-row limit, and fixing errors.",
 		summary:
 			"Bring existing records in from a spreadsheet, up to 100 rows per file.",
 		intro:
@@ -52,7 +52,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 			{
 				heading: "Where each import lives",
 				paragraphs: [
-					"Properties: Bulk Import on the Properties page. Units: Import Units in the Units card of a property's page, for property types with several units (single-family homes, condos and townhouses have one unit, added on their page). Tenants: Import Tenants on the Tenants page, once you have at least one tenant.",
+					"Properties: Bulk Import on the Properties page. Units: Import Units in the Units card of a property's page, for property types with several units (single-family homes, condos and townhouses have one unit, added on their page). Tenants: Import Tenants on the Tenants page. Leases: Import Leases on the Leases page. Import properties, units and tenants first: a lease row names them.",
 				],
 			},
 			{
@@ -89,7 +89,8 @@ export const HELP_ARTICLES: HelpArticle[] = [
 			{
 				heading: "Leases",
 				paragraphs: [
-					"There is a lease importer, but its rows need each unit's and tenant's internal ID, which the app doesn't show. Create leases with New Lease instead.",
+					"A lease row names its property, unit and tenant the way you know them: property (its name), unit (its number; leave it blank when the property has one unit) and tenant_email, then start_date and end_date (YYYY-MM-DD), rent_amount, security_deposit and payment_day. rent_currency is optional.",
+					"Before anything is imported, each row is matched to your records, ignoring capital letters and extra spaces. The preview names any row that doesn't match, such as a property name you don't have or two properties with the same name, and nothing imports until every row matches. Imported leases start as drafts.",
 				],
 			},
 		],
@@ -104,7 +105,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 			},
 		],
 		publishedAt: PUBLISHED_AT,
-		reviewedAt: REVIEWED_AT,
+		reviewedAt: "2026-11-26",
 	},
 	{
 		slug: "add-a-tenant-and-create-a-lease",

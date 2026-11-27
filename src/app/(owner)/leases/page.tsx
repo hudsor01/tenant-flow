@@ -234,7 +234,13 @@ export default function LeasesPage() {
 							to start tracking dates, rent, and deposits.
 						</EmptyDescription>
 					</EmptyHeader>
-					<div className="flex items-center gap-3 mt-2">
+					{/* Import from the empty page too: it is where a landlord
+					    moving existing leases in starts. */}
+					<div className="flex flex-wrap items-center justify-center gap-3 mt-2">
+						<BulkImportDialog
+							config={leaseBulkImportConfig()}
+							triggerLabel="Import Leases"
+						/>
 						<Link
 							href="/leases/new"
 							className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-text dark:hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
