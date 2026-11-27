@@ -203,7 +203,7 @@ export function trialEmailCopy(
 				paragraphs: [
 					hi,
 					"Your 14-day free trial has started. No card is needed.",
-					"The quickest way to see how TenantFlow works is to add a property and its units. From there you can add tenants, build a lease from a state template and track rent on the lease's ledger.",
+					"The quickest way to see how TenantFlow works is to add a property and its units. From there you can add tenants, create a lease for a unit and track rent on the lease's ledger.",
 				],
 				ctaLabel: "Add your first property",
 				ctaPath: ADD_PROPERTY_PATH,
