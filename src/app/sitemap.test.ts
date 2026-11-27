@@ -1,6 +1,9 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { TAX_DATA_CHECKED_AT } from "#app/resources/landlord-tax-deduction-tracker/tax-deduction-data";
+import { CHECKLIST_REVIEWED_AT } from "#app/resources/seasonal-maintenance-checklist/checklist-review";
+import { DEPOSIT_RULES_CHECKED_AT } from "#app/resources/security-deposit-reference-card/deposit-data";
 
 vi.mock("#env", () => ({
 	env: { NEXT_PUBLIC_APP_URL: "https://tenantflow.app" },
@@ -180,9 +183,6 @@ describe("sitemap()", () => {
 			"https://tenantflow.app/compare/buildium",
 			"https://tenantflow.app/compare/appfolio",
 			"https://tenantflow.app/compare/rentredi",
-			"https://tenantflow.app/resources/seasonal-maintenance-checklist",
-			"https://tenantflow.app/resources/landlord-tax-deduction-tracker",
-			"https://tenantflow.app/resources/security-deposit-reference-card",
 		];
 
 		const firstLastmod = entries.find(
@@ -261,19 +261,21 @@ describe("sitemap()", () => {
 		}
 	});
 
-	it("Test 7: resource pages are present", async () => {
+	it("Test 7: resource pages carry the review date each page prints", async () => {
 		const { default: sitemap } = await import("./sitemap");
 		const entries = await sitemap();
-		const urls = entries.map((e) => e.url);
-		expect(urls).toContain(
-			"https://tenantflow.app/resources/seasonal-maintenance-checklist",
-		);
-		expect(urls).toContain(
-			"https://tenantflow.app/resources/landlord-tax-deduction-tracker",
-		);
-		expect(urls).toContain(
-			"https://tenantflow.app/resources/security-deposit-reference-card",
-		);
+		const reviewed = {
+			"seasonal-maintenance-checklist": CHECKLIST_REVIEWED_AT,
+			"landlord-tax-deduction-tracker": TAX_DATA_CHECKED_AT,
+			"security-deposit-reference-card": DEPOSIT_RULES_CHECKED_AT,
+		};
+		for (const [slug, date] of Object.entries(reviewed)) {
+			const entry = entries.find(
+				(e) => e.url === `https://tenantflow.app/resources/${slug}`,
+			);
+			expect(entry, `/resources/${slug} is in the sitemap`).toBeDefined();
+			expect(entry?.lastModified).toBe(date);
+		}
 	});
 
 	it("deduplicates blog categories and uses the most recent post timestamp", async () => {
