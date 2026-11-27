@@ -132,7 +132,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: "Can I try TenantFlow risk-free?",
 				answer:
-					"Yes — start the 14-day trial with no credit card required. Bring your own properties, leases, and documents. Cancel any time.",
+					"Yes — start the 14-day trial with no credit card required. It covers 1 property and 5 units; lease e-sign and the other Growth and Max features start when you choose that plan at checkout. Cancel any time.",
 			},
 		],
 	},

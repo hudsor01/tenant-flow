@@ -29,12 +29,12 @@ const STATIC_HEAD = `# TenantFlow
 
 TenantFlow is a SaaS for independent landlords who want a single source of truth for their rental properties. The product centralizes lease documents (with built-in e-signing on Growth and Max tiers), maintenance request tracking, tenant records, and financial reporting with year-end summaries. Pricing tiers are Starter ($19/mo), Growth ($49/mo), and Max ($149/mo).
 
-The site is operated by [Hudson Digital Solutions](https://hudsondigitalsolutions.com). The blog publishes practical landlord guides on screening, lease lifecycle, maintenance, taxes, and software comparisons.
+The site is operated by [Hudson Digital Solutions](https://hudsondigitalsolutions.com). The blog publishes guides to running rentals with TenantFlow: leases, maintenance and inspections, the rent ledger and tax season.
 
 ## Product
 
 - [Features overview](${SITE}/features): the property, unit, lease, tenant, maintenance, and document modules.
-- [Pricing](${SITE}/pricing): plan caps, feature comparison, and a free 14-day trial across all tiers.
+- [Pricing](${SITE}/pricing): plan caps, feature comparison, and a 14-day free trial (1 property and 5 units; Growth and Max features, lease e-sign included, start when that plan is chosen at checkout).
 - [About](${SITE}/about): product mission and positioning.
 
 ## Comparisons
