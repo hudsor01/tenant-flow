@@ -46,6 +46,8 @@ interface ClaimedReminder {
 	id: string;
 	lease_id: string;
 	reminder_type: string;
+	/** The lease end date the reminder was queued for (migration 20261127152501). */
+	lease_end_date: string;
 	attempt_count: number;
 }
 
@@ -286,6 +288,22 @@ export async function handleRequest(
 						.eq("id", row.id);
 					captureWebhookError(new Error("lease or owner not found for reminder"), {
 						action: "drain_lookup",
+						reminder_id: row.id,
+						lease_id: row.lease_id,
+					});
+					continue;
+				}
+
+				// The lease moved on since the reminder was queued: renewed (a new
+				// end date, which queues its own reminders) or terminated (end date
+				// set to the day it ended). The queued end date no longer holds, so
+				// neither the in-app notification nor the email may announce it.
+				if (lease.end_date !== row.lease_end_date) {
+					await supabase
+						.from("lease_reminders")
+						.update({ delivery_status: "expired" })
+						.eq("id", row.id);
+					logEvent("send-lease-reminders: reminder expired, end date changed", {
 						reminder_id: row.id,
 						lease_id: row.lease_id,
 					});

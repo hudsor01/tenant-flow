@@ -733,6 +733,7 @@ export type Database = {
 					delivered_at: string | null;
 					delivery_status: string;
 					id: string;
+					lease_end_date: string;
 					lease_id: string;
 					reminder_type: string;
 					resend_message_id: string | null;
@@ -745,6 +746,7 @@ export type Database = {
 					delivered_at?: string | null;
 					delivery_status?: string;
 					id?: string;
+					lease_end_date: string;
 					lease_id: string;
 					reminder_type: string;
 					resend_message_id?: string | null;
@@ -757,6 +759,7 @@ export type Database = {
 					delivered_at?: string | null;
 					delivery_status?: string;
 					id?: string;
+					lease_end_date?: string;
 					lease_id?: string;
 					reminder_type?: string;
 					resend_message_id?: string | null;
@@ -3101,6 +3104,7 @@ export type Database = {
 					delivered_at: string | null;
 					delivery_status: string;
 					id: string;
+					lease_end_date: string;
 					lease_id: string;
 					reminder_type: string;
 					resend_message_id: string | null;

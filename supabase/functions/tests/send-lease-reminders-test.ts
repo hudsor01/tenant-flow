@@ -17,6 +17,7 @@
 //   - multi-row batch: a failed middle row never aborts the batch; sent counts only successes
 //   - transient leases-lookup error -> row left 'claimed' (reaper retries), no failed stamp
 //   - genuine lease-not-found -> delivery_status='failed', no notification/email
+//   - lease end date changed since queueing -> delivery_status='expired', no notification/email
 //   - bad/missing Bearer -> 401, 0 sends
 //
 // Run: deno test --allow-all --no-check \
@@ -47,6 +48,7 @@ interface ClaimedRow {
 	id: string;
 	lease_id: string;
 	reminder_type: string;
+	lease_end_date: string;
 	attempt_count: number;
 }
 
@@ -294,7 +296,7 @@ function baseScenario(overrides: Partial<Scenario> = {}): Scenario {
 	return {
 		flagValue: "true",
 		claimed: [
-			{ id: "reminder-1", lease_id: "lease-1", reminder_type: "30_days", attempt_count: 1 },
+			{ id: "reminder-1", lease_id: "lease-1", reminder_type: "30_days", lease_end_date: "2026-08-30", attempt_count: 1 },
 		],
 		leases: { "lease-1": leaseRow(ownerRow()) },
 		suppressed: false,
@@ -592,7 +594,7 @@ async function assertLabelForType(
 	await withResendStub({ ok: true }, async (fetchCount, captured) => {
 		const scenario = baseScenario({
 			claimed: [
-				{ id: "reminder-1", lease_id: "lease-1", reminder_type: reminderType, attempt_count: 1 },
+				{ id: "reminder-1", lease_id: "lease-1", reminder_type: reminderType, lease_end_date: "2026-08-30", attempt_count: 1 },
 			],
 		});
 		const { client } = makeClient(scenario);
@@ -730,6 +732,25 @@ Deno.test(
 );
 
 Deno.test(
+	"send-lease-reminders: lease end date changed since queueing (renewed or terminated) -> 'expired', no notification/email",
+	withResendStub({ ok: true }, async (fetchCount) => {
+		// The reminder was queued for 2026-08-30; the lease was renewed to
+		// 2027-08-30 before the drain. Announcing the old date would be false, and
+		// the new term queues its own reminders, so this one expires untouched.
+		const renewed = { ...leaseRow(ownerRow()), end_date: "2027-08-30" };
+		const scenario = baseScenario({ leases: { "lease-1": renewed } });
+		const { client, calls } = makeClient(scenario);
+		await handleRequest(makeReq(`Bearer ${INVOKE_SECRET}`), {
+			createClient: () => client,
+		});
+		assertEquals(fetchCount(), 0);
+		assertEquals(findNotification(calls), undefined);
+		const stamp = calls.updates.find((u) => u.table === "lease_reminders");
+		assertEquals(stamp?.payload.delivery_status, "expired");
+	}),
+);
+
+Deno.test(
 	"send-lease-reminders: re-drain of an already-sent row (claim returns nothing) -> 0 sends",
 	withResendStub({ ok: true }, async (fetchCount) => {
 		// claim_lease_reminders only returns 'pending' rows; a 'sent' row is never
@@ -758,9 +779,9 @@ Deno.test(
 		const ownerC = ownerRow({ id: "owner-c", email: "c@example.com" });
 		const scenario = baseScenario({
 			claimed: [
-				{ id: "reminder-a", lease_id: "lease-a", reminder_type: "30_days", attempt_count: 1 },
-				{ id: "reminder-b", lease_id: "lease-b", reminder_type: "7_days", attempt_count: 1 },
-				{ id: "reminder-c", lease_id: "lease-c", reminder_type: "1_day", attempt_count: 1 },
+				{ id: "reminder-a", lease_id: "lease-a", reminder_type: "30_days", lease_end_date: "2026-08-30", attempt_count: 1 },
+				{ id: "reminder-b", lease_id: "lease-b", reminder_type: "7_days", lease_end_date: "2026-08-30", attempt_count: 1 },
+				{ id: "reminder-c", lease_id: "lease-c", reminder_type: "1_day", lease_end_date: "2026-08-30", attempt_count: 1 },
 			],
 			leases: {
 				"lease-a": { ...leaseRow(ownerA), id: "lease-a" },
