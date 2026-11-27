@@ -198,10 +198,13 @@ describe("the scheduled rent and expenses chart", () => {
 	// added the v3 pt-4 / sm:pt-6 on top, 40 / 48px under the totals (the G4
 	// sweep).
 	it("adds no top padding of its own under the totals", async () => {
+		// Compiled before the render: the chart sets state on its first
+		// animation frame, which a slow compile after the render would
+		// let land outside act.
+		const designSystem = await loadProjectDesignSystem();
 		render(<ChartAreaInteractive />);
 		const content = document.querySelector("[data-slot=card-content]");
 		if (!content) throw new Error("the chart rendered no card content");
-		const designSystem = await loadProjectDesignSystem();
 		const css = designSystem
 			.candidatesToCss([...content.classList])
 			.filter((rule): rule is string => rule !== null)

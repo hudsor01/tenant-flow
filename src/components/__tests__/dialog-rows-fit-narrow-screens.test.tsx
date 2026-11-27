@@ -27,7 +27,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen } from "@testing-library/react";
 import type { AtRule, Container, Rule } from "postcss";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import type { ReactElement } from "react";
+import { beforeAll, describe, expect, it, onTestFinished, vi } from "vitest";
 import { MfaVerificationDialog } from "#components/auth/mfa-verification-dialog";
 import { VerifyStep } from "#components/auth/two-factor-setup-steps";
 import { BulkImportStepper } from "#components/bulk-import/bulk-import-stepper";
@@ -104,20 +105,34 @@ async function rulesAt(
 }
 
 /**
- * The dialog focuses the code input as it opens, and input-otp answers focus
- * on timers: it re-reads the caret 0, 10 and 50ms later and looks for a
- * password manager's badge at 0ms, setting its state from each. Let those
- * land inside act() before the (slow) stylesheet compile below.
+ * Renders a dialog holding the code input, settled. The dialog focuses the
+ * input as it opens, and input-otp answers on two clocks, each setting its
+ * state: timers (the caret re-read at 0, 10 and 50ms, the password-manager
+ * badge check, a 1s interval), held still here from before the render, and
+ * the document's selectionchange event, which jsdom fires on its own
+ * schedule and is awaited inside act. The stylesheet compile that follows
+ * is slow enough on a CI runner for either to land outside act otherwise.
  */
-async function settleCodeInput() {
+async function renderCodeRow(ui: ReactElement) {
+	vi.useFakeTimers({
+		toFake: ["setTimeout", "clearTimeout", "setInterval", "clearInterval"],
+	});
+	onTestFinished(() => {
+		vi.useRealTimers();
+	});
+	const selectionSettled = new Promise<void>((resolve) => {
+		document.addEventListener("selectionchange", () => resolve(), {
+			once: true,
+		});
+	});
+	render(ui);
 	await act(async () => {
-		await new Promise((resolve) => setTimeout(resolve, 60));
+		await selectionSettled;
 	});
 }
 
 /** The code row: slots share the group's width, the row stops at 360px. */
 async function expectFluidCodeRow() {
-	await settleCodeInput();
 	const slots = [...document.querySelectorAll('[data-slot="input-otp-slot"]')];
 	expect(slots).toHaveLength(6);
 	for (const slot of slots) {
@@ -188,7 +203,7 @@ describe("rows inside a dialog fit a phone-width dialog", () => {
 	it(
 		"the two-factor setup's code row shares its width between the six slots",
 		async () => {
-			render(
+			await renderCodeRow(
 				<Dialog open>
 					<DialogContent>
 						<VerifyStep
@@ -210,7 +225,7 @@ describe("rows inside a dialog fit a phone-width dialog", () => {
 	it(
 		"the sign-in verification's code row shares its width between the six slots",
 		async () => {
-			render(
+			await renderCodeRow(
 				<MfaVerificationDialog
 					open
 					onOpenChange={vi.fn()}
