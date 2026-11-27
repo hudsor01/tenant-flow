@@ -10,6 +10,7 @@ import { PricingFaqItem } from "#components/pricing/pricing-faq-item";
 import { Button } from "#components/ui/button";
 import { Card } from "#components/ui/card";
 import { ctaTrackAttributes } from "#lib/analytics/cta-attributes";
+import { TRIAL_FAQ } from "../../data/trial-faq";
 
 const STATS = [
 	{
@@ -33,6 +34,9 @@ const STATS = [
 ];
 
 const FAQS = [
+	// What the trial includes, before any plan question (it is the one the
+	// "Start free" buttons raise).
+	TRIAL_FAQ,
 	{
 		question: "Can I change plans later?",
 		answer:
@@ -197,7 +201,7 @@ export function PricingCtaSection() {
 						{[
 							{
 								title: "14-day free trial",
-								desc: "Add properties, upload documents, and generate leases — e-sign included on Growth and Max. Keep everything when you subscribe.",
+								desc: "Add a property and up to five units, upload documents and build leases. Lease e-sign starts when you choose Growth or Max, and you keep everything when you subscribe.",
 							},
 							{
 								title: "Billing that flexes with you",

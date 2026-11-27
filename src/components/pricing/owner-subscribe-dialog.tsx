@@ -134,8 +134,11 @@ export function OwnerSubscribeDialog({
 						Join TenantFlow {planName ? `· ${planName}` : ""}
 					</DialogTitle>
 					<DialogDescription className="mb-0">
-						Create your account to start your 14-day free trial. No credit card
-						required.
+						Create your account to start your 14-day free trial: 1 property and
+						up to 5 units, no credit card required.
+						{planName
+							? ` ${planName}'s features start when you choose it at checkout.`
+							: ""}
 					</DialogDescription>
 				</DialogHeader>
 				<form

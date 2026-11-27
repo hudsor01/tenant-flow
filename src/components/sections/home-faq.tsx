@@ -1,6 +1,7 @@
 import { FaqsAccordion } from "#components/faq-accordion";
 import { BlurFade } from "#components/ui/blur-fade";
 import { cn } from "#lib/utils";
+import { TRIAL_FAQ } from "../../data/trial-faq";
 
 interface HomeFaqProps {
 	className?: string;
@@ -27,11 +28,7 @@ export const homeFaqs = [
 		answer:
 			"Yes. CSV import covers properties, units, tenants, and leases; existing lease PDFs and receipts upload directly into the document vault. Reach out to support if you want help validating an import for a non-trivial portfolio.",
 	},
-	{
-		question: "What's included in the free trial?",
-		answer:
-			"14 days, with no credit card required. The trial starts at 1 property and 5 units. Pick a plan at checkout while more than two days remain and the rest of the trial runs on that plan's limits and features, including lease e-sign on Growth and Max. Checkout takes a card and charges nothing until the trial ends. If you don't pick a plan, you're never charged.",
-	},
+	TRIAL_FAQ,
 ];
 
 export function HomeFaq({ className }: HomeFaqProps) {

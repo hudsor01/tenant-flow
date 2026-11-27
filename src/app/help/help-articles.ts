@@ -173,7 +173,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 		intro:
 			"Send a draft lease to its tenant from the lease's page. The tenant signs from an emailed link, with no account; you sign in the app. When both have signed, the lease becomes active and the executed PDF is filed on it.",
 		plans:
-			"Lease e-sign is on the Growth plan (25 signature requests a month) and the Max plan (unlimited). On Starter, sending asks you to upgrade.",
+			"Lease e-sign is on the Growth plan (25 signature requests a month) and the Max plan (unlimited). On Starter, or during the free trial before you choose Growth or Max at checkout, sending asks you to upgrade.",
 		sections: [
 			{
 				heading: "Before you send",
