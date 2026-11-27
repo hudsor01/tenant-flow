@@ -52,7 +52,8 @@ const SLUG_PREFIX = `phase-6-rls-test-${SLUG_SUFFIX}`;
  *   - content: ~1,500 words, 5 H2s, contains "landlord", no banlist phrases,
  *     0 DocuSeal mentions (gates 1-3, 8, 9)
  *   - slug: `${SLUG_PREFIX}-valid` (gate 4 + CHECK)
- *   - meta_description: 100 chars (gate 5)
+ *   - meta_description: 120-155 chars (gate 5, since 20261126174726)
+ *   - seo_title: 10-60 chars (gate 5c, required since 20261126174726)
  *   - excerpt: 120 chars (gate 6)
  *   - category: 'lease-law' (gate 7)
  *   - status: 'in-review' (triggers gates; would skip on 'draft')
@@ -80,7 +81,8 @@ function validBody(overrides: Record<string, unknown> = {}) {
 		content,
 		category: "lease-law",
 		meta_description:
-			"Test meta description about landlord lease law content with sufficient length to pass the gate (50..160 chars).",
+			"Test meta description about landlord lease law content, long enough to pass the gate: validate_blog_post wants 120 to 155 chars.",
+		seo_title: "Phase 6 RLS test post for landlords",
 		status: "in-review",
 		...overrides,
 	};
@@ -256,7 +258,7 @@ describe.skipIf(skipReason)(
 			});
 		});
 
-		// Gate 5: meta_description 50..160 chars
+		// Gate 5: meta_description 120..155 chars
 		it("rejects 30-char meta_description (gate 5: meta length out of range)", async () => {
 			const body = validBody({
 				slug: `${SLUG_PREFIX}-meta-short`,
@@ -267,6 +269,44 @@ describe.skipIf(skipReason)(
 				message: expect.stringContaining(
 					"meta_description length out of range",
 				),
+			});
+		});
+
+		// Gate 5 lower bound moved to 120: a 119-char meta that passed before is rejected.
+		it("rejects a 119-char meta_description (gate 5: below 120)", async () => {
+			const body = validBody({
+				slug: `${SLUG_PREFIX}-meta-119`,
+				meta_description: "m".repeat(119),
+			});
+			const { error } = await service.from("blogs").insert(body);
+			expect(error).toMatchObject({
+				message: expect.stringContaining(
+					"meta_description length out of range",
+				),
+			});
+		});
+
+		// Gate 5c: seo_title required, 10..60 chars
+		it("rejects a post without seo_title (gate 5c)", async () => {
+			const body = validBody({
+				slug: `${SLUG_PREFIX}-no-seo-title`,
+				seo_title: null,
+			});
+			const { error } = await service.from("blogs").insert(body);
+			expect(error).toMatchObject({
+				message: expect.stringContaining("seo_title length out of range"),
+			});
+		});
+
+		// Gate 8 covers the SEO fields too.
+		it("rejects 'autopay' in seo_title (gate 8: banlist hit in seo_title)", async () => {
+			const body = validBody({
+				slug: `${SLUG_PREFIX}-seo-banned`,
+				seo_title: "Autopay guide for landlords",
+			});
+			const { error } = await service.from("blogs").insert(body);
+			expect(error).toMatchObject({
+				message: expect.stringContaining("found in seo_title"),
 			});
 		});
 

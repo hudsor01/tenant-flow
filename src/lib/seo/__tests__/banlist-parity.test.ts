@@ -13,7 +13,7 @@ import {
  * Drift guard (BLOG-04/05): the landlord-only banlist (gate 8) is kept in THREE
  * places, the ingest Edge Function's (supabase/functions/_shared/blog-banlist.ts,
  * imported here), the generator script's and the DB trigger's (its live body,
- * 20261123162023). This fails when they differ in their phrases, their persona
+ * 20261126174726). This fails when they differ in their phrases, their persona
  * words, the fields they check, or what the persona pattern matches, and when
  * that pattern stops meaning what persona-consistency.spec.ts bans on every
  * public page. Each copy's own unit test (blog-banlist.test.ts,
@@ -25,7 +25,7 @@ const ROOT = process.cwd();
 const EF_INDEX = "supabase/functions/n8n-blog-ingest/index.ts";
 const SCRIPT = "scripts/generate-blog-draft.ts";
 const TRIGGER =
-	"supabase/migrations/20261123162023_validate_blog_post_reject_error_slugs.sql";
+	"supabase/migrations/20261126174726_validate_blog_post_seo_fields.sql";
 const SPEC = "tests/e2e/tests/public/persona-consistency.spec.ts";
 
 function read(file: string): string {
@@ -106,9 +106,15 @@ describe("persona words (the same words in all three copies)", () => {
 	});
 });
 
-describe("field coverage (title, excerpt and content in all three copies)", () => {
-	it("each copy checks the title, the excerpt and the content, in that order", () => {
-		expect(efFields).toEqual(["title", "excerpt", "content"]);
+describe("field coverage (every public field in all three copies)", () => {
+	it("each copy checks the title, SEO title, excerpt, meta description and content, in that order", () => {
+		expect(efFields).toEqual([
+			"title",
+			"seo_title",
+			"excerpt",
+			"meta_description",
+			"content",
+		]);
 		expect(scriptFields).toEqual(efFields);
 		expect(triggerFields).toEqual(efFields);
 	});

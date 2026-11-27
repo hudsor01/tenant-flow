@@ -4,7 +4,7 @@
 // Verifies an HMAC-SHA256 signature shipped in the `x-n8n-signature` header against
 // the EXACT request body bytes, then runs 9 validation gates as defense-in-depth
 // (the DB BEFORE-INSERT trigger `validate_blog_post`, whose live body is in
-// migration 20261115173654_validate_blog_post_gate_published_edits.sql, is the source of
+// migration 20261126174726_validate_blog_post_seo_fields.sql, is the source of
 // truth — these preflight gates only exist to fail fast with structured error
 // responses and to keep load off the DB on obviously-broken payloads).
 //
@@ -49,6 +49,8 @@ interface IngestPayload {
 		| "maintenance"
 		| "software-vault";
 	meta_description: string;
+	/** The post's <title>, 10..60 characters (validate_blog_post gate 5c). */
+	seo_title: string;
 	og_image_url?: string;
 	canonical_url?: string;
 }
@@ -60,7 +62,7 @@ interface GateFailure {
 
 // ---------------------------------------------------------------------------
 // Constants — kept in lockstep with:
-//   - migration 20261115173654_validate_blog_post_gate_published_edits.sql (the DB
+//   - migration 20261126174726_validate_blog_post_seo_fields.sql (the DB
 //     trigger's live body; first written in 20260510214935)
 //   - 06-CONTEXT.md § "9 Validation Gates (LOCKED)"
 //   - 06-CONTEXT.md § "Slug Naming Pattern (LOCKED)"
@@ -68,7 +70,7 @@ interface GateFailure {
 //   - src/lib/seo/__tests__/banlist-parity.test.ts (banlist drift guard: EF==script==trigger)
 // The banlist itself (gate 8) is ../_shared/blog-banlist.ts, so the unit suite
 // tests the gate this function runs.
-// The numeric gate thresholds below (word 1200-3000, H2 4-10, meta 50-160,
+// The numeric gate thresholds below (word 1200-3000, H2 4-10, meta 120-155, seo_title 10-60,
 // excerpt 80-200, slug 3-120) are ALSO hand-duplicated in
 // scripts/generate-blog-draft.ts and the trigger — change all three together.
 // DocuSeal: this function and the trigger allow at most 1 (gate 9, content
@@ -213,15 +215,23 @@ function runGates(p: IngestPayload): GateFailure[] {
 		});
 	}
 
-	// Gate 5: meta_description 50 ≤ len ≤ 160
+	// Gate 5: meta_description 120 ≤ len ≤ 155, what a search result shows
 	if (
 		!p.meta_description ||
-		p.meta_description.length < 50 ||
-		p.meta_description.length > 160
+		p.meta_description.length < 120 ||
+		p.meta_description.length > 155
 	) {
 		failures.push({
 			gate: "meta_length",
-			message: `meta_description out of range: ${p.meta_description?.length ?? 0} (must be 50..160)`,
+			message: `meta_description out of range: ${p.meta_description?.length ?? 0} (must be 120..155)`,
+		});
+	}
+
+	// Gate 5c: seo_title 10 ≤ len ≤ 60, required
+	if (!p.seo_title || p.seo_title.length < 10 || p.seo_title.length > 60) {
+		failures.push({
+			gate: "seo_title_length",
+			message: `seo_title out of range: ${p.seo_title?.length ?? 0} (must be 10..60)`,
 		});
 	}
 
@@ -243,7 +253,8 @@ function runGates(p: IngestPayload): GateFailure[] {
 		});
 	}
 
-	// Gate 8: banlist, in the title, the excerpt and the content: the phrases
+	// Gate 8: banlist, in the title, the SEO title, the excerpt, the meta
+	// description and the content: the phrases
 	// as substrings with case ignored, then the persona words as
 	// persona-consistency.spec.ts bans them (_shared/blog-banlist.ts). The first
 	// hit only — the n8n flow surfaces one phrase to fix and resubmits.
@@ -326,6 +337,7 @@ Deno.serve(async (req: Request) => {
 			"content",
 			"category",
 			"meta_description",
+			"seo_title",
 		];
 		const missing = required.filter(
 			(k) => !payload[k] || typeof payload[k] !== "string",
@@ -374,6 +386,7 @@ Deno.serve(async (req: Request) => {
 			content: payload.content,
 			category: payload.category,
 			meta_description: payload.meta_description,
+			seo_title: payload.seo_title,
 			featured_image: payload.og_image_url ?? null,
 			status: "published", published_at: new Date().toISOString(),
 		};
@@ -430,7 +443,12 @@ Deno.serve(async (req: Request) => {
 					{
 						prefix: "meta_description length out of range",
 						gate: "meta_length",
-						hint: "meta_description must be 50-160 chars",
+						hint: "meta_description must be 120-155 chars",
+					},
+					{
+						prefix: "seo_title length out of range",
+						gate: "seo_title_length",
+						hint: "seo_title must be 10-60 chars",
 					},
 					{
 						prefix: "excerpt length out of range",
@@ -445,7 +463,7 @@ Deno.serve(async (req: Request) => {
 					{
 						prefix: "banlist hit",
 						gate: "banlist",
-						hint: "the title, excerpt or content contains a Phase 4 banned phrase (rent collection, autopay, etc.) or the persona word property owner",
+						hint: "the title, SEO title, excerpt, meta description or content contains a Phase 4 banned phrase (rent collection, autopay, etc.) or the persona word property owner",
 					},
 					{
 						prefix: "DocuSeal mention count too high",

@@ -69,6 +69,7 @@ interface ValidBody {
 	content: string;
 	category: string;
 	meta_description: string;
+	seo_title: string;
 	canonical_url?: string;
 }
 
@@ -76,7 +77,7 @@ interface ValidBody {
  * Build a payload that passes all 9 gates. Caller mutates the returned object
  * to break individual gates per-test. ~1,500 words (gate 1), 5 H2 sections
  * (gate 2), persona word present (gate 3), slug shape valid (gate 4),
- * meta/excerpt within bounds (gates 5/6), category valid (gate 7), no banned
+ * meta/SEO title/excerpt within bounds (gates 5/5c/6), category valid (gate 7), no banned
  * phrases (gate 8), zero DocuSeal mentions (gate 9).
  */
 function validBody(slugSuffix: string): ValidBody {
@@ -96,7 +97,8 @@ function validBody(slugSuffix: string): ValidBody {
 		content: `# Title\n\n${intro}\n\n${sections}`,
 		category: "lease-law",
 		meta_description:
-			"Test meta description about landlord lease law content with sufficient length to pass the meta gate clean.",
+			"Test meta description about landlord lease law content, with enough length to pass the meta gate cleanly: 120 to 155 characters long.",
+		seo_title: `Phase 6 test post ${slugSuffix}`.slice(0, 60),
 	};
 }
 
@@ -247,7 +249,7 @@ Deno.test("n8n-blog-ingest: word_count out of range returns 400 gate word_count"
 
 Deno.test("n8n-blog-ingest: unknown category returns 400 gate category", async () => {
 	const body = validBody(`cat-${Date.now()}`);
-	(body as Record<string, unknown>).category = "not-a-cluster";
+	body.category = "not-a-cluster";
 	const { status, data } = await postSigned(body);
 	assertEquals(status, 400);
 	const failures = data.gate_failures as Array<{ gate: string }>;
