@@ -526,6 +526,7 @@ test.describe("detail and edit pages, and the flows", () => {
 					: route.fallback(),
 		);
 		const imports = await answerImports(page);
+		await answerLeaseLookup(page);
 		await signIn(page, context);
 		const failures: string[] = [];
 		for (const [path, control, csv, valid] of BULK_IMPORTS(property)) {
@@ -1217,6 +1218,55 @@ async function answerImports(page: Page): Promise<{ answered: number }> {
 	return traffic;
 }
 
+const LEASE_LOOKUP_PROPERTY =
+	"Riverside Gardens Apartment Community North Tower";
+const leaseLookupUnit = (i: number) => `PH-120${i}-North`;
+const leaseLookupTenant = (i: number) =>
+	`maximiliana.vandenberghe-montgomery${i}@outlook.com`;
+
+/**
+ * Answers the lease import's lookup reads in the browser (GETs of owner A's
+ * properties, units and tenants, the columns loadLeaseLookup selects) with
+ * one property, its eight units and eight tenants, so BULK_IMPORTS' lease rows
+ * match by name, unit number and email as a landlord's would.
+ */
+async function answerLeaseLookup(page: Page): Promise<void> {
+	const property = "8e0e0000-0000-4000-8000-000000000100";
+	const eight = Array.from({ length: 8 }, (_, i) => i);
+	const lookups: [RegExp, unknown[]][] = [
+		[
+			/\/rest\/v1\/properties\?(.*&)?select=id(%2C|,)name(&|$)/,
+			[{ id: property, name: LEASE_LOOKUP_PROPERTY }],
+		],
+		[
+			/\/rest\/v1\/units\?(.*&)?select=id(%2C|,)unit_number(%2C|,)property_id(&|$)/,
+			eight.map((i) => ({
+				id: `8e0e0000-0000-4000-8000-00000000020${i}`,
+				unit_number: leaseLookupUnit(i),
+				property_id: property,
+			})),
+		],
+		[
+			/\/rest\/v1\/tenants\?(.*&)?select=id(%2C|,)email(&|$)/,
+			eight.map((i) => ({
+				id: `8e0e0000-0000-4000-8000-00000000030${i}`,
+				email: leaseLookupTenant(i),
+			})),
+		],
+	];
+	for (const [pattern, rows] of lookups) {
+		await page.route(pattern, (route) =>
+			route.request().method() === "GET"
+				? route.fulfill({
+						status: 200,
+						contentType: "application/json",
+						body: JSON.stringify(rows),
+					})
+				: route.fallback(),
+		);
+	}
+}
+
 /**
  * Each bulk import: its page, its control's name, a CSV with long and invalid
  * rows (the validate step), and one of six long valid rows (the result step).
@@ -1258,10 +1308,10 @@ function BULK_IMPORTS(property: string): [string, string, string, string][] {
 		entry(
 			"/leases",
 			"Import Leases",
-			"unit_id,primary_tenant_id,start_date,end_date,rent_amount,security_deposit,payment_day,rent_currency",
+			"property,unit,tenant_email,start_date,end_date,rent_amount,security_deposit,payment_day,rent_currency",
 			(i) =>
-				`8e0e0000-0000-4000-8000-00000000020${i},8e0e0000-0000-4000-8000-00000000030${i},2026-12-01,2027-11-30,999999,999999,1,USD`,
-			"nope,nope,2027-01-01,2026-01-01,abc,,40,XX",
+				`${LEASE_LOOKUP_PROPERTY},${leaseLookupUnit(i)},${leaseLookupTenant(i)},2026-12-01,2027-11-30,999999,999999,1,USD`,
+			"Nowhere,,not-an-email,2027-01-01,2026-01-01,abc,,40,XX",
 		),
 		entry(
 			`/properties/${property}`,
