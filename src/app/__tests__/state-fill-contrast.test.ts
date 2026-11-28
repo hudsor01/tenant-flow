@@ -346,6 +346,7 @@ const VOIDED_LEDGER_ENTRY: LedgerEntryRow = {
 	amount: 40,
 	entryDate: "2026-11-06",
 	dueDate: "2026-11-06",
+	lateAfter: "2026-11-11",
 	reversesId: null,
 	chargeId: null,
 	receiptsSum: 0,

@@ -94,6 +94,7 @@ const chargeRow = {
 	amount: "1500.00",
 	entry_date: "2026-07-01",
 	due_date: "2026-07-01",
+	late_after: "2026-07-04",
 	description: "Rent for July 2026",
 	method: null,
 	reverses_id: null,
@@ -176,6 +177,7 @@ describe("mapLedgerEntryRow", () => {
 			amount: 1500,
 			entryDate: "2026-07-01",
 			dueDate: "2026-07-01",
+			lateAfter: "2026-07-04",
 			description: "Rent for July 2026",
 			method: null,
 			reversesId: null,
@@ -193,6 +195,7 @@ describe("mapLedgerEntryRow", () => {
 		expect(entry.method).toBe("check");
 		expect(entry.chargeId).toBe(CHARGE_ID);
 		expect(entry.dueDate).toBeNull();
+		expect(entry.lateAfter).toBeNull();
 		expect(entry.receiptsSum).toBe(0);
 	});
 

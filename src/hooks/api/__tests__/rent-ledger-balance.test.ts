@@ -1,17 +1,14 @@
 /**
  * Unit tests for the pure ledger-derivation math (LEDGER-02/03/05).
  *
- * `src/lib/ledger/ledger-math.ts` is the client-side mirror of the SQL
- * derivation in `get_lease_ledger_summary` (55-02): same fixed 5-day grace,
- * same signed balance. The DB stays the single source of truth for the
- * aggregate summary + late count; this module exists only so the interactive
- * ledger table can compute a per-row running balance and per-charge
- * paid/partial/unpaid/late badges without round-tripping the DB per row (W3).
- *
- * Because the derivation is deliberately duplicated, the drift guard is
- * explicit: GRACE_PERIOD_DAYS is asserted === 5 here so the client constant
- * cannot silently diverge from the SQL `interval '5 days'` literal (T-55-12),
- * and the +5-days / +6-days boundary is pinned on both sides.
+ * `src/lib/ledger/ledger-math.ts` computes the ledger table's per-row running
+ * balance and per-charge paid/partial/unpaid/late badges without
+ * round-tripping the DB per row (W3). Whether a charge is late is the
+ * DATABASE's call: `get_lease_ledger` returns each charge's `late_after`
+ * (`due_date + the lease's grace_period_days`), and `get_lease_ledger_summary`
+ * counts late charges with the same expression; this module only compares
+ * `late_after` with today, so the late-after day is NOT late and the next day
+ * IS.
  *
  * Money: every amount is DOLLARS. No cents, no hundredfold scaling anywhere
  * (D-00 — the v8.0 100x bug class this phase must not reintroduce).
@@ -21,7 +18,6 @@ import { describe, expect, it } from "vitest";
 import {
 	computeRunningBalance,
 	deriveChargeState,
-	GRACE_PERIOD_DAYS,
 	isLate,
 	type LedgerEntry,
 } from "#lib/ledger/ledger-math";
@@ -38,6 +34,11 @@ function daysBeforeToday(days: number): string {
 		.slice(0, 10);
 }
 
+/** The YYYY-MM-DD date exactly `days` days after TODAY (UTC calendar). */
+function daysAfterToday(days: number): string {
+	return daysBeforeToday(-days);
+}
+
 const baseCharge: LedgerEntry = {
 	id: "charge-1",
 	kind: "charge",
@@ -45,6 +46,7 @@ const baseCharge: LedgerEntry = {
 	amount: 1500,
 	entryDate: "2026-05-01",
 	dueDate: "2026-05-01",
+	lateAfter: "2026-05-06",
 	reversesId: null,
 	chargeId: null,
 	receiptsSum: 0,
@@ -61,43 +63,32 @@ function receipt(overrides: Partial<LedgerEntry> = {}): LedgerEntry {
 		type: "receipt",
 		id: "receipt-1",
 		dueDate: null,
+		lateAfter: null,
 		chargeId: baseCharge.id,
 		receiptsSum: 0,
 		...overrides,
 	};
 }
 
-describe("GRACE_PERIOD_DAYS", () => {
-	// T-55-12 drift guard: this constant mirrors the SQL `interval '5 days'`
-	// literal in get_lease_ledger_summary (55-02). If the SQL grace changes, this
-	// assertion must fail so both sides are updated together.
-	it("is the fixed 5-day grace mirrored from the SQL summary RPC", () => {
-		expect(GRACE_PERIOD_DAYS).toBe(5);
-	});
-});
-
 describe("isLate", () => {
 	it("is false when nothing remains unpaid, however old the charge is", () => {
 		expect(isLate(0, daysBeforeToday(400), TODAY)).toBe(false);
 	});
 
-	it("is false when the charge has no due date", () => {
+	it("is false when the charge has no late-after date", () => {
 		expect(isLate(1500, null, TODAY)).toBe(false);
 	});
 
-	it("is false while the charge is still inside the grace window", () => {
-		// Due yesterday: owed, but nowhere near the 5-day grace edge.
-		expect(isLate(1500, daysBeforeToday(1), TODAY)).toBe(false);
+	it("is false while the grace window is still open", () => {
+		expect(isLate(1500, daysAfterToday(3), TODAY)).toBe(false);
 	});
 
-	it("is NOT late at exactly due_date + 5 days (grace boundary, inclusive)", () => {
-		expect(isLate(1500, daysBeforeToday(GRACE_PERIOD_DAYS), TODAY)).toBe(false);
+	it("is NOT late on the late-after day itself (the grace window's last day)", () => {
+		expect(isLate(1500, daysBeforeToday(0), TODAY)).toBe(false);
 	});
 
-	it("IS late at due_date + 6 days (first day past the grace boundary)", () => {
-		expect(isLate(1500, daysBeforeToday(GRACE_PERIOD_DAYS + 1), TODAY)).toBe(
-			true,
-		);
+	it("IS late the day after the late-after date", () => {
+		expect(isLate(1500, daysBeforeToday(1), TODAY)).toBe(true);
 	});
 
 	it("is false when only float dust remains (numeric(10,2) tolerance)", () => {
@@ -121,48 +112,39 @@ describe("deriveChargeState", () => {
 	});
 
 	it("is partial when some receipts landed and the grace window is open", () => {
-		expect(deriveChargeState(1500, 600, daysBeforeToday(1), TODAY)).toBe(
+		expect(deriveChargeState(1500, 600, daysAfterToday(2), TODAY)).toBe(
 			"partial",
 		);
 	});
 
 	it("transitions partial -> paid as further receipts land against the charge", () => {
-		const dueDate = daysBeforeToday(1);
-		expect(deriveChargeState(1500, 600, dueDate, TODAY)).toBe("partial");
-		expect(deriveChargeState(1500, 900 + 600, dueDate, TODAY)).toBe("paid");
+		const lateAfter = daysAfterToday(2);
+		expect(deriveChargeState(1500, 600, lateAfter, TODAY)).toBe("partial");
+		expect(deriveChargeState(1500, 900 + 600, lateAfter, TODAY)).toBe("paid");
 	});
 
 	it("is unpaid when nothing was received and the grace window is open", () => {
-		expect(deriveChargeState(1500, 0, daysBeforeToday(1), TODAY)).toBe(
+		expect(deriveChargeState(1500, 0, daysAfterToday(2), TODAY)).toBe("unpaid");
+	});
+
+	it("is unpaid (never late) when the charge has no late-after date", () => {
+		expect(deriveChargeState(1500, 0, null, TODAY)).toBe("unpaid");
+	});
+
+	it("is unpaid on the late-after day itself", () => {
+		expect(deriveChargeState(1500, 0, daysBeforeToday(0), TODAY)).toBe(
 			"unpaid",
 		);
 	});
 
-	it("is unpaid (never late) when the charge has no due date", () => {
-		expect(deriveChargeState(1500, 0, null, TODAY)).toBe("unpaid");
-	});
-
-	it("is unpaid at exactly due_date + 5 days (grace boundary, inclusive)", () => {
-		expect(
-			deriveChargeState(1500, 0, daysBeforeToday(GRACE_PERIOD_DAYS), TODAY),
-		).toBe("unpaid");
-	});
-
-	it("is late at due_date + 6 days with nothing received", () => {
-		expect(
-			deriveChargeState(1500, 0, daysBeforeToday(GRACE_PERIOD_DAYS + 1), TODAY),
-		).toBe("late");
+	it("is late the day after, with nothing received", () => {
+		expect(deriveChargeState(1500, 0, daysBeforeToday(1), TODAY)).toBe("late");
 	});
 
 	it("is late (not partial) when a remaining balance survives the grace window", () => {
-		expect(
-			deriveChargeState(
-				1500,
-				600,
-				daysBeforeToday(GRACE_PERIOD_DAYS + 1),
-				TODAY,
-			),
-		).toBe("late");
+		expect(deriveChargeState(1500, 600, daysBeforeToday(1), TODAY)).toBe(
+			"late",
+		);
 	});
 
 	it("is paid (not late) once covered, even long past the grace window", () => {

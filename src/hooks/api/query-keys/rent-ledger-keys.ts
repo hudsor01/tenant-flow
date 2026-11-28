@@ -127,6 +127,7 @@ export function mapLedgerEntryRow(
 		amount: toDollars(raw, "amount", null),
 		entryDate: requireString(raw, "entry_date"),
 		dueDate: optionalString(raw, "due_date"),
+		lateAfter: optionalString(raw, "late_after"),
 		description: optionalString(raw, "description"),
 		method: optionalString(raw, "method"),
 		reversesId: optionalString(raw, "reverses_id"),

@@ -53,6 +53,15 @@ const LEASE_ID = "3f5c2a91-8d47-4b62-9e13-0a7c4d6b8e25";
 const RENT_JULY_ID = "6b1e7c24-93af-4d58-8c07-2f5a9e3b1d46";
 const REVERSED_FEE_ID = "0d9a4f13-5e27-4c86-b39f-7a1c8e2d5b64";
 
+/** The fixtures' lease has a 5-day grace period: late after due + 5 days. */
+const GRACE_DAYS = 5;
+
+function plusDays(ymd: string, days: number): string {
+	const date = new Date(`${ymd}T00:00:00Z`);
+	date.setUTCDate(date.getUTCDate() + days);
+	return date.toISOString().slice(0, 10);
+}
+
 function charge(entry: {
 	id: string;
 	type: string;
@@ -69,6 +78,7 @@ function charge(entry: {
 		amount: entry.amount,
 		entryDate: entry.entryDate,
 		dueDate: entry.entryDate,
+		lateAfter: plusDays(entry.entryDate, GRACE_DAYS),
 		description: entry.description ?? null,
 		method: null,
 		reversesId: entry.reversesId ?? null,
@@ -91,6 +101,7 @@ function receipt(entry: {
 		amount: entry.amount,
 		entryDate: entry.entryDate,
 		dueDate: null,
+		lateAfter: null,
 		description: null,
 		method: entry.method,
 		reversesId: null,

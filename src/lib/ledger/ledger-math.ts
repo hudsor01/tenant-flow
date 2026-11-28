@@ -12,28 +12,13 @@
  */
 
 /**
- * Grace period before an unpaid charge counts as late.
- *
- * SOURCE OF TRUTH: the SQL literal `interval '5 days'` in
- * `public.get_lease_ledger_summary`, whose late predicate is
- * `due_date + interval '5 days' < current_date`. The function was introduced in
- * `20260725021100_rent_ledger_rpcs.sql` (55-02) and last revised in
- * `20260726020701_rent_ledger_verification_fixes.sql`, which also made a charge
- * that HAS BEEN reversed stop counting as late (F1) - mirrored below by
- * `deriveChargeState` treating a reversed entry as voided. The DB owns the
- * aggregate summary + late count; this constant is the client-side MIRROR of
- * that literal for per-row badge rendering only (W3).
- *
- * The two must never diverge: `rent-ledger-balance.test.ts` asserts
- * `GRACE_PERIOD_DAYS === 5` so a change to the SQL interval (or to this value)
- * fails the suite until both sides are updated together (T-55-12). Grace is a
- * single fixed constant in v10 — never a per-lease or per-owner config knob
- * (D-03).
+ * When an unpaid charge counts as late: the DATABASE decides. A charge is late
+ * once its `due_date` plus the lease's Grace Period (`grace_period_days`) has
+ * passed; `get_lease_ledger` returns that date per charge as `late_after`, and
+ * `get_lease_ledger_summary` counts late charges with the same expression
+ * (`20261127223000_ledger_payment_day_and_grace.sql`). The table only compares
+ * `late_after` with today, so there is no grace constant here to drift.
  */
-export const GRACE_PERIOD_DAYS = 5;
-
-/** Milliseconds in a UTC calendar day. */
-const MS_PER_DAY = 86_400_000;
 
 /**
  * numeric(10,2) tolerance: ledger amounts carry two decimal places, so anything
@@ -54,6 +39,11 @@ export type LedgerEntry = {
 	entryDate: string;
 	/** YYYY-MM-DD; charges only. */
 	dueDate: string | null;
+	/**
+	 * YYYY-MM-DD; charges only: the due date plus the lease's grace period.
+	 * An unpaid charge is late from the day after.
+	 */
+	lateAfter: string | null;
 	/** Set when this entry negates another entry (append-only correction). */
 	reversesId: string | null;
 	/** Charges only: the charge this receipt is allocated against. */
@@ -95,30 +85,30 @@ function parseLedgerDate(date: string): number {
 /**
  * Is this charge past its grace window with money still owed?
  *
- * Mirrors the SQL predicate `remaining > 0 AND due_date + interval '5 days' <
- * current_date`: the day that is exactly `due_date + GRACE_PERIOD_DAYS` is NOT
- * late, the following day IS. Compared on the UTC calendar day to match the
- * database's `current_date`. A charge with no due date is never late.
+ * Mirrors the SQL predicate `remaining > 0 AND due_date + grace_period_days <
+ * current_date`, with `lateAfter` = `due_date + grace_period_days` from the
+ * database: that day is NOT late, the following day IS. Compared on the UTC
+ * calendar day to match the database's `current_date`. A charge with no
+ * `lateAfter` (a receipt, or a charge with no due date) is never late.
  */
 export function isLate(
 	remaining: number,
-	dueDate: string | null,
+	lateAfter: string | null,
 	today: Date,
 ): boolean {
-	if (dueDate === null) return false;
+	if (lateAfter === null) return false;
 	if (remaining <= CENT_TOLERANCE) return false;
 
-	const dueMs = parseLedgerDate(dueDate);
-	if (Number.isNaN(dueMs)) return false;
+	const lateAfterMs = parseLedgerDate(lateAfter);
+	if (Number.isNaN(lateAfterMs)) return false;
 
-	const graceEndsMs = dueMs + GRACE_PERIOD_DAYS * MS_PER_DAY;
 	const todayMs = Date.UTC(
 		today.getUTCFullYear(),
 		today.getUTCMonth(),
 		today.getUTCDate(),
 	);
 
-	return todayMs > graceEndsMs;
+	return todayMs > lateAfterMs;
 }
 
 /**
@@ -130,13 +120,13 @@ export function isLate(
 export function deriveChargeState(
 	chargeAmount: number,
 	receiptsSum: number,
-	dueDate: string | null,
+	lateAfter: string | null,
 	today: Date,
 ): ChargeState {
 	const remaining = chargeAmount - receiptsSum;
 
 	if (remaining <= CENT_TOLERANCE) return "paid";
-	if (isLate(remaining, dueDate, today)) return "late";
+	if (isLate(remaining, lateAfter, today)) return "late";
 	if (receiptsSum > CENT_TOLERANCE) return "partial";
 	return "unpaid";
 }

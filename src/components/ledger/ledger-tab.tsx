@@ -99,7 +99,7 @@ function buildLedgerRows(
 				? deriveChargeState(
 						entry.amount,
 						entry.receiptsSum,
-						entry.dueDate,
+						entry.lateAfter,
 						today,
 					)
 				: null,

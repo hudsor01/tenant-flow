@@ -48,6 +48,7 @@ describe("QUERY_CACHE_BUSTER", () => {
 		expect(buster).not.toBe("tenantflow-cache-v7");
 		expect(buster).not.toBe("tenantflow-cache-v8");
 		expect(buster).not.toBe("tenantflow-cache-v9");
-		expect(buster).toBe("tenantflow-cache-v10");
+		expect(buster).not.toBe("tenantflow-cache-v10");
+		expect(buster).toBe("tenantflow-cache-v11");
 	});
 });

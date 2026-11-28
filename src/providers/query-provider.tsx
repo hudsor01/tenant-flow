@@ -324,7 +324,10 @@ const QUERY_CACHE_KEY = "tenantflow-query-cache";
 // `vendorTrade`, `vendorPhone` and `vendorEmail` (vendor assignment). A v9
 // entry would show an assigned request with no vendor until the refetch
 // landed.
-const QUERY_CACHE_BUSTER = "tenantflow-cache-v10";
+// v11: rentLedgerQueries' entry rows carry `lateAfter` (the due date plus the
+// lease's grace period, from get_lease_ledger). A v10 entry has none, so no
+// charge would read as late until the refetch landed.
+const QUERY_CACHE_BUSTER = "tenantflow-cache-v11";
 const QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24; // 24 hours
 
 declare global {
