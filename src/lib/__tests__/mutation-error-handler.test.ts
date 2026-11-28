@@ -638,6 +638,50 @@ describe("userFacingErrorMessage — a failed fetch, as each library passes it o
 	});
 });
 
+describe("userFacingErrorMessage — a unique violation of a named index", () => {
+	/** A 23505 as PostgREST returns it for the given index. */
+	function uniqueViolation(index: string) {
+		return {
+			message: `duplicate key value violates unique constraint "${index}"`,
+			code: "23505",
+			hint: null,
+			details:
+				"Key (property_id, lower(btrim(unit_number)))=(p, 101) already exists.",
+		};
+	}
+
+	it("says a property already has the unit number, for the units index", () => {
+		expect(
+			userFacingErrorMessage(uniqueViolation("units_property_unit_number_key")),
+		).toBe("This property already has a unit with that number.");
+	});
+
+	it("toasts the same copy when the Add Unit or Edit Unit form's write is refused", () => {
+		const consoleError = expectConsole("error");
+		const error = uniqueViolation("units_property_unit_number_key");
+		handleMutationError(error, "Create unit");
+		expectLogged(consoleError, "Create unit", error.message);
+		expect(lastToastErrorCall()[0]).toBe(
+			"This property already has a unit with that number.",
+		);
+	});
+
+	it("keeps the generic copy for an index with no copy of its own", () => {
+		expect(userFacingErrorMessage(uniqueViolation("blogs_slug_key"))).toBe(
+			"This record already exists.",
+		);
+	});
+
+	it("never applies a unique index's copy under another SQLSTATE", () => {
+		expect(
+			userFacingErrorMessage({
+				...uniqueViolation("units_property_unit_number_key"),
+				code: "23503",
+			}),
+		).toBe("This action references a record that no longer exists.");
+	});
+});
+
 describe("userFacingErrorMessage — the one sanitizer (66.2-39 part I)", () => {
 	beforeEach(() => {
 		vi.mocked(toast.error).mockClear();
