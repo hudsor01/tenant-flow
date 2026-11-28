@@ -294,11 +294,14 @@ describe("storage plan-limit — reactive Upgrade CTA + usage invalidation (METE
 			}),
 			"Upload file",
 		);
-		// The dropzone still reflects the failed file via the inline errors[] entry.
+		// The dropzone still reflects the failed file via the inline errors[]
+		// entry, in words: the trigger's "plan_limit_exceeded:" prefix is a
+		// machine signal, never shown.
 		expect(result.current.errors).toEqual([
 			{
 				name: "doc-a.jpg",
-				message: expect.stringContaining("plan_limit_exceeded:"),
+				message:
+					"You've reached your plan's storage limit. Upgrade for more space.",
 			},
 		]);
 	});

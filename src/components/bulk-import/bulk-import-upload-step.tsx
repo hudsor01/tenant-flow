@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2, Download, FileSpreadsheet, Upload } from "lucide-react";
+import { useState } from "react";
 import { Button } from "#components/ui/button";
 import { FileUpload } from "#components/ui/file-upload/file-upload";
 import { FileUploadTrigger } from "#components/ui/file-upload/file-upload-actions";
@@ -36,7 +37,12 @@ export function BulkImportUploadStep<T>({
 		});
 	};
 
+	// Why the last file was refused (wrong type, over 5MB), shown under the
+	// dropzone until a file is accepted.
+	const [rejection, setRejection] = useState<string | null>(null);
+
 	const handleFileAccept = (file: File) => {
+		setRejection(null);
 		// Size + type only — file names can contain PII (e.g.
 		// "tenants_smith_family.csv"). The logger feeds Sentry/PostHog.
 		logger.info("CSV file accepted", {
@@ -48,6 +54,7 @@ export function BulkImportUploadStep<T>({
 	};
 
 	const handleFileReject = (_file: File, message: string) => {
+		setRejection(message);
 		logger.warn("CSV file rejected", {
 			reason: message,
 			entity: config.entityLabel.plural,
@@ -87,6 +94,11 @@ export function BulkImportUploadStep<T>({
 					</div>
 				</FileUploadDropzone>
 			</FileUpload>
+			{rejection ? (
+				<p role="alert" className="-mt-2 mb-0 text-sm text-destructive-text">
+					{rejection}
+				</p>
+			) : null}
 
 			<div className="card-standard p-4 bg-linear-to-r from-muted/40 to-muted/20">
 				<div className="flex items-center justify-between gap-4">

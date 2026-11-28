@@ -6,9 +6,11 @@
  * caller because unit CSVs do not include it — it's derived from the
  * route that hosts the dialog.
  *
- * Pre-flight duplicate check: two rows with the same `unit_number` in
- * the same CSV are flagged before insert rather than partially succeeding
- * on a unique-constraint error.
+ * Duplicate checks before anything is inserted: two rows with the same
+ * `unit_number` in one CSV, and a row whose `unit_number` the property
+ * already has (`resolveRows`). The database does not enforce either (there
+ * is no unique index on a property's unit numbers), so these checks are
+ * what keeps an import from creating a second "101".
  */
 
 import { parseCsvWithSchema } from "#components/bulk-import/parse-csv-with-schema";
@@ -56,6 +58,61 @@ function coerceOptionalNumber(value: string | undefined): number | undefined {
 	return Number.isNaN(parsed) ? undefined : parsed;
 }
 
+const unitNumberKey = (value: string | null | undefined) =>
+	(value ?? "").trim().toLowerCase();
+
+/**
+ * The property's unit numbers, normalized for comparison. Deleted units
+ * (`status = 'inactive'`) do not count. Paged in 1000-row chunks, because
+ * PostgREST truncates a single read at `max_rows = 1000`.
+ */
+async function loadUnitNumbers(propertyId: string): Promise<Set<string>> {
+	const supabase = createClient();
+	const PAGE_SIZE = 1000;
+	const numbers = new Set<string>();
+	let from = 0;
+	while (true) {
+		const { data, error } = await supabase
+			.from("units")
+			.select("id, unit_number")
+			.eq("property_id", propertyId)
+			.neq("status", "inactive")
+			.order("id", { ascending: true })
+			.range(from, from + PAGE_SIZE - 1);
+		if (error) throw error;
+		const rows = data ?? [];
+		for (const unit of rows) numbers.add(unitNumberKey(unit.unit_number));
+		if (rows.length < PAGE_SIZE) break;
+		from += PAGE_SIZE;
+	}
+	return numbers;
+}
+
+/** Holds back each row whose unit_number the property already has. */
+function flagExistingUnitNumbers(
+	result: BulkImportParseResult<UnitInput>,
+	existing: Set<string>,
+): BulkImportParseResult<UnitInput> {
+	return {
+		...result,
+		rows: result.rows.map((row) => {
+			if (row.parsed === null) return row;
+			if (!existing.has(unitNumberKey(row.parsed.unit_number))) return row;
+			return {
+				...row,
+				parsed: null,
+				errors: [
+					...row.errors,
+					{
+						field: "unit_number",
+						message: `This property already has a unit "${row.parsed.unit_number}".`,
+					},
+				],
+			};
+		}),
+	};
+}
+
 export function unitBulkImportConfig(
 	propertyId: string,
 ): BulkImportConfig<UnitInput> {
@@ -98,10 +155,8 @@ export function unitBulkImportConfig(
 				},
 			);
 
-			// Pre-flight duplicate-within-CSV check. DB-level uniqueness is a
-			// per-property partial index; we mirror it here so the user sees a
-			// clear "rows 3 and 7 have the same unit_number" error instead of
-			// a mid-batch unique-violation after row 3 already inserted.
+			// Duplicate-within-CSV check: "rows 3 and 7 have the same
+			// unit_number" is caught here, before any row is inserted.
 			const seen = new Map<string, number>();
 			const rowsWithDedup: ParsedRow<UnitInput>[] = result.rows.map((row) => {
 				if (row.parsed === null) return row;
@@ -126,6 +181,8 @@ export function unitBulkImportConfig(
 
 			return { ...result, rows: rowsWithDedup };
 		},
+		resolveRows: async (result) =>
+			flagExistingUnitNumbers(result, await loadUnitNumbers(propertyId)),
 		insertRow: async (row) => {
 			const supabase = createClient();
 			const user = await getCachedUser();

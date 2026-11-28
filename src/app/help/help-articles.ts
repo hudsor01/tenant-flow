@@ -60,7 +60,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 				steps: [
 					"Click the import button. The dialog's first step is Upload.",
 					"Under Need a template?, click Download and fill in the template in your spreadsheet app. Keep the header row.",
-					"Save it as CSV (comma-separated, UTF-8) and select it, or drag it onto the upload area. The file can be up to 5 MB.",
+					"Save it as CSV (comma-separated, UTF-8) and select it, or drag it onto the upload area. The file can be up to 5 MB: a file that isn't a CSV, or is larger, is refused with the reason under the upload area.",
 					"Review the preview. Every row must show Valid before you can continue.",
 					"Click Import. Rows are added one by one, and the result shows how many were imported.",
 				],
@@ -69,7 +69,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 				heading: "The columns each import needs",
 				paragraphs: [
 					"Properties: name, address_line1, city, state (two letters), postal_code (a US ZIP code) and property_type: SINGLE_FAMILY, MULTI_UNIT, APARTMENT, COMMERCIAL, CONDO, TOWNHOUSE or OTHER. address_line2 is optional.",
-					"Units: unit_number and rent_amount (whole dollars). bedrooms, bathrooms, square_feet and status are optional. Units are added to the property whose page you're on.",
+					"Units: unit_number and rent_amount (whole dollars). bedrooms (0 for a studio), bathrooms, square_feet and status are optional. Units are added to the property whose page you're on.",
 					"Tenants: email, first_name and last_name. phone and status are optional. Add emergency contacts afterward, from each tenant's Edit page.",
 				],
 			},
@@ -77,13 +77,13 @@ export const HELP_ARTICLES: HelpArticle[] = [
 				heading: "Fix errors",
 				paragraphs: [
 					"If any row has an error, the preview lists it as the column and the problem, and nothing is imported until you fix the file and upload it again. If some rows fail while importing, the others stay added: download the failed rows, correct them, and click Retry failed rows.",
-					"Imports don't check for records you already have, so importing the same file twice adds everything twice.",
+					"A unit import holds back any row whose unit_number the property already has, or that repeats another row's. Property, tenant and lease imports don't check for records you already have, so importing the same file twice adds those rows twice.",
 				],
 			},
 			{
 				heading: "Your plan's limits",
 				paragraphs: [
-					"Properties and units count toward your plan: Starter covers up to 5 properties and 25 units, Growth up to 20 and 100, and Max has no limit. Rows past your plan's limit fail and are listed with the other failed rows.",
+					"Properties and units count toward your plan: Starter covers up to 5 properties and 25 units, Growth up to 20 and 100, and Max has no limit. Rows past your plan's limit fail, and the failed rows list says which limit they reached.",
 				],
 			},
 			{
@@ -105,7 +105,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 			},
 		],
 		publishedAt: PUBLISHED_AT,
-		reviewedAt: "2026-11-26",
+		reviewedAt: "2026-11-27",
 	},
 	{
 		slug: "add-a-tenant-and-create-a-lease",

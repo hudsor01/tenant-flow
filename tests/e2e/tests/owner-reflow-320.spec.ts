@@ -527,6 +527,7 @@ test.describe("detail and edit pages, and the flows", () => {
 		);
 		const imports = await answerImports(page);
 		await answerLeaseLookup(page);
+		const existingUnitReads = await answerNoExistingUnits(page, property);
 		await signIn(page, context);
 		const failures: string[] = [];
 		for (const [path, control, csv, valid] of BULK_IMPORTS(property)) {
@@ -581,6 +582,9 @@ test.describe("detail and edit pages, and the flows", () => {
 		}
 		expect(failures, failures.join("\n")).toEqual([]);
 		expect(imports.answered, "the bulk imports' inserts answered").toBe(24);
+		// The unit import read the property's unit numbers: on the validate
+		// step and again on the result step's fresh upload.
+		expect(existingUnitReads.count, "the existing-unit check ran").toBe(2);
 	});
 
 	test(`the onboarding wizard's three steps fit ${REFLOW_WIDTH}px`, async ({
@@ -1216,6 +1220,35 @@ async function answerImports(page: Page): Promise<{ answered: number }> {
 		},
 	);
 	return traffic;
+}
+
+/**
+ * Answers the unit import's existing-unit read (loadUnitNumbers in
+ * units/bulk-import-config.ts: a GET of the property's units, selecting
+ * id,unit_number) with none, so BULK_IMPORTS' unit rows are new units whatever
+ * owner A's property already holds. Counts the reads, so the test can show the
+ * check ran. The property page's own unit reads select other columns and pass.
+ */
+async function answerNoExistingUnits(
+	page: Page,
+	property: string,
+): Promise<{ count: number }> {
+	const reads = { count: 0 };
+	await page.route(
+		new RegExp(
+			`/rest/v1/units\\?select=id(%2C|,)unit_number&(.*&)?property_id=eq\\.${property}(&|$)`,
+		),
+		(route) => {
+			if (route.request().method() !== "GET") return route.fallback();
+			reads.count += 1;
+			return route.fulfill({
+				status: 200,
+				contentType: "application/json",
+				body: "[]",
+			});
+		},
+	);
+	return reads;
 }
 
 const LEASE_LOOKUP_PROPERTY =
