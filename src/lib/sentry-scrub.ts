@@ -197,6 +197,23 @@ export function scrubSpan<T extends ScrubbableSpan>(span: T): T {
 	return span;
 }
 
+interface ScrubbableLog {
+	message: string;
+	attributes?: Record<string, unknown>;
+}
+
+/**
+ * A Sentry Log (`beforeSendLog`): its message and every attribute, nested
+ * ones included. A log's message is often a console line or a URL the app
+ * logged, and its attributes carry the logger's context and the console
+ * call's arguments, so it gets the same scrub as a breadcrumb.
+ */
+export function scrubLog<T extends ScrubbableLog>(log: T): T {
+	log.message = scrubText(log.message);
+	if (log.attributes) scrubValues(log.attributes);
+	return log;
+}
+
 interface ScrubbableEvent {
 	message?: string;
 	transaction?: string;

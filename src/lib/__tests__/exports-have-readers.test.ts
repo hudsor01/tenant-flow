@@ -441,7 +441,6 @@ src/hooks/use-supabase-upload.ts UseSupabaseUploadOptions
 src/lib/constants/lease-signature-errors.ts LeaseSignatureErrorCategory LeaseSignatureErrorCode
 src/lib/constants/status-types.ts CacheInvalidationReason CacheableEntityType CustomerInvoiceStatus DocumentType ErrorSeverity LateFeeType LeaseType PermissionType ProcessStatus ReminderStatus ReminderType RequestStatus Result SecurityMonitoringEventType SortDirection Status TimePeriod UploadStatus UserRole
 src/lib/forms/form-hook.tsx withFieldGroup
-src/lib/frontend-logger.ts LogEntry LogLevel
 src/lib/generate-metadata.ts getJsonLd
 src/lib/ledger/ledger-math.ts isLate
 src/lib/reports/generate-excel.ts computeColumnWidths sanitizeSheetName

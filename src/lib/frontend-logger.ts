@@ -1,19 +1,27 @@
 /**
- * Frontend logger
+ * The app's logger: a thin adapter over Sentry Logs (2026-11-28).
  *
- * - Structured logging with optional component context
- * - Console output in development
- * - Sentry integration in production (errors → captureException, warnings → captureMessage,
- *   info → breadcrumbs attached to the next error event for free)
+ * Sentry Logs store, timestamp and index every log, linked to its trace and
+ * issue, so this file no longer formats entries or keeps breadcrumbs. It does
+ * only what calling `Sentry.logger` directly would not do for the app:
+ * - load the SDK on first use (`#lib/sentry-lazy`), so marketing pages keep
+ *   it out of their initial JavaScript (2026-11-24 SEO audit S1);
+ * - open an issue for an error (captureException), not only write a log;
+ * - print in development, where no log is sent (every init's beforeSendLog).
+ *
+ * A log's attributes are the context's fields, its `metadata` spread to the
+ * top level (each a searchable column), an Error argument's name and message,
+ * and any other arguments (which the SDK stringifies). Debug is development
+ * console output only.
  */
 
 import {
-	addBreadcrumb,
 	captureException,
 	captureMessage,
+	log,
+	type SentryLogLevel,
 } from "#lib/sentry-lazy";
 
-// TypeScript interfaces for structured logging
 export interface LogContext {
 	component?: string;
 	action?: string;
@@ -25,184 +33,92 @@ export interface LogContext {
 	[key: string]: unknown;
 }
 
-export interface LogEntry {
-	level: LogLevel;
-	message: string;
-	context?: LogContext;
-	timestamp: string;
-	args?: unknown[];
-}
+type Level = "debug" | SentryLogLevel;
 
-export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
-
-// Environment checks
 const isDevelopment = () => process.env["NODE_ENV"] === "development";
-const isClient = () => typeof window !== "undefined";
+
+// The one place app code reaches the console: development output only.
 const devConsole: Partial<Console> | undefined =
 	typeof globalThis !== "undefined"
 		? (globalThis["console"] as Console | undefined)
 		: undefined;
 
-// Safe timestamp for Next.js Server Components
-// Server-side logs skip timestamps to avoid Next.js 15 prerender errors
-// (new Date() before uncached data access breaks Server Components)
-const getTimestamp = () => (isClient() ? new Date().toISOString() : "");
-
-/**
- * Safe JSON stringify with circular reference handling
- */
-const safeStringify = (obj: unknown): string => {
-	try {
-		return JSON.stringify(obj, null, 2);
-	} catch {
-		return String(obj);
-	}
-};
-
-/**
- * Development-only console logger
- * This is the ONLY place console methods are used
- */
-const developmentConsoleFallback = (entry: LogEntry) => {
+function printInDevelopment(
+	level: Level,
+	message: string,
+	context: LogContext,
+	args: unknown[],
+): void {
 	if (!isDevelopment()) return;
+	const line = `[${context.component ?? "app"}] ${message}`;
+	const print =
+		level === "error"
+			? devConsole?.error
+			: level === "warn"
+				? devConsole?.warn
+				: devConsole?.info;
+	print?.(line, context, ...args);
+}
 
-	const timestamp = entry.timestamp;
-	const contextStr = entry.context?.component
-		? `[${entry.context.component}]`
-		: "";
-	const message = `${timestamp} [${entry.level}]${contextStr} ${entry.message}`;
-
-	// Serialize metadata for readable console output
-	const metadataStr = entry.context?.metadata
-		? safeStringify(entry.context.metadata)
-		: "";
-
-	// Only use console in development as absolute last resort
-	switch (entry.level) {
-		case "DEBUG":
-		case "INFO":
-			devConsole?.info?.(message, metadataStr, ...(entry.args || []));
-			break;
-		case "WARN":
-			devConsole?.warn?.(message, metadataStr, ...(entry.args || []));
-			break;
-		case "ERROR":
-			devConsole?.error?.(message, metadataStr, ...(entry.args || []));
-			break;
+function attributesFor(
+	context: LogContext,
+	args: unknown[],
+): Record<string, unknown> {
+	const { metadata, ...fields } = context;
+	const attributes: Record<string, unknown> = { ...metadata, ...fields };
+	const others: unknown[] = [];
+	for (const arg of args) {
+		if (arg instanceof Error) {
+			attributes["error.type"] = arg.name;
+			attributes["error.message"] = arg.message;
+		} else {
+			others.push(arg);
+		}
 	}
-};
+	if (others.length > 0) attributes["args"] = others;
+	return attributes;
+}
 
-/**
- * Send the entry to Sentry at the appropriate severity.
- * - ERROR: captureException (or captureMessage if no Error object passed)
- * - WARN: captureMessage with 'warning' level
- * - INFO/DEBUG: addBreadcrumb (free — attached to next error event)
- *
- * Calls go through `#lib/sentry-lazy`, which loads the SDK on first use and
- * drops a report it can't make (a missing SDK method included) instead of
- * throwing into the app.
- */
-const reportToSentry = (entry: LogEntry) => {
-	const extra: Record<string, unknown> = {
-		...(entry.context ?? {}),
-		args: entry.args && entry.args.length > 0 ? entry.args : undefined,
-	};
-
+function write(
+	level: Level,
+	message: string,
+	context: LogContext,
+	args: unknown[],
+): void {
+	printInDevelopment(level, message, context, args);
+	if (level === "debug") return;
 	try {
-		switch (entry.level) {
-			case "ERROR": {
-				const errArg = entry.args?.find((a): a is Error => a instanceof Error);
-				if (errArg) {
-					captureException(errArg, {
-						extra: { message: entry.message, ...extra },
-					});
-				} else {
-					captureMessage(entry.message, { level: "error", extra });
-				}
-				break;
-			}
-			case "WARN":
-				captureMessage(entry.message, { level: "warning", extra });
-				break;
-			case "INFO":
-			case "DEBUG":
-				addBreadcrumb({
-					category: entry.context?.component ?? "app",
-					level: entry.level === "DEBUG" ? "debug" : "info",
-					message: entry.message,
-					...(entry.context
-						? { data: entry.context as Record<string, unknown> }
-						: {}),
-				});
-				break;
+		log(level, message, attributesFor(context, args));
+		if (level === "error") {
+			const extra = {
+				...context,
+				...(args.length > 0 ? { args } : {}),
+			};
+			const error = args.find((arg): arg is Error => arg instanceof Error);
+			if (error) captureException(error, { extra: { message, ...extra } });
+			else captureMessage(message, { level: "error", extra });
 		}
 	} catch {
-		// Never let logging break the app
+		// Never let logging break the app.
 	}
-};
+}
 
 /**
- * Core logging function — dev console output + Sentry routing.
- */
-const logEntry = (entry: LogEntry) => {
-	developmentConsoleFallback(entry);
-	reportToSentry(entry);
-};
-
-/**
- * Create a contextual logger for a specific component
- * This is the recommended way to create loggers
+ * A logger with `defaultContext` on every entry (typically its component).
+ * Each method takes a message, optional context, and any further arguments.
  */
 export const createLogger = (defaultContext?: LogContext) => {
+	const at =
+		(level: Level) =>
+		(message: string, context?: LogContext, ...args: unknown[]) =>
+			write(level, message, { ...defaultContext, ...context }, args);
 	return {
-		debug: (message: string, context?: LogContext, ...args: unknown[]) => {
-			// Debug logs only in development
-			if (isDevelopment()) {
-				const entry: LogEntry = {
-					level: "DEBUG",
-					message,
-					context: { ...defaultContext, ...context },
-					timestamp: getTimestamp(),
-					args,
-				};
-				logEntry(entry);
-			}
-		},
-		info: (message: string, context?: LogContext, ...args: unknown[]) => {
-			const entry: LogEntry = {
-				level: "INFO",
-				message,
-				context: { ...defaultContext, ...context },
-				timestamp: getTimestamp(),
-				args,
-			};
-			logEntry(entry);
-		},
-		warn: (message: string, context?: LogContext, ...args: unknown[]) => {
-			const entry: LogEntry = {
-				level: "WARN",
-				message,
-				context: { ...defaultContext, ...context },
-				timestamp: getTimestamp(),
-				args,
-			};
-			logEntry(entry);
-		},
-		error: (message: string, context?: LogContext, ...args: unknown[]) => {
-			const entry: LogEntry = {
-				level: "ERROR",
-				message,
-				context: { ...defaultContext, ...context },
-				timestamp: getTimestamp(),
-				args,
-			};
-			logEntry(entry);
-		},
+		debug: at("debug"),
+		info: at("info"),
+		warn: at("warn"),
+		error: at("error"),
 	};
 };
 
-/**
- * Default logger instance
- * Use this for quick logging without component context
- */
+/** A logger with no default context. */
 export const logger = createLogger();
