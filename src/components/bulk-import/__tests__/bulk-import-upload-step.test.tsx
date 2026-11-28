@@ -10,10 +10,11 @@
  * drag must set the one the drag classes target.
  */
 
-import { fireEvent, render } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { tenantBulkImportConfig } from "#components/tenants/bulk-import-config";
 import { BulkImportUploadStep } from "../bulk-import-upload-step";
+import { CSV_MAX_FILE_SIZE_BYTES } from "../parse-csv-with-schema";
 
 const PRIMITIVE_ATTRIBUTES = new Set([
 	"data-dragging",
@@ -64,5 +65,49 @@ describe("BulkImportUploadStep drag state", () => {
 		expect(dropzone.classList).toContain("data-dragging:bg-primary/10");
 		const icon = dropzone.querySelector(".icon-container-lg");
 		expect(icon?.classList).toContain("group-data-dragging:scale-110");
+	});
+});
+
+describe("BulkImportUploadStep — a refused file", () => {
+	function chooseFile(file: File) {
+		const input =
+			document.querySelector<HTMLInputElement>('input[type="file"]');
+		if (!input) throw new Error("no file input rendered");
+		fireEvent.change(input, { target: { files: [file] } });
+	}
+
+	it("says why it refused the file, and clears that once a CSV is accepted", () => {
+		const accepted: File[] = [];
+		render(
+			<BulkImportUploadStep
+				config={tenantBulkImportConfig()}
+				onFileSelect={(file) => accepted.push(file)}
+			/>,
+		);
+		expect(screen.queryByRole("alert")).toBeNull();
+
+		chooseFile(
+			new File(["a,b"], "tenants.xlsx", { type: "application/vnd.ms-excel" }),
+		);
+		expect(screen.getByRole("alert")).toHaveTextContent(
+			"Please select a CSV file (.csv)",
+		);
+
+		chooseFile(
+			new File([new Uint8Array(CSV_MAX_FILE_SIZE_BYTES + 1)], "tenants.csv", {
+				type: "text/csv",
+			}),
+		);
+		expect(screen.getByRole("alert")).toHaveTextContent(
+			"File size must be less than 5MB",
+		);
+		expect(accepted).toEqual([]);
+
+		const good = new File(["first_name,last_name,email"], "tenants.csv", {
+			type: "text/csv",
+		});
+		chooseFile(good);
+		expect(accepted).toEqual([good]);
+		expect(screen.queryByRole("alert")).toBeNull();
 	});
 });

@@ -41,7 +41,8 @@ export const unitInputSchema = z.object({
 			`Unit number cannot exceed ${VALIDATION_LIMITS.UNIT_NUMBER_MAX_LENGTH} characters`,
 		),
 
-	bedrooms: positiveNumberSchema
+	// 0 is a studio.
+	bedrooms: nonNegativeNumberSchema
 		.int("Bedrooms must be a whole number")
 		.max(
 			VALIDATION_LIMITS.UNIT_MAX_BEDROOMS,
@@ -91,7 +92,7 @@ const unitQuerySchema = z.object({
 	status: unitStatusSchema.optional(),
 	min_rent_amount: nonNegativeNumberSchema.optional(),
 	max_rent_amount: nonNegativeNumberSchema.optional(),
-	bedrooms: positiveNumberSchema.int().optional(),
+	bedrooms: nonNegativeNumberSchema.int().optional(),
 	bathrooms: positiveNumberSchema.optional(),
 	min_square_feet: positiveNumberSchema.int().optional(),
 	max_square_feet: positiveNumberSchema.int().optional(),

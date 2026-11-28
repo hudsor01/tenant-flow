@@ -395,16 +395,9 @@ describe("handleMutationError — leaky SQLSTATE → friendly copy (UIX-04)", ()
 	});
 
 	it("keeps an author RAISE message verbatim under every SQLSTATE the migrations raise with", () => {
-		// PL/pgSQL's default P0001 and every `errcode` in supabase/migrations.
-		for (const code of [
-			"P0001",
-			"PLIM1",
-			"22023",
-			"23514",
-			"28000",
-			"42501",
-			"0A000",
-		]) {
+		// PL/pgSQL's default P0001 and every `errcode` in supabase/migrations
+		// but PLIM1, which only enforce_storage_quota raises (next test).
+		for (const code of ["P0001", "22023", "23514", "28000", "42501", "0A000"]) {
 			expect(
 				userFacingErrorMessage({
 					message: "Lease term is locked and cannot be changed.",
@@ -413,6 +406,36 @@ describe("handleMutationError — leaky SQLSTATE → friendly copy (UIX-04)", ()
 				code,
 			).toBe("Lease term is locked and cannot be changed.");
 		}
+	});
+
+	it("says what a plan-limit rejection means instead of the trigger's machine text", () => {
+		// enforce_property_plan_limit / enforce_unit_plan_limit via PostgREST.
+		expect(
+			userFacingErrorMessage({
+				message: "plan_limit_exceeded: properties (5 / 5 used)",
+				code: "P0001",
+				hint: "plan_limit_exceeded",
+				details:
+					'{"resource":"properties","used":5,"limit":5,"upgrade_source":"property_limit"}',
+			}),
+		).toBe(
+			"You've reached your plan's limit of 5 properties. Upgrade to add more.",
+		);
+		expect(
+			userFacingErrorMessage({
+				message: "plan_limit_exceeded: units (1 / 1 used)",
+				code: "P0001",
+				hint: "plan_limit_exceeded",
+				details: '{"resource":"units","used":1,"limit":1}',
+			}),
+		).toBe("You've reached your plan's limit of 1 unit. Upgrade to add more.");
+		// enforce_storage_quota through the Storage API: only the SQLSTATE survives.
+		expect(
+			userFacingErrorMessage({
+				message: "database error, code: PLIM1",
+				code: "PLIM1",
+			}),
+		).toBe("You've reached your plan's storage limit. Upgrade for more space.");
 	});
 
 	it("never shows Postgres's own text under any other SQLSTATE (66.2-39 fix round 4, Part 5d)", () => {

@@ -199,6 +199,9 @@ export function userFacingErrorMessage(
 ): string {
 	if (isApiError(error)) return error.getUserMessage();
 	if (error instanceof DiagnosticError) return fallback;
+	// A plan-limit trigger's MESSAGE is a machine prefix; say what it means.
+	const planLimit = readPlanLimit(error);
+	if (planLimit) return planLimitCopy(planLimit.resource, planLimit.limit);
 	// supabase-js's own Edge Function errors carry library text, not copy.
 	const name = error instanceof Error ? error.name : undefined;
 	if (name === "FunctionsFetchError") return NETWORK_ERROR_MESSAGE;
@@ -328,6 +331,64 @@ function planLimitCopy(resource: unknown, limit: unknown): string {
 	return "You've reached a limit of your current plan. Upgrade to add more.";
 }
 
+interface PlanLimitRejection {
+	/** The trigger DETAIL's `resource` ("properties", "units"), or "storage". */
+	resource: unknown;
+	/** The trigger DETAIL's `limit`, when it carried one. */
+	limit: unknown;
+	/** Analytics tag for the Upgrade link. */
+	upgradeSource: string;
+	/** A storage-quota rejection, which shares one toast id per batch. */
+	isStorageQuota: boolean;
+}
+
+/**
+ * The plan-limit facts an error carries, or null when it is not a plan-limit
+ * rejection. The BEFORE-INSERT triggers `enforce_property_plan_limit` /
+ * `enforce_unit_plan_limit` raise a `PostgrestError` with top-level
+ * `hint = 'plan_limit_exceeded'` and `details` as a JSON string carrying
+ * `{ resource, used, limit, upgrade_source }`. Edge Function tier gates
+ * (`_shared/tier-gate.ts`) return a 402 response with `upgrade_url` in the
+ * body and are surfaced through their own per-feature handlers.
+ *
+ * Storage uploads go through `@supabase/storage-js`, so a quota rejection is a
+ * `StorageApiError` that strips `.hint`/`.detail`: the only quota signal is
+ * the Plan 04 trigger's `plan_limit_exceeded:` MESSAGE prefix. A PostgREST
+ * plan-limit error carries the SAME prefix but ALSO a `hint` + DETAIL JSON,
+ * so a genuine STORAGE rejection is "prefix matches AND no plan-limit hint".
+ * DETAIL is JSON-encoded by the trigger's `format(...)` call; a parse failure
+ * keeps the defaults rather than losing the rejection.
+ */
+function readPlanLimit(error: unknown): PlanLimitRejection | null {
+	const errObj = error as Record<string, unknown> | null;
+	const pgHint = typeof errObj?.hint === "string" ? errObj.hint : undefined;
+	const pgDetails =
+		typeof errObj?.details === "string" ? errObj.details : undefined;
+	const hasPlanLimitHint = pgHint === "plan_limit_exceeded";
+	const isStorageQuota = isStoragePlanLimitError(error) && !hasPlanLimitHint;
+	if (!hasPlanLimitHint && !isStorageQuota) return null;
+
+	const rejection: PlanLimitRejection = {
+		resource: isStorageQuota ? "storage" : undefined,
+		limit: undefined,
+		upgradeSource: isStorageQuota ? "storage_quota_gate" : "plan_limit_gate",
+		isStorageQuota,
+	};
+	if (pgDetails) {
+		try {
+			const parsed = JSON.parse(pgDetails) as Record<string, unknown>;
+			if (typeof parsed.upgrade_source === "string") {
+				rejection.upgradeSource = parsed.upgrade_source;
+			}
+			rejection.resource = parsed.resource ?? rejection.resource;
+			rejection.limit = parsed.limit;
+		} catch {
+			/* DETAIL wasn't JSON; keep the defaults */
+		}
+	}
+	return rejection;
+}
+
 /**
  * Handle mutation errors with consistent logging and user feedback
  *
@@ -380,48 +441,7 @@ export function handleMutationError(
 	const displayMessage = (fallback?: string) =>
 		customMessage || userFacingErrorMessage(error, fallback);
 
-	// Plan-limit detection — fired by the BEFORE-INSERT triggers
-	// `enforce_property_plan_limit` / `enforce_unit_plan_limit`. The PG
-	// exception surfaces here as a `PostgrestError` with top-level fields
-	// `hint = 'plan_limit_exceeded'` and `details` as a JSON string carrying
-	// `{ resource, used, limit, upgrade_source }`. Edge Function tier gates
-	// (`_shared/tier-gate.ts`) return a 402 response with `upgrade_url` in
-	// the body and are surfaced through their own per-feature handlers — they
-	// do NOT pass through this function.
-	const errObj = error as Record<string, unknown> | null;
-	const pgHint = typeof errObj?.hint === "string" ? errObj.hint : undefined;
-	const pgDetails =
-		typeof errObj?.details === "string" ? errObj.details : undefined;
-	// Storage uploads go through `@supabase/storage-js`, so a quota rejection is
-	// a `StorageApiError` that strips `.hint`/`.detail` — the only quota signal
-	// is the Plan 04 trigger's `plan_limit_exceeded:` MESSAGE prefix. A PostgREST
-	// plan-limit error carries the SAME prefix but ALSO a `hint` + DETAIL JSON, so
-	// a genuine STORAGE rejection is "prefix matches AND no plan-limit hint". Both
-	// route through the same Upgrade toast; only the storage path uses the shared
-	// dedupe id + `storage_quota_gate` default source.
-	const hasPlanLimitHint = pgHint === "plan_limit_exceeded";
-	const isStorageQuota = isStoragePlanLimitError(error) && !hasPlanLimitHint;
-	const isPlanLimit = hasPlanLimitHint || isStorageQuota;
-
-	// Source attribution for analytics — DETAIL is JSON-encoded by the
-	// trigger's `format(...)` call. Treat parse failures as a soft default
-	// rather than blocking the toast. A storage rejection never carries a
-	// DETAIL, so it defaults to `storage_quota_gate`.
-	let upgradeSource = isStorageQuota ? "storage_quota_gate" : "plan_limit_gate";
-	let limitResource: unknown = isStorageQuota ? "storage" : undefined;
-	let limitCount: unknown;
-	if (pgDetails) {
-		try {
-			const parsed = JSON.parse(pgDetails) as Record<string, unknown>;
-			if (typeof parsed.upgrade_source === "string") {
-				upgradeSource = parsed.upgrade_source;
-			}
-			limitResource = parsed.resource ?? limitResource;
-			limitCount = parsed.limit;
-		} catch {
-			/* DETAIL wasn't JSON; keep default tag */
-		}
-	}
+	const planLimit = readPlanLimit(error);
 
 	// Customize toast based on status code
 	if (status === 409) {
@@ -430,11 +450,11 @@ export function handleMutationError(
 				"This item already exists or has been modified",
 			),
 		});
-	} else if (isPlanLimit) {
+	} else if (planLimit) {
 		showPlanLimitUpgradeToast(
-			customMessage || planLimitCopy(limitResource, limitCount),
-			upgradeSource,
-			isStorageQuota ? STORAGE_QUOTA_TOAST_ID : undefined,
+			customMessage || planLimitCopy(planLimit.resource, planLimit.limit),
+			planLimit.upgradeSource,
+			planLimit.isStorageQuota ? STORAGE_QUOTA_TOAST_ID : undefined,
 		);
 	} else if (status === 403) {
 		toast.error("Access Denied", {
