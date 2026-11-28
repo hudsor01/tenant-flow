@@ -416,7 +416,7 @@ src/lib/constants/status-types.ts CacheInvalidationReason CacheableEntityType Cu
 src/lib/forms/form-hook.tsx withFieldGroup
 src/lib/frontend-logger.ts LogEntry LogLevel
 src/lib/generate-metadata.ts getJsonLd
-src/lib/ledger/ledger-math.ts GRACE_PERIOD_DAYS isLate
+src/lib/ledger/ledger-math.ts isLate
 src/lib/reports/generate-excel.ts computeColumnWidths sanitizeSheetName
 src/lib/reports/report-data.ts isMissingRelationError safeFetch
 src/lib/seo/evergreen-topics.ts EVERGREEN_TOPICS EvergreenTopic

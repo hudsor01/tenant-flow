@@ -383,7 +383,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 			{
 				heading: "How rent charges are added",
 				paragraphs: [
-					"Once a lease is tracked, a Rent charge for its monthly rent posts on the 1st of each month, from the month you started tracking. Charges post in a nightly run, so the first one appears the day after you start. Rent isn't prorated, and late fees are never added automatically.",
+					"Once a lease is tracked, a Rent charge for its monthly rent posts each month, from the month you started tracking, due on the lease's payment day (the month's last day in a shorter month, and never before the lease starts). Charges post in a nightly run, so the first one appears the day after you start. Rent isn't prorated, and late fees are never added automatically.",
 				],
 			},
 			{
@@ -414,7 +414,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 			{
 				heading: "Read the balance",
 				paragraphs: [
-					"The Ledger tab shows the balance, the total charged and the total received. Each row shows a running balance and a status: Paid, Partial, Unpaid or Late. A charge counts as late 5 days after it was due.",
+					"The Ledger tab shows the balance, the total charged and the total received. Each row shows a running balance and a status: Paid, Partial, Unpaid or Late. A charge counts as late once the lease's grace period has passed after its due date: with a 3-day grace, rent due on the 1st is late from the 5th.",
 				],
 			},
 		],
@@ -429,7 +429,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 			},
 		],
 		publishedAt: PUBLISHED_AT,
-		reviewedAt: REVIEWED_AT,
+		reviewedAt: "2026-11-27",
 	},
 	{
 		slug: "change-plan-or-cancel",
