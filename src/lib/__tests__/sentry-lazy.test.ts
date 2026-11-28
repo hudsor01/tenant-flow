@@ -10,6 +10,7 @@ const sentry = vi.hoisted(() => ({
 	captureException: vi.fn(),
 	captureMessage: vi.fn(),
 	addBreadcrumb: vi.fn(),
+	logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 vi.mock("@sentry/nextjs", () => sentry);
 
@@ -43,6 +44,26 @@ describe("sentry-lazy", () => {
 		expect(sentry.captureMessage).toHaveBeenCalledWith("hello", "warning");
 		expect(sentry.addBreadcrumb).toHaveBeenCalledWith({ message: "step" });
 		expect(init.ran).toHaveBeenCalledTimes(1);
+	});
+
+	it("writes a Sentry Log at the level asked, with its attributes", async () => {
+		const lazy = await import("#lib/sentry-lazy");
+		lazy.log("info", "Lease created", { lease_id: "l1" });
+		lazy.log("warn", "Slow upload", { duration_ms: 3500 });
+		lazy.log("error", "Save failed");
+
+		await vi.waitFor(() =>
+			expect(sentry.logger.error).toHaveBeenCalledWith(
+				"Save failed",
+				undefined,
+			),
+		);
+		expect(sentry.logger.info).toHaveBeenCalledWith("Lease created", {
+			lease_id: "l1",
+		});
+		expect(sentry.logger.warn).toHaveBeenCalledWith("Slow upload", {
+			duration_ms: 3500,
+		});
 	});
 
 	it("drops a report whose SDK can't load, and never throws", async () => {

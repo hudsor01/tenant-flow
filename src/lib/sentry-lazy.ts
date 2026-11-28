@@ -53,3 +53,19 @@ export function addBreadcrumb(
 ): void {
 	whenLoaded((sentry) => sentry.addBreadcrumb(...args));
 }
+
+/** The Sentry Logs levels the app logger writes. */
+export type SentryLogLevel = "info" | "warn" | "error";
+
+/**
+ * A Sentry Log (Explore > Logs), searchable by its attributes and linked to
+ * the trace it was written in. The SDK sends logs by default in v11; every
+ * init passes them through `scrubLog` first.
+ */
+export function log(
+	level: SentryLogLevel,
+	message: string,
+	attributes?: Record<string, unknown>,
+): void {
+	whenLoaded((sentry) => sentry.logger[level](message, attributes));
+}

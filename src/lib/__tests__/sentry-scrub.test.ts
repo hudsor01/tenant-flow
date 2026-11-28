@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	scrubBreadcrumb,
+	scrubLog,
 	scrubSpan,
 	scrubUrlsIntegration,
 } from "../sentry-scrub";
@@ -119,6 +120,71 @@ describe("scrubSpan", () => {
 		});
 		expect(span.attributes["sentry.op"]).toBe("http.client");
 		expect(span.attributes["http.response.status_code"]).toBe(200);
+	});
+});
+
+describe("scrubLog", () => {
+	it("scrubs a log's message and every attribute, nested ones included", () => {
+		const log = scrubLog({
+			level: "warn" as const,
+			message: `Signing link opened: ${SIGN}`,
+			attributes: {
+				component: "SignPage",
+				url: CALLBACK,
+				args: [{ request: SEARCH }, APPLY],
+				"http.query": `?or=(email.ilike.*${TENANT_EMAIL}*)`,
+				attempts: 2,
+			},
+		});
+		expect(log.message).toBe(
+			"Signing link opened: https://tenantflow.app/sign/[token]",
+		);
+		expect(log.attributes.component).toBe("SignPage");
+		expect(log.attributes.url).toBe("https://tenantflow.app/auth/callback");
+		expect(log.attributes["http.query"]).toBe("");
+		expect(log.attributes.attempts).toBe(2);
+		const serialized = JSON.stringify(log);
+		for (const fixture of FIXTURES) {
+			expect(serialized, fixture).not.toContain(fixture);
+		}
+	});
+
+	it("redacts personal details: values under personal keys and any email address", () => {
+		const log = scrubLog({
+			level: "info" as const,
+			message: `Invite sent to ${TENANT_EMAIL}`,
+			attributes: {
+				email: TENANT_EMAIL,
+				"tenant.phone": "+1 512 555 0100",
+				owner_first_name: "Fixture",
+				password: "fixture-password",
+				args: [{ last_name: TENANT_NAME, note: `cc ${TENANT_EMAIL}` }],
+				"error.message": `No account for ${TENANT_EMAIL}`,
+				tenant_id: "t1",
+				subject: "general",
+				count: 3,
+			},
+		});
+		expect(log.message).toBe("Invite sent to [email]");
+		expect(log.attributes).toEqual({
+			email: "[redacted]",
+			"tenant.phone": "[redacted]",
+			owner_first_name: "[redacted]",
+			password: "[redacted]",
+			args: [{ last_name: "[redacted]", note: "cc [email]" }],
+			"error.message": "No account for [email]",
+			tenant_id: "t1",
+			subject: "general",
+			count: 3,
+		});
+		expect(JSON.stringify(log)).not.toContain(TENANT_NAME);
+	});
+
+	it("leaves a log with no attributes valid", () => {
+		expect(scrubLog({ level: "info" as const, message: "Saved" })).toEqual({
+			level: "info",
+			message: "Saved",
+		});
 	});
 });
 

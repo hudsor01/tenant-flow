@@ -6,6 +6,7 @@
 import * as Sentry from "@sentry/nextjs";
 import {
 	scrubBreadcrumb,
+	scrubLog,
 	scrubSpan,
 	scrubUrlsIntegration,
 } from "./src/lib/sentry-scrub";
@@ -48,10 +49,24 @@ Sentry.init({
 	// URLs carry secrets (sign/apply tokens, auth codes, search terms): every
 	// URL Sentry sees is scrubbed (src/lib/sentry-scrub.ts). The integration
 	// covers every event type; these two cover breadcrumbs and streamed spans.
+	// Sentry Logs (on by default in SDK v11): the app logger
+	// (src/lib/frontend-logger.ts) writes info/warn/error, and console.warn /
+	// console.error are captured too. Every log is scrubbed like a breadcrumb,
+	// and none leaves a development build, as for events.
+	beforeSendLog(log) {
+		if (process.env.NODE_ENV === "development" && !process.env.SENTRY_DEBUG) {
+			return null;
+		}
+		return scrubLog(log);
+	},
+
 	beforeBreadcrumb: scrubBreadcrumb,
 	beforeSendSpan: scrubSpan,
 
-	integrations: [scrubUrlsIntegration()],
+	integrations: [
+		scrubUrlsIntegration(),
+		Sentry.consoleLoggingIntegration({ levels: ["warn", "error"] }),
+	],
 
 	// Don't send events in development, scrub sensitive data
 	beforeSend(event) {

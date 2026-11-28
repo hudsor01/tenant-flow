@@ -19,6 +19,7 @@ const sentry = vi.hoisted(() => ({
 	captureRouterTransitionStart: vi.fn(),
 	browserTracingIntegration: vi.fn(() => ({ name: "BrowserTracing" })),
 	browserApiErrorsIntegration: vi.fn(() => ({ name: "BrowserApiErrors" })),
+	consoleLoggingIntegration: vi.fn(() => ({ name: "ConsoleLogs" })),
 	feedbackIntegration: vi.fn(() => ({ name: "Feedback" })),
 }));
 vi.mock("@sentry/nextjs", () => sentry);
@@ -61,6 +62,27 @@ describe("Sentry browser config (src/lib/sentry-browser-init.ts)", () => {
 			integrations?: { name: string }[];
 		};
 		expect(options.integrations?.map((i) => i.name)).not.toContain("Feedback");
+	});
+
+	it("captures console warnings and errors as Sentry Logs, scrubbed first", async () => {
+		await import("#lib/sentry-browser-init");
+		expect(sentry.consoleLoggingIntegration).toHaveBeenCalledWith({
+			levels: ["warn", "error"],
+		});
+		const options = sentry.init.mock.calls.at(-1)?.[0] as {
+			integrations?: { name: string }[];
+			beforeSendLog?: (log: { level: string; message: string }) => unknown;
+		};
+		expect(options.integrations?.map((i) => i.name)).toContain("ConsoleLogs");
+		expect(
+			options.beforeSendLog?.({
+				level: "warn",
+				message: "opened https://tenantflow.app/sign/fake-token-fixture",
+			}),
+		).toEqual({
+			level: "warn",
+			message: "opened https://tenantflow.app/sign/[token]",
+		});
 	});
 });
 

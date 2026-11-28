@@ -18,6 +18,7 @@
 import * as Sentry from "@sentry/nextjs";
 import {
 	scrubBreadcrumb,
+	scrubLog,
 	scrubSpan,
 	scrubUrlsIntegration,
 } from "./sentry-scrub";
@@ -76,6 +77,17 @@ Sentry.init({
 	// URLs carry secrets (sign/apply tokens, auth codes, search terms): every
 	// URL Sentry sees is scrubbed (src/lib/sentry-scrub.ts). The integration
 	// covers every event type; these two cover breadcrumbs and streamed spans.
+	// Sentry Logs (on by default in SDK v11): the app logger
+	// (src/lib/frontend-logger.ts) writes info/warn/error, and console.warn /
+	// console.error are captured too. Every log is scrubbed like a breadcrumb,
+	// and none leaves a development build, as for events.
+	beforeSendLog(log) {
+		if (process.env.NODE_ENV === "development" && !process.env.SENTRY_DEBUG) {
+			return null;
+		}
+		return scrubLog(log);
+	},
+
 	beforeBreadcrumb: scrubBreadcrumb,
 	beforeSendSpan: scrubSpan,
 
@@ -87,6 +99,8 @@ Sentry.init({
 		}),
 		// HTTP client instrumentation
 		Sentry.browserApiErrorsIntegration(),
+		// console.warn and console.error, as Sentry Logs (scrubbed by scrubLog).
+		Sentry.consoleLoggingIntegration({ levels: ["warn", "error"] }),
 		// No feedbackIntegration here: its UI code would ship to every page,
 		// marketing ones included, for a button only the owner shell shows.
 		// FeedbackWidget registers it on demand (feedback-integration.ts).
