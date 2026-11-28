@@ -15,12 +15,12 @@
  * the repo so concurrent CI runs of different branches don't collide.
  */
 
-import "./env-loader";
 import { writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { describeAuthError } from "./auth-error";
+import { REPO_ROOT } from "./env-loader";
 
 export const SESSION_CACHE_PATH = join(
 	tmpdir(),
@@ -64,27 +64,51 @@ async function signInOnce(
 	};
 }
 
-export default async function setup(): Promise<() => Promise<void>> {
-	const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
-	const supabaseKey = process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"];
-	if (!supabaseUrl || !supabaseKey) {
+/**
+ * The variables the suite cannot run without, read from the environment
+ * (CI secrets) or the checkout's `.env.local` / `.env` (`env-loader.ts`).
+ */
+const REQUIRED_ENV = [
+	"NEXT_PUBLIC_SUPABASE_URL",
+	"NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+	"E2E_OWNER_EMAIL",
+	"E2E_OWNER_PASSWORD",
+	"E2E_OWNER_B_EMAIL",
+	"E2E_OWNER_B_PASSWORD",
+] as const;
+
+type RequiredEnv = (typeof REQUIRED_ENV)[number];
+
+/**
+ * Throws naming every unset or empty variable (names only, never a value),
+ * and where they are read from, so one run says everything to add.
+ */
+function assertRequiredEnv(): void {
+	const missing = REQUIRED_ENV.filter((name) => !process.env[name]);
+	if (missing.length > 0) {
 		throw new Error(
-			"globalSetup: NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY missing",
+			`globalSetup: missing ${missing.join(", ")}. Set them in the environment or in ${REPO_ROOT}/.env.local.`,
 		);
 	}
+}
+
+/** A required variable, after `assertRequiredEnv` has checked it is set. */
+function requiredEnv(name: RequiredEnv): string {
+	return process.env[name] ?? "";
+}
+
+export default async function setup(): Promise<() => Promise<void>> {
+	assertRequiredEnv();
+	const supabaseUrl = requiredEnv("NEXT_PUBLIC_SUPABASE_URL");
+	const supabaseKey = requiredEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
 
 	const cache: SessionCache = {};
 
-	// Owner A + Owner B — always required, fail loudly if missing.
-	const ownerAEmail = process.env["E2E_OWNER_EMAIL"];
-	const ownerAPassword = process.env["E2E_OWNER_PASSWORD"];
-	const ownerBEmail = process.env["E2E_OWNER_B_EMAIL"];
-	const ownerBPassword = process.env["E2E_OWNER_B_PASSWORD"];
-	if (!ownerAEmail || !ownerAPassword || !ownerBEmail || !ownerBPassword) {
-		throw new Error(
-			"globalSetup: E2E owner credentials missing (E2E_OWNER_EMAIL / PASSWORD / B_EMAIL / B_PASSWORD)",
-		);
-	}
+	// Owner A + Owner B — always required (checked above).
+	const ownerAEmail = requiredEnv("E2E_OWNER_EMAIL");
+	const ownerAPassword = requiredEnv("E2E_OWNER_PASSWORD");
+	const ownerBEmail = requiredEnv("E2E_OWNER_B_EMAIL");
+	const ownerBPassword = requiredEnv("E2E_OWNER_B_PASSWORD");
 	cache[ownerAEmail] = await signInOnce(
 		supabaseUrl,
 		supabaseKey,

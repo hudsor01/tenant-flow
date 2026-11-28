@@ -27,7 +27,9 @@ function loadEnvFile(filePath: string) {
 	}
 }
 
+/** The checkout whose env files are read. */
+export const REPO_ROOT = resolve(import.meta.dirname, "../../..");
+
 // Load .env.local first (higher priority), then .env as fallback
-const repoRoot = resolve(import.meta.dirname, "../../..");
-loadEnvFile(resolve(repoRoot, ".env.local"));
-loadEnvFile(resolve(repoRoot, ".env"));
+loadEnvFile(resolve(REPO_ROOT, ".env.local"));
+loadEnvFile(resolve(REPO_ROOT, ".env"));
