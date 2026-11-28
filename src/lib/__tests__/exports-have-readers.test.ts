@@ -46,7 +46,34 @@ const TAX_EXPORT =
 const CORPUS =
 	"the blog factory's grounding corpus, which the test checks for stale claims and the blog digest";
 
+const ROTATE_PASSWORD =
+	"the test-account password rotation's allow list, password and .env.local update, pinned by the test (its CLI entry is the only production caller)";
+
 const TEST_SEAMS: readonly Seam[] = [
+	{
+		file: "scripts/rotate-test-account-password.ts",
+		name: "ACCOUNTS",
+		reader: "scripts/rotate-test-account-password.test.ts",
+		why: ROTATE_PASSWORD,
+	},
+	{
+		file: "scripts/rotate-test-account-password.ts",
+		name: "isAccountName",
+		reader: "scripts/rotate-test-account-password.test.ts",
+		why: ROTATE_PASSWORD,
+	},
+	{
+		file: "scripts/rotate-test-account-password.ts",
+		name: "generatePassword",
+		reader: "scripts/rotate-test-account-password.test.ts",
+		why: ROTATE_PASSWORD,
+	},
+	{
+		file: "scripts/rotate-test-account-password.ts",
+		name: "upsertEnvLines",
+		reader: "scripts/rotate-test-account-password.test.ts",
+		why: ROTATE_PASSWORD,
+	},
 	{
 		file: "scripts/rag-index-blog-corpus.ts",
 		name: "buildCorpusChunks",

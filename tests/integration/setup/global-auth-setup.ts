@@ -87,7 +87,7 @@ function assertRequiredEnv(): void {
 	const missing = REQUIRED_ENV.filter((name) => !process.env[name]);
 	if (missing.length > 0) {
 		throw new Error(
-			`globalSetup: missing ${missing.join(", ")}. Set them in the environment or in ${REPO_ROOT}/.env.local.`,
+			`globalSetup: missing ${missing.join(", ")}. Set them in the environment or in ${REPO_ROOT}/.env.local; for a test account whose password nobody has, run "bun scripts/rotate-test-account-password.ts <owner-a|owner-b|admin>".`,
 		);
 	}
 }
