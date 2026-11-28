@@ -136,7 +136,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 					"Click Leases in the sidebar, then New Lease, and work through the four steps with Next.",
 				],
 				steps: [
-					"Selection: choose the property, an available unit and the primary tenant. Choosing the unit fills in its rent.",
+					"Selection: choose the property, an available unit and the primary tenant. Choosing the unit fills in its rent. No record for the tenant yet? Click Add New Tenant, enter their name and email, then Add Tenant: they become the lease's primary tenant.",
 					"Terms: pick a duration or set the start and end dates, then the monthly rent, security deposit, the day rent is due, the grace period and any late fee. Amounts are whole dollars.",
 					"Details (all optional): maximum occupants, governing state, pet policy, which utilities are included or the tenant's responsibility, property rules, and the lead-based paint disclosure for properties built before 1978.",
 					"Review: check everything, then click Create Draft Lease.",
@@ -161,7 +161,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 			},
 		],
 		publishedAt: PUBLISHED_AT,
-		reviewedAt: REVIEWED_AT,
+		reviewedAt: "2026-11-27",
 	},
 	{
 		slug: "send-a-lease-for-e-signature",

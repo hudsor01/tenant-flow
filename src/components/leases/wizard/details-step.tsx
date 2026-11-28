@@ -14,7 +14,11 @@ import {
 } from "#components/ui/select";
 import { Switch } from "#components/ui/switch";
 import { Textarea } from "#components/ui/textarea";
-import type { LeaseDetailsStepData } from "#lib/validation/lease-wizard.schemas";
+import { stateNames } from "#lib/templates/lease-template";
+import {
+	type LeaseDetailsStepData,
+	usStateSchema,
+} from "#lib/validation/lease-wizard.schemas";
 import { UTILITY_OPTIONS } from "./utility-options";
 
 interface DetailsStepProps {
@@ -24,18 +28,10 @@ interface DetailsStepProps {
 	errors?: Partial<Record<string, string>>;
 }
 
-const US_STATES = [
-	{ value: "TX", label: "Texas" },
-	{ value: "CA", label: "California" },
-	{ value: "FL", label: "Florida" },
-	{ value: "NY", label: "New York" },
-	{ value: "IL", label: "Illinois" },
-	{ value: "PA", label: "Pennsylvania" },
-	{ value: "OH", label: "Ohio" },
-	{ value: "GA", label: "Georgia" },
-	{ value: "NC", label: "North Carolina" },
-	{ value: "MI", label: "Michigan" },
-];
+// Every code the lease schema accepts (50 states and DC), by name.
+const US_STATES = usStateSchema.options
+	.map((code) => ({ value: code, label: stateNames[code] }))
+	.sort((a, b) => a.label.localeCompare(b.label));
 
 export function DetailsStep({ data, onChange, errors }: DetailsStepProps) {
 	const handleChange = <K extends keyof LeaseDetailsStepData>(

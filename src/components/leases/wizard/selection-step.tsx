@@ -204,6 +204,7 @@ export function SelectionStep({
 						<InlineTenantCreate
 							propertyId={data.property_id}
 							onToggleMode={() => setInviteMode(false)}
+							onCreated={handleTenantChange}
 						/>
 					) : tenantsLoading ? (
 						<Skeleton className="h-10 w-full" />
@@ -221,8 +222,8 @@ export function SelectionStep({
 								<EmptyTitle>No Tenants Available</EmptyTitle>
 								<EmptyDescription className="mb-0">
 									{data.property_id
-										? 'No tenants added to this property yet. Use "Add Tenant" above to get started.'
-										: 'No tenants found. Use "Add Tenant" above to get started.'}
+										? 'No tenants added to this property yet. Use "Add New Tenant" above to get started.'
+										: 'No tenants found. Use "Add New Tenant" above to get started.'}
 								</EmptyDescription>
 							</EmptyHeader>
 						</Empty>

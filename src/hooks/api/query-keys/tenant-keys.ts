@@ -213,28 +213,45 @@ export const tenantQueries = {
 
 	/**
 	 * Flat active-tenant list for lease-wizard selection (records, not users).
+	 *
+	 * Under `lists()`, so every tenant create, update and delete refreshes it
+	 * (a tenant added from inside the wizard appears in its picker). Paged in
+	 * 1000-row chunks, ordered by id so the pages neither overlap nor skip,
+	 * because PostgREST truncates a single read at `max_rows = 1000`.
 	 */
 	listForLease: () =>
 		queryOptions({
-			queryKey: [...tenantQueries.all(), "list-for-lease"],
+			queryKey: [...tenantQueries.lists(), "for-lease"],
 			queryFn: async (): Promise<LeaseTenantOption[]> => {
 				const supabase = createClient();
-				const { data, error } = await supabase
-					.from("tenants")
-					.select("id, first_name, last_name, email")
-					.neq("status", "inactive");
-				if (error) handlePostgrestError(error, "tenants");
-				return (data ?? [])
-					.map(
-						(row) =>
-							({
-								id: row.id,
-								first_name: row.first_name ?? "",
-								last_name: row.last_name ?? "",
-								email: row.email ?? "",
-							}) satisfies LeaseTenantOption,
-					)
-					.sort((a, b) => a.last_name.localeCompare(b.last_name));
+				const PAGE_SIZE = 1000;
+				const collected: LeaseTenantOption[] = [];
+				let from = 0;
+
+				while (true) {
+					const { data, error } = await supabase
+						.from("tenants")
+						.select("id, first_name, last_name, email")
+						.neq("status", "inactive")
+						.order("id", { ascending: true })
+						.range(from, from + PAGE_SIZE - 1);
+					if (error) handlePostgrestError(error, "tenants");
+
+					const rows = data ?? [];
+					for (const row of rows) {
+						collected.push({
+							id: row.id,
+							first_name: row.first_name ?? "",
+							last_name: row.last_name ?? "",
+							email: row.email ?? "",
+						} satisfies LeaseTenantOption);
+					}
+
+					if (rows.length < PAGE_SIZE) break;
+					from += PAGE_SIZE;
+				}
+
+				return collected.sort((a, b) => a.last_name.localeCompare(b.last_name));
 			},
 		}),
 

@@ -21,6 +21,8 @@ interface InlineFormData {
 interface InlineTenantCreateProps {
 	propertyId: string | undefined;
 	onToggleMode: () => void;
+	/** The new tenant's id, so the wizard selects them as primary tenant. */
+	onCreated: (tenantId: string) => void;
 }
 
 /**
@@ -30,6 +32,7 @@ interface InlineTenantCreateProps {
 export function InlineTenantCreate({
 	propertyId: _propertyId,
 	onToggleMode,
+	onCreated,
 }: InlineTenantCreateProps) {
 	const [form, setForm] = useState<InlineFormData>({
 		first_name: "",
@@ -52,7 +55,8 @@ export function InlineTenantCreate({
 				...(form.phone ? { phone: form.phone } : {}),
 			};
 
-			await createTenant.mutateAsync(payload);
+			const created = await createTenant.mutateAsync(payload);
+			onCreated(created.id);
 
 			// FORMFIX-08: useCreateTenantMutation's createMutationCallbacks fires the
 			// single success toast ("Tenant created successfully") — no form-level

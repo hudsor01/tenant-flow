@@ -14,9 +14,10 @@ import {
 } from "./common";
 
 /**
- * US State codes for governing law selection
+ * US State codes for governing law selection; the wizard's Governing State
+ * picker offers exactly these.
  */
-const usStateSchema = z.enum([
+export const usStateSchema = z.enum([
 	"AL",
 	"AK",
 	"AZ",
