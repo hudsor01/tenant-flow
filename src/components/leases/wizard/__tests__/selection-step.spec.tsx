@@ -21,6 +21,7 @@ function createChainMock(resolvedData: unknown[]) {
 		select: vi.fn().mockReturnThis(),
 		neq: vi.fn().mockReturnThis(),
 		order: vi.fn().mockReturnThis(),
+		range: vi.fn().mockReturnThis(),
 		eq: vi.fn().mockReturnThis(),
 		single: vi.fn().mockReturnThis(),
 		// Make the chain thenable so it can be awaited

@@ -88,3 +88,48 @@ describe("tenantQueries.allTenants", () => {
 		expect(mockRange).toHaveBeenCalledWith(0, 999);
 	});
 });
+
+describe("tenantQueries.listForLease (the lease wizard's tenant picker)", () => {
+	const tenantRow = (n: number) => ({
+		id: `tenant-${String(n).padStart(4, "0")}`,
+		first_name: "First",
+		last_name: `Last ${String(n).padStart(4, "0")}`,
+		email: `t${n}@example.com`,
+	});
+
+	beforeEach(() => {
+		//   from → select → neq → order → range  (range is awaited)
+		mockFrom.mockReturnValue({ select: mockSelect });
+		mockSelect.mockReturnValue({ neq: mockNeq });
+		mockNeq.mockReturnValue({ order: mockOrder });
+		mockOrder.mockReturnValue({ range: mockRange });
+		mockRange.mockResolvedValue({ data: [], error: null });
+	});
+
+	it("sits under lists(), so a tenant created, edited or deleted anywhere refreshes it", () => {
+		const lists = tenantQueries.lists();
+		const key = tenantQueries.listForLease().queryKey;
+		expect(key.slice(0, lists.length)).toEqual([...lists]);
+	});
+
+	it("reads past PostgREST's 1000-row cap in id order, and sorts by last name", async () => {
+		mockRange
+			.mockResolvedValueOnce({
+				data: Array.from({ length: 1000 }, (_, i) => tenantRow(1000 - i)),
+				error: null,
+			})
+			.mockResolvedValueOnce({ data: [tenantRow(0)], error: null });
+
+		const tenants = await tenantQueries.listForLease().queryFn?.({} as never);
+
+		expect(mockNeq).toHaveBeenCalledWith("status", "inactive");
+		expect(mockOrder).toHaveBeenCalledWith("id", { ascending: true });
+		expect(mockRange.mock.calls).toEqual([
+			[0, 999],
+			[1000, 1999],
+		]);
+		expect(tenants).toHaveLength(1001);
+		expect(tenants?.[0]?.last_name).toBe("Last 0000");
+		expect(tenants?.[1000]?.last_name).toBe("Last 1000");
+	});
+});
