@@ -85,6 +85,30 @@ const POSTGRES_ERROR_MESSAGES: Record<string, string> = {
 };
 
 /**
+ * Copy for a unique violation (`23505`) of one named index, more specific
+ * than the code's generic "This record already exists.". Postgres names the
+ * index in the message: `duplicate key value violates unique constraint
+ * "<name>"`.
+ */
+const UNIQUE_CONSTRAINT_MESSAGES: Record<string, string> = {
+	// 20261128172746_units_unique_number_per_property.sql
+	units_property_unit_number_key:
+		"This property already has a unit with that number.",
+};
+
+const UNIQUE_CONSTRAINT_NAME = /unique constraint "([^"]+)"/;
+
+/** The copy for a raw Postgres message under `pgCode`. */
+function postgresErrorCopy(pgCode: string | undefined, message: string) {
+	if (pgCode === "23505") {
+		const name = UNIQUE_CONSTRAINT_NAME.exec(message)?.[1];
+		const specific = name ? UNIQUE_CONSTRAINT_MESSAGES[name] : undefined;
+		if (specific) return specific;
+	}
+	return (pgCode && POSTGRES_ERROR_MESSAGES[pgCode]) || GENERIC_MUTATION_ERROR;
+}
+
+/**
  * Fallback shown for a leaky code we don't have specific copy for, so raw
  * Postgres internals never reach the toast.
  */
@@ -188,7 +212,8 @@ function isRuntimeFault(error: unknown): boolean {
  *     message shows `fallback`;
  *   - a raw Postgres/PostgREST message (`RAW_DB_INTERNALS`, a `PGRST*` code,
  *     or a SQLSTATE outside `AUTHOR_SQLSTATES`) shows the copy for its
- *     SQLSTATE, else the generic copy;
+ *     unique index (`UNIQUE_CONSTRAINT_MESSAGES`) or its SQLSTATE, else the
+ *     generic copy;
  *   - any other message (author-written RAISE copy, a client-side validation
  *     message, Supabase Auth's user-facing text) shows verbatim;
  *   - no message at all shows `fallback`.
@@ -219,9 +244,7 @@ export function userFacingErrorMessage(
 		(!!pgCode && /^PGRST/.test(pgCode)) ||
 		(!!pgCode && SQLSTATE.test(pgCode) && !AUTHOR_SQLSTATES.has(pgCode))
 	) {
-		return (
-			(pgCode && POSTGRES_ERROR_MESSAGES[pgCode]) || GENERIC_MUTATION_ERROR
-		);
+		return postgresErrorCopy(pgCode, message);
 	}
 	return message;
 }

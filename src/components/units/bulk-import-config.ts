@@ -8,9 +8,10 @@
  *
  * Duplicate checks before anything is inserted: two rows with the same
  * `unit_number` in one CSV, and a row whose `unit_number` the property
- * already has (`resolveRows`). The database does not enforce either (there
- * is no unique index on a property's unit numbers), so these checks are
- * what keeps an import from creating a second "101".
+ * already has (`resolveRows`). The database refuses a second "101" too
+ * (`units_property_unit_number_key`, on the same trimmed, lower-cased key as
+ * `unitNumberKey`); these checks name the problem row by row before Import
+ * is pressed, where the index alone would fail the row on insert.
  */
 
 import { parseCsvWithSchema } from "#components/bulk-import/parse-csv-with-schema";
