@@ -178,7 +178,10 @@ export function AddTenantForm({
 
 				const created = await createTenant.mutateAsync(payload);
 
-				logger.info("Tenant added", { email: value.email });
+				logger.info("Tenant added", {
+					action: "tenant_add",
+					metadata: { tenant_id: created.id },
+				});
 				// APPLY-04: record the conversion once the tenant is real (D-08).
 				await linkApplicationToTenant(created.id);
 				// FORMFIX-08: the create mutation's createMutationCallbacks already

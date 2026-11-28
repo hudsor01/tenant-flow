@@ -127,7 +127,6 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 				logger.error("Contact form send failed", {
 					action: "contact_form_send_failed",
 					metadata: {
-						email: data.email,
 						subject: data.subject,
 						hasError: !!error,
 						detail:
@@ -145,7 +144,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 
 			logger.info("Contact form submitted", {
 				action: "contact_form_submit",
-				metadata: { email: data.email, subject: data.subject },
+				metadata: { subject: data.subject },
 			});
 			// "How did you hear about us?" is the `type` select; its unset value
 			// is "general" (SEO audit CT9: a free attribution report).

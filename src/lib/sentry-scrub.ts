@@ -203,14 +203,56 @@ interface ScrubbableLog {
 }
 
 /**
+ * An attribute key that names a person's details or a credential, alone or
+ * as the last segment (`email`, `tenant.email`, `owner_phone`): its value is
+ * replaced whatever it holds.
+ */
+const PERSONAL_KEY =
+	/(?:^|[._])(?:e?mail|email_address|phone|phone_number|first_name|last_name|full_name|password|passcode|secret|token|authorization|cookie|ssn|date_of_birth)$/i;
+
+/** An email address anywhere in a string. */
+const EMAIL_ADDRESS = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+
+/**
+ * `value` with every personal value under it redacted: a value whose key
+ * names personal data, and any email address in a string, at any depth.
+ */
+function redactPersonal(key: string, value: unknown, depth: number): unknown {
+	if (PERSONAL_KEY.test(key) && value !== null && value !== undefined) {
+		return "[redacted]";
+	}
+	if (typeof value === "string") {
+		return value.replace(EMAIL_ADDRESS, "[email]");
+	}
+	if (value === null || typeof value !== "object") return value;
+	if (depth >= MAX_DEPTH) return "[depth limit]";
+	if (Array.isArray(value)) {
+		return value.map((item) => redactPersonal(key, item, depth + 1));
+	}
+	const copy: Record<string, unknown> = {};
+	for (const [childKey, child] of Object.entries(value)) {
+		copy[childKey] = redactPersonal(childKey, child, depth + 1);
+	}
+	return copy;
+}
+
+/**
  * A Sentry Log (`beforeSendLog`): its message and every attribute, nested
  * ones included. A log's message is often a console line or a URL the app
  * logged, and its attributes carry the logger's context and the console
- * call's arguments, so it gets the same scrub as a breadcrumb.
+ * call's arguments, so it gets the breadcrumb scrub (URLs, tokens, query
+ * strings). Every info line is sent now, not only those before an error, so
+ * personal details go too: a value under a personal key (PERSONAL_KEY) and
+ * any email address in the message or a value (2026-11-28 security review).
  */
 export function scrubLog<T extends ScrubbableLog>(log: T): T {
-	log.message = scrubText(log.message);
-	if (log.attributes) scrubValues(log.attributes);
+	log.message = scrubText(log.message).replace(EMAIL_ADDRESS, "[email]");
+	if (log.attributes) {
+		scrubValues(log.attributes);
+		for (const [key, value] of Object.entries(log.attributes)) {
+			log.attributes[key] = redactPersonal(key, value, 0);
+		}
+	}
 	return log;
 }
 

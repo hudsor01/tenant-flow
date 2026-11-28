@@ -149,6 +149,37 @@ describe("scrubLog", () => {
 		}
 	});
 
+	it("redacts personal details: values under personal keys and any email address", () => {
+		const log = scrubLog({
+			level: "info" as const,
+			message: `Invite sent to ${TENANT_EMAIL}`,
+			attributes: {
+				email: TENANT_EMAIL,
+				"tenant.phone": "+1 512 555 0100",
+				owner_first_name: "Fixture",
+				password: "fixture-password",
+				args: [{ last_name: TENANT_NAME, note: `cc ${TENANT_EMAIL}` }],
+				"error.message": `No account for ${TENANT_EMAIL}`,
+				tenant_id: "t1",
+				subject: "general",
+				count: 3,
+			},
+		});
+		expect(log.message).toBe("Invite sent to [email]");
+		expect(log.attributes).toEqual({
+			email: "[redacted]",
+			"tenant.phone": "[redacted]",
+			owner_first_name: "[redacted]",
+			password: "[redacted]",
+			args: [{ last_name: "[redacted]", note: "cc [email]" }],
+			"error.message": "No account for [email]",
+			tenant_id: "t1",
+			subject: "general",
+			count: 3,
+		});
+		expect(JSON.stringify(log)).not.toContain(TENANT_NAME);
+	});
+
 	it("leaves a log with no attributes valid", () => {
 		expect(scrubLog({ level: "info" as const, message: "Saved" })).toEqual({
 			level: "info",
