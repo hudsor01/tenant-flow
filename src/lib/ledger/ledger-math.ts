@@ -16,7 +16,7 @@
  * once its `due_date` plus the lease's Grace Period (`grace_period_days`) has
  * passed; `get_lease_ledger` returns that date per charge as `late_after`, and
  * `get_lease_ledger_summary` counts late charges with the same expression
- * (`20261127223000_ledger_payment_day_and_grace.sql`). The table only compares
+ * (`20261128164030_ledger_payment_day_and_grace.sql`). The table only compares
  * `late_after` with today, so there is no grace constant here to drift.
  */
 
