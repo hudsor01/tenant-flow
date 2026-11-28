@@ -22,6 +22,7 @@ vi.mock("#lib/supabase/get-cached-user", () => ({
 import { costSummaryLine } from "#components/analytics/maintenance-insights-section";
 import { mapMaintenanceAnalytics } from "#hooks/api/query-keys/analytics-mappers";
 import { formatCurrency } from "#lib/utils/currency";
+import { expectConsole } from "#test/utils/expect-console";
 import { buildReportData, type ReportSection } from "../report-data";
 
 function section(sections: ReportSection[], heading: string): ReportSection {
@@ -138,16 +139,19 @@ describe("the maintenance operations report", () => {
 	// The report is to date, with no period; the note said "for this period"
 	// and blamed "an RPC that's pending a backend cleanup" (66.2-39 part P).
 	it("says a failed read shows 0, with no period and no jargon", async () => {
+		const consoleWarn = expectConsole("warn");
 		// The one failure safeFetch falls back on: a relation the RPC reads is gone.
-		mockRpc.mockResolvedValue({
-			data: null,
-			error: { code: "42P01", message: 'relation "x" does not exist' },
-		});
+		const missing = { code: "42P01", message: 'relation "x" does not exist' };
+		mockRpc.mockResolvedValue({ data: null, error: missing });
 		const { sections } = await buildReportData(
 			"maintenance-operations",
 			new QueryClient(),
 			"2026-01-01",
 			"2026-11-02",
+		);
+		expect(consoleWarn).toHaveBeenCalledExactlyOnceWith(
+			"[reports] RPC references a removed relation; falling back to zeros:",
+			missing,
 		);
 		const notes = sections.flatMap((s) => (s.note ? [s.note] : []));
 		expect(notes).toContain(

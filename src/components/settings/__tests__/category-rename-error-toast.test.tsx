@@ -19,6 +19,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CategoriesSettings } from "#components/settings/categories-settings";
 import { TooltipProvider } from "#components/ui/tooltip";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
+import { expectConsole } from "#test/utils/expect-console";
 
 const mocks = vi.hoisted(() => ({
 	from: vi.fn(),
@@ -103,6 +104,8 @@ describe("a failed category rename toasts copy, never the mapper's diagnostic", 
 	});
 
 	it("toasts the generic copy when the updated row has no slug", async () => {
+		// The handler logs the diagnostic in development, never in the toast.
+		const consoleError = expectConsole("error");
 		// The row PostgREST answered with, missing the NOT NULL `slug`.
 		mocks.from.mockReturnValue(
 			createQueryChain({
@@ -121,6 +124,16 @@ describe("a failed category rename toasts copy, never the mapper's diagnostic", 
 		const [shown] = mocks.toastError.mock.calls[0] ?? [];
 		expect(shown).toBe("Something went wrong. Please try again.");
 		expect(mocks.toastSuccess).not.toHaveBeenCalled();
+		expect(consoleError).toHaveBeenCalledTimes(1);
+		expect(consoleError).toHaveBeenCalledWith(
+			"[mutation] Rename category failed",
+			{
+				action: "rename_category",
+				error:
+					"mapDocumentCategoryRow: NOT NULL field 'slug' missing or non-string from PostgREST response",
+				status: undefined,
+			},
+		);
 	});
 
 	it("still toasts the success copy for a well-formed row (positive control)", async () => {

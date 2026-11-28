@@ -327,6 +327,8 @@ describe("AddTenantModal - application prefill (APPLY-04, Pitfall 6)", () => {
 			),
 		);
 		expect(uncontrolledWarnings).toHaveLength(0);
+		// Nothing else was logged either: the swallow hides no other warning.
+		expect(consoleError).not.toHaveBeenCalled();
 		consoleError.mockRestore();
 	});
 

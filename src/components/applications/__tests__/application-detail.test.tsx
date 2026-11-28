@@ -32,6 +32,7 @@
  */
 
 import {
+	act,
 	cleanup,
 	render,
 	screen,
@@ -49,6 +50,7 @@ import {
 import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { expectAvailable } from "#test/utils/availability";
 import { computeListCascade } from "#test/utils/base-rule-cascade";
+import { expectNavigation } from "#test/utils/expect-navigation";
 import { ApplicationDetail } from "../application-detail";
 
 /**
@@ -419,6 +421,7 @@ describe("ApplicationDetail — the action bar has three states, not one", () =>
 	});
 
 	it("marks the application approved when the approve control is used", async () => {
+		const navigations = expectNavigation();
 		const user = userEvent.setup();
 		mockQueries(makeRow({ status: "new" }));
 		renderDetail();
@@ -433,6 +436,8 @@ describe("ApplicationDetail — the action bar has three states, not one", () =>
 			applicationId: APPLICATION_ID,
 			status: "approved",
 		});
+		// The same control then follows its link to the prefilled tenant form.
+		expect(navigations).toEqual([`/tenants/new?application=${APPLICATION_ID}`]);
 	});
 
 	it("moves a new application to reviewing without a reason", async () => {
@@ -907,7 +912,10 @@ describe("ApplicationDetail — every write invalidates what it changed", () => 
 			| undefined;
 		expect(perCall?.onSuccess).toBeTypeOf("function");
 		expect(toast.success).not.toHaveBeenCalled();
-		perCall?.onSuccess?.();
+		// The callback resets the draft, a state update, so it runs inside act.
+		act(() => {
+			perCall?.onSuccess?.();
+		});
 		expect(toast.success).toHaveBeenCalledWith("Notes saved");
 	});
 

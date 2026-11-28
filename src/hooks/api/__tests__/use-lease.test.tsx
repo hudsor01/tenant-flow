@@ -32,6 +32,7 @@ import {
 } from "#components/leases/table/lease-utils";
 import { DiagnosticError } from "#lib/diagnostic-error";
 import { createQueryChain } from "#test/mocks/supabase-query-mock";
+import { expectConsole } from "#test/utils/expect-console";
 import type { Lease, Property } from "#types/core";
 import { tierGateRefusal } from "../../../../supabase/functions/_shared/tier-gate-decision";
 import { leaseQueries } from "../query-keys/lease-keys";
@@ -874,6 +875,7 @@ describe("Mutation Hooks", () => {
 
 	describe("signature mutation error handling", () => {
 		it("surfaces the Edge Function error message on a non-ok response", async () => {
+			const consoleError = expectConsole("error");
 			fetchMock.mockResolvedValueOnce({
 				ok: false,
 				json: async () => ({ error: "Tenant email is required" }),
@@ -893,6 +895,10 @@ describe("Mutation Hooks", () => {
 			).rejects.toMatchObject({
 				message: expect.stringContaining("Tenant email is required"),
 			});
+			expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+				"[mutation] Send lease for signature failed",
+				expect.objectContaining({ error: "Tenant email is required" }),
+			);
 		});
 
 		// 66.2-39 fix round 4, Part 8n: the send's 402 toast follows the
@@ -1031,6 +1037,7 @@ describe("Error Handling", () => {
 	});
 
 	it("should handle mutation errors from PostgREST", async () => {
+		const consoleError = expectConsole("error");
 		supabaseFromMock.mockImplementation(() =>
 			createQueryChain({
 				data: null,
@@ -1048,6 +1055,10 @@ describe("Error Handling", () => {
 		});
 
 		await expect(result.current.mutateAsync("lease-123")).rejects.toBeTruthy();
+		expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+			"[mutation] Terminate lease failed",
+			expect.objectContaining({ error: "Permission denied" }),
+		);
 	});
 });
 

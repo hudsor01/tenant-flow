@@ -7,7 +7,7 @@
  * edit dialog on Single Family; the filter and the dialog offered neither type.
  */
 import type { VirtualItem } from "@tanstack/react-virtual";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { act, cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { transformToPropertyItem } from "#app/(owner)/properties/components/property-transforms";
 import { TooltipProvider } from "#components/ui/tooltip";
@@ -152,7 +152,10 @@ describe("a property's type on the properties list", () => {
 			["SINGLE_FAMILY", "1 property"],
 			["all", "4 properties"],
 		] as const) {
-			usePropertiesStore.setState({ typeFilter: type });
+			// The mounted list subscribes to the store, so the write re-renders it.
+			act(() => {
+				usePropertiesStore.setState({ typeFilter: type });
+			});
 			rerender(<Properties {...props} />);
 			const toolbar = screen.getByLabelText(
 				"Filter by property type",

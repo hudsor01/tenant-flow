@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import { expectNavigation } from "#test/utils/expect-navigation";
 import { NotificationBell } from "../notification-bell";
 
 // vi.hoisted so the mutable unread count + list data + spy can be referenced
@@ -118,6 +118,7 @@ describe("NotificationBell (NOTIF-02)", () => {
 	});
 
 	it("closes the popover when 'View all notifications' is clicked", async () => {
+		const navigations = expectNavigation();
 		const user = userEvent.setup();
 		render(<NotificationBell />);
 		await user.click(screen.getByRole("button", { name: "Notifications" }));
@@ -130,9 +131,11 @@ describe("NotificationBell (NOTIF-02)", () => {
 				screen.queryByRole("link", { name: "View all notifications" }),
 			).not.toBeInTheDocument();
 		});
+		expect(navigations).toEqual(["/notifications"]);
 	});
 
 	it("closes the popover when a notification row is clicked", async () => {
+		const navigations = expectNavigation();
 		const user = userEvent.setup();
 		h.count.current = 1;
 		h.listData.current = { rows: [sampleRow], totalCount: 1 };
@@ -147,5 +150,6 @@ describe("NotificationBell (NOTIF-02)", () => {
 				screen.queryByRole("link", { name: /Lease signed/ }),
 			).not.toBeInTheDocument();
 		});
+		expect(navigations).toEqual(["/leases/l1"]);
 	});
 });

@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { NotificationRow } from "#hooks/api/query-keys/notification-keys";
+import { expectNavigation } from "#test/utils/expect-navigation";
 import { NotificationBell } from "../notification-bell";
 import { NotificationItem } from "../notification-item";
 
@@ -57,6 +58,7 @@ describe("NotificationItem click-through (D-03/D-10)", () => {
 	});
 
 	it("marks an unread row read with its id and navigates to the resolved href", async () => {
+		const navigations = expectNavigation();
 		const user = userEvent.setup();
 		const onNavigate = vi.fn();
 		render(
@@ -78,9 +80,12 @@ describe("NotificationItem click-through (D-03/D-10)", () => {
 		expect(h.markRead).toHaveBeenCalledWith("n1");
 		// Click-through still closes the containing popover (S1).
 		expect(onNavigate).toHaveBeenCalledTimes(1);
+		// Marking it read does not cancel the click: it follows the link.
+		expect(navigations).toEqual(["/leases/l1"]);
 	});
 
 	it("does not mark an already-read row read but still navigates", async () => {
+		const navigations = expectNavigation();
 		const user = userEvent.setup();
 		const onNavigate = vi.fn();
 		render(
@@ -99,6 +104,7 @@ describe("NotificationItem click-through (D-03/D-10)", () => {
 
 		expect(h.markRead).not.toHaveBeenCalled();
 		expect(onNavigate).toHaveBeenCalledTimes(1);
+		expect(navigations).toEqual(["/leases/l1"]);
 	});
 });
 

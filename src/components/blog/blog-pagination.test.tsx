@@ -31,6 +31,7 @@ vi.mock("next/link", () => ({
 	),
 }));
 
+import { expectNavigation } from "#test/utils/expect-navigation";
 import { BlogPagination } from "./blog-pagination";
 
 describe("BlogPagination", () => {
@@ -95,20 +96,24 @@ describe("BlogPagination", () => {
 		expect(nav).toBeInTheDocument();
 	});
 
-	it("lets an enabled next click navigate (default not prevented)", () => {
+	it("lets an enabled next click navigate to its page", () => {
+		const navigations = expectNavigation();
 		render(<BlogPagination basePath="/blog" currentPage={3} totalPages={5} />);
 		const next = screen.getByRole("link", { name: "Next page" });
-		const event = new MouseEvent("click", { bubbles: true, cancelable: true });
-		next.dispatchEvent(event);
-		expect(event.defaultPrevented).toBe(false);
+		next.dispatchEvent(
+			new MouseEvent("click", { bubbles: true, cancelable: true }),
+		);
+		expect(navigations).toEqual(["/blog/page/4"]);
 	});
 
-	it("lets an enabled prev click navigate (default not prevented)", () => {
+	it("lets an enabled prev click navigate to its page", () => {
+		const navigations = expectNavigation();
 		render(<BlogPagination basePath="/blog" currentPage={2} totalPages={5} />);
 		const prev = screen.getByRole("link", { name: "Previous page" });
-		const event = new MouseEvent("click", { bubbles: true, cancelable: true });
-		prev.dispatchEvent(event);
-		expect(event.defaultPrevented).toBe(false);
+		prev.dispatchEvent(
+			new MouseEvent("click", { bubbles: true, cancelable: true }),
+		);
+		expect(navigations).toEqual(["/blog"]);
 	});
 
 	it("preventDefaults a disabled boundary link", () => {

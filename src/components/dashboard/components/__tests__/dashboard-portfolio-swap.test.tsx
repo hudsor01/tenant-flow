@@ -14,7 +14,7 @@
  * via NuqsTestingAdapter so the snapshot collect/apply path is exercised for real.
  */
 
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import type { ReactNode } from "react";
@@ -187,9 +187,12 @@ describe("dashboard portfolio swap", () => {
 				"&page=2",
 		);
 		render(<PortfolioPresetMenu />, { wrapper });
-		// Visibility lives in the presets store (D-3), not the URL.
-		useDashboardPresetsStore.getState().setColumnVisibility({
-			maintenance: false,
+		// Visibility lives in the presets store (D-3), not the URL. The mounted
+		// menu subscribes to the store, so the write re-renders it.
+		act(() => {
+			useDashboardPresetsStore.getState().setColumnVisibility({
+				maintenance: false,
+			});
 		});
 
 		await user.click(screen.getByRole("button", { name: /^presets$/i }));

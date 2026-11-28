@@ -76,6 +76,7 @@ vi.mock("../owner-subscribe-dialog", () => ({
 	OwnerSubscribeDialog: () => null,
 }));
 
+import { expectConsole } from "#test/utils/expect-console";
 import { PricingCardFeatured } from "../pricing-card-featured";
 
 const originalLocation = window.location;
@@ -180,6 +181,7 @@ describe("PricingCardFeatured", () => {
 	])(
 		"does not navigate to the non-Stripe checkout URL %s, and toasts instead",
 		async (url) => {
+			const consoleError = expectConsole("error");
 			getSessionMock.mockResolvedValue({
 				data: { session: { access_token: "token" } },
 			});
@@ -192,6 +194,15 @@ describe("PricingCardFeatured", () => {
 			await waitFor(() => expect(toastErrorMock).toHaveBeenCalledTimes(1));
 			expect(createCheckoutSessionMock).toHaveBeenCalledTimes(1);
 			expect(assignMock).not.toHaveBeenCalled();
+			expect(consoleError).toHaveBeenCalledTimes(1);
+			expect(consoleError).toHaveBeenCalledWith(
+				"[mutation] Start checkout failed",
+				expect.objectContaining({
+					action: "start_checkout",
+					error:
+						"stripeRedirectUrl: refused a redirect URL that is not an https Stripe page",
+				}),
+			);
 		},
 	);
 });

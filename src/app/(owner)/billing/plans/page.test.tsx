@@ -30,6 +30,7 @@ vi.mock("sonner", () => ({
 	},
 }));
 
+import { expectConsole } from "#test/utils/expect-console";
 import BillingPlansPage from "./page";
 
 const PORTAL_URL = "https://billing.stripe.com/p/session/test_portal_123";
@@ -319,6 +320,7 @@ describe("BillingPlansPage — redirects only to Stripe", () => {
 	])(
 		"does not navigate to a portal URL of %s, and toasts instead",
 		async (url) => {
+			const consoleError = expectConsole("error");
 			hooks.createCustomerPortalSession.mockResolvedValue({ url });
 			mockStatus(liveSubscriber);
 			render(<BillingPlansPage />);
@@ -334,10 +336,19 @@ describe("BillingPlansPage — redirects only to Stripe", () => {
 			expect(hooks.toastError).not.toHaveBeenCalledWith(
 				expect.stringContaining("stripeRedirectUrl"),
 			);
+			// The refusal is logged for the developer, with the reason.
+			expect(consoleError).toHaveBeenCalledWith(
+				"[mutation] Open billing portal failed",
+				expect.objectContaining({
+					error:
+						"stripeRedirectUrl: refused a redirect URL that is not an https Stripe page",
+				}),
+			);
 		},
 	);
 
 	it("does not navigate to a non-Stripe checkout URL, and toasts instead", async () => {
+		const consoleError = expectConsole("error");
 		hooks.createCheckoutSession.mockResolvedValue({
 			url: "https://checkout.example.com/session",
 		});
@@ -354,9 +365,17 @@ describe("BillingPlansPage — redirects only to Stripe", () => {
 		expect(hooks.createCheckoutSession).toHaveBeenCalledTimes(1);
 		expect(hooks.assign).not.toHaveBeenCalled();
 		expect(hooks.toastError).toHaveBeenCalledTimes(1);
+		expect(consoleError).toHaveBeenCalledWith(
+			"[mutation] Start checkout failed",
+			expect.objectContaining({
+				error:
+					"stripeRedirectUrl: refused a redirect URL that is not an https Stripe page",
+			}),
+		);
 	});
 
 	it("does not navigate when checkout returns no URL, and toasts instead", async () => {
+		const consoleError = expectConsole("error");
 		hooks.createCheckoutSession.mockResolvedValue({ url: "" });
 		mockStatus(dbTrial);
 		render(<BillingPlansPage />);
@@ -370,5 +389,11 @@ describe("BillingPlansPage — redirects only to Stripe", () => {
 
 		expect(hooks.assign).not.toHaveBeenCalled();
 		expect(hooks.toastError).toHaveBeenCalledTimes(1);
+		expect(consoleError).toHaveBeenCalledWith(
+			"[mutation] Start checkout failed",
+			expect.objectContaining({
+				error: "stripeRedirectUrl: no redirect URL returned",
+			}),
+		);
 	});
 });

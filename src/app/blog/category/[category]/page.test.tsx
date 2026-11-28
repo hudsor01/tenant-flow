@@ -92,7 +92,7 @@ vi.mock("#components/layout/page-layout", () => ({
 }));
 
 vi.mock("#components/seo/json-ld-script", () => ({
-	JsonLdScript: () => <script data-testid="json-ld" />,
+	JsonLdScript: () => null,
 }));
 
 import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";

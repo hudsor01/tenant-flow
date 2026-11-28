@@ -154,6 +154,10 @@ describe("OccupancyDonutChart", () => {
 	// F75). The container's own compiled selector decides, matched against one
 	// sector of each kind.
 	it("leaves the card-color wedge separator to the Pie's stroke", async () => {
+		// Compiled before the render: the chart sets state on its first
+		// animation frame, which a slow compile after the render would
+		// let land outside act.
+		const designSystem = await loadProjectDesignSystem();
 		render(<OccupancyDonutChart units={populated} />);
 		const chart = document.querySelector('[data-slot="chart"]');
 		expect(chart).not.toBeNull();
@@ -174,7 +178,6 @@ describe("OccupancyDonutChart", () => {
 					c.endsWith(":stroke-ring"),
 			),
 		).toHaveLength(1);
-		const designSystem = await loadProjectDesignSystem();
 		const css = designSystem.candidatesToCss(sectorRules)[0] ?? "";
 		const selector = css.slice(css.indexOf(" ") + 1, css.indexOf("{")).trim();
 		expect(selector).toMatch(/recharts-sector/);

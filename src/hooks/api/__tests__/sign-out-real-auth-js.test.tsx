@@ -44,6 +44,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
 import SignOutPage from "#app/auth/signout/page";
 import { AuthStoreProvider } from "#providers/auth-provider";
+import { expectConsole } from "#test/utils/expect-console";
 import { sessionKeys, type UserSession } from "../query-keys/session-keys";
 import {
 	SignOutIncompleteError,
@@ -219,6 +220,7 @@ afterEach(() => {
 
 describe("useSignOutMutation, with the real auth-js", () => {
 	it("a failing first request keeps the session and throws, and a retry sends again", async () => {
+		const consoleError = expectConsole("error");
 		answers = ["500", "500"];
 		const { result } = renderSignOut();
 
@@ -240,6 +242,12 @@ describe("useSignOutMutation, with the real auth-js", () => {
 			"POST /auth/v1/logout?scope=others",
 		]);
 		expect(hasSession()).toBe(true);
+		expect(consoleError).toHaveBeenCalledTimes(2);
+		expect(consoleError).toHaveBeenCalledWith("[mutation] Sign out failed", {
+			action: "sign_out",
+			error: "server error",
+			status: 500,
+		});
 	});
 
 	it("success sends scope=others, then scope=local, and removes the session", async () => {
@@ -271,6 +279,7 @@ describe("useSignOutMutation, with the real auth-js", () => {
 	});
 
 	it("a session another device already ended (403 session_not_found) is the incomplete outcome, with no logout sent", async () => {
+		const consoleError = expectConsole("error");
 		userAnswer = "403-session-not-found";
 		const { result } = renderSignOut();
 
@@ -288,9 +297,17 @@ describe("useSignOutMutation, with the real auth-js", () => {
 		);
 		expect(router.replace).toHaveBeenCalledTimes(1);
 		expect(router.replace).toHaveBeenCalledWith("/login");
+		expect(consoleError).toHaveBeenCalledTimes(1);
+		expect(consoleError).toHaveBeenCalledWith("[mutation] Sign out failed", {
+			action: "sign_out",
+			error:
+				"Sign out did not finish. This browser was already signed out, so your other devices could not be signed out from here. Sign in and sign out again to end their sessions.",
+			status: undefined,
+		});
 	});
 
 	it("a JWT the server rejects (401) is the same outcome, and the rejected session is removed", async () => {
+		const consoleError = expectConsole("error");
 		userAnswer = "401-bad-jwt";
 		answers = ["ok"];
 		const { result } = renderSignOut();
@@ -305,6 +322,13 @@ describe("useSignOutMutation, with the real auth-js", () => {
 		expect(logouts()).toEqual(["POST /auth/v1/logout?scope=local"]);
 		expect(hasSession()).toBe(false);
 		expect(router.replace).toHaveBeenCalledWith("/login");
+		expect(consoleError).toHaveBeenCalledTimes(1);
+		expect(consoleError).toHaveBeenCalledWith("[mutation] Sign out failed", {
+			action: "sign_out",
+			error:
+				"Sign out did not finish. This browser was already signed out, so your other devices could not be signed out from here. Sign in and sign out again to end their sessions.",
+			status: undefined,
+		});
 	});
 
 	it("a getUser() failure that is not an ended session (500) is left to the logouts", async () => {
@@ -322,6 +346,7 @@ describe("useSignOutMutation, with the real auth-js", () => {
 	});
 
 	it("a rejected fetch (offline) keeps the session and throws", async () => {
+		const consoleError = expectConsole("error");
 		answers = ["offline"];
 		const { result } = renderSignOut();
 
@@ -332,9 +357,16 @@ describe("useSignOutMutation, with the real auth-js", () => {
 		});
 		expect(logouts()).toEqual(["POST /auth/v1/logout?scope=others"]);
 		expect(hasSession()).toBe(true);
+		expect(consoleError).toHaveBeenCalledTimes(1);
+		expect(consoleError).toHaveBeenCalledWith("[mutation] Sign out failed", {
+			action: "sign_out",
+			error: "Failed to fetch",
+			status: 0,
+		});
 	});
 
 	it("a failing second request is SignOutIncompleteError, after auth-js removed the session", async () => {
+		const consoleError = expectConsole("error");
 		answers = ["ok", "500"];
 		const { result } = renderSignOut();
 
@@ -348,9 +380,17 @@ describe("useSignOutMutation, with the real auth-js", () => {
 			"POST /auth/v1/logout?scope=local",
 		]);
 		expect(hasSession()).toBe(false);
+		expect(consoleError).toHaveBeenCalledTimes(1);
+		expect(consoleError).toHaveBeenCalledWith("[mutation] Sign out failed", {
+			action: "sign_out",
+			error:
+				"Sign out did not finish. You are signed out of this browser, but its session may still be open on our server. Sign in again and end it under Active Sessions in Settings.",
+			status: undefined,
+		});
 	});
 
 	it("runs offline at once (networkMode always), never paused until the browser is back", async () => {
+		const consoleError = expectConsole("error");
 		answers = ["offline"];
 		onlineManager.setOnline(false);
 		const { result } = renderSignOut();
@@ -362,9 +402,16 @@ describe("useSignOutMutation, with the real auth-js", () => {
 		expect(result.current.isPaused).toBe(false);
 		expect(logouts()).toEqual(["POST /auth/v1/logout?scope=others"]);
 		expect(hasSession()).toBe(true);
+		expect(consoleError).toHaveBeenCalledTimes(1);
+		expect(consoleError).toHaveBeenCalledWith("[mutation] Sign out failed", {
+			action: "sign_out",
+			error: "Failed to fetch",
+			status: 0,
+		});
 	});
 
 	it("toasts a failure where the page has no inline error, and only there", async () => {
+		const consoleError = expectConsole("error");
 		answers = ["offline", "offline"];
 		const shell = renderSignOut();
 		await act(async () => {
@@ -380,9 +427,17 @@ describe("useSignOutMutation, with the real auth-js", () => {
 			await page.result.current.mutateAsync().catch(() => {});
 		});
 		expect(toastError).not.toHaveBeenCalled();
+		// The page's own failure (no toast) is not logged either.
+		expect(consoleError).toHaveBeenCalledTimes(1);
+		expect(consoleError).toHaveBeenCalledWith("[mutation] Sign out failed", {
+			action: "sign_out",
+			error: "Failed to fetch",
+			status: 0,
+		});
 	});
 
 	it("toasts the incomplete sign-out with what ended and how to end the rest", async () => {
+		const consoleError = expectConsole("error");
 		answers = ["ok", "offline"];
 		const { result } = renderSignOut();
 		await act(async () => {
@@ -391,6 +446,13 @@ describe("useSignOutMutation, with the real auth-js", () => {
 		expect(toastError).toHaveBeenCalledWith(
 			"Sign out did not finish. You are signed out of this browser, but its session may still be open on our server. Sign in again and end it under Active Sessions in Settings.",
 		);
+		expect(consoleError).toHaveBeenCalledTimes(1);
+		expect(consoleError).toHaveBeenCalledWith("[mutation] Sign out failed", {
+			action: "sign_out",
+			error:
+				"Sign out did not finish. You are signed out of this browser, but its session may still be open on our server. Sign in again and end it under Active Sessions in Settings.",
+			status: undefined,
+		});
 	});
 });
 
@@ -581,6 +643,7 @@ describe("the session row's Sign out this device, with the real auth-js", () => 
 	});
 
 	it("a failed sign-out of this device clears the session, shows the incomplete outcome and lands on /login", async () => {
+		const consoleError = expectConsole("error");
 		answers = ["500"];
 		const { result, queryClient } = renderRevoke();
 
@@ -602,11 +665,22 @@ describe("the session row's Sign out this device, with the real auth-js", () => 
 				.getQueryData<UserSession[]>(sessionKeys.all)
 				?.map((s) => s.id),
 		).toEqual([OTHER]);
+		expect(consoleError).toHaveBeenCalledTimes(1);
+		expect(consoleError).toHaveBeenCalledWith(
+			"[mutation] Revoke session failed",
+			{
+				action: "revoke_session",
+				error:
+					"Sign out did not finish. You are signed out of this browser, but its session may still be open on our server. Sign in again and end it under Active Sessions in Settings.",
+				status: undefined,
+			},
+		);
 	});
 
 	// Part 8l: offline it runs at once (networkMode always), never paused until
 	// the browser is back, when the session would have ended unasked.
 	it("runs offline at once: this device's row fails to the incomplete outcome", async () => {
+		const consoleError = expectConsole("error");
 		answers = ["offline"];
 		onlineManager.setOnline(false);
 		const { result } = renderRevoke();
@@ -620,9 +694,20 @@ describe("the session row's Sign out this device, with the real auth-js", () => 
 		expect(logouts()).toEqual(["POST /auth/v1/logout?scope=local"]);
 		expect(hasSession()).toBe(false);
 		expect(router.replace).toHaveBeenCalledWith("/login");
+		expect(consoleError).toHaveBeenCalledTimes(1);
+		expect(consoleError).toHaveBeenCalledWith(
+			"[mutation] Revoke session failed",
+			{
+				action: "revoke_session",
+				error:
+					"Sign out did not finish. You are signed out of this browser, but its session may still be open on our server. Sign in again and end it under Active Sessions in Settings.",
+				status: undefined,
+			},
+		);
 	});
 
 	it("a failed revoke of another session keeps this one, restores its row, and a retry sends again", async () => {
+		const consoleError = expectConsole("error");
 		rpcAnswers = ["500"];
 		const { result, queryClient } = renderRevoke();
 
@@ -651,5 +736,14 @@ describe("the session row's Sign out this device, with the real auth-js", () => 
 			"POST /rest/v1/rpc/revoke_user_session",
 		]);
 		expect(hasSession()).toBe(true);
+		expect(consoleError).toHaveBeenCalledTimes(1);
+		expect(consoleError).toHaveBeenCalledWith(
+			"[mutation] Revoke session failed",
+			{
+				action: "revoke_session",
+				error: "server error",
+				status: undefined,
+			},
+		);
 	});
 });

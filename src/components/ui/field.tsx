@@ -105,7 +105,9 @@ function FieldError({
 			return null;
 		}
 
-		const messages = errors
+		// Two validators can report the same message for one field (the
+		// field's own and the form schema's); show each message once.
+		const reported = errors
 			.map((error) => {
 				if (!error) {
 					return null;
@@ -120,6 +122,7 @@ function FieldError({
 				return null;
 			})
 			.filter(Boolean) as string[];
+		const messages = [...new Set(reported)];
 
 		if (messages.length === 0) {
 			return null;
@@ -130,7 +133,7 @@ function FieldError({
 		}
 
 		return (
-			<ul className="ml-4 flex list-disc flex-col gap-1">
+			<ul className="my-0 ml-4 flex list-disc flex-col gap-1 pl-0 [&>li]:mb-0">
 				{messages.map((message) => (
 					<li key={message}>{message}</li>
 				))}

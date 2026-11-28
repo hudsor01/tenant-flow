@@ -23,7 +23,7 @@
 
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import type { ReactNode } from "react";
@@ -224,7 +224,10 @@ describe("no control nests another (rendered)", () => {
 		});
 		const apply = within(menu).getByRole("menuitem", { name: "Vacant only" });
 		// The arrow keys move through the menu's items; delete is one of them.
-		apply.focus();
+		// Focus sets the item's and the menu's roving-focus state.
+		act(() => {
+			apply.focus();
+		});
 		await user.keyboard("{ArrowDown}");
 		expect(remove).toHaveFocus();
 		await user.keyboard("{Enter}");

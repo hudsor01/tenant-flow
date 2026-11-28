@@ -10,6 +10,7 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthStoreProvider } from "#providers/auth-provider";
+import { expectConsole } from "#test/utils/expect-console";
 import type { UserProfile } from "#types/api-contracts";
 
 // Mock next/navigation
@@ -348,6 +349,7 @@ describe("Owner Profile Page", () => {
 
 	// Part 8k: the mutation's onError shows the toast.
 	it("stays on the page after a failed first request, whose session is kept", async () => {
+		const consoleError = expectConsole("error");
 		const user = userEvent.setup();
 		mockSignOut.mockResolvedValueOnce({ error: new Error("Failed to fetch") });
 
@@ -362,9 +364,18 @@ describe("Owner Profile Page", () => {
 		expect(mockReplace).not.toHaveBeenCalled();
 		expect(mockPush).not.toHaveBeenCalled();
 		expect(screen.getByText("Sign Out")).toBeInTheDocument();
+		await waitFor(() =>
+			expect(consoleError).toHaveBeenCalledWith("[mutation] Sign out failed", {
+				action: "sign_out",
+				error: "Failed to fetch",
+				status: undefined,
+			}),
+		);
+		expect(consoleError).toHaveBeenCalledTimes(1);
 	});
 
 	it("lands on /login once after a failed second request, whose browser session is gone", async () => {
+		const consoleError = expectConsole("error");
 		const user = userEvent.setup();
 		mockSignOut
 			.mockResolvedValueOnce({ error: null })
@@ -381,6 +392,15 @@ describe("Owner Profile Page", () => {
 		expect(mockReplace).toHaveBeenCalledTimes(1);
 		expect(mockReplace).toHaveBeenCalledWith("/login");
 		expect(mockPush).not.toHaveBeenCalled();
+		await waitFor(() =>
+			expect(consoleError).toHaveBeenCalledWith("[mutation] Sign out failed", {
+				action: "sign_out",
+				error:
+					"Sign out did not finish. You are signed out of this browser, but its session may still be open on our server. Sign in again and end it under Active Sessions in Settings.",
+				status: undefined,
+			}),
+		);
+		expect(consoleError).toHaveBeenCalledTimes(1);
 	});
 
 	it("navigates to settings page from quick links", async () => {

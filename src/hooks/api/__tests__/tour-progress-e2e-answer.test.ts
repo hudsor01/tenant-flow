@@ -37,6 +37,12 @@ interface Sent {
 	body: unknown;
 }
 
+/**
+ * Each test's client gets its own auth storage key: auth-js warns when two
+ * clients in one browser context share one, as the default would.
+ */
+let clientCount = 0;
+
 /** A supabase-js client whose writes are answered with `answer(url, body)`. */
 function clientAnswering(answer: (url: string, body: unknown) => string) {
 	const sent: Sent[] = [];
@@ -54,7 +60,11 @@ function clientAnswering(answer: (url: string, body: unknown) => string) {
 		"https://project.supabase.example",
 		"sb_publishable_test",
 		{
-			auth: { persistSession: false, autoRefreshToken: false },
+			auth: {
+				persistSession: false,
+				autoRefreshToken: false,
+				storageKey: `tour-progress-e2e-answer-${++clientCount}`,
+			},
 			global: { fetch },
 		},
 	);
@@ -63,7 +73,6 @@ function clientAnswering(answer: (url: string, body: unknown) => string) {
 
 beforeEach(() => {
 	holder.client = null;
-	vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
 describe("the sidebar spec's answer to a tour progress write", () => {

@@ -88,16 +88,19 @@ vi.mock("#components/layout/page-layout", () => ({
 	),
 }));
 
+// Like the real Button: with asChild, the child element (here a link) is
+// the rendered element, so no <button> wraps the <a>.
 vi.mock("#components/ui/button", () => ({
 	Button: ({
 		children,
+		asChild,
 		...props
 	}: {
 		children: React.ReactNode;
 		asChild?: boolean;
 		size?: string;
 		className?: string;
-	}) => <button {...props}>{children}</button>,
+	}) => (asChild ? children : <button {...props}>{children}</button>),
 }));
 
 vi.mock("lucide-react", async (importOriginal) => {

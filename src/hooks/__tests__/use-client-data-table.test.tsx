@@ -86,6 +86,19 @@ function makeWrapper(options?: {
 	};
 }
 
+// The hook as a rendered table uses it: every render builds the row model.
+// TanStack computes row models lazily and, when the filtered rows change,
+// queues a page-index reset on a microtask. A table that renders its rows runs
+// that inside the render (and so inside act()); a bare hook would leave it to
+// the first assertion that reads a row model, outside act().
+function useRenderedClientDataTable(
+	props: Parameters<typeof useClientDataTable<TestRow>>[0],
+) {
+	const value = useClientDataTable<TestRow>(props);
+	value.table.getRowModel();
+	return value;
+}
+
 // renderHook + flush nuqs's mount effects (the testing adapter resolves
 // searchParams/defaults inside a useEffect, so a synchronous render leaves the
 // state pending for one cycle).
@@ -97,7 +110,7 @@ async function renderClientHook(
 		typeof renderHook<ReturnType<typeof useClientDataTable<TestRow>>, void>
 	>["result"];
 	await act(async () => {
-		result = renderHook(() => useClientDataTable<TestRow>(props), {
+		result = renderHook(() => useRenderedClientDataTable(props), {
 			wrapper: makeWrapper(wrapperOptions),
 		}).result;
 	});
@@ -233,12 +246,9 @@ describe("useClientDataTable", () => {
 			typeof renderHook<ReturnType<typeof useClientDataTable<TestRow>>, void>
 		>["result"];
 		await act(async () => {
-			result = renderHook(
-				() => useClientDataTable<TestRow>({ data, columns }),
-				{
-					wrapper: Adapter,
-				},
-			).result;
+			result = renderHook(() => useRenderedClientDataTable({ data, columns }), {
+				wrapper: Adapter,
+			}).result;
 		});
 
 		// No filters yet -> all rows present.

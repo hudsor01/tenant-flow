@@ -12,7 +12,7 @@
  * round 4, G2).
  */
 import type { VirtualItem } from "@tanstack/react-virtual";
-import { act, fireEvent, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen } from "@testing-library/react";
 import Papa from "papaparse";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useLeasesStore } from "#stores/leases-store";
@@ -130,7 +130,10 @@ describe("the leases page", () => {
 	});
 });
 
+// Unmount before resetting the store: this hook runs before the setup file's
+// cleanup, and a reset under a mounted page re-renders it outside act().
 afterEach(() => {
+	cleanup();
 	useLeasesStore.getState().reset();
 	vi.restoreAllMocks();
 });

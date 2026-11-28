@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createElement, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -33,6 +33,7 @@ vi.mock("sonner", () => ({
 }));
 
 import { authKeys } from "#hooks/api/use-auth";
+import { expectNavigation } from "#test/utils/expect-navigation";
 import { expectLabelInName } from "#test/utils/label-in-name";
 import { GdprDataActions } from "../gdpr-data-actions";
 
@@ -54,10 +55,8 @@ describe("GdprDataActions", () => {
 		vi.clearAllMocks();
 		hooks.deletionStatusData = { deletion_requested_at: null };
 		// Stub URL.createObjectURL / revokeObjectURL so Blob download path runs safely
-		vi.stubGlobal("URL", {
-			createObjectURL: vi.fn(() => "blob:test"),
-			revokeObjectURL: vi.fn(),
-		});
+		vi.spyOn(URL, "createObjectURL").mockImplementation(() => "blob:test");
+		vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
 		// Stub fetch for the export-user-data Edge Function call
 		vi.stubGlobal(
 			"fetch",
@@ -113,6 +112,7 @@ describe("GdprDataActions", () => {
 
 	it("Export button click invokes export-user-data Edge Function", async () => {
 		cleanup();
+		const navigations = expectNavigation();
 		renderWithClient(<GdprDataActions />);
 		await userEvent.click(
 			screen.getByRole("button", { name: /^download my data$/i }),
@@ -122,6 +122,8 @@ describe("GdprDataActions", () => {
 		expect(fetchMock).toHaveBeenCalled();
 		const firstCallUrl = String(fetchMock.mock.calls[0]?.[0] ?? "");
 		expect(firstCallUrl).toContain("export-user-data");
+		// The export is saved through one hidden anchor on the blob's object URL
+		await waitFor(() => expect(navigations).toEqual(["blob:test"]));
 	});
 
 	it("Request Deletion fires request_account_deletion RPC after type-to-confirm", async () => {

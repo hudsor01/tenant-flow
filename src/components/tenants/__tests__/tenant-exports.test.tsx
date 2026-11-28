@@ -7,7 +7,7 @@
  * tenants the search and status filter leave in the list, and is off when
  * they leave none (VD-62).
  */
-import { fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import Papa from "papaparse";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useTenantsStore } from "#stores/tenants-store";
@@ -105,6 +105,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+	// Unmount before resetting the store: this hook runs before the setup's
+	// cleanup, and a reset under a mounted page re-renders it outside act().
+	cleanup();
 	useTenantsStore.getState().reset();
 	handleMutationErrorMock.mockReset();
 	vi.restoreAllMocks();
