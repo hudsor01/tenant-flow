@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useSubscriptionStatus } from "#hooks/api/use-billing";
+import { useProfile } from "#hooks/api/use-profile";
 import { cn } from "#lib/utils";
 
 /**
@@ -23,6 +24,7 @@ import { cn } from "#lib/utils";
  *   it says what the proxy does: every other owner page needs an active plan,
  *   and Settings stays open (owner, 2026-11-09)
  * - null (no subscription): info banner with link to /pricing
+ * - an admin: renders nothing, whatever the status (the proxy admits admins)
  *
  * Include in owner layout to show across all owner pages.
  *
@@ -36,8 +38,16 @@ import { cn } from "#lib/utils";
  */
 export function SubscriptionStatusBanner() {
 	const { data: subscription, isLoading, isError } = useSubscriptionStatus();
+	const { data: profile, isLoading: profileLoading } = useProfile();
 
-	if (isLoading) return null;
+	if (isLoading || profileLoading) return null;
+
+	// The proxy admits an admin to every page whatever their subscription
+	// (src/proxy.ts, step 7), so no banner is true for one: the lapsed banner
+	// told an expired admin "Other pages need an active plan" on a dashboard
+	// they had just reached (2026-11-28). A failed profile read falls through
+	// to the subscription banners, as for any owner.
+	if (profile?.is_admin) return null;
 
 	// Battle-test Session 9 P1: when the subscription query errors (auth
 	// hiccup, RLS rejection, transient DB), the previous fall-through

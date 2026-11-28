@@ -4,9 +4,19 @@ import { computeAnchorRuleReach } from "#test/utils/base-rule-cascade";
 import { SubscriptionStatusBanner } from "../subscription-status-banner";
 
 const mockUseSubscriptionStatus = vi.fn();
+const { mockUseProfile } = vi.hoisted(() => ({
+	mockUseProfile: vi.fn<
+		() => { data: { is_admin: boolean } | undefined; isLoading: boolean }
+	>(() => ({ data: { is_admin: false }, isLoading: false })),
+}));
 
 vi.mock("#hooks/api/use-billing", () => ({
 	useSubscriptionStatus: () => mockUseSubscriptionStatus(),
+}));
+
+// Every case below is a non-admin owner unless it says otherwise.
+vi.mock("#hooks/api/use-profile", () => ({
+	useProfile: () => mockUseProfile(),
 }));
 
 // What the proxy does for these statuses: every owner page but Settings (and
@@ -486,5 +496,62 @@ describe("SubscriptionStatusBanner", () => {
 			);
 			expect(link.className.split(/\s+/), label).toContain(tone);
 		}
+	});
+});
+
+describe("SubscriptionStatusBanner — an admin", () => {
+	/** A subscription row in `status`, as useSubscriptionStatus returns it. */
+	function subscriptionIn(status: string | null) {
+		return {
+			subscriptionStatus: status,
+			stripeCustomerId: "cus_123",
+			stripePriceId: null,
+			currentPeriodEnd: null,
+			cancelAtPeriodEnd: false,
+			trialEndsAt: null,
+		};
+	}
+
+	it("shows no banner whatever the status, as the proxy admits an admin everywhere", () => {
+		mockUseProfile.mockReturnValue({
+			data: { is_admin: true },
+			isLoading: false,
+		});
+		for (const status of [
+			"expired",
+			"canceled",
+			"unpaid",
+			"past_due",
+			"trialing",
+			null,
+		]) {
+			cleanup();
+			mockUseSubscriptionStatus.mockReturnValue({
+				data: subscriptionIn(status),
+				isLoading: false,
+			});
+			const { container } = render(<SubscriptionStatusBanner />);
+			expect(container.innerHTML, String(status)).toBe("");
+		}
+	});
+
+	it("waits for the profile before showing a lapsed owner's banner", () => {
+		mockUseProfile.mockReturnValue({ data: undefined, isLoading: true });
+		mockUseSubscriptionStatus.mockReturnValue({
+			data: subscriptionIn("expired"),
+			isLoading: false,
+		});
+		const { container } = render(<SubscriptionStatusBanner />);
+		expect(container.innerHTML).toBe("");
+	});
+
+	it("still shows the lapsed banner when the profile read fails", () => {
+		mockUseProfile.mockReturnValue({ data: undefined, isLoading: false });
+		mockUseSubscriptionStatus.mockReturnValue({
+			data: subscriptionIn("expired"),
+			isLoading: false,
+		});
+		render(<SubscriptionStatusBanner />);
+		expect(screen.getByText(LAPSED_COPY)).toBeTruthy();
 	});
 });
