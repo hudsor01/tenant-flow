@@ -108,7 +108,7 @@ function setGitHubSecret(
 	if (result.status !== 0) {
 		const reason = result.error?.message ?? result.stderr.trim();
 		throw new Error(
-			`gh secret set ${name} (${app}) failed: ${reason}. The new password is in .env.local; run again with --secrets-only once gh works.`,
+			`Setting the GitHub ${app} secret failed: ${reason}. The new password is in .env.local; run again with --secrets-only once gh works.`,
 		);
 	}
 }
@@ -116,7 +116,7 @@ function setGitHubSecret(
 function pushSecrets(passwordVar: string, password: string): void {
 	setGitHubSecret(passwordVar, password, "actions");
 	setGitHubSecret(passwordVar, password, "dependabot");
-	console.log(`Set ${passwordVar} for GitHub Actions and Dependabot.`);
+	console.log("Set the password secret for GitHub Actions and Dependabot.");
 }
 
 async function findUserId(
@@ -146,7 +146,13 @@ async function main(argv: string[]): Promise<void> {
 	const account = ACCOUNTS[name];
 
 	if (argv.includes("--secrets-only")) {
-		pushSecrets(account.passwordVar, requireEnv(account.passwordVar));
+		const saved = process.env[account.passwordVar];
+		if (!saved) {
+			throw new Error(
+				`No saved password for ${account.email} in .env.local; run without --secrets-only.`,
+			);
+		}
+		pushSecrets(account.passwordVar, saved);
 		return;
 	}
 
@@ -195,9 +201,7 @@ async function main(argv: string[]): Promise<void> {
 		}),
 		{ mode: 0o600 },
 	);
-	console.log(
-		`Wrote ${account.emailVar} and ${account.passwordVar} to ${envPath}.`,
-	);
+	console.log(`Wrote the sign-in for ${account.email} to ${envPath}.`);
 
 	pushSecrets(account.passwordVar, password);
 }
